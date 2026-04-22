@@ -16,6 +16,7 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
     address: restaurant.address || '',
     phone: restaurant.phone || '',
     kitchen_password: restaurant.kitchen_password,
+    waiter_password: restaurant.waiter_password || '',
   });
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -33,6 +34,10 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
       setError(t.kitchenPwd);
       return;
     }
+    if (!/^\d{4}$/.test(form.waiter_password)) {
+      setError(t.waiterPwd);
+      return;
+    }
 
     setSaving(true);
     try {
@@ -43,6 +48,7 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
           address: form.address.trim() || null,
           phone: form.phone.trim() || null,
           kitchen_password: form.kitchen_password,
+          waiter_password: form.waiter_password,
         })
         .eq('id', restaurant.id);
 
@@ -106,6 +112,21 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
               />
               <p className="text-xs text-brand-text-muted mt-1">
                 {t.kitchenTip}
+              </p>
+            </div>
+
+            <div>
+              <Input
+                label={t.waiterLabel}
+                type="text"
+                maxLength={4}
+                pattern="\d{4}"
+                value={form.waiter_password}
+                onChange={e => setForm(f => ({ ...f, waiter_password: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
+                placeholder="5678"
+              />
+              <p className="text-xs text-brand-text-muted mt-1">
+                {t.waiterTip}
               </p>
             </div>
 

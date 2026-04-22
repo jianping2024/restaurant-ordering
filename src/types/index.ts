@@ -5,9 +5,10 @@
 export type Plan = 'free' | 'pro';
 export type OrderStatus = 'pending' | 'cooking' | 'done';
 export type OrderItemStatus = 'pending' | 'cooking' | 'done';
+export type SessionStatus = 'open' | 'billing' | 'closed';
 export type Category = 'Entradas' | 'Pratos' | 'Bebidas' | 'Sobremesas';
 export type SplitMode = 'even' | 'by_item' | 'custom';
-export type BillStatus = 'pending' | 'confirmed';
+export type BillStatus = 'pending' | 'confirmed' | 'requested' | 'paid';
 export type Language = 'pt' | 'en' | 'zh';
 
 export interface Restaurant {
@@ -20,6 +21,7 @@ export interface Restaurant {
   phone?: string;
   plan: Plan;
   kitchen_password: string;
+  waiter_password: string;
   created_at: string;
 }
 
@@ -48,13 +50,16 @@ export interface OrderItem {
   price: number;
   emoji: string;
   item_status?: OrderItemStatus; // 菜品级出餐状态
+  batch_id?: string; // 同一餐次内的加单批次
   started_at?: string;
   done_at?: string;
+  added_at?: string;
 }
 
 export interface Order {
   id: string;
   restaurant_id: string;
+  session_id?: string | null;
   table_number: number;
   status: OrderStatus;
   items: OrderItem[];
@@ -78,6 +83,7 @@ export interface SplitResult {
 export interface BillSplit {
   id: string;
   restaurant_id: string;
+  session_id?: string | null;
   table_number: number;
   order_ids: string[];
   split_mode: SplitMode;
@@ -86,6 +92,15 @@ export interface BillSplit {
   total_amount: number;
   status: BillStatus;
   created_at: string;
+}
+
+export interface TableSession {
+  id: string;
+  restaurant_id: string;
+  table_number: number;
+  status: SessionStatus;
+  opened_at: string;
+  closed_at?: string | null;
 }
 
 // 购物车条目

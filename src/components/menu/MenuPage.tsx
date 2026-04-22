@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { MenuItem, Category, Language, CartItem, Order } from '@/types';
+import Link from 'next/link';
+import type { MenuItem, Category, Language, CartItem, Order, TableSession } from '@/types';
 import { MenuItemCard } from './MenuItemCard';
 import { CartBar } from './CartBar';
 import { CartDrawer } from './CartDrawer';
@@ -20,6 +21,21 @@ interface Props {
   isDemo?: boolean;
 }
 
+function deriveOrderStatusFromItems(items: Array<{ item_status?: 'pending' | 'cooking' | 'done' }>) {
+  const statuses = items.map(i => i.item_status || 'pending');
+  if (statuses.length > 0 && statuses.every(s => s === 'done')) return 'done' as const;
+  if (statuses.some(s => s === 'cooking' || s === 'done')) return 'cooking' as const;
+  return 'pending' as const;
+}
+
+function calcItemsTotal(items: Array<{ price: number | string; qty: number | string }>) {
+  return items.reduce((sum, it) => {
+    const price = Number(it.price) || 0;
+    const qty = Number(it.qty) || 0;
+    return sum + price * qty;
+  }, 0);
+}
+
 export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) {
   const [lang, setLang] = useState<Language>('pt');
   const [activeCategory, setActiveCategory] = useState<Category>('Pratos');
@@ -27,8 +43,11 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitSuccessText, setSubmitSuccessText] = useState('');
   const [demoToast, setDemoToast] = useState(false);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [activeSession, setActiveSession] = useState<TableSession | null>(null);
+  const [latestBatchId, setLatestBatchId] = useState<string | null>(null);
 
   // 从 localStorage 恢复语言设置
   useEffect(() => {
@@ -41,23 +60,39 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
     localStorage.setItem('mesa-lang', l);
   };
 
-  // 加载本桌订单记录，刷新后顾客也能看到已下单内容。
+  // 加载本桌当前餐次及订单
   useEffect(() => {
     if (isDemo) return;
     const supabase = createClient();
 
-    const loadOrders = async () => {
-      const { data } = await supabase
-        .from('orders')
+    const loadSessionAndOrders = async () => {
+      const { data: session } = await supabase
+        .from('table_sessions')
         .select('*')
         .eq('restaurant_id', restaurant.id)
         .eq('table_number', tableNumber)
+        .in('status', ['open', 'billing'])
+        .order('opened_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      setActiveSession((session as TableSession | null) || null);
+
+      if (!session) {
+        setRecentOrders([]);
+        return;
+      }
+
+      const { data } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('session_id', session.id)
         .order('created_at', { ascending: false })
         .limit(8);
       setRecentOrders((data || []) as Order[]);
     };
 
-    loadOrders();
+    loadSessionAndOrders();
   }, [isDemo, restaurant.id, tableNumber]);
 
   // 当前分类菜品
@@ -98,8 +133,16 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
   };
 
   const totalQty = cart.reduce((sum, c) => sum + c.qty, 0);
-  const totalPrice = cart.reduce((sum, c) => sum + c.qty * c.price, 0);
+  const totalPrice = calcItemsTotal(cart);
   const t = MENU_PAGE_MESSAGES[lang];
+  const { totalItemCount } = recentOrders.reduce((acc, order) => {
+    order.items.forEach((item) => {
+      acc.totalItemCount += 1;
+    });
+    return acc;
+  }, { totalItemCount: 0 });
+  // 只要本桌本餐次有下单记录，即可随时进入结账页。
+  const canGoBill = !!activeSession && totalItemCount > 0;
 
   // 提交订单
   const submitOrder = async () => {
@@ -116,6 +159,8 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
 
     try {
       const supabase = createClient();
+      const batchId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const addedAt = new Date().toISOString();
       const items = cart.map(c => ({
         id: c.menuItemId,
         name: c[`name_${lang}`] || c.name_pt,
@@ -125,33 +170,90 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
         price: c.price,
         emoji: c.emoji,
         item_status: 'pending' as const,
+        batch_id: batchId,
+        added_at: addedAt,
       }));
-      // 每次提交都新建一张订单（厨房按单出餐，避免旧菜被重复处理）。
-      const { error } = await supabase.from('orders').insert({
-        restaurant_id: restaurant.id,
-        table_number: tableNumber,
-        status: 'pending',
-        items,
-        total_amount: totalPrice,
-      });
+      let sessionId = activeSession?.id || null;
+      let sessionStatus = activeSession?.status || null;
 
-      if (error) throw error;
+      if (!sessionId) {
+        const { data: newSession, error: sessionError } = await supabase
+          .from('table_sessions')
+          .insert({
+            restaurant_id: restaurant.id,
+            table_number: tableNumber,
+            status: 'open',
+          })
+          .select('*')
+          .single();
+        if (sessionError) throw sessionError;
+        sessionId = newSession.id;
+        sessionStatus = 'open';
+      }
+
+      if (sessionStatus === 'billing') {
+        alert(t.billDisabledHint);
+        return;
+      }
+
+      // 同桌同餐次始终使用同一张订单；每次提交作为新批次追加。
+      const { data: openOrder } = await supabase
+        .from('orders')
+        .select('id, items')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (openOrder) {
+        const hadDoneBefore = ((openOrder.items || []) as Array<{ item_status?: 'pending' | 'cooking' | 'done' | undefined }>)
+          .every(item => (item.item_status || 'pending') === 'done');
+        const mergedItems = [...((openOrder.items || []) as typeof items), ...items];
+        const mergedTotal = calcItemsTotal(mergedItems);
+        const mergedStatus = deriveOrderStatusFromItems(mergedItems);
+        const { error } = await supabase
+          .from('orders')
+          .update({
+            items: mergedItems,
+            total_amount: mergedTotal,
+            status: mergedStatus,
+          })
+          .eq('id', openOrder.id);
+        if (error) throw error;
+        setSubmitSuccessText(hadDoneBefore ? t.reOpenOrderSuccess : t.addOnOrderSuccess);
+      } else {
+        const { error } = await supabase.from('orders').insert({
+          restaurant_id: restaurant.id,
+          session_id: sessionId,
+          table_number: tableNumber,
+          status: 'pending',
+          items,
+          total_amount: totalPrice,
+        });
+        if (error) throw error;
+        setSubmitSuccessText(t.firstOrderSuccess);
+      }
 
       const { data: latestOrders } = await supabase
         .from('orders')
         .select('*')
-        .eq('restaurant_id', restaurant.id)
-        .eq('table_number', tableNumber)
+        .eq('session_id', sessionId)
         .order('created_at', { ascending: false })
         .limit(8);
       setRecentOrders((latestOrders || []) as Order[]);
+      setLatestBatchId(batchId);
+      setTimeout(() => setLatestBatchId(null), 15000);
 
       setCart([]);
       setCartOpen(false);
       setSubmitted(true);
       setTimeout(() => setSubmitted(false), 3000);
-    } catch {
-      alert('提交失败，请重试');
+    } catch (error) {
+      if (process.env.NODE_ENV !== 'production') {
+        // Keep dev diagnostics without exposing raw errors to guests.
+        console.error('[MenuPage.submitOrder] failed:', error);
+      }
+      alert(t.submitFailed);
     } finally {
       setSubmitting(false);
     }
@@ -187,7 +289,7 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-brand-card border border-green-500/30 rounded-2xl p-8 text-center mx-4">
             <div className="text-5xl mb-4">✅</div>
-            <h2 className="font-heading text-2xl text-green-400 mb-2">{t.orderSuccess}</h2>
+            <h2 className="font-heading text-2xl text-green-400 mb-2">{submitSuccessText || t.orderSuccess}</h2>
             <p className="text-brand-text-muted text-sm">{t.orderReceived}</p>
           </div>
         </div>
@@ -260,15 +362,35 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
                   </div>
                   <div className="space-y-1">
                     {order.items.map((item, idx) => (
-                      <p key={`${order.id}-${idx}`} className="text-sm text-brand-text">
-                        {item.emoji} {item.name_pt} x {item.qty}
-                      </p>
+                      <div key={`${order.id}-${idx}`} className="flex items-center justify-between gap-2">
+                        <p className="text-sm text-brand-text">
+                          {item.emoji} {item.name_pt} x {item.qty}
+                        </p>
+                        {latestBatchId && item.batch_id === latestBatchId && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold font-semibold">
+                            {t.newTag}
+                          </span>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>
               ))}
             </div>
           )}
+          <div className="mt-4 pt-3 border-t border-brand-border">
+            <Link
+              href={`/${restaurant.slug}/bill?table=${tableNumber}`}
+              aria-disabled={!canGoBill}
+              className={`w-full block text-center rounded-xl py-2.5 text-sm font-semibold transition-colors ${
+                canGoBill
+                  ? 'bg-brand-gold text-brand-bg hover:bg-brand-gold-light'
+                  : 'bg-brand-border text-brand-text-muted pointer-events-none'
+              }`}
+            >
+              {t.billCta}
+            </Link>
+          </div>
         </div>
       </section>
 

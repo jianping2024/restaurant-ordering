@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
-import type { Order } from '@/types';
+import type { BillSplit, Order } from '@/types';
 import { getServerLanguage } from '@/lib/i18n.server';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import { CheckoutRequestsManager } from '@/components/dashboard/CheckoutRequestsManager';
 
 // 订单历史页
 export default async function OrdersPage() {
@@ -21,6 +22,15 @@ export default async function OrdersPage() {
     .eq('restaurant_id', restaurant!.id)
     .order('created_at', { ascending: false })
     .limit(100);
+
+  const { data: checkoutRequests } = await supabase
+    .from('bill_splits')
+    .select('*')
+    .eq('restaurant_id', restaurant!.id)
+    .eq('status', 'requested')
+    .not('session_id', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(50);
 
   const i18n = getMessages(lang).orderHistory;
   const locale = UI_LOCALE_BY_LANG[lang];
@@ -89,6 +99,8 @@ export default async function OrdersPage() {
           ))}
         </div>
       )}
+
+      <CheckoutRequestsManager initialRequests={(checkoutRequests || []) as BillSplit[]} />
     </div>
   );
 }

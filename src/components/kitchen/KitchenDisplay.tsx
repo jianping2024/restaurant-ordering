@@ -44,6 +44,16 @@ function deriveOrderStatus(items: OrderItem[]): Order['status'] {
   return 'pending';
 }
 
+async function loadLiveOrders(supabase: ReturnType<typeof createClient>, restaurantId: string) {
+  const { data } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('restaurant_id', restaurantId)
+    .in('status', ['pending', 'cooking'])
+    .order('created_at', { ascending: true });
+  return (data || []) as Order[];
+}
+
 export function KitchenDisplay({ restaurant, initialOrders }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).kitchen;
@@ -54,6 +64,7 @@ export function KitchenDisplay({ restaurant, initialOrders }: Props) {
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [doneOrders, setDoneOrders] = useState<Order[]>([]);
   const [showDone, setShowDone] = useState(false);
+  const [updateConflict, setUpdateConflict] = useState(false);
   const prevOrderIds = useRef<Set<string>>(new Set(initialOrders.map(o => o.id)));
   const supabase = createClient();
 
@@ -70,6 +81,7 @@ export function KitchenDisplay({ restaurant, initialOrders }: Props) {
 
   // 更新菜品级状态，并同步订单总状态（pending/cooking/done）
   const updateItemStatus = async (order: Order, itemIdx: number, nextStatus: OrderItemStatus) => {
+    setUpdateConflict(false);
     const nextItems = order.items.map((item, idx) => {
       if (idx !== itemIdx) return item;
       return {
@@ -82,13 +94,30 @@ export function KitchenDisplay({ restaurant, initialOrders }: Props) {
 
     const nextOrderStatus = deriveOrderStatus(nextItems);
 
-    await supabase
+    const { error } = await supabase
       .from('orders')
       .update({
         items: nextItems,
         status: nextOrderStatus,
       })
-      .eq('id', order.id);
+      .eq('id', order.id)
+      .eq('updated_at', order.updated_at);
+
+    if (!error) return;
+
+    const isConflict =
+      error.code === 'PGRST116' ||
+      error.message.toLowerCase().includes('0 rows') ||
+      error.message.toLowerCase().includes('not found');
+
+    if (isConflict) {
+      setUpdateConflict(true);
+      const latest = await loadLiveOrders(supabase, restaurant.id);
+      setOrders(latest);
+      return;
+    }
+
+    throw error;
   };
 
   // Supabase Realtime 订阅
@@ -208,6 +237,11 @@ export function KitchenDisplay({ restaurant, initialOrders }: Props) {
           </button>
         </div>
       </div>
+      {updateConflict && (
+        <div className="mb-4 rounded-lg border border-yellow-500/40 bg-yellow-500/10 px-4 py-2 text-sm text-yellow-300">
+          订单已被其他设备更新，已自动刷新，请重试刚才操作。
+        </div>
+      )}
 
       {/* 待处理订单网格 */}
       {orders.length === 0 ? (
@@ -275,6 +309,8 @@ function OrderCard({
     completed: string;
     startCooking: string;
     finishServing: string;
+    firstBatch: string;
+    addOnBatch: string;
   };
   locale: string;
 }) {
@@ -294,6 +330,11 @@ function OrderCard({
     cooking: 'border-yellow-500/70 bg-yellow-950/20',
     done: 'border-green-500/70 bg-green-950/20',
   };
+  const batchOrder: string[] = [];
+  order.items.forEach((item) => {
+    const batch = item.batch_id || 'legacy';
+    if (!batchOrder.includes(batch)) batchOrder.push(batch);
+  });
 
   return (
     <div className={`border-2 rounded-2xl p-4 ${statusStyle[order.status]}`}>
@@ -312,57 +353,77 @@ function OrderCard({
         </span>
       </div>
 
-      {/* 菜品列表 */}
-      <div className="space-y-2 mb-4">
-        {order.items.map((item, idx) => (
-          <div key={idx} className="flex items-start gap-2">
-            <span className="text-xl flex-shrink-0">{item.emoji}</span>
-            <div className="flex-1 min-w-0">
-              <p className="text-white text-sm">
-                {item.name_pt}
-                <span className="text-brand-gold ml-2">× {item.qty}</span>
-              </p>
-              {item.note && (
-                <p className="text-xs bg-yellow-400/20 text-yellow-300 px-2 py-0.5 rounded mt-1">
-                  📝 {item.note}
-                </p>
-              )}
-              <div className="flex items-center gap-2 mt-1.5">
-                <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                  normalizeItemStatus(item, order.status) === 'done'
-                    ? 'bg-green-500/20 text-green-400'
-                    : normalizeItemStatus(item, order.status) === 'cooking'
-                      ? 'bg-yellow-500/20 text-yellow-400'
-                      : 'bg-red-500/20 text-red-400'
-                }`}>
-                  {normalizeItemStatus(item, order.status) === 'done'
-                    ? labels.completed
-                    : normalizeItemStatus(item, order.status) === 'cooking'
-                      ? labels.cooking
-                      : labels.newOrder}
-                </span>
-                {normalizeItemStatus(item, order.status) === 'pending' && (
-                  <button
-                    onClick={() => handleItemStatusChange(idx, 'cooking')}
-                    disabled={updating}
-                    className="text-[11px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 px-2 py-0.5 rounded-md hover:bg-yellow-500/30 disabled:opacity-50"
-                  >
-                    {labels.startCooking}
-                  </button>
-                )}
-                {normalizeItemStatus(item, order.status) === 'cooking' && (
-                  <button
-                    onClick={() => handleItemStatusChange(idx, 'done')}
-                    disabled={updating}
-                    className="text-[11px] bg-green-500/20 text-green-400 border border-green-500/50 px-2 py-0.5 rounded-md hover:bg-green-500/30 disabled:opacity-50"
-                  >
-                    {labels.finishServing}
-                  </button>
-                )}
+      {/* 菜品列表（按加单批次分组） */}
+      <div className="space-y-3 mb-4">
+        {batchOrder.map((batchId, batchIdx) => {
+          const batchItems = order.items
+            .map((item, idx) => ({ item, idx }))
+            .filter(({ item }) => (item.batch_id || 'legacy') === batchId);
+          const batchLabel = batchIdx === 0 ? labels.firstBatch : `${labels.addOnBatch} #${batchIdx}`;
+          const batchTime = batchItems[0]?.item.added_at
+            ? new Date(batchItems[0].item.added_at as string).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+            : null;
+
+          return (
+            <div key={`${order.id}-${batchId}`} className="rounded-lg border border-brand-border/60 p-2.5">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[11px] text-brand-gold font-medium">{batchLabel}</p>
+                {batchTime && <p className="text-[10px] text-brand-text-muted">{batchTime}</p>}
+              </div>
+              <div className="space-y-2">
+                {batchItems.map(({ item, idx }) => (
+                  <div key={`${order.id}-${idx}`} className="flex items-start gap-2">
+                    <span className="text-xl flex-shrink-0">{item.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm">
+                        {item.name_pt}
+                        <span className="text-brand-gold ml-2">× {item.qty}</span>
+                      </p>
+                      {item.note && (
+                        <p className="text-xs bg-yellow-400/20 text-yellow-300 px-2 py-0.5 rounded mt-1">
+                          📝 {item.note}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                          normalizeItemStatus(item, order.status) === 'done'
+                            ? 'bg-green-500/20 text-green-400'
+                            : normalizeItemStatus(item, order.status) === 'cooking'
+                              ? 'bg-yellow-500/20 text-yellow-400'
+                              : 'bg-red-500/20 text-red-400'
+                        }`}>
+                          {normalizeItemStatus(item, order.status) === 'done'
+                            ? labels.completed
+                            : normalizeItemStatus(item, order.status) === 'cooking'
+                              ? labels.cooking
+                              : labels.newOrder}
+                        </span>
+                        {normalizeItemStatus(item, order.status) === 'pending' && (
+                          <button
+                            onClick={() => handleItemStatusChange(idx, 'cooking')}
+                            disabled={updating}
+                            className="text-[11px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 px-2 py-0.5 rounded-md hover:bg-yellow-500/30 disabled:opacity-50"
+                          >
+                            {labels.startCooking}
+                          </button>
+                        )}
+                        {normalizeItemStatus(item, order.status) === 'cooking' && (
+                          <button
+                            onClick={() => handleItemStatusChange(idx, 'done')}
+                            disabled={updating}
+                            className="text-[11px] bg-green-500/20 text-green-400 border border-green-500/50 px-2 py-0.5 rounded-md hover:bg-green-500/30 disabled:opacity-50"
+                          >
+                            {labels.finishServing}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

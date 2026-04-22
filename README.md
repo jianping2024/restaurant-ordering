@@ -51,7 +51,15 @@ NEXT_PUBLIC_BASE_URL=http://localhost:3000
 
 ### 3. 运行数据库迁移
 
-在 Supabase Dashboard → SQL Editor 中，将 `supabase/migrations/20240101000000_initial_schema.sql` 的内容粘贴并执行。
+推荐使用 Supabase CLI 推送迁移（按时间顺序）：
+
+```bash
+supabase login
+supabase link --project-ref <your-project-ref>
+supabase db push
+```
+
+如果远端是历史库且出现“表已存在但迁移未记录”，先执行 `supabase migration repair` 后再 `supabase db push`。
 
 ### 4. （可选）插入示例数据
 
@@ -75,9 +83,10 @@ NEXT_PUBLIC_BASE_URL=http://localhost:3000
 | `/dashboard/menu` | 菜单管理 |
 | `/dashboard/tables` | 桌位二维码管理 |
 | `/dashboard/orders` | 订单历史 |
-| `/dashboard/settings` | 餐厅设置（含厨房密码） |
+| `/dashboard/settings` | 餐厅设置（厨房/服务员密码） |
 | `/[slug]/menu?table=N` | 顾客点餐页（手机端） |
 | `/[slug]/kitchen` | 厨房显示页（需密码） |
+| `/[slug]/waiter` | 服务员观察页（需密码） |
 | `/[slug]/bill?table=N` | 账单分单页 |
 
 ---
@@ -112,6 +121,10 @@ git push -u origin main
 1. 注册账号 `/auth/register`
 2. 在 `/dashboard/menu` 添加菜品
 3. 在 `/dashboard/tables` 生成桌位二维码并打印
-4. 在 `/dashboard/settings` 设置 4 位厨房密码
-5. 打开 `/[slug]/kitchen` 输入密码进入厨房显示
-6. 顾客扫描二维码即可点餐
+4. 在 `/dashboard/settings` 设置 4 位厨房密码和 4 位服务员密码
+5. 在 `/dashboard/tables` 生成并打印桌位二维码，以及厨房/服务员入口二维码
+6. 打开 `/[slug]/kitchen` 输入厨房密码进入厨房显示
+7. 打开 `/[slug]/waiter` 输入服务员密码进入观察页
+8. 顾客扫描二维码点餐，加单会追加到同一餐次
+9. 顾客下单后可随时进入账单页，金额按该餐次实际下单总额计算
+10. 服务端确认收款并关台后，顾客刷新账单页会自动回到点单页

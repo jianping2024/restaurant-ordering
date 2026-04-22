@@ -16,6 +16,7 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
   const t = getMessages(lang).tables;
 
   const [qrCodes, setQrCodes] = useState<Record<number, string>>({});
+  const [staffQr, setStaffQr] = useState<{ kitchen: string; waiter: string }>({ kitchen: '', waiter: '' });
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
   // 生成所有二维码
@@ -35,11 +36,40 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
     generate();
   }, [tableCount, restaurant.slug, baseUrl]);
 
+  // 生成员工入口二维码（厨房 + 服务员观察）
+  useEffect(() => {
+    const generateStaffQr = async () => {
+      const kitchenUrl = `${baseUrl}/${restaurant.slug}/kitchen`;
+      const waiterUrl = `${baseUrl}/${restaurant.slug}/waiter`;
+      const [kitchen, waiter] = await Promise.all([
+        QRCode.toDataURL(kitchenUrl, {
+          width: 220,
+          margin: 2,
+          color: { dark: '#0f0e0c', light: '#f5f0e8' },
+        }),
+        QRCode.toDataURL(waiterUrl, {
+          width: 220,
+          margin: 2,
+          color: { dark: '#0f0e0c', light: '#f5f0e8' },
+        }),
+      ]);
+      setStaffQr({ kitchen, waiter });
+    };
+    generateStaffQr();
+  }, [restaurant.slug, baseUrl]);
+
   // 下载单个二维码
   const downloadQR = (tableNum: number) => {
     const link = document.createElement('a');
     link.href = qrCodes[tableNum];
     link.download = `table-${tableNum}-qr.png`;
+    link.click();
+  };
+
+  const downloadStaffQR = (type: 'kitchen' | 'waiter') => {
+    const link = document.createElement('a');
+    link.href = staffQr[type];
+    link.download = `${type}-entry-qr.png`;
     link.click();
   };
 
@@ -103,6 +133,50 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
             className="flex-1 accent-brand-gold"
           />
           <span className="text-brand-gold font-heading text-2xl w-10 text-center">{tableCount}</span>
+        </div>
+      </div>
+
+      {/* 员工入口二维码 */}
+      <div className="bg-brand-card border border-brand-border rounded-2xl p-6 mb-6">
+        <h2 className="font-heading text-2xl text-brand-gold mb-2">{t.staffTitle}</h2>
+        <p className="text-brand-text-muted text-sm mb-5">
+          {t.staffDesc}
+        </p>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="border border-brand-border rounded-xl p-4 text-center">
+            <p className="text-brand-text text-sm mb-3">{t.kitchenEntry}</p>
+            {staffQr.kitchen ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={staffQr.kitchen} alt={t.kitchenAlt} className="mx-auto rounded-lg mb-3 w-40 h-40" />
+            ) : (
+              <div className="w-40 h-40 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
+            )}
+            <p className="text-brand-text-muted text-xs mb-2 truncate">/{restaurant.slug}/kitchen</p>
+            <button
+              onClick={() => downloadStaffQR('kitchen')}
+              disabled={!staffQr.kitchen}
+              className="text-xs text-brand-gold hover:underline disabled:opacity-50"
+            >
+              {t.downloadKitchen}
+            </button>
+          </div>
+          <div className="border border-brand-border rounded-xl p-4 text-center">
+            <p className="text-brand-text text-sm mb-3">{t.waiterEntry}</p>
+            {staffQr.waiter ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={staffQr.waiter} alt={t.waiterAlt} className="mx-auto rounded-lg mb-3 w-40 h-40" />
+            ) : (
+              <div className="w-40 h-40 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
+            )}
+            <p className="text-brand-text-muted text-xs mb-2 truncate">/{restaurant.slug}/waiter</p>
+            <button
+              onClick={() => downloadStaffQR('waiter')}
+              disabled={!staffQr.waiter}
+              className="text-xs text-brand-gold hover:underline disabled:opacity-50"
+            >
+              {t.downloadWaiter}
+            </button>
+          </div>
         </div>
       </div>
 

@@ -85,6 +85,15 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
           <span>🍳</span>
           {t.viewKitchen}
         </a>
+        <a
+          href={`/${restaurant.slug}/waiter`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 px-4 py-2 text-xs text-brand-text-muted hover:text-brand-gold transition-colors"
+        >
+          <span>🛎️</span>
+          {t.viewWaiter}
+        </a>
       </div>
 
       {/* 退出 */}

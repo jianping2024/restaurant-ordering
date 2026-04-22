@@ -68,7 +68,27 @@ supabase db push
 ### 5. 配置 Supabase Auth
 
 在 Supabase Dashboard → Authentication → URL Configuration：
-- Site URL：填入 `http://localhost:3000`
+
+- **Site URL**：本地填 `http://localhost:3000`；上线后改为生产域名（如 Vercel）
+- **Redirect URLs**：把 `http://localhost:3000/auth/callback` 与生产环境的 `https://你的域名/auth/callback` 都加入白名单
+
+### 6. 注册报「Error sending confirmation email」/ 用户创建不了（必看）
+
+Supabase **内置邮件**不是给公开注册用的：在未配置 **自定义 SMTP** 时，Auth **只会给当前组织「Team」里成员的邮箱发信**，其他地址会失败，表现为注册报错、Users 里没有新用户。见官方说明：[Send emails with custom SMTP](https://supabase.com/docs/guides/auth/auth-smtp)。
+
+**正式解决（推荐）：**
+
+1. 打开 Dashboard → **Authentication** → **SMTP**（或直接 [项目 Auth SMTP 设置](https://supabase.com/dashboard/project/_/auth/smtp)）
+2. 启用 **Custom SMTP**，按你的邮件服务商填写（常用：[Resend + Supabase](https://resend.com/docs/send-with-supabase-smtp)）
+3. 保存后重新注册测试
+
+**若已配 Resend 仍失败：**发件人填的是 `onboarding@resend.dev` 时，Resend **只允许发到你在 Resend 注册用的那个邮箱**，不能给任意 Gmail 发确认信。请到 [Resend Domains](https://resend.com/domains) **添加并验证你自己的域名**，然后把 Supabase 里的 **Sender email** 改成 `noreply@你的域名`（或任意 `@你的域名` 地址），再测注册。
+
+**仅本地试功能（不推荐上生产）：**
+
+- Authentication → **Providers** → **Email**：关闭 **Confirm email**（无需确认信即可 `signUp` 成功）
+
+**仅临时测一封内置邮件：**把测试邮箱加进 Supabase **Organization → Team** 成员（只适合验证模板，不适合真实用户注册）。
 
 ---
 

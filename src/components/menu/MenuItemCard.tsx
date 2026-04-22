@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import type { MenuItem, Language } from '@/types';
 
 interface Props {
@@ -17,9 +18,19 @@ export function MenuItemCard({ item, lang, cartQty, onAdd }: Props) {
     <div className={`bg-brand-card border rounded-2xl p-4 flex gap-4 ${
       item.available ? 'border-brand-border' : 'border-brand-border opacity-50'
     }`}>
-      {/* Emoji */}
-      <div className="flex-shrink-0 w-16 h-16 bg-brand-border rounded-xl flex items-center justify-center text-3xl">
-        {item.emoji}
+      {/* 图片或 Emoji */}
+      <div className="flex-shrink-0 w-16 h-16 bg-brand-border rounded-xl overflow-hidden flex items-center justify-center text-3xl relative">
+        {item.image_url ? (
+          <Image
+            src={item.image_url}
+            alt={name}
+            fill
+            className="object-cover"
+            sizes="64px"
+          />
+        ) : (
+          item.emoji
+        )}
       </div>
 
       {/* 信息 */}

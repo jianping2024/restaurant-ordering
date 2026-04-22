@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -9,6 +10,12 @@ import type { MenuItem, Category } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { CATEGORY_LABELS, getMessages } from '@/lib/i18n/messages';
 import { MENU_CATEGORIES } from '@/lib/menu';
+import {
+  MENU_IMAGE_ACCEPT,
+  menuImageObjectPath,
+  removeMenuImageFromStorage,
+  validateMenuImageFile,
+} from '@/lib/menu-image';
 
 const FOOD_EMOJIS = ['🍽️','🍞','🥗','🥣','🐟','🥚','🍗','🐙','🥩','🦆','🫒','🍷','🍺','💧','☕','🥧','🍮','🫕','🥘','🍲'];
 
@@ -39,14 +46,48 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
   const [form, setForm] = useState(defaultForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [pendingImage, setPendingImage] = useState<File | null>(null);
+  const [stripImage, setStripImage] = useState(false);
+  const [objectPreviewUrl, setObjectPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const supabase = createClient();
+
+  useEffect(() => {
+    if (!pendingImage) {
+      setObjectPreviewUrl(u => {
+        if (u) URL.revokeObjectURL(u);
+        return null;
+      });
+      return;
+    }
+    const url = URL.createObjectURL(pendingImage);
+    setObjectPreviewUrl(prev => {
+      if (prev) URL.revokeObjectURL(prev);
+      return url;
+    });
+  }, [pendingImage]);
+
+  const resetImageUi = () => {
+    setPendingImage(null);
+    setStripImage(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const closeModal = () => {
+    resetImageUi();
+    setModalOpen(false);
+  };
+
+  const modalPreviewSrc =
+    objectPreviewUrl || (!stripImage && editing?.image_url ? editing.image_url : null);
 
   const categoryItems = items.filter(i => i.category === activeCategory);
 
   // 打开新增弹窗
   const openAdd = () => {
     setEditing(null);
+    resetImageUi();
     setForm({ ...defaultForm, category: activeCategory });
     setError('');
     setModalOpen(true);
@@ -54,6 +95,7 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
 
   // 打开编辑弹窗
   const openEdit = (item: MenuItem) => {
+    resetImageUi();
     setEditing(item);
     setForm({
       name_pt: item.name_pt,
@@ -68,6 +110,19 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
     });
     setError('');
     setModalOpen(true);
+  };
+
+  const onPickImage = (fileList: FileList | null) => {
+    const file = fileList?.[0];
+    if (!file) return;
+    const msg = validateMenuImageFile(file, { imageTooLarge: t.imageTooLarge, imageTypeInvalid: t.imageTypeInvalid });
+    if (msg) {
+      setError(msg);
+      return;
+    }
+    setError('');
+    setStripImage(false);
+    setPendingImage(file);
   };
 
   // 保存（新增/编辑）
@@ -92,6 +147,8 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
     };
 
     try {
+      let row: MenuItem;
+
       if (editing) {
         const { data, error } = await supabase
           .from('menu_items')
@@ -101,7 +158,7 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
           .single();
 
         if (error) throw error;
-        setItems(prev => prev.map(i => i.id === editing.id ? data : i));
+        row = data;
       } else {
         const sortOrder = items.filter(i => i.category === form.category).length;
         const { data, error } = await supabase
@@ -111,9 +168,48 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
           .single();
 
         if (error) throw error;
-        setItems(prev => [...prev, data]);
+        row = data;
       }
-      setModalOpen(false);
+
+      const itemId = row.id;
+      let imageUrl: string | null | undefined;
+
+      if (stripImage && !pendingImage) {
+        if (editing?.image_url) {
+          await removeMenuImageFromStorage(supabase, editing.image_url);
+        }
+        imageUrl = null;
+      } else if (pendingImage) {
+        if (editing?.image_url) {
+          await removeMenuImageFromStorage(supabase, editing.image_url);
+        }
+        const path = menuImageObjectPath(restaurantId, itemId, pendingImage.type);
+        const { error: upErr } = await supabase.storage.from('menu-images').upload(path, pendingImage, {
+          upsert: true,
+          contentType: pendingImage.type,
+        });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from('menu-images').getPublicUrl(path);
+        imageUrl = pub.publicUrl;
+      }
+
+      if (imageUrl !== undefined) {
+        const { data: withImage, error: imgErr } = await supabase
+          .from('menu_items')
+          .update({ image_url: imageUrl })
+          .eq('id', itemId)
+          .select()
+          .single();
+        if (imgErr) throw imgErr;
+        row = withImage;
+      }
+
+      if (editing) {
+        setItems(prev => prev.map(i => i.id === editing.id ? row : i));
+      } else {
+        setItems(prev => [...prev, row]);
+      }
+      closeModal();
     } catch {
       setError(t.saveFail);
     } finally {
@@ -124,6 +220,7 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
   // 删除
   const handleDelete = async (item: MenuItem) => {
     if (!confirm(`${t.deleteConfirm} "${item.name_pt}"?`)) return;
+    await removeMenuImageFromStorage(supabase, item.image_url);
     const { error } = await supabase.from('menu_items').delete().eq('id', item.id);
     if (!error) {
       setItems(prev => prev.filter(i => i.id !== item.id));
@@ -205,7 +302,19 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
               className={`bg-brand-card border rounded-xl px-5 py-4 flex items-center gap-4 transition-all
                 ${item.available ? 'border-brand-border' : 'border-brand-border opacity-60'}`}
             >
-              <span className="text-3xl flex-shrink-0">{item.emoji}</span>
+              <div className="w-12 h-12 rounded-xl overflow-hidden bg-brand-border flex-shrink-0 flex items-center justify-center text-2xl">
+                {item.image_url ? (
+                  <Image
+                    src={item.image_url}
+                    alt=""
+                    width={48}
+                    height={48}
+                    className="object-cover w-12 h-12"
+                  />
+                ) : (
+                  item.emoji
+                )}
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="text-brand-text font-medium truncate">{item.name_pt}</p>
@@ -249,7 +358,7 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
       {/* 添加/编辑弹窗 */}
       <Modal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={closeModal}
         title={editing ? t.modalEdit : t.modalAdd}
         size="lg"
       >
@@ -271,6 +380,49 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
                   {emoji}
                 </button>
               ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm text-brand-text-muted font-medium block mb-2">{t.dishPhoto}</label>
+            <p className="text-xs text-brand-text-muted mb-2">{t.dishPhotoHint}</p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={MENU_IMAGE_ACCEPT}
+              className="hidden"
+              onChange={e => onPickImage(e.target.files)}
+            />
+            <div className="flex flex-wrap items-center gap-3">
+              {modalPreviewSrc && (
+                <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-brand-border border border-brand-border shrink-0">
+                  {modalPreviewSrc.startsWith('blob:') ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- blob: URLs are not valid for next/image
+                    <img src={modalPreviewSrc} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <Image src={modalPreviewSrc} alt="" fill className="object-cover" sizes="80px" />
+                  )}
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                  {t.pickImage}
+                </Button>
+                {modalPreviewSrc && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setStripImage(true);
+                      setPendingImage(null);
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                    }}
+                  >
+                    {t.removeImage}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -341,7 +493,7 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
             <Button onClick={handleSave} loading={saving} className="flex-1">
               {editing ? t.saveEdit : t.addItem}
             </Button>
-            <Button variant="outline" onClick={() => setModalOpen(false)}>
+            <Button variant="outline" onClick={closeModal}>
               {t.cancel}
             </Button>
           </div>

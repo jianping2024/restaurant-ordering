@@ -36,6 +36,7 @@ export interface MenuItem {
   price: number;
   category: Category;
   emoji: string;
+  image_url?: string | null;
   available: boolean;
   sort_order: number;
   created_at: string;

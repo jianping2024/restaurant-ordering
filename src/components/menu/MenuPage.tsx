@@ -136,9 +136,7 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
   const totalPrice = calcItemsTotal(cart);
   const t = MENU_PAGE_MESSAGES[lang];
   const { totalItemCount } = recentOrders.reduce((acc, order) => {
-    order.items.forEach((item) => {
-      acc.totalItemCount += 1;
-    });
+    acc.totalItemCount += order.items.length;
     return acc;
   }, { totalItemCount: 0 });
   // 只要本桌本餐次有下单记录，即可随时进入结账页。

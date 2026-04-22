@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -18,9 +18,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const submittingRef = useRef(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setError('');
     setLoading(true);
 
@@ -30,15 +33,18 @@ export default function LoginPage() {
 
       if (error) {
         setError(t.invalid);
+        setLoading(false);
+        submittingRef.current = false;
         return;
       }
 
       router.push('/dashboard');
       router.refresh();
+      // 保持 loading，直到离开本页；避免导航未完成时按钮又可点
     } catch {
       setError(t.network);
-    } finally {
       setLoading(false);
+      submittingRef.current = false;
     }
   };
 
@@ -58,7 +64,7 @@ export default function LoginPage() {
 
         {/* 表单 */}
         <div className="bg-brand-card border border-brand-border rounded-2xl p-8">
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-5" aria-busy={loading}>
             <Input
               label={t.email}
               type="email"
@@ -67,6 +73,7 @@ export default function LoginPage() {
               onChange={e => setEmail(e.target.value)}
               required
               autoComplete="email"
+              disabled={loading}
             />
             <Input
               label={t.password}
@@ -76,6 +83,7 @@ export default function LoginPage() {
               onChange={e => setPassword(e.target.value)}
               required
               autoComplete="current-password"
+              disabled={loading}
             />
 
             {error && (

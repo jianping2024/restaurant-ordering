@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -31,9 +31,11 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [pendingVerification, setPendingVerification] = useState(false);
+  const submittingRef = useRef(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submittingRef.current) return;
     setError('');
 
     if (password.length < 6) {
@@ -45,6 +47,7 @@ export default function RegisterPage() {
       return;
     }
 
+    submittingRef.current = true;
     setLoading(true);
 
     try {
@@ -64,11 +67,15 @@ export default function RegisterPage() {
           ? t.alreadyRegistered
           : t.registerFailed + ': ' + authError.message
         );
+        setLoading(false);
+        submittingRef.current = false;
         return;
       }
 
       if (!authData.user) {
         setError(t.registerFailed);
+        setLoading(false);
+        submittingRef.current = false;
         return;
       }
 
@@ -88,11 +95,14 @@ export default function RegisterPage() {
 
         if (restaurantError) {
           setError(t.createFailed + restaurantError.message);
+          setLoading(false);
+          submittingRef.current = false;
           return;
         }
 
         router.push('/dashboard');
         router.refresh();
+        // 保持 loading 直到离开页面
       } else {
         // 无 session（需要邮件验证）→ 先保存餐厅信息，验证后在 dashboard 补建
         localStorage.setItem('mesa-pending-restaurant', JSON.stringify({
@@ -100,11 +110,13 @@ export default function RegisterPage() {
           slug,
         }));
         setPendingVerification(true);
+        setLoading(false);
+        submittingRef.current = false;
       }
     } catch {
       setError(t.network);
-    } finally {
       setLoading(false);
+      submittingRef.current = false;
     }
   };
 
@@ -160,7 +172,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-brand-card border border-brand-border rounded-2xl p-8">
-          <form onSubmit={handleRegister} className="space-y-5">
+          <form onSubmit={handleRegister} className="space-y-5" aria-busy={loading}>
             <div>
               <Input
                 label={t.restaurantName}
@@ -169,6 +181,7 @@ export default function RegisterPage() {
                 value={restaurantName}
                 onChange={e => setRestaurantName(e.target.value)}
                 required
+                disabled={loading}
               />
               {slug && (
                 <p className="text-brand-text-muted text-xs mt-1 ml-1">
@@ -184,6 +197,7 @@ export default function RegisterPage() {
               onChange={e => setEmail(e.target.value)}
               required
               autoComplete="email"
+              disabled={loading}
             />
             <Input
               label={t.password}
@@ -193,6 +207,7 @@ export default function RegisterPage() {
               onChange={e => setPassword(e.target.value)}
               required
               autoComplete="new-password"
+              disabled={loading}
             />
 
             {error && (

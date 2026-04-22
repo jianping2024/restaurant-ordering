@@ -249,12 +249,12 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
           <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
           <p className="text-brand-text-muted text-sm mt-1">{t.total} {items.length} {t.items}</p>
         </div>
-        <Button onClick={openAdd}>+ {t.addItem}</Button>
+        <Button onClick={openAdd} className="w-full sm:w-auto shrink-0">+ {t.addItem}</Button>
       </div>
 
       {/* 分类 Tab */}
@@ -299,56 +299,63 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
           {categoryItems.map(item => (
             <div
               key={item.id}
-              className={`bg-brand-card border rounded-xl px-5 py-4 flex items-center gap-4 transition-all
+              className={`bg-brand-card border rounded-xl px-4 py-4 sm:px-5 flex flex-col gap-3 min-[480px]:flex-row min-[480px]:items-center min-[480px]:gap-4 transition-all
                 ${item.available ? 'border-brand-border' : 'border-brand-border opacity-60'}`}
             >
-              <div className="w-12 h-12 rounded-xl overflow-hidden bg-brand-border flex-shrink-0 flex items-center justify-center text-2xl">
-                {item.image_url ? (
-                  <Image
-                    src={item.image_url}
-                    alt=""
-                    width={48}
-                    height={48}
-                    className="object-cover w-12 h-12"
-                  />
-                ) : (
-                  item.emoji
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-brand-text font-medium truncate">{item.name_pt}</p>
-                  {item.name_zh && (
-                    <span className="text-brand-text-muted text-xs">({item.name_zh})</span>
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-12 h-12 rounded-xl overflow-hidden bg-brand-border flex-shrink-0 flex items-center justify-center text-2xl">
+                  {item.image_url ? (
+                    <Image
+                      src={item.image_url}
+                      alt=""
+                      width={48}
+                      height={48}
+                      className="object-cover w-12 h-12"
+                    />
+                  ) : (
+                    item.emoji
                   )}
                 </div>
-                {item.description_pt && (
-                  <p className="text-brand-text-muted text-xs mt-0.5 truncate">{item.description_pt}</p>
-                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-brand-text font-medium truncate">{item.name_pt}</p>
+                    {item.name_zh && (
+                      <span className="text-brand-text-muted text-xs shrink-0">({item.name_zh})</span>
+                    )}
+                  </div>
+                  {item.description_pt && (
+                    <p className="text-brand-text-muted text-xs mt-0.5 line-clamp-2">{item.description_pt}</p>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-4 flex-shrink-0">
-                <span className="text-brand-gold font-medium">€{item.price.toFixed(2)}</span>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 justify-between min-[480px]:justify-end sm:flex-nowrap sm:shrink-0 border-t border-brand-border pt-3 min-[480px]:border-0 min-[480px]:pt-0">
+                <span className="text-brand-gold font-medium tabular-nums">€{item.price.toFixed(2)}</span>
 
-                {/* 上下架开关 */}
-                <button
-                  onClick={() => toggleAvailable(item)}
-                  className={`relative w-10 h-5 rounded-full transition-colors ${
-                    item.available ? 'bg-green-500' : 'bg-brand-border'
-                  }`}
-                >
-                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                    item.available ? 'translate-x-5' : 'translate-x-0.5'
-                  }`} />
-                </button>
+                <div className="flex items-center gap-3 flex-wrap justify-end">
+                  {/* 上下架开关 */}
+                  <button
+                    type="button"
+                    onClick={() => toggleAvailable(item)}
+                    className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${
+                      item.available ? 'bg-green-500' : 'bg-brand-border'
+                    }`}
+                  >
+                    <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                      item.available ? 'translate-x-5' : 'translate-x-0.5'
+                    }`} />
+                  </button>
 
-                <button
-                  onClick={() => openEdit(item)}
-                  className="text-brand-text-muted hover:text-brand-gold transition-colors text-sm"
-                >{t.edit}</button>
-                <button
-                  onClick={() => handleDelete(item)}
-                  className="text-brand-text-muted hover:text-red-400 transition-colors text-sm"
-                >{t.remove}</button>
+                  <button
+                    type="button"
+                    onClick={() => openEdit(item)}
+                    className="text-brand-text-muted hover:text-brand-gold transition-colors text-sm"
+                  >{t.edit}</button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(item)}
+                    className="text-brand-text-muted hover:text-red-400 transition-colors text-sm"
+                  >{t.remove}</button>
+                </div>
               </div>
             </div>
           ))}
@@ -360,32 +367,16 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
         open={modalOpen}
         onClose={closeModal}
         title={editing ? t.modalEdit : t.modalAdd}
-        size="lg"
+        size="xl"
       >
         <div className="space-y-4">
-          {/* Emoji 选择器 */}
-          <div>
-            <label className="text-sm text-brand-text-muted font-medium block mb-2">{t.icon}</label>
-            <div className="flex flex-wrap gap-2">
-              {FOOD_EMOJIS.map(emoji => (
-                <button
-                  key={emoji}
-                  onClick={() => setForm(f => ({ ...f, emoji }))}
-                  className={`text-2xl p-2 rounded-lg transition-all ${
-                    form.emoji === emoji
-                      ? 'bg-brand-gold/20 ring-2 ring-brand-gold'
-                      : 'hover:bg-brand-border'
-                  }`}
-                >
-                  {emoji}
-                </button>
-              ))}
+          {/* 菜品图片：置顶 + 虚线框，避免被误认为「没有上传区」（与 API 是否返回 image_url 无关） */}
+          <div className="rounded-xl border-2 border-dashed border-brand-gold/35 bg-brand-bg/40 p-4 space-y-3">
+            <div>
+              <span className="text-brand-gold mr-2" aria-hidden>📷</span>
+              <span className="text-sm text-brand-text font-medium">{t.dishPhoto}</span>
             </div>
-          </div>
-
-          <div>
-            <label className="text-sm text-brand-text-muted font-medium block mb-2">{t.dishPhoto}</label>
-            <p className="text-xs text-brand-text-muted mb-2">{t.dishPhotoHint}</p>
+            <p className="text-xs text-brand-text-muted">{t.dishPhotoHint}</p>
             <input
               ref={fileInputRef}
               type="file"
@@ -393,15 +384,19 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
               className="hidden"
               onChange={e => onPickImage(e.target.files)}
             />
-            <div className="flex flex-wrap items-center gap-3">
-              {modalPreviewSrc && (
-                <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-brand-border border border-brand-border shrink-0">
+            <div className="flex flex-wrap items-center gap-3 min-h-[5.5rem]">
+              {modalPreviewSrc ? (
+                <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-brand-border border border-brand-border shrink-0">
                   {modalPreviewSrc.startsWith('blob:') ? (
                     // eslint-disable-next-line @next/next/no-img-element -- blob: URLs are not valid for next/image
                     <img src={modalPreviewSrc} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <Image src={modalPreviewSrc} alt="" fill className="object-cover" sizes="80px" />
+                    <Image src={modalPreviewSrc} alt="" fill className="object-cover" sizes="96px" />
                   )}
+                </div>
+              ) : (
+                <div className="w-24 h-24 rounded-xl border border-brand-border bg-brand-card/80 flex items-center justify-center text-2xl text-brand-text-muted shrink-0">
+                  —
                 </div>
               )}
               <div className="flex flex-wrap gap-2">
@@ -423,6 +418,27 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
                   </Button>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* Emoji 选择器 */}
+          <div>
+            <label className="text-sm text-brand-text-muted font-medium block mb-2">{t.icon}</label>
+            <div className="flex flex-wrap gap-2">
+              {FOOD_EMOJIS.map(emoji => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, emoji }))}
+                  className={`text-2xl p-2 rounded-lg transition-all ${
+                    form.emoji === emoji
+                      ? 'bg-brand-gold/20 ring-2 ring-brand-gold'
+                      : 'hover:bg-brand-border'
+                  }`}
+                >
+                  {emoji}
+                </button>
+              ))}
             </div>
           </div>
 

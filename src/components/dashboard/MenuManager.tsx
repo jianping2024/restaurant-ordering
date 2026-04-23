@@ -333,28 +333,34 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
 
                 <div className="flex items-center gap-3 flex-wrap justify-end">
                   {/* 上下架开关 */}
-                  <button
-                    type="button"
-                    onClick={() => toggleAvailable(item)}
-                    className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${
-                      item.available ? 'bg-green-500' : 'bg-brand-border'
-                    }`}
-                  >
-                    <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                      item.available ? 'translate-x-5' : 'translate-x-0.5'
-                    }`} />
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => toggleAvailable(item)}
+                      className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${
+                        item.available ? 'bg-green-500' : 'bg-brand-border'
+                      }`}
+                    >
+                      <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                        item.available ? 'translate-x-5' : 'translate-x-0.5'
+                      }`} />
+                    </button>
+                  </div>
 
-                  <button
-                    type="button"
-                    onClick={() => openEdit(item)}
-                    className="text-brand-text-muted hover:text-brand-gold transition-colors text-sm"
-                  >{t.edit}</button>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(item)}
-                    className="text-brand-text-muted hover:text-red-400 transition-colors text-sm"
-                  >{t.remove}</button>
+                  <div className="w-px h-4 bg-brand-border/80 mx-1" />
+
+                  <div className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => openEdit(item)}
+                      className="text-brand-text-muted hover:text-brand-gold transition-colors text-sm"
+                    >{t.edit}</button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(item)}
+                      className="text-brand-text-muted hover:text-red-400 transition-colors text-sm"
+                    >{t.remove}</button>
+                  </div>
                 </div>
               </div>
             </div>

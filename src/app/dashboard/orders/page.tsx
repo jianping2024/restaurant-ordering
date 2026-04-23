@@ -52,6 +52,8 @@ export default async function OrdersPage() {
         <p className="text-brand-text-muted text-sm mt-1">{i18n.total} {orders?.length || 0} {i18n.records}</p>
       </div>
 
+      <CheckoutRequestsManager initialRequests={(checkoutRequests || []) as BillSplit[]} />
+
       {!orders || orders.length === 0 ? (
         <div className="bg-brand-card border border-brand-border rounded-2xl p-12 text-center">
           <p className="text-brand-text-muted">{i18n.empty}</p>
@@ -99,8 +101,6 @@ export default async function OrdersPage() {
           ))}
         </div>
       )}
-
-      <CheckoutRequestsManager initialRequests={(checkoutRequests || []) as BillSplit[]} />
     </div>
   );
 }

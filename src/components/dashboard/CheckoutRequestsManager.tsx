@@ -48,7 +48,7 @@ export function CheckoutRequestsManager({ initialRequests }: Props) {
   };
 
   return (
-    <div className="mt-8">
+    <div className="mb-8">
       <h2 className="font-heading text-2xl text-brand-gold mb-4">{t.title}</h2>
       {requests.length === 0 ? (
         <div className="bg-brand-card border border-brand-border rounded-2xl p-6 text-center text-brand-text-muted text-sm">

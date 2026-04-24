@@ -141,7 +141,7 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
               </p>
             )}
 
-            <Button type="submit" loading={saving}>{t.save}</Button>
+            <Button type="submit" loading={saving} className="w-full sm:w-auto">{t.save}</Button>
           </form>
         </div>
 

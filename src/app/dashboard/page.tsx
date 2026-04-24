@@ -80,11 +80,11 @@ export default async function DashboardPage() {
       </div>
 
       {/* 统计卡片 */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {stats.map(stat => (
           <div key={stat.label} className="bg-brand-card border border-brand-border rounded-2xl p-6">
             <p className="text-brand-text-muted text-[13px] mb-2">{stat.label}</p>
-            <p className={`font-heading text-3xl ${stat.color}`}>
+            <p className={`font-heading text-2xl sm:text-3xl ${stat.color}`}>
               {stat.value}
               {stat.unit && <span className="text-base ml-1 text-brand-text-muted">{stat.unit}</span>}
             </p>

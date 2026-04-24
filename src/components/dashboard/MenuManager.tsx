@@ -258,12 +258,12 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
       </div>
 
       {/* 分类 Tab */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
         {MENU_CATEGORIES.map(cat => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`px-5 py-2.5 rounded-xl text-sm transition-all ${
+            className={`shrink-0 px-5 py-2.5 rounded-xl text-sm transition-all ${
               activeCategory === cat
                 ? 'bg-brand-gold text-brand-bg font-semibold'
                 : 'bg-brand-card border border-brand-border text-brand-text-muted hover:text-brand-text'
@@ -448,7 +448,7 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label={t.ptNameReq}
               value={form.name_pt}
@@ -481,7 +481,7 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
             placeholder="Short description..."
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label={t.price}
               type="number"
@@ -511,11 +511,11 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
             </p>
           )}
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
             <Button onClick={handleSave} loading={saving} className="flex-1">
               {editing ? t.saveEdit : t.addItem}
             </Button>
-            <Button variant="outline" onClick={closeModal}>
+            <Button variant="outline" onClick={closeModal} className="w-full sm:w-auto">
               {t.cancel}
             </Button>
           </div>

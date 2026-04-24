@@ -124,7 +124,12 @@ export default async function DashboardPage() {
                   <div>
                     <p className="text-sm text-brand-text">{i18n.table} {order.table_number}</p>
                     <p className="text-xs text-brand-text-muted">
-                      {new Date(order.created_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(order.created_at).toLocaleString(locale, {
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </p>
                   </div>
                   <div className="text-right">

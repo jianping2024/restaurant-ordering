@@ -125,6 +125,8 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
     setPendingImage(file);
   };
 
+  const isImageError = error === t.imageTooLarge || error === t.imageTypeInvalid;
+
   // 保存（新增/编辑）
   const handleSave = async () => {
     if (!form.name_pt.trim()) { setError(t.ptNameRequired); return; }
@@ -383,6 +385,11 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
               <span className="text-sm text-brand-text font-medium">{t.dishPhoto}</span>
             </div>
             <p className="text-[13px] text-brand-text-muted">{t.dishPhotoHint}</p>
+            {isImageError && (
+              <p className="text-red-400 text-[13px] bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
+                {error}
+              </p>
+            )}
             <input
               ref={fileInputRef}
               type="file"
@@ -505,7 +512,7 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
             </div>
           </div>
 
-          {error && (
+          {error && !isImageError && (
             <p className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-2">
               {error}
             </p>

@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/client';
 import { CATEGORY_LABELS } from '@/lib/i18n/messages';
 import { MENU_CATEGORIES } from '@/lib/menu';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
+import { getClientLanguage, setClientLanguage } from '@/lib/i18n';
 
 const LANG_FLAGS: Record<Language, string> = { pt: '🇵🇹', en: '🇬🇧', zh: '🇨🇳' };
 const LANG_LABELS: Record<Language, string> = { pt: 'PT', en: 'EN', zh: '中' };
@@ -19,7 +20,6 @@ interface Props {
   menuItems: MenuItem[];
   tableNumber: number;
   isDemo?: boolean;
-  initialLang?: Language;
 }
 
 function deriveOrderStatusFromItems(items: Array<{ item_status?: 'pending' | 'cooking' | 'done' }>) {
@@ -37,8 +37,8 @@ function calcItemsTotal(items: Array<{ price: number | string; qty: number | str
   }, 0);
 }
 
-export function MenuPage({ restaurant, menuItems, tableNumber, isDemo, initialLang }: Props) {
-  const [lang, setLang] = useState<Language>('pt');
+export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) {
+  const [lang, setLang] = useState<Language>(() => getClientLanguage() as Language);
   const [activeCategory, setActiveCategory] = useState<Category>('Pratos');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
@@ -52,17 +52,17 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo, initialLa
 
   // 从 localStorage 恢复语言设置
   useEffect(() => {
-    if (initialLang && ['pt', 'en', 'zh'].includes(initialLang)) {
-      setLang(initialLang);
-      localStorage.setItem('mesa-lang', initialLang);
+    const savedLegacy = localStorage.getItem('mesa-lang') as Language | null;
+    if (savedLegacy && ['pt', 'en', 'zh'].includes(savedLegacy)) {
+      setLang(savedLegacy);
+      setClientLanguage(savedLegacy);
       return;
     }
-    const saved = localStorage.getItem('mesa-lang') as Language;
-    if (saved && ['pt', 'en', 'zh'].includes(saved)) setLang(saved);
-  }, [initialLang]);
+  }, []);
 
   const setLangAndSave = (l: Language) => {
     setLang(l);
+    setClientLanguage(l);
     localStorage.setItem('mesa-lang', l);
   };
 

@@ -1,19 +1,16 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { MenuPage } from '@/components/menu/MenuPage';
-import { isUILanguage } from '@/lib/i18n';
-import type { Language } from '@/types';
 
 interface Props {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ table?: string; lang?: string }>;
+  searchParams: Promise<{ table?: string }>;
 }
 
 export default async function CustomerMenuPage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const { table, lang } = await searchParams;
+  const { table } = await searchParams;
   const tableNumber = parseInt(table || '1', 10) || 1;
-  const initialLang = isUILanguage(lang) ? (lang as Language) : undefined;
 
   const supabase = await createClient();
 
@@ -39,7 +36,6 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
       restaurant={restaurant}
       menuItems={menuItems || []}
       tableNumber={tableNumber}
-      initialLang={initialLang}
     />
   );
 }

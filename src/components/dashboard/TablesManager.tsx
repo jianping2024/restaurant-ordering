@@ -24,7 +24,7 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
     const generate = async () => {
       const codes: Record<number, string> = {};
       for (let i = 1; i <= tableCount; i++) {
-        const url = `${baseUrl}/${restaurant.slug}/menu?table=${i}&lang=${lang}`;
+        const url = `${baseUrl}/${restaurant.slug}/menu?table=${i}`;
         codes[i] = await QRCode.toDataURL(url, {
           width: 200,
           margin: 2,
@@ -34,7 +34,7 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
       setQrCodes(codes);
     };
     generate();
-  }, [tableCount, restaurant.slug, baseUrl, lang]);
+  }, [tableCount, restaurant.slug, baseUrl]);
 
   // 生成员工入口二维码（厨房 + 服务员观察）
   useEffect(() => {
@@ -199,7 +199,7 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
               <div className="w-32 h-32 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
             )}
             <p className="text-brand-text-muted text-[13px] mb-3 truncate">
-              /{restaurant.slug}/menu?table={tableNum}&lang={lang}
+              /{restaurant.slug}/menu?table={tableNum}
             </p>
             <button
               onClick={() => downloadQR(tableNum)}

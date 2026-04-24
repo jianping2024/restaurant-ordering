@@ -61,20 +61,20 @@ export function CheckoutRequestsManager({ initialRequests }: Props) {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-brand-text font-medium">{t.table} {request.table_number}</p>
-                  <p className="text-brand-text-muted text-xs mt-1">
+                  <p className="text-brand-text-muted text-[13px] mt-1">
                     {new Date(request.created_at).toLocaleString(locale)}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-brand-gold font-semibold">{t.amount} €{request.total_amount.toFixed(2)}</p>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-400/15 text-yellow-400">
+                  <span className="text-[13px] px-2 py-0.5 rounded-full bg-yellow-400/15 text-yellow-400">
                     {t.requested}
                   </span>
                 </div>
               </div>
               {!!request.result?.length && (
                 <div className="mt-3 rounded-lg border border-brand-border/60 p-3">
-                  <p className="text-xs text-brand-text-muted mb-2">{t.splitResult}</p>
+                  <p className="text-[13px] text-brand-text-muted mb-2">{t.splitResult}</p>
                   <div className="space-y-1.5">
                     {request.result.map((row, idx) => (
                       <div key={`${request.id}-${idx}`} className="flex items-center justify-between text-sm">

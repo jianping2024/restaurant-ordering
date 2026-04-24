@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Order, OrderStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
@@ -20,6 +20,7 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
   const [statusFilter, setStatusFilter] = useState<'all' | OrderStatus>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const pickerRef = useRef<HTMLDivElement | null>(null);
 
   const statusLabel: Record<OrderStatus, string> = {
     pending: i18n.pending,
@@ -76,6 +77,24 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
   };
 
   const clearRange = () => setDateRange(undefined);
+
+  useEffect(() => {
+    if (!pickerOpen) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (!pickerRef.current?.contains(event.target as Node)) {
+        setPickerOpen(false);
+      }
+    };
+    const onEsc = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setPickerOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onEsc);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onEsc);
+    };
+  }, [pickerOpen]);
 
   const handlePrintOrder = (order: Order) => {
     const printWindow = window.open('', '_blank', 'width=700,height=900');
@@ -137,7 +156,7 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
           <option value="cooking">{i18n.cooking}</option>
           <option value="done">{i18n.done}</option>
         </select>
-        <div className="relative">
+        <div className="relative" ref={pickerRef}>
           <button
             type="button"
             onClick={() => setPickerOpen(v => !v)}
@@ -148,9 +167,9 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
           {pickerOpen && (
             <div className="absolute z-20 mt-2 right-0 bg-brand-card border border-brand-border rounded-xl p-3 shadow-xl min-w-[300px]">
               <div className="flex items-center gap-2 mb-3">
-                <button type="button" onClick={() => applyPreset('today')} className="text-xs px-2 py-1 rounded border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40">{i18n.dateToday}</button>
-                <button type="button" onClick={() => applyPreset('last7')} className="text-xs px-2 py-1 rounded border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40">{i18n.dateLast7}</button>
-                <button type="button" onClick={() => applyPreset('month')} className="text-xs px-2 py-1 rounded border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40">{i18n.dateThisMonth}</button>
+                <button type="button" onClick={() => applyPreset('today')} className="text-[13px] px-2 py-1 rounded border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40">{i18n.dateToday}</button>
+                <button type="button" onClick={() => applyPreset('last7')} className="text-[13px] px-2 py-1 rounded border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40">{i18n.dateLast7}</button>
+                <button type="button" onClick={() => applyPreset('month')} className="text-[13px] px-2 py-1 rounded border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40">{i18n.dateThisMonth}</button>
               </div>
               <DayPicker
                 mode="range"
@@ -159,10 +178,10 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
                 className="orders-rdp"
               />
               <div className="mt-3 flex items-center justify-between">
-                <button type="button" onClick={clearRange} className="text-xs text-brand-text-muted hover:text-brand-text">
+                <button type="button" onClick={clearRange} className="text-[13px] text-brand-text-muted hover:text-brand-text">
                   {i18n.clearDate}
                 </button>
-                <button type="button" onClick={() => setPickerOpen(false)} className="text-xs text-brand-gold hover:underline">
+                <button type="button" onClick={() => setPickerOpen(false)} className="text-[13px] text-brand-gold hover:underline">
                   OK
                 </button>
               </div>
@@ -171,7 +190,7 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
         </div>
       </div>
 
-      <div className="mb-3 text-xs text-brand-text-muted">
+      <div className="mb-3 text-[13px] text-brand-text-muted">
         {i18n.total} {filteredOrders.length} {i18n.records}
       </div>
 
@@ -191,22 +210,22 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="text-brand-text font-medium">{i18n.table} {order.table_number}</p>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${statusColor[order.status]}`}>
+                      <span className={`text-[13px] px-2 py-0.5 rounded-full ${statusColor[order.status]}`}>
                         {statusLabel[order.status]}
                       </span>
                     </div>
-                    <p className="text-brand-text-muted text-xs mt-1">
+                    <p className="text-brand-text-muted text-[13px] mt-1">
                       {new Date(order.created_at).toLocaleString(locale)}
                     </p>
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-brand-gold font-medium">€{order.total_amount.toFixed(2)}</p>
-                  <p className="text-brand-text-muted text-xs mt-1">{order.items.length} {i18n.items}</p>
+                  <p className="text-brand-text-muted text-[13px] mt-1">{order.items.length} {i18n.items}</p>
                   <button
                     type="button"
                     onClick={() => handlePrintOrder(order)}
-                    className="mt-2 text-xs text-brand-gold hover:underline"
+                    className="mt-2 text-[13px] text-brand-gold hover:underline"
                   >
                     {i18n.print}
                   </button>
@@ -217,7 +236,7 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
                 {order.items.map((item, idx) => (
                   <span
                     key={idx}
-                    className="text-xs bg-brand-border px-3 py-1 rounded-full text-brand-text-muted"
+                    className="text-[13px] bg-brand-border px-3 py-1 rounded-full text-brand-text-muted"
                   >
                     {item.emoji} {item.name_pt} x {item.qty}
                     {item.note && <span className="text-yellow-400 ml-1">({item.note})</span>}

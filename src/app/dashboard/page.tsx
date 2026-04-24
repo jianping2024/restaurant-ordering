@@ -83,7 +83,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {stats.map(stat => (
           <div key={stat.label} className="bg-brand-card border border-brand-border rounded-2xl p-6">
-            <p className="text-brand-text-muted text-xs mb-2">{stat.label}</p>
+            <p className="text-brand-text-muted text-[13px] mb-2">{stat.label}</p>
             <p className={`font-heading text-3xl ${stat.color}`}>
               {stat.value}
               {stat.unit && <span className="text-base ml-1 text-brand-text-muted">{stat.unit}</span>}
@@ -123,7 +123,7 @@ export default async function DashboardPage() {
                 <div key={order.id} className="flex items-center justify-between py-2 border-b border-brand-border last:border-0">
                   <div>
                     <p className="text-sm text-brand-text">{i18n.table} {order.table_number}</p>
-                    <p className="text-xs text-brand-text-muted">
+                    <p className="text-[13px] text-brand-text-muted">
                       {new Date(order.created_at).toLocaleString(locale, {
                         month: '2-digit',
                         day: '2-digit',
@@ -134,7 +134,7 @@ export default async function DashboardPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-brand-gold">€{order.total_amount.toFixed(2)}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    <span className={`text-[13px] px-2 py-0.5 rounded-full ${
                       order.status === 'done' ? 'bg-green-400/15 text-green-400' :
                       order.status === 'cooking' ? 'bg-yellow-400/15 text-yellow-400' :
                       'bg-red-400/15 text-red-400'

@@ -36,6 +36,9 @@ body {
   background-color: rgb(var(--color-brand-bg));
   color: rgb(var(--color-brand-text));
   font-family: var(--font-jost), sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* 滚动条样式 */
@@ -129,4 +132,57 @@ body {
 .orders-rdp .rdp-button_next:hover {
   border-color: rgba(212, 168, 67, 0.45);
   background: #221d15;
+}
+
+/* DayPicker adjustments in light mode */
+[data-theme='light'] .orders-rdp {
+  --rdp-accent-color: rgb(var(--color-brand-gold));
+  --rdp-accent-background-color: rgba(172, 126, 22, 0.12);
+  color: rgb(var(--color-brand-text-muted));
+}
+
+[data-theme='light'] .orders-rdp .rdp-weekday {
+  color: rgb(var(--color-brand-text-muted));
+}
+
+[data-theme='light'] .orders-rdp .rdp-day_button {
+  color: rgb(var(--color-brand-text));
+  background: #f9f5ec;
+}
+
+[data-theme='light'] .orders-rdp .rdp-day_button:hover {
+  background: #efe6d6;
+  color: rgb(var(--color-brand-text));
+}
+
+[data-theme='light'] .orders-rdp .rdp-outside .rdp-day_button {
+  color: #b9ae9c;
+  background: #faf7f0;
+}
+
+[data-theme='light'] .orders-rdp .rdp-selected .rdp-day_button {
+  background: rgb(var(--color-brand-gold));
+  color: #fff;
+}
+
+[data-theme='light'] .orders-rdp .rdp-range_middle .rdp-day_button {
+  background: rgba(172, 126, 22, 0.14);
+  color: rgb(var(--color-brand-text));
+}
+
+[data-theme='light'] .orders-rdp .rdp-today .rdp-day_button {
+  border: 1px solid rgba(172, 126, 22, 0.45);
+}
+
+[data-theme='light'] .orders-rdp .rdp-button_previous,
+[data-theme='light'] .orders-rdp .rdp-button_next {
+  border-color: rgb(var(--color-brand-border));
+  background: #f6f0e5;
+  color: rgb(var(--color-brand-text));
+}
+
+[data-theme='light'] .orders-rdp .rdp-button_previous:hover,
+[data-theme='light'] .orders-rdp .rdp-button_next:hover {
+  border-color: rgba(172, 126, 22, 0.45);
+  background: #efe4d1;
 }

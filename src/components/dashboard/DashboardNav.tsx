@@ -41,7 +41,7 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
             <LanguageSwitcher compact />
           </div>
         </div>
-        <p className="text-brand-text-muted text-xs mt-1 truncate">{restaurant.name}</p>
+        <p className="text-brand-text-muted text-sm mt-1 truncate">{restaurant.name}</p>
       </div>
 
       {/* 导航 */}
@@ -55,7 +55,7 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
               key={item.href}
               href={item.href}
               className={`
-                flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all
+                flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] leading-6 transition-all
                 ${active
                   ? 'bg-brand-gold/15 text-brand-gold font-medium'
                   : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-border/50'
@@ -75,7 +75,7 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
           href={`/${restaurant.slug}/menu?table=1`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 px-4 py-2 text-xs text-brand-text-muted hover:text-brand-gold transition-colors"
+          className="flex items-center gap-2 px-4 py-2 text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
         >
           <span>🔗</span>
           {t.viewMenu}
@@ -84,7 +84,7 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
           href={`/${restaurant.slug}/kitchen`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 px-4 py-2 text-xs text-brand-text-muted hover:text-brand-gold transition-colors"
+          className="flex items-center gap-2 px-4 py-2 text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
         >
           <span>🍳</span>
           {t.viewKitchen}
@@ -93,7 +93,7 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
           href={`/${restaurant.slug}/waiter`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 px-4 py-2 text-xs text-brand-text-muted hover:text-brand-gold transition-colors"
+          className="flex items-center gap-2 px-4 py-2 text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
         >
           <span>🛎️</span>
           {t.viewWaiter}
@@ -104,7 +104,7 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
       <div className="px-4 py-4 border-t border-brand-border">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-brand-text-muted hover:text-red-400 hover:bg-red-400/10 transition-all"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] leading-6 text-brand-text-muted hover:text-red-400 hover:bg-red-400/10 transition-all"
         >
           <span>🚪</span>
           {t.logout}

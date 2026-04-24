@@ -10,15 +10,15 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          bg: "#0f0e0c",
-          card: "#1a1814",
-          gold: "#d4a843",
-          "gold-light": "#e8c06a",
-          "gold-dark": "#b8902f",
-          muted: "#6b6560",
-          border: "#2a2520",
-          text: "#f5f0e8",
-          "text-muted": "#9b948a",
+          bg: "rgb(var(--color-brand-bg) / <alpha-value>)",
+          card: "rgb(var(--color-brand-card) / <alpha-value>)",
+          gold: "rgb(var(--color-brand-gold) / <alpha-value>)",
+          "gold-light": "rgb(var(--color-brand-gold-light) / <alpha-value>)",
+          "gold-dark": "rgb(var(--color-brand-gold-dark) / <alpha-value>)",
+          muted: "rgb(var(--color-brand-muted) / <alpha-value>)",
+          border: "rgb(var(--color-brand-border) / <alpha-value>)",
+          text: "rgb(var(--color-brand-text) / <alpha-value>)",
+          "text-muted": "rgb(var(--color-brand-text-muted) / <alpha-value>)",
         },
       },
       fontFamily: {

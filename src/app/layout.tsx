@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from '@/components/providers/LanguageProvider';
+import { ThemeProvider } from '@/components/providers/ThemeProvider';
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -30,7 +31,9 @@ export default function RootLayout({
   return (
     <html lang="zh" className={`${cormorant.variable} ${jost.variable}`}>
       <body className="antialiased bg-brand-bg text-brand-text font-body">
-        <LanguageProvider>{children}</LanguageProvider>
+        <ThemeProvider>
+          <LanguageProvider>{children}</LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

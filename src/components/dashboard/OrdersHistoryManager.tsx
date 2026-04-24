@@ -4,6 +4,9 @@ import { useMemo, useState } from 'react';
 import type { Order, OrderStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import { DayPicker, type DateRange } from 'react-day-picker';
+import { endOfMonth, format, startOfMonth, startOfToday, subDays } from 'date-fns';
+import 'react-day-picker/dist/style.css';
 
 interface Props {
   initialOrders: Order[];
@@ -15,8 +18,8 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
   const locale = UI_LOCALE_BY_LANG[lang];
   const [tableFilter, setTableFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | OrderStatus>('all');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const statusLabel: Record<OrderStatus, string> = {
     pending: i18n.pending,
@@ -34,17 +37,64 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
       if (tableFilter && !String(order.table_number).includes(tableFilter.trim())) return false;
       if (statusFilter !== 'all' && order.status !== statusFilter) return false;
 
-      if (fromDate) {
-        const fromTs = new Date(`${fromDate}T00:00:00`).getTime();
-        if (new Date(order.created_at).getTime() < fromTs) return false;
+      if (dateRange?.from) {
+        const fromTs = new Date(dateRange.from);
+        fromTs.setHours(0, 0, 0, 0);
+        if (new Date(order.created_at).getTime() < fromTs.getTime()) return false;
       }
-      if (toDate) {
-        const toTs = new Date(`${toDate}T23:59:59`).getTime();
-        if (new Date(order.created_at).getTime() > toTs) return false;
+      if (dateRange?.to) {
+        const toTs = new Date(dateRange.to);
+        toTs.setHours(23, 59, 59, 999);
+        if (new Date(order.created_at).getTime() > toTs.getTime()) return false;
+      } else if (dateRange?.from) {
+        const toTs = new Date(dateRange.from);
+        toTs.setHours(23, 59, 59, 999);
+        if (new Date(order.created_at).getTime() > toTs.getTime()) return false;
       }
       return true;
     });
-  }, [initialOrders, tableFilter, statusFilter, fromDate, toDate]);
+  }, [initialOrders, tableFilter, statusFilter, dateRange]);
+
+  const rangeLabel = useMemo(() => {
+    if (!dateRange?.from && !dateRange?.to) return i18n.filterDateRange;
+    if (dateRange?.from && dateRange?.to) return `${format(dateRange.from, 'yyyy-MM-dd')} ~ ${format(dateRange.to, 'yyyy-MM-dd')}`;
+    if (dateRange?.from) return format(dateRange.from, 'yyyy-MM-dd');
+    return i18n.filterDateRange;
+  }, [dateRange, i18n.filterDateRange]);
+
+  const applyPreset = (preset: 'today' | 'last7' | 'month') => {
+    const today = startOfToday();
+    if (preset === 'today') {
+      setDateRange({ from: today, to: today });
+      return;
+    }
+    if (preset === 'last7') {
+      setDateRange({ from: subDays(today, 6), to: today });
+      return;
+    }
+    setDateRange({ from: startOfMonth(today), to: endOfMonth(today) });
+  };
+
+  const clearRange = () => setDateRange(undefined);
+
+  const dayPickerClassNames = {
+    month: 'space-y-2',
+    caption: 'flex justify-center py-1 relative items-center text-brand-text',
+    nav: 'flex items-center gap-1',
+    nav_button: 'h-7 w-7 bg-brand-card border border-brand-border rounded-md hover:bg-brand-border text-brand-text',
+    table: 'w-full border-collapse',
+    head_row: 'flex',
+    head_cell: 'text-brand-text-muted rounded-md w-9 text-xs',
+    row: 'flex w-full mt-1',
+    cell: 'h-9 w-9 text-center text-sm p-0 relative',
+    day: 'h-9 w-9 p-0 font-normal rounded-md text-brand-text hover:bg-brand-border',
+    day_selected: 'bg-brand-gold text-brand-bg hover:bg-brand-gold',
+    day_today: 'border border-brand-gold/60',
+    day_outside: 'text-brand-text-muted/50',
+    day_range_middle: 'bg-brand-gold/20 rounded-none',
+    day_range_start: 'bg-brand-gold text-brand-bg rounded-l-md rounded-r-none',
+    day_range_end: 'bg-brand-gold text-brand-bg rounded-r-md rounded-l-none',
+  } as const;
 
   const handlePrintOrder = (order: Order) => {
     const printWindow = window.open('', '_blank', 'width=700,height=900');
@@ -89,7 +139,7 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
 
   return (
     <div>
-      <div className="bg-brand-card border border-brand-border rounded-xl p-4 mb-4 grid gap-3 md:grid-cols-4">
+      <div className="bg-brand-card border border-brand-border rounded-xl p-4 mb-4 grid gap-3 md:grid-cols-3">
         <input
           value={tableFilter}
           onChange={e => setTableFilter(e.target.value)}
@@ -106,18 +156,42 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
           <option value="cooking">{i18n.cooking}</option>
           <option value="done">{i18n.done}</option>
         </select>
-        <input
-          type="date"
-          value={fromDate}
-          onChange={e => setFromDate(e.target.value)}
-          className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
-        />
-        <input
-          type="date"
-          value={toDate}
-          onChange={e => setToDate(e.target.value)}
-          className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
-        />
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setPickerOpen(v => !v)}
+            className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-sm text-left text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
+          >
+            {rangeLabel}
+          </button>
+          {pickerOpen && (
+            <div className="absolute z-20 mt-2 right-0 bg-brand-card border border-brand-border rounded-xl p-3 shadow-xl min-w-[300px]">
+              <div className="flex items-center gap-2 mb-3">
+                <button type="button" onClick={() => applyPreset('today')} className="text-xs px-2 py-1 rounded border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40">{i18n.dateToday}</button>
+                <button type="button" onClick={() => applyPreset('last7')} className="text-xs px-2 py-1 rounded border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40">{i18n.dateLast7}</button>
+                <button type="button" onClick={() => applyPreset('month')} className="text-xs px-2 py-1 rounded border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40">{i18n.dateThisMonth}</button>
+              </div>
+              <DayPicker
+                mode="range"
+                selected={dateRange}
+                onSelect={setDateRange}
+                classNames={dayPickerClassNames}
+              />
+              <div className="mt-3 flex items-center justify-between">
+                <button type="button" onClick={clearRange} className="text-xs text-brand-text-muted hover:text-brand-text">
+                  {i18n.clearDate}
+                </button>
+                <button type="button" onClick={() => setPickerOpen(false)} className="text-xs text-brand-gold hover:underline">
+                  OK
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="mb-3 text-xs text-brand-text-muted">
+        {i18n.total} {filteredOrders.length} {i18n.records}
       </div>
 
       {filteredOrders.length === 0 ? (

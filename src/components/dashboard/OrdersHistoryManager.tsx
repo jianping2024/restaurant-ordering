@@ -77,25 +77,6 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
 
   const clearRange = () => setDateRange(undefined);
 
-  const dayPickerClassNames = {
-    month: 'space-y-2',
-    caption: 'flex justify-center py-1 relative items-center text-brand-text',
-    nav: 'flex items-center gap-1',
-    nav_button: 'h-7 w-7 bg-brand-card border border-brand-border rounded-md hover:bg-brand-border text-brand-text',
-    table: 'w-full border-collapse',
-    head_row: 'flex',
-    head_cell: 'text-brand-text-muted rounded-md w-9 text-xs',
-    row: 'flex w-full mt-1',
-    cell: 'h-9 w-9 text-center text-sm p-0 relative',
-    day: 'h-9 w-9 p-0 font-normal rounded-md text-brand-text hover:bg-brand-border',
-    day_selected: 'bg-brand-gold text-brand-bg hover:bg-brand-gold',
-    day_today: 'border border-brand-gold/60',
-    day_outside: 'text-brand-text-muted/50',
-    day_range_middle: 'bg-brand-gold/20 rounded-none',
-    day_range_start: 'bg-brand-gold text-brand-bg rounded-l-md rounded-r-none',
-    day_range_end: 'bg-brand-gold text-brand-bg rounded-r-md rounded-l-none',
-  } as const;
-
   const handlePrintOrder = (order: Order) => {
     const printWindow = window.open('', '_blank', 'width=700,height=900');
     if (!printWindow) return;
@@ -175,7 +156,7 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
                 mode="range"
                 selected={dateRange}
                 onSelect={setDateRange}
-                classNames={dayPickerClassNames}
+                className="orders-rdp"
               />
               <div className="mt-3 flex items-center justify-between">
                 <button type="button" onClick={clearRange} className="text-xs text-brand-text-muted hover:text-brand-text">

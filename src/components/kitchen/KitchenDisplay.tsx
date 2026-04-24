@@ -323,7 +323,12 @@ function OrderCard({
   };
 
   const time = new Date(order.created_at);
-  const timeStr = time.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+  const timeStr = time.toLocaleString(locale, {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
   const statusStyle = {
     pending: 'border-red-500/50 bg-red-500/10',
@@ -361,7 +366,12 @@ function OrderCard({
             .filter(({ item }) => (item.batch_id || 'legacy') === batchId);
           const batchLabel = batchIdx === 0 ? labels.firstBatch : `${labels.addOnBatch} #${batchIdx}`;
           const batchTime = batchItems[0]?.item.added_at
-            ? new Date(batchItems[0].item.added_at as string).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+            ? new Date(batchItems[0].item.added_at as string).toLocaleString(locale, {
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+            })
             : null;
 
           return (

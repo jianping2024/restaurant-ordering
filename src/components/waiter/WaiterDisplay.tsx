@@ -146,7 +146,12 @@ export function WaiterDisplay({ restaurant, initialOrders }: Props) {
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-heading text-2xl text-brand-text">桌 {card.table}</h2>
                 <span className="text-[13px] text-brand-text-muted">
-                  {new Date(card.updatedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(card.updatedAt).toLocaleString('zh-CN', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
                 </span>
               </div>
 

@@ -11,9 +11,10 @@ interface ThemeContextValue {
 }
 
 const STORAGE_KEY = 'mesa-theme';
+const DEFAULT_THEME: ThemeMode = 'light';
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: 'dark',
+  theme: DEFAULT_THEME,
   setTheme: () => {},
   toggleTheme: () => {},
 });
@@ -23,11 +24,11 @@ function applyTheme(theme: ThemeMode) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeMode>('dark');
+  const [theme, setThemeState] = useState<ThemeMode>(DEFAULT_THEME);
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
-    const initial = saved === 'light' ? 'light' : 'dark';
+    const initial: ThemeMode = saved === 'dark' || saved === 'light' ? saved : DEFAULT_THEME;
     setThemeState(initial);
     applyTheme(initial);
   }, []);

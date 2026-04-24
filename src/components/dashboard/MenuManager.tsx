@@ -11,6 +11,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { CATEGORY_LABELS, getMessages } from '@/lib/i18n/messages';
 import { MENU_CATEGORIES } from '@/lib/menu';
 import {
+  compressMenuImageForUpload,
   MENU_IMAGE_ACCEPT,
   menuImageObjectPath,
   removeMenuImageFromStorage,
@@ -112,17 +113,18 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
     setModalOpen(true);
   };
 
-  const onPickImage = (fileList: FileList | null) => {
+  const onPickImage = async (fileList: FileList | null) => {
     const file = fileList?.[0];
     if (!file) return;
-    const msg = validateMenuImageFile(file, { imageTooLarge: t.imageTooLarge, imageTypeInvalid: t.imageTypeInvalid });
+    const compressedFile = await compressMenuImageForUpload(file);
+    const msg = validateMenuImageFile(compressedFile, { imageTooLarge: t.imageTooLarge, imageTypeInvalid: t.imageTypeInvalid });
     if (msg) {
       setError(msg);
       return;
     }
     setError('');
     setStripImage(false);
-    setPendingImage(file);
+    setPendingImage(compressedFile);
   };
 
   const isImageError = error === t.imageTooLarge || error === t.imageTypeInvalid;

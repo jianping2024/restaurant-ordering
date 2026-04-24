@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import imageCompression from 'browser-image-compression';
 
 /** 与 storage bucket file_size_limit 一致（1MB） */
 export const MENU_IMAGE_MAX_BYTES = 1048576;
@@ -11,6 +12,10 @@ const ALLOWED_MIME = new Set([
   'image/webp',
   'image/gif',
 ]);
+
+/** 压缩目标：略低于 bucket 1MB 限制，留出编码波动空间 */
+const MENU_IMAGE_TARGET_MB = 0.95;
+const MENU_IMAGE_MAX_DIMENSION = 1280;
 
 export function extensionForImageMime(mime: string): string {
   switch (mime) {
@@ -39,6 +44,33 @@ export function validateMenuImageFile(
   if (!ALLOWED_MIME.has(file.type)) return messages.imageTypeInvalid;
   if (file.size > MENU_IMAGE_MAX_BYTES) return messages.imageTooLarge;
   return null;
+}
+
+/**
+ * 在客户端自动压缩/缩放菜品图，降低上传体积与带宽成本。
+ * - GIF 默认跳过（避免动图丢失动画）
+ * - 若压缩失败，回退原图，由后续校验兜底
+ */
+export async function compressMenuImageForUpload(file: File): Promise<File> {
+  if (!ALLOWED_MIME.has(file.type)) return file;
+  if (file.type === 'image/gif') return file;
+
+  try {
+    const compressed = await imageCompression(file, {
+      maxSizeMB: MENU_IMAGE_TARGET_MB,
+      maxWidthOrHeight: MENU_IMAGE_MAX_DIMENSION,
+      useWebWorker: true,
+      initialQuality: 0.82,
+      fileType: file.type,
+    });
+
+    return new File([compressed], file.name, {
+      type: compressed.type || file.type,
+      lastModified: Date.now(),
+    });
+  } catch {
+    return file;
+  }
 }
 
 export function pathFromMenuImagePublicUrl(url: string): string | null {

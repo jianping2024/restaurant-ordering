@@ -218,7 +218,7 @@ export function KitchenDisplay({ restaurant, initialOrders }: Props) {
 
   // 厨房显示页
   return (
-    <div className="min-h-screen bg-[#0a0908] p-4">
+    <div className="min-h-screen bg-brand-bg p-4">
       {/* 标题栏 */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -326,9 +326,9 @@ function OrderCard({
   const timeStr = time.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
 
   const statusStyle = {
-    pending: 'border-red-500/70 bg-red-950/20',
-    cooking: 'border-yellow-500/70 bg-yellow-950/20',
-    done: 'border-green-500/70 bg-green-950/20',
+    pending: 'border-red-500/50 bg-red-500/10',
+    cooking: 'border-yellow-500/50 bg-yellow-500/10',
+    done: 'border-green-500/50 bg-green-500/10',
   };
   const batchOrder: string[] = [];
   order.items.forEach((item) => {
@@ -341,7 +341,7 @@ function OrderCard({
       {/* 卡片头部 */}
       <div className="flex items-center justify-between mb-3">
         <div>
-          <span className="font-heading text-2xl text-white">{labels.table} {order.table_number}</span>
+          <span className="font-heading text-2xl text-brand-text">{labels.table} {order.table_number}</span>
           <p className="text-brand-text-muted text-[13px]">{timeStr}</p>
         </div>
         <span className={`text-[13px] px-2 py-1 rounded-full font-medium ${
@@ -375,7 +375,7 @@ function OrderCard({
                   <div key={`${order.id}-${idx}`} className="flex items-start gap-2">
                     <span className="text-xl flex-shrink-0">{item.emoji}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm">
+                      <p className="text-brand-text text-sm">
                         {item.name_pt}
                         <span className="text-brand-gold ml-2">× {item.qty}</span>
                       </p>

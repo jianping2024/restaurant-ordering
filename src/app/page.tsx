@@ -88,46 +88,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 价格 */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
-        <h2 className="font-heading text-3xl text-center text-brand-text mb-12">{dict.pricing}</h2>
-        <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-          <div className="bg-brand-card border border-brand-border rounded-2xl p-8">
-            <p className="text-brand-text-muted text-sm mb-2">{dict.free}</p>
-            <p className="font-heading text-5xl text-brand-text mb-1">€0</p>
-            <p className="text-brand-text-muted text-xs mb-6">{dict.perMonth}</p>
-            <ul className="space-y-3 text-sm text-brand-text-muted">
-              {dict.freeFeatures.map(f => (
-                <li key={f} className="flex items-center gap-2">
-                  <span className="text-green-400">✓</span> {f}
-                </li>
-              ))}
-            </ul>
-            <Link href="/auth/register" className="mt-8 block text-center border border-brand-border text-brand-text py-3 rounded-xl hover:border-brand-gold/50 transition-colors">
-              {dict.freeStart}
-            </Link>
-          </div>
-          <div className="bg-brand-card border border-brand-gold/50 rounded-2xl p-8 relative overflow-hidden">
-            <div className="absolute top-4 right-4 bg-brand-gold text-brand-bg text-xs px-3 py-1 rounded-full font-semibold">
-              {dict.recommended}
-            </div>
-            <p className="text-brand-text-muted text-sm mb-2">{dict.pro}</p>
-            <p className="font-heading text-5xl text-brand-gold mb-1">€29</p>
-            <p className="text-brand-text-muted text-xs mb-6">{dict.perMonth}</p>
-            <ul className="space-y-3 text-sm text-brand-text-muted">
-              {dict.proFeatures.map(f => (
-                <li key={f} className="flex items-center gap-2">
-                  <span className="text-brand-gold">✓</span> {f}
-                </li>
-              ))}
-            </ul>
-            <Link href="/auth/register" className="mt-8 block text-center bg-brand-gold text-brand-bg py-3 rounded-xl font-semibold hover:bg-brand-gold-light transition-colors">
-              {dict.proStart}
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
       <section className="border-t border-brand-border py-20 text-center">
         <h2 className="font-heading text-4xl text-brand-text mb-4">

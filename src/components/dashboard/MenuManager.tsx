@@ -300,7 +300,7 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
             <div
               key={item.id}
               className={`bg-brand-card border rounded-xl px-4 py-4 sm:px-5 flex flex-col gap-3 min-[480px]:flex-row min-[480px]:items-center min-[480px]:gap-4 transition-all
-                ${item.available ? 'border-brand-border' : 'border-brand-border opacity-60'}`}
+                ${item.available ? 'border-brand-border' : 'border-brand-border/70 bg-brand-bg/40'}`}
             >
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div className="w-12 h-12 rounded-xl overflow-hidden bg-brand-border flex-shrink-0 flex items-center justify-center text-2xl">

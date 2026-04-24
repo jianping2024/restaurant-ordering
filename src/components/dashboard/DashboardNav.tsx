@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -22,6 +23,7 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
   const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).nav;
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -30,15 +32,61 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
     router.refresh();
   };
 
+  const handleGo = () => {
+    setMobileOpen(false);
+  };
+
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-brand-card border-r border-brand-border flex flex-col">
+    <>
+      {/* Mobile top bar */}
+      <div className="lg:hidden fixed inset-x-0 top-0 z-40 h-16 bg-brand-card border-b border-brand-border px-4 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          className="h-9 w-9 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text"
+          aria-label="Open menu"
+        >
+          ☰
+        </button>
+        <span className="font-heading text-2xl text-brand-gold">Mesa</span>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <LanguageSwitcher compact />
+        </div>
+      </div>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <button
+          type="button"
+          aria-label="Close menu"
+          onClick={() => setMobileOpen(false)}
+          className="lg:hidden fixed inset-0 z-40 bg-black/40"
+        />
+      )}
+
+      {/* Desktop sidebar + Mobile drawer */}
+      <aside
+        className={`fixed left-0 top-0 z-50 h-screen w-64 bg-brand-card border-r border-brand-border flex flex-col transition-transform duration-200
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
+      >
       {/* Logo */}
-      <div className="px-6 py-6 border-b border-brand-border">
+      <div className="px-6 py-5 lg:py-6 border-b border-brand-border">
         <div className="flex items-center justify-between gap-2">
           <span className="font-heading text-2xl text-brand-gold">Mesa</span>
           <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <LanguageSwitcher compact />
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              className="lg:hidden h-8 w-8 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text"
+              aria-label="Close menu"
+            >
+              ×
+            </button>
+            <div className="hidden lg:flex items-center gap-2">
+              <ThemeToggle />
+              <LanguageSwitcher compact />
+            </div>
           </div>
         </div>
         <p className="text-brand-text-muted text-sm mt-1 truncate">{restaurant.name}</p>
@@ -54,6 +102,7 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={handleGo}
               className={`
                 flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] leading-6 transition-all
                 ${active
@@ -110,6 +159,7 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
           {t.logout}
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

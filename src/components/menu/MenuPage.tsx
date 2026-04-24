@@ -19,6 +19,7 @@ interface Props {
   menuItems: MenuItem[];
   tableNumber: number;
   isDemo?: boolean;
+  initialLang?: Language;
 }
 
 function deriveOrderStatusFromItems(items: Array<{ item_status?: 'pending' | 'cooking' | 'done' }>) {
@@ -36,7 +37,7 @@ function calcItemsTotal(items: Array<{ price: number | string; qty: number | str
   }, 0);
 }
 
-export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) {
+export function MenuPage({ restaurant, menuItems, tableNumber, isDemo, initialLang }: Props) {
   const [lang, setLang] = useState<Language>('pt');
   const [activeCategory, setActiveCategory] = useState<Category>('Pratos');
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -51,9 +52,14 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
 
   // 从 localStorage 恢复语言设置
   useEffect(() => {
+    if (initialLang && ['pt', 'en', 'zh'].includes(initialLang)) {
+      setLang(initialLang);
+      localStorage.setItem('mesa-lang', initialLang);
+      return;
+    }
     const saved = localStorage.getItem('mesa-lang') as Language;
     if (saved && ['pt', 'en', 'zh'].includes(saved)) setLang(saved);
-  }, []);
+  }, [initialLang]);
 
   const setLangAndSave = (l: Language) => {
     setLang(l);

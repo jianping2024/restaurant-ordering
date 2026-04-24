@@ -34,7 +34,7 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-brand-bg flex">
       <DashboardNav restaurant={restaurant} />
-      <main className="flex-1 lg:ml-64 p-4 pt-20 sm:p-6 sm:pt-20 lg:p-8 lg:pt-8 min-h-screen">
+      <main className="flex-1 min-w-0 overflow-x-hidden lg:ml-64 p-4 pt-20 sm:p-6 sm:pt-20 lg:p-8 lg:pt-8 min-h-screen">
         {children}
       </main>
     </div>

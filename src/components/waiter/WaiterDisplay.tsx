@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import type { Order, OrderItem } from '@/types';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string; waiter_password: string };
   initialOrders: Order[];
+  isDemo?: boolean;
 }
 
 function itemStatus(item: OrderItem, orderStatus: Order['status']) {
@@ -16,8 +18,8 @@ function itemStatus(item: OrderItem, orderStatus: Order['status']) {
   return 'pending';
 }
 
-export function WaiterDisplay({ restaurant, initialOrders }: Props) {
-  const [authenticated, setAuthenticated] = useState(false);
+export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Props) {
+  const [authenticated, setAuthenticated] = useState(isDemo);
   const [password, setPassword] = useState('');
   const [pwError, setPwError] = useState(false);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
@@ -58,7 +60,7 @@ export function WaiterDisplay({ restaurant, initialOrders }: Props) {
   }, [orders]);
 
   useEffect(() => {
-    if (!authenticated) return;
+    if (!authenticated || isDemo) return;
 
     const channel = supabase
       .channel(`waiter-${restaurant.id}`)
@@ -82,7 +84,7 @@ export function WaiterDisplay({ restaurant, initialOrders }: Props) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [authenticated, restaurant.id, supabase]);
+  }, [authenticated, isDemo, restaurant.id, supabase]);
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,7 +101,9 @@ export function WaiterDisplay({ restaurant, initialOrders }: Props) {
     return (
       <div className="min-h-screen bg-brand-bg flex items-center justify-center p-4">
         <div className="bg-brand-card border border-brand-border rounded-2xl p-8 w-full max-w-sm">
-          <h1 className="font-heading text-3xl text-brand-gold text-center mb-2">服务员观察入口</h1>
+          <h1 className="font-heading text-3xl text-brand-gold text-center mb-2">
+            {isDemo ? 'Demo Waiter' : '服务员观察入口'}
+          </h1>
           <p className="text-brand-text-muted text-sm text-center mb-6">{restaurant.name}</p>
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div>
@@ -120,9 +124,14 @@ export function WaiterDisplay({ restaurant, initialOrders }: Props) {
               type="submit"
               className="w-full bg-brand-gold text-brand-bg py-3 rounded-xl font-semibold hover:bg-brand-gold-light transition-colors"
             >
-              进入观察页
+              {isDemo ? 'Enter Demo Dashboard' : '进入观察页'}
             </button>
           </form>
+          {isDemo && (
+            <p className="mt-3 text-center text-[13px] text-brand-text-muted">
+              Use password <span className="text-brand-gold font-semibold">0000</span>
+            </p>
+          )}
         </div>
       </div>
     );
@@ -130,6 +139,33 @@ export function WaiterDisplay({ restaurant, initialOrders }: Props) {
 
   return (
     <div className="min-h-screen bg-brand-bg p-4">
+      {isDemo && (
+        <div className="mb-4 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3">
+          <p className="text-[13px] text-brand-text">
+            Step 3/3: Waiter sees ready-to-serve tables and service priority.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Link
+              href="/demo/menu"
+              className="text-[13px] rounded-lg border border-brand-border px-3 py-1.5 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+            >
+              Open Customer View
+            </Link>
+            <Link
+              href="/demo/kitchen"
+              className="text-[13px] rounded-lg border border-brand-border px-3 py-1.5 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+            >
+              Open Kitchen View
+            </Link>
+            <Link
+              href="/demo"
+              className="text-[13px] rounded-lg border border-brand-border px-3 py-1.5 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+            >
+              Back to Demo Hub
+            </Link>
+          </div>
+        </div>
+      )}
       <div className="mb-6">
         <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
         <p className="text-brand-text-muted text-sm mt-1">服务员出餐观察看板</p>

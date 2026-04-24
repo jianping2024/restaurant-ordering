@@ -277,14 +277,37 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
 
       {/* Demo 顶部 banner */}
       {isDemo && (
-        <div className="bg-brand-gold/10 border-b border-brand-gold/30 px-4 py-2 flex items-center justify-between gap-3">
-          <p className="text-brand-gold text-[13px]">{t.demoMode}</p>
-          <a
-            href="/auth/register"
-            className="flex-shrink-0 text-[13px] bg-brand-gold text-brand-bg px-3 py-1 rounded-full font-semibold hover:bg-brand-gold-light transition-colors"
-          >
-            {t.freeSignup}
-          </a>
+        <div className="bg-brand-gold/10 border-b border-brand-gold/30 px-4 py-2">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-brand-gold text-[13px]">{t.demoMode}</p>
+            <a
+              href="/auth/register"
+              className="flex-shrink-0 text-[13px] bg-brand-gold text-brand-bg px-3 py-1 rounded-full font-semibold hover:bg-brand-gold-light transition-colors"
+            >
+              {t.freeSignup}
+            </a>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <span className="text-[13px] text-brand-text">Step 1/3: Place order from customer view.</span>
+            <Link
+              href="/demo/kitchen"
+              className="text-[13px] rounded-lg border border-brand-border px-2.5 py-1 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+            >
+              Open Kitchen View
+            </Link>
+            <Link
+              href="/demo/waiter"
+              className="text-[13px] rounded-lg border border-brand-border px-2.5 py-1 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+            >
+              Open Waiter Dashboard
+            </Link>
+            <Link
+              href="/demo"
+              className="text-[13px] rounded-lg border border-brand-border px-2.5 py-1 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+            >
+              Back to Demo Hub
+            </Link>
+          </div>
         </div>
       )}
 

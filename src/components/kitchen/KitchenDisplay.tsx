@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import type { Order, OrderItem, OrderItemStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -10,6 +11,7 @@ import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 interface Props {
   restaurant: { id: string; name: string; slug: string; kitchen_password: string };
   initialOrders: Order[];
+  isDemo?: boolean;
 }
 
 // Web Audio API 生成提示音
@@ -54,11 +56,11 @@ async function loadLiveOrders(supabase: ReturnType<typeof createClient>, restaur
   return (data || []) as Order[];
 }
 
-export function KitchenDisplay({ restaurant, initialOrders }: Props) {
+export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).kitchen;
   const locale = UI_LOCALE_BY_LANG[lang];
-  const [authenticated, setAuthenticated] = useState(false);
+  const [authenticated, setAuthenticated] = useState(isDemo);
   const [password, setPassword] = useState('');
   const [pwError, setPwError] = useState(false);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
@@ -122,7 +124,7 @@ export function KitchenDisplay({ restaurant, initialOrders }: Props) {
 
   // Supabase Realtime 订阅
   useEffect(() => {
-    if (!authenticated) return;
+    if (!authenticated || isDemo) return;
 
     // 加载已完成订单
     const loadDone = async () => {
@@ -174,7 +176,7 @@ export function KitchenDisplay({ restaurant, initialOrders }: Props) {
       supabase.removeChannel(channel);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authenticated, restaurant.id]);
+  }, [authenticated, isDemo, restaurant.id]);
 
   // 密码输入页
   if (!authenticated) {
@@ -184,7 +186,9 @@ export function KitchenDisplay({ restaurant, initialOrders }: Props) {
           <div className="flex justify-end mb-3">
             <LanguageSwitcher compact />
           </div>
-          <h1 className="font-heading text-3xl text-brand-gold text-center mb-2">{t.entrance}</h1>
+          <h1 className="font-heading text-3xl text-brand-gold text-center mb-2">
+            {isDemo ? 'Demo Kitchen' : t.entrance}
+          </h1>
           <p className="text-brand-text-muted text-sm text-center mb-6">{restaurant.name}</p>
 
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
@@ -208,9 +212,14 @@ export function KitchenDisplay({ restaurant, initialOrders }: Props) {
               type="submit"
               className="w-full bg-brand-gold text-brand-bg py-3 rounded-xl font-semibold hover:bg-brand-gold-light transition-colors"
             >
-              {t.enterKitchen}
+              {isDemo ? 'Enter Demo Kitchen' : t.enterKitchen}
             </button>
           </form>
+          {isDemo && (
+            <p className="mt-3 text-center text-[13px] text-brand-text-muted">
+              Use password <span className="text-brand-gold font-semibold">0000</span>
+            </p>
+          )}
         </div>
       </div>
     );
@@ -219,6 +228,33 @@ export function KitchenDisplay({ restaurant, initialOrders }: Props) {
   // 厨房显示页
   return (
     <div className="min-h-screen bg-brand-bg p-4">
+      {isDemo && (
+        <div className="mb-4 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3">
+          <p className="text-[13px] text-brand-text">
+            Step 2/3: Kitchen receives and updates dish status in real time.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Link
+              href="/demo/menu"
+              className="text-[13px] rounded-lg border border-brand-border px-3 py-1.5 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+            >
+              Open Customer View
+            </Link>
+            <Link
+              href="/demo/waiter"
+              className="text-[13px] rounded-lg border border-brand-border px-3 py-1.5 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+            >
+              Open Waiter Dashboard
+            </Link>
+            <Link
+              href="/demo"
+              className="text-[13px] rounded-lg border border-brand-border px-3 py-1.5 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+            >
+              Back to Demo Hub
+            </Link>
+          </div>
+        </div>
+      )}
       {/* 标题栏 */}
       <div className="flex items-center justify-between mb-6">
         <div>

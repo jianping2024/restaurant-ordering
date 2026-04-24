@@ -59,7 +59,7 @@ export default function LandingPage() {
           </div>
           <div className="flex flex-col items-center gap-1.5 w-full sm:w-auto">
             <Link
-              href="/demo/menu"
+              href="/demo"
               className="w-full sm:w-auto border border-brand-border text-brand-text px-8 py-3.5 sm:py-4 rounded-xl text-[15px] sm:text-base hover:border-brand-gold/50 transition-colors"
             >
               {dict.demo}

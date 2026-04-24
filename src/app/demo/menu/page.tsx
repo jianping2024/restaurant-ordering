@@ -1,12 +1,6 @@
 import { MenuPage } from '@/components/menu/MenuPage';
+import { DEMO_RESTAURANT } from '@/lib/demo-data';
 import type { MenuItem } from '@/types';
-
-const DEMO_RESTAURANT = {
-  id: 'demo',
-  name: 'Casa Portuguesa',
-  slug: 'demo',
-  logo_url: null,
-};
 
 const DEMO_ITEMS: MenuItem[] = [
   // Entradas

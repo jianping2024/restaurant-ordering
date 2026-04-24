@@ -67,7 +67,7 @@ export function CartDrawer({
                   <span className="text-2xl">{item.emoji}</span>
                   <div className="min-w-0">
                     <p className="text-brand-text text-sm font-medium truncate">{getName(item)}</p>
-                    <p className="text-brand-gold text-xs">€{(item.price * item.qty).toFixed(2)}</p>
+                    <p className="text-brand-gold text-[13px]">€{(item.price * item.qty).toFixed(2)}</p>
                   </div>
                 </div>
                 {/* 数量控制 */}
@@ -95,7 +95,7 @@ export function CartDrawer({
                   placeholder="备注（sem sal, bem passado...）"
                   value={item.note || ''}
                   onChange={e => onUpdateNote(item.menuItemId, e.target.value)}
-                  className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-xs text-brand-text placeholder-brand-muted focus:outline-none focus:border-brand-gold/50"
+                  className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-[13px] text-brand-text placeholder-brand-muted focus:outline-none focus:border-brand-gold/50"
                 />
                 {/* 快捷备注 */}
                 <div className="flex flex-wrap gap-1.5 mt-2">
@@ -103,7 +103,7 @@ export function CartDrawer({
                     <button
                       key={note}
                       onClick={() => onUpdateNote(item.menuItemId, note)}
-                      className="text-xs px-2 py-0.5 bg-brand-border rounded-full text-brand-text-muted hover:text-brand-gold hover:bg-brand-gold/10 transition-colors"
+                      className="text-[13px] px-2 py-0.5 bg-brand-border rounded-full text-brand-text-muted hover:text-brand-gold hover:bg-brand-gold/10 transition-colors"
                     >
                       {note}
                     </button>

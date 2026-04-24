@@ -145,12 +145,12 @@ export function WaiterDisplay({ restaurant, initialOrders }: Props) {
             <div key={card.table} className="bg-brand-card border border-brand-border rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-heading text-2xl text-brand-text">桌 {card.table}</h2>
-                <span className="text-xs text-brand-text-muted">
+                <span className="text-[13px] text-brand-text-muted">
                   {new Date(card.updatedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 text-xs mb-3">
+              <div className="flex items-center gap-2 text-[13px] mb-3">
                 <span className="px-2 py-0.5 rounded-full bg-red-500/15 text-red-400">待做 {card.pending}</span>
                 <span className="px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400">制作中 {card.cooking}</span>
                 <span className="px-2 py-0.5 rounded-full bg-green-500/15 text-green-400">可端菜 {card.ready}</span>

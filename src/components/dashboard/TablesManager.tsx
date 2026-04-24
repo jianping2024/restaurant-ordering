@@ -151,11 +151,11 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
             ) : (
               <div className="w-40 h-40 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
             )}
-            <p className="text-brand-text-muted text-xs mb-2 truncate">/{restaurant.slug}/kitchen</p>
+            <p className="text-brand-text-muted text-[13px] mb-2 truncate">/{restaurant.slug}/kitchen</p>
             <button
               onClick={() => downloadStaffQR('kitchen')}
               disabled={!staffQr.kitchen}
-              className="text-xs text-brand-gold hover:underline disabled:opacity-50"
+              className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
             >
               {t.downloadKitchen}
             </button>
@@ -168,11 +168,11 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
             ) : (
               <div className="w-40 h-40 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
             )}
-            <p className="text-brand-text-muted text-xs mb-2 truncate">/{restaurant.slug}/waiter</p>
+            <p className="text-brand-text-muted text-[13px] mb-2 truncate">/{restaurant.slug}/waiter</p>
             <button
               onClick={() => downloadStaffQR('waiter')}
               disabled={!staffQr.waiter}
-              className="text-xs text-brand-gold hover:underline disabled:opacity-50"
+              className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
             >
               {t.downloadWaiter}
             </button>
@@ -198,13 +198,13 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
             ) : (
               <div className="w-32 h-32 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
             )}
-            <p className="text-brand-text-muted text-xs mb-3 truncate">
+            <p className="text-brand-text-muted text-[13px] mb-3 truncate">
               /{restaurant.slug}/menu?table={tableNum}
             </p>
             <button
               onClick={() => downloadQR(tableNum)}
               disabled={!qrCodes[tableNum]}
-              className="text-xs text-brand-gold hover:underline disabled:opacity-50"
+              className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
             >
               {t.download}
             </button>

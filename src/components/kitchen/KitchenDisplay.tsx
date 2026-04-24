@@ -277,10 +277,10 @@ export function KitchenDisplay({ restaurant, initialOrders }: Props) {
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-green-400 text-sm font-medium">{t.table} {order.table_number}</span>
-                  <span className="text-xs text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">{t.done}</span>
+                  <span className="text-[13px] text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">{t.done}</span>
                 </div>
                 {order.items.map((item, idx) => (
-                  <p key={idx} className="text-brand-text-muted text-xs">
+                  <p key={idx} className="text-brand-text-muted text-[13px]">
                     {item.emoji} {item.name_pt} × {item.qty}
                   </p>
                 ))}
@@ -342,9 +342,9 @@ function OrderCard({
       <div className="flex items-center justify-between mb-3">
         <div>
           <span className="font-heading text-2xl text-white">{labels.table} {order.table_number}</span>
-          <p className="text-brand-text-muted text-xs">{timeStr}</p>
+          <p className="text-brand-text-muted text-[13px]">{timeStr}</p>
         </div>
-        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+        <span className={`text-[13px] px-2 py-1 rounded-full font-medium ${
           order.status === 'pending' ? 'bg-red-500/20 text-red-400' :
           order.status === 'cooking' ? 'bg-yellow-500/20 text-yellow-400' :
           'bg-green-500/20 text-green-400'
@@ -380,7 +380,7 @@ function OrderCard({
                         <span className="text-brand-gold ml-2">× {item.qty}</span>
                       </p>
                       {item.note && (
-                        <p className="text-xs bg-yellow-400/20 text-yellow-300 px-2 py-0.5 rounded mt-1">
+                        <p className="text-[13px] bg-yellow-400/20 text-yellow-300 px-2 py-0.5 rounded mt-1">
                           📝 {item.note}
                         </p>
                       )}

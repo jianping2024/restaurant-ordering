@@ -39,7 +39,7 @@ export function MenuItemCard({ item, lang, cartQty, onAdd }: Props) {
           <div className="min-w-0">
             <h3 className="text-brand-text font-medium text-sm leading-tight">{name}</h3>
             {desc && (
-              <p className="text-brand-text-muted text-xs mt-1 leading-relaxed line-clamp-2">{desc}</p>
+              <p className="text-brand-text-muted text-[13px] mt-1 leading-relaxed line-clamp-2">{desc}</p>
             )}
           </div>
         </div>
@@ -56,14 +56,14 @@ export function MenuItemCard({ item, lang, cartQty, onAdd }: Props) {
               }`}
             >
               {cartQty > 0 && (
-                <span className="bg-brand-bg text-brand-gold w-4 h-4 rounded-full text-xs flex items-center justify-center">
+                <span className="bg-brand-bg text-brand-gold w-4 h-4 rounded-full text-[13px] flex items-center justify-center">
                   {cartQty}
                 </span>
               )}
               {cartQty > 0 ? '已加入' : '+ 加入'}
             </button>
           ) : (
-            <span className="text-brand-muted text-xs px-3 py-1.5 bg-brand-border rounded-lg">
+            <span className="text-brand-muted text-[13px] px-3 py-1.5 bg-brand-border rounded-lg">
               已售完
             </span>
           )}

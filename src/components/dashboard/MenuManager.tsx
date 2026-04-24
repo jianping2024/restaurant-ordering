@@ -269,7 +269,7 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
                 : 'bg-brand-card border border-brand-border text-brand-text-muted hover:text-brand-text'
             }`}
           >
-            {CATEGORY_LABELS[lang][cat]} <span className="text-xs opacity-70">({items.filter(i=>i.category===cat).length})</span>
+            {CATEGORY_LABELS[lang][cat]} <span className="text-[13px] opacity-70">({items.filter(i=>i.category===cat).length})</span>
           </button>
         ))}
       </div>
@@ -279,11 +279,11 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
         <div className="flex gap-3 mb-4">
           <button
             onClick={() => batchAvailable(true)}
-            className="text-xs text-green-400 hover:underline"
+            className="text-[13px] text-green-400 hover:underline"
           >{t.allOn}</button>
           <button
             onClick={() => batchAvailable(false)}
-            className="text-xs text-red-400 hover:underline"
+            className="text-[13px] text-red-400 hover:underline"
           >{t.allOff}</button>
         </div>
       )}
@@ -320,11 +320,11 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
                   <div className="flex items-center gap-2">
                     <p className="text-brand-text font-medium truncate">{item.name_pt}</p>
                     {item.name_zh && (
-                      <span className="text-brand-text-muted text-xs shrink-0">({item.name_zh})</span>
+                      <span className="text-brand-text-muted text-[13px] shrink-0">({item.name_zh})</span>
                     )}
                   </div>
                   {item.description_pt && (
-                    <p className="text-brand-text-muted text-xs mt-0.5 line-clamp-2">{item.description_pt}</p>
+                    <p className="text-brand-text-muted text-[13px] mt-0.5 line-clamp-2">{item.description_pt}</p>
                   )}
                 </div>
               </div>
@@ -382,7 +382,7 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
               <span className="text-brand-gold mr-2" aria-hidden>📷</span>
               <span className="text-sm text-brand-text font-medium">{t.dishPhoto}</span>
             </div>
-            <p className="text-xs text-brand-text-muted">{t.dishPhotoHint}</p>
+            <p className="text-[13px] text-brand-text-muted">{t.dishPhotoHint}</p>
             <input
               ref={fileInputRef}
               type="file"

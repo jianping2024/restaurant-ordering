@@ -168,7 +168,7 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
           </p>
           {splitMode && (
             <div className="mt-6 bg-brand-card border border-brand-border rounded-xl overflow-hidden text-left">
-              <p className="px-4 py-2 text-xs text-brand-text-muted border-b border-brand-border">{t.splitResult}</p>
+              <p className="px-4 py-2 text-[13px] text-brand-text-muted border-b border-brand-border">{t.splitResult}</p>
               {results.map((r, i) => (
                 <div key={i} className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0">
                   <span className="text-brand-text text-sm">{r.name}</span>
@@ -202,7 +202,7 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
               <div className="flex items-center gap-2">
                 <span>{item.emoji}</span>
                 <span className="text-brand-text text-sm">{item.name_pt}</span>
-                <span className="text-brand-text-muted text-xs">× {item.qty}</span>
+                <span className="text-brand-text-muted text-[13px]">× {item.qty}</span>
               </div>
               <span className="text-brand-gold text-sm">€{(item.price * item.qty).toFixed(2)}</span>
             </div>
@@ -237,7 +237,7 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
           ))}
         </div>
         {!splitMode && (
-          <p className="text-brand-text-muted text-xs mb-2">
+          <p className="text-brand-text-muted text-[13px] mb-2">
             可直接呼叫结账；如需分单再选择上方方式。
           </p>
         )}
@@ -275,14 +275,14 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
               <div key={item.key} className="bg-brand-card border border-brand-border rounded-xl p-3">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-brand-text text-sm">{item.emoji} {item.name_pt} × {item.qty}</p>
-                  <span className="text-brand-gold text-xs">€{(item.price * item.qty).toFixed(2)}</span>
+                  <span className="text-brand-gold text-[13px]">€{(item.price * item.qty).toFixed(2)}</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {byItemPersons.map(person => (
                     <button
                       key={person}
                       onClick={() => togglePersonForItem(item.key, person)}
-                      className={`text-xs px-3 py-1 rounded-full transition-all ${
+                      className={`text-[13px] px-3 py-1 rounded-full transition-all ${
                         (byItemAssign[item.key] || []).includes(person)
                           ? 'bg-brand-gold text-brand-bg font-semibold'
                           : 'bg-brand-border text-brand-text-muted'

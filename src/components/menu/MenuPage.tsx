@@ -264,7 +264,7 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm">
           <div className="bg-brand-card border border-brand-gold/40 rounded-2xl px-5 py-4 shadow-xl text-center">
             <p className="text-brand-gold text-sm font-semibold mb-0.5">{t.demoToastTitle}</p>
-            <p className="text-brand-text-muted text-xs">{t.demoToastDesc}</p>
+            <p className="text-brand-text-muted text-[13px]">{t.demoToastDesc}</p>
           </div>
         </div>
       )}
@@ -272,10 +272,10 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
       {/* Demo 顶部 banner */}
       {isDemo && (
         <div className="bg-brand-gold/10 border-b border-brand-gold/30 px-4 py-2 flex items-center justify-between gap-3">
-          <p className="text-brand-gold text-xs">{t.demoMode}</p>
+          <p className="text-brand-gold text-[13px]">{t.demoMode}</p>
           <a
             href="/auth/register"
-            className="flex-shrink-0 text-xs bg-brand-gold text-brand-bg px-3 py-1 rounded-full font-semibold hover:bg-brand-gold-light transition-colors"
+            className="flex-shrink-0 text-[13px] bg-brand-gold text-brand-bg px-3 py-1 rounded-full font-semibold hover:bg-brand-gold-light transition-colors"
           >
             {t.freeSignup}
           </a>
@@ -298,7 +298,7 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
         <div className="flex items-center justify-between px-4 py-3">
           <div>
             <h1 className="font-heading text-xl text-brand-gold">{restaurant.name}</h1>
-            <p className="text-brand-text-muted text-xs">{t.table} {tableNumber}</p>
+            <p className="text-brand-text-muted text-[13px]">{t.table} {tableNumber}</p>
           </div>
           {/* 语言切换 */}
           <div className="flex items-center gap-1 bg-brand-card border border-brand-border rounded-full p-1">
@@ -306,7 +306,7 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
               <button
                 key={l}
                 onClick={() => setLangAndSave(l)}
-                className={`px-2.5 py-1 rounded-full text-xs transition-all ${
+                className={`px-2.5 py-1 rounded-full text-[13px] transition-all ${
                   lang === l
                     ? 'bg-brand-gold text-brand-bg font-semibold'
                     : 'text-brand-text-muted hover:text-brand-text'
@@ -347,10 +347,10 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
               {recentOrders.map(order => (
                 <div key={order.id} className="border border-brand-border rounded-xl p-3">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-brand-text-muted">
+                    <span className="text-[13px] text-brand-text-muted">
                       {new Date(order.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
                     </span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    <span className={`text-[13px] px-2 py-0.5 rounded-full ${
                       order.status === 'done' ? 'bg-green-400/15 text-green-400' :
                       order.status === 'cooking' ? 'bg-yellow-400/15 text-yellow-400' :
                       'bg-red-400/15 text-red-400'

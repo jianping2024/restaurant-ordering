@@ -84,7 +84,7 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
               <div className="bg-brand-bg border border-brand-border rounded-lg px-4 py-2.5 text-brand-text-muted text-sm">
                 {restaurant.slug}
               </div>
-              <p className="text-xs text-brand-text-muted mt-1">{t.slugTip}</p>
+              <p className="text-[13px] text-brand-text-muted mt-1">{t.slugTip}</p>
             </div>
 
             <Input
@@ -110,7 +110,7 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
                 onChange={e => setForm(f => ({ ...f, kitchen_password: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
                 placeholder="1234"
               />
-              <p className="text-xs text-brand-text-muted mt-1">
+              <p className="text-[13px] text-brand-text-muted mt-1">
                 {t.kitchenTip}
               </p>
             </div>
@@ -125,7 +125,7 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
                 onChange={e => setForm(f => ({ ...f, waiter_password: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
                 placeholder="5678"
               />
-              <p className="text-xs text-brand-text-muted mt-1">
+              <p className="text-[13px] text-brand-text-muted mt-1">
                 {t.waiterTip}
               </p>
             </div>

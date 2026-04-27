@@ -174,6 +174,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
       cooking: number;
       ready: number;
       readyItems: string[];
+      voidedItems: string[];
       voidableItems: Array<{ orderId: string; itemIdx: number; label: string; status: 'pending' | 'cooking' }>;
       updatedAt: string;
     }>();
@@ -184,6 +185,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
         cooking: 0,
         ready: 0,
         readyItems: [],
+        voidedItems: [],
         voidableItems: [],
         updatedAt: order.updated_at || order.created_at,
       };
@@ -195,6 +197,9 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
         if (status === 'done') {
           current.ready += item.qty;
           current.readyItems.push(`${item.emoji} ${item.name || item.name_pt} × ${item.qty}`);
+        }
+        if (status === 'voided') {
+          current.voidedItems.push(`${item.emoji} ${item.name || item.name_pt} × ${item.qty}`);
         }
       });
 
@@ -219,6 +224,13 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
 
     return Array.from(grouped.entries())
       .map(([table, data]) => ({ table, ...data }))
+      .filter((card) =>
+        card.pending > 0 ||
+        card.cooking > 0 ||
+        card.ready > 0 ||
+        card.voidableItems.length > 0 ||
+        card.voidedItems.length > 0,
+      )
       .sort((a, b) => a.table - b.table);
   }, [orders]);
 
@@ -448,12 +460,21 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {tableCards.map(card => {
-            const cardStatus: 'pending' | 'cooking' | 'done' =
-              card.pending > 0 ? 'pending' : card.cooking > 0 ? 'cooking' : 'done';
+            const cardStatus: 'pending' | 'cooking' | 'done' | 'voided_only' =
+              card.pending > 0
+                ? 'pending'
+                : card.cooking > 0
+                  ? 'cooking'
+                  : card.ready > 0
+                    ? 'done'
+                    : card.voidedItems.length > 0
+                      ? 'voided_only'
+                      : 'done';
             const statusStyle = {
               pending: 'border-red-500/45 bg-red-500/8',
               cooking: 'border-amber-500/45 bg-amber-500/10',
               done: 'border-emerald-500/45 bg-emerald-500/10',
+              voided_only: 'border-slate-500/40 bg-slate-500/10',
             } as const;
 
             return (
@@ -503,6 +524,14 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
                   ))
                 )}
               </div>
+              {card.voidedItems.length > 0 && (
+                <div className="mt-3 rounded-lg border border-slate-500/35 p-2.5 space-y-2">
+                  <p className="text-[11px] text-slate-600 font-medium">{t.voidedLabel}</p>
+                  {card.voidedItems.map((line, idx) => (
+                    <p key={idx} className="text-sm text-slate-600 line-through opacity-90">{line}</p>
+                  ))}
+                </div>
+              )}
               {card.voidableItems.length > 0 && (
                 <div className="mt-3 rounded-lg border border-brand-border/60 p-2.5 space-y-2">
                   <p className="text-[11px] text-brand-gold font-medium">{t.voidPendingTitle}</p>

@@ -7,7 +7,7 @@ import type { Order, OrderItemStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
-import { deriveOrderStatusFromItems, normalizeOrderItemStatus } from '@/lib/order-status';
+import { deriveOrderStatusFromItems, itemsEveryVoided, normalizeOrderItemStatus } from '@/lib/order-status';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string; kitchen_password: string };
@@ -395,6 +395,7 @@ function OrderCard({
     cooking: 'border-amber-500/45 bg-amber-500/10',
     done: 'border-emerald-500/45 bg-emerald-500/10',
   };
+  const allVoided = itemsEveryVoided(order.items);
   const batchOrder: string[] = [];
   order.items.forEach((item) => {
     const batch = item.batch_id || 'legacy';
@@ -402,21 +403,35 @@ function OrderCard({
   });
 
   return (
-    <div className={`border-2 rounded-2xl p-4 ${statusStyle[order.status]}`}>
+    <div
+      className={`border-2 rounded-2xl p-4 ${
+        allVoided ? 'border-slate-500/40 bg-slate-500/10' : statusStyle[order.status]
+      }`}
+    >
       {/* 卡片头部 */}
       <div className="flex items-center justify-between mb-3">
         <div>
           <span className="font-heading text-2xl text-brand-text">{labels.table} {order.table_number}</span>
           <p className="text-brand-text-muted text-[13px]">{timeStr}</p>
         </div>
-        <span className={`text-[13px] px-2 py-1 rounded-full font-medium ${
-          order.status === 'pending'
-            ? 'bg-red-500/15 border border-red-500/35 text-red-700'
-            : order.status === 'cooking'
-              ? 'bg-amber-500/18 border border-amber-500/35 text-amber-800'
-              : 'bg-emerald-500/16 border border-emerald-500/35 text-emerald-800'
-        }`}>
-          {order.status === 'pending' ? labels.newOrder : order.status === 'cooking' ? labels.cooking : labels.completed}
+        <span
+          className={`text-[13px] px-2 py-1 rounded-full font-medium ${
+            allVoided
+              ? 'bg-slate-500/14 border border-slate-500/35 text-slate-700'
+              : order.status === 'pending'
+                ? 'bg-red-500/15 border border-red-500/35 text-red-700'
+                : order.status === 'cooking'
+                  ? 'bg-amber-500/18 border border-amber-500/35 text-amber-800'
+                  : 'bg-emerald-500/16 border border-emerald-500/35 text-emerald-800'
+          }`}
+        >
+          {allVoided
+            ? labels.voided
+            : order.status === 'pending'
+              ? labels.newOrder
+              : order.status === 'cooking'
+                ? labels.cooking
+                : labels.completed}
         </span>
       </div>
 

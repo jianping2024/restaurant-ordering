@@ -498,35 +498,26 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
                 {card.readyItems.length === 0 ? (
                   <p className="text-brand-text-muted text-sm">{t.noReady}</p>
                 ) : (
-                  <div className="modal-scroll max-h-40 overflow-y-auto pr-1 space-y-1.5">
-                    {card.readyItems.map((line, idx) => (
-                      <p key={idx} className="text-sm text-emerald-800">{line}</p>
-                    ))}
-                  </div>
+                  card.readyItems.map((line, idx) => (
+                    <p key={idx} className="text-sm text-emerald-800">{line}</p>
+                  ))
                 )}
               </div>
               {card.voidableItems.length > 0 && (
                 <div className="mt-3 rounded-lg border border-brand-border/60 p-2.5 space-y-2">
                   <p className="text-[11px] text-brand-gold font-medium">{t.voidPendingTitle}</p>
-                  <div className="modal-scroll max-h-56 overflow-y-auto pr-1 space-y-2">
-                    {card.voidableItems.map((item) => (
-                      <div key={`${item.orderId}-${item.itemIdx}`} className="flex items-center justify-between gap-2">
-                        <p className="text-sm text-brand-text truncate">{item.label}</p>
-                        <button
-                          type="button"
-                          onClick={() => voidItemFromWaiter(item.orderId, item.itemIdx)}
-                          className="text-[11px] bg-slate-500/12 text-slate-700 border border-slate-500/35 px-2 py-0.5 rounded-md hover:bg-slate-500/22 transition-colors"
-                        >
-                          {t.voidItem}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  {card.voidableItems.length > 6 && (
-                    <p className="text-[13px] text-brand-text-muted">
-                      {t.moreItems} {card.voidableItems.length - 6} {t.itemsUnit}
-                    </p>
-                  )}
+                  {card.voidableItems.map((item) => (
+                    <div key={`${item.orderId}-${item.itemIdx}`} className="flex items-center justify-between gap-2">
+                      <p className="text-sm text-brand-text truncate">{item.label}</p>
+                      <button
+                        type="button"
+                        onClick={() => voidItemFromWaiter(item.orderId, item.itemIdx)}
+                        className="text-[11px] bg-slate-500/12 text-slate-700 border border-slate-500/35 px-2 py-0.5 rounded-md hover:bg-slate-500/22 transition-colors"
+                      >
+                        {t.voidItem}
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

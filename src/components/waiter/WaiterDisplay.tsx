@@ -58,6 +58,9 @@ const WAITER_TEXT = {
     voidedLabel: '已取消',
     moreItems: '还有',
     itemsUnit: '道',
+    closeTable: '关台',
+    closeTableOperating: '关台中…',
+    closeTableNoSession: '未找到开台记录，请刷新后重试',
   },
   en: {
     demoTitle: 'Demo waiter dashboard',
@@ -99,6 +102,9 @@ const WAITER_TEXT = {
     voidedLabel: 'Voided',
     moreItems: 'More',
     itemsUnit: 'items',
+    closeTable: 'Close table',
+    closeTableOperating: 'Closing…',
+    closeTableNoSession: 'No active session found. Refresh and try again.',
   },
   pt: {
     demoTitle: 'Painel demo do garcom',
@@ -140,18 +146,31 @@ const WAITER_TEXT = {
     voidedLabel: 'Cancelado',
     moreItems: 'Mais',
     itemsUnit: 'itens',
+    closeTable: 'Fechar mesa',
+    closeTableOperating: 'A fechar…',
+    closeTableNoSession: 'Sem sessao ativa. Atualize e tente novamente.',
   },
 } as const;
 
-async function fetchBoardOrders(supabase: ReturnType<typeof createClient>, restaurantId: string) {
-  const { data } = await supabase
-    .from('orders')
-    .select('*')
-    .eq('restaurant_id', restaurantId)
-    .in('status', ['pending', 'cooking', 'done'])
-    .order('updated_at', { ascending: false })
-    .limit(200);
-  return (data || []) as Order[];
+/** 只展示仍挂在 open/billing 餐次上的订单；关台后同批订单不再出现在看板。 */
+async function fetchWaiterBoardOrders(supabase: ReturnType<typeof createClient>, restaurantId: string) {
+  const [{ data: sessions }, { data: rows }] = await Promise.all([
+    supabase
+      .from('table_sessions')
+      .select('id')
+      .eq('restaurant_id', restaurantId)
+      .in('status', ['open', 'billing']),
+    supabase
+      .from('orders')
+      .select('*')
+      .eq('restaurant_id', restaurantId)
+      .in('status', ['pending', 'cooking', 'done'])
+      .order('updated_at', { ascending: false })
+      .limit(200),
+  ]);
+  const activeIds = new Set((sessions || []).map((s) => s.id as string));
+  const orders = (rows || []) as Order[];
+  return orders.filter((o) => !o.session_id || activeIds.has(o.session_id));
 }
 
 export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Props) {
@@ -166,6 +185,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
   const [sourceTable, setSourceTable] = useState<number | null>(null);
   const [targetTable, setTargetTable] = useState<number | null>(null);
   const [operating, setOperating] = useState(false);
+  const [closingTable, setClosingTable] = useState<number | null>(null);
   /** One browser client per mount — avoids realtime effect re-subscribing every render. */
   const supabase = useMemo(() => createClient(), []);
 
@@ -239,7 +259,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
     if (!authenticated || isDemo) return;
 
     const refresh = async () => {
-      setOrders(await fetchBoardOrders(supabase, restaurant.id));
+      setOrders(await fetchWaiterBoardOrders(supabase, restaurant.id));
     };
 
     void refresh();
@@ -333,7 +353,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
           .eq('id', rpcResult as string)
           .in('status', ['open', 'billing'])
           .maybeSingle(),
-        fetchBoardOrders(supabase, restaurant.id),
+        fetchWaiterBoardOrders(supabase, restaurant.id),
       ]);
 
       if (sessionCheck.error || !sessionCheck.data || sessionCheck.data.table_number !== toTable) {
@@ -355,6 +375,54 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
   const targetCandidates = operationType === 'transfer'
     ? Array.from({ length: 30 }, (_, idx) => idx + 1).filter((table) => !allTables.includes(table) || table === sourceTable)
     : allTables.filter((table) => table !== sourceTable);
+
+  const canCloseTableCard = (card: (typeof tableCards)[number]) =>
+    card.pending === 0 &&
+    card.cooking === 0 &&
+    card.ready === 0 &&
+    card.voidableItems.length === 0 &&
+    card.voidedItems.length > 0;
+
+  const closeTableFromWaiter = async (tableNumber: number) => {
+    setClosingTable(tableNumber);
+    try {
+      const { data: session, error: findError } = await supabase
+        .from('table_sessions')
+        .select('id')
+        .eq('restaurant_id', restaurant.id)
+        .eq('table_number', tableNumber)
+        .in('status', ['open', 'billing'])
+        .order('opened_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (findError || !session?.id) {
+        showToast(t.closeTableNoSession, 'error');
+        return;
+      }
+
+      const { error: updError } = await supabase
+        .from('table_sessions')
+        .update({
+          status: 'closed',
+          closed_at: new Date().toISOString(),
+          closed_reason: 'waiter_voided_cleared',
+        })
+        .eq('id', session.id);
+
+      if (updError) {
+        showToast(t.actionFailed, 'error');
+        return;
+      }
+
+      setOrders(await fetchWaiterBoardOrders(supabase, restaurant.id));
+      showToast(t.actionSuccess, 'success');
+    } catch {
+      showToast(t.actionFailed, 'error');
+    } finally {
+      setClosingTable(null);
+    }
+  };
 
   const voidItemFromWaiter = async (orderId: string, itemIdx: number) => {
     try {
@@ -383,7 +451,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
         return;
       }
 
-      setOrders(await fetchBoardOrders(supabase, restaurant.id));
+      setOrders(await fetchWaiterBoardOrders(supabase, restaurant.id));
       showToast(t.voidedLabel, 'success');
     } catch {
       showToast(t.actionFailed, 'error');
@@ -506,7 +574,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex flex-wrap items-center gap-2 mb-3">
                 <button
                   type="button"
                   onClick={() => openAction('transfer', card.table)}
@@ -521,6 +589,16 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
                 >
                   {t.merge}
                 </button>
+                {canCloseTableCard(card) && (
+                  <button
+                    type="button"
+                    onClick={() => closeTableFromWaiter(card.table)}
+                    disabled={closingTable === card.table}
+                    className="text-[11px] bg-rose-500/14 text-rose-800 border border-rose-500/40 px-2 py-0.5 rounded-md hover:bg-rose-500/24 transition-colors disabled:opacity-50"
+                  >
+                    {closingTable === card.table ? t.closeTableOperating : t.closeTable}
+                  </button>
+                )}
               </div>
 
               <div className="flex items-center gap-2 text-[13px] mb-3">

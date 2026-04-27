@@ -18,18 +18,30 @@ export default async function WaiterPage({ params }: Props) {
 
   if (!restaurant) notFound();
 
-  const { data: orders } = await supabase
-    .from('orders')
-    .select('*')
-    .eq('restaurant_id', restaurant.id)
-    .in('status', ['pending', 'cooking', 'done'])
-    .order('updated_at', { ascending: false })
-    .limit(200);
+  const [{ data: activeSessions }, { data: orderRows }] = await Promise.all([
+    supabase
+      .from('table_sessions')
+      .select('id')
+      .eq('restaurant_id', restaurant.id)
+      .in('status', ['open', 'billing']),
+    supabase
+      .from('orders')
+      .select('*')
+      .eq('restaurant_id', restaurant.id)
+      .in('status', ['pending', 'cooking', 'done'])
+      .order('updated_at', { ascending: false })
+      .limit(200),
+  ]);
+
+  const activeIds = new Set((activeSessions || []).map((s) => s.id));
+  const orders = (orderRows || []).filter(
+    (o) => !o.session_id || activeIds.has(o.session_id as string),
+  );
 
   return (
     <WaiterDisplay
       restaurant={restaurant}
-      initialOrders={orders || []}
+      initialOrders={orders}
     />
   );
 }

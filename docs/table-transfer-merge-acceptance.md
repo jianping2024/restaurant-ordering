@@ -37,3 +37,13 @@
    - Kitchen board
    - Waiter board
 2. Verify table numbers and order grouping are consistent.
+
+## Waiter closes table (no cooking / no ready-to-serve)
+
+1. Open a session on a table with only **pending** items, or only **voided** items, or both — and **no** item in **cooking** or **done** (ready) on the waiter card.
+2. Confirm **Close table** is visible on the waiter board; click it.
+3. Verify:
+   - Active `table_sessions` for that table is `closed` with `closed_reason = waiter_closed`.
+   - The table card disappears from the waiter board without a full page reload.
+   - The same orders no longer appear on the **kitchen** board (kitchen uses the same active-session filter).
+4. Open the customer menu for that table again and confirm a **new** order can start (new session).

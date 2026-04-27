@@ -111,6 +111,14 @@ Supabase **内置邮件**不是给公开注册用的：在未配置 **自定义 
 
 ---
 
+## 后厨与服务员看板（实时与会话）
+
+- 输入密码进入后，页面通过 **Supabase Realtime** 订阅 `orders` 与 `table_sessions`，并在进入时 **立即拉取** 最新数据。
+- **仅展示活跃餐次下的订单**：`table_sessions` 为 `open` 或 `billing` 时，对应 `orders.session_id` 会出现在后厨与服务员看板；餐次关闭后，这些订单从两页看板消失（无需整页刷新）。
+- **服务员「关台」**：当该桌没有「制作中」且没有「可端菜」时，可结束当前餐次（`closed_reason = waiter_closed`），用于未开做前撤台、错台等；已有出餐中的桌台需先跟随后厨流程或逐单处理。详见 [`docs/table-transfer-merge-plan.zh.md`](docs/table-transfer-merge-plan.zh.md) 中「服务员关台与看板可见性」。
+
+---
+
 ## Vercel 部署步骤
 
 ### 1. 推送代码到 GitHub

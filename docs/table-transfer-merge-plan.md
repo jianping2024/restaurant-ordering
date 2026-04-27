@@ -38,6 +38,12 @@ This document defines the implementation plan for table transfer and table merge
 - `table_sessions.merge_into_session_id` (nullable UUID)
 - `table_sessions.closed_reason` (nullable text)
 
+### Typical `closed_reason` values
+
+- `merged`: source-table session closed during **table merge**.
+- `waiter_closed`: session closed from the **waiter board** via **Close table**.
+- Owner dashboard “confirm paid” may set `status = closed` without relying on `closed_reason` for behaviour.
+
 ## Backend Operation Design
 
 Two RPC functions are used as atomic write boundaries:
@@ -84,6 +90,21 @@ UI interactions:
   - "Table status changed, please refresh and retry."
 - Refresh active sessions after success.
 
+## Waiter “close table” and board visibility
+
+### Which orders appear on kitchen / waiter boards
+
+- After staff authenticate, both pages subscribe to Supabase Realtime (`orders`, `table_sessions`) and fetch fresh data on entry.
+- **Only orders tied to an active session** are shown: sessions with `status` in `open` | `billing` define the allowed `orders.session_id` set. Rows with a null `session_id` are still shown for legacy compatibility.
+- When a session closes (checkout, merge source table, waiter close table, etc.), those orders **drop off** the kitchen and waiter boards without requiring a full page reload (Realtime refresh or next fetch).
+
+### Waiter “Close table”
+
+- Entry: **Close table** on each table card on `/[slug]/waiter` (next to transfer / merge).
+- **Shown when** the table summary has **no items cooking** and **nothing ready to serve** (kitchen has not advanced any dish to a servable state). In that state, the card may be pending-only, voided-only, or a mix.
+- **Hidden when** anything is cooking or ready to serve; finish the kitchen flow or void items first.
+- **Effect**: sets the table’s active `table_sessions` row to `closed`, sets `closed_at` and `closed_reason = waiter_closed`. Orders are not moved; the session simply ends. Boards update per the rules above.
+
 ## Validation Checklist
 
 Functional checks:
@@ -100,6 +121,7 @@ Concurrency checks:
 Cross-page checks:
 
 - Customer menu/bill, kitchen board, and waiter board reflect post-operation table/session state.
+- After waiter **Close table**, that table’s orders disappear from waiter and kitchen boards; customers can start a new session and order again.
 
 ## Rollout Notes
 

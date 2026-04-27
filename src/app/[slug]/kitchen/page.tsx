@@ -18,7 +18,7 @@ export default async function KitchenPage({ params }: Props) {
 
   if (!restaurant) notFound();
 
-  const [{ data: orders }, { data: sessions }] = await Promise.all([
+  const [{ data: orderRows }, { data: sessions }] = await Promise.all([
     supabase
       .from('orders')
       .select('*')
@@ -27,11 +27,15 @@ export default async function KitchenPage({ params }: Props) {
       .order('created_at', { ascending: true }),
     supabase
       .from('table_sessions')
-      .select('table_number')
+      .select('id, table_number')
       .eq('restaurant_id', restaurant.id)
       .in('status', ['open', 'billing']),
   ]);
 
+  const activeIds = new Set((sessions || []).map((s) => s.id));
+  const orders = (orderRows || []).filter(
+    (o) => !o.session_id || activeIds.has(o.session_id as string),
+  );
   const initialActiveTables = Array.from(
     new Set((sessions || []).map((s) => s.table_number)),
   ).sort((a, b) => a - b);
@@ -39,7 +43,7 @@ export default async function KitchenPage({ params }: Props) {
   return (
     <KitchenDisplay
       restaurant={restaurant}
-      initialOrders={orders || []}
+      initialOrders={orders}
       initialActiveTables={initialActiveTables}
     />
   );

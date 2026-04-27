@@ -81,14 +81,15 @@ async function loadKitchenBoard(
       .order('created_at', { ascending: true }),
     supabase
       .from('table_sessions')
-      .select('table_number')
+      .select('id, table_number')
       .eq('restaurant_id', restaurantId)
       .in('status', ['open', 'billing']),
   ]);
-  const orders = (ordersRes.data || []) as Order[];
-  const activeTables = Array.from(
-    new Set((sessionsRes.data || []).map((r: { table_number: number }) => r.table_number)),
-  ).sort((a, b) => a - b);
+  const sessions = (sessionsRes.data || []) as { id: string; table_number: number }[];
+  const activeIds = new Set(sessions.map((r) => r.id));
+  const rawOrders = (ordersRes.data || []) as Order[];
+  const orders = rawOrders.filter((o) => !o.session_id || activeIds.has(o.session_id));
+  const activeTables = Array.from(new Set(sessions.map((r) => r.table_number))).sort((a, b) => a - b);
   return { orders, activeTables };
 }
 

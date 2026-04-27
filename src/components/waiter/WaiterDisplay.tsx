@@ -376,12 +376,9 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
     ? Array.from({ length: 30 }, (_, idx) => idx + 1).filter((table) => !allTables.includes(table) || table === sourceTable)
     : allTables.filter((table) => table !== sourceTable);
 
+  /** 未开始备餐（无制作中、无可端菜）即可关台：含仅待做、仅已取消或混合。 */
   const canCloseTableCard = (card: (typeof tableCards)[number]) =>
-    card.pending === 0 &&
-    card.cooking === 0 &&
-    card.ready === 0 &&
-    card.voidableItems.length === 0 &&
-    card.voidedItems.length > 0;
+    card.cooking === 0 && card.ready === 0;
 
   const closeTableFromWaiter = async (tableNumber: number) => {
     setClosingTable(tableNumber);
@@ -406,7 +403,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
         .update({
           status: 'closed',
           closed_at: new Date().toISOString(),
-          closed_reason: 'waiter_voided_cleared',
+          closed_reason: 'waiter_closed',
         })
         .eq('id', session.id);
 

@@ -289,13 +289,23 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
               <div className="w-40 h-40 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
             )}
             <p className="text-brand-text-muted text-[13px] mb-2 truncate">/{restaurant.slug}/kitchen</p>
-            <button
-              onClick={() => downloadStaffQR('kitchen')}
-              disabled={!staffQr.kitchen}
-              className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
-            >
-              {t.downloadKitchen}
-            </button>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={() => downloadStaffQR('kitchen')}
+                disabled={!staffQr.kitchen}
+                className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
+              >
+                {t.downloadKitchen}
+              </button>
+              <a
+                href={`${baseUrl}/${restaurant.slug}/kitchen`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[13px] text-brand-gold hover:underline"
+              >
+                {t.openKitchen}
+              </a>
+            </div>
           </div>
           <div className="border border-brand-border rounded-xl p-4 text-center">
             <p className="text-brand-text text-sm mb-3">{t.waiterEntry}</p>
@@ -306,13 +316,23 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
               <div className="w-40 h-40 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
             )}
             <p className="text-brand-text-muted text-[13px] mb-2 truncate">/{restaurant.slug}/waiter</p>
-            <button
-              onClick={() => downloadStaffQR('waiter')}
-              disabled={!staffQr.waiter}
-              className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
-            >
-              {t.downloadWaiter}
-            </button>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={() => downloadStaffQR('waiter')}
+                disabled={!staffQr.waiter}
+                className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
+              >
+                {t.downloadWaiter}
+              </button>
+              <a
+                href={`${baseUrl}/${restaurant.slug}/waiter`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[13px] text-brand-gold hover:underline"
+              >
+                {t.openWaiter}
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -338,13 +358,23 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
             <p className="text-brand-text-muted text-[13px] mb-3 truncate">
               /{restaurant.slug}/menu?table={tableNum}
             </p>
-            <button
-              onClick={() => downloadQR(tableNum)}
-              disabled={!qrCodes[tableNum]}
-              className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
-            >
-              {t.download}
-            </button>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={() => downloadQR(tableNum)}
+                disabled={!qrCodes[tableNum]}
+                className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
+              >
+                {t.download}
+              </button>
+              <a
+                href={`${baseUrl}/${restaurant.slug}/menu?table=${tableNum}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[13px] text-brand-gold hover:underline"
+              >
+                {t.openOrder}
+              </a>
+            </div>
           </div>
         ))}
       </div>

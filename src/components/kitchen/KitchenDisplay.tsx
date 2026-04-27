@@ -74,7 +74,7 @@ function normalizeItemStatus(item: OrderItem, fallback: Order['status']): OrderI
 
 function deriveOrderStatus(items: OrderItem[]): Order['status'] {
   const statuses = items.map(i => i.item_status || 'pending');
-  if (statuses.length > 0 && statuses.every(s => s === 'done')) return 'done';
+  if (statuses.length > 0 && statuses.every(s => s === 'done' || s === 'voided')) return 'done';
   if (statuses.some(s => s === 'cooking' || s === 'done')) return 'cooking';
   return 'pending';
 }
@@ -125,6 +125,7 @@ export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Pr
         item_status: nextStatus,
         started_at: nextStatus === 'cooking' ? new Date().toISOString() : item.started_at,
         done_at: nextStatus === 'done' ? new Date().toISOString() : item.done_at,
+        voided_at: nextStatus === 'voided' ? new Date().toISOString() : item.voided_at,
       };
     });
 
@@ -379,6 +380,8 @@ function OrderCard({
     completed: string;
     startCooking: string;
     finishServing: string;
+    voidItem: string;
+    voided: string;
     firstBatch: string;
     addOnBatch: string;
   };
@@ -468,12 +471,16 @@ function OrderCard({
                         <span className={`text-[10px] px-2 py-0.5 rounded-full ${
                           normalizeItemStatus(item, order.status) === 'done'
                             ? 'bg-green-500/20 text-green-400'
+                            : normalizeItemStatus(item, order.status) === 'voided'
+                              ? 'bg-slate-500/25 text-slate-300'
                             : normalizeItemStatus(item, order.status) === 'cooking'
                               ? 'bg-yellow-500/20 text-yellow-400'
                               : 'bg-red-500/20 text-red-400'
                         }`}>
                           {normalizeItemStatus(item, order.status) === 'done'
                             ? labels.completed
+                            : normalizeItemStatus(item, order.status) === 'voided'
+                              ? labels.voided
                             : normalizeItemStatus(item, order.status) === 'cooking'
                               ? labels.cooking
                               : labels.newOrder}
@@ -494,6 +501,15 @@ function OrderCard({
                             className="text-[11px] bg-green-500/20 text-green-400 border border-green-500/50 px-2 py-0.5 rounded-md hover:bg-green-500/30 disabled:opacity-50"
                           >
                             {labels.finishServing}
+                          </button>
+                        )}
+                        {(normalizeItemStatus(item, order.status) === 'pending' || normalizeItemStatus(item, order.status) === 'cooking') && (
+                          <button
+                            onClick={() => handleItemStatusChange(idx, 'voided')}
+                            disabled={updating}
+                            className="text-[11px] bg-slate-500/20 text-slate-300 border border-slate-400/40 px-2 py-0.5 rounded-md hover:bg-slate-500/30 disabled:opacity-50"
+                          >
+                            {labels.voidItem}
                           </button>
                         )}
                       </div>

@@ -7,6 +7,7 @@ import type { Order, OrderItem } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import { Modal } from '@/components/ui/Modal';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string; waiter_password: string };
@@ -34,6 +35,25 @@ const WAITER_TEXT = {
     cooking: '制作中',
     ready: '可端菜',
     noReady: '暂无可端菜品',
+    transfer: '转台',
+    merge: '并台',
+    transferTitle: '服务员转台',
+    mergeTitle: '服务员并台',
+    sourceTable: '来源桌号',
+    targetTable: '目标桌号',
+    transferHint: '把来源桌的当前餐次整体迁移到目标桌。',
+    mergeHint: '把来源桌并入目标桌，来源桌会话会关闭。',
+    confirmTransfer: '确认转台',
+    confirmMerge: '确认并台',
+    operatingTransfer: '转台中...',
+    operatingMerge: '并台中...',
+    refreshHint: '桌台状态已变化，请刷新后重试',
+    actionFailed: '操作失败，请重试',
+    actionSuccess: '操作成功',
+    sameTableError: '来源桌和目标桌不能相同',
+    voidItem: '取消',
+    voidPendingTitle: '待处理菜品',
+    voidedLabel: '已取消',
   },
   en: {
     demoTitle: 'Demo waiter dashboard',
@@ -54,6 +74,25 @@ const WAITER_TEXT = {
     cooking: 'Cooking',
     ready: 'Ready',
     noReady: 'No ready items yet',
+    transfer: 'Transfer',
+    merge: 'Merge',
+    transferTitle: 'Waiter transfer table',
+    mergeTitle: 'Waiter merge tables',
+    sourceTable: 'Source table',
+    targetTable: 'Target table',
+    transferHint: 'Move the active session from source table to target table.',
+    mergeHint: 'Merge source table into target table and close source session.',
+    confirmTransfer: 'Confirm transfer',
+    confirmMerge: 'Confirm merge',
+    operatingTransfer: 'Transferring...',
+    operatingMerge: 'Merging...',
+    refreshHint: 'Table status changed. Please refresh and retry.',
+    actionFailed: 'Operation failed, please retry',
+    actionSuccess: 'Operation completed',
+    sameTableError: 'Source and target tables cannot be the same',
+    voidItem: 'Void',
+    voidPendingTitle: 'Open items',
+    voidedLabel: 'Voided',
   },
   pt: {
     demoTitle: 'Painel demo do garcom',
@@ -74,6 +113,25 @@ const WAITER_TEXT = {
     cooking: 'Em preparo',
     ready: 'Pronto',
     noReady: 'Sem itens prontos no momento',
+    transfer: 'Trocar mesa',
+    merge: 'Unir mesas',
+    transferTitle: 'Troca de mesa pelo garcom',
+    mergeTitle: 'Uniao de mesas pelo garcom',
+    sourceTable: 'Mesa de origem',
+    targetTable: 'Mesa de destino',
+    transferHint: 'Move a sessao ativa da mesa de origem para a mesa destino.',
+    mergeHint: 'Une a mesa de origem na mesa destino e fecha a origem.',
+    confirmTransfer: 'Confirmar troca',
+    confirmMerge: 'Confirmar uniao',
+    operatingTransfer: 'Transferindo...',
+    operatingMerge: 'Unindo...',
+    refreshHint: 'Estado das mesas mudou. Atualize e tente novamente.',
+    actionFailed: 'Falha na operacao, tente novamente',
+    actionSuccess: 'Operacao concluida',
+    sameTableError: 'Mesa de origem e destino nao podem ser iguais',
+    voidItem: 'Cancelar prato',
+    voidPendingTitle: 'Itens em aberto',
+    voidedLabel: 'Cancelado',
   },
 } as const;
 
@@ -81,6 +139,13 @@ function itemStatus(item: OrderItem, orderStatus: Order['status']) {
   if (item.item_status) return item.item_status;
   if (orderStatus === 'done') return 'done';
   if (orderStatus === 'cooking') return 'cooking';
+  return 'pending';
+}
+
+function deriveOrderStatus(items: OrderItem[]): Order['status'] {
+  const statuses = items.map((item) => item.item_status || 'pending');
+  if (statuses.length > 0 && statuses.every((status) => status === 'done' || status === 'voided')) return 'done';
+  if (statuses.some((status) => status === 'cooking' || status === 'done')) return 'cooking';
   return 'pending';
 }
 
@@ -92,10 +157,21 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
   const [password, setPassword] = useState('');
   const [pwError, setPwError] = useState(false);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const [operationType, setOperationType] = useState<'transfer' | 'merge' | null>(null);
+  const [sourceTable, setSourceTable] = useState<number | null>(null);
+  const [targetTable, setTargetTable] = useState<number | null>(null);
+  const [operating, setOperating] = useState(false);
   const supabase = createClient();
 
   const tableCards = useMemo(() => {
-    const grouped = new Map<number, { pending: number; cooking: number; ready: number; readyItems: string[]; updatedAt: string }>();
+    const grouped = new Map<number, {
+      pending: number;
+      cooking: number;
+      ready: number;
+      readyItems: string[];
+      voidableItems: Array<{ orderId: string; itemIdx: number; label: string; status: 'pending' | 'cooking' }>;
+      updatedAt: string;
+    }>();
 
     orders.forEach((order) => {
       const current = grouped.get(order.table_number) || {
@@ -103,16 +179,29 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
         cooking: 0,
         ready: 0,
         readyItems: [],
+        voidableItems: [],
         updatedAt: order.updated_at || order.created_at,
       };
 
       order.items.forEach((item) => {
-        const status = itemStatus(item, order.status);
+        const status = itemStatus(item, order.status) as 'pending' | 'cooking' | 'done' | 'voided';
         if (status === 'pending') current.pending += item.qty;
         if (status === 'cooking') current.cooking += item.qty;
         if (status === 'done') {
           current.ready += item.qty;
           current.readyItems.push(`${item.emoji} ${item.name || item.name_pt} × ${item.qty}`);
+        }
+      });
+
+      order.items.forEach((item, itemIdx) => {
+        const status = itemStatus(item, order.status) as 'pending' | 'cooking' | 'done' | 'voided';
+        if (status === 'pending' || status === 'cooking') {
+          current.voidableItems.push({
+            orderId: order.id,
+            itemIdx,
+            status,
+            label: `${item.emoji} ${item.name || item.name_pt} × ${item.qty}`,
+          });
         }
       });
 
@@ -163,6 +252,112 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
     } else {
       setPwError(true);
       setPassword('');
+    }
+  };
+
+  const openAction = (type: 'transfer' | 'merge', table: number) => {
+    setOperationType(type);
+    setSourceTable(table);
+    setTargetTable(null);
+  };
+
+  const closeAction = () => {
+    setOperationType(null);
+    setSourceTable(null);
+    setTargetTable(null);
+    setOperating(false);
+  };
+
+  const handleActionSubmit = async () => {
+    if (!operationType || !sourceTable || !targetTable) return;
+    if (sourceTable === targetTable) {
+      alert(t.sameTableError);
+      return;
+    }
+
+    setOperating(true);
+    try {
+      const { error } = operationType === 'transfer'
+        ? await supabase.rpc('transfer_table_session', {
+          p_restaurant_id: restaurant.id,
+          p_from_table: sourceTable,
+          p_to_table: targetTable,
+        })
+        : await supabase.rpc('merge_table_sessions', {
+          p_restaurant_id: restaurant.id,
+          p_source_table: sourceTable,
+          p_target_table: targetTable,
+        });
+
+      if (error) {
+        if ((error.message || '').toLowerCase().includes('active session')) {
+          alert(t.refreshHint);
+        } else {
+          alert(t.actionFailed);
+        }
+        return;
+      }
+
+      const { data } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('restaurant_id', restaurant.id)
+        .in('status', ['pending', 'cooking', 'done'])
+        .order('updated_at', { ascending: false })
+        .limit(200);
+      setOrders((data || []) as Order[]);
+      alert(t.actionSuccess);
+      closeAction();
+    } catch {
+      alert(t.actionFailed);
+    } finally {
+      setOperating(false);
+    }
+  };
+
+  const allTables = Array.from(new Set(tableCards.map((card) => card.table))).sort((a, b) => a - b);
+  const targetCandidates = operationType === 'transfer'
+    ? Array.from({ length: 30 }, (_, idx) => idx + 1).filter((table) => !allTables.includes(table) || table === sourceTable)
+    : allTables.filter((table) => table !== sourceTable);
+
+  const voidItemFromWaiter = async (orderId: string, itemIdx: number) => {
+    try {
+      const order = orders.find((row) => row.id === orderId);
+      if (!order) return;
+      const nextItems = order.items.map((item, idx) => {
+        if (idx !== itemIdx) return item;
+        return {
+          ...item,
+          item_status: 'voided' as const,
+          voided_at: new Date().toISOString(),
+        };
+      });
+      const nextOrderStatus = deriveOrderStatus(nextItems);
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          items: nextItems,
+          status: nextOrderStatus,
+        })
+        .eq('id', orderId)
+        .eq('updated_at', order.updated_at);
+
+      if (error) {
+        alert(t.refreshHint);
+        return;
+      }
+
+      const { data } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('restaurant_id', restaurant.id)
+        .in('status', ['pending', 'cooking', 'done'])
+        .order('updated_at', { ascending: false })
+        .limit(200);
+      setOrders((data || []) as Order[]);
+      alert(t.voidedLabel);
+    } catch {
+      alert(t.actionFailed);
     }
   };
 
@@ -264,6 +459,23 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
                 </span>
               </div>
 
+              <div className="flex items-center gap-2 mb-3">
+                <button
+                  type="button"
+                  onClick={() => openAction('transfer', card.table)}
+                  className="text-[13px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+                >
+                  {t.transfer}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openAction('merge', card.table)}
+                  className="text-[13px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+                >
+                  {t.merge}
+                </button>
+              </div>
+
               <div className="flex items-center gap-2 text-[13px] mb-3">
                 <span className="px-2 py-0.5 rounded-full bg-red-500/15 text-red-400">{t.pending} {card.pending}</span>
                 <span className="px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400">{t.cooking} {card.cooking}</span>
@@ -279,10 +491,81 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
                   ))
                 )}
               </div>
+              {card.voidableItems.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-brand-border/60 space-y-2">
+                  <p className="text-[13px] text-brand-text-muted">{t.voidPendingTitle}</p>
+                  {card.voidableItems.slice(0, 4).map((item) => (
+                    <div key={`${item.orderId}-${item.itemIdx}`} className="flex items-center justify-between gap-2">
+                      <p className="text-sm text-brand-text truncate">{item.label}</p>
+                      <button
+                        type="button"
+                        onClick={() => voidItemFromWaiter(item.orderId, item.itemIdx)}
+                        className="text-[13px] px-2 py-0.5 rounded border border-slate-400/40 text-slate-300 hover:bg-slate-500/20 transition-colors"
+                      >
+                        {t.voidItem}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>
       )}
+      <Modal
+        open={!!operationType}
+        onClose={closeAction}
+        title={operationType === 'transfer' ? t.transferTitle : t.mergeTitle}
+        size="sm"
+      >
+        <p className="text-[13px] text-brand-text-muted mb-4">
+          {operationType === 'transfer' ? t.transferHint : t.mergeHint}
+        </p>
+        <div className="space-y-3">
+          <div>
+            <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.sourceTable}</label>
+            <input
+              value={sourceTable ?? ''}
+              disabled
+              className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text"
+            />
+          </div>
+          <div>
+            <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.targetTable}</label>
+            <select
+              value={targetTable ?? ''}
+              onChange={(e) => setTargetTable(Number(e.target.value) || null)}
+              className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
+            >
+              <option value="">--</option>
+              {targetCandidates.map((table) => (
+                <option key={table} value={table}>
+                  {t.table} {table}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={closeAction}
+            className="px-3 py-2 rounded-lg border border-brand-border text-sm text-brand-text-muted hover:text-brand-text transition-colors"
+          >
+            {lang === 'zh' ? '取消' : lang === 'en' ? 'Cancel' : 'Cancelar'}
+          </button>
+          <button
+            type="button"
+            onClick={handleActionSubmit}
+            disabled={!sourceTable || !targetTable || operating}
+            className="px-3 py-2 rounded-lg text-sm bg-brand-gold text-brand-bg font-medium disabled:opacity-50"
+          >
+            {operationType === 'transfer'
+              ? (operating ? t.operatingTransfer : t.confirmTransfer)
+              : (operating ? t.operatingMerge : t.confirmMerge)}
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }

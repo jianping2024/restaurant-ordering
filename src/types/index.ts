@@ -4,7 +4,7 @@
 
 export type Plan = 'free' | 'pro';
 export type OrderStatus = 'pending' | 'cooking' | 'done';
-export type OrderItemStatus = 'pending' | 'cooking' | 'done';
+export type OrderItemStatus = 'pending' | 'cooking' | 'done' | 'voided';
 export type SessionStatus = 'open' | 'billing' | 'closed';
 export type Category = 'Entradas' | 'Pratos' | 'Bebidas' | 'Sobremesas';
 export type SplitMode = 'even' | 'by_item' | 'custom';
@@ -57,6 +57,8 @@ export interface OrderItem {
   started_at?: string;
   done_at?: string;
   added_at?: string;
+  voided_at?: string;
+  void_reason?: string;
 }
 
 export interface Order {

@@ -447,8 +447,17 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tableCards.map(card => (
-            <div key={card.table} className="bg-brand-card border border-brand-border rounded-2xl p-4">
+          {tableCards.map(card => {
+            const cardStatus: 'pending' | 'cooking' | 'done' =
+              card.pending > 0 ? 'pending' : card.cooking > 0 ? 'cooking' : 'done';
+            const statusStyle = {
+              pending: 'border-red-500/45 bg-red-500/8',
+              cooking: 'border-amber-500/45 bg-amber-500/10',
+              done: 'border-emerald-500/45 bg-emerald-500/10',
+            } as const;
+
+            return (
+            <div key={card.table} className={`border-2 rounded-2xl p-4 ${statusStyle[cardStatus]}`}>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-heading text-2xl text-brand-text">{t.table} {card.table}</h2>
                 <span className="text-[13px] text-brand-text-muted">
@@ -465,14 +474,14 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
                 <button
                   type="button"
                   onClick={() => openAction('transfer', card.table)}
-                  className="text-[13px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+                  className="text-[11px] bg-amber-500/18 text-amber-800 border border-amber-500/45 px-2 py-0.5 rounded-md hover:bg-amber-500/28 transition-colors"
                 >
                   {t.transfer}
                 </button>
                 <button
                   type="button"
                   onClick={() => openAction('merge', card.table)}
-                  className="text-[13px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+                  className="text-[11px] bg-slate-500/12 text-slate-700 border border-slate-500/35 px-2 py-0.5 rounded-md hover:bg-slate-500/22 transition-colors"
                 >
                   {t.merge}
                 </button>
@@ -484,18 +493,21 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
                 <span className="px-2 py-0.5 rounded-full bg-emerald-500/16 border border-emerald-500/35 text-emerald-800">{t.ready} {card.ready}</span>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="rounded-lg border border-brand-border/60 p-2.5 space-y-2">
+                <p className="text-[11px] text-brand-gold font-medium">{t.ready}</p>
                 {card.readyItems.length === 0 ? (
                   <p className="text-brand-text-muted text-sm">{t.noReady}</p>
                 ) : (
-                  card.readyItems.slice(0, 6).map((line, idx) => (
-                    <p key={idx} className="text-sm text-emerald-800">{line}</p>
-                  ))
+                  <div className="modal-scroll max-h-40 overflow-y-auto pr-1 space-y-1.5">
+                    {card.readyItems.map((line, idx) => (
+                      <p key={idx} className="text-sm text-emerald-800">{line}</p>
+                    ))}
+                  </div>
                 )}
               </div>
               {card.voidableItems.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-brand-border/60 space-y-2">
-                  <p className="text-[13px] text-brand-text-muted">{t.voidPendingTitle}</p>
+                <div className="mt-3 rounded-lg border border-brand-border/60 p-2.5 space-y-2">
+                  <p className="text-[11px] text-brand-gold font-medium">{t.voidPendingTitle}</p>
                   <div className="modal-scroll max-h-56 overflow-y-auto pr-1 space-y-2">
                     {card.voidableItems.map((item) => (
                       <div key={`${item.orderId}-${item.itemIdx}`} className="flex items-center justify-between gap-2">
@@ -503,7 +515,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
                         <button
                           type="button"
                           onClick={() => voidItemFromWaiter(item.orderId, item.itemIdx)}
-                          className="text-[13px] px-2 py-0.5 rounded border border-slate-500/35 text-slate-700 hover:bg-slate-500/18 transition-colors"
+                          className="text-[11px] bg-slate-500/12 text-slate-700 border border-slate-500/35 px-2 py-0.5 rounded-md hover:bg-slate-500/22 transition-colors"
                         >
                           {t.voidItem}
                         </button>
@@ -518,7 +530,8 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
       <Modal

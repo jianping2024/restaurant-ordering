@@ -1,14 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
 import type { BillSplit, Order } from '@/types';
-import { getServerLanguage } from '@/lib/i18n.server';
-import { getMessages } from '@/lib/i18n/messages';
-import { CheckoutRequestsManager } from '@/components/dashboard/CheckoutRequestsManager';
-import { OrdersHistoryManager } from '@/components/dashboard/OrdersHistoryManager';
-import { FeedbackInsightsPanel } from '@/components/dashboard/FeedbackInsightsPanel';
+import { OrdersPageClient } from '@/components/dashboard/OrdersPageClient';
 
-// 订单历史页
+// 订单历史页（数据在服务端获取，文案在客户端与 LanguageProvider 同步）
 export default async function OrdersPage() {
-  const lang = await getServerLanguage();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -34,7 +29,6 @@ export default async function OrdersPage() {
     .order('created_at', { ascending: false })
     .limit(50);
 
-  const i18n = getMessages(lang).orderHistory;
   const sinceIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
   const { data: feedbackSessions } = await supabase
@@ -88,31 +82,15 @@ export default async function OrdersPage() {
     .slice(0, 5);
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="font-heading text-3xl text-brand-text">{i18n.title}</h1>
-        <p className="text-brand-text-muted text-sm mt-1">{i18n.total} {orders?.length || 0} {i18n.records}</p>
-      </div>
-
-      <CheckoutRequestsManager initialRequests={(checkoutRequests || []) as BillSplit[]} />
-
-      <FeedbackInsightsPanel
-        title={i18n.feedbackTitle}
-        touchedLabel={i18n.feedbackTouched}
-        completedLabel={i18n.feedbackCompleted}
-        actionableLabel={i18n.feedbackActionable}
-        coverageLabel={i18n.feedbackCoverage}
-        topIssuesLabel={i18n.feedbackTopIssues}
-        noIssuesLabel={i18n.feedbackNoIssues}
-        touchedRate={touchedRate}
-        completedRate={completedRate}
-        actionableRate={actionableRate}
-        sessionsWithFeedback={sessionsWithFeedback}
-        billedSessions={billedSessions}
-        topIssues={topIssues}
-      />
-
-      <OrdersHistoryManager initialOrders={(orders || []) as Order[]} />
-    </div>
+    <OrdersPageClient
+      orders={(orders || []) as Order[]}
+      checkoutRequests={(checkoutRequests || []) as BillSplit[]}
+      touchedRate={touchedRate}
+      completedRate={completedRate}
+      actionableRate={actionableRate}
+      sessionsWithFeedback={sessionsWithFeedback}
+      billedSessions={billedSessions}
+      topIssues={topIssues}
+    />
   );
 }

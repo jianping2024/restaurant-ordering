@@ -26,10 +26,10 @@ export default function LandingPage() {
               {dict.login}
             </Link>
             <Link
-              href="/auth/register"
+              href="/auth/login"
               className="bg-brand-gold text-brand-bg px-3 sm:px-5 py-2 rounded-lg text-[13px] sm:text-sm font-semibold hover:bg-brand-gold-light transition-colors whitespace-nowrap flex-shrink-0"
             >
-              {dict.register}
+              {dict.ownerCta}
             </Link>
           </div>
         </div>
@@ -50,12 +50,12 @@ export default function LandingPage() {
         <div className="flex items-stretch justify-center gap-3 sm:gap-4 flex-col sm:flex-row">
           <div className="flex flex-col items-center gap-1.5 w-full sm:w-auto">
             <Link
-              href="/auth/register"
+              href="/auth/login"
               className="w-full sm:w-auto bg-brand-gold text-brand-bg px-8 py-3.5 sm:py-4 rounded-xl text-[15px] sm:text-base font-semibold hover:bg-brand-gold-light transition-colors"
             >
-              {dict.start}
+              {dict.ownerCta}
             </Link>
-            <span className="text-brand-text-muted text-[13px]">{dict.verifyTip}</span>
+            <span className="text-brand-text-muted text-[13px]">{dict.ownerCtaDesc}</span>
           </div>
           <div className="flex flex-col items-center gap-1.5 w-full sm:w-auto">
             <Link
@@ -95,7 +95,7 @@ export default function LandingPage() {
         </h2>
         <p className="text-brand-text-muted text-[15px] sm:text-base mb-6 sm:mb-8">{dict.readyDesc}</p>
         <Link
-          href="/auth/register"
+          href="/auth/login"
           className="inline-block w-full max-w-xs sm:w-auto bg-brand-gold text-brand-bg px-10 py-3.5 sm:py-4 rounded-xl text-[15px] sm:text-base font-semibold hover:bg-brand-gold-light transition-colors"
         >
           {dict.readyBtn}

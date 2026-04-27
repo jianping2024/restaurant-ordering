@@ -313,7 +313,7 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
           <div className="flex items-center justify-between gap-3">
             <p className="text-brand-gold text-[13px]">{t.demoMode}</p>
             <a
-              href="/auth/register"
+              href="/auth/login"
               className="flex-shrink-0 text-[13px] bg-brand-gold text-brand-bg px-3 py-1 rounded-full font-semibold hover:bg-brand-gold-light transition-colors"
             >
               {t.freeSignup}

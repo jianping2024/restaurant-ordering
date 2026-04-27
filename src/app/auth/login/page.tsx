@@ -97,11 +97,12 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="text-center text-brand-text-muted text-sm mt-6">
-            {t.noAccount}{' '}
-            <Link href="/auth/register" className="text-brand-gold hover:underline">
-              {t.register}
-            </Link>
+          <p className="text-center text-brand-text-muted text-xs mt-6">
+            {lang === 'zh'
+              ? '新餐厅账号由管理员在受控入口创建，不提供公开注册。'
+              : lang === 'pt'
+                ? 'Novas contas sao criadas pelo administrador; cadastro publico fechado.'
+                : 'New restaurants are created by an administrator; public signup is closed.'}
           </p>
         </div>
       </div>

@@ -65,14 +65,30 @@ supabase db push
 
 执行 `supabase/seed.sql`，但需先将文件中 `owner_id` 替换为真实注册用户的 user id。
 
-### 5. 配置 Supabase Auth
+### 5. 配置环境变量（管理员开户）
+
+除 `NEXT_PUBLIC_*` 外，若使用管理员创建账号，还需：
+
+- `SUPABASE_SERVICE_ROLE_KEY`：Supabase 项目 Settings → API → `service_role` secret
+- `ADMIN_BOOTSTRAP_SECRET`：自行生成的长随机串，与 `/auth/admin/register` 页面填写的「管理员密钥」一致
+
+### 6. 配置 Supabase Auth
 
 在 Supabase Dashboard → Authentication → URL Configuration：
 
 - **Site URL**：本地填 `http://localhost:3000`；上线后改为生产域名（如 Vercel）
 - **Redirect URLs**：把 `http://localhost:3000/auth/callback` 与生产环境的 `https://你的域名/auth/callback` 都加入白名单
 
-### 6. 注册报「Error sending confirmation email」/ 用户创建不了（必看）
+### 7. 店主账号如何创建（公开注册已关闭）
+
+1. 在 [Supabase Dashboard](https://supabase.com/dashboard) → **Project Settings → API** 复制 **service_role** 密钥（仅服务端使用，勿写入前端或提交 Git）。
+2. 在 `.env.local` 中配置 `SUPABASE_SERVICE_ROLE_KEY` 与 `ADMIN_BOOTSTRAP_SECRET`（足够长的随机字符串）。
+3. 浏览器打开 **`/auth/admin/register`**，填写管理员密钥、餐厅名称、新店主邮箱与初始密码并提交。
+4. 通知店主使用 **`/auth/login`** 登录后台（**无需点击邮箱验证链接**：接口已用 Admin API 将邮箱标为已确认）。
+
+建议在 Supabase → **Authentication** → **Providers → Email** 中关闭 **Allow new users to sign up**（禁止匿名 `signUp`），与上述流程一致。
+
+### 8. 注册报「Error sending confirmation email」/ 用户创建不了（必看）
 
 Supabase **内置邮件**不是给公开注册用的：在未配置 **自定义 SMTP** 时，Auth **只会给当前组织「Team」里成员的邮箱发信**，其他地址会失败，表现为注册报错、Users 里没有新用户。见官方说明：[Send emails with custom SMTP](https://supabase.com/docs/guides/auth/auth-smtp)。
 
@@ -98,7 +114,8 @@ Supabase **内置邮件**不是给公开注册用的：在未配置 **自定义 
 |------|------|
 | `/` | 产品落地页 |
 | `/auth/login` | 登录 |
-| `/auth/register` | 注册（同时创建餐厅） |
+| `/auth/register` | 提示「公开注册已关闭」（跳转登录） |
+| `/auth/admin/register` | 管理员创建店主 + 餐厅（需 `ADMIN_BOOTSTRAP_SECRET` + Service Role） |
 | `/dashboard` | 餐厅后台概览 |
 | `/dashboard/menu` | 菜单管理 |
 | `/dashboard/tables` | 桌位二维码管理 |
@@ -132,10 +149,11 @@ git push -u origin main
 ### 2. 在 Vercel 导入项目
 
 1. 前往 [vercel.com](https://vercel.com) → New Project → 导入 GitHub 仓库
-2. 在 Environment Variables 中添加三个变量：
+2. 在 Environment Variables 中添加变量：
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `NEXT_PUBLIC_BASE_URL`（填 Vercel 域名，如 `https://your-app.vercel.app`）
+   - `SUPABASE_SERVICE_ROLE_KEY`、`ADMIN_BOOTSTRAP_SECRET`（管理员创建店主时需要，勿泄露）
 3. 点击 Deploy
 
 ### 3. 部署后更新 Supabase
@@ -146,8 +164,8 @@ git push -u origin main
 
 ## 快速使用流程
 
-1. 注册账号 `/auth/register`
-2. 在 `/dashboard/menu` 添加菜品
+1. 配置 `SUPABASE_SERVICE_ROLE_KEY` 与 `ADMIN_BOOTSTRAP_SECRET` 后，在 `/auth/admin/register` 创建店主与餐厅（或仅在 Supabase 中手动建用户后再在后台补餐厅）
+2. 店主在 `/auth/login` 登录，在 `/dashboard/menu` 添加菜品
 3. 在 `/dashboard/tables` 生成桌位二维码并打印
 4. 在 `/dashboard/settings` 设置 4 位厨房密码和 4 位服务员密码
 5. 在 `/dashboard/tables` 生成并打印桌位二维码，以及厨房/服务员入口二维码

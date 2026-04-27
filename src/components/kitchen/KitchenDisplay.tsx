@@ -14,6 +14,39 @@ interface Props {
   isDemo?: boolean;
 }
 
+const KITCHEN_DEMO_TEXT = {
+  zh: {
+    title: '演示后厨',
+    enter: '进入演示后厨',
+    passwordHint: '演示密码',
+    step: '第 2/3 步：后厨实时接收并更新出餐状态。',
+    openCustomer: '打开顾客视图',
+    openWaiter: '打开服务员看板',
+    backHub: '返回演示首页',
+    conflict: '订单已被其他设备更新，已自动刷新，请重试刚才操作。',
+  },
+  en: {
+    title: 'Demo Kitchen',
+    enter: 'Enter demo kitchen',
+    passwordHint: 'Demo password',
+    step: 'Step 2/3: kitchen receives and updates dish status in real time.',
+    openCustomer: 'Open customer view',
+    openWaiter: 'Open waiter dashboard',
+    backHub: 'Back to demo hub',
+    conflict: 'Order was updated on another device. Data has been refreshed, please retry.',
+  },
+  pt: {
+    title: 'Cozinha demo',
+    enter: 'Entrar na cozinha demo',
+    passwordHint: 'Senha demo',
+    step: 'Passo 2/3: a cozinha recebe e atualiza os pratos em tempo real.',
+    openCustomer: 'Abrir visao do cliente',
+    openWaiter: 'Abrir painel do garcom',
+    backHub: 'Voltar ao hub demo',
+    conflict: 'O pedido foi atualizado em outro dispositivo. A lista foi atualizada, tente novamente.',
+  },
+} as const;
+
 // Web Audio API 生成提示音
 function playBeep() {
   try {
@@ -59,6 +92,7 @@ async function loadLiveOrders(supabase: ReturnType<typeof createClient>, restaur
 export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).kitchen;
+  const demoText = KITCHEN_DEMO_TEXT[lang];
   const locale = UI_LOCALE_BY_LANG[lang];
   const [authenticated, setAuthenticated] = useState(isDemo);
   const [password, setPassword] = useState('');
@@ -187,7 +221,7 @@ export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Pr
             <LanguageSwitcher compact />
           </div>
           <h1 className="font-heading text-3xl text-brand-gold text-center mb-2">
-            {isDemo ? 'Demo Kitchen' : t.entrance}
+            {isDemo ? demoText.title : t.entrance}
           </h1>
           <p className="text-brand-text-muted text-sm text-center mb-6">{restaurant.name}</p>
 
@@ -212,12 +246,12 @@ export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Pr
               type="submit"
               className="w-full bg-brand-gold text-brand-bg py-3 rounded-xl font-semibold hover:bg-brand-gold-light transition-colors"
             >
-              {isDemo ? 'Enter Demo Kitchen' : t.enterKitchen}
+              {isDemo ? demoText.enter : t.enterKitchen}
             </button>
           </form>
           {isDemo && (
             <p className="mt-3 text-center text-[13px] text-brand-text-muted">
-              Use password <span className="text-brand-gold font-semibold">0000</span>
+              {demoText.passwordHint} <span className="text-brand-gold font-semibold">0000</span>
             </p>
           )}
         </div>
@@ -231,26 +265,26 @@ export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Pr
       {isDemo && (
         <div className="mb-4 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3">
           <p className="text-[13px] text-brand-text">
-            Step 2/3: Kitchen receives and updates dish status in real time.
+            {demoText.step}
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             <Link
               href="/demo/menu"
               className="text-[13px] rounded-lg border border-brand-border px-3 py-1.5 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
             >
-              Open Customer View
+              {demoText.openCustomer}
             </Link>
             <Link
               href="/demo/waiter"
               className="text-[13px] rounded-lg border border-brand-border px-3 py-1.5 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
             >
-              Open Waiter Dashboard
+              {demoText.openWaiter}
             </Link>
             <Link
               href="/demo"
               className="text-[13px] rounded-lg border border-brand-border px-3 py-1.5 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
             >
-              Back to Demo Hub
+              {demoText.backHub}
             </Link>
           </div>
         </div>
@@ -275,7 +309,7 @@ export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Pr
       </div>
       {updateConflict && (
         <div className="mb-4 rounded-lg border border-yellow-500/40 bg-yellow-500/10 px-4 py-2 text-sm text-yellow-300">
-          订单已被其他设备更新，已自动刷新，请重试刚才操作。
+          {demoText.conflict}
         </div>
       )}
 
@@ -317,7 +351,7 @@ export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Pr
                 </div>
                 {order.items.map((item, idx) => (
                   <p key={idx} className="text-brand-text-muted text-[13px]">
-                    {item.emoji} {item.name_pt} × {item.qty}
+                    {item.emoji} {(item.name || item.name_pt)} × {item.qty}
                   </p>
                 ))}
               </div>
@@ -422,7 +456,7 @@ function OrderCard({
                     <span className="text-xl flex-shrink-0">{item.emoji}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-brand-text text-sm">
-                        {item.name_pt}
+                        {(item.name || item.name_pt)}
                         <span className="text-brand-gold ml-2">× {item.qty}</span>
                       </p>
                       {item.note && (

@@ -8,6 +8,7 @@ import { CartBar } from './CartBar';
 import { CartDrawer } from './CartDrawer';
 import { createClient } from '@/lib/supabase/client';
 import { CATEGORY_LABELS } from '@/lib/i18n/messages';
+import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { MENU_CATEGORIES } from '@/lib/menu';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { getClientLanguage, setClientLanguage } from '@/lib/i18n';
@@ -141,6 +142,7 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
   const totalQty = cart.reduce((sum, c) => sum + c.qty, 0);
   const totalPrice = calcItemsTotal(cart);
   const t = MENU_PAGE_MESSAGES[lang];
+  const locale = UI_LOCALE_BY_LANG[lang];
   const { totalItemCount } = recentOrders.reduce((acc, order) => {
     acc.totalItemCount += order.items.length;
     return acc;
@@ -288,24 +290,24 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
             </a>
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
-            <span className="text-[13px] text-brand-text">Step 1/3: Place order from customer view.</span>
+            <span className="text-[13px] text-brand-text">{t.demoStep}</span>
             <Link
               href="/demo/kitchen"
               className="text-[13px] rounded-lg border border-brand-border px-2.5 py-1 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
             >
-              Open Kitchen View
+              {t.demoOpenKitchen}
             </Link>
             <Link
               href="/demo/waiter"
               className="text-[13px] rounded-lg border border-brand-border px-2.5 py-1 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
             >
-              Open Waiter Dashboard
+              {t.demoOpenWaiter}
             </Link>
             <Link
               href="/demo"
               className="text-[13px] rounded-lg border border-brand-border px-2.5 py-1 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
             >
-              Back to Demo Hub
+              {t.demoBackHub}
             </Link>
           </div>
         </div>
@@ -377,7 +379,7 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
                 <div key={order.id} className="border border-brand-border rounded-xl p-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[13px] text-brand-text-muted">
-                      {new Date(order.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(order.created_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                     </span>
                     <span className={`text-[13px] px-2 py-0.5 rounded-full ${
                       order.status === 'done' ? 'bg-green-400/15 text-green-400' :
@@ -443,6 +445,7 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
         <CartBar
           qty={totalQty}
           total={totalPrice}
+          label={t.viewCart}
           onClick={() => setCartOpen(true)}
         />
       )}

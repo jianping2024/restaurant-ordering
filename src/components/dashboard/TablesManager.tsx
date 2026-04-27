@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
+import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 
@@ -14,10 +16,37 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
   const { lang } = useLanguage();
   const [tableCount, setTableCount] = useState(10);
   const t = getMessages(lang).tables;
+  const supabase = createClient();
 
   const [qrCodes, setQrCodes] = useState<Record<number, string>>({});
   const [staffQr, setStaffQr] = useState<{ kitchen: string; waiter: string }>({ kitchen: '', waiter: '' });
+  const [activeSessions, setActiveSessions] = useState<Array<{
+    id: string;
+    table_number: number;
+    status: 'open' | 'billing' | 'closed';
+    opened_at: string;
+  }>>([]);
+  const [operationType, setOperationType] = useState<'transfer' | 'merge' | null>(null);
+  const [sourceTable, setSourceTable] = useState<number | null>(null);
+  const [targetTable, setTargetTable] = useState<number | null>(null);
+  const [operating, setOperating] = useState(false);
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+  const loadActiveSessions = async () => {
+    const { data } = await supabase
+      .from('table_sessions')
+      .select('id, table_number, status, opened_at')
+      .eq('restaurant_id', restaurant.id)
+      .in('status', ['open', 'billing'])
+      .order('table_number', { ascending: true });
+
+    setActiveSessions((data as typeof activeSessions) || []);
+  };
+
+  useEffect(() => {
+    loadActiveSessions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restaurant.id]);
 
   // 生成所有二维码
   useEffect(() => {
@@ -110,6 +139,68 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
     win.document.close();
   };
 
+  const openOperation = (type: 'transfer' | 'merge', tableNum: number) => {
+    setOperationType(type);
+    setSourceTable(tableNum);
+    setTargetTable(null);
+  };
+
+  const closeOperation = () => {
+    setOperationType(null);
+    setSourceTable(null);
+    setTargetTable(null);
+    setOperating(false);
+  };
+
+  const handleSubmitOperation = async () => {
+    if (!operationType || !sourceTable || !targetTable) return;
+    if (sourceTable === targetTable) {
+      alert(t.sameTableError);
+      return;
+    }
+
+    setOperating(true);
+    try {
+      const { error } = operationType === 'transfer'
+        ? await supabase.rpc('transfer_table_session', {
+          p_restaurant_id: restaurant.id,
+          p_from_table: sourceTable,
+          p_to_table: targetTable,
+        })
+        : await supabase.rpc('merge_table_sessions', {
+          p_restaurant_id: restaurant.id,
+          p_source_table: sourceTable,
+          p_target_table: targetTable,
+        });
+
+      if (error) {
+        if ((error.message || '').toLowerCase().includes('active session')) {
+          alert(t.sessionConflict);
+        } else {
+          alert(t.operationFailed);
+        }
+        return;
+      }
+
+      await loadActiveSessions();
+      alert(t.operationSuccess);
+      closeOperation();
+    } catch {
+      alert(t.operationFailed);
+    } finally {
+      setOperating(false);
+    }
+  };
+
+  const occupiedTables = new Set(activeSessions.map(s => s.table_number));
+  const transferTargets = Array.from({ length: tableCount }, (_, idx) => idx + 1)
+    .filter(tableNum => tableNum !== sourceTable && !occupiedTables.has(tableNum));
+  const mergeTargets = activeSessions
+    .map(s => s.table_number)
+    .filter(tableNum => tableNum !== sourceTable)
+    .sort((a, b) => a - b);
+  const currentTargets = operationType === 'transfer' ? transferTargets : mergeTargets;
+
   return (
     <div>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
@@ -134,6 +225,52 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
           />
           <span className="text-brand-gold font-heading text-2xl w-10 text-center">{tableCount}</span>
         </div>
+      </div>
+
+      {/* 活跃餐次操作 */}
+      <div className="bg-brand-card border border-brand-border rounded-2xl p-6 mb-6">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 className="font-heading text-2xl text-brand-gold">{t.activeSessionsTitle}</h2>
+            <p className="text-brand-text-muted text-sm mt-1">{t.activeSessionsDesc}</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={loadActiveSessions}>{t.refreshSessions}</Button>
+        </div>
+        {activeSessions.length === 0 ? (
+          <p className="text-brand-text-muted text-sm">{t.noActiveSessions}</p>
+        ) : (
+          <div className="space-y-2.5">
+            {activeSessions.map((session) => (
+              <div
+                key={session.id}
+                className="rounded-xl border border-brand-border px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+              >
+                <div>
+                  <p className="text-brand-text font-medium">{t.table} {session.table_number}</p>
+                  <p className="text-brand-text-muted text-[13px]">
+                    {new Date(session.opened_at).toLocaleString()}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => openOperation('transfer', session.table_number)}
+                    className="text-[13px] px-3 py-1.5 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+                  >
+                    {t.transferAction}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openOperation('merge', session.table_number)}
+                    className="text-[13px] px-3 py-1.5 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+                  >
+                    {t.mergeAction}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 员工入口二维码 */}
@@ -211,6 +348,61 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
           </div>
         ))}
       </div>
+
+      <Modal
+        open={!!operationType}
+        onClose={closeOperation}
+        title={operationType === 'transfer' ? t.transferTitle : t.mergeTitle}
+        size="sm"
+      >
+        <p className="text-[13px] text-brand-text-muted mb-4">
+          {operationType === 'transfer' ? t.transferHint : t.mergeHint}
+        </p>
+        <div className="space-y-3">
+          <div>
+            <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.sourceTable}</label>
+            <select
+              value={sourceTable ?? ''}
+              onChange={(e) => setSourceTable(Number(e.target.value) || null)}
+              className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
+            >
+              <option value="">--</option>
+              {activeSessions.map((session) => (
+                <option key={session.id} value={session.table_number}>
+                  {t.table} {session.table_number}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.targetTable}</label>
+            <select
+              value={targetTable ?? ''}
+              onChange={(e) => setTargetTable(Number(e.target.value) || null)}
+              className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
+            >
+              <option value="">--</option>
+              {currentTargets.map((tableNum) => (
+                <option key={tableNum} value={tableNum}>
+                  {t.table} {tableNum}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" onClick={closeOperation}>{getMessages(lang).menuManager.cancel}</Button>
+          <Button
+            onClick={handleSubmitOperation}
+            loading={operating}
+            disabled={!sourceTable || !targetTable}
+          >
+            {operationType === 'transfer'
+              ? (operating ? t.transferring : t.confirmTransfer)
+              : (operating ? t.merging : t.confirmMerge)}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

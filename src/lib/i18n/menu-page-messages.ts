@@ -21,6 +21,11 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   demoToastTitle: string;
   demoToastDesc: string;
   submitFailed: string;
+  demoStep: string;
+  demoOpenKitchen: string;
+  demoOpenWaiter: string;
+  demoBackHub: string;
+  viewCart: string;
 }> = {
   pt: {
     table: 'Mesa',
@@ -43,6 +48,11 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoToastTitle: 'Modo demonstracao',
     demoToastDesc: 'No ambiente real, a cozinha recebera seu pedido imediatamente.',
     submitFailed: 'Falha ao enviar pedido, tente novamente.',
+    demoStep: 'Passo 1/3: faça o pedido na visão do cliente.',
+    demoOpenKitchen: 'Abrir visão da cozinha',
+    demoOpenWaiter: 'Abrir painel do garcom',
+    demoBackHub: 'Voltar ao hub demo',
+    viewCart: 'Ver carrinho',
   },
   en: {
     table: 'Table',
@@ -65,6 +75,11 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoToastTitle: 'Demo mode',
     demoToastDesc: 'In a real setup, the kitchen receives your order instantly.',
     submitFailed: 'Failed to submit order, please try again.',
+    demoStep: 'Step 1/3: place order from customer view.',
+    demoOpenKitchen: 'Open kitchen view',
+    demoOpenWaiter: 'Open waiter dashboard',
+    demoBackHub: 'Back to demo hub',
+    viewCart: 'View cart',
   },
   zh: {
     table: '桌号',
@@ -87,5 +102,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoToastTitle: '这是演示模式',
     demoToastDesc: '真实场景中，厨房会立刻收到您的订单。',
     submitFailed: '提交失败，请重试',
+    demoStep: '第 1/3 步：在顾客端完成下单。',
+    demoOpenKitchen: '打开后厨视图',
+    demoOpenWaiter: '打开服务员看板',
+    demoBackHub: '返回演示首页',
+    viewCart: '查看购物车',
   },
 };

@@ -33,6 +33,7 @@ export interface MenuItem {
   name_zh?: string;
   description_pt?: string;
   description_en?: string;
+  description_zh?: string;
   price: number;
   category: Category;
   emoji: string;
@@ -102,6 +103,8 @@ export interface TableSession {
   status: SessionStatus;
   opened_at: string;
   closed_at?: string | null;
+  merge_into_session_id?: string | null;
+  closed_reason?: string | null;
 }
 
 // 购物车条目

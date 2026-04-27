@@ -12,7 +12,16 @@ interface Props {
 
 export function MenuItemCard({ item, lang, cartQty, onAdd }: Props) {
   const name = (lang === 'zh' && item.name_zh) || (lang === 'en' && item.name_en) || item.name_pt;
-  const desc = (lang === 'en' && item.description_en) || item.description_pt;
+  const desc = lang === 'zh'
+    ? (item.description_zh || item.description_en || item.description_pt)
+    : lang === 'en'
+      ? (item.description_en || item.description_pt)
+      : item.description_pt;
+  const actionText = {
+    zh: { added: '已加入', add: '+ 加入', soldOut: '已售完' },
+    en: { added: 'Added', add: '+ Add', soldOut: 'Sold out' },
+    pt: { added: 'Adicionado', add: '+ Adicionar', soldOut: 'Esgotado' },
+  }[lang];
 
   return (
     <div className={`bg-brand-card border rounded-2xl p-4 flex gap-4 ${
@@ -60,11 +69,11 @@ export function MenuItemCard({ item, lang, cartQty, onAdd }: Props) {
                   {cartQty}
                 </span>
               )}
-              {cartQty > 0 ? '已加入' : '+ 加入'}
+              {cartQty > 0 ? actionText.added : actionText.add}
             </button>
           ) : (
             <span className="text-brand-muted text-[13px] px-3 py-1.5 bg-brand-border rounded-lg">
-              已售完
+              {actionText.soldOut}
             </span>
           )}
         </div>

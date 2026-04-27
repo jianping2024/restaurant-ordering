@@ -4,10 +4,11 @@ interface CartBarProps {
   qty: number;
   total: number;
   onClick: () => void;
+  label: string;
 }
 
 // 底部固定购物车栏
-export function CartBar({ qty, total, onClick }: CartBarProps) {
+export function CartBar({ qty, total, onClick, label }: CartBarProps) {
   return (
     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20">
       <button
@@ -18,7 +19,7 @@ export function CartBar({ qty, total, onClick }: CartBarProps) {
           <span className="bg-brand-bg text-brand-gold w-7 h-7 rounded-full text-sm font-bold flex items-center justify-center">
             {qty}
           </span>
-          <span className="font-semibold text-sm">查看购物车</span>
+          <span className="font-semibold text-sm">{label}</span>
         </div>
         <span className="font-heading text-lg font-semibold">€{total.toFixed(2)}</span>
       </button>

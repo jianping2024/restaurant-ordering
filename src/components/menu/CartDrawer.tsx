@@ -91,7 +91,7 @@ export function CartDrawer({
         </div>
 
         {/* 购物车内容 */}
-        <div className="overflow-y-auto max-h-[60vh] px-5 py-4 space-y-4">
+        <div className="modal-scroll overflow-y-auto max-h-[60vh] px-5 py-4 space-y-4">
           {cart.map(item => (
             <div key={item.menuItemId} className="border border-brand-border rounded-xl p-4">
               <div className="flex items-center justify-between gap-3">

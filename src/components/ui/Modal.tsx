@@ -37,7 +37,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto p-2 sm:p-4">
+    <div className="fixed inset-0 z-50 overflow-hidden p-2 sm:p-4">
       {/* 遮罩 */}
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
@@ -59,7 +59,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
             </button>
           </div>
         )}
-        <div className="p-4 sm:p-6 overflow-y-auto min-h-0">{children}</div>
+        <div className="modal-scroll p-4 sm:p-6 overflow-y-auto min-h-0">{children}</div>
       </div>
     </div>
   );

@@ -404,7 +404,7 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
               {operationType === 'merge' ? t.sourceTables : t.sourceTable}
             </label>
             {operationType === 'merge' ? (
-              <div className="rounded-lg border border-brand-border bg-brand-bg p-2 max-h-40 overflow-y-auto space-y-1.5">
+              <div className="modal-scroll rounded-lg border border-brand-border bg-brand-bg p-2 max-h-40 overflow-y-auto space-y-1.5">
                 {activeSessions.map((session) => {
                   const checked = mergeSourceTables.includes(session.table_number);
                   return (

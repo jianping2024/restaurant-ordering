@@ -32,6 +32,12 @@ function calcItemsTotal(items: Array<{ price: number | string; qty: number | str
   }, 0);
 }
 
+function getOrderDisplayStatus(order: Order): 'pending' | 'cooking' | 'done' | 'voided' {
+  const itemStatuses = order.items.map((item) => item.item_status || 'pending');
+  if (itemStatuses.length > 0 && itemStatuses.every((status) => status === 'voided')) return 'voided';
+  return order.status;
+}
+
 export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) {
   const [lang, setLang] = useState<Language>(() => getClientLanguage() as Language);
   const [activeCategory, setActiveCategory] = useState<Category>('Pratos');
@@ -372,31 +378,51 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
             <div className="space-y-3">
               {recentOrders.map(order => (
                 <div key={order.id} className="border border-brand-border rounded-xl p-3">
+                  {(() => {
+                    const displayStatus = getOrderDisplayStatus(order);
+                    return (
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[13px] text-brand-text-muted">
                       {new Date(order.created_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                     </span>
                     <span className={`text-[13px] px-2 py-0.5 rounded-full ${
-                      order.status === 'done'
+                      displayStatus === 'voided'
+                        ? 'bg-slate-500/12 border border-slate-500/35 text-slate-700'
+                        : displayStatus === 'done'
                         ? 'bg-emerald-500/16 border border-emerald-500/35 text-emerald-800'
-                        : order.status === 'cooking'
+                        : displayStatus === 'cooking'
                           ? 'bg-amber-500/18 border border-amber-500/35 text-amber-800'
                           : 'bg-red-500/15 border border-red-500/35 text-red-700'
                     }`}>
-                      {order.status === 'done' ? t.statusDone : order.status === 'cooking' ? t.statusCooking : t.statusPending}
+                      {displayStatus === 'voided'
+                        ? t.statusVoided
+                        : displayStatus === 'done'
+                          ? t.statusDone
+                          : displayStatus === 'cooking'
+                            ? t.statusCooking
+                            : t.statusPending}
                     </span>
                   </div>
+                    );
+                  })()}
                   <div className="space-y-1">
                     {order.items.map((item, idx) => (
                       <div key={`${order.id}-${idx}`} className="flex items-center justify-between gap-2">
-                        <p className="text-sm text-brand-text">
+                        <p className={`text-sm ${item.item_status === 'voided' ? 'text-brand-text-muted line-through' : 'text-brand-text'}`}>
                           {item.emoji} {(item.name || item.name_pt)} x {item.qty}
                         </p>
-                        {latestBatchId && item.batch_id === latestBatchId && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold font-semibold">
-                            {t.newTag}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {item.item_status === 'voided' && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-500/12 border border-slate-500/35 text-slate-700">
+                              {t.statusVoided}
+                            </span>
+                          )}
+                          {latestBatchId && item.batch_id === latestBatchId && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold font-semibold">
+                              {t.newTag}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

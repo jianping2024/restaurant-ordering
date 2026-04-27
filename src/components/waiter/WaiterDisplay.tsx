@@ -56,6 +56,8 @@ const WAITER_TEXT = {
     voidItem: '取消',
     voidPendingTitle: '待处理菜品',
     voidedLabel: '已取消',
+    moreItems: '还有',
+    itemsUnit: '道',
   },
   en: {
     demoTitle: 'Demo waiter dashboard',
@@ -95,6 +97,8 @@ const WAITER_TEXT = {
     voidItem: 'Void',
     voidPendingTitle: 'Open items',
     voidedLabel: 'Voided',
+    moreItems: 'More',
+    itemsUnit: 'items',
   },
   pt: {
     demoTitle: 'Painel demo do garcom',
@@ -134,6 +138,8 @@ const WAITER_TEXT = {
     voidItem: 'Cancelar prato',
     voidPendingTitle: 'Itens em aberto',
     voidedLabel: 'Cancelado',
+    moreItems: 'Mais',
+    itemsUnit: 'itens',
   },
 } as const;
 
@@ -490,18 +496,25 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
               {card.voidableItems.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-brand-border/60 space-y-2">
                   <p className="text-[13px] text-brand-text-muted">{t.voidPendingTitle}</p>
-                  {card.voidableItems.slice(0, 4).map((item) => (
-                    <div key={`${item.orderId}-${item.itemIdx}`} className="flex items-center justify-between gap-2">
-                      <p className="text-sm text-brand-text truncate">{item.label}</p>
-                      <button
-                        type="button"
-                        onClick={() => voidItemFromWaiter(item.orderId, item.itemIdx)}
-                        className="text-[13px] px-2 py-0.5 rounded border border-slate-500/35 text-slate-700 hover:bg-slate-500/18 transition-colors"
-                      >
-                        {t.voidItem}
-                      </button>
-                    </div>
-                  ))}
+                  <div className="modal-scroll max-h-56 overflow-y-auto pr-1 space-y-2">
+                    {card.voidableItems.map((item) => (
+                      <div key={`${item.orderId}-${item.itemIdx}`} className="flex items-center justify-between gap-2">
+                        <p className="text-sm text-brand-text truncate">{item.label}</p>
+                        <button
+                          type="button"
+                          onClick={() => voidItemFromWaiter(item.orderId, item.itemIdx)}
+                          className="text-[13px] px-2 py-0.5 rounded border border-slate-500/35 text-slate-700 hover:bg-slate-500/18 transition-colors"
+                        >
+                          {t.voidItem}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  {card.voidableItems.length > 6 && (
+                    <p className="text-[13px] text-brand-text-muted">
+                      {t.moreItems} {card.voidableItems.length - 6} {t.itemsUnit}
+                    </p>
+                  )}
                 </div>
               )}
             </div>

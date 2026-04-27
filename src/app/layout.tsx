@@ -3,6 +3,14 @@ import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from '@/components/providers/LanguageProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
+import { getServerUILanguageBootstrap } from '@/lib/i18n.server';
+import type { UILanguage } from '@/lib/i18n';
+
+const HTML_LANG_BY_UI: Record<UILanguage, string> = {
+  zh: 'zh-Hans',
+  en: 'en',
+  pt: 'pt',
+};
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -37,19 +45,27 @@ const themeInitScript = `
 })();
 `;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { initialLang, languageCookiePresent } = await getServerUILanguageBootstrap();
+  const htmlLang = HTML_LANG_BY_UI[initialLang];
+
   return (
-    <html lang="zh" className={`${cormorant.variable} ${jost.variable}`} suppressHydrationWarning>
+    <html lang={htmlLang} className={`${cormorant.variable} ${jost.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="antialiased bg-brand-bg text-brand-text font-body">
         <ThemeProvider>
-          <LanguageProvider>{children}</LanguageProvider>
+          <LanguageProvider
+            initialLang={initialLang}
+            languageCookiePresent={languageCookiePresent}
+          >
+            {children}
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

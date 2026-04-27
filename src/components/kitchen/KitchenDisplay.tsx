@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import type { Order, OrderItemStatus } from '@/types';
@@ -12,6 +12,8 @@ import { deriveOrderStatusFromItems, itemsEveryVoided, normalizeOrderItemStatus 
 interface Props {
   restaurant: { id: string; name: string; slug: string; kitchen_password: string };
   initialOrders: Order[];
+  /** 开台 / 结账中（table_sessions open|billing）的桌号，用于无待备餐单时在厨房占位 */
+  initialActiveTables?: number[];
   isDemo?: boolean;
 }
 
@@ -66,17 +68,36 @@ function playBeep() {
   }
 }
 
-async function loadLiveOrders(supabase: ReturnType<typeof createClient>, restaurantId: string) {
-  const { data } = await supabase
-    .from('orders')
-    .select('*')
-    .eq('restaurant_id', restaurantId)
-    .in('status', ['pending', 'cooking'])
-    .order('created_at', { ascending: true });
-  return (data || []) as Order[];
+async function loadKitchenBoard(
+  supabase: ReturnType<typeof createClient>,
+  restaurantId: string,
+): Promise<{ orders: Order[]; activeTables: number[] }> {
+  const [ordersRes, sessionsRes] = await Promise.all([
+    supabase
+      .from('orders')
+      .select('*')
+      .eq('restaurant_id', restaurantId)
+      .in('status', ['pending', 'cooking'])
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('table_sessions')
+      .select('table_number')
+      .eq('restaurant_id', restaurantId)
+      .in('status', ['open', 'billing']),
+  ]);
+  const orders = (ordersRes.data || []) as Order[];
+  const activeTables = Array.from(
+    new Set((sessionsRes.data || []).map((r: { table_number: number }) => r.table_number)),
+  ).sort((a, b) => a - b);
+  return { orders, activeTables };
 }
 
-export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Props) {
+export function KitchenDisplay({
+  restaurant,
+  initialOrders,
+  initialActiveTables = [],
+  isDemo = false,
+}: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).kitchen;
   const demoText = KITCHEN_DEMO_TEXT[lang];
@@ -85,11 +106,44 @@ export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Pr
   const [password, setPassword] = useState('');
   const [pwError, setPwError] = useState(false);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const [activeTables, setActiveTables] = useState<number[]>(initialActiveTables);
   const [doneOrders, setDoneOrders] = useState<Order[]>([]);
   const [showDone, setShowDone] = useState(false);
   const [updateConflict, setUpdateConflict] = useState(false);
   const prevOrderIds = useRef<Set<string>>(new Set(initialOrders.map(o => o.id)));
   const supabase = createClient();
+
+  const idleTableCount = useMemo(() => {
+    const busy = new Set(orders.map((o) => o.table_number));
+    return activeTables.filter((t) => !busy.has(t)).length;
+  }, [orders, activeTables]);
+
+  const kitchenColumns = useMemo(() => {
+    const byTable = new Map<number, Order[]>();
+    orders.forEach((o) => {
+      const list = byTable.get(o.table_number) || [];
+      list.push(o);
+      byTable.set(o.table_number, list);
+    });
+    byTable.forEach((list) => {
+      list.sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      );
+    });
+    const tableNums = new Set<number>([...activeTables, ...Array.from(byTable.keys())]);
+    const sortedTables = Array.from(tableNums).sort((a, b) => a - b);
+    type Col = { kind: 'order'; order: Order } | { kind: 'placeholder'; table: number };
+    const cols: Col[] = [];
+    for (const tableNum of sortedTables) {
+      const list = byTable.get(tableNum);
+      if (list?.length) {
+        list.forEach((order) => cols.push({ kind: 'order', order }));
+      } else if (activeTables.includes(tableNum)) {
+        cols.push({ kind: 'placeholder', table: tableNum });
+      }
+    }
+    return cols;
+  }, [orders, activeTables]);
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,8 +190,9 @@ export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Pr
 
     if (isConflict) {
       setUpdateConflict(true);
-      const latest = await loadLiveOrders(supabase, restaurant.id);
-      setOrders(latest);
+      const latest = await loadKitchenBoard(supabase, restaurant.id);
+      setOrders(latest.orders);
+      setActiveTables(latest.activeTables);
       return;
     }
 
@@ -149,49 +204,56 @@ export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Pr
     if (!authenticated || isDemo) return;
 
     // 加载已完成订单
-    const loadDone = async () => {
-      const { data } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('restaurant_id', restaurant.id)
-        .eq('status', 'done')
-        .order('updated_at', { ascending: false })
-        .limit(20);
-      setDoneOrders(data || []);
+    const refreshKitchenBoard = async () => {
+      const [board, doneRes] = await Promise.all([
+        loadKitchenBoard(supabase, restaurant.id),
+        supabase
+          .from('orders')
+          .select('*')
+          .eq('restaurant_id', restaurant.id)
+          .eq('status', 'done')
+          .order('updated_at', { ascending: false })
+          .limit(20),
+      ]);
+      board.orders.forEach((o) => {
+        if (!prevOrderIds.current.has(o.id)) {
+          playBeep();
+          prevOrderIds.current.add(o.id);
+        }
+      });
+      setOrders(board.orders);
+      setActiveTables(board.activeTables);
+      setDoneOrders(doneRes.data || []);
     };
-    loadDone();
+
+    void refreshKitchenBoard();
 
     const channel = supabase
       .channel(`kitchen-${restaurant.id}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'orders',
-        filter: `restaurant_id=eq.${restaurant.id}`,
-      }, (payload) => {
-        const newOrder = payload.new as Order;
-        const eventType = payload.eventType;
-
-        if (eventType === 'INSERT') {
-          // 新订单：播放提示音
-          if (!prevOrderIds.current.has(newOrder.id)) {
-            playBeep();
-            prevOrderIds.current.add(newOrder.id);
-          }
-          setOrders(prev => {
-            if (prev.find(o => o.id === newOrder.id)) return prev;
-            return [newOrder, ...prev];
-          });
-        } else if (eventType === 'UPDATE') {
-          if (newOrder.status === 'done') {
-            // 移到已完成列表
-            setOrders(prev => prev.filter(o => o.id !== newOrder.id));
-            setDoneOrders(prev => [newOrder, ...prev].slice(0, 20));
-          } else {
-            setOrders(prev => prev.map(o => o.id === newOrder.id ? newOrder : o));
-          }
-        }
-      })
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `restaurant_id=eq.${restaurant.id}`,
+        },
+        () => {
+          void refreshKitchenBoard();
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'table_sessions',
+          filter: `restaurant_id=eq.${restaurant.id}`,
+        },
+        () => {
+          void refreshKitchenBoard();
+        },
+      )
       .subscribe();
 
     return () => {
@@ -284,6 +346,11 @@ export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Pr
           <p className="text-brand-text-muted text-sm">
             {t.display} · {orders.length} {t.pendingCount}
           </p>
+          {idleTableCount > 0 && (
+            <p className="text-brand-text-muted text-[13px] mt-0.5">
+              {t.openTablesIdleNote.replace('{n}', String(idleTableCount))}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <LanguageSwitcher compact />
@@ -301,23 +368,27 @@ export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Pr
         </div>
       )}
 
-      {/* 待处理订单网格 */}
-      {orders.length === 0 ? (
+      {/* 待处理订单 + 在席占位 */}
+      {kitchenColumns.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-5xl mb-4">✅</p>
           <p className="text-brand-text-muted text-lg">{t.allDone}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {orders.map(order => (
-            <OrderCard
-              key={order.id}
-              order={order}
-              onItemStatusChange={updateItemStatus}
-              labels={t}
-              locale={locale}
-            />
-          ))}
+          {kitchenColumns.map((col) =>
+            col.kind === 'order' ? (
+              <OrderCard
+                key={col.order.id}
+                order={col.order}
+                onItemStatusChange={updateItemStatus}
+                labels={t}
+                locale={locale}
+              />
+            ) : (
+              <OpenTablePlaceholder key={`open-${col.table}`} table={col.table} labels={t} />
+            ),
+          )}
         </div>
       )}
 
@@ -347,6 +418,28 @@ export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Pr
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function OpenTablePlaceholder({
+  table,
+  labels,
+}: {
+  table: number;
+  labels: { table: string; openTableBadge: string; openTableIdle: string };
+}) {
+  return (
+    <div className="border-2 border-dashed border-sky-500/35 rounded-2xl p-4 bg-sky-500/6">
+      <div className="flex items-center justify-between mb-2 gap-2">
+        <span className="font-heading text-2xl text-brand-text">
+          {labels.table} {table}
+        </span>
+        <span className="text-[13px] px-2 py-1 rounded-full bg-sky-500/14 border border-sky-500/35 text-sky-800 whitespace-nowrap">
+          {labels.openTableBadge}
+        </span>
+      </div>
+      <p className="text-brand-text-muted text-sm leading-relaxed">{labels.openTableIdle}</p>
     </div>
   );
 }

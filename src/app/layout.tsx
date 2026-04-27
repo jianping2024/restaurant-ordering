@@ -3,7 +3,7 @@ import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from '@/components/providers/LanguageProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
-import { getServerUILanguageBootstrap } from '@/lib/i18n.server';
+import { getServerLanguage } from '@/lib/i18n.server';
 import type { UILanguage } from '@/lib/i18n';
 
 const HTML_LANG_BY_UI: Record<UILanguage, string> = {
@@ -45,12 +45,12 @@ const themeInitScript = `
 })();
 `;
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { initialLang, languageCookiePresent } = await getServerUILanguageBootstrap();
+  const initialLang = getServerLanguage();
   const htmlLang = HTML_LANG_BY_UI[initialLang];
 
   return (
@@ -60,12 +60,7 @@ export default async function RootLayout({
       </head>
       <body className="antialiased bg-brand-bg text-brand-text font-body">
         <ThemeProvider>
-          <LanguageProvider
-            initialLang={initialLang}
-            languageCookiePresent={languageCookiePresent}
-          >
-            {children}
-          </LanguageProvider>
+          <LanguageProvider initialLang={initialLang}>{children}</LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

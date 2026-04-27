@@ -166,7 +166,8 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
   const [sourceTable, setSourceTable] = useState<number | null>(null);
   const [targetTable, setTargetTable] = useState<number | null>(null);
   const [operating, setOperating] = useState(false);
-  const supabase = createClient();
+  /** One browser client per mount — avoids realtime effect re-subscribing every render. */
+  const supabase = useMemo(() => createClient(), []);
 
   const tableCards = useMemo(() => {
     const grouped = new Map<number, {
@@ -237,6 +238,12 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
   useEffect(() => {
     if (!authenticated || isDemo) return;
 
+    const refresh = async () => {
+      setOrders(await fetchBoardOrders(supabase, restaurant.id));
+    };
+
+    void refresh();
+
     const channel = supabase
       .channel(`waiter-${restaurant.id}`)
       .on('postgres_changes', {
@@ -244,8 +251,16 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
         schema: 'public',
         table: 'orders',
         filter: `restaurant_id=eq.${restaurant.id}`,
-      }, async () => {
-        setOrders(await fetchBoardOrders(supabase, restaurant.id));
+      }, () => {
+        void refresh();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'table_sessions',
+        filter: `restaurant_id=eq.${restaurant.id}`,
+      }, () => {
+        void refresh();
       })
       .subscribe();
 

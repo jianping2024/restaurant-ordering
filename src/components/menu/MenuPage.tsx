@@ -13,6 +13,7 @@ import { MENU_CATEGORIES } from '@/lib/menu';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { getClientLanguage, setClientLanguage } from '@/lib/i18n';
 import { deriveOrderStatusFromItems, normalizeOrderItemStatus } from '@/lib/order-status';
+import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
 
 const LANG_FLAGS: Record<Language, string> = { pt: '🇵🇹', en: '🇬🇧', zh: '🇨🇳' };
 const LANG_LABELS: Record<Language, string> = { pt: 'PT', en: 'EN', zh: '中' };
@@ -22,14 +23,6 @@ interface Props {
   menuItems: MenuItem[];
   tableNumber: number;
   isDemo?: boolean;
-}
-
-function calcItemsTotal(items: Array<{ price: number | string; qty: number | string }>) {
-  return items.reduce((sum, it) => {
-    const price = Number(it.price) || 0;
-    const qty = Number(it.qty) || 0;
-    return sum + price * qty;
-  }, 0);
 }
 
 function getOrderDisplayStatus(order: Order): 'pending' | 'cooking' | 'done' | 'voided' {
@@ -142,14 +135,17 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
     setCart(prev => {
       const existing = prev.find(c => c.menuItemId === item.id);
       if (existing) {
-        return prev.map(c => c.menuItemId === item.id ? { ...c, qty: c.qty + 1 } : c);
+        return prev.map(c =>
+          c.menuItemId === item.id
+            ? { ...c, price: coerceCartPrice(c.price), qty: coerceCartQty(c.qty) + 1 }
+            : c);
       }
       return [...prev, {
         menuItemId: item.id,
         name_pt: item.name_pt,
         name_en: item.name_en,
         name_zh: item.name_zh,
-        price: item.price,
+        price: coerceCartPrice(item.price),
         emoji: item.emoji,
         qty: 1,
         note: '',
@@ -160,10 +156,11 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
 
   // 更新数量
   const updateQty = (menuItemId: string, qty: number) => {
-    if (qty <= 0) {
+    const n = Number(qty);
+    if (!Number.isFinite(n) || n <= 0) {
       setCart(prev => prev.filter(c => c.menuItemId !== menuItemId));
     } else {
-      setCart(prev => prev.map(c => c.menuItemId === menuItemId ? { ...c, qty } : c));
+      setCart(prev => prev.map(c => (c.menuItemId === menuItemId ? { ...c, qty: n } : c)));
     }
   };
 
@@ -172,8 +169,8 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
     setCart(prev => prev.map(c => c.menuItemId === menuItemId ? { ...c, note } : c));
   };
 
-  const totalQty = cart.reduce((sum, c) => sum + c.qty, 0);
-  const totalPrice = calcItemsTotal(cart);
+  const totalQty = cart.reduce((sum, c) => sum + coerceCartQty(c.qty), 0);
+  const totalPrice = sumLineTotals(cart);
   const t = MENU_PAGE_MESSAGES[lang];
   const locale = UI_LOCALE_BY_LANG[lang];
   const { totalItemCount } = recentOrders.reduce((acc, order) => {
@@ -204,9 +201,9 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
         id: c.menuItemId,
         name: c[`name_${lang}`] || c.name_pt,
         name_pt: c.name_pt,
-        qty: c.qty,
+        qty: coerceCartQty(c.qty),
         note: c.note || '',
-        price: c.price,
+        price: coerceCartPrice(c.price),
         emoji: c.emoji,
         item_status: 'pending' as const,
         batch_id: batchId,
@@ -248,7 +245,7 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
         const hadDoneBefore = ((openOrder.items || []) as Array<{ item_status?: 'pending' | 'cooking' | 'done' | undefined }>)
           .every(item => (item.item_status || 'pending') === 'done');
         const mergedItems = [...((openOrder.items || []) as typeof items), ...items];
-        const mergedTotal = calcItemsTotal(mergedItems);
+        const mergedTotal = sumLineTotals(mergedItems);
         const mergedStatus = deriveOrderStatusFromItems(mergedItems);
         const { error } = await supabase
           .from('orders')
@@ -506,7 +503,7 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
               key={item.id}
               item={item}
               lang={lang}
-              cartQty={cart.find(c => c.menuItemId === item.id)?.qty || 0}
+              cartQty={coerceCartQty(cart.find(c => c.menuItemId === item.id)?.qty)}
               onAdd={() => addToCart(item)}
             />
           ))
@@ -528,7 +525,6 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
         open={cartOpen}
         cart={cart}
         lang={lang}
-        total={totalPrice}
         onClose={() => setCartOpen(false)}
         onUpdateQty={updateQty}
         onUpdateNote={updateNote}

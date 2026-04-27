@@ -8,6 +8,7 @@ import {
   NOTE_PRESET_BY_KEY,
   type NotePresetGroup,
 } from '@/lib/note-presets';
+import { lineTotal, sumLineTotals } from '@/lib/cart-totals';
 
 const DRAWER_TEXT: Record<Language, { title: string; total: string; submit: string; notePlaceholder: string }> = {
   zh: {
@@ -34,7 +35,6 @@ interface CartDrawerProps {
   open: boolean;
   cart: CartItem[];
   lang: Language;
-  total: number;
   onClose: () => void;
   onUpdateQty: (id: string, qty: number) => void;
   onUpdateNote: (id: string, note: string) => void;
@@ -43,7 +43,7 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({
-  open, cart, lang, total, onClose, onUpdateQty, onUpdateNote, onSubmit, submitting
+  open, cart, lang, onClose, onUpdateQty, onUpdateNote, onSubmit, submitting
 }: CartDrawerProps) {
   // 防止背景滚动
   useEffect(() => {
@@ -62,6 +62,8 @@ export function CartDrawer({
     if (value.includes(next)) return value;
     return `${value}; ${next}`;
   };
+
+  const cartTotal = sumLineTotals(cart);
 
   return (
     <>
@@ -99,20 +101,28 @@ export function CartDrawer({
                   <span className="text-2xl">{item.emoji}</span>
                   <div className="min-w-0">
                     <p className="text-brand-text text-sm font-medium truncate">{getName(item)}</p>
-                    <p className="text-brand-gold text-[13px]">€{(item.price * item.qty).toFixed(2)}</p>
+                    <p className="text-brand-gold text-[13px]">€{lineTotal(item).toFixed(2)}</p>
                   </div>
                 </div>
                 {/* 数量控制 */}
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
-                    onClick={() => onUpdateQty(item.menuItemId, item.qty - 1)}
+                    type="button"
+                    onClick={() => {
+                      const q = Number(item.qty);
+                      onUpdateQty(item.menuItemId, (Number.isFinite(q) ? q : 0) - 1);
+                    }}
                     className="w-7 h-7 rounded-full bg-brand-border text-brand-text flex items-center justify-center hover:bg-brand-gold/20"
                   >
                     −
                   </button>
                   <span className="text-brand-text text-sm w-4 text-center">{item.qty}</span>
                   <button
-                    onClick={() => onUpdateQty(item.menuItemId, item.qty + 1)}
+                    type="button"
+                    onClick={() => {
+                      const q = Number(item.qty);
+                      onUpdateQty(item.menuItemId, (Number.isFinite(q) ? q : 0) + 1);
+                    }}
                     className="w-7 h-7 rounded-full bg-brand-border text-brand-text flex items-center justify-center hover:bg-brand-gold/20"
                   >
                     +
@@ -175,7 +185,7 @@ export function CartDrawer({
         <div className="px-5 py-4 border-t border-brand-border">
           <div className="flex items-center justify-between mb-4">
             <span className="text-brand-text-muted text-sm">{text.total}</span>
-            <span className="font-heading text-2xl text-brand-gold">€{total.toFixed(2)}</span>
+            <span className="font-heading text-2xl text-brand-gold">€{cartTotal.toFixed(2)}</span>
           </div>
           <Button
             className="w-full"

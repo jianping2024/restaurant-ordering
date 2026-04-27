@@ -67,7 +67,7 @@ export function CheckoutRequestsManager({ initialRequests }: Props) {
                 </div>
                 <div className="text-right">
                   <p className="text-brand-gold font-semibold">{t.amount} €{request.total_amount.toFixed(2)}</p>
-                  <span className="text-[13px] px-2 py-0.5 rounded-full bg-yellow-400/15 text-yellow-400">
+                  <span className="text-[13px] px-2 py-0.5 rounded-full bg-amber-500/18 border border-amber-500/35 text-amber-800">
                     {t.requested}
                   </span>
                 </div>
@@ -88,7 +88,7 @@ export function CheckoutRequestsManager({ initialRequests }: Props) {
               <button
                 onClick={() => handleConfirmPaid(request)}
                 disabled={processingId === request.id}
-                className="mt-3 w-full bg-green-500/15 text-green-400 border border-green-500/40 rounded-lg py-2.5 text-sm font-medium hover:bg-green-500/20 disabled:opacity-50"
+                className="mt-3 w-full bg-emerald-500/16 text-emerald-800 border border-emerald-500/45 rounded-lg py-2.5 text-sm font-medium hover:bg-emerald-500/26 disabled:opacity-50"
               >
                 {processingId === request.id ? t.processing : t.confirmPaid}
               </button>

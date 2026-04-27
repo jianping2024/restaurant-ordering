@@ -473,9 +473,9 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
               </div>
 
               <div className="flex items-center gap-2 text-[13px] mb-3">
-                <span className="px-2 py-0.5 rounded-full bg-red-500/15 text-red-400">{t.pending} {card.pending}</span>
-                <span className="px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400">{t.cooking} {card.cooking}</span>
-                <span className="px-2 py-0.5 rounded-full bg-green-500/15 text-green-400">{t.ready} {card.ready}</span>
+                <span className="px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/35 text-red-700">{t.pending} {card.pending}</span>
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/18 border border-amber-500/35 text-amber-800">{t.cooking} {card.cooking}</span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/16 border border-emerald-500/35 text-emerald-800">{t.ready} {card.ready}</span>
               </div>
 
               <div className="space-y-1.5">
@@ -483,7 +483,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
                   <p className="text-brand-text-muted text-sm">{t.noReady}</p>
                 ) : (
                   card.readyItems.slice(0, 6).map((line, idx) => (
-                    <p key={idx} className="text-sm text-green-300">{line}</p>
+                    <p key={idx} className="text-sm text-emerald-800">{line}</p>
                   ))
                 )}
               </div>
@@ -496,7 +496,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
                       <button
                         type="button"
                         onClick={() => voidItemFromWaiter(item.orderId, item.itemIdx)}
-                        className="text-[13px] px-2 py-0.5 rounded border border-slate-400/40 text-slate-300 hover:bg-slate-500/20 transition-colors"
+                        className="text-[13px] px-2 py-0.5 rounded border border-slate-500/35 text-slate-700 hover:bg-slate-500/18 transition-colors"
                       >
                         {t.voidItem}
                       </button>

@@ -311,9 +311,9 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
       {/* 成功提示 */}
       {submitted && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-brand-card border border-green-500/30 rounded-2xl p-8 text-center mx-4">
+          <div className="bg-brand-card border border-emerald-500/35 rounded-2xl p-8 text-center mx-4">
             <div className="text-5xl mb-4">✅</div>
-            <h2 className="font-heading text-2xl text-green-400 mb-2">{submitSuccessText || t.orderSuccess}</h2>
+            <h2 className="font-heading text-2xl text-brand-text mb-2">{submitSuccessText || t.orderSuccess}</h2>
             <p className="text-brand-text-muted text-sm">{t.orderReceived}</p>
           </div>
         </div>
@@ -377,9 +377,11 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
                       {new Date(order.created_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                     </span>
                     <span className={`text-[13px] px-2 py-0.5 rounded-full ${
-                      order.status === 'done' ? 'bg-green-400/15 text-green-400' :
-                      order.status === 'cooking' ? 'bg-yellow-400/15 text-yellow-400' :
-                      'bg-red-400/15 text-red-400'
+                      order.status === 'done'
+                        ? 'bg-emerald-500/16 border border-emerald-500/35 text-emerald-800'
+                        : order.status === 'cooking'
+                          ? 'bg-amber-500/18 border border-amber-500/35 text-amber-800'
+                          : 'bg-red-500/15 border border-red-500/35 text-red-700'
                     }`}>
                       {order.status === 'done' ? t.statusDone : order.status === 'cooking' ? t.statusCooking : t.statusPending}
                     </span>

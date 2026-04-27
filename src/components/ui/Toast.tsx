@@ -23,15 +23,15 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
   }, [duration, onClose]);
 
   const colors = {
-    success: 'border-green-500 text-green-400',
-    error: 'border-red-500 text-red-400',
-    info: 'border-brand-gold text-brand-gold',
+    success: 'border-emerald-500/45 bg-emerald-500/12',
+    error: 'border-red-500/45 bg-red-500/12',
+    info: 'border-brand-gold/45 bg-brand-gold/10',
   };
 
   return (
     <div className={`
       fixed bottom-24 left-1/2 -translate-x-1/2 z-50
-      bg-brand-card border-l-4 rounded-lg px-5 py-3 shadow-xl
+      bg-brand-card border rounded-lg px-5 py-3 shadow-xl
       transition-all duration-300 max-w-xs w-full
       ${colors[type]}
       ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}

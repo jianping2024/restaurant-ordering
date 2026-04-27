@@ -28,9 +28,9 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
     done: i18n.done,
   };
   const statusColor: Record<OrderStatus, string> = {
-    pending: 'bg-red-400/15 text-red-400',
-    cooking: 'bg-yellow-400/15 text-yellow-400',
-    done: 'bg-green-400/15 text-green-400',
+    pending: 'bg-red-500/15 border border-red-500/35 text-red-700',
+    cooking: 'bg-amber-500/18 border border-amber-500/35 text-amber-800',
+    done: 'bg-emerald-500/16 border border-emerald-500/35 text-emerald-800',
   };
 
   const filteredOrders = useMemo(() => {
@@ -239,7 +239,7 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
                     className="text-[13px] bg-brand-border px-3 py-1 rounded-full text-brand-text-muted"
                   >
                     {item.emoji} {item.name_pt} x {item.qty}
-                    {item.note && <span className="text-yellow-400 ml-1">({item.note})</span>}
+                    {item.note && <span className="text-brand-text ml-1">({item.note})</span>}
                   </span>
                 ))}
               </div>

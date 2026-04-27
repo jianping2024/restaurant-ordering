@@ -296,7 +296,7 @@ export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Pr
         </div>
       </div>
       {updateConflict && (
-        <div className="mb-4 rounded-lg border border-yellow-500/40 bg-yellow-500/10 px-4 py-2 text-sm text-yellow-300">
+        <div className="mb-4 rounded-lg border border-amber-500/35 bg-amber-500/12 px-4 py-2 text-sm text-brand-text">
           {demoText.conflict}
         </div>
       )}
@@ -334,8 +334,8 @@ export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Pr
                 className="bg-brand-card border border-brand-border rounded-xl p-3 opacity-50"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-green-400 text-sm font-medium">{t.table} {order.table_number}</span>
-                  <span className="text-[13px] text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">{t.done}</span>
+                  <span className="text-brand-text text-sm font-medium">{t.table} {order.table_number}</span>
+                  <span className="text-[13px] bg-emerald-500/16 border border-emerald-500/35 text-brand-text px-2 py-0.5 rounded-full">{t.done}</span>
                 </div>
                 {order.items.map((item, idx) => (
                   <p key={idx} className="text-brand-text-muted text-[13px]">
@@ -391,9 +391,9 @@ function OrderCard({
   });
 
   const statusStyle = {
-    pending: 'border-red-500/50 bg-red-500/10',
-    cooking: 'border-yellow-500/50 bg-yellow-500/10',
-    done: 'border-green-500/50 bg-green-500/10',
+    pending: 'border-red-500/45 bg-red-500/8',
+    cooking: 'border-amber-500/45 bg-amber-500/10',
+    done: 'border-emerald-500/45 bg-emerald-500/10',
   };
   const batchOrder: string[] = [];
   order.items.forEach((item) => {
@@ -410,9 +410,11 @@ function OrderCard({
           <p className="text-brand-text-muted text-[13px]">{timeStr}</p>
         </div>
         <span className={`text-[13px] px-2 py-1 rounded-full font-medium ${
-          order.status === 'pending' ? 'bg-red-500/20 text-red-400' :
-          order.status === 'cooking' ? 'bg-yellow-500/20 text-yellow-400' :
-          'bg-green-500/20 text-green-400'
+          order.status === 'pending'
+            ? 'bg-red-500/15 border border-red-500/35 text-red-700'
+            : order.status === 'cooking'
+              ? 'bg-amber-500/18 border border-amber-500/35 text-amber-800'
+              : 'bg-emerald-500/16 border border-emerald-500/35 text-emerald-800'
         }`}>
           {order.status === 'pending' ? labels.newOrder : order.status === 'cooking' ? labels.cooking : labels.completed}
         </span>
@@ -452,19 +454,19 @@ function OrderCard({
                         <span className="text-brand-gold ml-2">× {item.qty}</span>
                       </p>
                       {item.note && (
-                        <p className="text-[13px] bg-yellow-400/20 text-yellow-300 px-2 py-0.5 rounded mt-1">
+                        <p className="text-[13px] bg-amber-500/14 border border-amber-500/30 text-brand-text px-2 py-0.5 rounded mt-1">
                           📝 {item.note}
                         </p>
                       )}
                       <div className="flex items-center gap-2 mt-1.5">
                         <span className={`text-[10px] px-2 py-0.5 rounded-full ${
                           status === 'done'
-                            ? 'bg-green-500/20 text-green-400'
+                            ? 'bg-emerald-500/16 border border-emerald-500/35 text-emerald-800'
                             : status === 'voided'
-                              ? 'bg-slate-500/25 text-slate-300'
+                              ? 'bg-slate-500/12 border border-slate-500/30 text-slate-700'
                             : status === 'cooking'
-                              ? 'bg-yellow-500/20 text-yellow-400'
-                              : 'bg-red-500/20 text-red-400'
+                              ? 'bg-amber-500/18 border border-amber-500/35 text-amber-800'
+                              : 'bg-red-500/15 border border-red-500/35 text-red-700'
                         }`}>
                           {status === 'done'
                             ? labels.completed
@@ -478,7 +480,7 @@ function OrderCard({
                           <button
                             onClick={() => handleItemStatusChange(idx, 'cooking')}
                             disabled={updating}
-                            className="text-[11px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 px-2 py-0.5 rounded-md hover:bg-yellow-500/30 disabled:opacity-50"
+                            className="text-[11px] bg-amber-500/18 text-amber-800 border border-amber-500/45 px-2 py-0.5 rounded-md hover:bg-amber-500/28 disabled:opacity-50"
                           >
                             {labels.startCooking}
                           </button>
@@ -487,7 +489,7 @@ function OrderCard({
                           <button
                             onClick={() => handleItemStatusChange(idx, 'done')}
                             disabled={updating}
-                            className="text-[11px] bg-green-500/20 text-green-400 border border-green-500/50 px-2 py-0.5 rounded-md hover:bg-green-500/30 disabled:opacity-50"
+                            className="text-[11px] bg-emerald-500/16 text-emerald-800 border border-emerald-500/45 px-2 py-0.5 rounded-md hover:bg-emerald-500/26 disabled:opacity-50"
                           >
                             {labels.finishServing}
                           </button>
@@ -496,7 +498,7 @@ function OrderCard({
                           <button
                             onClick={() => handleItemStatusChange(idx, 'voided')}
                             disabled={updating}
-                            className="text-[11px] bg-slate-500/20 text-slate-300 border border-slate-400/40 px-2 py-0.5 rounded-md hover:bg-slate-500/30 disabled:opacity-50"
+                            className="text-[11px] bg-slate-500/12 text-slate-700 border border-slate-500/35 px-2 py-0.5 rounded-md hover:bg-slate-500/22 disabled:opacity-50"
                           >
                             {labels.voidItem}
                           </button>

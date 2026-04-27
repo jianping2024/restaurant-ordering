@@ -4,7 +4,32 @@ import { useEffect } from 'react';
 import type { CartItem, Language } from '@/types';
 import { Button } from '@/components/ui/Button';
 
-const NOTE_SUGGESTIONS = ['sem sal', 'bem passado', 'mal passado', 'sem cebola', 'sem glúten'];
+const NOTE_SUGGESTIONS: Record<Language, string[]> = {
+  zh: ['少盐', '全熟', '三分熟', '不要洋葱', '无麸质'],
+  en: ['less salt', 'well done', 'medium rare', 'no onion', 'gluten free'],
+  pt: ['sem sal', 'bem passado', 'mal passado', 'sem cebola', 'sem gluten'],
+};
+
+const DRAWER_TEXT: Record<Language, { title: string; total: string; submit: string; notePlaceholder: string }> = {
+  zh: {
+    title: '购物车',
+    total: '合计',
+    submit: '提交订单',
+    notePlaceholder: '备注（如：少盐、不要洋葱）',
+  },
+  en: {
+    title: 'Cart',
+    total: 'Total',
+    submit: 'Place order',
+    notePlaceholder: 'Notes (e.g. less salt, no onion)',
+  },
+  pt: {
+    title: 'Carrinho',
+    total: 'Total',
+    submit: 'Enviar pedido',
+    notePlaceholder: 'Nota (ex.: sem sal, sem cebola)',
+  },
+};
 
 interface CartDrawerProps {
   open: boolean;
@@ -30,6 +55,8 @@ export function CartDrawer({
 
   const getName = (item: CartItem) =>
     (lang === 'zh' && item.name_zh) || (lang === 'en' && item.name_en) || item.name_pt;
+  const text = DRAWER_TEXT[lang];
+  const noteSuggestions = NOTE_SUGGESTIONS[lang];
 
   return (
     <>
@@ -54,7 +81,7 @@ export function CartDrawer({
         </div>
 
         <div className="px-5 py-3 border-b border-brand-border flex items-center justify-between">
-          <h2 className="font-heading text-xl text-brand-gold">购物车</h2>
+          <h2 className="font-heading text-xl text-brand-gold">{text.title}</h2>
           <button onClick={onClose} className="text-brand-text-muted hover:text-brand-text">✕</button>
         </div>
 
@@ -92,14 +119,14 @@ export function CartDrawer({
               <div className="mt-3">
                 <input
                   type="text"
-                  placeholder="备注（sem sal, bem passado...）"
+                  placeholder={text.notePlaceholder}
                   value={item.note || ''}
                   onChange={e => onUpdateNote(item.menuItemId, e.target.value)}
                   className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-[13px] text-brand-text placeholder-brand-muted focus:outline-none focus:border-brand-gold/50"
                 />
                 {/* 快捷备注 */}
                 <div className="flex flex-wrap gap-1.5 mt-2">
-                  {NOTE_SUGGESTIONS.map(note => (
+                  {noteSuggestions.map(note => (
                     <button
                       key={note}
                       onClick={() => onUpdateNote(item.menuItemId, note)}
@@ -117,7 +144,7 @@ export function CartDrawer({
         {/* 底部结算 */}
         <div className="px-5 py-4 border-t border-brand-border">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-brand-text-muted text-sm">合计</span>
+            <span className="text-brand-text-muted text-sm">{text.total}</span>
             <span className="font-heading text-2xl text-brand-gold">€{total.toFixed(2)}</span>
           </div>
           <Button
@@ -127,7 +154,7 @@ export function CartDrawer({
             loading={submitting}
             disabled={cart.length === 0}
           >
-            提交订单
+            {text.submit}
           </Button>
         </div>
       </div>

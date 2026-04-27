@@ -391,7 +391,7 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
                     {order.items.map((item, idx) => (
                       <div key={`${order.id}-${idx}`} className="flex items-center justify-between gap-2">
                         <p className="text-sm text-brand-text">
-                          {item.emoji} {item.name_pt} x {item.qty}
+                          {item.emoji} {(item.name || item.name_pt)} x {item.qty}
                         </p>
                         {latestBatchId && item.batch_id === latestBatchId && (
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold font-semibold">

@@ -201,7 +201,7 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
             <div key={item.key} className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0">
               <div className="flex items-center gap-2">
                 <span>{item.emoji}</span>
-                <span className="text-brand-text text-sm">{item.name_pt}</span>
+                <span className="text-brand-text text-sm">{item.name || item.name_pt}</span>
                 <span className="text-brand-text-muted text-[13px]">× {item.qty}</span>
               </div>
               <span className="text-brand-gold text-sm">€{(item.price * item.qty).toFixed(2)}</span>
@@ -274,7 +274,7 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
             {allItems.map(item => (
               <div key={item.key} className="bg-brand-card border border-brand-border rounded-xl p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-brand-text text-sm">{item.emoji} {item.name_pt} × {item.qty}</p>
+                  <p className="text-brand-text text-sm">{item.emoji} {(item.name || item.name_pt)} × {item.qty}</p>
                   <span className="text-brand-gold text-[13px]">€{(item.price * item.qty).toFixed(2)}</span>
                 </div>
                 <div className="flex flex-wrap gap-2">

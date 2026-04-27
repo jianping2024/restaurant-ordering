@@ -121,6 +121,7 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
         emoji: item.emoji,
         qty: 1,
         note: '',
+        notePresetKeys: item.note_preset_keys || [],
       }];
     });
   };

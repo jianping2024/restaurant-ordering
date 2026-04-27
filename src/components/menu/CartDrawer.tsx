@@ -3,12 +3,12 @@
 import { useEffect } from 'react';
 import type { CartItem, Language } from '@/types';
 import { Button } from '@/components/ui/Button';
-
-const NOTE_SUGGESTIONS: Record<Language, string[]> = {
-  zh: ['少盐', '全熟', '三分熟', '不要洋葱', '无麸质'],
-  en: ['less salt', 'well done', 'medium rare', 'no onion', 'gluten free'],
-  pt: ['sem sal', 'bem passado', 'mal passado', 'sem cebola', 'sem gluten'],
-};
+import {
+  NOTE_PRESET_GROUP_LABELS,
+  NOTE_PRESET_BY_KEY,
+  NOTE_PRESETS,
+  type NotePresetGroup,
+} from '@/lib/note-presets';
 
 const DRAWER_TEXT: Record<Language, { title: string; total: string; submit: string; notePlaceholder: string }> = {
   zh: {
@@ -56,7 +56,14 @@ export function CartDrawer({
   const getName = (item: CartItem) =>
     (lang === 'zh' && item.name_zh) || (lang === 'en' && item.name_en) || item.name_pt;
   const text = DRAWER_TEXT[lang];
-  const noteSuggestions = NOTE_SUGGESTIONS[lang];
+  const fallbackPresetKeys = NOTE_PRESETS.slice(0, 8).map((preset) => preset.key);
+
+  const appendNote = (current: string | undefined, next: string) => {
+    const value = (current || '').trim();
+    if (!value) return next;
+    if (value.includes(next)) return value;
+    return `${value}; ${next}`;
+  };
 
   return (
     <>
@@ -124,17 +131,37 @@ export function CartDrawer({
                   onChange={e => onUpdateNote(item.menuItemId, e.target.value)}
                   className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-[13px] text-brand-text placeholder-brand-muted focus:outline-none focus:border-brand-gold/50"
                 />
-                {/* 快捷备注 */}
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {noteSuggestions.map(note => (
-                    <button
-                      key={note}
-                      onClick={() => onUpdateNote(item.menuItemId, note)}
-                      className="text-[13px] px-2 py-0.5 bg-brand-border rounded-full text-brand-text-muted hover:text-brand-gold hover:bg-brand-gold/10 transition-colors"
-                    >
-                      {note}
-                    </button>
-                  ))}
+                {/* 快捷备注（按分类） */}
+                <div className="mt-2 space-y-2">
+                  {(Object.keys(NOTE_PRESET_GROUP_LABELS) as NotePresetGroup[]).map((group) => {
+                    const presetKeys = (item.notePresetKeys?.length ? item.notePresetKeys : fallbackPresetKeys)
+                      .filter((key) => NOTE_PRESET_BY_KEY.get(key)?.group === group);
+                    if (presetKeys.length === 0) return null;
+
+                    return (
+                      <div key={`${item.menuItemId}-${group}`}>
+                        <p className="text-[13px] text-brand-text-muted mb-1">
+                          {NOTE_PRESET_GROUP_LABELS[group][lang]}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {presetKeys.map((key) => {
+                            const preset = NOTE_PRESET_BY_KEY.get(key);
+                            if (!preset) return null;
+                            const note = preset.labels[lang];
+                            return (
+                              <button
+                                key={key}
+                                onClick={() => onUpdateNote(item.menuItemId, appendNote(item.note, note))}
+                                className="text-[13px] px-2 py-0.5 bg-brand-border rounded-full text-brand-text-muted hover:text-brand-gold hover:bg-brand-gold/10 transition-colors"
+                              >
+                                {note}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>

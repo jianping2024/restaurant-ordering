@@ -38,6 +38,7 @@ export interface MenuItem {
   category: Category;
   emoji: string;
   image_url?: string | null;
+  note_preset_keys?: string[];
   available: boolean;
   sort_order: number;
   created_at: string;
@@ -117,4 +118,5 @@ export interface CartItem {
   emoji: string;
   qty: number;
   note?: string;
+  notePresetKeys?: string[];
 }

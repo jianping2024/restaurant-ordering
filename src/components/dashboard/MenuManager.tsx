@@ -11,6 +11,11 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { CATEGORY_LABELS, getMessages } from '@/lib/i18n/messages';
 import { MENU_CATEGORIES } from '@/lib/menu';
 import {
+  NOTE_PRESETS,
+  NOTE_PRESET_GROUP_LABELS,
+  type NotePresetGroup,
+} from '@/lib/note-presets';
+import {
   compressMenuImageForUpload,
   MENU_IMAGE_ACCEPT,
   menuImageObjectPath,
@@ -35,7 +40,23 @@ const defaultForm = {
   category: 'Pratos' as Category,
   emoji: '🍽️',
   available: true,
+  note_preset_keys: [] as string[],
 };
+
+const NOTE_UI_TEXT = {
+  zh: {
+    title: '预选备注',
+    hint: '可选。顾客下单时会显示这些快捷备注，建议按菜品类型勾选。',
+  },
+  en: {
+    title: 'Preset notes',
+    hint: 'Optional. Selected notes are shown as quick options during ordering.',
+  },
+  pt: {
+    title: 'Observacoes predefinidas',
+    hint: 'Opcional. Estas observacoes aparecem como atalhos no pedido.',
+  },
+} as const;
 
 export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
   const { lang } = useLanguage();
@@ -53,6 +74,7 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const supabase = createClient();
+  const presetUiText = NOTE_UI_TEXT[lang];
 
   useEffect(() => {
     if (!pendingImage) {
@@ -108,6 +130,7 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
       category: item.category,
       emoji: item.emoji,
       available: item.available,
+      note_preset_keys: item.note_preset_keys || [],
     });
     setError('');
     setModalOpen(true);
@@ -148,6 +171,7 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
       category: form.category,
       emoji: form.emoji,
       available: form.available,
+      note_preset_keys: form.note_preset_keys,
     };
 
     try {
@@ -511,6 +535,45 @@ export function MenuManager({ restaurantId, initialItems }: MenuManagerProps) {
                   <option key={c} value={c}>{CATEGORY_LABELS[lang][c]}</option>
                 ))}
               </select>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-brand-border bg-brand-bg/40 p-4">
+            <p className="text-sm font-medium text-brand-text">{presetUiText.title}</p>
+            <p className="text-[13px] text-brand-text-muted mt-1 mb-3">{presetUiText.hint}</p>
+            <div className="space-y-3">
+              {(Object.keys(NOTE_PRESET_GROUP_LABELS) as NotePresetGroup[]).map((group) => {
+                const options = NOTE_PRESETS.filter((preset) => preset.group === group);
+                return (
+                  <div key={group}>
+                    <p className="text-[13px] text-brand-text-muted mb-2">{NOTE_PRESET_GROUP_LABELS[group][lang]}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {options.map((preset) => {
+                        const checked = form.note_preset_keys.includes(preset.key);
+                        return (
+                          <button
+                            key={preset.key}
+                            type="button"
+                            onClick={() => setForm((prev) => ({
+                              ...prev,
+                              note_preset_keys: checked
+                                ? prev.note_preset_keys.filter((key) => key !== preset.key)
+                                : [...prev.note_preset_keys, preset.key],
+                            }))}
+                            className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
+                              checked
+                                ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
+                                : 'bg-brand-card border-brand-border text-brand-text-muted hover:text-brand-text'
+                            }`}
+                          >
+                            {preset.labels[lang]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

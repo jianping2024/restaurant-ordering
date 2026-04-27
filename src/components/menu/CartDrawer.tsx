@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/Button';
 import {
   NOTE_PRESET_GROUP_LABELS,
   NOTE_PRESET_BY_KEY,
-  NOTE_PRESETS,
   type NotePresetGroup,
 } from '@/lib/note-presets';
 
@@ -56,7 +55,6 @@ export function CartDrawer({
   const getName = (item: CartItem) =>
     (lang === 'zh' && item.name_zh) || (lang === 'en' && item.name_en) || item.name_pt;
   const text = DRAWER_TEXT[lang];
-  const fallbackPresetKeys = NOTE_PRESETS.slice(0, 8).map((preset) => preset.key);
 
   const appendNote = (current: string | undefined, next: string) => {
     const value = (current || '').trim();
@@ -134,7 +132,7 @@ export function CartDrawer({
                 {/* 快捷备注（按分类） */}
                 <div className="mt-2 space-y-2">
                   {(Object.keys(NOTE_PRESET_GROUP_LABELS) as NotePresetGroup[]).map((group) => {
-                    const presetKeys = (item.notePresetKeys?.length ? item.notePresetKeys : fallbackPresetKeys)
+                    const presetKeys = (item.notePresetKeys || [])
                       .filter((key) => NOTE_PRESET_BY_KEY.get(key)?.group === group);
                     if (presetKeys.length === 0) return null;
 
@@ -162,6 +160,11 @@ export function CartDrawer({
                       </div>
                     );
                   })}
+                  {(!item.notePresetKeys || item.notePresetKeys.length === 0) && (
+                    <p className="text-[13px] text-brand-text-muted">
+                      {lang === 'zh' ? '该菜品暂无快捷备注，请直接输入。' : lang === 'en' ? 'No quick notes configured for this dish.' : 'Sem observacoes rapidas configuradas para este prato.'}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

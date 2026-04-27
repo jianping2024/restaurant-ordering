@@ -12,6 +12,7 @@ import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { MENU_CATEGORIES } from '@/lib/menu';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { getClientLanguage, setClientLanguage } from '@/lib/i18n';
+import { deriveOrderStatusFromItems } from '@/lib/order-status';
 
 const LANG_FLAGS: Record<Language, string> = { pt: '🇵🇹', en: '🇬🇧', zh: '🇨🇳' };
 const LANG_LABELS: Record<Language, string> = { pt: 'PT', en: 'EN', zh: '中' };
@@ -21,13 +22,6 @@ interface Props {
   menuItems: MenuItem[];
   tableNumber: number;
   isDemo?: boolean;
-}
-
-function deriveOrderStatusFromItems(items: Array<{ item_status?: 'pending' | 'cooking' | 'done' }>) {
-  const statuses = items.map(i => i.item_status || 'pending');
-  if (statuses.length > 0 && statuses.every(s => s === 'done')) return 'done' as const;
-  if (statuses.some(s => s === 'cooking' || s === 'done')) return 'cooking' as const;
-  return 'pending' as const;
 }
 
 function calcItemsTotal(items: Array<{ price: number | string; qty: number | string }>) {

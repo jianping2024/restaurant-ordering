@@ -7,6 +7,7 @@ import type { Order, OrderItem, OrderItemStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import { deriveOrderStatusFromItems, normalizeOrderItemStatus } from '@/lib/order-status';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string; kitchen_password: string };
@@ -65,20 +66,6 @@ function playBeep() {
   }
 }
 
-function normalizeItemStatus(item: OrderItem, fallback: Order['status']): OrderItemStatus {
-  if (item.item_status) return item.item_status;
-  if (fallback === 'done') return 'done';
-  if (fallback === 'cooking') return 'cooking';
-  return 'pending';
-}
-
-function deriveOrderStatus(items: OrderItem[]): Order['status'] {
-  const statuses = items.map(i => i.item_status || 'pending');
-  if (statuses.length > 0 && statuses.every(s => s === 'done' || s === 'voided')) return 'done';
-  if (statuses.some(s => s === 'cooking' || s === 'done')) return 'cooking';
-  return 'pending';
-}
-
 async function loadLiveOrders(supabase: ReturnType<typeof createClient>, restaurantId: string) {
   const { data } = await supabase
     .from('orders')
@@ -129,7 +116,7 @@ export function KitchenDisplay({ restaurant, initialOrders, isDemo = false }: Pr
       };
     });
 
-    const nextOrderStatus = deriveOrderStatus(nextItems);
+    const nextOrderStatus = deriveOrderStatusFromItems(nextItems);
 
     const { error } = await supabase
       .from('orders')
@@ -454,7 +441,9 @@ function OrderCard({
                 {batchTime && <p className="text-[10px] text-brand-text-muted">{batchTime}</p>}
               </div>
               <div className="space-y-2">
-                {batchItems.map(({ item, idx }) => (
+                {batchItems.map(({ item, idx }) => {
+                  const status = normalizeOrderItemStatus(item, order.status);
+                  return (
                   <div key={`${order.id}-${idx}`} className="flex items-start gap-2">
                     <span className="text-xl flex-shrink-0">{item.emoji}</span>
                     <div className="flex-1 min-w-0">
@@ -469,23 +458,23 @@ function OrderCard({
                       )}
                       <div className="flex items-center gap-2 mt-1.5">
                         <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                          normalizeItemStatus(item, order.status) === 'done'
+                          status === 'done'
                             ? 'bg-green-500/20 text-green-400'
-                            : normalizeItemStatus(item, order.status) === 'voided'
+                            : status === 'voided'
                               ? 'bg-slate-500/25 text-slate-300'
-                            : normalizeItemStatus(item, order.status) === 'cooking'
+                            : status === 'cooking'
                               ? 'bg-yellow-500/20 text-yellow-400'
                               : 'bg-red-500/20 text-red-400'
                         }`}>
-                          {normalizeItemStatus(item, order.status) === 'done'
+                          {status === 'done'
                             ? labels.completed
-                            : normalizeItemStatus(item, order.status) === 'voided'
+                            : status === 'voided'
                               ? labels.voided
-                            : normalizeItemStatus(item, order.status) === 'cooking'
+                            : status === 'cooking'
                               ? labels.cooking
                               : labels.newOrder}
                         </span>
-                        {normalizeItemStatus(item, order.status) === 'pending' && (
+                        {status === 'pending' && (
                           <button
                             onClick={() => handleItemStatusChange(idx, 'cooking')}
                             disabled={updating}
@@ -494,7 +483,7 @@ function OrderCard({
                             {labels.startCooking}
                           </button>
                         )}
-                        {normalizeItemStatus(item, order.status) === 'cooking' && (
+                        {status === 'cooking' && (
                           <button
                             onClick={() => handleItemStatusChange(idx, 'done')}
                             disabled={updating}
@@ -503,7 +492,7 @@ function OrderCard({
                             {labels.finishServing}
                           </button>
                         )}
-                        {(normalizeItemStatus(item, order.status) === 'pending' || normalizeItemStatus(item, order.status) === 'cooking') && (
+                        {(status === 'pending' || status === 'cooking') && (
                           <button
                             onClick={() => handleItemStatusChange(idx, 'voided')}
                             disabled={updating}
@@ -515,7 +504,8 @@ function OrderCard({
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           );

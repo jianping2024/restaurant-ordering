@@ -8,6 +8,8 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { Modal } from '@/components/ui/Modal';
+import { ToastContainer, showToast } from '@/components/ui/Toast';
+import { deriveOrderStatusFromItems, normalizeOrderItemStatus } from '@/lib/order-status';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string; waiter_password: string };
@@ -135,20 +137,6 @@ const WAITER_TEXT = {
   },
 } as const;
 
-function itemStatus(item: OrderItem, orderStatus: Order['status']) {
-  if (item.item_status) return item.item_status;
-  if (orderStatus === 'done') return 'done';
-  if (orderStatus === 'cooking') return 'cooking';
-  return 'pending';
-}
-
-function deriveOrderStatus(items: OrderItem[]): Order['status'] {
-  const statuses = items.map((item) => item.item_status || 'pending');
-  if (statuses.length > 0 && statuses.every((status) => status === 'done' || status === 'voided')) return 'done';
-  if (statuses.some((status) => status === 'cooking' || status === 'done')) return 'cooking';
-  return 'pending';
-}
-
 export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Props) {
   const { lang } = useLanguage();
   const locale = UI_LOCALE_BY_LANG[lang];
@@ -162,6 +150,16 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
   const [targetTable, setTargetTable] = useState<number | null>(null);
   const [operating, setOperating] = useState(false);
   const supabase = createClient();
+  const fetchBoardOrders = async () => {
+    const { data } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('restaurant_id', restaurant.id)
+      .in('status', ['pending', 'cooking', 'done'])
+      .order('updated_at', { ascending: false })
+      .limit(200);
+    return (data || []) as Order[];
+  };
 
   const tableCards = useMemo(() => {
     const grouped = new Map<number, {
@@ -184,7 +182,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
       };
 
       order.items.forEach((item) => {
-        const status = itemStatus(item, order.status) as 'pending' | 'cooking' | 'done' | 'voided';
+        const status = normalizeOrderItemStatus(item, order.status) as 'pending' | 'cooking' | 'done' | 'voided';
         if (status === 'pending') current.pending += item.qty;
         if (status === 'cooking') current.cooking += item.qty;
         if (status === 'done') {
@@ -194,7 +192,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
       });
 
       order.items.forEach((item, itemIdx) => {
-        const status = itemStatus(item, order.status) as 'pending' | 'cooking' | 'done' | 'voided';
+        const status = normalizeOrderItemStatus(item, order.status) as 'pending' | 'cooking' | 'done' | 'voided';
         if (status === 'pending' || status === 'cooking') {
           current.voidableItems.push({
             orderId: order.id,
@@ -228,14 +226,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
         table: 'orders',
         filter: `restaurant_id=eq.${restaurant.id}`,
       }, async () => {
-        const { data } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('restaurant_id', restaurant.id)
-          .in('status', ['pending', 'cooking', 'done'])
-          .order('updated_at', { ascending: false })
-          .limit(200);
-        setOrders((data || []) as Order[]);
+        setOrders(await fetchBoardOrders());
       })
       .subscribe();
 
@@ -271,45 +262,56 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
   const handleActionSubmit = async () => {
     if (!operationType || !sourceTable || !targetTable) return;
     if (sourceTable === targetTable) {
-      alert(t.sameTableError);
+      showToast(t.sameTableError, 'error');
       return;
     }
 
+    const currentOperation = operationType;
+    const fromTable = sourceTable;
+    const toTable = targetTable;
     setOperating(true);
     try {
-      const { error } = operationType === 'transfer'
+      const { data: rpcResult, error } = currentOperation === 'transfer'
         ? await supabase.rpc('transfer_table_session', {
           p_restaurant_id: restaurant.id,
-          p_from_table: sourceTable,
-          p_to_table: targetTable,
+          p_from_table: fromTable,
+          p_to_table: toTable,
         })
         : await supabase.rpc('merge_table_sessions', {
           p_restaurant_id: restaurant.id,
-          p_source_table: sourceTable,
-          p_target_table: targetTable,
+          p_source_table: fromTable,
+          p_target_table: toTable,
         });
 
       if (error) {
         if ((error.message || '').toLowerCase().includes('active session')) {
-          alert(t.refreshHint);
+          showToast(t.refreshHint, 'error');
         } else {
-          alert(t.actionFailed);
+          showToast(t.actionFailed, 'error');
         }
         return;
       }
 
-      const { data } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('restaurant_id', restaurant.id)
-        .in('status', ['pending', 'cooking', 'done'])
-        .order('updated_at', { ascending: false })
-        .limit(200);
-      setOrders((data || []) as Order[]);
-      alert(t.actionSuccess);
+      const [sessionCheck, nextOrders] = await Promise.all([
+        supabase
+          .from('table_sessions')
+          .select('id, table_number, status')
+          .eq('id', rpcResult as string)
+          .in('status', ['open', 'billing'])
+          .maybeSingle(),
+        fetchBoardOrders(),
+      ]);
+
+      if (sessionCheck.error || !sessionCheck.data || sessionCheck.data.table_number !== toTable) {
+        showToast(t.refreshHint, 'error');
+        return;
+      }
+
+      setOrders(nextOrders);
       closeAction();
+      showToast(t.actionSuccess, 'success');
     } catch {
-      alert(t.actionFailed);
+      showToast(t.actionFailed, 'error');
     } finally {
       setOperating(false);
     }
@@ -332,7 +334,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
           voided_at: new Date().toISOString(),
         };
       });
-      const nextOrderStatus = deriveOrderStatus(nextItems);
+      const nextOrderStatus = deriveOrderStatusFromItems(nextItems);
       const { error } = await supabase
         .from('orders')
         .update({
@@ -343,21 +345,14 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
         .eq('updated_at', order.updated_at);
 
       if (error) {
-        alert(t.refreshHint);
+        showToast(t.refreshHint, 'error');
         return;
       }
 
-      const { data } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('restaurant_id', restaurant.id)
-        .in('status', ['pending', 'cooking', 'done'])
-        .order('updated_at', { ascending: false })
-        .limit(200);
-      setOrders((data || []) as Order[]);
-      alert(t.voidedLabel);
+      setOrders(await fetchBoardOrders());
+      showToast(t.voidedLabel, 'success');
     } catch {
-      alert(t.actionFailed);
+      showToast(t.actionFailed, 'error');
     }
   };
 
@@ -566,6 +561,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
           </button>
         </div>
       </Modal>
+      <ToastContainer />
     </div>
   );
 }

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
-import type { BillSplit, Order, SplitMode, SplitResult } from '@/types';
+import type { BillSplit, DishFeedbackVote, Order, SplitMode, SplitResult } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages } from '@/lib/i18n/messages';
@@ -20,6 +20,9 @@ interface PersonAmount {
   name: string;
   amount: number;
 }
+
+const FEEDBACK_REASON_KEYS = ['taste', 'temp', 'slow', 'mismatch', 'other'] as const;
+type FeedbackReasonKey = (typeof FEEDBACK_REASON_KEYS)[number];
 
 export function BillPage({ restaurant, tableNumber, orders, sessionId, existingSplit }: Props) {
   const { lang } = useLanguage();
@@ -40,6 +43,10 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
   const [submitted, setSubmitted] = useState(!!existingSplit);
   const [submitting, setSubmitting] = useState(false);
   const [persistedResult, setPersistedResult] = useState<SplitResult[] | null>((existingSplit?.result as SplitResult[] | null) || null);
+  const [feedbackDraft, setFeedbackDraft] = useState<Record<string, { vote?: DishFeedbackVote; reasons: FeedbackReasonKey[] }>>({});
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [feedbackSkipped, setFeedbackSkipped] = useState(false);
 
   // 结账金额按本餐次“实际已下单菜品”计算，不限制菜品状态。
   const allItems = orders.flatMap(o => o.items
@@ -156,6 +163,157 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
 
   const byItemPersons = Array.from({ length: personCount }, (_, i) => guestName(i + 1));
 
+  const reviewableItems = useMemo(() => {
+    const dedup = new Map<string, { menu_item_id: string; order_id: string; name: string; emoji: string; qty: number }>();
+    allItems
+      .filter((item) => item.item_status !== 'voided')
+      .forEach((item) => {
+        const existing = dedup.get(item.id);
+        if (existing) {
+          existing.qty += item.qty;
+          return;
+        }
+        dedup.set(item.id, {
+          menu_item_id: item.id,
+          order_id: item.order_id,
+          name: item.name || item.name_pt,
+          emoji: item.emoji,
+          qty: item.qty,
+        });
+      });
+    return Array.from(dedup.values());
+  }, [allItems]);
+
+  const feedbackReasonLabels: Record<FeedbackReasonKey, string> = {
+    taste: t.reasonTaste,
+    temp: t.reasonTemp,
+    slow: t.reasonSlow,
+    mismatch: t.reasonMismatch,
+    other: t.reasonOther,
+  };
+
+  const selectedFeedbackCount = Object.values(feedbackDraft).filter((entry) => !!entry.vote).length;
+
+  useEffect(() => {
+    if (!submitted || !sessionId) return;
+    const supabase = createClient();
+    const syncFeedbackState = async () => {
+      await supabase
+        .from('feedback_sessions')
+        .upsert({
+          restaurant_id: restaurant.id,
+          session_id: sessionId,
+          source: 'bill_success',
+          shown_at: new Date().toISOString(),
+        }, { onConflict: 'session_id' });
+
+      const { data } = await supabase
+        .from('dish_feedback')
+        .select('menu_item_id, vote, reasons')
+        .eq('session_id', sessionId);
+
+      if (!data?.length) return;
+      const nextDraft: Record<string, { vote?: DishFeedbackVote; reasons: FeedbackReasonKey[] }> = {};
+      data.forEach((row) => {
+        const reasons = Array.isArray(row.reasons)
+          ? row.reasons.filter((reason): reason is FeedbackReasonKey => FEEDBACK_REASON_KEYS.includes(reason as FeedbackReasonKey))
+          : [];
+        nextDraft[row.menu_item_id] = {
+          vote: row.vote as DishFeedbackVote,
+          reasons,
+        };
+      });
+      setFeedbackDraft(nextDraft);
+      setFeedbackSubmitted(true);
+    };
+    syncFeedbackState();
+  }, [submitted, sessionId, restaurant.id]);
+
+  const setVote = (menuItemId: string, vote: DishFeedbackVote) => {
+    setFeedbackDraft((prev) => ({
+      ...prev,
+      [menuItemId]: {
+        vote,
+        reasons: vote === 'down' ? (prev[menuItemId]?.reasons || []) : [],
+      },
+    }));
+  };
+
+  const toggleReason = (menuItemId: string, reason: FeedbackReasonKey) => {
+    setFeedbackDraft((prev) => {
+      const existing = prev[menuItemId] || { vote: 'down' as DishFeedbackVote, reasons: [] as FeedbackReasonKey[] };
+      const reasons = existing.reasons.includes(reason)
+        ? existing.reasons.filter((item) => item !== reason)
+        : [...existing.reasons, reason];
+      return {
+        ...prev,
+        [menuItemId]: {
+          vote: 'down',
+          reasons,
+        },
+      };
+    });
+  };
+
+  const handleSkipFeedback = async () => {
+    if (!sessionId) return;
+    setFeedbackSkipped(true);
+    const supabase = createClient();
+    await supabase
+      .from('feedback_sessions')
+      .upsert({
+        restaurant_id: restaurant.id,
+        session_id: sessionId,
+        source: 'bill_success',
+        shown_at: new Date().toISOString(),
+        skipped_at: new Date().toISOString(),
+      }, { onConflict: 'session_id' });
+  };
+
+  const handleSubmitFeedback = async () => {
+    if (!sessionId || selectedFeedbackCount === 0) return;
+    setFeedbackSubmitting(true);
+    try {
+      const supabase = createClient();
+      const payload = reviewableItems
+        .map((item) => {
+          const draft = feedbackDraft[item.menu_item_id];
+          if (!draft?.vote) return null;
+          return {
+            restaurant_id: restaurant.id,
+            session_id: sessionId,
+            order_id: item.order_id,
+            menu_item_id: item.menu_item_id,
+            vote: draft.vote,
+            reasons: draft.vote === 'down' ? draft.reasons : [],
+          };
+        })
+        .filter((row): row is NonNullable<typeof row> => !!row);
+
+      if (payload.length === 0) return;
+
+      await supabase
+        .from('dish_feedback')
+        .upsert(payload, { onConflict: 'session_id,menu_item_id' });
+
+      await supabase
+        .from('feedback_sessions')
+        .upsert({
+          restaurant_id: restaurant.id,
+          session_id: sessionId,
+          source: 'bill_success',
+          shown_at: new Date().toISOString(),
+          completed_at: new Date().toISOString(),
+          skipped_at: null,
+        }, { onConflict: 'session_id' });
+
+      setFeedbackSubmitted(true);
+      setFeedbackSkipped(false);
+    } finally {
+      setFeedbackSubmitting(false);
+    }
+  };
+
   if (submitted) {
     return (
       <div className="min-h-screen bg-brand-bg max-w-mobile mx-auto flex items-center justify-center p-4">
@@ -177,6 +335,85 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
               ))}
             </div>
           )}
+
+          <div className="mt-6 bg-brand-card border border-brand-border rounded-xl p-4 text-left">
+            <h3 className="text-brand-text font-medium">{t.feedbackTitle}</h3>
+            <p className="text-brand-text-muted text-[13px] mt-1">{t.feedbackHint}</p>
+            {reviewableItems.length === 0 ? (
+              <p className="mt-3 text-[13px] text-brand-text-muted">{t.noFeedbackItems}</p>
+            ) : (
+              <div className="mt-3 space-y-3">
+                {reviewableItems.map((item) => {
+                  const draft = feedbackDraft[item.menu_item_id];
+                  const reasons = draft?.reasons || [];
+                  return (
+                    <div key={item.menu_item_id} className="rounded-lg border border-brand-border p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm text-brand-text">{item.emoji} {item.name} × {item.qty}</p>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setVote(item.menu_item_id, 'up')}
+                            className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
+                              draft?.vote === 'up'
+                                ? 'bg-emerald-500/16 border-emerald-500/40 text-emerald-800'
+                                : 'border-brand-border text-brand-text-muted hover:text-brand-text'
+                            }`}
+                          >
+                            👍 {t.thumbsUp}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setVote(item.menu_item_id, 'down')}
+                            className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
+                              draft?.vote === 'down'
+                                ? 'bg-red-500/15 border-red-500/40 text-red-700'
+                                : 'border-brand-border text-brand-text-muted hover:text-brand-text'
+                            }`}
+                          >
+                            👎 {t.thumbsDown}
+                          </button>
+                        </div>
+                      </div>
+                      {draft?.vote === 'down' && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {FEEDBACK_REASON_KEYS.map((reason) => (
+                            <button
+                              key={reason}
+                              type="button"
+                              onClick={() => toggleReason(item.menu_item_id, reason)}
+                              className={`text-[13px] px-2 py-0.5 rounded-full border ${
+                                reasons.includes(reason)
+                                  ? 'bg-amber-500/16 border-amber-500/40 text-amber-800'
+                                  : 'border-brand-border text-brand-text-muted hover:text-brand-text'
+                              }`}
+                            >
+                              {feedbackReasonLabels[reason]}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {feedbackSubmitted && (
+              <p className="mt-3 text-[13px] text-brand-text">{t.feedbackThanks}</p>
+            )}
+
+            {!feedbackSubmitted && reviewableItems.length > 0 && (
+              <div className="mt-4 flex items-center gap-2">
+                <Button variant="outline" onClick={handleSkipFeedback} disabled={feedbackSubmitting || feedbackSkipped}>
+                  {t.feedbackSkip}
+                </Button>
+                <Button onClick={handleSubmitFeedback} loading={feedbackSubmitting} disabled={selectedFeedbackCount === 0}>
+                  {t.feedbackSubmit}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );

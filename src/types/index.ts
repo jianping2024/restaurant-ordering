@@ -10,6 +10,7 @@ export type Category = 'Entradas' | 'Pratos' | 'Bebidas' | 'Sobremesas';
 export type SplitMode = 'even' | 'by_item' | 'custom';
 export type BillStatus = 'pending' | 'confirmed' | 'requested' | 'paid';
 export type Language = 'pt' | 'en' | 'zh';
+export type DishFeedbackVote = 'up' | 'down';
 
 export interface Restaurant {
   id: string;
@@ -97,6 +98,30 @@ export interface BillSplit {
   total_amount: number;
   status: BillStatus;
   created_at: string;
+}
+
+export interface FeedbackSession {
+  id: string;
+  restaurant_id: string;
+  session_id: string;
+  source: string;
+  shown_at: string;
+  completed_at?: string | null;
+  skipped_at?: string | null;
+  created_at: string;
+}
+
+export interface DishFeedback {
+  id: string;
+  restaurant_id: string;
+  session_id: string;
+  order_id: string;
+  menu_item_id: string;
+  vote: DishFeedbackVote;
+  reasons: string[];
+  comment?: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface TableSession {

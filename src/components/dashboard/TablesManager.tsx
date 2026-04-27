@@ -28,6 +28,7 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
   }>>([]);
   const [operationType, setOperationType] = useState<'transfer' | 'merge' | null>(null);
   const [sourceTable, setSourceTable] = useState<number | null>(null);
+  const [mergeSourceTables, setMergeSourceTables] = useState<number[]>([]);
   const [targetTable, setTargetTable] = useState<number | null>(null);
   const [operating, setOperating] = useState(false);
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
@@ -142,19 +143,28 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
   const openOperation = (type: 'transfer' | 'merge', tableNum: number) => {
     setOperationType(type);
     setSourceTable(tableNum);
+    setMergeSourceTables(type === 'merge' ? [tableNum] : []);
     setTargetTable(null);
   };
 
   const closeOperation = () => {
     setOperationType(null);
     setSourceTable(null);
+    setMergeSourceTables([]);
     setTargetTable(null);
     setOperating(false);
   };
 
   const handleSubmitOperation = async () => {
-    if (!operationType || !sourceTable || !targetTable) return;
-    if (sourceTable === targetTable) {
+    if (!operationType || !targetTable) return;
+
+    const selectedSources = operationType === 'merge' ? mergeSourceTables : (sourceTable ? [sourceTable] : []);
+    if (selectedSources.length === 0) {
+      alert(operationType === 'merge' ? t.mergeAtLeastTwo : t.sameTableError);
+      return;
+    }
+
+    if (selectedSources.includes(targetTable)) {
       alert(t.sameTableError);
       return;
     }
@@ -164,12 +174,12 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
       const { error } = operationType === 'transfer'
         ? await supabase.rpc('transfer_table_session', {
           p_restaurant_id: restaurant.id,
-          p_from_table: sourceTable,
+          p_from_table: selectedSources[0],
           p_to_table: targetTable,
         })
-        : await supabase.rpc('merge_table_sessions', {
+        : await supabase.rpc('merge_multiple_table_sessions', {
           p_restaurant_id: restaurant.id,
-          p_source_table: sourceTable,
+          p_source_tables: selectedSources,
           p_target_table: targetTable,
         });
 
@@ -197,7 +207,7 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
     .filter(tableNum => tableNum !== sourceTable && !occupiedTables.has(tableNum));
   const mergeTargets = activeSessions
     .map(s => s.table_number)
-    .filter(tableNum => tableNum !== sourceTable)
+    .filter(tableNum => !mergeSourceTables.includes(tableNum))
     .sort((a, b) => a - b);
   const currentTargets = operationType === 'transfer' ? transferTargets : mergeTargets;
 
@@ -390,19 +400,49 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
         </p>
         <div className="space-y-3">
           <div>
-            <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.sourceTable}</label>
-            <select
-              value={sourceTable ?? ''}
-              onChange={(e) => setSourceTable(Number(e.target.value) || null)}
-              className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
-            >
-              <option value="">--</option>
-              {activeSessions.map((session) => (
-                <option key={session.id} value={session.table_number}>
-                  {t.table} {session.table_number}
-                </option>
-              ))}
-            </select>
+            <label className="text-[13px] text-brand-text-muted block mb-1.5">
+              {operationType === 'merge' ? t.sourceTables : t.sourceTable}
+            </label>
+            {operationType === 'merge' ? (
+              <div className="rounded-lg border border-brand-border bg-brand-bg p-2 max-h-40 overflow-y-auto space-y-1.5">
+                {activeSessions.map((session) => {
+                  const checked = mergeSourceTables.includes(session.table_number);
+                  return (
+                    <label key={session.id} className="flex items-center gap-2 text-sm text-brand-text">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) => {
+                          setMergeSourceTables(prev => e.target.checked
+                            ? [...prev, session.table_number].sort((a, b) => a - b)
+                            : prev.filter(table => table !== session.table_number));
+                        }}
+                        className="accent-brand-gold"
+                      />
+                      {t.table} {session.table_number}
+                    </label>
+                  );
+                })}
+              </div>
+            ) : (
+              <select
+                value={sourceTable ?? ''}
+                onChange={(e) => setSourceTable(Number(e.target.value) || null)}
+                className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
+              >
+                <option value="">--</option>
+                {activeSessions.map((session) => (
+                  <option key={session.id} value={session.table_number}>
+                    {t.table} {session.table_number}
+                  </option>
+                ))}
+              </select>
+            )}
+            {operationType === 'merge' && (
+              <p className="mt-1.5 text-[13px] text-brand-text-muted">
+                {t.selectedCount}: {mergeSourceTables.length}
+              </p>
+            )}
           </div>
           <div>
             <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.targetTable}</label>
@@ -425,7 +465,9 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
           <Button
             onClick={handleSubmitOperation}
             loading={operating}
-            disabled={!sourceTable || !targetTable}
+            disabled={operationType === 'merge'
+              ? mergeSourceTables.length === 0 || !targetTable
+              : !sourceTable || !targetTable}
           >
             {operationType === 'transfer'
               ? (operating ? t.transferring : t.confirmTransfer)

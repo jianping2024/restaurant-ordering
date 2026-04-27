@@ -23,13 +23,30 @@ export const metadata: Metadata = {
   description: "多租户餐厅 SaaS，支持扫码点餐、实时厨房显示、智能分单",
 };
 
+const themeInitScript = `
+(() => {
+  const key = 'mesa-theme';
+  const fallback = 'light';
+  let theme = fallback;
+  try {
+    const saved = localStorage.getItem(key);
+    if (saved === 'dark' || saved === 'light') theme = saved;
+  } catch {}
+  document.documentElement.setAttribute('data-theme', theme);
+  document.documentElement.style.colorScheme = theme;
+})();
+`;
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh" className={`${cormorant.variable} ${jost.variable}`}>
+    <html lang="zh" className={`${cormorant.variable} ${jost.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="antialiased bg-brand-bg text-brand-text font-body">
         <ThemeProvider>
           <LanguageProvider>{children}</LanguageProvider>

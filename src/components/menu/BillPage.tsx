@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import type { BillSplit, DishFeedbackVote, Order, SplitMode, SplitResult } from '@/types';
+import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages } from '@/lib/i18n/messages';
@@ -47,9 +48,51 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [feedbackSkipped, setFeedbackSkipped] = useState(false);
+  const [liveOrders, setLiveOrders] = useState<Order[]>(orders);
+
+  useEffect(() => {
+    setLiveOrders(orders);
+  }, [orders]);
+
+  useEffect(() => {
+    if (!sessionId) return;
+    const supabase = createClient();
+    const fetchSessionOrders = async () => {
+      const { data } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('restaurant_id', restaurant.id)
+        .eq('table_number', tableNumber)
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: true });
+      setLiveOrders((data || []) as Order[]);
+    };
+
+    void fetchSessionOrders();
+
+    const channel = supabase
+      .channel(`bill-orders-${restaurant.id}-${sessionId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `restaurant_id=eq.${restaurant.id}`,
+        },
+        () => {
+          void fetchSessionOrders();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [restaurant.id, tableNumber, sessionId]);
 
   // 结账金额按本餐次“实际已下单菜品”计算，不限制菜品状态。
-  const allItems = orders.flatMap(o => o.items
+  const allItems = liveOrders.flatMap(o => o.items
     .map((item, idx) => ({
       ...item,
       order_id: o.id,
@@ -434,16 +477,40 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
       <div className="px-4 py-4">
         <h2 className="text-brand-text font-medium mb-3">{t.details}</h2>
         <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
-          {allItems.map((item) => (
-            <div key={item.key} className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0">
-              <div className="flex items-center gap-2">
+          {allItems.map((item) => {
+            const orderRow = liveOrders.find((o) => o.id === item.order_id);
+            const itemSt = orderRow ? normalizeOrderItemStatus(item, orderRow.status) : 'pending';
+            return (
+            <div key={item.key} className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0 gap-2">
+              <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
                 <span>{item.emoji}</span>
                 <span className="text-brand-text text-sm">{item.name || item.name_pt}</span>
                 <span className="text-brand-text-muted text-[13px]">× {item.qty}</span>
+                {itemSt === 'voided' && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-500/12 border border-slate-500/35 text-slate-700">
+                    {t.cancelledTag}
+                  </span>
+                )}
+                {itemSt === 'pending' && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/35 text-red-700">
+                    {t.itemPending}
+                  </span>
+                )}
+                {itemSt === 'cooking' && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/18 border border-amber-500/35 text-amber-800">
+                    {t.itemCooking}
+                  </span>
+                )}
+                {itemSt === 'done' && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/16 border border-emerald-500/35 text-emerald-800">
+                    {t.itemDone}
+                  </span>
+                )}
               </div>
-              <span className="text-brand-gold text-sm">€{(item.price * item.qty).toFixed(2)}</span>
+              <span className="text-brand-gold text-sm flex-shrink-0">€{(item.price * item.qty).toFixed(2)}</span>
             </div>
-          ))}
+            );
+          })}
           <div className="flex items-center justify-between px-4 py-3 bg-brand-border/30">
             <span className="text-brand-text font-medium">{t.total}</span>
             <span className="font-heading text-xl text-brand-gold">€{total.toFixed(2)}</span>

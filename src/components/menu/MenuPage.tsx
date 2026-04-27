@@ -12,7 +12,7 @@ import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { MENU_CATEGORIES } from '@/lib/menu';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { getClientLanguage, setClientLanguage } from '@/lib/i18n';
-import { deriveOrderStatusFromItems } from '@/lib/order-status';
+import { deriveOrderStatusFromItems, normalizeOrderItemStatus } from '@/lib/order-status';
 
 const LANG_FLAGS: Record<Language, string> = { pt: '🇵🇹', en: '🇬🇧', zh: '🇨🇳' };
 const LANG_LABELS: Record<Language, string> = { pt: 'PT', en: 'EN', zh: '中' };
@@ -67,7 +67,7 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
     localStorage.setItem('mesa-lang', l);
   };
 
-  // 加载本桌当前餐次及订单
+  // 加载本桌当前餐次及订单；订阅后厨/服务员对订单、会话的更新，同步菜品状态
   useEffect(() => {
     if (isDemo) return;
     const supabase = createClient();
@@ -99,7 +99,39 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
       setRecentOrders((data || []) as Order[]);
     };
 
-    loadSessionAndOrders();
+    void loadSessionAndOrders();
+
+    const channel = supabase
+      .channel(`menu-${restaurant.id}-t${tableNumber}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `restaurant_id=eq.${restaurant.id}`,
+        },
+        () => {
+          void loadSessionAndOrders();
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'table_sessions',
+          filter: `restaurant_id=eq.${restaurant.id}`,
+        },
+        () => {
+          void loadSessionAndOrders();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [isDemo, restaurant.id, tableNumber]);
 
   // 当前分类菜品
@@ -406,15 +438,32 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
                     );
                   })()}
                   <div className="space-y-1">
-                    {order.items.map((item, idx) => (
+                    {order.items.map((item, idx) => {
+                      const itemSt = normalizeOrderItemStatus(item, order.status);
+                      return (
                       <div key={`${order.id}-${idx}`} className="flex items-center justify-between gap-2">
-                        <p className={`text-sm ${item.item_status === 'voided' ? 'text-brand-text-muted line-through' : 'text-brand-text'}`}>
+                        <p className={`text-sm ${itemSt === 'voided' ? 'text-brand-text-muted line-through' : 'text-brand-text'}`}>
                           {item.emoji} {(item.name || item.name_pt)} x {item.qty}
                         </p>
-                        <div className="flex items-center gap-1.5">
-                          {item.item_status === 'voided' && (
+                        <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                          {itemSt === 'voided' && (
                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-500/12 border border-slate-500/35 text-slate-700">
                               {t.statusVoided}
+                            </span>
+                          )}
+                          {itemSt === 'pending' && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/35 text-red-700">
+                              {t.statusPending}
+                            </span>
+                          )}
+                          {itemSt === 'cooking' && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/18 border border-amber-500/35 text-amber-800">
+                              {t.statusCooking}
+                            </span>
+                          )}
+                          {itemSt === 'done' && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/16 border border-emerald-500/35 text-emerald-800">
+                              {t.statusDone}
                             </span>
                           )}
                           {latestBatchId && item.batch_id === latestBatchId && (
@@ -424,7 +473,8 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
                           )}
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ))}

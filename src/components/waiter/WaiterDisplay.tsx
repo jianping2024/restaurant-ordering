@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import type { Order, OrderItem } from '@/types';
+import type { Order } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
@@ -137,6 +137,17 @@ const WAITER_TEXT = {
   },
 } as const;
 
+async function fetchBoardOrders(supabase: ReturnType<typeof createClient>, restaurantId: string) {
+  const { data } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('restaurant_id', restaurantId)
+    .in('status', ['pending', 'cooking', 'done'])
+    .order('updated_at', { ascending: false })
+    .limit(200);
+  return (data || []) as Order[];
+}
+
 export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Props) {
   const { lang } = useLanguage();
   const locale = UI_LOCALE_BY_LANG[lang];
@@ -150,16 +161,6 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
   const [targetTable, setTargetTable] = useState<number | null>(null);
   const [operating, setOperating] = useState(false);
   const supabase = createClient();
-  const fetchBoardOrders = async () => {
-    const { data } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('restaurant_id', restaurant.id)
-      .in('status', ['pending', 'cooking', 'done'])
-      .order('updated_at', { ascending: false })
-      .limit(200);
-    return (data || []) as Order[];
-  };
 
   const tableCards = useMemo(() => {
     const grouped = new Map<number, {
@@ -226,7 +227,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
         table: 'orders',
         filter: `restaurant_id=eq.${restaurant.id}`,
       }, async () => {
-        setOrders(await fetchBoardOrders());
+        setOrders(await fetchBoardOrders(supabase, restaurant.id));
       })
       .subscribe();
 
@@ -299,7 +300,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
           .eq('id', rpcResult as string)
           .in('status', ['open', 'billing'])
           .maybeSingle(),
-        fetchBoardOrders(),
+        fetchBoardOrders(supabase, restaurant.id),
       ]);
 
       if (sessionCheck.error || !sessionCheck.data || sessionCheck.data.table_number !== toTable) {
@@ -349,7 +350,7 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
         return;
       }
 
-      setOrders(await fetchBoardOrders());
+      setOrders(await fetchBoardOrders(supabase, restaurant.id));
       showToast(t.voidedLabel, 'success');
     } catch {
       showToast(t.actionFailed, 'error');

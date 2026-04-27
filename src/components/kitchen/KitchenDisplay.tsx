@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import type { Order, OrderItem, OrderItemStatus } from '@/types';
+import type { Order, OrderItemStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';

@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import type { MenuItem, Category, Language, CartItem, Order, TableSession } from '@/types';
+import type { MenuItem, Language, CartItem, Order, TableSession, MenuCategory } from '@/types';
 import { MenuItemCard } from './MenuItemCard';
 import { CartBar } from './CartBar';
 import { CartDrawer } from './CartDrawer';
 import { createClient } from '@/lib/supabase/client';
 import { CATEGORY_LABELS } from '@/lib/i18n/messages';
 import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
-import { MENU_CATEGORIES } from '@/lib/menu';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { getClientLanguage, setClientLanguage } from '@/lib/i18n';
 import { deriveOrderStatusFromItems, normalizeOrderItemStatus } from '@/lib/order-status';
@@ -21,6 +20,7 @@ const LANG_LABELS: Record<Language, string> = { pt: 'PT', en: 'EN', zh: '中' };
 interface Props {
   restaurant: { id: string; name: string; slug: string; logo_url?: string | null };
   menuItems: MenuItem[];
+  menuCategories: MenuCategory[];
   tableNumber: number;
   isDemo?: boolean;
 }
@@ -31,9 +31,10 @@ function getOrderDisplayStatus(order: Order): 'pending' | 'cooking' | 'done' | '
   return order.status;
 }
 
-export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) {
+export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, isDemo }: Props) {
   const [lang, setLang] = useState<Language>(() => getClientLanguage() as Language);
-  const [activeCategory, setActiveCategory] = useState<Category>('Pratos');
+  const [activeTopCategory, setActiveTopCategory] = useState<string>('Pratos');
+  const [activeSubpath, setActiveSubpath] = useState<string>('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -128,7 +129,24 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
   }, [isDemo, restaurant.id, tableNumber]);
 
   // 当前分类菜品
-  const currentItems = menuItems.filter(i => i.category === activeCategory);
+  const topCategories = menuCategories.filter((c) => !c.parent_id && c.active).sort((a, b) => a.sort_order - b.sort_order);
+  const currentTop = topCategories.some((c) => c.id === activeTopCategory) ? activeTopCategory : (topCategories[0]?.id || '');
+  const subCategories = menuCategories.filter((c) => c.parent_id === currentTop && c.active).sort((a, b) => a.sort_order - b.sort_order);
+  const currentSubpath = subCategories.some((c) => c.id === activeSubpath) ? activeSubpath : '';
+  const labelMap = CATEGORY_LABELS[lang] as Record<string, string>;
+  const localizedCategoryLabel = (c: MenuCategory) => {
+    if (lang === 'en') return c.name_en || c.name_pt;
+    if (lang === 'zh') return c.name_zh || c.name_pt;
+    return c.name_pt || labelMap[c.name_pt] || c.name_pt;
+  };
+
+  const currentItems = menuItems.filter((item) => {
+    if (!currentTop) return true;
+    if (!item.category_id) return false;
+    if (currentSubpath) return item.category_id === currentSubpath;
+    if (item.category_id === currentTop) return true;
+    return menuCategories.some((c) => c.id === item.category_id && c.parent_id === currentTop);
+  });
 
   // 加入购物车
   const addToCart = (item: MenuItem) => {
@@ -381,20 +399,51 @@ export function MenuPage({ restaurant, menuItems, tableNumber, isDemo }: Props) 
 
         {/* 分类 Tab */}
         <div className="flex gap-0 overflow-x-auto px-4 pb-3 scrollbar-hide">
-          {MENU_CATEGORIES.map(cat => (
+          {topCategories.map(cat => (
             <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
+              key={cat.id}
+              onClick={() => {
+                setActiveTopCategory(cat.id);
+                setActiveSubpath('');
+              }}
               className={`flex-shrink-0 px-4 py-2 text-sm transition-all border-b-2 ${
-                activeCategory === cat
+                currentTop === cat.id
                   ? 'border-brand-gold text-brand-gold font-medium'
                   : 'border-transparent text-brand-text-muted'
               }`}
             >
-              {CATEGORY_LABELS[lang][cat]}
+              {localizedCategoryLabel(cat).split(CATEGORY_PATH_SEPARATOR)[0]}
             </button>
           ))}
         </div>
+
+        {subCategories.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto px-4 pb-3 scrollbar-hide">
+            <button
+              onClick={() => setActiveSubpath('')}
+              className={`flex-shrink-0 px-3 py-1.5 text-[13px] rounded-full border transition-colors ${
+                currentSubpath === ''
+                  ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
+                  : 'border-brand-border text-brand-text-muted'
+              }`}
+            >
+              All
+            </button>
+            {subCategories.map((subpath) => (
+              <button
+                key={subpath.id}
+                onClick={() => setActiveSubpath(subpath.id)}
+                className={`flex-shrink-0 px-3 py-1.5 text-[13px] rounded-full border transition-colors ${
+                  currentSubpath === subpath.id
+                    ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
+                    : 'border-brand-border text-brand-text-muted'
+                }`}
+              >
+                {localizedCategoryLabel(subpath)}
+              </button>
+            ))}
+          </div>
+        )}
       </header>
 
       {/* 本桌已下单记录 */}

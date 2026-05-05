@@ -16,13 +16,21 @@ export default async function MenuPage() {
     .from('menu_items')
     .select('*')
     .eq('restaurant_id', restaurant!.id)
-    .order('category')
+    .order('category_id')
+    .order('sort_order');
+
+  const { data: menuCategories } = await supabase
+    .from('menu_categories')
+    .select('*')
+    .eq('restaurant_id', restaurant!.id)
+    .eq('active', true)
     .order('sort_order');
 
   return (
     <MenuManager
       restaurantId={restaurant!.id}
       initialItems={menuItems || []}
+      initialCategories={menuCategories || []}
     />
   );
 }

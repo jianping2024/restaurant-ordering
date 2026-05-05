@@ -6,7 +6,7 @@ export type Plan = 'free' | 'pro';
 export type OrderStatus = 'pending' | 'cooking' | 'done';
 export type OrderItemStatus = 'pending' | 'cooking' | 'done' | 'voided';
 export type SessionStatus = 'open' | 'billing' | 'closed';
-export type Category = 'Entradas' | 'Pratos' | 'Bebidas' | 'Sobremesas';
+export type Category = string;
 export type SplitMode = 'even' | 'by_item' | 'custom';
 export type BillStatus = 'pending' | 'confirmed' | 'requested' | 'paid';
 export type Language = 'pt' | 'en' | 'zh';
@@ -37,11 +37,26 @@ export interface MenuItem {
   description_zh?: string;
   price: number;
   category: Category;
+  category_id?: string | null;
+  category_en?: Category | null;
+  category_zh?: Category | null;
   emoji: string;
   image_url?: string | null;
   note_preset_keys?: string[];
   available: boolean;
   sort_order: number;
+  created_at: string;
+}
+
+export interface MenuCategory {
+  id: string;
+  restaurant_id: string;
+  parent_id?: string | null;
+  name_pt: string;
+  name_en?: string | null;
+  name_zh?: string | null;
+  sort_order: number;
+  active: boolean;
   created_at: string;
 }
 

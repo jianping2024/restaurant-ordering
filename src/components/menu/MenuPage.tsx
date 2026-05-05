@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import type { MenuItem, Language, CartItem, Order, TableSession, MenuCategory } from '@/types';
 import { MenuItemCard } from './MenuItemCard';
-import { CartBar } from './CartBar';
 import { CartDrawer } from './CartDrawer';
 import { createClient } from '@/lib/supabase/client';
 import { CATEGORY_LABELS } from '@/lib/i18n/messages';
@@ -684,25 +683,40 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
         )}
       </div>
 
-      {/* 购物车底栏 */}
-      {totalQty > 0 && (
-        <CartBar
-          qty={totalQty}
-          total={totalPrice}
-          label={t.viewCart}
-          onClick={() => setCartOpen(true)}
-        />
-      )}
-
-      {returnToWaiterHref && (
-        <div className={`fixed left-1/2 -translate-x-1/2 z-20 w-[calc(100%-2rem)] max-w-mobile ${totalQty > 0 ? 'bottom-28' : 'bottom-4'}`}>
-          <Link
-            href={returnToWaiterHref}
-            className="block text-center rounded-xl py-2 text-sm border border-brand-gold/35 bg-brand-gold/12 text-brand-gold hover:bg-brand-gold/18 transition-colors"
+      {totalQty > 0 ? (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-30 space-y-2">
+          {returnToWaiterHref && (
+            <Link
+              href={returnToWaiterHref}
+              className="block text-center rounded-xl py-2 text-sm border border-brand-gold/35 bg-brand-gold/12 text-brand-gold hover:bg-brand-gold/18 transition-colors"
+            >
+              ← {t.backToWaiter}
+            </Link>
+          )}
+          <button
+            onClick={() => setCartOpen(true)}
+            className="w-full bg-brand-gold text-brand-bg rounded-2xl px-5 py-4 flex items-center justify-between shadow-2xl shadow-brand-gold/20 active:scale-95 transition-transform"
           >
-            ← {t.backToWaiter}
-          </Link>
+            <div className="flex items-center gap-3">
+              <span className="bg-brand-bg text-brand-gold w-7 h-7 rounded-full text-sm font-bold flex items-center justify-center">
+                {totalQty}
+              </span>
+              <span className="font-semibold text-sm">{t.viewCart}</span>
+            </div>
+            <span className="font-heading text-lg font-semibold">€{totalPrice.toFixed(2)}</span>
+          </button>
         </div>
+      ) : (
+        returnToWaiterHref && (
+          <div className="fixed left-1/2 -translate-x-1/2 z-20 w-[calc(100%-2rem)] max-w-mobile bottom-4">
+            <Link
+              href={returnToWaiterHref}
+              className="block text-center rounded-xl py-2 text-sm border border-brand-gold/35 bg-brand-gold/12 text-brand-gold hover:bg-brand-gold/18 transition-colors"
+            >
+              ← {t.backToWaiter}
+            </Link>
+          </div>
+        )
       )}
 
       {/* 购物车抽屉 */}

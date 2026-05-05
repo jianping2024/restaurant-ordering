@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import type { BillSplit } from '@/types';
+import { ToastContainer, showToast } from '@/components/ui/Toast';
 
 interface Props {
   initialRequests: BillSplit[];
@@ -97,7 +98,7 @@ export function CheckoutRequestsManager({ initialRequests }: Props) {
           : prev.map((r) => (r.id === request.id ? { ...r, result: nextResult } : r))
       ));
     } catch {
-      alert('操作失败，请重试');
+      showToast('操作失败，请重试', 'error');
     } finally {
       setProcessingKey(null);
     }
@@ -182,6 +183,7 @@ export function CheckoutRequestsManager({ initialRequests }: Props) {
           ))}
         </div>
       )}
+      <ToastContainer />
     </div>
   );
 }

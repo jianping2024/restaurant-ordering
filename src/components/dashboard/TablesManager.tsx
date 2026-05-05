@@ -7,6 +7,7 @@ import { Modal } from '@/components/ui/Modal';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
+import { ToastContainer, showToast } from '@/components/ui/Toast';
 
 interface TablesManagerProps {
   restaurant: { id: string; slug: string; name: string };
@@ -160,12 +161,12 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
 
     const selectedSources = operationType === 'merge' ? mergeSourceTables : (sourceTable ? [sourceTable] : []);
     if (selectedSources.length === 0) {
-      alert(operationType === 'merge' ? t.mergeAtLeastTwo : t.sameTableError);
+      showToast(operationType === 'merge' ? t.mergeAtLeastTwo : t.sameTableError, 'error');
       return;
     }
 
     if (selectedSources.includes(targetTable)) {
-      alert(t.sameTableError);
+      showToast(t.sameTableError, 'error');
       return;
     }
 
@@ -185,18 +186,18 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
 
       if (error) {
         if ((error.message || '').toLowerCase().includes('active session')) {
-          alert(t.sessionConflict);
+          showToast(t.sessionConflict, 'error');
         } else {
-          alert(t.operationFailed);
+          showToast(t.operationFailed, 'error');
         }
         return;
       }
 
       await loadActiveSessions();
-      alert(t.operationSuccess);
+      showToast(t.operationSuccess, 'success');
       closeOperation();
     } catch {
-      alert(t.operationFailed);
+      showToast(t.operationFailed, 'error');
     } finally {
       setOperating(false);
     }
@@ -475,6 +476,7 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
           </Button>
         </div>
       </Modal>
+      <ToastContainer />
     </div>
   );
 }

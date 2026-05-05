@@ -30,11 +30,10 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
 
   return (
     <div className={`
-      fixed bottom-24 left-1/2 -translate-x-1/2 z-50
       bg-brand-card border rounded-lg px-5 py-3 shadow-xl
       transition-all duration-300 max-w-xs w-full
       ${colors[type]}
-      ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
+      ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'}
     `}>
       <p className="text-sm font-medium text-brand-text">{message}</p>
     </div>
@@ -73,9 +72,9 @@ export function ToastContainer() {
   };
 
   return (
-    <div className="fixed bottom-24 left-0 right-0 flex flex-col items-center gap-2 z-50 pointer-events-none">
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2 pointer-events-none">
       {items.map(item => (
-        <div key={item.id} className="pointer-events-auto">
+        <div key={item.id} className="pointer-events-auto w-[min(22rem,calc(100vw-2rem))]">
           <Toast message={item.message} type={item.type} onClose={() => remove(item.id)} />
         </div>
       ))}

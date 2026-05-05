@@ -12,6 +12,7 @@ import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { getClientLanguage, setClientLanguage } from '@/lib/i18n';
 import { deriveOrderStatusFromItems, normalizeOrderItemStatus } from '@/lib/order-status';
 import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
+import { ToastContainer, showToast } from '@/components/ui/Toast';
 
 const LANG_FLAGS: Record<Language, string> = { pt: '🇵🇹', en: '🇬🇧', zh: '🇨🇳' };
 const LANG_LABELS: Record<Language, string> = { pt: 'PT', en: 'EN', zh: '中' };
@@ -269,6 +270,10 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
     acc.totalItemCount += order.items.length;
     return acc;
   }, { totalItemCount: 0 });
+  const pageBottomPaddingClass =
+    totalQty > 0
+      ? (returnToWaiterHref ? 'pb-52' : 'pb-28')
+      : (returnToWaiterHref ? 'pb-24' : 'pb-16');
   // 只要本桌本餐次有下单记录，即可随时进入结账页。
   const canGoBill = !!activeSession && totalItemCount > 0;
 
@@ -292,7 +297,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
           position = await getBrowserLocation();
         } catch (error) {
           if (isLocalDevHost) {
-            alert(t.locationBypassedLocal);
+            showToast(t.locationBypassedLocal, 'info');
             position = {
               coords: {
                 latitude: restaurant.geo_latitude,
@@ -310,11 +315,11 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
           } else {
             const geoError = error as GeolocationPositionError | Error;
             if ('code' in geoError && geoError.code === 1) {
-              alert(t.locationPermissionDenied);
+              showToast(t.locationPermissionDenied, 'error');
             } else if (geoError.message === 'not-supported') {
-              alert(t.locationNotSupported);
+              showToast(t.locationNotSupported, 'error');
             } else {
-              alert(t.locationCheckFailed);
+              showToast(t.locationCheckFailed, 'error');
             }
             return;
           }
@@ -328,9 +333,9 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
         );
         if (distanceMeters > 50) {
           if (isLocalDevHost) {
-            alert(t.locationBypassedLocal);
+            showToast(t.locationBypassedLocal, 'info');
           } else {
-            alert(t.locationTooFar);
+            showToast(t.locationTooFar, 'error');
             return;
           }
         }
@@ -370,7 +375,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
       }
 
       if (sessionStatus === 'billing') {
-        alert(t.billDisabledHint);
+        showToast(t.billDisabledHint, 'info');
         return;
       }
 
@@ -431,14 +436,14 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
         // Keep dev diagnostics without exposing raw errors to guests.
         console.error('[MenuPage.submitOrder] failed:', error);
       }
-      alert(t.submitFailed);
+      showToast(t.submitFailed, 'error');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-brand-bg max-w-mobile mx-auto relative pb-24">
+    <div className={`min-h-screen bg-brand-bg max-w-mobile mx-auto relative ${pageBottomPaddingClass}`}>
       {/* Demo 模式提示 toast */}
       {demoToast && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm">
@@ -730,6 +735,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
         onSubmit={submitOrder}
         submitting={submitting}
       />
+      <ToastContainer />
     </div>
   );
 }

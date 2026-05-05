@@ -67,6 +67,7 @@ export default async function OrdersPage() {
   const completedRate = sessionsWithFeedback > 0 ? completedSessionIds.size / sessionsWithFeedback : 0;
 
   const downRows = (dishFeedbackRows || []).filter((row) => row.vote === 'down');
+  const upRows = (dishFeedbackRows || []).filter((row) => row.vote === 'up');
   const actionableDownRows = downRows.filter((row) => Array.isArray(row.reasons) && row.reasons.length > 0);
   const actionableRate = downRows.length > 0 ? actionableDownRows.length / downRows.length : 0;
 
@@ -83,6 +84,19 @@ export default async function OrdersPage() {
     .sort((a, b) => b.down_count - a.down_count)
     .slice(0, 5);
 
+  const praiseMap = new Map<string, { dish_name: string; up_count: number }>();
+  upRows.forEach((row) => {
+    const nested = Array.isArray(row.menu_items) ? row.menu_items[0] : row.menu_items;
+    const dishName = nested?.name_zh || nested?.name_en || nested?.name_pt || row.menu_item_id;
+    const current = praiseMap.get(row.menu_item_id) || { dish_name: dishName, up_count: 0 };
+    current.up_count += 1;
+    praiseMap.set(row.menu_item_id, current);
+  });
+  const topPraise = Array.from(praiseMap.entries())
+    .map(([menu_item_id, value]) => ({ menu_item_id, ...value }))
+    .sort((a, b) => b.up_count - a.up_count)
+    .slice(0, 5);
+
   return (
     <OrdersPageClient
       orders={historicalOrders as Order[]}
@@ -93,6 +107,7 @@ export default async function OrdersPage() {
       sessionsWithFeedback={sessionsWithFeedback}
       billedSessions={billedSessions}
       topIssues={topIssues}
+      topPraise={topPraise}
       headingNavKey="orders"
       showCheckoutRequests={false}
     />

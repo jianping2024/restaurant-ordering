@@ -4,12 +4,12 @@ import { MenuPage } from '@/components/menu/MenuPage';
 
 interface Props {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ table?: string }>;
+  searchParams: Promise<{ table?: string; from?: string; return?: string }>;
 }
 
 export default async function CustomerMenuPage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const { table } = await searchParams;
+  const { table, from, return: returnPath } = await searchParams;
   const requestedTableNumber = parseInt(table || '1', 10) || 1;
 
   const supabase = await createClient();
@@ -77,12 +77,19 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
     .eq('active', true)
     .order('sort_order');
 
+  const defaultWaiterPath = `/${slug}/waiter`;
+  const returnToWaiterHref =
+    from === 'waiter'
+      ? (returnPath && returnPath.startsWith(defaultWaiterPath) ? returnPath : defaultWaiterPath)
+      : null;
+
   return (
     <MenuPage
       restaurant={restaurant}
       menuItems={menuItems || []}
       menuCategories={menuCategories || []}
       tableNumber={tableNumber}
+      returnToWaiterHref={returnToWaiterHref}
     />
   );
 }

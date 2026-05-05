@@ -27,6 +27,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   demoOpenWaiter: string;
   demoBackHub: string;
   viewCart: string;
+  backToWaiter: string;
 }> = {
   pt: {
     table: 'Mesa',
@@ -55,6 +56,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoOpenWaiter: 'Abrir painel do garcom',
     demoBackHub: 'Voltar ao hub demo',
     viewCart: 'Ver carrinho',
+    backToWaiter: 'Voltar ao painel do garcom',
   },
   en: {
     table: 'Table',
@@ -83,6 +85,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoOpenWaiter: 'Open waiter dashboard',
     demoBackHub: 'Back to demo hub',
     viewCart: 'View cart',
+    backToWaiter: 'Back to waiter board',
   },
   zh: {
     table: '桌号',
@@ -111,5 +114,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoOpenWaiter: '打开服务员看板',
     demoBackHub: '返回演示首页',
     viewCart: '查看购物车',
+    backToWaiter: '返回服务员页',
   },
 };

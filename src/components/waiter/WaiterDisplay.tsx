@@ -70,6 +70,7 @@ const WAITER_TEXT = {
     closeTableOperating: '关台中…',
     closeTableNoSession: '未找到开台记录，请刷新后重试',
     lock: '锁定',
+    addDish: '加菜',
   },
   en: {
     demoTitle: 'Demo waiter dashboard',
@@ -122,6 +123,7 @@ const WAITER_TEXT = {
     closeTableOperating: 'Closing…',
     closeTableNoSession: 'No active session found. Refresh and try again.',
     lock: 'Lock',
+    addDish: 'Add dish',
   },
   pt: {
     demoTitle: 'Painel demo do garcom',
@@ -174,6 +176,7 @@ const WAITER_TEXT = {
     closeTableOperating: 'A fechar…',
     closeTableNoSession: 'Sem sessao ativa. Atualize e tente novamente.',
     lock: 'Bloquear',
+    addDish: 'Adicionar prato',
   },
 } as const;
 
@@ -735,6 +738,14 @@ export function WaiterDisplay({
           ) : (
             <>
               <div className="flex flex-wrap items-center gap-2 mb-3">
+                <Link
+                  href={`/${restaurant.slug}/menu?table=${selectedCard.table}&from=waiter&return=/${restaurant.slug}/waiter`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[11px] bg-brand-gold/18 text-brand-gold border border-brand-gold/35 px-2 py-0.5 rounded-md hover:bg-brand-gold/28 transition-colors"
+                >
+                  {t.addDish}
+                </Link>
                 {checkoutRequestedTables.includes(selectedCard.table) && (
                   <Link
                     href={`/${restaurant.slug}/bill?table=${selectedCard.table}&from=waiter&return=/${restaurant.slug}/waiter`}

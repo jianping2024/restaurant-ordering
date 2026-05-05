@@ -23,6 +23,7 @@ interface Props {
   menuCategories: MenuCategory[];
   tableNumber: number;
   isDemo?: boolean;
+  returnToWaiterHref?: string | null;
 }
 
 function getOrderDisplayStatus(order: Order): 'pending' | 'cooking' | 'done' | 'voided' {
@@ -31,7 +32,7 @@ function getOrderDisplayStatus(order: Order): 'pending' | 'cooking' | 'done' | '
   return order.status;
 }
 
-export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, isDemo }: Props) {
+export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, isDemo, returnToWaiterHref }: Props) {
   const [lang, setLang] = useState<Language>(() => getClientLanguage() as Language);
   const [activeTopCategory, setActiveTopCategory] = useState<string>('Pratos');
   const [activeSubpath, setActiveSubpath] = useState<string>('');
@@ -601,6 +602,17 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
           label={t.viewCart}
           onClick={() => setCartOpen(true)}
         />
+      )}
+
+      {returnToWaiterHref && (
+        <div className={`fixed left-1/2 -translate-x-1/2 z-30 w-[calc(100%-2rem)] max-w-mobile ${totalQty > 0 ? 'bottom-20' : 'bottom-4'}`}>
+          <Link
+            href={returnToWaiterHref}
+            className="block text-center rounded-xl py-2 text-sm border border-brand-gold/35 bg-brand-gold/12 text-brand-gold hover:bg-brand-gold/18 transition-colors"
+          >
+            ← {t.backToWaiter}
+          </Link>
+        </div>
       )}
 
       {/* 购物车抽屉 */}

@@ -13,6 +13,12 @@ export interface FeedbackTopIssue {
   down_count: number;
 }
 
+export interface FeedbackTopPraise {
+  menu_item_id: string;
+  dish_name: string;
+  up_count: number;
+}
+
 interface Props {
   orders: Order[];
   checkoutRequests: BillSplit[];
@@ -22,6 +28,7 @@ interface Props {
   sessionsWithFeedback?: number;
   billedSessions?: number;
   topIssues?: FeedbackTopIssue[];
+  topPraise?: FeedbackTopPraise[];
   headingTitle?: string;
   headingNavKey?: 'orders' | 'unpaidOrders' | 'checkout';
   showCheckoutRequests?: boolean;
@@ -37,6 +44,7 @@ export function OrdersPageClient({
   sessionsWithFeedback = 0,
   billedSessions = 0,
   topIssues = [],
+  topPraise = [],
   headingTitle,
   headingNavKey,
   showCheckoutRequests = true,
@@ -65,13 +73,16 @@ export function OrdersPageClient({
           actionableLabel={i18n.feedbackActionable}
           coverageLabel={i18n.feedbackCoverage}
           topIssuesLabel={i18n.feedbackTopIssues}
+          topPraiseLabel={i18n.feedbackTopPraise}
           noIssuesLabel={i18n.feedbackNoIssues}
+          noPraiseLabel={i18n.feedbackNoPraise}
           touchedRate={touchedRate}
           completedRate={completedRate}
           actionableRate={actionableRate}
           sessionsWithFeedback={sessionsWithFeedback}
           billedSessions={billedSessions}
           topIssues={topIssues}
+          topPraise={topPraise}
         />
       )}
 

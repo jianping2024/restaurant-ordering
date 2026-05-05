@@ -5,12 +5,12 @@ import type { BillSplit } from '@/types';
 
 interface Props {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ table?: string }>;
+  searchParams: Promise<{ table?: string; from?: string; return?: string }>;
 }
 
 export default async function BillRoute({ params, searchParams }: Props) {
   const { slug } = await params;
-  const { table } = await searchParams;
+  const { table, from, return: returnPath } = await searchParams;
   const requestedTableNumber = parseInt(table || '1', 10) || 1;
 
   const supabase = await createClient();
@@ -63,8 +63,11 @@ export default async function BillRoute({ params, searchParams }: Props) {
     }
   }
 
-  // 关台后（无 open/billing 餐次）强制回到点单页，避免客人停留在账单页。
+  // 关台后（无 open/billing 餐次）按来源回退：服务员入口回服务员页，顾客入口回点餐页。
   if (!activeSession) {
+    if (from === 'waiter') {
+      redirect(returnPath || `/${slug}/waiter`);
+    }
     redirect(`/${slug}/menu?table=${tableNumber}`);
   }
 
@@ -88,6 +91,18 @@ export default async function BillRoute({ params, searchParams }: Props) {
     .maybeSingle();
   existingSplit = (data as BillSplit | null) || null;
 
+  let initialFeedbackSubmitted = false;
+  let initialFeedbackSkipped = false;
+  if (activeSession?.id) {
+    const { data: feedbackSession } = await supabase
+      .from('feedback_sessions')
+      .select('completed_at, skipped_at')
+      .eq('session_id', activeSession.id)
+      .maybeSingle();
+    initialFeedbackSubmitted = !!feedbackSession?.completed_at;
+    initialFeedbackSkipped = !!feedbackSession?.skipped_at;
+  }
+
   return (
     <BillPage
       restaurant={restaurant}
@@ -95,6 +110,9 @@ export default async function BillRoute({ params, searchParams }: Props) {
       orders={orders || []}
       sessionId={activeSession.id}
       existingSplit={existingSplit}
+      returnPath={from === 'waiter' ? (returnPath || `/${slug}/waiter`) : null}
+      initialFeedbackSubmitted={initialFeedbackSubmitted}
+      initialFeedbackSkipped={initialFeedbackSkipped}
     />
   );
 }

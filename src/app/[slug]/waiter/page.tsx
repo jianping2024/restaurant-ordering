@@ -18,7 +18,7 @@ export default async function WaiterPage({ params }: Props) {
 
   if (!restaurant) notFound();
 
-  const [{ data: activeSessions }, { data: orderRows }] = await Promise.all([
+  const [{ data: activeSessions }, { data: orderRows }, { data: checkoutRows }] = await Promise.all([
     supabase
       .from('table_sessions')
       .select('id')
@@ -31,17 +31,26 @@ export default async function WaiterPage({ params }: Props) {
       .in('status', ['pending', 'cooking', 'done'])
       .order('updated_at', { ascending: false })
       .limit(200),
+    supabase
+      .from('bill_splits')
+      .select('table_number')
+      .eq('restaurant_id', restaurant.id)
+      .eq('status', 'requested'),
   ]);
 
   const activeIds = new Set((activeSessions || []).map((s) => s.id));
   const orders = (orderRows || []).filter(
     (o) => !o.session_id || activeIds.has(o.session_id as string),
   );
+  const checkoutRequestedTables = Array.from(
+    new Set((checkoutRows || []).map((row) => Number(row.table_number)).filter((n) => Number.isFinite(n))),
+  );
 
   return (
     <WaiterDisplay
       restaurant={restaurant}
       initialOrders={orders}
+      initialCheckoutRequestedTables={checkoutRequestedTables}
     />
   );
 }

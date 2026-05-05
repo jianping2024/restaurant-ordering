@@ -98,6 +98,7 @@ export interface SplitPerson {
 export interface SplitResult {
   name: string;
   amount: number;
+  paid?: boolean;
   items?: { name: string; qty: number; price: number }[];
 }
 

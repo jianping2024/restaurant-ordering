@@ -14,6 +14,7 @@ import { deriveOrderStatusFromItems, normalizeOrderItemStatus } from '@/lib/orde
 interface Props {
   restaurant: { id: string; name: string; slug: string; waiter_password: string };
   initialOrders: Order[];
+  initialCheckoutRequestedTables?: number[];
   isDemo?: boolean;
 }
 
@@ -32,6 +33,13 @@ const WAITER_TEXT = {
     backHub: '返回演示首页',
     boardTitle: '服务员出餐观察看板',
     empty: '当前没有活跃桌台',
+    allTablesHint: '显示全部桌台，活跃桌台已置顶高亮。点击桌台查看订单详情。',
+    inactive: '空闲',
+    clickToView: '点击查看',
+    detailsTitle: '桌台详情',
+    noOrdersOnTable: '当前桌台暂无订单',
+    tableLight: '状态灯',
+    checkout: '结账',
     table: '桌',
     pending: '待做',
     cooking: '制作中',
@@ -61,6 +69,7 @@ const WAITER_TEXT = {
     closeTable: '关台',
     closeTableOperating: '关台中…',
     closeTableNoSession: '未找到开台记录，请刷新后重试',
+    lock: '锁定',
   },
   en: {
     demoTitle: 'Demo waiter dashboard',
@@ -76,6 +85,13 @@ const WAITER_TEXT = {
     backHub: 'Back to demo hub',
     boardTitle: 'Waiter service board',
     empty: 'No active tables currently',
+    allTablesHint: 'Showing all tables. Active tables are highlighted and listed first. Click a table to view details.',
+    inactive: 'Idle',
+    clickToView: 'Tap to view',
+    detailsTitle: 'Table details',
+    noOrdersOnTable: 'No orders on this table',
+    tableLight: 'Status light',
+    checkout: 'Checkout',
     table: 'Table',
     pending: 'Pending',
     cooking: 'Cooking',
@@ -105,6 +121,7 @@ const WAITER_TEXT = {
     closeTable: 'Close table',
     closeTableOperating: 'Closing…',
     closeTableNoSession: 'No active session found. Refresh and try again.',
+    lock: 'Lock',
   },
   pt: {
     demoTitle: 'Painel demo do garcom',
@@ -120,6 +137,13 @@ const WAITER_TEXT = {
     backHub: 'Voltar ao hub demo',
     boardTitle: 'Painel de servico do garcom',
     empty: 'Sem mesas ativas no momento',
+    allTablesHint: 'Mostra todas as mesas. As mesas ativas ficam em destaque no topo. Clique para ver detalhes.',
+    inactive: 'Livre',
+    clickToView: 'Clique para ver',
+    detailsTitle: 'Detalhes da mesa',
+    noOrdersOnTable: 'Sem pedidos nesta mesa',
+    tableLight: 'Luz de estado',
+    checkout: 'Fechar conta',
     table: 'Mesa',
     pending: 'Pendente',
     cooking: 'Em preparo',
@@ -149,6 +173,7 @@ const WAITER_TEXT = {
     closeTable: 'Fechar mesa',
     closeTableOperating: 'A fechar…',
     closeTableNoSession: 'Sem sessao ativa. Atualize e tente novamente.',
+    lock: 'Bloquear',
   },
 } as const;
 
@@ -173,7 +198,23 @@ async function fetchWaiterBoardOrders(supabase: ReturnType<typeof createClient>,
   return orders.filter((o) => !o.session_id || activeIds.has(o.session_id));
 }
 
-export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Props) {
+async function fetchCheckoutRequestedTables(supabase: ReturnType<typeof createClient>, restaurantId: string) {
+  const { data } = await supabase
+    .from('bill_splits')
+    .select('table_number')
+    .eq('restaurant_id', restaurantId)
+    .eq('status', 'requested');
+  return Array.from(new Set((data || []).map((row) => Number(row.table_number)).filter((n) => Number.isFinite(n))));
+}
+
+export function WaiterDisplay({
+  restaurant,
+  initialOrders,
+  initialCheckoutRequestedTables = [],
+  isDemo = false,
+}: Props) {
+  const WAITER_UNLOCK_TTL_MS = 8 * 60 * 60 * 1000;
+  const waiterUnlockStorageKey = `mesa_waiter_unlock_${restaurant.id}`;
   const { lang } = useLanguage();
   const locale = UI_LOCALE_BY_LANG[lang];
   const t = WAITER_TEXT[lang];
@@ -181,13 +222,31 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
   const [password, setPassword] = useState('');
   const [pwError, setPwError] = useState(false);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const [checkoutRequestedTables, setCheckoutRequestedTables] = useState<number[]>(initialCheckoutRequestedTables);
   const [operationType, setOperationType] = useState<'transfer' | 'merge' | null>(null);
   const [sourceTable, setSourceTable] = useState<number | null>(null);
   const [targetTable, setTargetTable] = useState<number | null>(null);
   const [operating, setOperating] = useState(false);
   const [closingTable, setClosingTable] = useState<number | null>(null);
+  const [selectedTable, setSelectedTable] = useState<number | null>(null);
   /** One browser client per mount — avoids realtime effect re-subscribing every render. */
   const supabase = useMemo(() => createClient(), []);
+
+  useEffect(() => {
+    if (isDemo) return;
+    const raw = window.localStorage.getItem(waiterUnlockStorageKey);
+    if (!raw) return;
+    const unlockedAt = Number(raw);
+    if (!Number.isFinite(unlockedAt)) {
+      window.localStorage.removeItem(waiterUnlockStorageKey);
+      return;
+    }
+    if (Date.now() - unlockedAt <= WAITER_UNLOCK_TTL_MS) {
+      setAuthenticated(true);
+      return;
+    }
+    window.localStorage.removeItem(waiterUnlockStorageKey);
+  }, [isDemo, waiterUnlockStorageKey]);
 
   const tableCards = useMemo(() => {
     const grouped = new Map<number, {
@@ -255,11 +314,51 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
       .sort((a, b) => a.table - b.table);
   }, [orders]);
 
+  const allTableCards = useMemo(() => {
+    const activeMap = new Map(tableCards.map((card) => [card.table, card] as const));
+    return Array.from({ length: 30 }, (_, idx) => idx + 1)
+      .map((table) => {
+        const active = activeMap.get(table);
+        return active || {
+          table,
+          pending: 0,
+          cooking: 0,
+          ready: 0,
+          readyItems: [] as string[],
+          voidedItems: [] as string[],
+          voidableItems: [] as Array<{ orderId: string; itemIdx: number; label: string; status: 'pending' | 'cooking' }>,
+          updatedAt: '',
+        };
+      })
+      .sort((a, b) => {
+        const aActive = a.pending + a.cooking + a.ready + a.voidableItems.length + a.voidedItems.length > 0 ? 1 : 0;
+        const bActive = b.pending + b.cooking + b.ready + b.voidableItems.length + b.voidedItems.length > 0 ? 1 : 0;
+        if (aActive !== bActive) return bActive - aActive;
+        return a.table - b.table;
+      });
+  }, [tableCards]);
+
+  const selectedCard = useMemo(() => {
+    if (selectedTable == null) return null;
+    return allTableCards.find((card) => card.table === selectedTable) || null;
+  }, [allTableCards, selectedTable]);
+
+  useEffect(() => {
+    if (selectedTable != null) return;
+    const firstActive = allTableCards.find((card) => card.pending + card.cooking + card.ready > 0);
+    setSelectedTable(firstActive?.table || 1);
+  }, [allTableCards, selectedTable]);
+
   useEffect(() => {
     if (!authenticated || isDemo) return;
 
     const refresh = async () => {
-      setOrders(await fetchWaiterBoardOrders(supabase, restaurant.id));
+      const [nextOrders, nextCheckoutRequestedTables] = await Promise.all([
+        fetchWaiterBoardOrders(supabase, restaurant.id),
+        fetchCheckoutRequestedTables(supabase, restaurant.id),
+      ]);
+      setOrders(nextOrders);
+      setCheckoutRequestedTables(nextCheckoutRequestedTables);
     };
 
     void refresh();
@@ -282,10 +381,31 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
       }, () => {
         void refresh();
       })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'bill_splits',
+        filter: `restaurant_id=eq.${restaurant.id}`,
+      }, () => {
+        void refresh();
+      })
       .subscribe();
+
+    // Realtime may occasionally miss updates in unstable networks.
+    // Polling keeps waiter board eventually consistent without manual refresh.
+    const pollTimer = window.setInterval(() => {
+      void refresh();
+    }, 5000);
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void refresh();
+    };
+    document.addEventListener('visibilitychange', onVisible);
 
     return () => {
       supabase.removeChannel(channel);
+      window.clearInterval(pollTimer);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [authenticated, isDemo, restaurant.id, supabase]);
 
@@ -294,10 +414,17 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
     if (password === restaurant.waiter_password) {
       setAuthenticated(true);
       setPwError(false);
+      if (!isDemo) window.localStorage.setItem(waiterUnlockStorageKey, String(Date.now()));
     } else {
       setPwError(true);
       setPassword('');
     }
+  };
+
+  const handleLock = () => {
+    if (!isDemo) window.localStorage.removeItem(waiterUnlockStorageKey);
+    setAuthenticated(false);
+    setPassword('');
   };
 
   const openAction = (type: 'transfer' | 'merge', table: number) => {
@@ -526,106 +653,150 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
         </div>
       )}
       <div className="mb-6">
-        <div className="flex justify-end mb-3">
+        <div className="flex justify-end items-center gap-2 mb-3">
           <LanguageSwitcher compact />
+          <button
+            type="button"
+            onClick={handleLock}
+            className="text-[12px] px-2 py-1 rounded-md border border-brand-border text-brand-text-muted hover:text-brand-text transition-colors"
+          >
+            {t.lock}
+          </button>
         </div>
         <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
         <p className="text-brand-text-muted text-sm mt-1">{t.boardTitle}</p>
       </div>
 
-      {tableCards.length === 0 ? (
-        <div className="bg-brand-card border border-brand-border rounded-2xl p-8 text-center text-brand-text-muted">
+      <div className="bg-brand-card border border-brand-border rounded-2xl p-3 mb-4 text-sm text-brand-text-muted">
+        {t.allTablesHint}
+      </div>
+
+      {tableCards.length === 0 && (
+        <div className="bg-brand-card border border-brand-border rounded-2xl p-4 mb-4 text-center text-brand-text-muted">
           {t.empty}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tableCards.map(card => {
-            const cardStatus: 'pending' | 'cooking' | 'done' | 'voided_only' =
-              card.pending > 0
-                ? 'pending'
-                : card.cooking > 0
-                  ? 'cooking'
-                  : card.ready > 0
-                    ? 'done'
-                    : card.voidedItems.length > 0
-                      ? 'voided_only'
-                      : 'done';
-            const statusStyle = {
-              pending: 'border-red-500/45 bg-red-500/8',
-              cooking: 'border-amber-500/45 bg-amber-500/10',
-              done: 'border-emerald-500/45 bg-emerald-500/10',
-              voided_only: 'border-slate-500/40 bg-slate-500/10',
-            } as const;
+      )}
 
-            return (
-            <div key={card.table} className={`border-2 rounded-2xl p-4 ${statusStyle[cardStatus]}`}>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="font-heading text-2xl text-brand-text">{t.table} {card.table}</h2>
-                <span className="text-[13px] text-brand-text-muted">
-                  {new Date(card.updatedAt).toLocaleString(locale, {
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </span>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3 mb-4">
+        {allTableCards.map((card) => {
+          const isActive = card.pending + card.cooking + card.ready + card.voidableItems.length + card.voidedItems.length > 0;
+          const isSelected = selectedTable === card.table;
+          return (
+            <button
+              key={card.table}
+              type="button"
+              onClick={() => setSelectedTable(card.table)}
+              className={`rounded-xl border px-3 py-2 text-left transition-colors ${
+                isSelected
+                  ? 'border-brand-gold bg-brand-gold/22 ring-1 ring-brand-gold/45 shadow-[0_0_0_1px_rgba(212,175,55,0.28)]'
+                  : isActive
+                    ? 'border-emerald-500/45 bg-emerald-500/10'
+                    : 'border-brand-border bg-brand-card'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <p className="font-medium text-brand-text">{t.table} {card.table}</p>
+                <div className="flex items-center gap-1.5">
+                  <span
+                    title={t.tableLight}
+                    className={`inline-flex h-2.5 w-2.5 rounded-full ${isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.85)]' : 'bg-brand-text-muted/55'}`}
+                  />
+                  {!isActive && (
+                    <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-brand-border text-brand-text-muted">
+                      {t.inactive}
+                    </span>
+                  )}
+                </div>
               </div>
+              <p className="text-[12px] text-brand-text-muted mt-1">{t.clickToView}</p>
+            </button>
+          );
+        })}
+      </div>
 
+      {selectedCard && (
+        <div className="border-2 rounded-2xl p-4 border-brand-border bg-brand-card">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-heading text-2xl text-brand-text">{t.detailsTitle} - {t.table} {selectedCard.table}</h2>
+            <span className="text-[13px] text-brand-text-muted">
+              {selectedCard.updatedAt
+                ? new Date(selectedCard.updatedAt).toLocaleString(locale, {
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+                : '-'}
+            </span>
+          </div>
+
+          {selectedCard.pending + selectedCard.cooking + selectedCard.ready + selectedCard.voidedItems.length + selectedCard.voidableItems.length === 0 ? (
+            <p className="text-brand-text-muted">{t.noOrdersOnTable}</p>
+          ) : (
+            <>
               <div className="flex flex-wrap items-center gap-2 mb-3">
+                {checkoutRequestedTables.includes(selectedCard.table) && (
+                  <Link
+                    href={`/${restaurant.slug}/bill?table=${selectedCard.table}&from=waiter&return=/${restaurant.slug}/waiter`}
+                    className="text-[11px] px-2 py-0.5 rounded-md border transition-colors bg-brand-gold/18 text-brand-gold border-brand-gold/35 hover:bg-brand-gold/28"
+                  >
+                    {t.checkout}
+                  </Link>
+                )}
                 <button
                   type="button"
-                  onClick={() => openAction('transfer', card.table)}
+                  onClick={() => openAction('transfer', selectedCard.table)}
                   className="text-[11px] bg-amber-500/18 text-amber-800 border border-amber-500/45 px-2 py-0.5 rounded-md hover:bg-amber-500/28 transition-colors"
                 >
                   {t.transfer}
                 </button>
                 <button
                   type="button"
-                  onClick={() => openAction('merge', card.table)}
+                  onClick={() => openAction('merge', selectedCard.table)}
                   className="text-[11px] bg-slate-500/12 text-slate-700 border border-slate-500/35 px-2 py-0.5 rounded-md hover:bg-slate-500/22 transition-colors"
                 >
                   {t.merge}
                 </button>
-                {canCloseTableCard(card) && (
+                {canCloseTableCard(selectedCard) && (
                   <button
                     type="button"
-                    onClick={() => closeTableFromWaiter(card.table)}
-                    disabled={closingTable === card.table}
+                    onClick={() => closeTableFromWaiter(selectedCard.table)}
+                    disabled={closingTable === selectedCard.table}
                     className="text-[11px] bg-rose-500/14 text-rose-800 border border-rose-500/40 px-2 py-0.5 rounded-md hover:bg-rose-500/24 transition-colors disabled:opacity-50"
                   >
-                    {closingTable === card.table ? t.closeTableOperating : t.closeTable}
+                    {closingTable === selectedCard.table ? t.closeTableOperating : t.closeTable}
                   </button>
                 )}
               </div>
 
               <div className="flex items-center gap-2 text-[13px] mb-3">
-                <span className="px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/35 text-red-700">{t.pending} {card.pending}</span>
-                <span className="px-2 py-0.5 rounded-full bg-amber-500/18 border border-amber-500/35 text-amber-800">{t.cooking} {card.cooking}</span>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/16 border border-emerald-500/35 text-emerald-800">{t.ready} {card.ready}</span>
+                <span className="px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/35 text-red-700">{t.pending} {selectedCard.pending}</span>
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/18 border border-amber-500/35 text-amber-800">{t.cooking} {selectedCard.cooking}</span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/16 border border-emerald-500/35 text-emerald-800">{t.ready} {selectedCard.ready}</span>
               </div>
 
               <div className="rounded-lg border border-brand-border/60 p-2.5 space-y-2">
                 <p className="text-[11px] text-brand-gold font-medium">{t.ready}</p>
-                {card.readyItems.length === 0 ? (
+                {selectedCard.readyItems.length === 0 ? (
                   <p className="text-brand-text-muted text-sm">{t.noReady}</p>
                 ) : (
-                  card.readyItems.map((line, idx) => (
+                  selectedCard.readyItems.map((line, idx) => (
                     <p key={idx} className="text-sm text-emerald-800">{line}</p>
                   ))
                 )}
               </div>
-              {card.voidedItems.length > 0 && (
+              {selectedCard.voidedItems.length > 0 && (
                 <div className="mt-3 rounded-lg border border-slate-500/35 p-2.5 space-y-2">
                   <p className="text-[11px] text-slate-600 font-medium">{t.voidedLabel}</p>
-                  {card.voidedItems.map((line, idx) => (
+                  {selectedCard.voidedItems.map((line, idx) => (
                     <p key={idx} className="text-sm text-slate-600 line-through opacity-90">{line}</p>
                   ))}
                 </div>
               )}
-              {card.voidableItems.length > 0 && (
+              {selectedCard.voidableItems.length > 0 && (
                 <div className="mt-3 rounded-lg border border-brand-border/60 p-2.5 space-y-2">
                   <p className="text-[11px] text-brand-gold font-medium">{t.voidPendingTitle}</p>
-                  {card.voidableItems.map((item) => (
+                  {selectedCard.voidableItems.map((item) => (
                     <div key={`${item.orderId}-${item.itemIdx}`} className="flex items-center justify-between gap-2">
                       <p className="text-sm text-brand-text truncate">{item.label}</p>
                       <button
@@ -639,9 +810,8 @@ export function WaiterDisplay({ restaurant, initialOrders, isDemo = false }: Pro
                   ))}
                 </div>
               )}
-            </div>
-            );
-          })}
+            </>
+          )}
         </div>
       )}
       <Modal

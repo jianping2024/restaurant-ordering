@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import type { BillSplit, DishFeedbackVote, Order, SplitMode, SplitResult } from '@/types';
@@ -15,6 +17,9 @@ interface Props {
   orders: Order[];
   sessionId: string | null;
   existingSplit: BillSplit | null;
+  returnPath?: string | null;
+  initialFeedbackSubmitted?: boolean;
+  initialFeedbackSkipped?: boolean;
 }
 
 interface PersonAmount {
@@ -22,10 +27,26 @@ interface PersonAmount {
   amount: number;
 }
 
+interface SplitPersonSlot {
+  id: string;
+  name: string;
+}
+
 const FEEDBACK_REASON_KEYS = ['taste', 'temp', 'slow', 'mismatch', 'other'] as const;
 type FeedbackReasonKey = (typeof FEEDBACK_REASON_KEYS)[number];
 
-export function BillPage({ restaurant, tableNumber, orders, sessionId, existingSplit }: Props) {
+export function BillPage({
+  restaurant,
+  tableNumber,
+  orders,
+  sessionId,
+  existingSplit,
+  returnPath,
+  initialFeedbackSubmitted = false,
+  initialFeedbackSkipped = false,
+}: Props) {
+  const isWaiterFlow = !!returnPath;
+  const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).bill;
   const guestName = (n: number) => `${t.guest} ${n}`;
@@ -36,6 +57,10 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
   })();
   const [splitMode, setSplitMode] = useState<SplitMode | null>(initialSplitMode);
   const [personCount, setPersonCount] = useState(2);
+  const [splitPeople, setSplitPeople] = useState<SplitPersonSlot[]>([
+    { id: 'p1', name: guestName(1) },
+    { id: 'p2', name: guestName(2) },
+  ]);
   const [customAmounts, setCustomAmounts] = useState<PersonAmount[]>([
     { name: guestName(1), amount: 0 },
     { name: guestName(2), amount: 0 },
@@ -44,11 +69,59 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
   const [submitted, setSubmitted] = useState(!!existingSplit);
   const [submitting, setSubmitting] = useState(false);
   const [persistedResult, setPersistedResult] = useState<SplitResult[] | null>((existingSplit?.result as SplitResult[] | null) || null);
+  const [persistedSplitId, setPersistedSplitId] = useState<string | null>(existingSplit?.id || null);
+  const [personPayProcessingIdx, setPersonPayProcessingIdx] = useState<number | null>(null);
   const [feedbackDraft, setFeedbackDraft] = useState<Record<string, { vote?: DishFeedbackVote; reasons: FeedbackReasonKey[] }>>({});
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
-  const [feedbackSkipped, setFeedbackSkipped] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(initialFeedbackSubmitted);
+  const [feedbackSkipped, setFeedbackSkipped] = useState(initialFeedbackSkipped);
+  const [feedbackHydrating, setFeedbackHydrating] = useState(() => !!existingSplit && !!sessionId && !returnPath && !initialFeedbackSubmitted && !initialFeedbackSkipped);
   const [liveOrders, setLiveOrders] = useState<Order[]>(orders);
+  const [editingSplitNameIndex, setEditingSplitNameIndex] = useState<number | null>(null);
+  const [editingSplitNameValue, setEditingSplitNameValue] = useState('');
+  const [editingCustomAmountIndex, setEditingCustomAmountIndex] = useState<number | null>(null);
+  const [editingCustomAmountValue, setEditingCustomAmountValue] = useState('');
+
+  const syncNameAcrossModes = (index: number, name: string) => {
+    setSplitPeople((prev) => prev.map((person, idx) => (idx === index ? { ...person, name } : person)));
+    setCustomAmounts((prev) => prev.map((person, idx) => (idx === index ? { ...person, name } : person)));
+  };
+
+  const startInlineRename = (index: number) => {
+    const current = splitPeople[index];
+    if (!current) return;
+    setEditingSplitNameIndex(index);
+    setEditingSplitNameValue(current.name);
+  };
+
+  const commitInlineRename = (index: number) => {
+    const normalized = editingSplitNameValue.trim();
+    syncNameAcrossModes(index, normalized || guestName(index + 1));
+    setEditingSplitNameIndex(null);
+    setEditingSplitNameValue('');
+  };
+
+  const updateCustomAmount = (index: number, rawValue: string) => {
+    const parsed = Number(rawValue);
+    const safeValue = Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+    setCustomAmounts((prev) => {
+      const othersTotal = prev.reduce((sum, person, idx) => (idx === index ? sum : sum + person.amount), 0);
+      const maxAllowed = Math.max(0, total - othersTotal);
+      const nextValue = Math.min(safeValue, maxAllowed);
+      return prev.map((person, idx) => (idx === index ? { ...person, amount: nextValue } : person));
+    });
+  };
+
+  const startInlineAmountEdit = (index: number) => {
+    setEditingCustomAmountIndex(index);
+    setEditingCustomAmountValue(String(customAmounts[index]?.amount ?? 0));
+  };
+
+  const commitInlineAmountEdit = (index: number) => {
+    updateCustomAmount(index, editingCustomAmountValue);
+    setEditingCustomAmountIndex(null);
+    setEditingCustomAmountValue('');
+  };
 
   useEffect(() => {
     setLiveOrders(orders);
@@ -109,8 +182,8 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
 
     if (splitMode === 'even') {
       const each = total / personCount;
-      return Array.from({ length: personCount }, (_, i) => ({
-        name: guestName(i + 1),
+      return splitPeople.slice(0, personCount).map((person) => ({
+        name: person.name,
         amount: each,
       }));
     }
@@ -118,14 +191,17 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
     if (splitMode === 'by_item') {
       const result: Record<string, number> = {};
       allItems.forEach(item => {
-        const persons = byItemAssign[item.key] || [];
-        if (persons.length === 0) return;
-        const share = (item.price * item.qty) / persons.length;
-        persons.forEach(p => {
-          result[p] = (result[p] || 0) + share;
+        const personIds = byItemAssign[item.key] || [];
+        if (personIds.length === 0) return;
+        const share = (item.price * item.qty) / personIds.length;
+        personIds.forEach((personId) => {
+          result[personId] = (result[personId] || 0) + share;
         });
       });
-      return Object.entries(result).map(([name, amount]) => ({ name, amount }));
+      return splitPeople.slice(0, personCount).map((person) => ({
+        name: person.name,
+        amount: result[person.id] || 0,
+      }));
     }
 
     // custom 模式
@@ -172,11 +248,14 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
             .from('bill_splits')
             .update(payload)
             .eq('id', existingRequest.id);
+          setPersistedSplitId(existingRequest.id);
         } else {
-          await supabase.from('bill_splits').insert(payload);
+          const { data: inserted } = await supabase.from('bill_splits').insert(payload).select('id').single();
+          setPersistedSplitId(inserted?.id || null);
         }
       } else {
-        await supabase.from('bill_splits').insert(payload);
+        const { data: inserted } = await supabase.from('bill_splits').insert(payload).select('id').single();
+        setPersistedSplitId(inserted?.id || null);
       }
       if (sessionId) {
         await supabase
@@ -204,7 +283,45 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
     });
   };
 
-  const byItemPersons = Array.from({ length: personCount }, (_, i) => guestName(i + 1));
+  const byItemPersons = splitPeople.slice(0, personCount);
+
+  const handleConfirmPersonPaidFromWaiter = async (rowIndex: number) => {
+    if (!persistedSplitId) return;
+    const row = results[rowIndex];
+    if (!row || row.paid) return;
+    setPersonPayProcessingIdx(rowIndex);
+    const supabase = createClient();
+    const nextResult = results.map((item, idx) => (idx === rowIndex ? { ...item, paid: true } : item));
+    const allPaid = nextResult.length > 0 && nextResult.every((item) => !!item.paid);
+    try {
+      const { error: billError } = await supabase
+        .from('bill_splits')
+        .update({
+          status: allPaid ? 'paid' : 'requested',
+          result: nextResult,
+        })
+        .eq('id', persistedSplitId);
+      if (billError) throw billError;
+
+      if (allPaid && sessionId) {
+        const { error: sessionError } = await supabase
+          .from('table_sessions')
+          .update({
+            status: 'closed',
+            closed_at: new Date().toISOString(),
+          })
+          .eq('id', sessionId);
+        if (sessionError) throw sessionError;
+      }
+
+      setPersistedResult(nextResult);
+      if (allPaid) router.refresh();
+    } catch {
+      alert(t.actionFailed);
+    } finally {
+      setPersonPayProcessingIdx(null);
+    }
+  };
 
   const reviewableItems = useMemo(() => {
     const dedup = new Map<string, { menu_item_id: string; order_id: string; name: string; emoji: string; qty: number }>();
@@ -238,7 +355,8 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
   const selectedFeedbackCount = Object.values(feedbackDraft).filter((entry) => !!entry.vote).length;
 
   useEffect(() => {
-    if (!submitted || !sessionId) return;
+    if (!submitted || !sessionId || !!returnPath || initialFeedbackSubmitted || initialFeedbackSkipped) return;
+    setFeedbackHydrating(true);
     const supabase = createClient();
     const syncFeedbackState = async () => {
       await supabase
@@ -269,8 +387,8 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
       setFeedbackDraft(nextDraft);
       setFeedbackSubmitted(true);
     };
-    syncFeedbackState();
-  }, [submitted, sessionId, restaurant.id]);
+    void syncFeedbackState().finally(() => setFeedbackHydrating(false));
+  }, [submitted, sessionId, restaurant.id, returnPath, initialFeedbackSubmitted, initialFeedbackSkipped]);
 
   const setVote = (menuItemId: string, vote: DishFeedbackVote) => {
     setFeedbackDraft((prev) => ({
@@ -362,101 +480,133 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
       <div className="min-h-screen bg-brand-bg max-w-mobile mx-auto flex items-center justify-center p-4">
         <div className="text-center w-full max-w-sm">
           <div className="text-6xl mb-4">🎉</div>
-          <h2 className="font-heading text-3xl text-brand-gold mb-2">{t.notified}</h2>
-          <p className="text-brand-text-muted text-sm">{t.comingSoon}</p>
+          <h2 className="font-heading text-3xl text-brand-gold mb-2">{isWaiterFlow ? (lang === 'zh' ? '结账收款' : lang === 'en' ? 'Checkout collection' : 'Recebimento') : t.notified}</h2>
+          <p className="text-brand-text-muted text-sm">{isWaiterFlow ? (lang === 'zh' ? '请逐位确认收款' : lang === 'en' ? 'Please confirm payment person by person' : 'Confirme o pagamento por pessoa') : t.comingSoon}</p>
           <p className="text-brand-gold font-heading text-2xl mt-6">
             {t.totalLabel} €{total.toFixed(2)}
           </p>
-          {splitMode && (
+          {(splitMode || isWaiterFlow) && (
             <div className="mt-6 bg-brand-card border border-brand-border rounded-xl overflow-hidden text-left">
               <p className="px-4 py-2 text-[13px] text-brand-text-muted border-b border-brand-border">{t.splitResult}</p>
               {results.map((r, i) => (
                 <div key={i} className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0">
-                  <span className="text-brand-text text-sm">{r.name}</span>
-                  <span className="text-brand-gold font-medium">€{r.amount.toFixed(2)}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-brand-text text-sm">{r.name}</span>
+                    {r.paid && (
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/16 border border-emerald-500/35 text-emerald-800">
+                        {lang === 'zh' ? '已收款' : lang === 'en' ? 'Paid' : 'Pago'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-brand-gold font-medium">€{r.amount.toFixed(2)}</span>
+                    {returnPath && (
+                      <button
+                        type="button"
+                        onClick={() => handleConfirmPersonPaidFromWaiter(i)}
+                        disabled={!persistedSplitId || !!r.paid || personPayProcessingIdx === i}
+                        className="text-[11px] px-2 py-1 rounded-md border border-emerald-500/45 bg-emerald-500/16 text-emerald-800 hover:bg-emerald-500/26 disabled:opacity-50"
+                      >
+                        {personPayProcessingIdx === i
+                          ? (lang === 'zh' ? '处理中...' : lang === 'en' ? 'Processing...' : 'Processando...')
+                          : (lang === 'zh' ? '确认收款' : lang === 'en' ? 'Confirm paid' : 'Confirmar pagamento')}
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           )}
-
-          <div className="mt-6 bg-brand-card border border-brand-border rounded-xl p-4 text-left">
-            <h3 className="text-brand-text font-medium">{t.feedbackTitle}</h3>
-            <p className="text-brand-text-muted text-[13px] mt-1">{t.feedbackHint}</p>
-            {reviewableItems.length === 0 ? (
-              <p className="mt-3 text-[13px] text-brand-text-muted">{t.noFeedbackItems}</p>
-            ) : (
-              <div className="mt-3 space-y-3">
-                {reviewableItems.map((item) => {
-                  const draft = feedbackDraft[item.menu_item_id];
-                  const reasons = draft?.reasons || [];
-                  return (
-                    <div key={item.menu_item_id} className="rounded-lg border border-brand-border p-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm text-brand-text">{item.emoji} {item.name} × {item.qty}</p>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setVote(item.menu_item_id, 'up')}
-                            className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
-                              draft?.vote === 'up'
-                                ? 'bg-emerald-500/16 border-emerald-500/40 text-emerald-800'
-                                : 'border-brand-border text-brand-text-muted hover:text-brand-text'
-                            }`}
-                          >
-                            👍 {t.thumbsUp}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setVote(item.menu_item_id, 'down')}
-                            className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
-                              draft?.vote === 'down'
-                                ? 'bg-red-500/15 border-red-500/40 text-red-700'
-                                : 'border-brand-border text-brand-text-muted hover:text-brand-text'
-                            }`}
-                          >
-                            👎 {t.thumbsDown}
-                          </button>
-                        </div>
-                      </div>
-                      {draft?.vote === 'down' && (
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {FEEDBACK_REASON_KEYS.map((reason) => (
+          {returnPath && (
+            <div className="mt-6">
+              <Link
+                href={returnPath}
+                className="inline-flex items-center justify-center rounded-xl border border-brand-border px-4 py-2 text-sm text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+              >
+                {lang === 'zh' ? '返回服务员页面' : lang === 'en' ? 'Back to waiter board' : 'Voltar ao painel do garcom'}
+              </Link>
+            </div>
+          )}
+          {!returnPath && (
+            <div className="mt-6 bg-brand-card border border-brand-border rounded-xl p-4 text-left">
+              <h3 className="text-brand-text font-medium">{t.feedbackTitle}</h3>
+              <p className="text-brand-text-muted text-[13px] mt-1">{t.feedbackHint}</p>
+              {reviewableItems.length === 0 ? (
+                <p className="mt-3 text-[13px] text-brand-text-muted">{t.noFeedbackItems}</p>
+              ) : (
+                <div className="mt-3 space-y-3">
+                  {reviewableItems.map((item) => {
+                    const draft = feedbackDraft[item.menu_item_id];
+                    const reasons = draft?.reasons || [];
+                    return (
+                      <div key={item.menu_item_id} className="rounded-lg border border-brand-border p-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm text-brand-text">{item.emoji} {item.name} × {item.qty}</p>
+                          <div className="flex items-center gap-2">
                             <button
-                              key={reason}
                               type="button"
-                              onClick={() => toggleReason(item.menu_item_id, reason)}
-                              className={`text-[13px] px-2 py-0.5 rounded-full border ${
-                                reasons.includes(reason)
-                                  ? 'bg-amber-500/16 border-amber-500/40 text-amber-800'
+                              onClick={() => setVote(item.menu_item_id, 'up')}
+                              className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
+                                draft?.vote === 'up'
+                                  ? 'bg-emerald-500/16 border-emerald-500/40 text-emerald-800'
                                   : 'border-brand-border text-brand-text-muted hover:text-brand-text'
                               }`}
                             >
-                              {feedbackReasonLabels[reason]}
+                              👍 {t.thumbsUp}
                             </button>
-                          ))}
+                            <button
+                              type="button"
+                              onClick={() => setVote(item.menu_item_id, 'down')}
+                              className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
+                                draft?.vote === 'down'
+                                  ? 'bg-red-500/15 border-red-500/40 text-red-700'
+                                  : 'border-brand-border text-brand-text-muted hover:text-brand-text'
+                              }`}
+                            >
+                              👎 {t.thumbsDown}
+                            </button>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                        {draft?.vote === 'down' && (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {FEEDBACK_REASON_KEYS.map((reason) => (
+                              <button
+                                key={reason}
+                                type="button"
+                                onClick={() => toggleReason(item.menu_item_id, reason)}
+                                className={`text-[13px] px-2 py-0.5 rounded-full border ${
+                                  reasons.includes(reason)
+                                    ? 'bg-amber-500/16 border-amber-500/40 text-amber-800'
+                                    : 'border-brand-border text-brand-text-muted hover:text-brand-text'
+                                }`}
+                              >
+                                {feedbackReasonLabels[reason]}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
-            {feedbackSubmitted && (
-              <p className="mt-3 text-[13px] text-brand-text">{t.feedbackThanks}</p>
-            )}
+              {feedbackSubmitted && (
+                <p className="mt-3 text-[13px] text-brand-text">{t.feedbackThanks}</p>
+              )}
 
-            {!feedbackSubmitted && reviewableItems.length > 0 && (
-              <div className="mt-4 flex items-center gap-2">
-                <Button variant="outline" onClick={handleSkipFeedback} disabled={feedbackSubmitting || feedbackSkipped}>
-                  {t.feedbackSkip}
-                </Button>
-                <Button onClick={handleSubmitFeedback} loading={feedbackSubmitting} disabled={selectedFeedbackCount === 0}>
-                  {t.feedbackSubmit}
-                </Button>
-              </div>
-            )}
-          </div>
+              {!feedbackHydrating && !feedbackSubmitted && reviewableItems.length > 0 && (
+                <div className="mt-4 flex items-center gap-2">
+                  <Button variant="outline" onClick={handleSkipFeedback} disabled={feedbackSubmitting || feedbackSkipped}>
+                    {t.feedbackSkip}
+                  </Button>
+                  <Button onClick={handleSubmitFeedback} loading={feedbackSubmitting} disabled={selectedFeedbackCount === 0}>
+                    {t.feedbackSubmit}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -470,6 +620,16 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
           <h1 className="font-heading text-2xl text-brand-gold">{restaurant.name}</h1>
           <LanguageSwitcher compact />
         </div>
+        {returnPath && (
+          <div className="mt-2">
+            <Link
+              href={returnPath}
+              className="text-[13px] text-brand-text-muted hover:text-brand-gold transition-colors"
+            >
+              {lang === 'zh' ? '返回服务员页面' : lang === 'en' ? 'Back to waiter board' : 'Voltar ao painel do garcom'}
+            </Link>
+          </div>
+        )}
         <p className="text-brand-text-muted text-sm">{t.table} {tableNumber} — {t.settlement}</p>
       </header>
 
@@ -555,7 +715,20 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
                 onClick={() => {
                   const n = Math.max(2, personCount - 1);
                   setPersonCount(n);
-                  setCustomAmounts(Array.from({ length: n }, (_, i) => ({ name: guestName(i + 1), amount: 0 })));
+                  setSplitPeople((prev) => {
+                    const next = prev.slice(0, n);
+                    setCustomAmounts((customPrev) => {
+                      const cut = customPrev.slice(0, n);
+                      return cut.map((row, idx) => ({ ...row, name: next[idx]?.name || row.name }));
+                    });
+                    return next;
+                  });
+                  setByItemAssign((prev) => {
+                    const allowedIds = new Set(splitPeople.slice(0, n).map((person) => person.id));
+                    return Object.fromEntries(
+                      Object.entries(prev).map(([itemKey, ids]) => [itemKey, ids.filter((id) => allowedIds.has(id))]),
+                    );
+                  });
                 }}
                 className="w-8 h-8 rounded-full bg-brand-border text-brand-text flex items-center justify-center"
               >−</button>
@@ -564,7 +737,22 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
                 onClick={() => {
                   const n = Math.min(20, personCount + 1);
                   setPersonCount(n);
-                  setCustomAmounts(Array.from({ length: n }, (_, i) => ({ name: guestName(i + 1), amount: 0 })));
+                  setSplitPeople((prev) => {
+                    if (prev.length >= n) return prev.slice(0, n);
+                    const next = [...prev];
+                    for (let i = prev.length; i < n; i += 1) {
+                      next.push({ id: `p${i + 1}`, name: guestName(i + 1) });
+                    }
+                    setCustomAmounts((customPrev) => {
+                      const merged = [...customPrev];
+                      while (merged.length < n) {
+                        const idx = merged.length;
+                        merged.push({ name: next[idx].name, amount: 0 });
+                      }
+                      return merged.slice(0, n).map((row, idx) => ({ ...row, name: next[idx].name }));
+                    });
+                    return next;
+                  });
                 }}
                 className="w-8 h-8 rounded-full bg-brand-border text-brand-text flex items-center justify-center"
               >+</button>
@@ -584,15 +772,15 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
                 <div className="flex flex-wrap gap-2">
                   {byItemPersons.map(person => (
                     <button
-                      key={person}
-                      onClick={() => togglePersonForItem(item.key, person)}
+                      key={person.id}
+                      onClick={() => togglePersonForItem(item.key, person.id)}
                       className={`text-[13px] px-3 py-1 rounded-full transition-all ${
-                        (byItemAssign[item.key] || []).includes(person)
+                        (byItemAssign[item.key] || []).includes(person.id)
                           ? 'bg-brand-gold text-brand-bg font-semibold'
                           : 'bg-brand-border text-brand-text-muted'
                       }`}
                     >
-                      {person}
+                      {person.name}
                     </button>
                   ))}
                 </div>
@@ -601,51 +789,6 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
           </div>
         )}
 
-        {/* 自定义金额 */}
-        {splitMode && splitMode === 'custom' && (
-          <div className="space-y-3">
-            {customAmounts.map((person, i) => {
-              const isLast = i === customAmounts.length - 1;
-              const prevTotal = customAmounts.slice(0, i).reduce((s, p) => s + p.amount, 0);
-              const remaining = Math.max(0, total - prevTotal);
-              return (
-                <div key={i} className="flex items-center gap-3 bg-brand-card border border-brand-border rounded-xl px-4 py-3">
-                  <input
-                    type="text"
-                    value={person.name}
-                    onChange={e => setCustomAmounts(prev => prev.map((p, j) => j === i ? { ...p, name: e.target.value } : p))}
-                    className="flex-1 bg-transparent text-brand-text text-sm focus:outline-none"
-                    placeholder={guestName(i + 1)}
-                  />
-                  {isLast ? (
-                    <span className="text-brand-gold font-medium">
-                      €{remaining.toFixed(2)}
-                    </span>
-                  ) : (
-                    <div className="flex items-center gap-1">
-                      <span className="text-brand-text-muted text-sm">€</span>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={person.amount || ''}
-                        onChange={e => setCustomAmounts(prev => prev.map((p, j) => j === i ? { ...p, amount: parseFloat(e.target.value) || 0 } : p))}
-                        className="w-20 bg-transparent text-brand-gold font-medium text-sm text-right focus:outline-none"
-                        placeholder="0.00"
-                      />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            <button
-              onClick={() => setCustomAmounts(prev => [...prev, { name: guestName(prev.length + 1), amount: 0 }])}
-              className="w-full text-brand-text-muted text-sm py-2 border border-dashed border-brand-border rounded-xl hover:border-brand-gold/50 transition-colors"
-            >
-              + {t.addPerson}
-            </button>
-          </div>
-        )}
       </div>
 
       {/* 分单结果 */}
@@ -654,11 +797,103 @@ export function BillPage({ restaurant, tableNumber, orders, sessionId, existingS
         <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
           {results.map((r, i) => (
             <div key={i} className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0">
-              <span className="text-brand-text text-sm">{r.name}</span>
-              <span className="text-brand-gold font-medium">€{r.amount.toFixed(2)}</span>
+              {splitMode && (splitMode === 'even' || splitMode === 'by_item' || splitMode === 'custom') ? (
+                editingSplitNameIndex === i ? (
+                  <input
+                    type="text"
+                    autoFocus
+                    value={editingSplitNameValue}
+                    onChange={(e) => setEditingSplitNameValue(e.target.value)}
+                    onBlur={() => commitInlineRename(i)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        commitInlineRename(i);
+                      }
+                      if (e.key === 'Escape') {
+                        setEditingSplitNameIndex(null);
+                        setEditingSplitNameValue('');
+                      }
+                    }}
+                    className="text-brand-text text-sm bg-transparent border-b border-brand-gold/45 focus:outline-none min-w-[92px]"
+                    placeholder={guestName(i + 1)}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => startInlineRename(i)}
+                    className="text-brand-text text-sm hover:text-brand-gold transition-colors"
+                  >
+                    {r.name}
+                  </button>
+                )
+              ) : (
+                <span className="text-brand-text text-sm">{r.name}</span>
+              )}
+              {splitMode === 'custom' ? (
+                i === customAmounts.length - 1 ? (
+                  <span className="text-brand-gold font-medium">€{r.amount.toFixed(2)}</span>
+                ) : (
+                  editingCustomAmountIndex === i ? (
+                    <div className="flex items-center justify-end text-brand-gold font-medium text-sm min-w-[92px]">
+                      <span className="mr-1">€</span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        autoFocus
+                        value={editingCustomAmountValue}
+                        onChange={(e) => setEditingCustomAmountValue(e.target.value)}
+                        onBlur={() => commitInlineAmountEdit(i)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            commitInlineAmountEdit(i);
+                          }
+                          if (e.key === 'Escape') {
+                            setEditingCustomAmountIndex(null);
+                            setEditingCustomAmountValue('');
+                          }
+                        }}
+                        className="w-16 bg-transparent text-brand-gold font-medium text-sm text-right focus:outline-none"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => startInlineAmountEdit(i)}
+                      className="text-brand-gold font-medium hover:text-brand-gold-light transition-colors"
+                    >
+                      €{customAmounts[i]?.amount.toFixed(2) || '0.00'}
+                    </button>
+                  )
+                )
+              ) : (
+                <span className="text-brand-gold font-medium">€{r.amount.toFixed(2)}</span>
+              )}
             </div>
           ))}
         </div>
+        {splitMode === 'custom' && (
+          <button
+            onClick={() => {
+              setCustomAmounts(prev => {
+                const nextIndex = prev.length;
+                const fallback = guestName(nextIndex + 1);
+                const name = splitPeople[nextIndex]?.name || fallback;
+                return [...prev, { name, amount: 0 }];
+              });
+              setSplitPeople((prev) => {
+                if (prev.length > customAmounts.length) return prev;
+                const nextIndex = prev.length;
+                return [...prev, { id: `p${nextIndex + 1}`, name: guestName(nextIndex + 1) }];
+              });
+            }}
+            className="mt-3 w-full text-brand-text-muted text-sm py-2 border border-dashed border-brand-border rounded-xl hover:border-brand-gold/50 transition-colors"
+          >
+            + {t.addPerson}
+          </button>
+        )}
       </div>
 
       {/* 呼叫结账按钮 */}

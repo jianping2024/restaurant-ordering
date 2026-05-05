@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export type ToastType = 'success' | 'error' | 'info';
 
@@ -23,19 +24,27 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
   }, [duration, onClose]);
 
   const colors = {
-    success: 'border-emerald-500/45 bg-emerald-500/12',
-    error: 'border-red-500/45 bg-red-500/12',
-    info: 'border-brand-gold/45 bg-brand-gold/10',
+    success: 'border-emerald-500/70 bg-emerald-500/10',
+    error: 'border-red-500/75 bg-red-500/12',
+    info: 'border-brand-gold/70 bg-brand-gold/12',
+  };
+  const iconMap: Record<ToastType, string> = {
+    success: '✅',
+    error: '⚠️',
+    info: 'ℹ️',
   };
 
   return (
     <div className={`
-      bg-brand-card border rounded-lg px-5 py-3 shadow-xl
-      transition-all duration-300 max-w-xs w-full
+      inline-flex bg-brand-card border rounded-lg px-3 py-2 shadow-2xl ring-1 ring-black/10
+      transition-all duration-300 min-w-[12rem] max-w-[calc(100vw-2rem)]
       ${colors[type]}
       ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'}
     `}>
-      <p className="text-sm font-medium text-brand-text">{message}</p>
+      <div className="flex items-center justify-center gap-2">
+        <span className="text-base leading-none" aria-hidden>{iconMap[type]}</span>
+        <p className="text-sm font-semibold text-brand-text text-center">{message}</p>
+      </div>
     </div>
   );
 }
@@ -58,9 +67,11 @@ export function showToast(message: string, type: ToastType = 'info') {
 
 export function ToastContainer() {
   const [items, setItems] = useState<ToastItem[]>([]);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     toastListeners.push(setItems);
+    setMounted(true);
     return () => {
       toastListeners = toastListeners.filter(fn => fn !== setItems);
     };
@@ -71,13 +82,16 @@ export function ToastContainer() {
     toastListeners.forEach(fn => fn(toasts));
   };
 
-  return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2 pointer-events-none">
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="fixed bottom-4 right-4 z-[2147483647] flex flex-col items-end gap-2 pointer-events-none">
       {items.map(item => (
-        <div key={item.id} className="pointer-events-auto w-[min(22rem,calc(100vw-2rem))]">
+        <div key={item.id} className="pointer-events-auto">
           <Toast message={item.message} type={item.type} onClose={() => remove(item.id)} />
         </div>
       ))}
-    </div>
+    </div>,
+    document.body
   );
 }

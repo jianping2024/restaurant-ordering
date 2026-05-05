@@ -3,6 +3,7 @@ import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from '@/components/providers/LanguageProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
+import { ToastContainer } from '@/components/ui/Toast';
 import { getServerLanguage } from '@/lib/i18n.server';
 import type { UILanguage } from '@/lib/i18n';
 
@@ -60,7 +61,10 @@ export default function RootLayout({
       </head>
       <body className="antialiased bg-brand-bg text-brand-text font-body">
         <ThemeProvider>
-          <LanguageProvider initialLang={initialLang}>{children}</LanguageProvider>
+          <LanguageProvider initialLang={initialLang}>
+            {children}
+            <ToastContainer />
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -12,7 +12,7 @@ import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { getClientLanguage, setClientLanguage } from '@/lib/i18n';
 import { deriveOrderStatusFromItems, normalizeOrderItemStatus } from '@/lib/order-status';
 import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
-import { ToastContainer, showToast } from '@/components/ui/Toast';
+import { showToast } from '@/components/ui/Toast';
 
 const LANG_FLAGS: Record<Language, string> = { pt: '🇵🇹', en: '🇬🇧', zh: '🇨🇳' };
 const LANG_LABELS: Record<Language, string> = { pt: 'PT', en: 'EN', zh: '中' };
@@ -735,7 +735,6 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
         onSubmit={submitOrder}
         submitting={submitting}
       />
-      <ToastContainer />
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { Modal } from '@/components/ui/Modal';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import { ToastContainer, showToast } from '@/components/ui/Toast';
+import { showToast } from '@/components/ui/Toast';
 
 interface TablesManagerProps {
   restaurant: { id: string; slug: string; name: string };
@@ -476,7 +476,6 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
           </Button>
         </div>
       </Modal>
-      <ToastContainer />
     </div>
   );
 }

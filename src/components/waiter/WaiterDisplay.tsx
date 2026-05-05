@@ -8,7 +8,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { Modal } from '@/components/ui/Modal';
-import { ToastContainer, showToast } from '@/components/ui/Toast';
+import { showToast } from '@/components/ui/Toast';
 import { deriveOrderStatusFromItems, normalizeOrderItemStatus } from '@/lib/order-status';
 
 interface Props {
@@ -880,7 +880,6 @@ export function WaiterDisplay({
           </button>
         </div>
       </Modal>
-      <ToastContainer />
     </div>
   );
 }

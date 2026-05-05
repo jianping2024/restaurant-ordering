@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import type { BillSplit } from '@/types';
-import { ToastContainer, showToast } from '@/components/ui/Toast';
+import { showToast } from '@/components/ui/Toast';
 
 interface Props {
   initialRequests: BillSplit[];
@@ -183,7 +183,6 @@ export function CheckoutRequestsManager({ initialRequests }: Props) {
           ))}
         </div>
       )}
-      <ToastContainer />
     </div>
   );
 }

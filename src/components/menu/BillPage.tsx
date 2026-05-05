@@ -10,7 +10,7 @@ import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages } from '@/lib/i18n/messages';
-import { ToastContainer, showToast } from '@/components/ui/Toast';
+import { showToast } from '@/components/ui/Toast';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -926,7 +926,6 @@ export function BillPage({
           🔔 {t.callBill} — €{total.toFixed(2)}
         </Button>
       </div>
-      <ToastContainer />
     </div>
   );
 }

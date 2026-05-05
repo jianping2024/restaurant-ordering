@@ -6,7 +6,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { DayPicker, type DateRange } from 'react-day-picker';
 import { endOfMonth, format, startOfMonth, startOfToday, subDays } from 'date-fns';
-import CreatableSelect from 'react-select/creatable';
+import Select from 'react-select';
 import type { MultiValue, StylesConfig } from 'react-select';
 import 'react-day-picker/dist/style.css';
 
@@ -42,41 +42,36 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
 
   const tableOptions = useMemo<TableOption[]>(
     () =>
-      Array.from(new Set(initialOrders.map((order) => order.table_number)))
-        .sort((a, b) => a - b)
-        .map((tableNo) => ({ value: tableNo, label: `${i18n.table} ${tableNo}` })),
-    [initialOrders, i18n.table],
+      Array.from({ length: 30 }, (_, idx) => idx + 1).map((tableNo) => ({
+        value: tableNo,
+        label: `${i18n.table} ${tableNo}`,
+      })),
+    [i18n.table],
   );
-
-  const mergedTableOptions = useMemo<TableOption[]>(() => {
-    const map = new Map<number, TableOption>();
-    tableOptions.forEach((option) => map.set(option.value, option));
-    selectedTables.forEach((option) => map.set(option.value, option));
-    return Array.from(map.values()).sort((a, b) => a.value - b.value);
-  }, [tableOptions, selectedTables]);
 
   const selectStyles = useMemo<StylesConfig<TableOption, true>>(
     () => ({
       control: (base, state) => ({
         ...base,
         minHeight: 40,
-        backgroundColor: 'var(--brand-bg)',
-        borderColor: 'var(--brand-border)',
+        backgroundColor: 'rgb(var(--color-brand-bg))',
+        borderColor: 'rgb(var(--color-brand-border))',
         boxShadow: state.isFocused ? '0 0 0 2px rgba(212, 175, 55, 0.4)' : 'none',
-        '&:hover': { borderColor: 'var(--brand-border)' },
+        '&:hover': { borderColor: 'rgb(var(--color-brand-border))' },
       }),
-      placeholder: (base) => ({ ...base, color: 'var(--brand-text-muted)', fontSize: 14 }),
+      placeholder: (base) => ({ ...base, color: 'rgb(var(--color-brand-text-muted))', fontSize: 14 }),
       menu: (base) => ({
         ...base,
-        backgroundColor: 'var(--brand-card)',
-        border: '1px solid var(--brand-border)',
+        backgroundColor: 'rgb(var(--color-brand-card))',
+        border: '1px solid rgb(var(--color-brand-border))',
         zIndex: 9999,
       }),
+      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
       menuList: (base) => ({ ...base, paddingTop: 4, paddingBottom: 4 }),
       option: (base, state) => ({
         ...base,
         fontSize: 14,
-        color: state.isFocused || state.isSelected ? 'var(--brand-text)' : 'var(--brand-text-muted)',
+        color: state.isFocused || state.isSelected ? 'rgb(var(--color-brand-text))' : 'rgb(var(--color-brand-text-muted))',
         backgroundColor: state.isSelected
           ? 'rgba(212, 175, 55, 0.18)'
           : state.isFocused
@@ -88,29 +83,20 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
         backgroundColor: 'rgba(212, 175, 55, 0.16)',
         border: '1px solid rgba(212, 175, 55, 0.28)',
       }),
-      multiValueLabel: (base) => ({ ...base, color: 'var(--brand-text)', fontSize: 13 }),
+      multiValueLabel: (base) => ({ ...base, color: 'rgb(var(--color-brand-text))', fontSize: 13 }),
       multiValueRemove: (base) => ({
         ...base,
-        color: 'var(--brand-text-muted)',
-        ':hover': { backgroundColor: 'rgba(255,255,255,0.1)', color: 'var(--brand-text)' },
+        color: 'rgb(var(--color-brand-text-muted))',
+        ':hover': { backgroundColor: 'rgba(255,255,255,0.1)', color: 'rgb(var(--color-brand-text))' },
       }),
-      input: (base) => ({ ...base, color: 'var(--brand-text)' }),
-      singleValue: (base) => ({ ...base, color: 'var(--brand-text)' }),
-      indicatorSeparator: (base) => ({ ...base, backgroundColor: 'var(--brand-border)' }),
-      dropdownIndicator: (base) => ({ ...base, color: 'var(--brand-text-muted)' }),
-      clearIndicator: (base) => ({ ...base, color: 'var(--brand-text-muted)' }),
+      input: (base) => ({ ...base, color: 'rgb(var(--color-brand-text))' }),
+      singleValue: (base) => ({ ...base, color: 'rgb(var(--color-brand-text))' }),
+      indicatorSeparator: (base) => ({ ...base, backgroundColor: 'rgb(var(--color-brand-border))' }),
+      dropdownIndicator: (base) => ({ ...base, color: 'rgb(var(--color-brand-text-muted))' }),
+      clearIndicator: (base) => ({ ...base, color: 'rgb(var(--color-brand-text-muted))' }),
     }),
     [],
   );
-
-  const handleCreateTableOption = (rawInput: string) => {
-    const value = Number(rawInput.trim());
-    if (!Number.isInteger(value) || value < 1) return;
-    setSelectedTables((prev) => {
-      if (prev.some((item) => item.value === value)) return prev;
-      return [...prev, { value, label: `${i18n.table} ${value}` }];
-    });
-  };
 
   const filteredOrders = useMemo(() => {
     const selectedTableNumbers = new Set(selectedTables.map((item) => item.value));
@@ -220,20 +206,20 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
   return (
     <div>
       <div className="bg-brand-card border border-brand-border rounded-xl p-4 mb-4 grid gap-3 md:grid-cols-3">
-        <CreatableSelect<TableOption, true>
+        <Select<TableOption, true>
           isMulti
-          options={mergedTableOptions}
+          options={tableOptions}
           value={selectedTables}
           onChange={(value: MultiValue<TableOption>) => setSelectedTables([...value])}
-          onCreateOption={handleCreateTableOption}
-          formatCreateLabel={(inputValue) => `${i18n.table} ${inputValue}`}
           menuPortalTarget={typeof window !== 'undefined' ? window.document.body : null}
+          menuPosition="fixed"
           placeholder={i18n.filterTable}
           styles={selectStyles}
           className="w-full text-sm"
           classNamePrefix="orders-table-select"
           noOptionsMessage={() => i18n.empty}
           isClearable
+          closeMenuOnSelect
         />
         <select
           value={statusFilter}

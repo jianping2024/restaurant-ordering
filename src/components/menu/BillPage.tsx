@@ -32,6 +32,23 @@ interface SplitPersonSlot {
   name: string;
 }
 
+function normalizeAmountInput(raw: string): string {
+  const cleaned = raw.replace(/[^\d.]/g, '');
+  if (!cleaned) return '';
+  const hasDot = cleaned.includes('.');
+  const [intRaw = '', ...decimalParts] = cleaned.split('.');
+  const decimalRaw = decimalParts.join('').slice(0, 2);
+
+  let normalizedInt = intRaw || '0';
+  if (normalizedInt.length > 1) {
+    normalizedInt = normalizedInt.replace(/^0+/, '');
+    if (!normalizedInt) normalizedInt = '0';
+  }
+
+  if (!hasDot) return normalizedInt;
+  return `${normalizedInt}.${decimalRaw}`;
+}
+
 const FEEDBACK_REASON_KEYS = ['taste', 'temp', 'slow', 'mismatch', 'other'] as const;
 type FeedbackReasonKey = (typeof FEEDBACK_REASON_KEYS)[number];
 
@@ -118,7 +135,7 @@ export function BillPage({
   };
 
   const commitInlineAmountEdit = (index: number) => {
-    updateCustomAmount(index, editingCustomAmountValue);
+    updateCustomAmount(index, editingCustomAmountValue || '0');
     setEditingCustomAmountIndex(null);
     setEditingCustomAmountValue('');
   };
@@ -842,7 +859,7 @@ export function BillPage({
                         inputMode="decimal"
                         autoFocus
                         value={editingCustomAmountValue}
-                        onChange={(e) => setEditingCustomAmountValue(e.target.value)}
+                        onChange={(e) => setEditingCustomAmountValue(normalizeAmountInput(e.target.value))}
                         onBlur={() => commitInlineAmountEdit(i)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {

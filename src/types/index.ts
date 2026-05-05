@@ -20,6 +20,8 @@ export interface Restaurant {
   logo_url?: string;
   address?: string;
   phone?: string;
+  geo_latitude?: number | null;
+  geo_longitude?: number | null;
   plan: Plan;
   kitchen_password: string;
   waiter_password: string;

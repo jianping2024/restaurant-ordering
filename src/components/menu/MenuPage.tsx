@@ -18,7 +18,7 @@ const LANG_FLAGS: Record<Language, string> = { pt: '🇵🇹', en: '🇬🇧', z
 const LANG_LABELS: Record<Language, string> = { pt: 'PT', en: 'EN', zh: '中' };
 
 interface Props {
-  restaurant: { id: string; name: string; slug: string; logo_url?: string | null };
+  restaurant: { id: string; name: string; slug: string; logo_url?: string | null; geo_latitude?: number | null; geo_longitude?: number | null };
   menuItems: MenuItem[];
   menuCategories: MenuCategory[];
   tableNumber: number;
@@ -30,6 +30,43 @@ function getOrderDisplayStatus(order: Order): 'pending' | 'cooking' | 'done' | '
   const itemStatuses = order.items.map((item) => item.item_status || 'pending');
   if (itemStatuses.length > 0 && itemStatuses.every((status) => status === 'voided')) return 'voided';
   return order.status;
+}
+
+function calculateDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const earthRadius = 6371000;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadius * c;
+}
+
+async function getBrowserLocation() {
+  if (typeof window === 'undefined' || !navigator.geolocation) {
+    throw new Error('not-supported');
+  }
+
+  const attempt = (options: PositionOptions) =>
+    new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, options);
+    });
+
+  try {
+    return await attempt({
+      enableHighAccuracy: true,
+      timeout: 8000,
+      maximumAge: 0,
+    });
+  } catch {
+    return attempt({
+      enableHighAccuracy: false,
+      timeout: 20000,
+      maximumAge: 120000,
+    });
+  }
 }
 
 export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, isDemo, returnToWaiterHref }: Props) {
@@ -226,6 +263,9 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
   const totalPrice = sumLineTotals(cart);
   const t = MENU_PAGE_MESSAGES[lang];
   const locale = UI_LOCALE_BY_LANG[lang];
+  const isLocalDevHost =
+    typeof window !== 'undefined' &&
+    ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
   const { totalItemCount } = recentOrders.reduce((acc, order) => {
     acc.totalItemCount += order.items.length;
     return acc;
@@ -247,6 +287,56 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
     setSubmitting(true);
 
     try {
+      if (restaurant.geo_latitude != null && restaurant.geo_longitude != null) {
+        let position: GeolocationPosition;
+        try {
+          position = await getBrowserLocation();
+        } catch (error) {
+          if (isLocalDevHost) {
+            alert(t.locationBypassedLocal);
+            position = {
+              coords: {
+                latitude: restaurant.geo_latitude,
+                longitude: restaurant.geo_longitude,
+                accuracy: 0,
+                altitude: null,
+                altitudeAccuracy: null,
+                heading: null,
+                speed: null,
+                toJSON: () => ({}),
+              },
+              timestamp: Date.now(),
+              toJSON: () => ({}),
+            };
+          } else {
+            const geoError = error as GeolocationPositionError | Error;
+            if ('code' in geoError && geoError.code === 1) {
+              alert(t.locationPermissionDenied);
+            } else if (geoError.message === 'not-supported') {
+              alert(t.locationNotSupported);
+            } else {
+              alert(t.locationCheckFailed);
+            }
+            return;
+          }
+        }
+
+        const distanceMeters = calculateDistanceMeters(
+          position.coords.latitude,
+          position.coords.longitude,
+          restaurant.geo_latitude,
+          restaurant.geo_longitude,
+        );
+        if (distanceMeters > 50) {
+          if (isLocalDevHost) {
+            alert(t.locationBypassedLocal);
+          } else {
+            alert(t.locationTooFar);
+            return;
+          }
+        }
+      }
+
       const supabase = createClient();
       const batchId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const addedAt = new Date().toISOString();
@@ -605,7 +695,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
       )}
 
       {returnToWaiterHref && (
-        <div className={`fixed left-1/2 -translate-x-1/2 z-30 w-[calc(100%-2rem)] max-w-mobile ${totalQty > 0 ? 'bottom-20' : 'bottom-4'}`}>
+        <div className={`fixed left-1/2 -translate-x-1/2 z-20 w-[calc(100%-2rem)] max-w-mobile ${totalQty > 0 ? 'bottom-28' : 'bottom-4'}`}>
           <Link
             href={returnToWaiterHref}
             className="block text-center rounded-xl py-2 text-sm border border-brand-gold/35 bg-brand-gold/12 text-brand-gold hover:bg-brand-gold/18 transition-colors"

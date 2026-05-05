@@ -28,6 +28,11 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   demoBackHub: string;
   viewCart: string;
   backToWaiter: string;
+  locationNotSupported: string;
+  locationPermissionDenied: string;
+  locationCheckFailed: string;
+  locationTooFar: string;
+  locationBypassedLocal: string;
 }> = {
   pt: {
     table: 'Mesa',
@@ -57,6 +62,11 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoBackHub: 'Voltar ao hub demo',
     viewCart: 'Ver carrinho',
     backToWaiter: 'Voltar ao painel do garcom',
+    locationNotSupported: 'Este dispositivo nao suporta localizacao. Nao foi possivel enviar o pedido.',
+    locationPermissionDenied: 'Permita o acesso a localizacao para fazer pedidos neste restaurante.',
+    locationCheckFailed: 'Nao foi possivel validar sua localizacao. Tente novamente.',
+    locationTooFar: 'Voce esta fora da area de pedido deste restaurante (maximo 50 metros).',
+    locationBypassedLocal: 'Ambiente local detectado: validacao de localizacao foi ignorada para testes.',
   },
   en: {
     table: 'Table',
@@ -86,6 +96,11 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoBackHub: 'Back to demo hub',
     viewCart: 'View cart',
     backToWaiter: 'Back to waiter board',
+    locationNotSupported: 'This device does not support location. Unable to place order.',
+    locationPermissionDenied: 'Please allow location access to place orders for this restaurant.',
+    locationCheckFailed: 'Unable to verify your location. Please try again.',
+    locationTooFar: 'You are outside this restaurant ordering area (within 50 meters only).',
+    locationBypassedLocal: 'Local environment detected: location validation was skipped for testing.',
   },
   zh: {
     table: '桌号',
@@ -115,5 +130,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoBackHub: '返回演示首页',
     viewCart: '查看购物车',
     backToWaiter: '返回服务员页',
+    locationNotSupported: '当前设备不支持定位，无法提交订单',
+    locationPermissionDenied: '请先允许定位权限，再进行下单',
+    locationCheckFailed: '定位校验失败，请重试',
+    locationTooFar: '您当前不在餐厅 50 米范围内，暂时无法下单',
+    locationBypassedLocal: '当前为本地环境，已跳过定位校验（仅用于调试）',
   },
 };

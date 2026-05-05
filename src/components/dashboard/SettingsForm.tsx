@@ -15,6 +15,8 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
     name: restaurant.name,
     address: restaurant.address || '',
     phone: restaurant.phone || '',
+    geo_latitude: restaurant.geo_latitude != null ? String(restaurant.geo_latitude) : '',
+    geo_longitude: restaurant.geo_longitude != null ? String(restaurant.geo_longitude) : '',
     kitchen_password: restaurant.kitchen_password,
     waiter_password: restaurant.waiter_password || '',
   });
@@ -23,6 +25,27 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
   const [error, setError] = useState('');
 
   const supabase = createClient();
+
+  const getCurrentPositionWithFallback = async () => {
+    const attempt = (options: PositionOptions) =>
+      new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, options);
+      });
+
+    try {
+      return await attempt({
+        enableHighAccuracy: true,
+        timeout: 8000,
+        maximumAge: 0,
+      });
+    } catch {
+      return attempt({
+        enableHighAccuracy: false,
+        timeout: 20000,
+        maximumAge: 120000,
+      });
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +61,19 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
       setError(t.waiterPwd);
       return;
     }
+    const hasLat = form.geo_latitude.trim() !== '';
+    const hasLng = form.geo_longitude.trim() !== '';
+    if (hasLat !== hasLng) {
+      setError(t.geoInvalid);
+      return;
+    }
+    const latitude = hasLat ? Number(form.geo_latitude) : null;
+    const longitude = hasLng ? Number(form.geo_longitude) : null;
+    if ((latitude != null && (!Number.isFinite(latitude) || latitude < -90 || latitude > 90)) ||
+      (longitude != null && (!Number.isFinite(longitude) || longitude < -180 || longitude > 180))) {
+      setError(t.geoInvalid);
+      return;
+    }
 
     setSaving(true);
     try {
@@ -47,6 +83,8 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
           name: form.name.trim(),
           address: form.address.trim() || null,
           phone: form.phone.trim() || null,
+          geo_latitude: latitude,
+          geo_longitude: longitude,
           kitchen_password: form.kitchen_password,
           waiter_password: form.waiter_password,
         })
@@ -99,6 +137,46 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
               onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
               placeholder="+351 21 123 4567"
             />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Input
+                label={t.geoLatitude}
+                value={form.geo_latitude}
+                onChange={e => setForm(f => ({ ...f, geo_latitude: e.target.value }))}
+                placeholder="38.7223"
+              />
+              <Input
+                label={t.geoLongitude}
+                value={form.geo_longitude}
+                onChange={e => setForm(f => ({ ...f, geo_longitude: e.target.value }))}
+                placeholder="-9.1393"
+              />
+            </div>
+            <div className="flex items-center justify-between gap-3 -mt-2">
+              <p className="text-[13px] text-brand-text-muted">{t.geoHint}</p>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!navigator.geolocation) {
+                    setError(t.geoLocateFail);
+                    return;
+                  }
+                  try {
+                    const position = await getCurrentPositionWithFallback();
+                    setForm((prev) => ({
+                      ...prev,
+                      geo_latitude: position.coords.latitude.toFixed(6),
+                      geo_longitude: position.coords.longitude.toFixed(6),
+                    }));
+                    setError('');
+                  } catch {
+                    setError(t.geoLocateFail);
+                  }
+                }}
+                className="text-[13px] text-brand-gold hover:underline whitespace-nowrap"
+              >
+                {t.useCurrentLocation}
+              </button>
+            </div>
 
             <div>
               <Input

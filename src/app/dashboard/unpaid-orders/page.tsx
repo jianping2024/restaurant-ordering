@@ -35,7 +35,6 @@ export default async function UnpaidOrdersPage() {
       checkoutRequests={[] as BillSplit[]}
       headingNavKey="unpaidOrders"
       showCheckoutRequests={false}
-      showFeedbackPanel={false}
     />
   );
 }

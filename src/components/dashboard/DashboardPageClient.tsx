@@ -3,6 +3,7 @@
 import type { Order } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import { FeedbackInsightsPanel } from '@/components/dashboard/FeedbackInsightsPanel';
 
 export interface DashboardTopItem {
   name: string;
@@ -17,6 +18,13 @@ interface Props {
   menuCount: number;
   topItems: DashboardTopItem[];
   recentOrders: Order[];
+  touchedRate?: number;
+  completedRate?: number;
+  actionableRate?: number;
+  sessionsWithFeedback?: number;
+  billedSessions?: number;
+  topIssues?: Array<{ menu_item_id: string; dish_name: string; down_count: number }>;
+  topPraise?: Array<{ menu_item_id: string; dish_name: string; up_count: number }>;
 }
 
 export function DashboardPageClient({
@@ -26,9 +34,17 @@ export function DashboardPageClient({
   menuCount,
   topItems,
   recentOrders,
+  touchedRate = 0,
+  completedRate = 0,
+  actionableRate = 0,
+  sessionsWithFeedback = 0,
+  billedSessions = 0,
+  topIssues = [],
+  topPraise = [],
 }: Props) {
   const { lang } = useLanguage();
   const i18n = getMessages(lang).dashboard;
+  const feedbackI18n = getMessages(lang).orderHistory;
   const locale = UI_LOCALE_BY_LANG[lang];
 
   const stats = [
@@ -58,6 +74,25 @@ export function DashboardPageClient({
           </div>
         ))}
       </div>
+
+      <FeedbackInsightsPanel
+        title={feedbackI18n.feedbackTitle}
+        touchedLabel={feedbackI18n.feedbackTouched}
+        completedLabel={feedbackI18n.feedbackCompleted}
+        actionableLabel={feedbackI18n.feedbackActionable}
+        coverageLabel={feedbackI18n.feedbackCoverage}
+        topIssuesLabel={feedbackI18n.feedbackTopIssues}
+        topPraiseLabel={feedbackI18n.feedbackTopPraise}
+        noIssuesLabel={feedbackI18n.feedbackNoIssues}
+        noPraiseLabel={feedbackI18n.feedbackNoPraise}
+        touchedRate={touchedRate}
+        completedRate={completedRate}
+        actionableRate={actionableRate}
+        sessionsWithFeedback={sessionsWithFeedback}
+        billedSessions={billedSessions}
+        topIssues={topIssues}
+        topPraise={topPraise}
+      />
 
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-brand-card border border-brand-border rounded-2xl p-6">

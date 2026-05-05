@@ -35,10 +35,10 @@ export function buildMenuCategoryTree(categories: string[]): MenuCategoryTree {
     subpathsByTop.get(top)!.add(subpath);
   });
 
-  const topCategories = [...topSet];
+  const topCategories = Array.from(topSet);
   const sortedSubpathsByTop: Record<string, string[]> = {};
   topCategories.forEach((top) => {
-    sortedSubpathsByTop[top] = [...(subpathsByTop.get(top) || new Set(['']))].sort((a, b) => {
+    sortedSubpathsByTop[top] = Array.from(subpathsByTop.get(top) || new Set([''])).sort((a, b) => {
       if (a === '') return -1;
       if (b === '') return 1;
       return a.localeCompare(b);

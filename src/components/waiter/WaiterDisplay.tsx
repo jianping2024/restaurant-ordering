@@ -18,6 +18,8 @@ interface Props {
   isDemo?: boolean;
 }
 
+const WAITER_UNLOCK_TTL_MS = 8 * 60 * 60 * 1000;
+
 const WAITER_TEXT = {
   zh: {
     demoTitle: '演示服务员看板',
@@ -216,7 +218,6 @@ export function WaiterDisplay({
   initialCheckoutRequestedTables = [],
   isDemo = false,
 }: Props) {
-  const WAITER_UNLOCK_TTL_MS = 8 * 60 * 60 * 1000;
   const waiterUnlockStorageKey = `mesa_waiter_unlock_${restaurant.id}`;
   const { lang } = useLanguage();
   const locale = UI_LOCALE_BY_LANG[lang];

@@ -16,53 +16,64 @@ export interface FeedbackTopIssue {
 interface Props {
   orders: Order[];
   checkoutRequests: BillSplit[];
-  touchedRate: number;
-  completedRate: number;
-  actionableRate: number;
-  sessionsWithFeedback: number;
-  billedSessions: number;
-  topIssues: FeedbackTopIssue[];
+  touchedRate?: number;
+  completedRate?: number;
+  actionableRate?: number;
+  sessionsWithFeedback?: number;
+  billedSessions?: number;
+  topIssues?: FeedbackTopIssue[];
+  headingTitle?: string;
+  headingNavKey?: 'orders' | 'unpaidOrders' | 'checkout';
+  showCheckoutRequests?: boolean;
+  showFeedbackPanel?: boolean;
 }
 
 export function OrdersPageClient({
   orders,
   checkoutRequests,
-  touchedRate,
-  completedRate,
-  actionableRate,
-  sessionsWithFeedback,
-  billedSessions,
-  topIssues,
+  touchedRate = 0,
+  completedRate = 0,
+  actionableRate = 0,
+  sessionsWithFeedback = 0,
+  billedSessions = 0,
+  topIssues = [],
+  headingTitle,
+  headingNavKey,
+  showCheckoutRequests = true,
+  showFeedbackPanel = true,
 }: Props) {
   const { lang } = useLanguage();
+  const nav = getMessages(lang).nav;
   const i18n = getMessages(lang).orderHistory;
 
   return (
     <div>
       <div className="mb-6">
-        <h1 className="font-heading text-3xl text-brand-text">{i18n.title}</h1>
+        <h1 className="font-heading text-3xl text-brand-text">{headingTitle || (headingNavKey ? nav[headingNavKey] : i18n.title)}</h1>
         <p className="text-brand-text-muted text-sm mt-1">
           {i18n.total} {orders.length} {i18n.records}
         </p>
       </div>
 
-      <CheckoutRequestsManager initialRequests={checkoutRequests} />
+      {showCheckoutRequests && <CheckoutRequestsManager initialRequests={checkoutRequests} />}
 
-      <FeedbackInsightsPanel
-        title={i18n.feedbackTitle}
-        touchedLabel={i18n.feedbackTouched}
-        completedLabel={i18n.feedbackCompleted}
-        actionableLabel={i18n.feedbackActionable}
-        coverageLabel={i18n.feedbackCoverage}
-        topIssuesLabel={i18n.feedbackTopIssues}
-        noIssuesLabel={i18n.feedbackNoIssues}
-        touchedRate={touchedRate}
-        completedRate={completedRate}
-        actionableRate={actionableRate}
-        sessionsWithFeedback={sessionsWithFeedback}
-        billedSessions={billedSessions}
-        topIssues={topIssues}
-      />
+      {showFeedbackPanel && (
+        <FeedbackInsightsPanel
+          title={i18n.feedbackTitle}
+          touchedLabel={i18n.feedbackTouched}
+          completedLabel={i18n.feedbackCompleted}
+          actionableLabel={i18n.feedbackActionable}
+          coverageLabel={i18n.feedbackCoverage}
+          topIssuesLabel={i18n.feedbackTopIssues}
+          noIssuesLabel={i18n.feedbackNoIssues}
+          touchedRate={touchedRate}
+          completedRate={completedRate}
+          actionableRate={actionableRate}
+          sessionsWithFeedback={sessionsWithFeedback}
+          billedSessions={billedSessions}
+          topIssues={topIssues}
+        />
+      )}
 
       <OrdersHistoryManager initialOrders={orders} />
     </div>

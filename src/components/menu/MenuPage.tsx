@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import type { MenuItem, Language, CartItem, Order, TableSession, MenuCategory } from '@/types';
 import { MenuItemCard } from './MenuItemCard';
@@ -140,12 +140,46 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
     return c.name_pt || labelMap[c.name_pt] || c.name_pt;
   };
 
+  const childrenByParent = useMemo(() => {
+    const map = new Map<string, string[]>();
+    menuCategories
+      .filter((c) => c.active && c.parent_id)
+      .forEach((category) => {
+        const parentId = category.parent_id as string;
+        const list = map.get(parentId) || [];
+        list.push(category.id);
+        map.set(parentId, list);
+      });
+    return map;
+  }, [menuCategories]);
+
+  const collectDescendantIds = (rootId: string) => {
+    const ids = new Set<string>();
+    const walk = (id: string) => {
+      const children = childrenByParent.get(id) || [];
+      children.forEach((childId) => {
+        if (ids.has(childId)) return;
+        ids.add(childId);
+        walk(childId);
+      });
+    };
+    walk(rootId);
+    return ids;
+  };
+
   const currentItems = menuItems.filter((item) => {
     if (!currentTop) return true;
     if (!item.category_id) return false;
-    if (currentSubpath) return item.category_id === currentSubpath;
+
+    if (currentSubpath) {
+      if (item.category_id === currentSubpath) return true;
+      const descendants = collectDescendantIds(currentSubpath);
+      return descendants.has(item.category_id);
+    }
+
     if (item.category_id === currentTop) return true;
-    return menuCategories.some((c) => c.id === item.category_id && c.parent_id === currentTop);
+    const descendants = collectDescendantIds(currentTop);
+    return descendants.has(item.category_id);
   });
 
   // 加入购物车
@@ -412,7 +446,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
                   : 'border-transparent text-brand-text-muted'
               }`}
             >
-              {localizedCategoryLabel(cat).split(CATEGORY_PATH_SEPARATOR)[0]}
+              {localizedCategoryLabel(cat)}
             </button>
           ))}
         </div>

@@ -6,17 +6,24 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { DayPicker, type DateRange } from 'react-day-picker';
 import { endOfMonth, format, startOfMonth, startOfToday, subDays } from 'date-fns';
+import CreatableSelect from 'react-select/creatable';
+import type { MultiValue, StylesConfig } from 'react-select';
 import 'react-day-picker/dist/style.css';
 
 interface Props {
   initialOrders: Order[];
 }
 
+interface TableOption {
+  value: number;
+  label: string;
+}
+
 export function OrdersHistoryManager({ initialOrders }: Props) {
   const { lang } = useLanguage();
   const i18n = getMessages(lang).orderHistory;
   const locale = UI_LOCALE_BY_LANG[lang];
-  const [tableFilter, setTableFilter] = useState('');
+  const [selectedTables, setSelectedTables] = useState<TableOption[]>([]);
   const [statusFilter, setStatusFilter] = useState<'all' | OrderStatus>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -33,9 +40,82 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
     done: 'bg-emerald-500/16 border border-emerald-500/35 text-emerald-800',
   };
 
+  const tableOptions = useMemo<TableOption[]>(
+    () =>
+      Array.from(new Set(initialOrders.map((order) => order.table_number)))
+        .sort((a, b) => a - b)
+        .map((tableNo) => ({ value: tableNo, label: `${i18n.table} ${tableNo}` })),
+    [initialOrders, i18n.table],
+  );
+
+  const mergedTableOptions = useMemo<TableOption[]>(() => {
+    const map = new Map<number, TableOption>();
+    tableOptions.forEach((option) => map.set(option.value, option));
+    selectedTables.forEach((option) => map.set(option.value, option));
+    return Array.from(map.values()).sort((a, b) => a.value - b.value);
+  }, [tableOptions, selectedTables]);
+
+  const selectStyles = useMemo<StylesConfig<TableOption, true>>(
+    () => ({
+      control: (base, state) => ({
+        ...base,
+        minHeight: 40,
+        backgroundColor: 'var(--brand-bg)',
+        borderColor: 'var(--brand-border)',
+        boxShadow: state.isFocused ? '0 0 0 2px rgba(212, 175, 55, 0.4)' : 'none',
+        '&:hover': { borderColor: 'var(--brand-border)' },
+      }),
+      placeholder: (base) => ({ ...base, color: 'var(--brand-text-muted)', fontSize: 14 }),
+      menu: (base) => ({
+        ...base,
+        backgroundColor: 'var(--brand-card)',
+        border: '1px solid var(--brand-border)',
+        zIndex: 9999,
+      }),
+      menuList: (base) => ({ ...base, paddingTop: 4, paddingBottom: 4 }),
+      option: (base, state) => ({
+        ...base,
+        fontSize: 14,
+        color: state.isFocused || state.isSelected ? 'var(--brand-text)' : 'var(--brand-text-muted)',
+        backgroundColor: state.isSelected
+          ? 'rgba(212, 175, 55, 0.18)'
+          : state.isFocused
+            ? 'rgba(255, 255, 255, 0.06)'
+            : 'transparent',
+      }),
+      multiValue: (base) => ({
+        ...base,
+        backgroundColor: 'rgba(212, 175, 55, 0.16)',
+        border: '1px solid rgba(212, 175, 55, 0.28)',
+      }),
+      multiValueLabel: (base) => ({ ...base, color: 'var(--brand-text)', fontSize: 13 }),
+      multiValueRemove: (base) => ({
+        ...base,
+        color: 'var(--brand-text-muted)',
+        ':hover': { backgroundColor: 'rgba(255,255,255,0.1)', color: 'var(--brand-text)' },
+      }),
+      input: (base) => ({ ...base, color: 'var(--brand-text)' }),
+      singleValue: (base) => ({ ...base, color: 'var(--brand-text)' }),
+      indicatorSeparator: (base) => ({ ...base, backgroundColor: 'var(--brand-border)' }),
+      dropdownIndicator: (base) => ({ ...base, color: 'var(--brand-text-muted)' }),
+      clearIndicator: (base) => ({ ...base, color: 'var(--brand-text-muted)' }),
+    }),
+    [],
+  );
+
+  const handleCreateTableOption = (rawInput: string) => {
+    const value = Number(rawInput.trim());
+    if (!Number.isInteger(value) || value < 1) return;
+    setSelectedTables((prev) => {
+      if (prev.some((item) => item.value === value)) return prev;
+      return [...prev, { value, label: `${i18n.table} ${value}` }];
+    });
+  };
+
   const filteredOrders = useMemo(() => {
+    const selectedTableNumbers = new Set(selectedTables.map((item) => item.value));
     return initialOrders.filter(order => {
-      if (tableFilter && !String(order.table_number).includes(tableFilter.trim())) return false;
+      if (selectedTableNumbers.size > 0 && !selectedTableNumbers.has(order.table_number)) return false;
       if (statusFilter !== 'all' && order.status !== statusFilter) return false;
 
       if (dateRange?.from) {
@@ -54,7 +134,7 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
       }
       return true;
     });
-  }, [initialOrders, tableFilter, statusFilter, dateRange]);
+  }, [initialOrders, selectedTables, statusFilter, dateRange]);
 
   const rangeLabel = useMemo(() => {
     if (!dateRange?.from && !dateRange?.to) return i18n.filterDateRange;
@@ -140,11 +220,20 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
   return (
     <div>
       <div className="bg-brand-card border border-brand-border rounded-xl p-4 mb-4 grid gap-3 md:grid-cols-3">
-        <input
-          value={tableFilter}
-          onChange={e => setTableFilter(e.target.value)}
+        <CreatableSelect<TableOption, true>
+          isMulti
+          options={mergedTableOptions}
+          value={selectedTables}
+          onChange={(value: MultiValue<TableOption>) => setSelectedTables([...value])}
+          onCreateOption={handleCreateTableOption}
+          formatCreateLabel={(inputValue) => `${i18n.table} ${inputValue}`}
+          menuPortalTarget={typeof window !== 'undefined' ? window.document.body : null}
           placeholder={i18n.filterTable}
-          className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
+          styles={selectStyles}
+          className="w-full text-sm"
+          classNamePrefix="orders-table-select"
+          noOptionsMessage={() => i18n.empty}
+          isClearable
         />
         <select
           value={statusFilter}

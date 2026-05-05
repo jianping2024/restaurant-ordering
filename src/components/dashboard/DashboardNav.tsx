@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -11,11 +11,13 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { getMessages } from '@/lib/i18n/messages';
 
 const navItems = [
-  { href: '/dashboard', key: 'overview', icon: '📊', exact: true },
+  { href: '/dashboard/unpaid-orders', key: 'unpaidOrders', icon: '🧾', exact: false },
+  { href: '/dashboard/orders', key: 'orders', icon: '📋', exact: false },
+  { href: '/dashboard/checkout', key: 'checkout', icon: '💳', exact: false },
   { href: '/dashboard/menu', key: 'menu', icon: '🍽️', exact: false },
   { href: '/dashboard/tables', key: 'tables', icon: '🪑', exact: false },
-  { href: '/dashboard/orders', key: 'orders', icon: '📋', exact: false },
   { href: '/dashboard/settings', key: 'settings', icon: '⚙️', exact: false },
+  { href: '/dashboard', key: 'overview', icon: '📊', exact: true },
 ] as const;
 
 export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
@@ -24,6 +26,33 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
   const { lang } = useLanguage();
   const t = getMessages(lang).nav;
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [checkoutRequestCount, setCheckoutRequestCount] = useState(0);
+
+  useEffect(() => {
+    const supabase = createClient();
+    let cancelled = false;
+
+    const loadCheckoutRequestCount = async () => {
+      const { count } = await supabase
+        .from('bill_splits')
+        .select('id', { count: 'exact', head: true })
+        .eq('restaurant_id', restaurant.id)
+        .eq('status', 'requested')
+        .not('session_id', 'is', null);
+
+      if (!cancelled) setCheckoutRequestCount(count || 0);
+    };
+
+    void loadCheckoutRequestCount();
+    const timer = window.setInterval(() => {
+      void loadCheckoutRequestCount();
+    }, 15000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [restaurant.id]);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -112,7 +141,12 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
               `}
             >
               <span className="text-lg">{item.icon}</span>
-              {t[item.key]}
+              <span>{t[item.key]}</span>
+              {item.key === 'checkout' && checkoutRequestCount > 0 && (
+                <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500/18 border border-red-500/45 px-1.5 text-[11px] font-semibold text-red-700">
+                  {checkoutRequestCount > 99 ? '99+' : checkoutRequestCount}
+                </span>
+              )}
             </Link>
           );
         })}

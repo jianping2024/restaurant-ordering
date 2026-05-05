@@ -20,14 +20,16 @@ export default async function OrdersPage() {
     .order('created_at', { ascending: false })
     .limit(100);
 
-  const { data: checkoutRequests } = await supabase
-    .from('bill_splits')
-    .select('*')
+  const { data: closedSessions } = await supabase
+    .from('table_sessions')
+    .select('id')
     .eq('restaurant_id', restaurant!.id)
-    .eq('status', 'requested')
-    .not('session_id', 'is', null)
-    .order('created_at', { ascending: false })
-    .limit(50);
+    .eq('status', 'closed');
+
+  const closedSessionIds = new Set((closedSessions || []).map((row) => row.id));
+  const historicalOrders = (orders || []).filter(
+    (order) => !!order.session_id && closedSessionIds.has(order.session_id),
+  );
 
   const sinceIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -83,14 +85,16 @@ export default async function OrdersPage() {
 
   return (
     <OrdersPageClient
-      orders={(orders || []) as Order[]}
-      checkoutRequests={(checkoutRequests || []) as BillSplit[]}
+      orders={historicalOrders as Order[]}
+      checkoutRequests={[] as BillSplit[]}
       touchedRate={touchedRate}
       completedRate={completedRate}
       actionableRate={actionableRate}
       sessionsWithFeedback={sessionsWithFeedback}
       billedSessions={billedSessions}
       topIssues={topIssues}
+      headingNavKey="orders"
+      showCheckoutRequests={false}
     />
   );
 }

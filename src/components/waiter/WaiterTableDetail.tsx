@@ -1,8 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import type { Order } from '@/types';
+import type { Buffet, Order, OrderItem } from '@/types';
+import { sumLineTotals } from '@/lib/cart-totals';
+import { buildBuffetBaseLine, stripBuffetBaseLines, type ResolvedBuffetPriceRow } from '@/lib/buffet-order';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
@@ -19,6 +21,7 @@ interface Props {
   restaurant: { id: string; name: string; slug: string; waiter_password: string };
   initialOrders: Order[];
   initialCheckoutRequestedTables?: number[];
+  initialBuffets?: Buffet[];
   tableNumber: number;
   isDemo?: boolean;
 }
@@ -27,6 +30,7 @@ function WaiterTableDetailInner({
   restaurant,
   initialOrders,
   initialCheckoutRequestedTables = [],
+  initialBuffets = [],
   tableNumber,
   isDemo = false,
   handleLock,
@@ -47,6 +51,72 @@ function WaiterTableDetailInner({
   const [targetTable, setTargetTable] = useState<number | null>(null);
   const [operating, setOperating] = useState(false);
   const [closingTable, setClosingTable] = useState<number | null>(null);
+  const activeBuffets = useMemo(() => initialBuffets.filter((b) => b.is_active), [initialBuffets]);
+  const [buffetId, setBuffetId] = useState<string>(() => activeBuffets[0]?.id || '');
+  const [buffetAdults, setBuffetAdults] = useState(2);
+  const [buffetChildren, setBuffetChildren] = useState(0);
+  const [buffetSubmitting, setBuffetSubmitting] = useState(false);
+  const [buffetResolved, setBuffetResolved] = useState<ResolvedBuffetPriceRow | null>(null);
+  const [buffetPriceLoading, setBuffetPriceLoading] = useState(false);
+
+  useEffect(() => {
+    if (isDemo || !buffetId) {
+      setBuffetResolved(null);
+      setBuffetPriceLoading(false);
+      return;
+    }
+    let cancelled = false;
+    const load = async (silent: boolean) => {
+      if (!silent) setBuffetPriceLoading(true);
+      const { data: priceRows, error } = await supabase.rpc('resolve_buffet_prices', {
+        p_restaurant_id: restaurant.id,
+        p_buffet_id: buffetId,
+        p_at: new Date().toISOString(),
+      });
+      if (cancelled) {
+        if (!silent) setBuffetPriceLoading(false);
+        return;
+      }
+      if (!silent) setBuffetPriceLoading(false);
+      if (error) {
+        if (!silent) setBuffetResolved(null);
+        return;
+      }
+      const resolvedRow = Array.isArray(priceRows) ? priceRows[0] : priceRows;
+      setBuffetResolved({
+        adult_price: resolvedRow?.adult_price != null ? Number(resolvedRow.adult_price) : null,
+        child_price: resolvedRow?.child_price != null ? Number(resolvedRow.child_price) : null,
+        rule_id: resolvedRow?.rule_id ?? null,
+        time_slot_id: resolvedRow?.time_slot_id ?? null,
+      });
+    };
+    void load(false);
+    const intervalId = window.setInterval(() => {
+      void load(true);
+    }, 60000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [isDemo, buffetId, restaurant.id, supabase]);
+
+  const buffetPriceDisplay = useMemo(() => {
+    const r = buffetResolved;
+    if (!r || r.adult_price == null || r.child_price == null) return { ok: false as const };
+    const ap = Number(r.adult_price);
+    const cp = Number(r.child_price);
+    if (!Number.isFinite(ap) || !Number.isFinite(cp)) return { ok: false as const };
+    const adults = Math.max(0, Math.floor(buffetAdults));
+    const children = Math.max(0, Math.floor(buffetChildren));
+    return { ok: true as const, ap, cp, sub: adults * ap + children * cp };
+  }, [buffetResolved, buffetAdults, buffetChildren]);
+
+  useEffect(() => {
+    if (activeBuffets.length === 0) return;
+    if (!buffetId || !activeBuffets.some((b) => b.id === buffetId)) {
+      setBuffetId(activeBuffets[0].id);
+    }
+  }, [activeBuffets, buffetId]);
 
   const selectedCard = useMemo(() => buildWaiterTableCard(tableNumber, orders), [orders, tableNumber]);
 
@@ -57,6 +127,7 @@ function WaiterTableDetailInner({
         c.pending > 0 ||
         c.cooking > 0 ||
         c.ready > 0 ||
+        c.buffetLines.length > 0 ||
         c.voidableItems.length > 0 ||
         c.voidedItems.length > 0
       );
@@ -188,6 +259,127 @@ function WaiterTableDetailInner({
     }
   };
 
+  const applyBuffetToTable = async () => {
+    if (isDemo || !buffetId) return;
+    const buffet = activeBuffets.find((b) => b.id === buffetId);
+    if (!buffet) return;
+
+    setBuffetSubmitting(true);
+    try {
+      const { data: priceRows, error: priceError } = await supabase.rpc('resolve_buffet_prices', {
+        p_restaurant_id: restaurant.id,
+        p_buffet_id: buffetId,
+        p_at: new Date().toISOString(),
+      });
+      if (priceError) {
+        showToast(t.actionFailed, 'error');
+        return;
+      }
+      const resolvedRow = Array.isArray(priceRows) ? priceRows[0] : priceRows;
+      const resolved = {
+        adult_price: resolvedRow?.adult_price != null ? Number(resolvedRow.adult_price) : null,
+        child_price: resolvedRow?.child_price != null ? Number(resolvedRow.child_price) : null,
+        rule_id: resolvedRow?.rule_id ?? null,
+        time_slot_id: resolvedRow?.time_slot_id ?? null,
+      };
+      const line = buildBuffetBaseLine({
+        buffet,
+        adultCount: buffetAdults,
+        childCount: buffetChildren,
+        resolved,
+      });
+      if (!line) {
+        showToast(t.buffetNoRule, 'error');
+        return;
+      }
+
+      let { data: session } = await supabase
+        .from('table_sessions')
+        .select('id, status')
+        .eq('restaurant_id', restaurant.id)
+        .eq('table_number', tableNumber)
+        .in('status', ['open', 'billing'])
+        .order('opened_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!session?.id) {
+        const { data: createdSession, error: csErr } = await supabase
+          .from('table_sessions')
+          .insert({
+            restaurant_id: restaurant.id,
+            table_number: tableNumber,
+            status: 'open',
+          })
+          .select('id, status')
+          .single();
+        if (csErr || !createdSession) {
+          showToast(t.buffetNeedOpen, 'error');
+          return;
+        }
+        session = createdSession;
+      }
+
+      if (session.status === 'billing') {
+        showToast(t.buffetBilling, 'error');
+        return;
+      }
+
+      const sessionId = session.id as string;
+
+      const { data: openOrder } = await supabase
+        .from('orders')
+        .select('id, items, updated_at')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const mergedItems: OrderItem[] = [
+        ...stripBuffetBaseLines((openOrder?.items || []) as OrderItem[]),
+        line,
+      ];
+      const total = sumLineTotals(mergedItems);
+      const nextStatus = deriveOrderStatusFromItems(mergedItems);
+
+      if (openOrder?.id) {
+        const { error: updErr } = await supabase
+          .from('orders')
+          .update({
+            items: mergedItems,
+            total_amount: total,
+            status: nextStatus,
+          })
+          .eq('id', openOrder.id)
+          .eq('updated_at', openOrder.updated_at);
+        if (updErr) {
+          showToast(t.refreshHint, 'error');
+          return;
+        }
+      } else {
+        const { error: insErr } = await supabase.from('orders').insert({
+          restaurant_id: restaurant.id,
+          session_id: sessionId,
+          table_number: tableNumber,
+          status: nextStatus,
+          items: mergedItems,
+          total_amount: total,
+        });
+        if (insErr) {
+          showToast(t.actionFailed, 'error');
+          return;
+        }
+      }
+
+      setOrders(await fetchWaiterBoardOrders(supabase, restaurant.id));
+      showToast(t.actionSuccess, 'success');
+    } catch {
+      showToast(t.actionFailed, 'error');
+    } finally {
+      setBuffetSubmitting(false);
+    }
+  };
+
   const voidItemFromWaiter = async (orderId: string, itemIdx: number) => {
     try {
       const order = orders.find((row) => row.id === orderId);
@@ -290,8 +482,105 @@ function WaiterTableDetailInner({
           </span>
         </div>
 
-        {selectedCard.pending + selectedCard.cooking + selectedCard.ready + selectedCard.voidedItems.length + selectedCard.voidableItems.length === 0 ? (
-          <p className="text-brand-text-muted">{t.noOrdersOnTable}</p>
+        {activeBuffets.length > 0 && !isDemo && (
+          <div className="mb-4 rounded-xl border border-brand-gold/30 bg-brand-gold/8 p-3 space-y-2">
+            <p className="text-[12px] font-medium text-brand-gold">{t.buffetBlock}</p>
+            {selectedCard.buffetLines.length > 0 && (
+              <ul className="text-[13px] text-brand-text space-y-1">
+                {selectedCard.buffetLines.map((line, i) => (
+                  <li key={i}>{line}</li>
+                ))}
+              </ul>
+            )}
+            <div className="rounded-lg border border-brand-border/50 bg-brand-bg/60 px-2.5 py-2 space-y-1">
+              <p className="text-[11px] font-medium text-brand-text-muted">{t.buffetPreview}</p>
+              {buffetPriceLoading ? (
+                <p className="text-[12px] text-brand-text-muted">{t.buffetPriceLoading}</p>
+              ) : buffetPriceDisplay.ok ? (
+                <>
+                  <p className="text-[13px] text-brand-text">
+                    {t.buffetPriceAdult.replace('{price}', buffetPriceDisplay.ap.toFixed(2))}
+                  </p>
+                  <p className="text-[13px] text-brand-text">
+                    {t.buffetPriceChild.replace('{price}', buffetPriceDisplay.cp.toFixed(2))}
+                  </p>
+                  <p className="text-[13px] text-brand-gold font-medium pt-1 border-t border-brand-border/40">
+                    {t.buffetPriceSubtotal.replace('{total}', buffetPriceDisplay.sub.toFixed(2))}
+                  </p>
+                  <p className="text-[10px] text-brand-text-muted leading-snug pt-1">{t.buffetPriceNearestNote}</p>
+                </>
+              ) : (
+                <p className="text-[12px] text-amber-800/95">{t.buffetNoRule}</p>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2 items-end">
+              <label className="text-[11px] text-brand-text-muted">
+                {t.buffetPick}
+                <select
+                  value={buffetId}
+                  onChange={(e) => setBuffetId(e.target.value)}
+                  className="mt-0.5 block rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text"
+                >
+                  {activeBuffets.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-[11px] text-brand-text-muted">
+                {t.buffetAdults}
+                <input
+                  type="number"
+                  min={0}
+                  className="mt-0.5 block w-16 rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text"
+                  value={buffetAdults}
+                  onChange={(e) => setBuffetAdults(Math.max(0, Number(e.target.value) || 0))}
+                />
+              </label>
+              <label className="text-[11px] text-brand-text-muted">
+                {t.buffetChildren}
+                <input
+                  type="number"
+                  min={0}
+                  className="mt-0.5 block w-16 rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text"
+                  value={buffetChildren}
+                  onChange={(e) => setBuffetChildren(Math.max(0, Number(e.target.value) || 0))}
+                />
+              </label>
+              <button
+                type="button"
+                onClick={() => void applyBuffetToTable()}
+                disabled={buffetSubmitting}
+                className="text-[12px] px-3 py-2 rounded-lg bg-brand-gold text-brand-bg font-medium disabled:opacity-50"
+              >
+                {buffetSubmitting ? '…' : t.buffetApply}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {selectedCard.pending +
+          selectedCard.cooking +
+          selectedCard.ready +
+          selectedCard.voidedItems.length +
+          selectedCard.voidableItems.length +
+          selectedCard.buffetLines.length ===
+        0 ? (
+          <div className="space-y-3">
+            <p className="text-brand-text-muted">{t.noOrdersOnTable}</p>
+            <div>
+              <Link
+                href={menuHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex text-[12px] bg-brand-gold/18 text-brand-gold border border-brand-gold/35 px-3 py-2 rounded-lg hover:bg-brand-gold/28 transition-colors font-medium"
+              >
+                {t.takeOrder}
+              </Link>
+              <p className="text-[11px] text-brand-text-muted mt-2 max-w-md">{t.takeOrderHint}</p>
+            </div>
+          </div>
         ) : (
           <>
             <div className="flex flex-wrap items-center gap-2 mb-3">

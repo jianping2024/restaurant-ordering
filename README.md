@@ -117,7 +117,7 @@ Supabase **内置邮件**不是给公开注册用的：在未配置 **自定义 
 | `/auth/register` | 提示「公开注册已关闭」（跳转登录） |
 | `/auth/admin/register` | 管理员创建店主 + 餐厅（需 `ADMIN_BOOTSTRAP_SECRET` + Service Role） |
 | `/dashboard` | 餐厅后台概览 |
-| `/dashboard/menu` | 菜单管理 |
+| `/dashboard/settings/menu` | 菜单管理 |
 | `/dashboard/tables` | 桌位二维码管理 |
 | `/dashboard/orders` | 订单历史 |
 | `/dashboard/settings` | 餐厅设置（厨房/服务员密码） |
@@ -165,7 +165,7 @@ git push -u origin main
 ## 快速使用流程
 
 1. 配置 `SUPABASE_SERVICE_ROLE_KEY` 与 `ADMIN_BOOTSTRAP_SECRET` 后，在 `/auth/admin/register` 创建店主与餐厅（或仅在 Supabase 中手动建用户后再在后台补餐厅）
-2. 店主在 `/auth/login` 登录，在 `/dashboard/menu` 添加菜品
+2. 店主在 `/auth/login` 登录，在 `/dashboard/settings/menu` 添加菜品
 3. 在 `/dashboard/tables` 生成桌位二维码并打印
 4. 在 `/dashboard/settings` 设置 4 位厨房密码和 4 位服务员密码
 5. 在 `/dashboard/tables` 生成并打印桌位二维码，以及厨房/服务员入口二维码

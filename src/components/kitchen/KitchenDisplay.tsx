@@ -8,6 +8,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { deriveOrderStatusFromItems, itemsEveryVoided, normalizeOrderItemStatus } from '@/lib/order-status';
+import { isBuffetBaseItem } from '@/lib/order-items';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string; kitchen_password: string };
@@ -489,9 +490,12 @@ function OrderCard({
     cooking: 'border-amber-500/45 bg-amber-500/10',
     done: 'border-emerald-500/45 bg-emerald-500/10',
   };
-  const allVoided = itemsEveryVoided(order.items);
+  const kitchenLines = order.items.filter((item) => !isBuffetBaseItem(item));
+  if (kitchenLines.length === 0) return null;
+
+  const allVoided = itemsEveryVoided(kitchenLines);
   const batchOrder: string[] = [];
-  order.items.forEach((item) => {
+  kitchenLines.forEach((item) => {
     const batch = item.batch_id || 'legacy';
     if (!batchOrder.includes(batch)) batchOrder.push(batch);
   });
@@ -534,7 +538,10 @@ function OrderCard({
         {batchOrder.map((batchId, batchIdx) => {
           const batchItems = order.items
             .map((item, idx) => ({ item, idx }))
-            .filter(({ item }) => (item.batch_id || 'legacy') === batchId);
+            .filter(
+              ({ item }) =>
+                !isBuffetBaseItem(item) && (item.batch_id || 'legacy') === batchId,
+            );
           const batchLabel = batchIdx === 0 ? labels.firstBatch : `${labels.addOnBatch} #${batchIdx}`;
           const batchTime = batchItems[0]?.item.added_at
             ? new Date(batchItems[0].item.added_at as string).toLocaleString(locale, {

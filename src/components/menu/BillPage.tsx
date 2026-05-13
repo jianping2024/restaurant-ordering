@@ -344,7 +344,7 @@ export function BillPage({
   const reviewableItems = useMemo(() => {
     const dedup = new Map<string, { menu_item_id: string; order_id: string; name: string; emoji: string; qty: number }>();
     allItems
-      .filter((item) => item.item_status !== 'voided')
+      .filter((item) => item.item_status !== 'voided' && item.kind !== 'buffet_base')
       .forEach((item) => {
         const existing = dedup.get(item.id);
         if (existing) {

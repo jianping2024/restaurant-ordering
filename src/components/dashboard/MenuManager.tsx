@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Tree from 'rc-tree';
 import type { DataNode } from 'rc-tree/lib/interface';
 import { createClient } from '@/lib/supabase/client';
@@ -31,6 +31,7 @@ interface MenuManagerProps {
   restaurantId: string;
   initialItems: MenuItem[];
   initialCategories: MenuCategory[];
+  embedded?: boolean;
 }
 
 type ItemForm = {
@@ -84,7 +85,12 @@ const NOTE_UI_TEXT = {
   pt: { title: 'Observacoes predefinidas', hint: 'Opcional. Estas observacoes aparecem como atalhos no pedido.' },
 } as const;
 
-export function MenuManager({ restaurantId, initialItems, initialCategories }: MenuManagerProps) {
+export function MenuManager({
+  restaurantId,
+  initialItems,
+  initialCategories,
+  embedded,
+}: MenuManagerProps) {
   const { lang } = useLanguage();
   const t = getMessages(lang).menuManager;
   const supabase = createClient();
@@ -95,6 +101,7 @@ export function MenuManager({ restaurantId, initialItems, initialCategories }: M
 
   const [selectedTopCategoryId, setSelectedTopCategoryId] = useState('');
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState('');
+  const [showAllMenuItemTypes, setShowAllMenuItemTypes] = useState(false);
 
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [expandedCategoryKeys, setExpandedCategoryKeys] = useState<string[]>([]);
@@ -137,6 +144,48 @@ export function MenuManager({ restaurantId, initialItems, initialCategories }: M
   const selectedSubId = selectedSubCategoryId && descendantCategories.some((c) => c.id === selectedSubCategoryId)
     ? selectedSubCategoryId
     : '';
+
+  const itemListFilterValue = useMemo(() => {
+    if (showAllMenuItemTypes) return 'all:menu';
+    if (!selectedTopId) return '';
+    return selectedSubId ? `cat:${selectedSubId}` : `top:${selectedTopId}`;
+  }, [showAllMenuItemTypes, selectedTopId, selectedSubId]);
+
+  const handleItemListFilterChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const v = e.target.value;
+      if (!v) return;
+      if (v === 'all:menu') {
+        setShowAllMenuItemTypes(true);
+        setSelectedSubCategoryId('');
+        setSelectedTopCategoryId('');
+        return;
+      }
+      if (v.startsWith('top:')) {
+        setShowAllMenuItemTypes(false);
+        setSelectedTopCategoryId(v.slice(4));
+        setSelectedSubCategoryId('');
+        return;
+      }
+      if (v.startsWith('cat:')) {
+        setShowAllMenuItemTypes(false);
+        const catId = v.slice(4);
+        let topId = '';
+        let cur: MenuCategory | undefined = categories.find((c) => c.id === catId);
+        while (cur) {
+          if (!cur.parent_id) {
+            topId = cur.id;
+            break;
+          }
+          const parentId = cur.parent_id;
+          cur = categories.find((c) => c.id === parentId);
+        }
+        setSelectedTopCategoryId(topId);
+        setSelectedSubCategoryId(catId);
+      }
+    },
+    [categories],
+  );
 
   const selectedCategory = categories.find((c) => c.id === selectedCategoryId) || null;
 
@@ -225,6 +274,20 @@ export function MenuManager({ restaurantId, initialItems, initialCategories }: M
     return c.name_pt;
   };
 
+  const getItemCategoryLine = (item: MenuItem): string => {
+    const id = item.category_id;
+    if (!id) return item.category?.trim() || t.uncategorized;
+    const chain: MenuCategory[] = [];
+    let cur: MenuCategory | undefined = categories.find((c) => c.id === id);
+    while (cur) {
+      chain.unshift(cur);
+      const parentId = cur.parent_id;
+      cur = parentId ? categories.find((c) => c.id === parentId) : undefined;
+    }
+    if (chain.length === 0) return item.category?.trim() || t.uncategorized;
+    return chain.map((c) => getCategoryLabel(c)).join(' · ');
+  };
+
   const selectedItems = useMemo(() => {
     const collectDescendants = (rootId: string): string[] => {
       const acc: string[] = [];
@@ -241,6 +304,7 @@ export function MenuManager({ restaurantId, initialItems, initialCategories }: M
     };
 
     return items.filter((item) => {
+      if (showAllMenuItemTypes) return true;
       if (!selectedTopId) return true;
       if (!item.category_id) return false;
       if (selectedSubId) return item.category_id === selectedSubId;
@@ -248,7 +312,7 @@ export function MenuManager({ restaurantId, initialItems, initialCategories }: M
       const descendants = collectDescendants(selectedTopId);
       return descendants.includes(item.category_id);
     });
-  }, [items, categories, selectedTopId, selectedSubId]);
+  }, [items, categories, selectedTopId, selectedSubId, showAllMenuItemTypes]);
 
   const resetImageUi = () => {
     setPendingImage(null);
@@ -264,7 +328,10 @@ export function MenuManager({ restaurantId, initialItems, initialCategories }: M
   };
 
   const openItemCreateModal = () => {
-    const defaultCategoryId = selectedSubId || selectedTopId || topCategories[0]?.id || '';
+    const defaultCategoryId =
+      showAllMenuItemTypes
+        ? (topCategories[0]?.id || '')
+        : (selectedSubId || selectedTopId || topCategories[0]?.id || '');
     setEditingItem(null);
     setItemForm({ ...defaultItemForm, category_id: defaultCategoryId });
     setItemError('');
@@ -654,15 +721,14 @@ export function MenuManager({ restaurantId, initialItems, initialCategories }: M
 
   return (
     <div className="w-full max-w-full overflow-x-hidden">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-        <div>
+      {!embedded && (
+        <div className="mb-6">
           <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
-          <p className="text-brand-text-muted text-sm mt-1">{t.total} {items.length} {t.items}</p>
+          <p className="text-brand-text-muted text-sm mt-1">
+            {t.total} {items.length} {t.items}
+          </p>
         </div>
-        {activeTab === 'items' ? (
-          <Button onClick={openItemCreateModal} className="w-full sm:w-auto shrink-0">+ {t.addItem}</Button>
-        ) : null}
-      </div>
+      )}
 
       <div className="flex gap-2 mb-6">
         <button
@@ -779,64 +845,72 @@ export function MenuManager({ restaurantId, initialItems, initialCategories }: M
         </div>
       ) : (
         <>
-          <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-            {topCategories.map((cat) => (
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 shrink-0">
+              {selectedItems.length > 0 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => batchAvailable(true)}
+                    className="text-[13px] text-green-400 hover:underline"
+                  >
+                    {t.allOn}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => batchAvailable(false)}
+                    className="text-[13px] text-red-400 hover:underline"
+                  >
+                    {t.allOff}
+                  </button>
+                  <span className="hidden sm:block h-3 w-px bg-brand-border shrink-0" aria-hidden />
+                </>
+              )}
               <button
-                key={cat.id}
-                onClick={() => {
-                  setSelectedTopCategoryId(cat.id);
-                  setSelectedSubCategoryId('');
-                }}
-                className={`shrink-0 px-5 py-2.5 rounded-xl text-sm transition-all ${
-                  selectedTopId === cat.id
-                    ? 'bg-brand-gold text-brand-bg font-semibold'
-                    : 'bg-brand-card border border-brand-border text-brand-text-muted hover:text-brand-text'
-                }`}
+                type="button"
+                onClick={openItemCreateModal}
+                className="text-[13px] font-medium text-brand-gold hover:underline"
               >
-                {getCategoryLabel(cat)}
+                + {t.addItem}
               </button>
-            ))}
+            </div>
+            {topCategories.length > 0 ? (
+              <div className="flex flex-row items-center gap-2 sm:gap-3 min-w-0 w-full sm:w-auto sm:max-w-2xl">
+                <label
+                  htmlFor="menu-item-list-filter"
+                  className="text-sm text-brand-text-muted font-medium shrink-0 sm:whitespace-nowrap"
+                >
+                  {t.filterDishList}
+                </label>
+                <select
+                  id="menu-item-list-filter"
+                  value={itemListFilterValue}
+                  onChange={handleItemListFilterChange}
+                  className="min-w-0 flex-1 sm:min-w-[12rem] sm:max-w-md bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+                >
+                  <option value="all:menu">{t.filterAllTypes}</option>
+                  {groupedCategoryOptions.map(({ top, children }) => (
+                    <optgroup key={top.id} label={getCategoryLabel(top)}>
+                      <option value={`top:${top.id}`}>
+                        {t.allInTopCategory.replace('{name}', getCategoryLabel(top))}
+                      </option>
+                      {children.map((c) => (
+                        <option key={c.id} value={`cat:${c.id}`}>
+                          {`${'\u00A0\u00A0'.repeat(Math.max(0, c.depth - 1))}${c.depth > 1 ? '▸ ' : ''}${getCategoryLabel(c)}`}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+            ) : null}
           </div>
 
-          {descendantCategories.length > 0 && (
-            <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
-              <button
-                onClick={() => setSelectedSubCategoryId('')}
-                className={`shrink-0 px-3 py-1.5 rounded-full text-[13px] border transition-colors ${
-                  selectedSubId === ''
-                    ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
-                    : 'bg-brand-card border-brand-border text-brand-text-muted'
-                }`}
-              >
-                {tabLabels.all}
-              </button>
-              {descendantCategories.map((sub) => (
-                <button
-                  key={sub.id}
-                  onClick={() => setSelectedSubCategoryId(sub.id)}
-                  className={`shrink-0 px-3 py-1.5 rounded-full text-[13px] border transition-colors ${
-                    selectedSubId === sub.id
-                      ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
-                      : 'bg-brand-card border-brand-border text-brand-text-muted hover:text-brand-text'
-                  }`}
-                >
-                  {`${'\u00A0\u00A0'.repeat(Math.max(0, sub.depth - 1))}${sub.depth > 1 ? '▸ ' : ''}${getCategoryLabel(sub)}`}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {selectedItems.length > 0 && (
-            <div className="flex gap-3 mb-4">
-              <button onClick={() => batchAvailable(true)} className="text-[13px] text-green-400 hover:underline">{t.allOn}</button>
-              <button onClick={() => batchAvailable(false)} className="text-[13px] text-red-400 hover:underline">{t.allOff}</button>
-            </div>
-          )}
-
           {selectedItems.length === 0 ? (
-            <div className="bg-brand-card border border-brand-border rounded-2xl p-12 text-center">
-              <p className="text-brand-text-muted mb-4">{t.empty}</p>
-              <Button onClick={openItemCreateModal} variant="outline">{t.addFirst}</Button>
+            <div className="bg-brand-card border border-brand-border rounded-2xl p-10 sm:p-12 text-center">
+              <p className="text-brand-text-muted text-sm">
+                {showAllMenuItemTypes ? t.emptyEntireMenu : t.empty}
+              </p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -861,6 +935,13 @@ export function MenuManager({ restaurantId, initialItems, initialCategories }: M
                         {item.name_zh && <span className="text-brand-text-muted text-[13px] shrink-0">({item.name_zh})</span>}
                       </div>
                       {item.description_pt && <p className="text-brand-text-muted text-[13px] mt-0.5 line-clamp-2">{item.description_pt}</p>}
+                      <p
+                        className={`text-[12px] text-brand-text-muted ${item.description_pt ? 'mt-1' : 'mt-0.5'} line-clamp-2`}
+                        title={getItemCategoryLine(item)}
+                      >
+                        <span className="text-brand-text-muted/75">{t.itemType}: </span>
+                        {getItemCategoryLine(item)}
+                      </p>
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 justify-between min-[480px]:justify-end sm:flex-nowrap sm:shrink-0 border-t border-brand-border pt-3 min-[480px]:border-0 min-[480px]:pt-0">

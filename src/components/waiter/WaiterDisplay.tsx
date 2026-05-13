@@ -42,6 +42,7 @@ function WaiterBoardInner({
           card.pending > 0 ||
           card.cooking > 0 ||
           card.ready > 0 ||
+          card.buffetLines.length > 0 ||
           card.voidableItems.length > 0 ||
           card.voidedItems.length > 0,
       )
@@ -53,9 +54,13 @@ function WaiterBoardInner({
       .map((table) => buildWaiterTableCard(table, orders))
       .sort((a, b) => {
         const aActive =
-          a.pending + a.cooking + a.ready + a.voidableItems.length + a.voidedItems.length > 0 ? 1 : 0;
+          a.pending + a.cooking + a.ready + a.buffetLines.length + a.voidableItems.length + a.voidedItems.length > 0
+            ? 1
+            : 0;
         const bActive =
-          b.pending + b.cooking + b.ready + b.voidableItems.length + b.voidedItems.length > 0 ? 1 : 0;
+          b.pending + b.cooking + b.ready + b.buffetLines.length + b.voidableItems.length + b.voidedItems.length > 0
+            ? 1
+            : 0;
         if (aActive !== bActive) return bActive - aActive;
         return a.table - b.table;
       });
@@ -120,7 +125,7 @@ function WaiterBoardInner({
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3 mb-4">
         {allTableCards.map((card) => {
           const isActive =
-            card.pending + card.cooking + card.ready + card.voidableItems.length + card.voidedItems.length > 0;
+            card.pending + card.cooking + card.ready + card.buffetLines.length + card.voidableItems.length + card.voidedItems.length > 0;
           return (
             <Link
               key={card.table}

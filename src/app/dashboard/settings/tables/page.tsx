@@ -1,15 +1,15 @@
 import { createClient } from '@/lib/supabase/server';
-import { SettingsForm } from '@/components/dashboard/SettingsForm';
+import { TablesManager } from '@/components/dashboard/TablesManager';
 
-export default async function SettingsPage() {
+export default async function SettingsTablesPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   const { data: restaurant } = await supabase
     .from('restaurants')
-    .select('*')
+    .select('id, slug, name')
     .eq('owner_id', user!.id)
     .single();
 
-  return <SettingsForm embedded restaurant={restaurant!} />;
+  return <TablesManager restaurant={restaurant!} />;
 }

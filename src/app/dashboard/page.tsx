@@ -64,6 +64,7 @@ export default async function DashboardPage() {
   const itemCount: Record<string, { name: string; count: number; emoji: string }> = {};
   orders.forEach((order) => {
     order.items.forEach((item) => {
+      if (item.kind === 'buffet_base') return;
       if (!itemCount[item.name_pt]) {
         itemCount[item.name_pt] = { name: item.name_pt, count: 0, emoji: item.emoji };
       }

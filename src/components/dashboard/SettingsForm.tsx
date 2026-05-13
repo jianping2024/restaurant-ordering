@@ -8,7 +8,13 @@ import type { Restaurant } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 
-export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
+export function SettingsForm({
+  restaurant,
+  embedded,
+}: {
+  restaurant: Restaurant;
+  embedded?: boolean;
+}) {
   const { lang } = useLanguage();
   const t = getMessages(lang).settings;
   const [form, setForm] = useState({
@@ -102,10 +108,12 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
-        <p className="text-brand-text-muted text-sm mt-1">{t.desc}</p>
-      </div>
+      {!embedded && (
+        <div className="mb-6">
+          <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
+          <p className="text-brand-text-muted text-sm mt-1">{t.desc}</p>
+        </div>
+      )}
 
       <div className="max-w-lg">
         <div className="bg-brand-card border border-brand-border rounded-2xl p-6">

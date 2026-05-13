@@ -62,14 +62,24 @@ export interface MenuCategory {
   created_at: string;
 }
 
+export type OrderItemKind = 'menu' | 'buffet_base';
+
 export interface OrderItem {
-  id: string;         // menu_item.id
+  id: string;         // menu_item.id, or synthetic e.g. buffet:<uuid>
   name: string;       // 显示名称（根据语言）
   name_pt: string;
   qty: number;
   note?: string;
   price: number;
   emoji: string;
+  /** 缺省视为普通菜品（加餐） */
+  kind?: OrderItemKind;
+  buffet_id?: string;
+  adult_count?: number;
+  child_count?: number;
+  adult_unit_price?: number;
+  child_unit_price?: number;
+  price_rule_id?: string;
   item_status?: OrderItemStatus; // 菜品级出餐状态
   batch_id?: string; // 同一餐次内的加单批次
   started_at?: string;
@@ -77,6 +87,51 @@ export interface OrderItem {
   added_at?: string;
   voided_at?: string;
   void_reason?: string;
+}
+
+export interface Buffet {
+  id: string;
+  restaurant_id: string;
+  name: string;
+  is_active: boolean;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BuffetTimeSlot {
+  id: string;
+  restaurant_id: string;
+  name: string;
+  start_time: string;
+  end_time: string;
+  weekdays: number[];
+  sort_order: number;
+  created_at: string;
+}
+
+export type BuffetCalendarKind = 'weekday' | 'weekend' | 'holiday' | 'special';
+
+export interface BuffetPriceRule {
+  id: string;
+  restaurant_id: string;
+  buffet_id: string;
+  time_slot_id: string;
+  calendar_kind: BuffetCalendarKind;
+  valid_from: string;
+  valid_to: string;
+  adult_price: number;
+  child_price: number;
+  priority: number;
+  is_active: boolean;
+  note: string | null;
+  created_at: string;
+}
+
+export interface BuffetCalendarOverride {
+  restaurant_id: string;
+  on_date: string;
+  kind: 'holiday' | 'special';
 }
 
 export interface Order {

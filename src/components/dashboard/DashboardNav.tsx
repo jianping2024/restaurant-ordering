@@ -14,9 +14,7 @@ const navItems = [
   { href: '/dashboard/unpaid-orders', key: 'unpaidOrders', icon: '🧾', exact: false },
   { href: '/dashboard/orders', key: 'orders', icon: '📋', exact: false },
   { href: '/dashboard/checkout', key: 'checkout', icon: '💳', exact: false },
-  { href: '/dashboard/menu', key: 'menu', icon: '🍽️', exact: false },
-  { href: '/dashboard/tables', key: 'tables', icon: '🪑', exact: false },
-  { href: '/dashboard/settings', key: 'settings', icon: '⚙️', exact: false },
+  { href: '/dashboard/settings', key: 'settings', icon: '⚙️', exact: false, matchPrefix: '/dashboard/settings' },
   { href: '/dashboard', key: 'overview', icon: '📊', exact: true },
 ] as const;
 
@@ -124,9 +122,12 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
       {/* 导航 */}
       <nav className="flex-1 px-4 py-4 space-y-1">
         {navItems.map(item => {
-          const active = item.exact
-            ? pathname === item.href
-            : pathname.startsWith(item.href);
+          const active =
+            'matchPrefix' in item && item.matchPrefix
+              ? pathname === item.matchPrefix || pathname.startsWith(`${item.matchPrefix}/`)
+              : item.exact
+                ? pathname === item.href
+                : pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}
@@ -154,15 +155,6 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
 
       {/* 快捷链接 */}
       <div className="px-4 py-3 border-t border-brand-border">
-        <a
-          href={`/${restaurant.slug}/menu?table=1`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 px-4 py-2 text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
-        >
-          <span>🔗</span>
-          {t.viewMenu}
-        </a>
         <a
           href={`/${restaurant.slug}/kitchen`}
           target="_blank"

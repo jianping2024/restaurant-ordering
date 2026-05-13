@@ -1,15 +1,16 @@
 import { createClient } from '@/lib/supabase/server';
-import { SettingsForm } from '@/components/dashboard/SettingsForm';
+import { BuffetSettingsManager } from '@/components/dashboard/BuffetSettingsManager';
 
-export default async function SettingsPage() {
+export default async function SettingsBuffetPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-
   const { data: restaurant } = await supabase
     .from('restaurants')
-    .select('*')
+    .select('id')
     .eq('owner_id', user!.id)
     .single();
 
-  return <SettingsForm embedded restaurant={restaurant!} />;
+  if (!restaurant) return null;
+
+  return <BuffetSettingsManager embedded restaurantId={restaurant.id} />;
 }

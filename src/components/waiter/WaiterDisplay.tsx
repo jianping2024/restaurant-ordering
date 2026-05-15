@@ -11,19 +11,20 @@ import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 
 interface Props {
-  restaurant: { id: string; name: string; slug: string; waiter_password: string };
-  initialOrders: Order[];
+  restaurant: { id: string; name: string; slug: string };
+  initialOrders?: Order[];
   initialCheckoutRequestedTables?: number[];
   isDemo?: boolean;
 }
 
 function WaiterBoardInner({
   restaurant,
-  initialOrders,
+  initialOrders = [],
   initialCheckoutRequestedTables = [],
   isDemo = false,
-  handleLock,
-}: Props & { handleLock: () => void }) {
+  handleSignOut,
+  exitLabel,
+}: Props & { handleSignOut: () => void; exitLabel: string }) {
   const { lang } = useLanguage();
   const t = WAITER_TEXT[lang];
   const { orders } = useWaiterOrders(
@@ -31,7 +32,6 @@ function WaiterBoardInner({
     initialOrders,
     initialCheckoutRequestedTables,
     true,
-    !!isDemo,
   );
 
   const tableCards = useMemo(() => {
@@ -102,10 +102,10 @@ function WaiterBoardInner({
           <LanguageSwitcher compact />
           <button
             type="button"
-            onClick={handleLock}
+            onClick={handleSignOut}
             className="text-[12px] px-2 py-1 rounded-md border border-brand-border text-brand-text-muted hover:text-brand-text transition-colors"
           >
-            {t.lock}
+            {exitLabel}
           </button>
         </div>
         <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
@@ -163,7 +163,9 @@ export function WaiterDisplay(props: Props) {
   const { restaurant, isDemo } = props;
   return (
     <WaiterAuthenticatedShell restaurant={restaurant} isDemo={isDemo}>
-      {({ handleLock }) => <WaiterBoardInner {...props} handleLock={handleLock} />}
+      {({ handleSignOut, exitLabel }) => (
+        <WaiterBoardInner {...props} handleSignOut={handleSignOut} exitLabel={exitLabel} />
+      )}
     </WaiterAuthenticatedShell>
   );
 }

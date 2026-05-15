@@ -11,6 +11,46 @@ export type SplitMode = 'even' | 'by_item' | 'custom';
 export type BillStatus = 'pending' | 'confirmed' | 'requested' | 'paid';
 export type Language = 'pt' | 'en' | 'zh';
 export type DishFeedbackVote = 'up' | 'down';
+export type PrintStationTicketLayout = 'kitchen' | 'beverage' | 'standard';
+export type StaffAccountRole = 'kitchen' | 'waiter';
+
+export interface RestaurantStaffAccount {
+  id: string;
+  restaurant_id: string;
+  user_id: string;
+  role: StaffAccountRole;
+  display_name: string;
+  login_name: string;
+  email: string;
+  created_at: string;
+  updated_at: string;
+  disabled_at: string | null;
+}
+
+export type PrintJobType = 'order_receipt' | 'station_ticket' | 'pre_bill';
+export type PrintJobStatus = 'pending' | 'processing' | 'done' | 'failed';
+
+/** Dashboard / API list row (no full payload). */
+export interface PrintJobSummary {
+  id: string;
+  type: PrintJobType;
+  status: PrintJobStatus;
+  created_at: string;
+  error_message: string | null;
+  /** From `payload.table_number` when present (e.g. station_ticket); otherwise null. */
+  table_number?: number | null;
+}
+
+export interface PrintStation {
+  id: string;
+  restaurant_id: string;
+  name_pt: string;
+  name_en?: string | null;
+  name_zh?: string | null;
+  sort_order: number;
+  ticket_layout: PrintStationTicketLayout;
+  created_at: string;
+}
 
 export interface Restaurant {
   id: string;
@@ -23,10 +63,19 @@ export interface Restaurant {
   geo_latitude?: number | null;
   geo_longitude?: number | null;
   plan: Plan;
-  kitchen_password: string;
-  waiter_password: string;
+  /** bcrypt hash; never send to browser */
+  kitchen_password?: string;
+  waiter_password?: string;
+  /** Ticket / station_ticket payload locale (pt = pt-PT semantics); default pt */
+  print_locale?: 'zh' | 'en' | 'pt';
   created_at: string;
 }
+
+/** Owner settings form (password hashes excluded). */
+export type RestaurantSettingsProfile = Pick<
+  Restaurant,
+  'id' | 'name' | 'slug' | 'address' | 'phone' | 'geo_latitude' | 'geo_longitude'
+>;
 
 export interface MenuItem {
   id: string;
@@ -40,6 +89,7 @@ export interface MenuItem {
   price: number;
   category: Category;
   category_id?: string | null;
+  print_station_id?: string | null;
   category_en?: Category | null;
   category_zh?: Category | null;
   emoji: string;
@@ -60,6 +110,7 @@ export interface MenuCategory {
   sort_order: number;
   active: boolean;
   created_at: string;
+  print_station_id?: string | null;
 }
 
 export type OrderItemKind = 'menu' | 'buffet_base';
@@ -68,6 +119,8 @@ export interface OrderItem {
   id: string;         // menu_item.id, or synthetic e.g. buffet:<uuid>
   name: string;       // 显示名称（根据语言）
   name_pt: string;
+  name_en?: string;
+  name_zh?: string;
   qty: number;
   note?: string;
   price: number;

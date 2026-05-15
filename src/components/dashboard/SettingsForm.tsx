@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import type { Restaurant } from '@/types';
+import type { RestaurantSettingsProfile } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 
@@ -12,7 +11,7 @@ export function SettingsForm({
   restaurant,
   embedded,
 }: {
-  restaurant: Restaurant;
+  restaurant: RestaurantSettingsProfile;
   embedded?: boolean;
 }) {
   const { lang } = useLanguage();
@@ -23,14 +22,10 @@ export function SettingsForm({
     phone: restaurant.phone || '',
     geo_latitude: restaurant.geo_latitude != null ? String(restaurant.geo_latitude) : '',
     geo_longitude: restaurant.geo_longitude != null ? String(restaurant.geo_longitude) : '',
-    kitchen_password: restaurant.kitchen_password,
-    waiter_password: restaurant.waiter_password || '',
   });
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-
-  const supabase = createClient();
 
   const getCurrentPositionWithFallback = async () => {
     const attempt = (options: PositionOptions) =>
@@ -59,14 +54,6 @@ export function SettingsForm({
     setSuccess(false);
 
     if (!form.name.trim()) { setError(t.nameEmpty); return; }
-    if (!/^\d{4}$/.test(form.kitchen_password)) {
-      setError(t.kitchenPwd);
-      return;
-    }
-    if (!/^\d{4}$/.test(form.waiter_password)) {
-      setError(t.waiterPwd);
-      return;
-    }
     const hasLat = form.geo_latitude.trim() !== '';
     const hasLng = form.geo_longitude.trim() !== '';
     if (hasLat !== hasLng) {
@@ -83,20 +70,28 @@ export function SettingsForm({
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('restaurants')
-        .update({
-          name: form.name.trim(),
-          address: form.address.trim() || null,
-          phone: form.phone.trim() || null,
-          geo_latitude: latitude,
-          geo_longitude: longitude,
-          kitchen_password: form.kitchen_password,
-          waiter_password: form.waiter_password,
-        })
-        .eq('id', restaurant.id);
+      const payload: Record<string, string> = {
+        name: form.name.trim(),
+        address: form.address.trim(),
+        phone: form.phone.trim(),
+        geo_latitude: form.geo_latitude.trim(),
+        geo_longitude: form.geo_longitude.trim(),
+      };
+      const res = await fetch('/api/restaurant/settings', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-      if (error) throw error;
+      if (!res.ok) {
+        const json = (await res.json().catch(() => ({}))) as { error?: string };
+        if (json.error === 'migration_required') setError(t.migrationRequired);
+        else if (json.error === 'geo_invalid') setError(t.geoInvalid);
+        else setError(t.saveFail);
+        return;
+      }
+
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch {
@@ -184,36 +179,6 @@ export function SettingsForm({
               >
                 {t.useCurrentLocation}
               </button>
-            </div>
-
-            <div>
-              <Input
-                label={t.kitchenLabel}
-                type="text"
-                maxLength={4}
-                pattern="\d{4}"
-                value={form.kitchen_password}
-                onChange={e => setForm(f => ({ ...f, kitchen_password: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
-                placeholder="1234"
-              />
-              <p className="text-[13px] text-brand-text-muted mt-1">
-                {t.kitchenTip}
-              </p>
-            </div>
-
-            <div>
-              <Input
-                label={t.waiterLabel}
-                type="text"
-                maxLength={4}
-                pattern="\d{4}"
-                value={form.waiter_password}
-                onChange={e => setForm(f => ({ ...f, waiter_password: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
-                placeholder="5678"
-              />
-              <p className="text-[13px] text-brand-text-muted mt-1">
-                {t.waiterTip}
-              </p>
             </div>
 
             {error && (

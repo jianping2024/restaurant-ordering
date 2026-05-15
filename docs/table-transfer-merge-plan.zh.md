@@ -94,7 +94,7 @@
 
 ### 后厨 / 服务员看板上的订单范围
 
-- 两页在通过密码进入后，会订阅 Supabase Realtime（`orders`、`table_sessions`），并在进入时立即拉取最新数据。
+- 两页在**员工完成 Supabase Auth 登录并进入看板后**，会订阅 Supabase Realtime（`orders`、`table_sessions`），并在进入时立即拉取最新数据。
 - **仅展示仍挂在活跃餐次上的订单**：`table_sessions.status` 为 `open` 或 `billing` 时，对应 `orders.session_id` 的订单会出现在看板；`session_id` 为空时视为兼容旧数据，仍会显示。
 - 餐次一旦关闭（结账、并台来源桌、服务员关台等），这些订单不再满足「活跃会话」条件，**从后厨与服务员看板消失**，无需整页手动刷新（依赖订阅回调或再次进页拉数）。
 

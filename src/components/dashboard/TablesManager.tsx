@@ -70,8 +70,8 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
   // 生成员工入口二维码（厨房 + 服务员观察）
   useEffect(() => {
     const generateStaffQr = async () => {
-      const kitchenUrl = `${baseUrl}/${restaurant.slug}/kitchen`;
-      const waiterUrl = `${baseUrl}/${restaurant.slug}/waiter`;
+      const kitchenUrl = `${baseUrl}/${restaurant.slug}/staff/login`;
+      const waiterUrl = `${baseUrl}/${restaurant.slug}/staff/login`;
       const [kitchen, waiter] = await Promise.all([
         QRCode.toDataURL(kitchenUrl, {
           width: 220,
@@ -299,7 +299,7 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
             ) : (
               <div className="w-40 h-40 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
             )}
-            <p className="text-brand-text-muted text-[13px] mb-2 truncate">/{restaurant.slug}/kitchen</p>
+            <p className="text-brand-text-muted text-[13px] mb-2 truncate">/{restaurant.slug}/staff/login</p>
             <div className="flex items-center justify-center gap-3">
               <button
                 onClick={() => downloadStaffQR('kitchen')}
@@ -309,7 +309,7 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
                 {t.downloadKitchen}
               </button>
               <a
-                href={`${baseUrl}/${restaurant.slug}/kitchen`}
+                href={`${baseUrl}/${restaurant.slug}/staff/login`}
                 target="_blank"
                 rel="noreferrer"
                 className="text-[13px] text-brand-gold hover:underline"
@@ -326,7 +326,7 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
             ) : (
               <div className="w-40 h-40 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
             )}
-            <p className="text-brand-text-muted text-[13px] mb-2 truncate">/{restaurant.slug}/waiter</p>
+            <p className="text-brand-text-muted text-[13px] mb-2 truncate">/{restaurant.slug}/staff/login</p>
             <div className="flex items-center justify-center gap-3">
               <button
                 onClick={() => downloadStaffQR('waiter')}
@@ -336,7 +336,7 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
                 {t.downloadWaiter}
               </button>
               <a
-                href={`${baseUrl}/${restaurant.slug}/waiter`}
+                href={`${baseUrl}/${restaurant.slug}/staff/login`}
                 target="_blank"
                 rel="noreferrer"
                 className="text-[13px] text-brand-gold hover:underline"

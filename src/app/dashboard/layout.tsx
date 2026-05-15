@@ -18,7 +18,7 @@ export default async function DashboardLayout({
   // 获取餐厅信息
   const { data: restaurant } = await supabase
     .from('restaurants')
-    .select('*')
+    .select('id, name, slug, owner_id, logo_url, address, phone, geo_latitude, geo_longitude, plan, print_locale, created_at')
     .eq('owner_id', user.id)
     .single();
 

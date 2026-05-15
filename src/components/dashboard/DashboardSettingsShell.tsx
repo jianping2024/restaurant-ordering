@@ -12,8 +12,11 @@ export function DashboardSettingsShell({ children }: { children: React.ReactNode
 
   const isProfile =
     pathname === '/dashboard/settings' || pathname === '/dashboard/settings/';
+  const isStaff = pathname.startsWith('/dashboard/settings/staff');
   const isTables = pathname.startsWith('/dashboard/settings/tables');
   const isMenu = pathname.startsWith('/dashboard/settings/menu');
+  const isPrintStations = pathname.startsWith('/dashboard/settings/print-stations');
+  const isPrintAssistant = pathname.startsWith('/dashboard/settings/print-assistant');
   const isBuffet = pathname.startsWith('/dashboard/settings/buffet');
 
   const tabClass = (active: boolean) =>
@@ -34,14 +37,23 @@ export function DashboardSettingsShell({ children }: { children: React.ReactNode
         <Link href="/dashboard/settings" className={tabClass(isProfile)}>
           {hub.tabProfile}
         </Link>
+        <Link href="/dashboard/settings/staff" className={tabClass(isStaff)}>
+          {hub.tabStaff}
+        </Link>
         <Link href="/dashboard/settings/tables" className={tabClass(isTables)}>
           {hub.tabTables}
         </Link>
         <Link href="/dashboard/settings/menu" className={tabClass(isMenu)}>
           {hub.tabMenu}
         </Link>
+        <Link href="/dashboard/settings/print-stations" className={tabClass(isPrintStations)}>
+          {hub.tabPrintStations}
+        </Link>
         <Link href="/dashboard/settings/buffet" className={tabClass(isBuffet)}>
           {hub.tabBuffet}
+        </Link>
+        <Link href="/dashboard/settings/print-assistant" className={tabClass(isPrintAssistant)}>
+          {hub.tabPrintAssistant}
         </Link>
       </div>
 

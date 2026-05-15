@@ -4,6 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0 --port 3000",
+    "print": "bash apps/print-agent/dev/print-dev.sh rebuild",
+    "printstop": "bash apps/print-agent/dev/print-dev.sh down",
+    "printlog": "bash apps/print-agent/dev/print-dev.sh logs",
+    "printagent": "bash apps/print-agent/dev/print-dev.sh agent",
+    "print:dev": "bash apps/print-agent/dev/print-dev.sh",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -13,6 +18,7 @@
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.0",
     "@types/qrcode": "^1.5.6",
+    "bcryptjs": "^3.0.3",
     "browser-image-compression": "^2.0.2",
     "date-fns": "^4.1.0",
     "next": "14.2.35",
@@ -25,6 +31,7 @@
     "react-select": "^5.10.2"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

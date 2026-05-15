@@ -11,6 +11,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages } from '@/lib/i18n/messages';
 import { showToast } from '@/components/ui/Toast';
+import { normalizeDecimalInput as normalizeAmountInput } from '@/lib/number-input';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -31,23 +32,6 @@ interface PersonAmount {
 interface SplitPersonSlot {
   id: string;
   name: string;
-}
-
-function normalizeAmountInput(raw: string): string {
-  const cleaned = raw.replace(/[^\d.]/g, '');
-  if (!cleaned) return '';
-  const hasDot = cleaned.includes('.');
-  const [intRaw = '', ...decimalParts] = cleaned.split('.');
-  const decimalRaw = decimalParts.join('').slice(0, 2);
-
-  let normalizedInt = intRaw || '0';
-  if (normalizedInt.length > 1) {
-    normalizedInt = normalizedInt.replace(/^0+/, '');
-    if (!normalizedInt) normalizedInt = '0';
-  }
-
-  if (!hasDot) return normalizedInt;
-  return `${normalizedInt}.${decimalRaw}`;
 }
 
 const FEEDBACK_REASON_KEYS = ['taste', 'temp', 'slow', 'mismatch', 'other'] as const;

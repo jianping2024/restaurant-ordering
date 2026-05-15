@@ -16,7 +16,7 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
 
   // 查询餐厅
   const { data: restaurant } = await supabase
-    .from('restaurants')
+    .from('restaurants_public')
     .select('id, name, slug, logo_url, geo_latitude, geo_longitude')
     .eq('slug', slug)
     .single();
@@ -98,7 +98,7 @@ export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
   const supabase = await createClient();
   const { data: restaurant } = await supabase
-    .from('restaurants')
+    .from('restaurants_public')
     .select('name')
     .eq('slug', slug)
     .single();

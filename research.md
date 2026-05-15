@@ -5,23 +5,36 @@
 ## 1. 系统角色与入口
 
 - **顾客端**：`/[slug]/menu?table=N`（扫码进入）
-- **厨房端**：`/[slug]/kitchen`（4位厨房密码）
-- **服务员观察端**：`/[slug]/waiter`（4位服务员密码）
-- **店主后台**：`/dashboard/*`（菜单、桌位、订单、设置）
+- **厨房端**：`/[slug]/kitchen` — **店主**（同一会话已登录 `/dashboard`）或 **厨房员工**（`/{slug}/staff/login` 等）可进入；未满足则跳转员工登录。Realtime 见下。
+- **服务员观察端**：`/[slug]/waiter` — **店主**或 **`waiter` 角色员工**，规则同上。
+- **员工登录**（已实现）：
+  - **店内入口**：`/[slug]/staff/login` — 可只填 **登录名 + 密码**（服务端拼成 **`{login_name}@mesa.in`**），或填完整邮箱；URL 中的 `slug` 用于校验账号属于本店。
+  - **全局入口**：`/auth/staff/login` — 填 **`{login_name}@mesa.in` + 密码**，不选店，凭邮箱解析餐厅与角色。
+  - **首次或重置密码后**：`/auth/staff/change-password` 强制改密后再进入厨房/服务员页。
+- **店主后台**：`/dashboard/*`；**设置 Hub**（`/dashboard/settings`）含 **基本资料、员工管理、桌位、菜单、出品档口、自助餐、打印助手** 等 Tab。**员工管理**：`/dashboard/settings/staff`（`StaffAccountsManager` — 创建/停用/删除/重置密码等）。
+
+### 1.1 平台管理员 vs 店内角色（勿混为一谈）
+
+| 维度 | **平台管理员** | **店内 / 租户侧** |
+|------|------------------|-------------------|
+| **是谁** | 掌握部署环境变量 **`ADMIN_BOOTSTRAP_SECRET`** 的运营/技术人员；通过 `/auth/admin/register` 调受控接口 | **店主**：`restaurants.owner_id`；**厨房 / 服务员**：**独立 Supabase Auth 账号**，合成邮箱 **`{login_name}@mesa.in`**（全平台 `login_name` 唯一），见 [`docs/staff-accounts-plan.md`](docs/staff-accounts-plan.md) |
+| **数据归属** | 不天然属于某一家 `restaurants`；接口用 **service role** 代建用户与餐厅行 | 所有 `/dashboard` 与 RLS 以 **`owner_id = auth.uid()`** 绑定「本店」；员工以 **`restaurant_staff_accounts`** 绑定 **`restaurant_id` + `user_id`** |
+
+**设计原则**：平台级能力（开新店、未来 SaaS 计费/审计等）与租户内能力（菜单、订单、桌位）应 **分接口、分环境变量、分文档与 UI 入口**，避免混用同一套登录态或同一页配置。
 
 ## 2. 多语言（zh/en/pt）
 
 - 采用全局语言方案（`LanguageProvider` + `messages` 字典）。
 - 后台与前台核心页面支持中文、英文、葡语切换。
-- 新增的员工二维码管理区块已接入国际化，不再使用硬编码文案。
+- 桌位页员工入口文案、员工设置等已接入国际化。
 
-## 3. 餐厅与密码设置
+## 3. 餐厅与密码 / 员工账号
 
 - 餐厅在 `restaurants` 表中管理。
-- 已拆分两套独立访问密码：
-  - `kitchen_password`：厨房入口密码
-  - `waiter_password`：服务员观察页密码
-- 设置页支持分别维护两套密码，并做 4 位数字校验。
+- **（规划中）** 注册 / 开建新门店须采集 **`country_code`**（ISO 3166-1 alpha-2，如 `PT` / `CN`）：写入 `restaurants` 时 **必填**（含店主 onboarding 与平台管理员代建餐厅）；**门店所在地等**，**不**推导小票语言。票面默认语言用 **`print_locale`**（`zh` / `en` / `pt`；**默认 `pt` = 欧洲葡萄牙语 `pt-PT` 语义，非 `pt-BR`**），见 `docs/print-agent-plan.md` **「默认打印语言 `print_locale`」**。
+- **共享 PIN（4 位厨房/服务员口令）**：**产品上与 UI 已下线** — 设置 Hub「基本资料」中 **不再维护** `kitchen_password` / `waiter_password`；`/api/restaurants/[slug]/staff/session` 等 **PIN 会话路径返回 410**，厨房/服务员页 **仅认 Supabase Auth 员工会话**。
+- **数据库**：历史迁移中可能仍存在 `kitchen_password` / `waiter_password` 等列；**可选后续**在迁移中正式 `drop` 列并清理遗留 helper（见 [`docs/staff-accounts-plan.md`](docs/staff-accounts-plan.md) 迁移清单）。
+- **员工账号**：表 **`restaurant_staff_accounts`** + Supabase **`auth.users`**；店主在 **`/dashboard/settings/staff`** 维护；登录邮箱格式 **`{login_name}@mesa.in`**（见实施计划）。
 
 ## 4. 桌台会话（Table Session）模型
 
@@ -79,26 +92,23 @@
   - `table_sessions.status -> closed`
 - 关台后，顾客若刷新账单页会被服务端强制跳转回点单页（`/menu?table=N`）。
 
-## 10. 员工二维码管理（后台桌位页）
+## 10. 员工入口与桌位二维码（后台桌位页）
 
 - 桌位二维码：`/[slug]/menu?table=N`
-- 员工二维码：
-  - 厨房入口：`/[slug]/kitchen`
-  - 服务员观察页：`/[slug]/waiter`
+- **员工统一登录入口（二维码打印）**：`/[slug]/staff/login`（与 `src/components/dashboard/TablesManager.tsx` 中链接一致）。
+- 厨房 / 服务员 **业务页** `/[slug]/kitchen`、`/[slug]/waiter`：**需已由上述入口完成员工登录**，未登录会跳转回 `staff/login`。
 - 支持下载二维码，已接入三语文案。
+- **打印队列（出品联）**：菜单提交走 **`POST /api/restaurants/[slug]/orders/append`**（服务端地理围栏 + 返回 **`enqueue_token`**），再经 **`POST .../station-tickets/auto`**（校验 token）入队 **`print_jobs`**。店主在 **餐厅设置 → 打印助手** 排障；本地 **print-agent** 拉取打印。档口：**`COALESCE(菜品档口, 分类档口)`**，分类沿 **`parent_id` 继承**；无档口不入队（服务员代点会提示）。**服务员侧出品入队**以 **已认证员工** 调用 API 为准（见各路由实现与 [`docs/print-agent-plan.md`](docs/print-agent-plan.md)）。
 
 ## 11. 已知设计取向（当前版本）
 
 - 采用“**同一餐次单订单 + 批次追加**”而非“每次加单新订单”。
 - 采用“**菜品级出餐**”而非“整单一次性完成”。
 - 采用“**呼叫结账后由员工关台**”而非顾客端自动结束桌台。
-- 采用“**厨房/服务员密码分离**”提高权限隔离与操作安全性。
+- 采用「**按员工账号（Supabase Auth）+ 角色**」替代「**整店共享 4 位 PIN**」，便于设备独立登录与审计。
 
-## 12. 后续待办（已确认方向）
+## 12. 后续可选 / 文档级待办
 
-- 无邮箱员工账号体系（owner/kitchen/waiter）：
-  - `staff_accounts` 表
-  - `/staff/login` 与首次改密
-  - 店主管理员工账号（创建/禁用/重置/改角色）
-  - 中间件与页面级 RBAC（替代共享4位密码方案）
-
+- **数据库**：在确认无依赖后 **删除** `restaurants.kitchen_password` / `waiter_password`（及版本列等）并收缩 `staff-password` 类 helper；见 [`docs/staff-accounts-plan.md`](docs/staff-accounts-plan.md)。
+- **安全**：按需进一步 **收紧 anon RLS**（计划中同上）。
+- 其它产品文档（如 `README.md`、本文件）需随版本迭代核对，避免按过时口径验收。

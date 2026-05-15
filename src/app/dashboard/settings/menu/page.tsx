@@ -25,12 +25,20 @@ export default async function SettingsMenuPage() {
     .eq('active', true)
     .order('sort_order');
 
+  const { data: printStations } = await supabase
+    .from('print_stations')
+    .select('*')
+    .eq('restaurant_id', restaurant!.id)
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: true });
+
   return (
     <MenuManager
       embedded
       restaurantId={restaurant!.id}
       initialItems={menuItems || []}
       initialCategories={menuCategories || []}
+      initialPrintStations={printStations ?? []}
     />
   );
 }

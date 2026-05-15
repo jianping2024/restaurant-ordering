@@ -1,0 +1,66 @@
+import { NextResponse } from 'next/server';
+import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
+
+export const runtime = 'nodejs';
+
+export async function PATCH(req: Request) {
+  const auth = await getOwnerRestaurantId();
+  if ('error' in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+  }
+
+  const name = typeof body.name === 'string' ? body.name.trim() : '';
+  if (!name) {
+    return NextResponse.json({ error: 'name_required' }, { status: 400 });
+  }
+
+  const hasLat = typeof body.geo_latitude === 'string' && body.geo_latitude.trim() !== '';
+  const hasLng = typeof body.geo_longitude === 'string' && body.geo_longitude.trim() !== '';
+  if (hasLat !== hasLng) {
+    return NextResponse.json({ error: 'geo_invalid' }, { status: 400 });
+  }
+
+  const latitude = hasLat ? Number(body.geo_latitude) : null;
+  const longitude = hasLng ? Number(body.geo_longitude) : null;
+  if (
+    (latitude != null && (!Number.isFinite(latitude) || latitude < -90 || latitude > 90)) ||
+    (longitude != null && (!Number.isFinite(longitude) || longitude < -180 || longitude > 180))
+  ) {
+    return NextResponse.json({ error: 'geo_invalid' }, { status: 400 });
+  }
+
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
+  }
+
+  const update = {
+    name,
+    address: typeof body.address === 'string' ? body.address.trim() || null : null,
+    phone: typeof body.phone === 'string' ? body.phone.trim() || null : null,
+    geo_latitude: latitude,
+    geo_longitude: longitude,
+  };
+
+  const { error } = await admin.from('restaurants').update(update).eq('id', auth.restaurantId);
+
+  if (error) {
+    if (isDbMigrationRequiredError(error)) {
+      return NextResponse.json({ error: 'migration_required' }, { status: 503 });
+    }
+    return NextResponse.json({ error: 'update_failed', message: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}

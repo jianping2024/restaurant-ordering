@@ -10,7 +10,13 @@ export interface WaiterTableCardData {
   readyItems: string[];
   buffetLines: string[];
   voidedItems: string[];
-  voidableItems: Array<{ orderId: string; itemIdx: number; label: string; status: 'pending' | 'cooking' }>;
+  voidableItems: Array<{
+    orderId: string;
+    itemIdx: number;
+    label: string;
+    status: 'pending' | 'cooking';
+    sortAt?: string;
+  }>;
   updatedAt: string;
 }
 
@@ -62,15 +68,31 @@ export function buildWaiterTableCard(tableNumber: number, orders: Order[]): Wait
         if (isBuffetBaseItem(item)) return;
         const status = normalizeOrderItemStatus(item, order.status) as 'pending' | 'cooking' | 'done' | 'voided';
         if (status === 'pending' || status === 'cooking') {
+          const sortAt =
+            item.added_at || order.updated_at || order.created_at || '';
           current.voidableItems.push({
             orderId: order.id,
             itemIdx,
             status,
             label: `${item.emoji} ${item.name || item.name_pt} × ${item.qty}`,
+            sortAt,
           });
         }
       });
     });
 
-  return current;
+  current.voidableItems.sort((a, b) => {
+    if (!a.sortAt && !b.sortAt) return 0;
+    if (!a.sortAt) return 1;
+    if (!b.sortAt) return -1;
+    return b.sortAt.localeCompare(a.sortAt);
+  });
+
+  return {
+    ...current,
+    voidableItems: current.voidableItems.map(({ sortAt, ...item }) => {
+      void sortAt;
+      return item;
+    }),
+  };
 }

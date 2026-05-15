@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { Order, OrderItemStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -9,10 +10,16 @@ import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { deriveOrderStatusFromItems, itemsEveryVoided, normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
+import { resolveStaffSession } from '@/lib/staff-auth-client';
+import {
+  fetchKitchenBoardClient,
+  fetchKitchenDoneOrdersClient,
+} from '@/lib/staff-board-client';
+import { useRestaurantRealtimeRefresh } from '@/lib/use-restaurant-realtime-refresh';
 
 interface Props {
-  restaurant: { id: string; name: string; slug: string; kitchen_password: string };
-  initialOrders: Order[];
+  restaurant: { id: string; name: string; slug: string };
+  initialOrders?: Order[];
   /** 开台 / 结账中（table_sessions open|billing）的桌号，用于无待备餐单时在厨房占位 */
   initialActiveTables?: number[];
   isDemo?: boolean;
@@ -69,51 +76,27 @@ function playBeep() {
   }
 }
 
-async function loadKitchenBoard(
-  supabase: ReturnType<typeof createClient>,
-  restaurantId: string,
-): Promise<{ orders: Order[]; activeTables: number[] }> {
-  const [ordersRes, sessionsRes] = await Promise.all([
-    supabase
-      .from('orders')
-      .select('*')
-      .eq('restaurant_id', restaurantId)
-      .in('status', ['pending', 'cooking'])
-      .order('created_at', { ascending: true }),
-    supabase
-      .from('table_sessions')
-      .select('id, table_number')
-      .eq('restaurant_id', restaurantId)
-      .in('status', ['open', 'billing']),
-  ]);
-  const sessions = (sessionsRes.data || []) as { id: string; table_number: number }[];
-  const activeIds = new Set(sessions.map((r) => r.id));
-  const rawOrders = (ordersRes.data || []) as Order[];
-  const orders = rawOrders.filter((o) => !o.session_id || activeIds.has(o.session_id));
-  const activeTables = Array.from(new Set(sessions.map((r) => r.table_number))).sort((a, b) => a - b);
-  return { orders, activeTables };
-}
-
 export function KitchenDisplay({
   restaurant,
-  initialOrders,
+  initialOrders = [],
   initialActiveTables = [],
   isDemo = false,
 }: Props) {
+  const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).kitchen;
   const demoText = KITCHEN_DEMO_TEXT[lang];
   const locale = UI_LOCALE_BY_LANG[lang];
   const [authenticated, setAuthenticated] = useState(isDemo);
-  const [password, setPassword] = useState('');
-  const [pwError, setPwError] = useState(false);
+  const [authChecking, setAuthChecking] = useState(!isDemo);
+  const [asOwner, setAsOwner] = useState(false);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [activeTables, setActiveTables] = useState<number[]>(initialActiveTables);
   const [doneOrders, setDoneOrders] = useState<Order[]>([]);
   const [showDone, setShowDone] = useState(false);
   const [updateConflict, setUpdateConflict] = useState(false);
-  const prevOrderIds = useRef<Set<string>>(new Set(initialOrders.map(o => o.id)));
-  const supabase = createClient();
+  const prevOrderIds = useRef<Set<string>>(new Set(initialOrders.map((o) => o.id)));
+  const supabase = createClient(); // demo realtime only
 
   const idleTableCount = useMemo(() => {
     const busy = new Set(orders.map((o) => o.table_number));
@@ -147,16 +130,43 @@ export function KitchenDisplay({
     return cols;
   }, [orders, activeTables]);
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === restaurant.kitchen_password) {
-      setAuthenticated(true);
-      setPwError(false);
-    } else {
-      setPwError(true);
-      setPassword('');
-    }
-  };
+  useEffect(() => {
+    if (isDemo) return;
+    let cancelled = false;
+    void resolveStaffSession(restaurant.slug, 'kitchen').then((state) => {
+      if (cancelled) return;
+      if (state.status === 'ok') {
+        setAsOwner(!!state.asOwner);
+        setAuthenticated(true);
+        setAuthChecking(false);
+        return;
+      }
+      if (state.status === 'needs_password_change') {
+        router.replace('/auth/staff/change-password');
+        return;
+      }
+      router.replace(`/${restaurant.slug}/staff/login`);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isDemo, restaurant.slug, router]);
+
+  const refreshKitchenBoard = useCallback(async () => {
+    const [board, doneOrders] = await Promise.all([
+      fetchKitchenBoardClient(restaurant.id),
+      fetchKitchenDoneOrdersClient(restaurant.id),
+    ]);
+    board.orders.forEach((o) => {
+      if (!prevOrderIds.current.has(o.id)) {
+        playBeep();
+        prevOrderIds.current.add(o.id);
+      }
+    });
+    setOrders(board.orders);
+    setActiveTables(board.activeTables);
+    setDoneOrders(doneOrders);
+  }, [restaurant.id]);
 
   // 更新菜品级状态，并同步订单总状态（pending/cooking/done）
   const updateItemStatus = async (order: Order, itemIdx: number, nextStatus: OrderItemStatus) => {
@@ -172,145 +182,67 @@ export function KitchenDisplay({
       };
     });
 
-    const nextOrderStatus = deriveOrderStatusFromItems(nextItems);
+    if (isDemo) {
+      const nextOrderStatus = deriveOrderStatusFromItems(nextItems);
+      const { error } = await supabase
+        .from('orders')
+        .update({ items: nextItems, status: nextOrderStatus })
+        .eq('id', order.id)
+        .eq('updated_at', order.updated_at);
+      if (!error) {
+        setOrders((prev) =>
+          prev.map((o) =>
+            o.id === order.id
+              ? { ...o, items: nextItems, status: nextOrderStatus, updated_at: new Date().toISOString() }
+              : o,
+          ),
+        );
+        return;
+      }
+    }
 
-    const { error } = await supabase
-      .from('orders')
-      .update({
-        items: nextItems,
-        status: nextOrderStatus,
-      })
-      .eq('id', order.id)
-      .eq('updated_at', order.updated_at);
+    const res = await fetch(
+      `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/kitchen/orders/${order.id}`,
+      {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: nextItems, updated_at: order.updated_at }),
+      },
+    );
 
-    if (!error) return;
-
-    const isConflict =
-      error.code === 'PGRST116' ||
-      error.message.toLowerCase().includes('0 rows') ||
-      error.message.toLowerCase().includes('not found');
-
-    if (isConflict) {
-      setUpdateConflict(true);
-      const latest = await loadKitchenBoard(supabase, restaurant.id);
-      setOrders(latest.orders);
-      setActiveTables(latest.activeTables);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.order) {
+        setOrders((prev) => prev.map((o) => (o.id === order.id ? (data.order as Order) : o)));
+      }
       return;
     }
 
-    throw error;
+    if (res.status === 409) {
+      setUpdateConflict(true);
+      await refreshKitchenBoard();
+      return;
+    }
+
+    throw new Error('kitchen_update_failed');
   };
 
-  // Supabase Realtime 订阅
-  useEffect(() => {
-    if (!authenticated || isDemo) return;
+  useRestaurantRealtimeRefresh(
+    supabase,
+    restaurant.id,
+    `kitchen-${restaurant.id}`,
+    authenticated,
+    refreshKitchenBoard,
+  );
 
-    // 加载已完成订单
-    const refreshKitchenBoard = async () => {
-      const [board, doneRes] = await Promise.all([
-        loadKitchenBoard(supabase, restaurant.id),
-        supabase
-          .from('orders')
-          .select('*')
-          .eq('restaurant_id', restaurant.id)
-          .eq('status', 'done')
-          .order('updated_at', { ascending: false })
-          .limit(20),
-      ]);
-      board.orders.forEach((o) => {
-        if (!prevOrderIds.current.has(o.id)) {
-          playBeep();
-          prevOrderIds.current.add(o.id);
-        }
-      });
-      setOrders(board.orders);
-      setActiveTables(board.activeTables);
-      setDoneOrders(doneRes.data || []);
-    };
-
-    void refreshKitchenBoard();
-
-    const channel = supabase
-      .channel(`kitchen-${restaurant.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders',
-          filter: `restaurant_id=eq.${restaurant.id}`,
-        },
-        () => {
-          void refreshKitchenBoard();
-        },
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'table_sessions',
-          filter: `restaurant_id=eq.${restaurant.id}`,
-        },
-        () => {
-          void refreshKitchenBoard();
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authenticated, isDemo, restaurant.id]);
-
-  // 密码输入页
   if (!authenticated) {
     return (
-      <div className="min-h-screen bg-brand-bg flex items-center justify-center p-4">
-        <div className="bg-brand-card border border-brand-border rounded-2xl p-8 w-full max-w-sm">
-          <div className="flex justify-end mb-3">
-            <LanguageSwitcher compact />
-          </div>
-          <h1 className="font-heading text-3xl text-brand-gold text-center mb-2">
-            {isDemo ? demoText.title : t.entrance}
-          </h1>
-          <p className="text-brand-text-muted text-sm text-center mb-6">{restaurant.name}</p>
-
-          <form onSubmit={handlePasswordSubmit} className="space-y-4">
-            <div>
-              <label className="text-sm text-brand-text-muted block mb-1.5">{t.password}</label>
-              <input
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                value={password}
-                onChange={e => setPassword(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                className="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-center text-2xl tracking-widest text-brand-text focus:outline-none focus:border-brand-gold/50"
-                placeholder="••••"
-                autoFocus
-              />
-            </div>
-            {pwError && (
-              <p className="text-red-400 text-sm text-center">{t.wrongPassword}</p>
-            )}
-            <button
-              type="submit"
-              className="w-full bg-brand-gold text-brand-bg py-3 rounded-xl font-semibold hover:bg-brand-gold-light transition-colors"
-            >
-              {isDemo ? demoText.enter : t.enterKitchen}
-            </button>
-          </form>
-          {isDemo && (
-            <p className="mt-3 text-center text-[13px] text-brand-text-muted">
-              {demoText.passwordHint} <span className="text-brand-gold font-semibold">0000</span>
-            </p>
-          )}
-        </div>
+      <div className="min-h-screen bg-brand-bg flex items-center justify-center text-brand-text-muted text-sm">
+        {authChecking ? '…' : null}
       </div>
     );
   }
-
   // 厨房显示页
   return (
     <div className="min-h-screen bg-brand-bg p-4">
@@ -355,6 +287,15 @@ export function KitchenDisplay({
           )}
         </div>
         <div className="flex items-center gap-2">
+          {!isDemo && asOwner ? (
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard')}
+              className="text-[12px] px-2 py-1 rounded-md border border-brand-border text-brand-text-muted hover:text-brand-text transition-colors"
+            >
+              {t.backToDashboard}
+            </button>
+          ) : null}
           <LanguageSwitcher compact />
           <button
             onClick={() => setShowDone(!showDone)}

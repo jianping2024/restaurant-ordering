@@ -2,6 +2,10 @@ import { MenuPage } from '@/components/menu/MenuPage';
 import { DEMO_RESTAURANT } from '@/lib/demo-data';
 import type { MenuCategory, MenuItem } from '@/types';
 
+interface Props {
+  searchParams: Promise<{ table?: string; from?: string; return?: string }>;
+}
+
 const DEMO_CATEGORIES: MenuCategory[] = [
   { id: 'c1', restaurant_id: 'demo', parent_id: null, name_pt: 'Entradas', name_en: 'Starters', name_zh: '前菜', sort_order: 1, active: true, created_at: '' },
   { id: 'c2', restaurant_id: 'demo', parent_id: null, name_pt: 'Pratos', name_en: 'Mains', name_zh: '主菜', sort_order: 2, active: true, created_at: '' },
@@ -35,14 +39,23 @@ export const metadata = {
   title: 'Casa Portuguesa — 菜单演示',
 };
 
-export default function DemoMenuPage() {
+export default async function DemoMenuPage({ searchParams }: Props) {
+  const { table, from, return: returnPath } = await searchParams;
+  const tableNumber = parseInt(table || '5', 10) || 5;
+  const defaultWaiterPath = '/demo/waiter';
+  const returnToWaiterHref =
+    from === 'waiter'
+      ? (returnPath && returnPath.startsWith(defaultWaiterPath) ? returnPath : defaultWaiterPath)
+      : null;
+
   return (
     <MenuPage
       restaurant={DEMO_RESTAURANT}
       menuItems={DEMO_ITEMS}
       menuCategories={DEMO_CATEGORIES}
-      tableNumber={5}
+      tableNumber={tableNumber}
       isDemo
+      returnToWaiterHref={returnToWaiterHref}
     />
   );
 }

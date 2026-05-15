@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
+import { IntegerInput } from '@/components/ui/IntegerInput';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import type { BillSplit } from '@/types';
 import { showToast } from '@/components/ui/Toast';
@@ -136,17 +137,13 @@ export function CheckoutRequestsManager({ initialRequests }: Props) {
                 <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.discountRate}</label>
                 <div className="flex items-center gap-2">
                   <span className="text-brand-text-muted text-sm">%</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
+                  <IntegerInput
+                    min={0}
                     max={100}
-                    value={discountRateById[request.id] ?? ''}
-                    onChange={(e) => {
-                      const parsed = Number(e.target.value);
-                      const next = Number.isFinite(parsed) ? Math.min(Math.max(0, parsed), 100) : 0;
-                      setDiscountRateById((prev) => ({ ...prev, [request.id]: next }));
-                    }}
+                    value={getDiscountRate(request.id)}
+                    onChange={(next) =>
+                      setDiscountRateById((prev) => ({ ...prev, [request.id]: next }))
+                    }
                     className="w-28 bg-brand-bg border border-brand-border rounded-lg px-3 py-1.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
                     placeholder="0"
                     disabled={hasConfirmedPerson(request)}

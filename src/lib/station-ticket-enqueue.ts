@@ -1,0 +1,329 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { OrderItem, PrintStationTicketLayout } from '@/types';
+import { isBuffetBaseItem } from '@/lib/order-items';
+import { normalizeOrderItemStatus } from '@/lib/order-status';
+import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function isUuid(s: string): boolean {
+  return UUID_RE.test(s);
+}
+
+export function orderItemBatchKey(item: OrderItem): string {
+  return item.batch_id || 'legacy';
+}
+
+type StationRow = {
+  id: string;
+  ticket_layout: PrintStationTicketLayout;
+  name_pt: string;
+  name_en: string | null;
+  name_zh: string | null;
+};
+
+function displayNameForLocale(
+  item: OrderItem,
+  locale: 'zh' | 'en' | 'pt',
+): string {
+  if (locale === 'zh') return item.name_zh || item.name || item.name_pt;
+  if (locale === 'en') return item.name_en || item.name || item.name_pt;
+  return item.name_pt || item.name || '';
+}
+
+function stationLabelForLocale(st: StationRow, locale: 'zh' | 'en' | 'pt'): string {
+  if (locale === 'zh') return (st.name_zh || st.name_en || st.name_pt || '').trim() || st.name_pt;
+  if (locale === 'en') return (st.name_en || st.name_pt || st.name_zh || '').trim() || st.name_pt;
+  return (st.name_pt || st.name_en || st.name_zh || '').trim() || st.name_pt;
+}
+
+export type StationTicketJobPayload = {
+  order_id: string;
+  batch_id: string;
+  print_station_id: string;
+  ticket_layout: PrintStationTicketLayout;
+  locale: 'zh' | 'en' | 'pt';
+  /** Header on ticket (lowercase style per reference slip) */
+  restaurant_name?: string;
+  station_display_name_pt: string;
+  station_display_name_en: string | null;
+  station_display_name_zh: string | null;
+  table_number: number;
+  lines: Array<{
+    item_index: number;
+    menu_item_id: string;
+    qty: number;
+    note?: string;
+    display_name: string;
+    emoji: string;
+  }>;
+};
+
+export function stationTicketPayloadMatch(
+  p: Record<string, unknown>,
+  orderId: string,
+  batchId: string,
+  printStationId: string,
+): boolean {
+  return (
+    p.order_id === orderId &&
+    p.batch_id === batchId &&
+    p.print_station_id === printStationId
+  );
+}
+
+export function isMainPathDoneStationTicket(p: Record<string, unknown>): boolean {
+  if (p.reprint_scope === 'full_order') return false;
+  return true;
+}
+
+export type RestaurantEnqueueRow = {
+  id: string;
+  name?: string | null;
+  print_locale: string | null;
+};
+
+export async function enqueueStationTicketsForOrder(params: {
+  admin: SupabaseClient;
+  restaurant: RestaurantEnqueueRow;
+  orderId: string;
+  /** If set, use this batch instead of auto “earliest pending” */
+  explicitBatchId?: string | null;
+}): Promise<
+  | {
+      ok: true;
+      batch_id: string;
+      inserted: number;
+      skipped_duplicates: number;
+      /** Display names (per restaurant print_locale) for each newly inserted station ticket */
+      station_names: string[];
+    }
+  | { ok: false; status: number; code: string; message?: string }
+> {
+  const { admin, restaurant, orderId, explicitBatchId } = params;
+  const restaurantId = restaurant.id;
+
+  const locale = (restaurant.print_locale || 'pt') as 'zh' | 'en' | 'pt';
+
+  const { data: order, error: oErr } = await admin
+    .from('orders')
+    .select('id, restaurant_id, table_number, status, items')
+    .eq('id', orderId)
+    .maybeSingle();
+
+  if (oErr || !order || order.restaurant_id !== restaurantId) {
+    return { ok: false, status: 404, code: 'order_not_found' };
+  }
+
+  const items = (order.items || []) as OrderItem[];
+  const orderStatus = order.status as 'pending' | 'cooking' | 'done';
+
+  const kitchenLines: { idx: number; item: OrderItem; batch: string }[] = [];
+  items.forEach((item, idx) => {
+    if (isBuffetBaseItem(item)) return;
+    const st = normalizeOrderItemStatus(item, orderStatus);
+    if (st === 'voided') return;
+    if (!isUuid(item.id)) return;
+    kitchenLines.push({ idx, item, batch: orderItemBatchKey(item) });
+  });
+
+  if (kitchenLines.length === 0) {
+    return { ok: false, status: 400, code: 'no_printable_lines' };
+  }
+
+  const menuIds = Array.from(new Set(kitchenLines.map((l) => l.item.id)));
+  const [{ data: menuRows, error: mErr }, { data: categoryRows, error: cErr }] = await Promise.all([
+    admin
+      .from('menu_items')
+      .select('id, category_id, print_station_id')
+      .eq('restaurant_id', restaurantId)
+      .in('id', menuIds),
+    admin
+      .from('menu_categories')
+      .select('id, parent_id, print_station_id')
+      .eq('restaurant_id', restaurantId),
+  ]);
+
+  if (mErr || cErr) {
+    return {
+      ok: false,
+      status: 500,
+      code: 'menu_lookup_failed',
+      message: mErr?.message || cErr?.message,
+    };
+  }
+
+  const categoryList = (categoryRows || []) as {
+    id: string;
+    parent_id: string | null;
+    print_station_id: string | null;
+  }[];
+
+  const resolveMap = new Map<string, string | null>();
+  for (const row of menuRows || []) {
+    const r = row as {
+      id: string;
+      category_id: string | null;
+      print_station_id: string | null;
+    };
+    const eff = resolveEffectivePrintStationId(
+      r.print_station_id,
+      r.category_id,
+      categoryList,
+    );
+    resolveMap.set(r.id, eff);
+  }
+
+  const withStation = kitchenLines
+    .map((l) => ({ ...l, station_id: resolveMap.get(l.item.id) ?? null }))
+    .filter((l) => l.station_id);
+
+  if (withStation.length === 0) {
+    return { ok: false, status: 400, code: 'no_station_bound_lines' };
+  }
+
+  const distinctBatches = Array.from(new Set(withStation.map((l) => l.batch))).sort((a, b) =>
+    a.localeCompare(b),
+  );
+
+  const { data: existingJobs, error: jErr } = await admin
+    .from('print_jobs')
+    .select('status, payload')
+    .eq('restaurant_id', restaurantId)
+    .eq('type', 'station_ticket')
+    .contains('payload', { order_id: orderId });
+
+  if (jErr) {
+    return { ok: false, status: 500, code: 'jobs_lookup_failed', message: jErr.message };
+  }
+
+  const jobs = (existingJobs || []) as { status: string; payload: Record<string, unknown> }[];
+
+  const hasPendingDuplicate = (batchId: string, printStationId: string) =>
+    jobs.some(
+      (j) =>
+        ['pending', 'processing'].includes(j.status) &&
+        stationTicketPayloadMatch(j.payload, orderId, batchId, printStationId),
+    );
+
+  const hasMainPathDone = (batchId: string, printStationId: string) =>
+    jobs.some(
+      (j) =>
+        j.status === 'done' &&
+        stationTicketPayloadMatch(j.payload, orderId, batchId, printStationId) &&
+        isMainPathDoneStationTicket(j.payload),
+    );
+
+  const stationSatisfied = (batchId: string, printStationId: string) =>
+    hasMainPathDone(batchId, printStationId) || hasPendingDuplicate(batchId, printStationId);
+
+  let targetBatch: string | null = null;
+  if (explicitBatchId != null && explicitBatchId !== '') {
+    if (!distinctBatches.includes(explicitBatchId)) {
+      return { ok: false, status: 400, code: 'unknown_batch' };
+    }
+    targetBatch = explicitBatchId;
+  } else {
+    for (const b of distinctBatches) {
+      const stationsInBatch = Array.from(
+        new Set(withStation.filter((x) => x.batch === b).map((x) => x.station_id as string)),
+      );
+      if (stationsInBatch.length === 0) continue;
+      if (!stationsInBatch.every((sid) => stationSatisfied(b, sid))) {
+        targetBatch = b;
+        break;
+      }
+    }
+  }
+
+  if (!targetBatch) {
+    return { ok: false, status: 409, code: 'no_pending_batch' };
+  }
+
+  const linesInBatch = withStation.filter((l) => l.batch === targetBatch);
+  const stationIds = Array.from(new Set(linesInBatch.map((l) => l.station_id as string)));
+
+  const { data: stations, error: sErr } = await admin
+    .from('print_stations')
+    .select('id, ticket_layout, name_pt, name_en, name_zh')
+    .eq('restaurant_id', restaurantId)
+    .in('id', stationIds);
+
+  if (sErr || !stations?.length) {
+    return { ok: false, status: 500, code: 'stations_lookup_failed', message: sErr?.message };
+  }
+
+  const stationById = new Map(stations.map((s) => [s.id, s as StationRow]));
+
+  let inserted = 0;
+  let skipped_duplicates = 0;
+  const stationNames: string[] = [];
+
+  for (const sid of stationIds) {
+    if (hasPendingDuplicate(targetBatch, sid)) {
+      skipped_duplicates += 1;
+      continue;
+    }
+    if (hasMainPathDone(targetBatch, sid)) {
+      continue;
+    }
+
+    const stMeta = stationById.get(sid);
+    if (!stMeta) continue;
+
+    const stationLines = linesInBatch.filter((l) => l.station_id === sid);
+    const payload: StationTicketJobPayload = {
+      order_id: orderId,
+      batch_id: targetBatch,
+      print_station_id: sid,
+      ticket_layout: stMeta.ticket_layout,
+      locale,
+      restaurant_name: restaurant.name?.trim() || undefined,
+      station_display_name_pt: stMeta.name_pt,
+      station_display_name_en: stMeta.name_en,
+      station_display_name_zh: stMeta.name_zh,
+      table_number: order.table_number as number,
+      lines: stationLines.map((l) => ({
+        item_index: l.idx,
+        menu_item_id: l.item.id,
+        qty: l.item.qty,
+        note: l.item.note,
+        display_name: displayNameForLocale(l.item, locale),
+        emoji: l.item.emoji || '🍽️',
+      })),
+    };
+
+    const { error: insErr } = await admin.from('print_jobs').insert({
+      restaurant_id: restaurantId,
+      type: 'station_ticket',
+      payload,
+      status: 'pending',
+    });
+    if (insErr) {
+      return { ok: false, status: 500, code: 'insert_failed', message: insErr.message };
+    }
+    inserted += 1;
+    stationNames.push(stationLabelForLocale(stMeta, locale));
+  }
+
+  if (inserted === 0) {
+    return {
+      ok: false,
+      status: 409,
+      code: 'nothing_enqueued',
+      message:
+        skipped_duplicates > 0
+          ? 'Tasks may already be pending for this batch, or all stations are already printed.'
+          : 'No station tickets to enqueue for this batch.',
+    };
+  }
+
+  return {
+    ok: true,
+    batch_id: targetBatch,
+    inserted,
+    skipped_duplicates,
+    station_names: stationNames,
+  };
+}

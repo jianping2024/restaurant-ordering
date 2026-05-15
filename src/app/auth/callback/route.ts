@@ -4,7 +4,11 @@ import { createServerClient } from '@supabase/ssr';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/dashboard';
+  const nextRaw = searchParams.get('next') ?? '/dashboard';
+  const next =
+    nextRaw.startsWith('/') && !nextRaw.startsWith('//') && !nextRaw.includes('\\')
+      ? nextRaw
+      : '/dashboard';
 
   const redirectUrl = new URL(next, request.url);
   const response = NextResponse.redirect(redirectUrl);

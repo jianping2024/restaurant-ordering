@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { MenuItem, Language, CartItem, Order, TableSession, MenuCategory } from '@/types';
 import { MenuItemCard } from './MenuItemCard';
 import { CartDrawer } from './CartDrawer';
@@ -10,9 +11,10 @@ import { CATEGORY_LABELS } from '@/lib/i18n/messages';
 import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { getClientLanguage, setClientLanguage } from '@/lib/i18n';
-import { deriveOrderStatusFromItems, normalizeOrderItemStatus } from '@/lib/order-status';
+import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
 import { showToast } from '@/components/ui/Toast';
+import { autoEnqueueStationTicketsAfterSubmit } from '@/lib/auto-enqueue-station-tickets';
 
 const LANG_FLAGS: Record<Language, string> = { pt: '🇵🇹', en: '🇬🇧', zh: '🇨🇳' };
 const LANG_LABELS: Record<Language, string> = { pt: 'PT', en: 'EN', zh: '中' };
@@ -69,7 +71,10 @@ async function getBrowserLocation() {
   }
 }
 
+const WAITER_RETURN_REDIRECT_MS = 1200;
+
 export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, isDemo, returnToWaiterHref }: Props) {
+  const router = useRouter();
   const [lang, setLang] = useState<Language>(() => getClientLanguage() as Language);
   const [activeTopCategory, setActiveTopCategory] = useState<string>('Pratos');
   const [activeSubpath, setActiveSubpath] = useState<string>('');
@@ -282,7 +287,14 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
     if (cart.length === 0) return;
 
     if (isDemo) {
+      setCart([]);
       setCartOpen(false);
+      if (returnToWaiterHref) {
+        setSubmitted(true);
+        setSubmitSuccessText(t.orderSuccess);
+        setTimeout(() => router.push(returnToWaiterHref), WAITER_RETURN_REDIRECT_MS);
+        return;
+      }
       setDemoToast(true);
       setTimeout(() => setDemoToast(false), 3500);
       return;
@@ -291,7 +303,10 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
     setSubmitting(true);
 
     try {
-      if (restaurant.geo_latitude != null && restaurant.geo_longitude != null) {
+      let latitude: number | undefined;
+      let longitude: number | undefined;
+
+      if (restaurant.geo_latitude != null && restaurant.geo_longitude != null && !returnToWaiterHref) {
         let position: GeolocationPosition;
         try {
           position = await getBrowserLocation();
@@ -325,13 +340,16 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
           }
         }
 
-        const distanceMeters = calculateDistanceMeters(
-          position.coords.latitude,
-          position.coords.longitude,
+        latitude = position.coords.latitude;
+        longitude = position.coords.longitude;
+
+        const dist = calculateDistanceMeters(
+          latitude,
+          longitude,
           restaurant.geo_latitude,
           restaurant.geo_longitude,
         );
-        if (distanceMeters > 50) {
+        if (dist > 50) {
           if (isLocalDevHost) {
             showToast(t.locationBypassedLocal, 'info');
           } else {
@@ -341,13 +359,14 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
         }
       }
 
-      const supabase = createClient();
       const batchId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const addedAt = new Date().toISOString();
-      const items = cart.map(c => ({
+      const items = cart.map((c) => ({
         id: c.menuItemId,
         name: c[`name_${lang}`] || c.name_pt,
         name_pt: c.name_pt,
+        name_en: c.name_en,
+        name_zh: c.name_zh,
         qty: coerceCartQty(c.qty),
         note: c.note || '',
         price: coerceCartPrice(c.price),
@@ -356,81 +375,81 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
         batch_id: batchId,
         added_at: addedAt,
       }));
-      let sessionId = activeSession?.id || null;
-      let sessionStatus = activeSession?.status || null;
 
-      if (!sessionId) {
-        const { data: newSession, error: sessionError } = await supabase
-          .from('table_sessions')
-          .insert({
-            restaurant_id: restaurant.id,
-            table_number: tableNumber,
-            status: 'open',
-          })
-          .select('*')
-          .single();
-        if (sessionError) throw sessionError;
-        sessionId = newSession.id;
-        sessionStatus = 'open';
-      }
+      const appendRes = await fetch(`/api/restaurants/${restaurant.slug}/orders/append`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          table_number: tableNumber,
+          items,
+          latitude,
+          longitude,
+          waiter_flow: !!returnToWaiterHref,
+        }),
+      });
 
-      if (sessionStatus === 'billing') {
-        showToast(t.billDisabledHint, 'info');
+      const appendData = (await appendRes.json().catch(() => ({}))) as {
+        error?: string;
+        order_id?: string;
+        batch_id?: string;
+        enqueue_token?: string;
+        session_id?: string;
+        had_done_before?: boolean;
+        is_first_order?: boolean;
+      };
+
+      if (!appendRes.ok) {
+        const code = appendData.error || '';
+        if (code === 'location_too_far') showToast(t.locationTooFar, 'error');
+        else if (code === 'location_required') showToast(t.locationPermissionDenied, 'error');
+        else if (code === 'session_billing') showToast(t.billDisabledHint, 'info');
+        else if (code === 'rate_limited') showToast(t.printEnqueueRateLimited, 'error');
+        else showToast(t.submitFailed, 'error');
         return;
       }
 
-      // 同桌同餐次始终使用同一张订单；每次提交作为新批次追加。
-      const { data: openOrder } = await supabase
-        .from('orders')
-        .select('id, items')
-        .eq('session_id', sessionId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (openOrder) {
-        const hadDoneBefore = ((openOrder.items || []) as Array<{ item_status?: 'pending' | 'cooking' | 'done' | undefined }>)
-          .every(item => (item.item_status || 'pending') === 'done');
-        const mergedItems = [...((openOrder.items || []) as typeof items), ...items];
-        const mergedTotal = sumLineTotals(mergedItems);
-        const mergedStatus = deriveOrderStatusFromItems(mergedItems);
-        const { error } = await supabase
-          .from('orders')
-          .update({
-            items: mergedItems,
-            total_amount: mergedTotal,
-            status: mergedStatus,
-          })
-          .eq('id', openOrder.id);
-        if (error) throw error;
-        setSubmitSuccessText(hadDoneBefore ? t.reOpenOrderSuccess : t.addOnOrderSuccess);
-      } else {
-        const { error } = await supabase.from('orders').insert({
-          restaurant_id: restaurant.id,
-          session_id: sessionId,
-          table_number: tableNumber,
-          status: 'pending',
-          items,
-          total_amount: totalPrice,
-        });
-        if (error) throw error;
-        setSubmitSuccessText(t.firstOrderSuccess);
+      const savedOrderId = appendData.order_id;
+      const sessionId = appendData.session_id;
+      if (!savedOrderId || !appendData.enqueue_token || !appendData.batch_id) {
+        showToast(t.submitFailed, 'error');
+        return;
       }
 
-      const { data: latestOrders } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('session_id', sessionId)
-        .order('created_at', { ascending: false })
-        .limit(8);
-      setRecentOrders((latestOrders || []) as Order[]);
+      if (appendData.is_first_order) setSubmitSuccessText(t.firstOrderSuccess);
+      else if (appendData.had_done_before) setSubmitSuccessText(t.reOpenOrderSuccess);
+      else setSubmitSuccessText(t.addOnOrderSuccess);
+
+      await autoEnqueueStationTicketsAfterSubmit({
+        slug: restaurant.slug,
+        orderId: savedOrderId,
+        batchId: appendData.batch_id,
+        enqueueToken: appendData.enqueue_token,
+        waiterFlow: !!returnToWaiterHref,
+        lang,
+      });
+
+      const supabase = createClient();
+      if (sessionId) {
+        const { data: latestOrders } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('session_id', sessionId)
+          .order('created_at', { ascending: false })
+          .limit(8);
+        setRecentOrders((latestOrders || []) as Order[]);
+      }
       setLatestBatchId(batchId);
       setTimeout(() => setLatestBatchId(null), 15000);
 
       setCart([]);
       setCartOpen(false);
       setSubmitted(true);
-      setTimeout(() => setSubmitted(false), 3000);
+      if (returnToWaiterHref) {
+        setTimeout(() => router.push(returnToWaiterHref), WAITER_RETURN_REDIRECT_MS);
+      } else {
+        setTimeout(() => setSubmitted(false), 3000);
+      }
     } catch (error) {
       if (process.env.NODE_ENV !== 'production') {
         // Keep dev diagnostics without exposing raw errors to guests.

@@ -1,0 +1,120 @@
+import { NextResponse } from 'next/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { verifyAgentBearer } from '@/lib/print-agent-auth';
+import type { PrintJobStatus } from '@/types';
+
+export const runtime = 'nodejs';
+
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+  const ctx = verifyAgentBearer(req);
+  if (!ctx) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+
+  const jobId = params.id;
+  if (!jobId) {
+    return NextResponse.json({ error: 'missing_id' }, { status: 400 });
+  }
+
+  let body: { status?: unknown; error_message?: unknown };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+  }
+
+  const status = typeof body.status === 'string' ? body.status : '';
+  const errMsg =
+    typeof body.error_message === 'string' ? body.error_message.slice(0, 2000) : null;
+
+  if (status !== 'processing' && status !== 'done' && status !== 'failed') {
+    return NextResponse.json({ error: 'invalid_status' }, { status: 400 });
+  }
+  if (status === 'failed' && !errMsg) {
+    return NextResponse.json({ error: 'error_message_required' }, { status: 400 });
+  }
+
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
+  }
+
+  const { data: job, error: jErr } = await admin
+    .from('print_jobs')
+    .select('id, restaurant_id, status, attempts')
+    .eq('id', jobId)
+    .maybeSingle();
+
+  if (jErr || !job) {
+    return NextResponse.json({ error: 'job_not_found' }, { status: 404 });
+  }
+  if (job.restaurant_id !== ctx.restaurant_id) {
+    return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  }
+
+  const current = job.status as PrintJobStatus;
+
+  if (status === 'processing') {
+    if (current !== 'pending') {
+      return NextResponse.json({ error: 'invalid_transition' }, { status: 409 });
+    }
+    const nextAttempts = (typeof job.attempts === 'number' ? job.attempts : 0) + 1;
+    const { data: updated, error: uErr } = await admin
+      .from('print_jobs')
+      .update({
+        status: 'processing',
+        claimed_by: ctx.device_id,
+        attempts: nextAttempts,
+      })
+      .eq('id', jobId)
+      .eq('status', 'pending')
+      .select('id, status')
+      .maybeSingle();
+
+    if (uErr || !updated) {
+      return NextResponse.json({ error: 'optimistic_lock_failed' }, { status: 409 });
+    }
+    return NextResponse.json({ ok: true, job: updated });
+  }
+
+  if (status === 'done') {
+    if (current !== 'processing') {
+      return NextResponse.json({ error: 'invalid_transition' }, { status: 409 });
+    }
+    const { data: updated, error: uErr } = await admin
+      .from('print_jobs')
+      .update({ status: 'done', error_message: null })
+      .eq('id', jobId)
+      .eq('status', 'processing')
+      .select('id, status')
+      .maybeSingle();
+
+    if (uErr || !updated) {
+      return NextResponse.json({ error: 'optimistic_lock_failed' }, { status: 409 });
+    }
+    return NextResponse.json({ ok: true, job: updated });
+  }
+
+  // failed (from processing after print error, or from pending when routing/config fails)
+  if (current !== 'processing' && current !== 'pending') {
+    return NextResponse.json({ error: 'invalid_transition' }, { status: 409 });
+  }
+  const { data: updated, error: uErr } = await admin
+    .from('print_jobs')
+    .update({
+      status: 'failed',
+      error_message: errMsg,
+      ...(current === 'pending' ? { claimed_by: ctx.device_id } : {}),
+    })
+    .eq('id', jobId)
+    .eq('status', current)
+    .select('id, status')
+    .maybeSingle();
+
+  if (uErr || !updated) {
+    return NextResponse.json({ error: 'optimistic_lock_failed' }, { status: 409 });
+  }
+  return NextResponse.json({ ok: true, job: updated });
+}

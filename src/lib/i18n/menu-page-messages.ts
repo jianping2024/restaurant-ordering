@@ -33,6 +33,9 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   locationCheckFailed: string;
   locationTooFar: string;
   locationBypassedLocal: string;
+  printEnqueueNoStation: string;
+  printEnqueueFailed: string;
+  printEnqueueRateLimited: string;
 }> = {
   pt: {
     table: 'Mesa',
@@ -67,6 +70,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     locationCheckFailed: 'Nao foi possivel validar sua localizacao. Tente novamente.',
     locationTooFar: 'Voce esta fora da area de pedido deste restaurante (maximo 50 metros).',
     locationBypassedLocal: 'Ambiente local detectado: validacao de localizacao foi ignorada para testes.',
+    printEnqueueNoStation:
+      'Pedido guardado, mas nenhum talao de estacao: ligue uma estacao de impressao na categoria ou no prato (Menu nas definicoes).',
+    printEnqueueFailed: 'Pedido guardado, mas o envio para impressao falhou. Verifique o assistente de impressao.',
+    printEnqueueRateLimited: 'Demasiados pedidos de impressao; tente novamente dentro de um minuto.',
   },
   en: {
     table: 'Table',
@@ -101,6 +108,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     locationCheckFailed: 'Unable to verify your location. Please try again.',
     locationTooFar: 'You are outside this restaurant ordering area (within 50 meters only).',
     locationBypassedLocal: 'Local environment detected: location validation was skipped for testing.',
+    printEnqueueNoStation:
+      'Order saved, but no station ticket was queued. Assign a print station on the category or dish in Menu settings.',
+    printEnqueueFailed: 'Order saved, but sending to the print queue failed. Check Print assistant.',
+    printEnqueueRateLimited: 'Too many print requests; please try again in a minute.',
   },
   zh: {
     table: '桌号',
@@ -135,5 +146,9 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     locationCheckFailed: '定位校验失败，请重试',
     locationTooFar: '您当前不在餐厅 50 米范围内，暂时无法下单',
     locationBypassedLocal: '当前为本地环境，已跳过定位校验（仅用于调试）',
+    printEnqueueNoStation:
+      '订单已保存，但未打出品联：请在「餐厅设置 → 菜单管理」为分类或菜品绑定「出品档口」。',
+    printEnqueueFailed: '订单已保存，但送入打印队列失败，请检查打印助手与代理。',
+    printEnqueueRateLimited: '打印请求过于频繁，请稍后再试。',
   },
 };

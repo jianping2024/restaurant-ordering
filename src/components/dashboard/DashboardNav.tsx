@@ -42,13 +42,26 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
     };
 
     void loadCheckoutRequestCount();
-    const timer = window.setInterval(() => {
-      void loadCheckoutRequestCount();
-    }, 15000);
+
+    const channel = supabase
+      .channel(`nav-checkout-count-${restaurant.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bill_splits',
+          filter: `restaurant_id=eq.${restaurant.id}`,
+        },
+        () => {
+          void loadCheckoutRequestCount();
+        },
+      )
+      .subscribe();
 
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
+      supabase.removeChannel(channel);
     };
   }, [restaurant.id]);
 
@@ -124,10 +137,10 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
         {navItems.map(item => {
           const active =
             'matchPrefix' in item && item.matchPrefix
-              ? pathname === item.matchPrefix || pathname.startsWith(`${item.matchPrefix}/`)
-              : item.exact
-                ? pathname === item.href
-                : pathname.startsWith(item.href);
+                ? pathname === item.matchPrefix || pathname.startsWith(`${item.matchPrefix}/`)
+                : item.exact
+                  ? pathname === item.href
+                  : pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}

@@ -11,6 +11,8 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { DashboardDatePicker } from '@/components/dashboard/DashboardDatePicker';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { DecimalInput } from '@/components/ui/DecimalInput';
+import { IntegerInput } from '@/components/ui/IntegerInput';
 
 const DOW_LABELS_ZH = ['日', '一', '二', '三', '四', '五', '六'];
 const CALENDAR_KINDS: BuffetCalendarKind[] = ['weekday', 'weekend', 'holiday', 'special'];
@@ -477,14 +479,11 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                     if (v) void updateSlotField(slot.id, { end_time: `${v}:00` });
                   }}
                 />
-                <input
-                  type="number"
+                <IntegerInput
                   className="w-20 rounded-lg bg-brand-bg border border-brand-border px-2 py-1 text-sm text-brand-text"
-                  defaultValue={slot.sort_order}
-                  onBlur={(e) => {
-                    const n = Number(e.target.value);
-                    if (Number.isFinite(n)) void updateSlotField(slot.id, { sort_order: n });
-                  }}
+                  value={slot.sort_order ?? 0}
+                  min={0}
+                  onChange={(n) => void updateSlotField(slot.id, { sort_order: n })}
                   title={t.sortOrder}
                 />
                 <button
@@ -700,43 +699,27 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                   </label>
                   <label className="text-brand-text-muted text-[12px]">
                     {t.adultPrice}
-                    <input
-                      type="number"
-                      step="0.01"
+                    <DecimalInput
                       className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-brand-text"
                       value={ruleDraft.adult_price}
-                      onChange={(e) =>
-                        setRuleDraft((d) =>
-                          d ? { ...d, adult_price: Number(e.target.value) || 0 } : d,
-                        )
-                      }
+                      onChange={(adult_price) => setRuleDraft((d) => (d ? { ...d, adult_price } : d))}
                     />
                   </label>
                   <label className="text-brand-text-muted text-[12px]">
                     {t.childPrice}
-                    <input
-                      type="number"
-                      step="0.01"
+                    <DecimalInput
                       className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-brand-text"
                       value={ruleDraft.child_price}
-                      onChange={(e) =>
-                        setRuleDraft((d) =>
-                          d ? { ...d, child_price: Number(e.target.value) || 0 } : d,
-                        )
-                      }
+                      onChange={(child_price) => setRuleDraft((d) => (d ? { ...d, child_price } : d))}
                     />
                   </label>
                   <label className="text-brand-text-muted text-[12px]">
                     {t.priority}
-                    <input
-                      type="number"
+                    <IntegerInput
                       className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-brand-text"
                       value={ruleDraft.priority}
-                      onChange={(e) =>
-                        setRuleDraft((d) =>
-                          d ? { ...d, priority: Number.parseInt(e.target.value, 10) || 0 } : d,
-                        )
-                      }
+                      min={0}
+                      onChange={(priority) => setRuleDraft((d) => (d ? { ...d, priority } : d))}
                     />
                   </label>
                   <label className="text-brand-text-muted text-[12px] sm:col-span-2">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { Buffet, Order, OrderItem } from '@/types';
 import { sumLineTotals } from '@/lib/cart-totals';
@@ -9,17 +9,17 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { Modal } from '@/components/ui/Modal';
+import { IntegerInput } from '@/components/ui/IntegerInput';
 import { showToast } from '@/components/ui/Toast';
 import { deriveOrderStatusFromItems } from '@/lib/order-status';
 import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticatedShell';
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
-import { fetchWaiterBoardOrders } from '@/components/waiter/waiter-board-queries';
-
+import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
 interface Props {
-  restaurant: { id: string; name: string; slug: string; waiter_password: string };
-  initialOrders: Order[];
+  restaurant: { id: string; name: string; slug: string };
+  initialOrders?: Order[];
   initialCheckoutRequestedTables?: number[];
   initialBuffets?: Buffet[];
   tableNumber: number;
@@ -28,22 +28,22 @@ interface Props {
 
 function WaiterTableDetailInner({
   restaurant,
-  initialOrders,
+  initialOrders = [],
   initialCheckoutRequestedTables = [],
   initialBuffets = [],
   tableNumber,
   isDemo = false,
-  handleLock,
-}: Props & { handleLock: () => void }) {
+  handleSignOut,
+  exitLabel,
+}: Props & { handleSignOut: () => void; exitLabel: string }) {
   const { lang } = useLanguage();
   const locale = UI_LOCALE_BY_LANG[lang];
   const t = WAITER_TEXT[lang];
-  const { orders, setOrders, checkoutRequestedTables, supabase } = useWaiterOrders(
+  const { orders, checkoutRequestedTables, refresh, supabase } = useWaiterOrders(
     restaurant.id,
     initialOrders,
     initialCheckoutRequestedTables,
     true,
-    !!isDemo,
   );
 
   const [operationType, setOperationType] = useState<'transfer' | 'merge' | null>(null);
@@ -59,24 +59,15 @@ function WaiterTableDetailInner({
   const [buffetResolved, setBuffetResolved] = useState<ResolvedBuffetPriceRow | null>(null);
   const [buffetPriceLoading, setBuffetPriceLoading] = useState(false);
 
-  useEffect(() => {
-    if (isDemo || !buffetId) {
-      setBuffetResolved(null);
-      setBuffetPriceLoading(false);
-      return;
-    }
-    let cancelled = false;
-    const load = async (silent: boolean) => {
+  const refreshBuffetPrices = useCallback(
+    async (silent: boolean) => {
+      if (isDemo || !buffetId) return;
       if (!silent) setBuffetPriceLoading(true);
       const { data: priceRows, error } = await supabase.rpc('resolve_buffet_prices', {
         p_restaurant_id: restaurant.id,
         p_buffet_id: buffetId,
         p_at: new Date().toISOString(),
       });
-      if (cancelled) {
-        if (!silent) setBuffetPriceLoading(false);
-        return;
-      }
       if (!silent) setBuffetPriceLoading(false);
       if (error) {
         if (!silent) setBuffetResolved(null);
@@ -89,16 +80,63 @@ function WaiterTableDetailInner({
         rule_id: resolvedRow?.rule_id ?? null,
         time_slot_id: resolvedRow?.time_slot_id ?? null,
       });
+    },
+    [isDemo, buffetId, restaurant.id, supabase],
+  );
+
+  useBuffetPricesRealtimeRefresh(supabase, restaurant.id, !isDemo && !!buffetId, () => void refreshBuffetPrices(true));
+
+  /** Clock-driven slot turnover has no DB event; refresh at most once per minute while the tab is visible. */
+  useEffect(() => {
+    if (isDemo || !buffetId) {
+      setBuffetResolved(null);
+      setBuffetPriceLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    let minuteTimer: number | null = null;
+
+    const clearMinute = () => {
+      if (minuteTimer != null) {
+        window.clearTimeout(minuteTimer);
+        minuteTimer = null;
+      }
     };
-    void load(false);
-    const intervalId = window.setInterval(() => {
-      void load(true);
-    }, 60000);
+
+    const scheduleMinute = () => {
+      clearMinute();
+      if (cancelled || document.visibilityState !== 'visible') return;
+      const jitterMs = 20;
+      const ms = Math.max(jitterMs, 60_000 - (Date.now() % 60_000) + jitterMs);
+      minuteTimer = window.setTimeout(async () => {
+        minuteTimer = null;
+        if (cancelled || document.visibilityState !== 'visible') return;
+        await refreshBuffetPrices(true);
+        scheduleMinute();
+      }, ms);
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        void refreshBuffetPrices(true);
+        scheduleMinute();
+      } else {
+        clearMinute();
+      }
+    };
+
+    void refreshBuffetPrices(false);
+
+    document.addEventListener('visibilitychange', onVisibility);
+    if (document.visibilityState === 'visible') scheduleMinute();
+
     return () => {
       cancelled = true;
-      window.clearInterval(intervalId);
+      clearMinute();
+      document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [isDemo, buffetId, restaurant.id, supabase]);
+  }, [isDemo, buffetId, refreshBuffetPrices]);
 
   const buffetPriceDisplay = useMemo(() => {
     const r = buffetResolved;
@@ -172,6 +210,30 @@ function WaiterTableDetailInner({
     const toTable = targetTable;
     setOperating(true);
     try {
+      if (!isDemo) {
+        const res = await fetch(
+          `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/waiter/tables/action`,
+          {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: currentOperation,
+              from_table: fromTable,
+              to_table: toTable,
+            }),
+          },
+        );
+        if (!res.ok) {
+          showToast(t.actionFailed, 'error');
+          return;
+        }
+        await refresh();
+        closeAction();
+        showToast(t.actionSuccess, 'success');
+        return;
+      }
+
       const { data: rpcResult, error } = currentOperation === 'transfer'
         ? await supabase.rpc('transfer_table_session', {
           p_restaurant_id: restaurant.id,
@@ -193,22 +255,19 @@ function WaiterTableDetailInner({
         return;
       }
 
-      const [sessionCheck, nextOrders] = await Promise.all([
-        supabase
-          .from('table_sessions')
-          .select('id, table_number, status')
-          .eq('id', rpcResult as string)
-          .in('status', ['open', 'billing'])
-          .maybeSingle(),
-        fetchWaiterBoardOrders(supabase, restaurant.id),
-      ]);
+      const sessionCheck = await supabase
+        .from('table_sessions')
+        .select('id, table_number, status')
+        .eq('id', rpcResult as string)
+        .in('status', ['open', 'billing'])
+        .maybeSingle();
 
       if (sessionCheck.error || !sessionCheck.data || sessionCheck.data.table_number !== toTable) {
         showToast(t.refreshHint, 'error');
         return;
       }
 
-      setOrders(nextOrders);
+      await refresh();
       closeAction();
       showToast(t.actionSuccess, 'success');
     } catch {
@@ -221,6 +280,29 @@ function WaiterTableDetailInner({
   const closeTableFromWaiter = async (tableNum: number) => {
     setClosingTable(tableNum);
     try {
+      if (!isDemo) {
+        const res = await fetch(
+          `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/waiter/sessions/close`,
+          {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ table_number: tableNum }),
+          },
+        );
+        if (res.status === 404) {
+          showToast(t.closeTableNoSession, 'error');
+          return;
+        }
+        if (!res.ok) {
+          showToast(t.actionFailed, 'error');
+          return;
+        }
+        await refresh();
+        showToast(t.actionSuccess, 'success');
+        return;
+      }
+
       const { data: session, error: findError } = await supabase
         .from('table_sessions')
         .select('id')
@@ -250,7 +332,7 @@ function WaiterTableDetailInner({
         return;
       }
 
-      setOrders(await fetchWaiterBoardOrders(supabase, restaurant.id));
+      await refresh();
       showToast(t.actionSuccess, 'success');
     } catch {
       showToast(t.actionFailed, 'error');
@@ -266,6 +348,37 @@ function WaiterTableDetailInner({
 
     setBuffetSubmitting(true);
     try {
+      if (!isDemo) {
+        const res = await fetch(
+          `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/waiter/buffet`,
+          {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              table_number: tableNumber,
+              buffet_id: buffetId,
+              adult_count: buffetAdults,
+              child_count: buffetChildren,
+            }),
+          },
+        );
+        if (res.status === 400) {
+          const data = await res.json().catch(() => ({}));
+          if (data.error === 'no_price_rule') showToast(t.buffetNoRule, 'error');
+          else if (data.error === 'session_billing') showToast(t.buffetBilling, 'error');
+          else showToast(t.actionFailed, 'error');
+          return;
+        }
+        if (!res.ok) {
+          showToast(t.actionFailed, 'error');
+          return;
+        }
+        await refresh();
+        showToast(t.actionSuccess, 'success');
+        return;
+      }
+
       const { data: priceRows, error: priceError } = await supabase.rpc('resolve_buffet_prices', {
         p_restaurant_id: restaurant.id,
         p_buffet_id: buffetId,
@@ -371,7 +484,7 @@ function WaiterTableDetailInner({
         }
       }
 
-      setOrders(await fetchWaiterBoardOrders(supabase, restaurant.id));
+      await refresh();
       showToast(t.actionSuccess, 'success');
     } catch {
       showToast(t.actionFailed, 'error');
@@ -392,6 +505,31 @@ function WaiterTableDetailInner({
           voided_at: new Date().toISOString(),
         };
       });
+
+      if (!isDemo) {
+        const res = await fetch(
+          `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/waiter/orders/${orderId}`,
+          {
+            method: 'PATCH',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: nextItems, updated_at: order.updated_at }),
+          },
+        );
+        if (res.status === 409) {
+          showToast(t.refreshHint, 'error');
+          await refresh();
+          return;
+        }
+        if (!res.ok) {
+          showToast(t.actionFailed, 'error');
+          return;
+        }
+        await refresh();
+        showToast(t.voidedLabel, 'success');
+        return;
+      }
+
       const nextOrderStatus = deriveOrderStatusFromItems(nextItems);
       const { error } = await supabase
         .from('orders')
@@ -407,7 +545,7 @@ function WaiterTableDetailInner({
         return;
       }
 
-      setOrders(await fetchWaiterBoardOrders(supabase, restaurant.id));
+      await refresh();
       showToast(t.voidedLabel, 'success');
     } catch {
       showToast(t.actionFailed, 'error');
@@ -456,10 +594,10 @@ function WaiterTableDetailInner({
             <LanguageSwitcher compact />
             <button
               type="button"
-              onClick={handleLock}
+              onClick={handleSignOut}
               className="text-[12px] px-2 py-1 rounded-md border border-brand-border text-brand-text-muted hover:text-brand-text transition-colors"
             >
-              {t.lock}
+              {exitLabel}
             </button>
           </div>
         </div>
@@ -530,22 +668,20 @@ function WaiterTableDetailInner({
               </label>
               <label className="text-[11px] text-brand-text-muted">
                 {t.buffetAdults}
-                <input
-                  type="number"
+                <IntegerInput
                   min={0}
                   className="mt-0.5 block w-16 rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text"
                   value={buffetAdults}
-                  onChange={(e) => setBuffetAdults(Math.max(0, Number(e.target.value) || 0))}
+                  onChange={setBuffetAdults}
                 />
               </label>
               <label className="text-[11px] text-brand-text-muted">
                 {t.buffetChildren}
-                <input
-                  type="number"
+                <IntegerInput
                   min={0}
                   className="mt-0.5 block w-16 rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text"
                   value={buffetChildren}
-                  onChange={(e) => setBuffetChildren(Math.max(0, Number(e.target.value) || 0))}
+                  onChange={setBuffetChildren}
                 />
               </label>
               <button
@@ -655,11 +791,11 @@ function WaiterTableDetailInner({
                 <p className="text-[11px] text-brand-gold font-medium">{t.voidPendingTitle}</p>
                 {selectedCard.voidableItems.map((item) => (
                   <div key={`${item.orderId}-${item.itemIdx}`} className="flex items-center justify-between gap-2">
-                    <p className="text-sm text-brand-text truncate">{item.label}</p>
+                    <p className="text-sm text-brand-text truncate min-w-0 flex-1">{item.label}</p>
                     <button
                       type="button"
                       onClick={() => voidItemFromWaiter(item.orderId, item.itemIdx)}
-                      className="text-[11px] bg-slate-500/12 text-slate-700 border border-slate-500/35 px-2 py-0.5 rounded-md hover:bg-slate-500/22 transition-colors"
+                      className="shrink-0 text-[11px] bg-slate-500/12 text-slate-700 border border-slate-500/35 px-2 py-0.5 rounded-md hover:bg-slate-500/22 transition-colors"
                     >
                       {t.voidItem}
                     </button>
@@ -733,7 +869,9 @@ export function WaiterTableDetail(props: Props) {
   const { restaurant, isDemo } = props;
   return (
     <WaiterAuthenticatedShell restaurant={restaurant} isDemo={isDemo}>
-      {({ handleLock }) => <WaiterTableDetailInner {...props} handleLock={handleLock} />}
+      {({ handleSignOut, exitLabel }) => (
+        <WaiterTableDetailInner {...props} handleSignOut={handleSignOut} exitLabel={exitLabel} />
+      )}
     </WaiterAuthenticatedShell>
   );
 }

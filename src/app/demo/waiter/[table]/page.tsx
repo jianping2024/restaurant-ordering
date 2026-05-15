@@ -21,7 +21,6 @@ export default async function DemoWaiterTablePage({ params }: Props) {
         id: DEMO_RESTAURANT.id,
         name: DEMO_RESTAURANT.name,
         slug: DEMO_RESTAURANT.slug,
-        waiter_password: DEMO_RESTAURANT.waiter_password,
       }}
       initialOrders={DEMO_ORDERS}
       tableNumber={tableNum}

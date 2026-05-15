@@ -16,7 +16,7 @@ export default async function BillRoute({ params, searchParams }: Props) {
   const supabase = await createClient();
 
   const { data: restaurant } = await supabase
-    .from('restaurants')
+    .from('restaurants_public')
     .select('id, name, slug')
     .eq('slug', slug)
     .single();

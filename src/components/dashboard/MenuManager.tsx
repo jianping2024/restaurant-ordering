@@ -8,7 +8,8 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
-import type { MenuCategory, MenuItem } from '@/types';
+import { normalizeDecimalInput } from '@/lib/number-input';
+import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import {
@@ -23,6 +24,7 @@ import {
   NOTE_PRESET_GROUP_LABELS,
   type NotePresetGroup,
 } from '@/lib/note-presets';
+import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import 'rc-tree/assets/index.css';
 
 const FOOD_EMOJIS = ['🍽️', '🍞', '🥗', '🥣', '🐟', '🥚', '🍗', '🐙', '🥩', '🦆', '🫒', '🍷', '🍺', '💧', '☕', '🥧', '🍮', '🫕', '🥘', '🍲'];
@@ -31,6 +33,7 @@ interface MenuManagerProps {
   restaurantId: string;
   initialItems: MenuItem[];
   initialCategories: MenuCategory[];
+  initialPrintStations: PrintStation[];
   embedded?: boolean;
 }
 
@@ -42,6 +45,7 @@ type ItemForm = {
   description_en: string;
   price: string;
   category_id: string;
+  print_station_id: string;
   emoji: string;
   available: boolean;
   note_preset_keys: string[];
@@ -55,6 +59,7 @@ const defaultItemForm: ItemForm = {
   description_en: '',
   price: '',
   category_id: '',
+  print_station_id: '',
   emoji: '🍽️',
   available: true,
   note_preset_keys: [],
@@ -64,9 +69,10 @@ type CategoryDraft = {
   name_pt: string;
   name_en: string;
   name_zh: string;
+  print_station_id: string;
 };
 
-const defaultCategoryDraft: CategoryDraft = { name_pt: '', name_en: '', name_zh: '' };
+const defaultCategoryDraft: CategoryDraft = { name_pt: '', name_en: '', name_zh: '', print_station_id: '' };
 
 type ConfirmDialogState =
   | { open: false }
@@ -89,6 +95,7 @@ export function MenuManager({
   restaurantId,
   initialItems,
   initialCategories,
+  initialPrintStations,
   embedded,
 }: MenuManagerProps) {
   const { lang } = useLanguage();
@@ -98,6 +105,11 @@ export function MenuManager({
   const [activeTab, setActiveTab] = useState<'items' | 'categories'>('items');
   const [items, setItems] = useState<MenuItem[]>(initialItems);
   const [categories, setCategories] = useState<MenuCategory[]>(initialCategories);
+  const [printStations, setPrintStations] = useState<PrintStation[]>(initialPrintStations);
+
+  useEffect(() => {
+    setPrintStations(initialPrintStations);
+  }, [initialPrintStations]);
 
   const [selectedTopCategoryId, setSelectedTopCategoryId] = useState('');
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState('');
@@ -242,6 +254,7 @@ export function MenuManager({
         name_pt: selectedCategory.name_pt || '',
         name_en: selectedCategory.name_en || '',
         name_zh: selectedCategory.name_zh || '',
+        print_station_id: selectedCategory.print_station_id ?? '',
       });
       setCategoryError('');
     } else {
@@ -286,6 +299,24 @@ export function MenuManager({
     }
     if (chain.length === 0) return item.category?.trim() || t.uncategorized;
     return chain.map((c) => getCategoryLabel(c)).join(' · ');
+  };
+
+  const getEffectiveStationTicketLine = (item: MenuItem): string => {
+    const eff = resolveEffectivePrintStationId(
+      item.print_station_id,
+      item.category_id ?? null,
+      categories,
+    );
+    if (!eff) return t.effectiveStationNone;
+    const st = printStations.find((p) => p.id === eff);
+    const name = st
+      ? lang === 'en'
+        ? st.name_en || st.name_pt
+        : lang === 'zh'
+          ? st.name_zh || st.name_pt
+          : st.name_pt
+      : eff;
+    return `${t.effectiveStationPrefix}: ${name}`;
   };
 
   const selectedItems = useMemo(() => {
@@ -349,6 +380,7 @@ export function MenuManager({
       description_en: item.description_en || '',
       price: String(item.price),
       category_id: item.category_id || '',
+      print_station_id: item.print_station_id ?? '',
       emoji: item.emoji,
       available: item.available,
       note_preset_keys: item.note_preset_keys || [],
@@ -401,6 +433,7 @@ export function MenuManager({
       emoji: itemForm.emoji,
       available: itemForm.available,
       note_preset_keys: itemForm.note_preset_keys,
+      print_station_id: itemForm.print_station_id || null,
     };
 
     try {
@@ -495,6 +528,7 @@ export function MenuManager({
         name_pt: categoryDraft.name_pt.trim(),
         name_en: categoryDraft.name_en.trim() || null,
         name_zh: categoryDraft.name_zh.trim() || null,
+        print_station_id: categoryDraft.print_station_id || null,
         sort_order: siblings.length,
         active: true,
       })
@@ -528,6 +562,7 @@ export function MenuManager({
         name_pt: categoryDraft.name_pt.trim(),
         name_en: categoryDraft.name_en.trim() || null,
         name_zh: categoryDraft.name_zh.trim() || null,
+        print_station_id: categoryDraft.print_station_id || null,
       })
       .eq('id', selectedCategory.id)
       .select()
@@ -827,6 +862,24 @@ export function MenuManager({
                     placeholder={categoryPanelMode === 'edit' || categoryPanelMode === 'create-root' ? '主菜' : '鱼类'}
                   />
                 </div>
+                <div>
+                  <label className="text-sm text-brand-text-muted font-medium block mb-1.5">{t.categoryPrintStation}</label>
+                  <select
+                    value={categoryDraft.print_station_id}
+                    onChange={(e) =>
+                      setCategoryDraft((prev) => ({ ...prev, print_station_id: e.target.value }))
+                    }
+                    className="w-full max-w-md bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+                  >
+                    <option value="">{t.printStationCategoryNone}</option>
+                    {printStations.map((ps) => (
+                      <option key={ps.id} value={ps.id}>
+                        {lang === 'en' ? ps.name_en || ps.name_pt : lang === 'zh' ? ps.name_zh || ps.name_pt : ps.name_pt}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[12px] text-brand-text-muted mt-1">{t.categoryPrintStationHint}</p>
+                </div>
                 {categoryError && (
                   <p className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-2">{categoryError}</p>
                 )}
@@ -942,6 +995,9 @@ export function MenuManager({
                         <span className="text-brand-text-muted/75">{t.itemType}: </span>
                         {getItemCategoryLine(item)}
                       </p>
+                      <p className="text-[12px] text-brand-text-muted/90 mt-0.5 line-clamp-1" title={getEffectiveStationTicketLine(item)}>
+                        {getEffectiveStationTicketLine(item)}
+                      </p>
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 justify-between min-[480px]:justify-end sm:flex-nowrap sm:shrink-0 border-t border-brand-border pt-3 min-[480px]:border-0 min-[480px]:pt-0">
@@ -1049,7 +1105,14 @@ export function MenuManager({
           <Input label={t.enDesc} value={itemForm.description_en} onChange={(e) => setItemForm((f) => ({ ...f, description_en: e.target.value }))} placeholder="Short description..." />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label={t.price} type="number" step="0.01" min="0" value={itemForm.price} onChange={(e) => setItemForm((f) => ({ ...f, price: e.target.value }))} placeholder="12.50" />
+            <Input
+              label={t.price}
+              type="text"
+              inputMode="decimal"
+              value={itemForm.price}
+              onChange={(e) => setItemForm((f) => ({ ...f, price: normalizeDecimalInput(e.target.value) }))}
+              placeholder="12.50"
+            />
             <div>
               <label className="text-sm text-brand-text-muted font-medium block mb-1.5">{t.category}</label>
               <select
@@ -1070,6 +1133,23 @@ export function MenuManager({
                 ))}
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="text-sm text-brand-text-muted font-medium block mb-1.5">{t.itemPrintStation}</label>
+            <select
+              value={itemForm.print_station_id}
+              onChange={(e) => setItemForm((f) => ({ ...f, print_station_id: e.target.value }))}
+              className="w-full max-w-md bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+            >
+              <option value="">{t.printStationItemInherit}</option>
+              {printStations.map((ps) => (
+                <option key={ps.id} value={ps.id}>
+                  {lang === 'en' ? ps.name_en || ps.name_pt : lang === 'zh' ? ps.name_zh || ps.name_pt : ps.name_pt}
+                </option>
+              ))}
+            </select>
+            <p className="text-[12px] text-brand-text-muted mt-1">{t.itemPrintStationHint}</p>
           </div>
 
           <div className="rounded-xl border border-brand-border bg-brand-bg/40 p-4">

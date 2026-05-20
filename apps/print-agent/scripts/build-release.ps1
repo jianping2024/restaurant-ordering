@@ -1,8 +1,9 @@
 # Build Mesa Print Agent Windows release artifacts (run on Windows with Go + Inno Setup 6).
-# Usage: .\scripts\build-release.ps1 [-Version 0.1.0]
+# Usage: .\scripts\build-release.ps1 [-Version 0.1.0] [-Amd64Only]
 
 param(
-  [string]$Version = ""
+  [string]$Version = "",
+  [switch]$Amd64Only
 )
 
 $ErrorActionPreference = "Stop"
@@ -12,13 +13,17 @@ if (-not $Version) {
 }
 
 $Dist = Join-Path $Root "dist"
-Remove-Item -Recurse -Force $Dist -ErrorAction SilentlyContinue
+if (Test-Path $Dist) {
+  Remove-Item -Recurse -Force $Dist
+}
 New-Item -ItemType Directory -Force -Path $Dist | Out-Null
 
 $archs = @(
-  @{ Name = "amd64"; GoArch = "amd64" },
-  @{ Name = "arm64"; GoArch = "arm64" }
+  @{ Name = "amd64"; GoArch = "amd64" }
 )
+if (-not $Amd64Only) {
+  $archs += @{ Name = "arm64"; GoArch = "arm64" }
+}
 
 foreach ($a in $archs) {
   $outDir = Join-Path $Dist $a.Name
@@ -27,13 +32,17 @@ foreach ($a in $archs) {
   $env:GOARCH = $a.GoArch
   $exe = Join-Path $outDir "MesaPrintAgent.exe"
   Push-Location $Root
-  go build -ldflags "-s -w -X main.Version=$Version" -o $exe .
-  Pop-Location
-  if ($LASTEXITCODE -ne 0) { throw "go build failed for $($a.Name)" }
+  try {
+    go build -ldflags "-s -w -X main.Version=$Version" -o $exe .
+    if ($LASTEXITCODE -ne 0) { throw "go build failed for $($a.Name) (exit $LASTEXITCODE)" }
+  } finally {
+    Pop-Location
+  }
 
-  Copy-Item (Join-Path $Root "installer\WINDOWS-README.txt") $outDir
+  Copy-Item (Join-Path $Root "installer\WINDOWS-README.txt") $outDir -Force
   $zipName = "MesaPrintAgent-windows-$($a.Name).zip"
   $zipPath = Join-Path $Dist $zipName
+  if (Test-Path $zipPath) { Remove-Item -Force $zipPath }
   Compress-Archive -Path (Join-Path $outDir "*") -DestinationPath $zipPath -Force
   Write-Host "zip: $zipPath"
 }
@@ -43,20 +52,24 @@ if (-not (Test-Path $iscc)) {
   $iscc = "${env:ProgramFiles}\Inno Setup 6\ISCC.exe"
 }
 if (-not (Test-Path $iscc)) {
-  Write-Warning "Inno Setup not found — skipping .exe installers (zip builds OK)."
-  exit 0
+  throw "Inno Setup ISCC.exe not found. Install Inno Setup 6 or run: choco install innosetup -y"
 }
 
+$iss = Join-Path $Root "installer\mesa-print-agent.iss"
 foreach ($a in $archs) {
   $src = Join-Path $Dist $a.Name
-  & $iscc "/DMyAppVersion=$Version" "/DMyArch=$($a.Name)" "/DSourceDir=$src" (Join-Path $Root "installer\mesa-print-agent.iss")
-  if ($LASTEXITCODE -ne 0) { throw "ISCC failed for $($a.Name)" }
+  $srcAbs = (Resolve-Path $src).Path.Replace('\', '/')
+  Write-Host "ISCC $($a.Name) SourceDir=$srcAbs"
+  & $iscc "/DMyAppVersion=$Version" "/DMyArch=$($a.Name)" "/DSourceDir=$srcAbs" $iss
+  if ($LASTEXITCODE -ne 0) { throw "ISCC failed for $($a.Name) (exit $LASTEXITCODE)" }
 }
 
 $hashFile = Join-Path $Dist "SHA256SUMS"
-Get-ChildItem $Dist -File | ForEach-Object {
+$lines = Get-ChildItem $Dist -File | ForEach-Object {
   $h = Get-FileHash $_.FullName -Algorithm SHA256
   "$($h.Hash.ToLower())  $($_.Name)"
-} | Set-Content $hashFile -Encoding ascii
+}
+$lines | Set-Content $hashFile -Encoding ascii
 
 Write-Host "Done. Version $Version — artifacts in $Dist"
+Get-ChildItem $Dist -File | Format-Table Name, Length

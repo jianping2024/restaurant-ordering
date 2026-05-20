@@ -34,7 +34,12 @@ jobs:
 
       - name: Build installers and zip
         shell: pwsh
-        run: ./apps/print-agent/scripts/build-release.ps1 -Version ${{ steps.ver.outputs.version }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          ./apps/print-agent/scripts/build-release.ps1 -Version "${{ steps.ver.outputs.version }}"
+          if (-not (Test-Path apps/print-agent/dist/MesaPrintAgent-Setup-amd64.exe)) {
+            throw 'Missing MesaPrintAgent-Setup-amd64.exe'
+          }
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2

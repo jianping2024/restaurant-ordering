@@ -1,11 +1,11 @@
 ; Mesa Print Agent — Inno Setup script
-; Build (Windows): iscc /DMyAppVersion=0.1.0 /DMyArch=amd64 /DSourceDir=..\..\dist\amd64 mesa-print-agent.iss
+; Build: iscc /DMyAppVersion=0.1.0 /DMyArch=amd64 /DSourceDir=C:/path/to/dist/amd64 mesa-print-agent.iss
 
 #ifndef MyAppVersion
   #define MyAppVersion "0.1.0"
 #endif
 #ifndef MyArch
-  #define MyArch "amd64"
+  #define MyArch amd64
 #endif
 #ifndef SourceDir
   #define SourceDir "..\..\dist\amd64"
@@ -16,11 +16,11 @@
 #define MyAppPublisher "Mesa"
 #define MyAppURL "https://github.com/jianping2024/restaurant-ordering"
 
-#if MyArch == "arm64"
-  #define ArchAllowed "arm64"
+#if MyArch == arm64
+  #define ArchAllowed arm64
   #define OutputBase "MesaPrintAgent-Setup-arm64"
 #else
-  #define ArchAllowed "x64compatible"
+  #define ArchAllowed x64compatible
   #define OutputBase "MesaPrintAgent-Setup-amd64"
 #endif
 
@@ -37,7 +37,6 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 OutputDir=..\..\dist
 OutputBaseFilename={#OutputBase}
-SetupIconFile=
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern

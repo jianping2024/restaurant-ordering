@@ -141,7 +141,7 @@ func runPairingWizard(ctx context.Context, configPath, prefillAPI string) error 
 		_ = srv.Shutdown(shutdownCtx)
 		return ctx.Err()
 	case err := <-done:
-		shutdownCtx, cancel := context.WithTimeout(context.Background, 3*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 		_ = srv.Shutdown(shutdownCtx)
 		return err

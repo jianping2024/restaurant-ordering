@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mesa Print Agent — 打印机</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; background: #0f1419; color: #e8e6e3; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .card { width: 100%; max-width: 480px; background: #1a222c; border: 1px solid #2d3a4a; border-radius: 16px; padding: 28px 24px; }
+    h1 { font-size: 1.2rem; margin: 0 0 6px; color: #d4a853; }
+    .sub { font-size: 13px; color: #9aa5b1; margin-bottom: 20px; line-height: 1.5; }
+    label { display: block; font-size: 12px; color: #9aa5b1; margin-bottom: 6px; }
+    select, input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #2d3a4a; background: #0f1419; color: #e8e6e3; font-size: 14px; margin-bottom: 14px; }
+    .row { display: flex; gap: 8px; margin-bottom: 14px; }
+    .row label { flex: 1; display: flex; align-items: center; gap: 8px; padding: 10px; border: 1px solid #2d3a4a; border-radius: 8px; cursor: pointer; font-size: 14px; color: #e8e6e3; }
+    .row input { width: auto; margin: 0; }
+    button { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #d4a853; color: #0f1419; font-size: 15px; font-weight: 600; cursor: pointer; }
+    button.secondary { background: transparent; border: 1px solid #2d3a4a; color: #9aa5b1; margin-top: 8px; }
+    .err { color: #f87171; font-size: 13px; min-height: 1.2em; margin-top: 8px; }
+    .ok { display: none; text-align: center; }
+    .ok h2 { color: #4ade80; font-size: 1.1rem; }
+    .hint { font-size: 11px; color: #9aa5b1; margin-top: -8px; margin-bottom: 14px; line-height: 1.45; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div id="formWrap">
+      <h1>选择打印机（UK56009）</h1>
+      <p class="sub">Mesa 已配对。请选择 <strong>网线</strong> 或 <strong>USB</strong> 连接方式。网线需打印机接 LAN；USB 需已在 Windows 安装 UNYKA 驱动。</p>
+      <div class="row">
+        <label><input type="radio" name="kind" value="tcp" checked /> 网线 (LAN :9100)</label>
+        <label><input type="radio" name="kind" value="winspool" /> USB (Windows 打印机)</label>
+      </div>
+      <label for="printer">打印机</label>
+      <select id="printer"></select>
+      <p class="hint" id="scanHint">正在扫描网口 9100…</p>
+      <button type="button" id="refreshBtn" class="secondary" style="width:auto;margin-bottom:14px">重新扫描</button>
+      <label for="test">测试（可选）</label>
+      <p class="hint">保存后可关闭本页；代理窗口请保持运行。</p>
+      <button type="button" id="saveBtn">保存并开始打印</button>
+      <p class="err" id="err"></p>
+    </div>
+    <div id="ok" class="ok">
+      <h2>已保存</h2>
+      <p style="color:#9aa5b1;font-size:13px">默认打印机已写入配置。厨房/吧台多个档口可在 config.json 的 station_printers 中分别配置。</p>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var kindRadios = document.querySelectorAll('input[name="kind"]');
+      var sel = document.getElementById('printer');
+      var err = document.getElementById('err');
+      var hint = document.getElementById('scanHint');
+      var cache = { tcp: [], winspool: [] };
+
+      function currentKind() {
+        var k = 'tcp';
+        kindRadios.forEach(function (r) { if (r.checked) k = r.value; });
+        return k;
+      }
+
+      function fillSelect(kind) {
+        var list = cache[kind] || [];
+        sel.innerHTML = '';
+        if (!list.length) {
+          var o = document.createElement('option');
+          o.value = '';
+          o.textContent = kind === 'tcp' ? '（未发现网口打印机，请检查网线/电源）' : '（未发现 Windows 打印机，请先安装 UK56009 驱动）';
+          sel.appendChild(o);
+          return;
+        }
+        list.forEach(function (p) {
+          var o = document.createElement('option');
+          o.value = p.addr;
+          o.textContent = p.label || p.addr;
+          sel.appendChild(o);
+        });
+      }
+
+      function loadList() {
+        err.textContent = '';
+        hint.textContent = '正在扫描…';
+        fetch('/api/printers')
+          .then(function (r) { return r.json(); })
+          .then(function (j) {
+            cache.tcp = j.tcp || [];
+            cache.winspool = j.winspool || [];
+            hint.textContent = '网线: ' + cache.tcp.length + ' 台 · USB 队列: ' + cache.winspool.length + ' 个';
+            fillSelect(currentKind());
+          })
+          .catch(function () {
+            err.textContent = '无法加载打印机列表';
+            hint.textContent = '';
+          });
+      }
+
+      kindRadios.forEach(function (r) {
+        r.addEventListener('change', function () { fillSelect(currentKind()); });
+      });
+      document.getElementById('refreshBtn').addEventListener('click', loadList);
+      document.getElementById('saveBtn').addEventListener('click', function () {
+        err.textContent = '';
+        var target = sel.value;
+        if (!target) {
+          err.textContent = '请选择一台打印机';
+          return;
+        }
+        fetch('/api/setup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ default_printer: target })
+        })
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+          .then(function (res) {
+            if (!res.ok) {
+              err.textContent = res.j.error || '保存失败';
+              return;
+            }
+            document.getElementById('formWrap').classList.add('hidden');
+            document.getElementById('ok').style.display = 'block';
+            setTimeout(function () { fetch('/api/setup-done', { method: 'POST' }); }, 800);
+          })
+          .catch(function () { err.textContent = '无法连接本机设置服务'; });
+      });
+      loadList();
+    })();
+  </script>
+</body>
+</html>

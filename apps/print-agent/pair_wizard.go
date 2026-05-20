@@ -38,8 +38,11 @@ func normalizeAPIBase(raw string) (string, error) {
 	return s, nil
 }
 
-func pickPairListenAddr() (string, error) {
-	for port := PairWizardPort; port < PairWizardPort+8; port++ {
+// SetupWizardPort is the localhost port for printer setup UI (dashboard need not link).
+const SetupWizardPort = 17891
+
+func pickLocalListenAddr(startPort int) (string, error) {
+	for port := startPort; port < startPort+8; port++ {
 		addr := fmt.Sprintf("127.0.0.1:%d", port)
 		ln, err := net.Listen("tcp", addr)
 		if err != nil {
@@ -48,7 +51,11 @@ func pickPairListenAddr() (string, error) {
 		_ = ln.Close()
 		return addr, nil
 	}
-	return "", fmt.Errorf("no free port near %d", PairWizardPort)
+	return "", fmt.Errorf("no free port near %d", startPort)
+}
+
+func pickPairListenAddr() (string, error) {
+	return pickLocalListenAddr(PairWizardPort)
 }
 
 // runPairingWizard serves a local web UI until pairing succeeds or ctx is cancelled.

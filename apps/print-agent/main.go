@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -134,17 +133,6 @@ func summarizeJobPayload(job printJob) string {
 	return strings.Join(parts, " | ")
 }
 
-func tcpPrint(hostPort string, data []byte) error {
-	c, err := net.DialTimeout("tcp", hostPort, 8*time.Second)
-	if err != nil {
-		return err
-	}
-	defer c.Close()
-	_ = c.SetWriteDeadline(time.Now().Add(12 * time.Second))
-	_, err = c.Write(data)
-	return err
-}
-
 func runAgent(args []string) {
 	fs := flag.NewFlagSet("run", flag.ExitOnError)
 	apiBase := fs.String("api", "http://127.0.0.1:3000", "Mesa base URL")
@@ -200,6 +188,23 @@ func runAgent(args []string) {
 	}
 
 	applyCloudRuntimeConfig(cfg, cfg.APIBase)
+
+	if !cfg.hasPrinterRouting() {
+		log.Println("no printer configured — opening setup wizard")
+		setupCtx, setupCancel := context.WithTimeout(context.Background(), 30*time.Minute)
+		if err := runSetupWizard(setupCtx, path, cfg); err != nil {
+			setupCancel()
+			log.Fatal("setup:", err)
+		}
+		setupCancel()
+		cfg, err = loadConfig(path)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if !cfg.hasPrinterRouting() {
+			log.Fatal("setup did not configure a default printer")
+		}
+	}
 
 	def := cfg.defaultPrinterAddr()
 	stationCount := 0
@@ -268,7 +273,7 @@ func runAgent(args []string) {
 		}
 
 		job := queue[0]
-		hostPort, err := cfg.printerAddrForJob(job)
+		target, err := cfg.printerTargetForJob(job)
 		if err != nil {
 			_ = patchJob(cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
 				"status":        "failed",
@@ -285,17 +290,17 @@ func runAgent(args []string) {
 			continue
 		}
 		data := escposFromJob(job)
-		if err := tcpPrint(hostPort, data); err != nil {
+		if err := printToTarget(target, data); err != nil {
 			_ = patchJob(cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
 				"status":        "failed",
 				"error_message": err.Error(),
 			})
-			log.Printf("print failed (%s): %v", hostPort, err)
+			log.Printf("print failed (%s): %v", target.Display, err)
 		} else {
 			if err := patchJob(cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{"status": "done"}); err != nil {
 				log.Println("mark done:", err)
 			} else {
-				log.Printf("printed job %s (%s) -> %s\n  ticket: %s", job.ID, job.Type, hostPort, summarizeJobPayload(job))
+				log.Printf("printed job %s (%s) -> %s\n  ticket: %s", job.ID, job.Type, target.Display, summarizeJobPayload(job))
 			}
 		}
 		queue = queue[1:]
@@ -322,12 +327,26 @@ func main() {
 			}
 			fmt.Println("Pairing saved to", path)
 			return
+		case "setup":
+			path := defaultConfigPath()
+			cfg, err := loadConfig(path)
+			if err != nil || cfg.AgentJWT == "" {
+				log.Fatal("pair with Mesa first (run MesaPrintAgent without setup subcommand)")
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+			defer cancel()
+			if err := runSetupWizard(ctx, path, cfg); err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println("Printer settings saved to", path)
+			return
 		case "help", "-h", "--help":
 			fmt.Printf("Mesa Print Agent %s\n\n", Version)
 			fmt.Println(`Usage:
   MesaPrintAgent              Run agent (opens pairing web UI on first run)
   MesaPrintAgent pair         Open pairing web UI again
-  MesaPrintAgent discover     Scan LAN for TCP port 9100 printers
+  MesaPrintAgent setup        Open printer setup (LAN or USB)
+  MesaPrintAgent discover     Scan LAN :9100 and list Windows printers
   MesaPrintAgent [-api URL] [-code CODE]   Optional CLI pairing (advanced)
 
 Pairing UI: http://127.0.0.1:17890/pair (while agent is waiting for first pairing)

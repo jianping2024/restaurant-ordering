@@ -1,6 +1,6 @@
 # Mesa print agent
 
-Pulls `print_jobs` from Mesa and prints via **LAN RAW TCP port 9100** (ESC/POS).
+Pulls `print_jobs` from Mesa and prints via **LAN TCP :9100** or **Windows USB** (WinSpool RAW, UNYKA UK56009). ESC/POS.
 
 ## Commands
 

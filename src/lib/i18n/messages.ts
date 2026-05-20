@@ -267,7 +267,7 @@ export const MESSAGES = {
       pairingSlotFull: '未过期记录已满 3 条，请等待过期后再生成。',
       pairingErrorPrefix: '操作失败：',
       pairingAgentHint:
-        '配对成功后，代理通过 HTTPS 拉取打印任务。打印机：在收银机运行 discover 扫描网口 9100，或编辑 %USERPROFILE%\\.config\\mesa-print-agent\\config.json 中的 default_printer / station_printers。',
+        '配对成功后会自动打开打印机设置（网线或 USB）。也可运行 MesaPrintAgent.exe setup。config.json 示例：tcp:IP:9100 或 winspool:Windows打印机名。',
       queueTitle: '最近打印队列',
       refresh: '刷新',
       empty: '暂无打印任务。顾客或服务员下单成功后会自动入队；请确认已绑定出品档口且打印代理在线。',
@@ -743,7 +743,7 @@ export const MESSAGES = {
       pairingSlotFull: 'You already have 3 non-expired pairing rows; wait for expiry before creating another.',
       pairingErrorPrefix: 'Something went wrong: ',
       pairingAgentHint:
-        'After pairing, the agent pulls jobs over HTTPS. For printers: run discover for LAN port 9100, or edit default_printer / station_printers in %USERPROFILE%\\.config\\mesa-print-agent\\config.json.',
+        'After pairing, the setup page opens (LAN or USB). Or run MesaPrintAgent.exe setup. Config: tcp:IP:9100 or winspool:Windows printer name.',
       queueTitle: 'Recent print queue',
       refresh: 'Refresh',
       empty: 'No print jobs yet. Jobs are queued automatically after an order is submitted; check station bindings and that the print agent is online.',
@@ -998,7 +998,7 @@ export const MESSAGES = {
       pairingSlotFull: 'Ja existem 3 linhas nao expiradas; aguarde expirar antes de criar outra.',
       pairingErrorPrefix: 'Erro: ',
       pairingAgentHint:
-        'Apos emparelhar, o agente obtem tarefas via HTTPS. Impressoras: discover na porta 9100 ou edite default_printer / station_printers em %USERPROFILE%\\.config\\mesa-print-agent\\config.json.',
+        'Apos emparelhar, abre a pagina de impressora (LAN ou USB). Ou MesaPrintAgent.exe setup. Config: tcp:IP:9100 ou winspool:nome da impressora.',
       queueTitle: 'Fila recente',
       refresh: 'Atualizar',
       empty: 'Sem tarefas ainda. As tarefas entram na fila ao confirmar um pedido; confirme estacoes ligadas e agente online.',

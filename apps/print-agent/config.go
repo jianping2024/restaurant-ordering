@@ -61,14 +61,26 @@ func normalizeHostPort(hostPort string, defaultPort string) string {
 	return hostPort + ":" + defaultPort
 }
 
+func (c *config) defaultPrinterTargetRaw() string {
+	if s := strings.TrimSpace(c.DefaultPrinter); s != "" {
+		return s
+	}
+	if s := strings.TrimSpace(c.PrinterHost); s != "" {
+		return s
+	}
+	return ""
+}
+
 func (c *config) defaultPrinterAddr() string {
-	if hp := normalizeHostPort(c.DefaultPrinter, "9100"); hp != "" {
-		return hp
+	raw := c.defaultPrinterTargetRaw()
+	if raw == "" {
+		return "(not set)"
 	}
-	if hp := normalizeHostPort(c.PrinterHost, "9100"); hp != "" {
-		return hp
+	t, err := parsePrinterTarget(raw)
+	if err != nil {
+		return raw
 	}
-	return "127.0.0.1:9100"
+	return t.Display
 }
 
 func (c *config) printerAddrForJob(job printJob) (string, error) {
@@ -80,12 +92,16 @@ func (c *config) printerAddrForJob(job printJob) (string, error) {
 	if job.Type == "station_ticket" && strings.TrimSpace(p.PrintStationID) != "" {
 		sid := strings.TrimSpace(p.PrintStationID)
 		if c.StationPrinters != nil {
-			if hp := normalizeHostPort(c.StationPrinters[sid], "9100"); hp != "" {
-				return hp, nil
+			if v := strings.TrimSpace(c.StationPrinters[sid]); v != "" {
+				return v, nil
 			}
 		}
 		return "", fmt.Errorf("no station_printers mapping for print_station_id %s", sid)
 	}
 
-	return c.defaultPrinterAddr(), nil
+	raw := c.defaultPrinterTargetRaw()
+	if raw == "" {
+		return "", fmt.Errorf("no default_printer configured")
+	}
+	return raw, nil
 }

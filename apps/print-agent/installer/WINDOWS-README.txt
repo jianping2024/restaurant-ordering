@@ -1,34 +1,37 @@
-Mesa Print Agent (Windows)
-==========================
+Mesa Print Agent (Windows) — v0.2+
+===================================
 
-Thermal print agent for Mesa restaurant ordering. Pulls print jobs from your
-Mesa server and sends ESC/POS to LAN printers (TCP port 9100).
+Thermal print agent for Mesa (UNYKA UK56009). One installer for LAN and USB.
 
-First-time pairing (no command line)
------------------------------------
-1. In Mesa Dashboard -> Settings -> Print assistant, click "Generate pairing code".
-2. On this PC, double-click MesaPrintAgent.exe (installer or portable zip).
-3. Your browser opens a local pairing page (http://127.0.0.1:17890/pair).
-4. Confirm Mesa URL is https://your-mesa-site.vercel.app (root only, no /dashboard path).
-5. Enter the 6-digit code from the dashboard, click Connect.
+First-time setup (no command line)
+----------------------------------
+1. Install UNYKA UK56009 driver if using USB (Unyka website).
+2. Mesa Dashboard -> Settings -> Print assistant -> Generate pairing code.
+3. Double-click MesaPrintAgent.exe.
+4. Browser: pairing page — enter Mesa URL (https://your-site.vercel.app) and 6-digit code.
+5. Browser: printer setup — choose LAN (network cable) or USB (Windows printer).
+6. Keep the black agent window open for automatic printing.
 
-   From the dashboard you can also click "Open local pairing page" after generating a code.
+Re-open setup later: MesaPrintAgent.exe setup
+Re-pair Mesa: MesaPrintAgent.exe pair
 
-   Config is saved to: %USERPROFILE%\.config\mesa-print-agent\config.json
+Config file
+-----------
+%USERPROFILE%\.config\mesa-print-agent\config.json
 
-   To pair again later: MesaPrintAgent.exe pair
+Examples:
+  "default_printer": "tcp:192.168.1.50:9100"
+  "default_printer": "winspool:UK56009"
+  "station_printers": {
+    "<kitchen-station-uuid>": "tcp:192.168.1.51:9100",
+    "<bar-station-uuid>": "winspool:Bar"
+  }
 
-Printers
---------
-- Run: MesaPrintAgent.exe discover
-- Edit config.json: default_printer and station_printers (station UUIDs from
-  Dashboard -> Print stations).
+Discover printers: MesaPrintAgent.exe discover
 
-SmartScreen / "Unknown publisher"
----------------------------------
-This build is not Authenticode-signed. If Windows blocks the installer:
-- Click "More info" -> "Run anyway", or
-- Right-click the .exe -> Properties -> Unblock -> OK.
+SmartScreen
+-----------
+Unsigned build: More info -> Run anyway, or Unblock in file Properties.
 
 Support
 -------

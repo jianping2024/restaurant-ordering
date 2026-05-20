@@ -152,7 +152,7 @@ func runDiscover(args []string) {
 	_ = fs.Parse(args)
 
 	timeout := time.Duration(*timeoutMs) * time.Millisecond
-	printers, err := discoverPrinters9100(timeout, *workers)
+	tcpList, winList, err := discoverAllPrinters(timeout, *workers)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "discover: %v\n", err)
 		os.Exit(1)
@@ -161,25 +161,35 @@ func runDiscover(args []string) {
 	if *asJSON {
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "  ")
-		_ = enc.Encode(map[string]any{"printers": printers})
+		_ = enc.Encode(map[string]any{"tcp": tcpList, "winspool": winList})
 		return
 	}
 
-	if len(printers) == 0 {
-		fmt.Println("No hosts with TCP port 9100 open on local subnets.")
-		fmt.Println("Check: printers powered on, same LAN as this PC, firewall allows 9100.")
-		return
+	fmt.Println("LAN (TCP port 9100):")
+	if len(tcpList) == 0 {
+		fmt.Println("  (none — check cable, power, same network)")
+	} else {
+		for _, p := range tcpList {
+			fmt.Printf("  %s\n", p.Addr)
+		}
 	}
-	fmt.Printf("Found %d host(s) with port 9100 open:\n", len(printers))
-	for _, p := range printers {
-		fmt.Printf("  %s\n", p.Addr)
+	fmt.Println()
+	fmt.Println("USB / Windows printer queues:")
+	if len(winList) == 0 {
+		fmt.Println("  (none — install UNYKA UK56009 driver on Windows)")
+	} else {
+		for _, p := range winList {
+			fmt.Printf("  %s\n", p.Addr)
+		}
 	}
 	fmt.Println()
 	fmt.Println("Add to config.json, for example:")
-	fmt.Println(`  "default_printer": "192.168.1.50:9100",`)
+	fmt.Println(`  "default_printer": "tcp:192.168.1.50:9100",`)
+	fmt.Println(`  "default_printer": "winspool:UK56009",`)
 	fmt.Println(`  "station_printers": {`)
-	fmt.Println(`    "<print_station_uuid>": "192.168.1.51:9100",`)
-	fmt.Println(`    "<print_station_uuid>": "192.168.1.52:9100"`)
+	fmt.Println(`    "<print_station_uuid>": "tcp:192.168.1.51:9100",`)
+	fmt.Println(`    "<print_station_uuid>": "winspool:Bar Printer"`)
 	fmt.Println(`  }`)
-	fmt.Println("Station UUIDs: dashboard → 出品档口, or Supabase print_stations.id")
+	fmt.Println("Or run MesaPrintAgent setup for a guided page.")
+	fmt.Println("Station UUIDs: dashboard → 出品档口")
 }

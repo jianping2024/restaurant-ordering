@@ -36,7 +36,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          ./apps/print-agent/scripts/build-release.ps1 -Version "${{ steps.ver.outputs.version }}"
+          ./apps/print-agent/scripts/build-release.ps1 -Version "${{ steps.ver.outputs.version }}" -Amd64Only
           if (-not (Test-Path apps/print-agent/dist/MesaPrintAgent-Setup-amd64.exe)) {
             throw 'Missing MesaPrintAgent-Setup-amd64.exe'
           }
@@ -59,9 +59,7 @@ jobs:
             Verify `SHA256SUMS`. Builds are not Authenticode-signed; see WINDOWS-README in the zip.
           files: |
             apps/print-agent/dist/MesaPrintAgent-Setup-amd64.exe
-            apps/print-agent/dist/MesaPrintAgent-Setup-arm64.exe
             apps/print-agent/dist/MesaPrintAgent-windows-amd64.zip
-            apps/print-agent/dist/MesaPrintAgent-windows-arm64.zip
             apps/print-agent/dist/SHA256SUMS
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

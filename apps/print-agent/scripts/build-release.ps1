@@ -7,7 +7,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$Root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$Root = Split-Path -Parent $PSScriptRoot
 if (-not $Version) {
   $Version = (Get-Content (Join-Path $Root "VERSION") -Raw).Trim()
 }

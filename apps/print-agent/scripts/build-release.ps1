@@ -68,7 +68,7 @@ if (-not $iscc) {
 $iss = Join-Path $Root "installer\mesa-print-agent.iss"
 foreach ($a in $archs) {
   $src = Join-Path $Dist $a.Name
-  $srcAbs = (Resolve-Path $src).Path.Replace('\', '/')
+  $srcAbs = (Resolve-Path $src).Path
   Write-Host "ISCC $($a.Name) SourceDir=$srcAbs"
   & $iscc "/DMyAppVersion=$Version" "/DMyArch=$($a.Name)" "/DSourceDir=$srcAbs" $iss
   if ($LASTEXITCODE -ne 0) { throw "ISCC failed for $($a.Name) (exit $LASTEXITCODE)" }

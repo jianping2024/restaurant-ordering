@@ -60,7 +60,7 @@ Name: "{group}\Read me"; Filename: "{app}\WINDOWS-README.txt"
 Name: "{autostart}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: autostart
 
 [Registry]
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "MesaPrintAgent"; ValueData: """{app}\{#MyAppExe}"""; Tasks: autostart; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "MesaPrintAgent"; ValueData: "{app}\{#MyAppExe}"; Tasks: autostart; Flags: uninsdeletevalue
 
 [Run]
 Filename: "{app}\{#MyAppExe}"; Description: "Launch {#MyAppName} now"; Flags: nowait postinstall skipifsilent

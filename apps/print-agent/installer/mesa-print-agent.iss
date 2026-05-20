@@ -8,7 +8,7 @@
   #define MyArch amd64
 #endif
 #ifndef SourceDir
-  #define SourceDir "..\..\dist\amd64"
+  #define SourceDir "..\dist\amd64"
 #endif
 
 #define MyAppName "Mesa Print Agent"
@@ -35,7 +35,7 @@ AppUpdatesURL={#MyAppURL}/releases
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-OutputDir=..\..\dist
+OutputDir=..\dist
 OutputBaseFilename={#OutputBase}
 Compression=lzma2
 SolidCompression=yes
@@ -51,7 +51,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "autostart"; Description: "Start {#MyAppName} when I log in to Windows"; GroupDescription: "Other tasks:"; Flags: checkedonce
 
 [Files]
-Source: "{#SourceDir}\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceDir}/{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "WINDOWS-README.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]

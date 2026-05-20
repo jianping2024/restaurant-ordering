@@ -74,7 +74,10 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $ver = '${{ steps.ver.outputs.version }}'
-          & '${{ steps.iscc.outputs.path }}' "/DMyAppVersion=$ver" installer/mesa-print-agent.iss
+          $iss = Join-Path (Get-Location) 'installer\mesa-print-agent.iss'
+          $log = Join-Path (Get-Location) 'dist\iscc.log'
+          & '${{ steps.iscc.outputs.path }}' "/DMyAppVersion=$ver" $iss 2>&1 | Tee-Object -FilePath $log
+          if (Test-Path $log) { Get-Content $log }
           if ($LASTEXITCODE -ne 0) { throw "ISCC failed (exit $LASTEXITCODE)" }
           if (-not (Test-Path dist/MesaPrintAgent-Setup-amd64.exe)) {
             Get-ChildItem dist -Recurse | Format-Table FullName, Length

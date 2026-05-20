@@ -1,4 +1,4 @@
-; Mesa Print Agent — Inno Setup (x64). Build from apps/print-agent:
+; Mesa Print Agent — Inno Setup (x64). From apps/print-agent:
 ;   ISCC /DMyAppVersion=0.1.0 installer\mesa-print-agent.iss
 
 #ifndef MyAppVersion
@@ -16,7 +16,6 @@ AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
-AppSupportURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
@@ -25,15 +24,9 @@ OutputBaseFilename=MesaPrintAgent-Setup-amd64
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-PrivilegesRequired=lowest
-ArchitecturesAllowed=x64compatible
-ArchitecturesInstallIn64BitMode=x64compatible
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
-
-[Tasks]
-Name: "autostart"; Description: "Start {#MyAppName} when I log in to Windows"; GroupDescription: "Other tasks:"; Flags: checkedonce
 
 [Files]
 Source: "..\dist\amd64\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
@@ -42,10 +35,3 @@ Source: "WINDOWS-README.txt"; DestDir: "{app}"; Flags: ignoreversion
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"
 Name: "{group}\Read me"; Filename: "{app}\WINDOWS-README.txt"
-Name: "{autostart}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: autostart
-
-[Registry]
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "MesaPrintAgent"; ValueData: "{app}\{#MyAppExe}"; Tasks: autostart; Flags: uninsdeletevalue
-
-[Run]
-Filename: "{app}\{#MyAppExe}"; Description: "Launch {#MyAppName} now"; Flags: nowait postinstall skipifsilent

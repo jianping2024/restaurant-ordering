@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
+import { buildPrintAgentPairUrl } from '@/lib/print-agent-local';
 
 type PairingRow = {
   id: string;
@@ -84,24 +85,43 @@ export function PrintAgentPairingPanel() {
 
       {freshCode && (
         <div
-          className="rounded-xl border border-brand-gold/50 bg-brand-gold/10 px-4 py-3"
+          className="rounded-xl border border-brand-gold/50 bg-brand-gold/10 px-4 py-3 space-y-3"
           role="status"
         >
           <p className="text-[13px] text-brand-text font-medium">{t.pairingNewCodeLabel}</p>
-          <p className="mt-2 font-mono text-2xl tracking-[0.25em] text-brand-text tabular-nums select-all">
+          <p className="font-mono text-2xl tracking-[0.25em] text-brand-text tabular-nums select-all">
             {freshCode.code}
           </p>
-          <p className="text-[12px] text-brand-text-muted mt-2">
+          <p className="text-[12px] text-brand-text-muted">
             {t.pairingExpiresHint}{' '}
             {new Date(freshCode.expires_at).toLocaleString()}
           </p>
-          <button
-            type="button"
-            className="mt-3 text-[12px] text-brand-text-muted hover:text-brand-text underline"
-            onClick={() => setFreshCode(null)}
-          >
-            {t.pairingDismiss}
-          </button>
+          <ol className="text-[12px] text-brand-text-muted space-y-1 list-decimal list-inside leading-relaxed">
+            <li>{t.pairingWizardStep1}</li>
+            <li>{t.pairingWizardStep2}</li>
+            <li>{t.pairingWizardStep3}</li>
+          </ol>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <a
+              href={buildPrintAgentPairUrl(
+                typeof window !== 'undefined' ? window.location.origin : '',
+                freshCode.code
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center rounded-lg bg-brand-gold text-brand-bg px-4 py-2 text-sm font-semibold hover:bg-brand-gold-light transition-colors"
+            >
+              {t.pairingOpenLocalWizard}
+            </a>
+            <button
+              type="button"
+              className="text-[12px] px-3 py-2 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text"
+              onClick={() => setFreshCode(null)}
+            >
+              {t.pairingDismiss}
+            </button>
+          </div>
+          <p className="text-[11px] text-brand-text-muted leading-relaxed">{t.pairingWizardNote}</p>
         </div>
       )}
 
@@ -149,9 +169,19 @@ export function PrintAgentPairingPanel() {
         )}
       </div>
 
-      <p className="text-[12px] text-brand-text-muted leading-relaxed border-t border-brand-border/60 pt-3">
-        {t.pairingAgentHint}
-      </p>
+      <div className="border-t border-brand-border/60 pt-3 space-y-2">
+        <p className="text-[12px] text-brand-text-muted leading-relaxed">{t.pairingAgentHint}</p>
+        <a
+          href={buildPrintAgentPairUrl(
+            typeof window !== 'undefined' ? window.location.origin : ''
+          )}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex text-[12px] text-brand-gold hover:underline"
+        >
+          {t.pairingOpenLocalWizardIdle}
+        </a>
+      </div>
     </div>
   );
 }

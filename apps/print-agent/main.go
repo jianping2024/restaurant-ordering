@@ -3,6 +3,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
@@ -159,22 +160,35 @@ func runAgent(args []string) {
 
 	cfg, err := loadConfig(path)
 	if err != nil || cfg.AgentJWT == "" {
-		if *code == "" {
-			log.Fatal("first run: pass -code with a fresh 6-digit pairing code from the dashboard")
+		if *code != "" {
+			deviceID := newUUID()
+			cfg, err = claim(*apiBase, strings.TrimSpace(*code), deviceID)
+			if err != nil {
+				log.Fatal(err)
+			}
+			if dp := strings.TrimSpace(*defaultPrinter); dp != "" {
+				cfg.DefaultPrinter = dp
+				cfg.PrinterHost = dp
+			}
+			if err := saveConfig(path, cfg); err != nil {
+				log.Fatal(err)
+			}
+			log.Printf("saved config to %s (device_id=%s)", path, deviceID)
+		} else {
+			prefill := strings.TrimSpace(*apiBase)
+			if prefill == "http://127.0.0.1:3000" {
+				prefill = ""
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Minute)
+			defer cancel()
+			if err := runPairingWizard(ctx, path, prefill); err != nil {
+				log.Fatal(err)
+			}
+			cfg, err = loadConfig(path)
+			if err != nil || cfg.AgentJWT == "" {
+				log.Fatal("pairing did not save configuration")
+			}
 		}
-		deviceID := newUUID()
-		cfg, err = claim(*apiBase, strings.TrimSpace(*code), deviceID)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if dp := strings.TrimSpace(*defaultPrinter); dp != "" {
-			cfg.DefaultPrinter = dp
-			cfg.PrinterHost = dp
-		}
-		if err := saveConfig(path, cfg); err != nil {
-			log.Fatal(err)
-		}
-		log.Printf("saved config to %s (device_id=%s)", path, deviceID)
 	}
 	if cfg.APIBase == "" {
 		cfg.APIBase = *apiBase
@@ -299,15 +313,26 @@ func main() {
 		case "discover":
 			runDiscover(os.Args[2:])
 			return
+		case "pair":
+			path := defaultConfigPath()
+			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Minute)
+			defer cancel()
+			if err := runPairingWizard(ctx, path, ""); err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println("Pairing saved to", path)
+			return
 		case "help", "-h", "--help":
 			fmt.Printf("Mesa Print Agent %s\n\n", Version)
 			fmt.Println(`Usage:
-  MesaPrintAgent discover [-json] [-timeout-ms 400] [-workers 64]
-  MesaPrintAgent [-api URL] [-code CODE] [-default-printer HOST:9100]
+  MesaPrintAgent              Run agent (opens pairing web UI on first run)
+  MesaPrintAgent pair         Open pairing web UI again
+  MesaPrintAgent discover     Scan LAN for TCP port 9100 printers
+  MesaPrintAgent [-api URL] [-code CODE]   Optional CLI pairing (advanced)
 
-Config: schedule (open windows) + poll (idle/busy/warm intervals). See README.
+Pairing UI: http://127.0.0.1:17890/pair (while agent is waiting for first pairing)
 
-Subcommand "discover" scans local IPv4 subnets for TCP port 9100 (RAW thermal printers).`)
+Config: schedule + poll intervals. See README.`)
 			return
 		case "version", "-v", "--version":
 			fmt.Println(Version)

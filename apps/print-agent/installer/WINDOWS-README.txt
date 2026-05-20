@@ -4,15 +4,19 @@ Mesa Print Agent (Windows)
 Thermal print agent for Mesa restaurant ordering. Pulls print jobs from your
 Mesa server and sends ESC/POS to LAN printers (TCP port 9100).
 
-First-time pairing
-------------------
+First-time pairing (no command line)
+-----------------------------------
 1. In Mesa Dashboard -> Settings -> Print assistant, click "Generate pairing code".
-2. Run MesaPrintAgent.exe (from Start menu or this folder).
-3. When prompted, pass your Mesa site URL and the 6-digit code, for example:
+2. On this PC, double-click MesaPrintAgent.exe (installer or portable zip).
+3. Your browser opens a local pairing page (http://127.0.0.1:17890/pair).
+4. Confirm Mesa URL is https://your-mesa-site.vercel.app (root only, no /dashboard path).
+5. Enter the 6-digit code from the dashboard, click Connect.
 
-   MesaPrintAgent.exe -api https://your-mesa-domain.com -code 123456
+   From the dashboard you can also click "Open local pairing page" after generating a code.
 
    Config is saved to: %USERPROFILE%\.config\mesa-print-agent\config.json
+
+   To pair again later: MesaPrintAgent.exe pair
 
 Printers
 --------

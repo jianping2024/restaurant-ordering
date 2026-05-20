@@ -23,7 +23,7 @@ go run . -api http://localhost:3000 -code 123456
 go run . -api http://localhost:3000 -default-printer 192.168.1.50:9100
 ```
 
-First run with `-code` creates `~/.config/mesa-print-agent/config.json`.
+**First run:** double-click `MesaPrintAgent` (or run without args) — a browser opens the **local pairing page** at `http://127.0.0.1:17890/pair` (no command line). Saves `~/.config/mesa-print-agent/config.json`. Advanced: `-api URL -code 123456` or `MesaPrintAgent pair` to re-open the wizard.
 
 ## Config (`config.json`)
 

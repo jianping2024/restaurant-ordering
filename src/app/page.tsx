@@ -21,12 +21,6 @@ export default function LandingPage() {
             <LanguageSwitcher compact />
             <Link
               href="/auth/login"
-              className="text-brand-text-muted hover:text-brand-text text-[13px] sm:text-sm transition-colors whitespace-nowrap"
-            >
-              {dict.login}
-            </Link>
-            <Link
-              href="/auth/login"
               className="bg-brand-gold text-brand-bg px-3 sm:px-5 py-2 rounded-lg text-[13px] sm:text-sm font-semibold hover:bg-brand-gold-light transition-colors whitespace-nowrap flex-shrink-0"
             >
               {dict.ownerCta}

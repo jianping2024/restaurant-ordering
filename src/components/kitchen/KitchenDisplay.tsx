@@ -11,10 +11,7 @@ import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { deriveOrderStatusFromItems, itemsEveryVoided, normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { resolveStaffSession } from '@/lib/staff-auth-client';
-import {
-  fetchKitchenBoardClient,
-  fetchKitchenDoneOrdersClient,
-} from '@/lib/staff-board-client';
+import { fetchKitchenBoardClient } from '@/lib/staff-board-client';
 import { useRestaurantRealtimeRefresh } from '@/lib/use-restaurant-realtime-refresh';
 
 interface Props {
@@ -92,20 +89,24 @@ export function KitchenDisplay({
   const [asOwner, setAsOwner] = useState(false);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [activeTables, setActiveTables] = useState<number[]>(initialActiveTables);
-  const [doneOrders, setDoneOrders] = useState<Order[]>([]);
-  const [showDone, setShowDone] = useState(false);
   const [updateConflict, setUpdateConflict] = useState(false);
   const prevOrderIds = useRef<Set<string>>(new Set(initialOrders.map((o) => o.id)));
   const supabase = createClient(); // demo realtime only
 
+  /** 主区只显示待处理 / 备餐中（出餐完毕的订单从列表移除） */
+  const boardOrders = useMemo(
+    () => orders.filter((o) => o.status === 'pending' || o.status === 'cooking'),
+    [orders],
+  );
+
   const idleTableCount = useMemo(() => {
-    const busy = new Set(orders.map((o) => o.table_number));
+    const busy = new Set(boardOrders.map((o) => o.table_number));
     return activeTables.filter((t) => !busy.has(t)).length;
-  }, [orders, activeTables]);
+  }, [boardOrders, activeTables]);
 
   const kitchenColumns = useMemo(() => {
     const byTable = new Map<number, Order[]>();
-    orders.forEach((o) => {
+    boardOrders.forEach((o) => {
       const list = byTable.get(o.table_number) || [];
       list.push(o);
       byTable.set(o.table_number, list);
@@ -128,7 +129,7 @@ export function KitchenDisplay({
       }
     }
     return cols;
-  }, [orders, activeTables]);
+  }, [boardOrders, activeTables]);
 
   useEffect(() => {
     if (isDemo) return;
@@ -153,10 +154,7 @@ export function KitchenDisplay({
   }, [isDemo, restaurant.slug, router]);
 
   const refreshKitchenBoard = useCallback(async () => {
-    const [board, doneOrders] = await Promise.all([
-      fetchKitchenBoardClient(restaurant.id),
-      fetchKitchenDoneOrdersClient(restaurant.id),
-    ]);
+    const board = await fetchKitchenBoardClient(restaurant.id);
     board.orders.forEach((o) => {
       if (!prevOrderIds.current.has(o.id)) {
         playBeep();
@@ -165,7 +163,6 @@ export function KitchenDisplay({
     });
     setOrders(board.orders);
     setActiveTables(board.activeTables);
-    setDoneOrders(doneOrders);
   }, [restaurant.id]);
 
   // 更新菜品级状态，并同步订单总状态（pending/cooking/done）
@@ -190,13 +187,20 @@ export function KitchenDisplay({
         .eq('id', order.id)
         .eq('updated_at', order.updated_at);
       if (!error) {
-        setOrders((prev) =>
-          prev.map((o) =>
-            o.id === order.id
-              ? { ...o, items: nextItems, status: nextOrderStatus, updated_at: new Date().toISOString() }
-              : o,
-          ),
-        );
+        const updatedAt = new Date().toISOString();
+        const merged: Order = {
+          ...order,
+          items: nextItems,
+          status: nextOrderStatus,
+          updated_at: updatedAt,
+        };
+        if (nextOrderStatus === 'done') {
+          setOrders((prev) => prev.filter((o) => o.id !== order.id));
+        } else {
+          setOrders((prev) =>
+            prev.map((o) => (o.id === order.id ? merged : o)),
+          );
+        }
         return;
       }
     }
@@ -212,10 +216,7 @@ export function KitchenDisplay({
     );
 
     if (res.ok) {
-      const data = await res.json();
-      if (data.order) {
-        setOrders((prev) => prev.map((o) => (o.id === order.id ? (data.order as Order) : o)));
-      }
+      await refreshKitchenBoard();
       return;
     }
 
@@ -278,7 +279,7 @@ export function KitchenDisplay({
         <div>
           <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
           <p className="text-brand-text-muted text-sm">
-            {t.display} · {orders.length} {t.pendingCount}
+            {t.display} · {boardOrders.length} {t.pendingCount}
           </p>
           {idleTableCount > 0 && (
             <p className="text-brand-text-muted text-[13px] mt-0.5">
@@ -297,12 +298,6 @@ export function KitchenDisplay({
             </button>
           ) : null}
           <LanguageSwitcher compact />
-          <button
-            onClick={() => setShowDone(!showDone)}
-            className="text-sm text-brand-text-muted border border-brand-border px-4 py-2 rounded-lg hover:border-brand-gold/50 transition-colors"
-          >
-            {showDone ? t.hideDone : `${t.doneWithCount} (${doneOrders.length})`}
-          </button>
         </div>
       </div>
       {updateConflict && (
@@ -335,32 +330,6 @@ export function KitchenDisplay({
         </div>
       )}
 
-      {/* 已完成订单 */}
-      {showDone && doneOrders.length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-brand-text-muted text-sm font-medium mb-3 uppercase tracking-wider">
-            {t.doneOrders}
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {doneOrders.map(order => (
-              <div
-                key={order.id}
-                className="bg-brand-card border border-brand-border rounded-xl p-3 opacity-50"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-brand-text text-sm font-medium">{t.table} {order.table_number}</span>
-                  <span className="text-[13px] bg-emerald-500/16 border border-emerald-500/35 text-brand-text px-2 py-0.5 rounded-full">{t.done}</span>
-                </div>
-                {order.items.map((item, idx) => (
-                  <p key={idx} className="text-brand-text-muted text-[13px]">
-                    {item.emoji} {(item.name || item.name_pt)} × {item.qty}
-                  </p>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -27,17 +27,6 @@ export async function fetchKitchenBoard(admin: SupabaseClient, restaurantId: str
   return { orders, activeTables };
 }
 
-export async function fetchKitchenDoneOrders(admin: SupabaseClient, restaurantId: string, limit = 20) {
-  const { data } = await admin
-    .from('orders')
-    .select('*')
-    .eq('restaurant_id', restaurantId)
-    .eq('status', 'done')
-    .order('updated_at', { ascending: false })
-    .limit(limit);
-  return (data || []) as Order[];
-}
-
 export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: string) {
   const [{ data: sessions }, { data: rows }, checkoutTables] = await Promise.all([
     admin

@@ -2,6 +2,7 @@
 const nextConfig = {
   // Externalize @supabase/* on the server (avoids broken vendor-chunks paths with `@` in filenames).
   experimental: {
+    instrumentationHook: true,
     serverComponentsExternalPackages: ['@supabase/supabase-js', '@supabase/ssr'],
   },
   async redirects() {

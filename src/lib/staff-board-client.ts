@@ -42,15 +42,3 @@ export async function fetchKitchenBoardClient(restaurantId: string) {
   ).sort((a, b) => a - b);
   return { orders, activeTables };
 }
-
-export async function fetchKitchenDoneOrdersClient(restaurantId: string, limit = 20) {
-  const supabase = createClient();
-  const { data } = await supabase
-    .from('orders')
-    .select('*')
-    .eq('restaurant_id', restaurantId)
-    .eq('status', 'done')
-    .order('updated_at', { ascending: false })
-    .limit(limit);
-  return (data || []) as Order[];
-}

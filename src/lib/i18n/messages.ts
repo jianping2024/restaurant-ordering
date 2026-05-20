@@ -236,6 +236,9 @@ export const MESSAGES = {
       title: '打印助手',
       subtitle: '查看最近热敏打印任务；下载 Windows 打印助手并在此生成配对码。',
       downloadTitle: '下载 Windows 打印助手',
+      downloadVersionBadge: 'v{version}',
+      downloadVersionHint:
+        '安装包与 MesaPrintAgent.exe 对应版本 {version}（GitHub Release print-agent-v{version}）。安装后在收银机运行 MesaPrintAgent.exe -version 可核对。',
       downloadSubtitle:
         '在收银电脑安装或解压后，双击 Mesa Print Agent，按浏览器打开的配对页完成连接（无需命令行）。',
       downloadSetupAmd64: '下载安装包（64 位，推荐）',
@@ -712,6 +715,9 @@ export const MESSAGES = {
       title: 'Print assistant',
       subtitle: 'Recent thermal print jobs; download the Windows agent and generate pairing codes here.',
       downloadTitle: 'Download Windows print agent',
+      downloadVersionBadge: 'v{version}',
+      downloadVersionHint:
+        'Installer matches Mesa Print Agent {version} (GitHub Release print-agent-v{version}). Run MesaPrintAgent.exe -version on the PC to verify.',
       downloadSubtitle:
         'On the POS PC, double-click Mesa Print Agent and complete pairing in the browser (no command line).',
       downloadSetupAmd64: 'Installer (64-bit, recommended)',
@@ -967,6 +973,9 @@ export const MESSAGES = {
       title: 'Assistente de impressao',
       subtitle: 'Tarefas termicas recentes; descarregue o agente Windows e gere codigos aqui.',
       downloadTitle: 'Descarregar agente Windows',
+      downloadVersionBadge: 'v{version}',
+      downloadVersionHint:
+        'O instalador corresponde a Mesa Print Agent {version} (GitHub Release print-agent-v{version}). No PC: MesaPrintAgent.exe -version',
       downloadSubtitle:
         'No PC da caixa, execute duplo clique no Mesa Print Agent e emparelhe no browser (sem linha de comandos).',
       downloadSetupAmd64: 'Instalador (64 bits, recomendado)',

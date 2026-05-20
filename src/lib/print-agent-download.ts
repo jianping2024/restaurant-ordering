@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 /** GitHub Releases download URLs for the Windows print agent (stable asset names). */
 
 export type PrintAgentDownloadUrls = {
@@ -19,4 +22,16 @@ export function getPrintAgentDownloadUrls(): PrintAgentDownloadUrls | null {
     zipArm64: `${base}/MesaPrintAgent-windows-arm64.zip`,
     releasesPage: `https://github.com/${repo}/releases`,
   };
+}
+
+/** Semver baked into CI builds (apps/print-agent/VERSION). Override via NEXT_PUBLIC_PRINT_AGENT_VERSION. */
+export function getPrintAgentVersion(): string {
+  const fromEnv = process.env.NEXT_PUBLIC_PRINT_AGENT_VERSION?.trim();
+  if (fromEnv) return fromEnv;
+  try {
+    const versionPath = path.join(process.cwd(), 'apps/print-agent/VERSION');
+    return fs.readFileSync(versionPath, 'utf8').trim();
+  } catch {
+    return '';
+  }
 }

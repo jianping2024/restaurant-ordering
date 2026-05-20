@@ -6,7 +6,7 @@
 |----|------|
 | 终端 | **一人一账号**（平板/手机各自登录） |
 | 凭证 | **合成邮箱** + 密码（Supabase Auth）；店长界面**不强调**邮箱字符串 |
-| 旧机制 | **一刀切移除** PIN（无双轨过渡期）：下线 `kitchen_password` / `waiter_password` UI、`mesa_staff_session`、`/staff/session` PIN 流程 |
+| 旧机制 | **一刀切移除** PIN（无双轨过渡期）：下线 `kitchen_password` / `waiter_password` UI、`mesa_staff_session`、**`/staff/session` 路由已删除** |
 | 实时能力 | 员工端 **`authenticated` JWT + Supabase Realtime**，不靠高频轮询 |
 | 后台入口 | **`/dashboard/settings/staff`**，与现有设置 **Hub Tab** 并列；**CRUD 交互**与出品档口 / 自助餐等保持一致 |
 | 租户绑定 | **一人一店**：店长创建时绑定 `restaurant_id`；**不支持**一人多店 / 登录后选店 |
@@ -31,7 +31,7 @@
 
 ### 2. PIN 下线（**当前代码已执行**：UI / PIN 会话 API 已移除）
 
-- **不保留** PIN 双轨；发布时同步移除 PIN UI、API 与相关列（或 migration deprecate）。✅ 设置页已无 PIN 字段；`/staff/session` 类 PIN 流已 410。
+- **不保留** PIN 双轨；发布时同步移除 PIN UI、API 与相关列（或 migration deprecate）。✅ 设置页已无 PIN 字段；`/staff/session` 路由已删除。
 - 厨房/服务员入口 QR 使用 **`/{slug}/staff/login`**，不再收集 4 位数字。
 
 ### 3. 停用 / 启用 / 删除
@@ -166,7 +166,7 @@
 1. [x] Migration：`restaurant_staff_accounts` + RLS（owner + staff orders/sessions）。
 2. [x] 员工登录页 `/{slug}/staff/login`、`/auth/staff/login` + 强制改密页。
 3. [x] `StaffAccountsManager` + `/api/dashboard/staff` CRUD。
-4. [x] 厨房/服务员改 Supabase Auth；`staff/session` PIN 返回 410。
+4. [x] 厨房/服务员改 Supabase Auth；`staff/session` 路由已删除。
 5. [x] 设置页移除 PIN 字段；桌位 QR 指向 `staff/login`。
 6. [ ] 可选后续：DB 废弃 `kitchen_password` / `waiter_password` 列；进一步收紧 anon RLS。
 

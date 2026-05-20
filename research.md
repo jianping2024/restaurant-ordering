@@ -32,7 +32,7 @@
 
 - 餐厅在 `restaurants` 表中管理。
 - **（规划中）** 注册 / 开建新门店须采集 **`country_code`**（ISO 3166-1 alpha-2，如 `PT` / `CN`）：写入 `restaurants` 时 **必填**（含店主 onboarding 与平台管理员代建餐厅）；**门店所在地等**，**不**推导小票语言。票面默认语言用 **`print_locale`**（`zh` / `en` / `pt`；**默认 `pt` = 欧洲葡萄牙语 `pt-PT` 语义，非 `pt-BR`**），见 `docs/print-agent-plan.md` **「默认打印语言 `print_locale`」**。
-- **共享 PIN（4 位厨房/服务员口令）**：**产品上与 UI 已下线** — 设置 Hub「基本资料」中 **不再维护** `kitchen_password` / `waiter_password`；`/api/restaurants/[slug]/staff/session` 等 **PIN 会话路径返回 410**，厨房/服务员页 **仅认 Supabase Auth 员工会话**。
+- **共享 PIN（4 位厨房/服务员口令）**：**已移除** — 设置 Hub「基本资料」中 **不再维护** `kitchen_password` / `waiter_password`；旧 **`/api/restaurants/[slug]/staff/session`** 路由已删除；厨房/服务员页 **仅认 Supabase Auth 员工会话**。
 - **数据库**：历史迁移中可能仍存在 `kitchen_password` / `waiter_password` 等列；**可选后续**在迁移中正式 `drop` 列并清理遗留 helper（见 [`docs/staff-accounts-plan.md`](docs/staff-accounts-plan.md) 迁移清单）。
 - **员工账号**：表 **`restaurant_staff_accounts`** + Supabase **`auth.users`**；店主在 **`/dashboard/settings/staff`** 维护；登录邮箱格式 **`{login_name}@mesa.in`**（见实施计划）。
 

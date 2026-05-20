@@ -1,7 +1,7 @@
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
-import type { StaffRole } from '@/lib/staff-session';
+import type { StaffRole } from '@/lib/staff-account';
 
 export type StaffAuthContext = {
   restaurant_id: string;

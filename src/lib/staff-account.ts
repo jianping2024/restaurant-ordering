@@ -1,4 +1,4 @@
-import type { StaffRole } from '@/lib/staff-session';
+export type StaffRole = 'kitchen' | 'waiter';
 
 export const STAFF_EMAIL_DOMAIN = 'mesa.in';
 

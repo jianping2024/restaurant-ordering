@@ -6,7 +6,7 @@ import {
   staffMetadataPayload,
 } from '@/lib/staff-dashboard-api';
 import { staffPasswordValid } from '@/lib/staff-account';
-import type { StaffRole } from '@/lib/staff-session';
+import type { StaffRole } from '@/lib/staff-account';
 
 export const runtime = 'nodejs';
 

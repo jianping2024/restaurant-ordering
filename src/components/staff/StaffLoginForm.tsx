@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import type { StaffRole } from '@/lib/staff-session';
+import type { StaffRole } from '@/lib/staff-account';
 
 type Props = {
   mode: 'store' | 'global';

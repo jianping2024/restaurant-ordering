@@ -4,8 +4,6 @@ export const DEMO_RESTAURANT = {
   id: 'demo',
   name: 'Casa Portuguesa',
   slug: 'demo',
-  kitchen_password: '0000',
-  waiter_password: '0000',
 } as const;
 
 const now = Date.now();

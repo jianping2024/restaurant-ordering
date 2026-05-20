@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/client';
 import { buildStaffEmail, parseStaffUserMetadata } from '@/lib/staff-account';
 import type { StaffAccountRole } from '@/types';
-import type { StaffRole } from '@/lib/staff-session';
+import type { StaffRole } from '@/lib/staff-account';
 
 export type StaffSessionState =
   | { status: 'ok'; role: StaffRole; slug: string; asOwner?: boolean }

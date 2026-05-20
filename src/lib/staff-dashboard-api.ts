@@ -6,7 +6,7 @@ import {
   type StaffUserMetadata,
 } from '@/lib/staff-account';
 import type { StaffAccountRole, RestaurantStaffAccount } from '@/types';
-import type { StaffRole } from '@/lib/staff-session';
+import type { StaffRole } from '@/lib/staff-account';
 
 export async function loadOwnerRestaurantWithSlug() {
   const auth = await getOwnerRestaurantId();

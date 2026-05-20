@@ -66,12 +66,12 @@ if (-not $iscc) {
 }
 
 $iss = Join-Path $Root "installer\mesa-print-agent.iss"
-foreach ($a in $archs) {
-  $src = Join-Path $Dist $a.Name
-  $srcAbs = (Resolve-Path $src).Path.Replace('\', '/')
-  Write-Host "ISCC $($a.Name) SourceDir=$srcAbs"
-  & $iscc "/DMyAppVersion=$Version" "/DMyArch=$($a.Name)" "/DSourceDir=$srcAbs" $iss
-  if ($LASTEXITCODE -ne 0) { throw "ISCC failed for $($a.Name) (exit $LASTEXITCODE)" }
+if ($Amd64Only) {
+  Write-Host "ISCC amd64"
+  & $iscc "/DMyAppVersion=$Version" $iss
+  if ($LASTEXITCODE -ne 0) { throw "ISCC failed for amd64 (exit $LASTEXITCODE)" }
+} else {
+  throw "arm64 installer not configured in mesa-print-agent.iss; use -Amd64Only"
 }
 
 $hashFile = Join-Path $Dist "SHA256SUMS"

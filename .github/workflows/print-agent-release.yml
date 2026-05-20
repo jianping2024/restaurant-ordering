@@ -74,7 +74,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $ver = '${{ steps.ver.outputs.version }}'
-          & '${{ steps.iscc.outputs.path }}' "/DMyAppVersion=$ver" "/DMyArch=amd64" installer/mesa-print-agent.iss
+          & '${{ steps.iscc.outputs.path }}' "/DMyAppVersion=$ver" installer/mesa-print-agent.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC failed (exit $LASTEXITCODE)" }
           if (-not (Test-Path dist/MesaPrintAgent-Setup-amd64.exe)) {
             Get-ChildItem dist -Recurse | Format-Table FullName, Length

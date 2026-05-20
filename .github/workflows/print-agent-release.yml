@@ -36,7 +36,14 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          ./apps/print-agent/scripts/build-release.ps1 -Version "${{ steps.ver.outputs.version }}" -Amd64Only
+          try {
+            ./apps/print-agent/scripts/build-release.ps1 -Version "${{ steps.ver.outputs.version }}" -Amd64Only
+          } catch {
+            if (Test-Path apps/print-agent/dist) {
+              Get-ChildItem -Recurse apps/print-agent/dist | Format-Table FullName, Length
+            }
+            throw
+          }
           if (-not (Test-Path apps/print-agent/dist/MesaPrintAgent-Setup-amd64.exe)) {
             throw 'Missing MesaPrintAgent-Setup-amd64.exe'
           }

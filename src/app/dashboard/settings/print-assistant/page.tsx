@@ -8,6 +8,8 @@ import {
 import type { PrintJobSummary } from '@/types';
 import { PrintJobsQueuePanel } from '@/components/dashboard/PrintJobsQueuePanel';
 import { PrintAssistantIntro } from '@/components/dashboard/PrintAssistantIntro';
+import { PrintAgentDownloadPanel } from '@/components/dashboard/PrintAgentDownloadPanel';
+import { getPrintAgentDownloadUrls } from '@/lib/print-agent-download';
 import { PrintAgentPairingPanel } from '@/components/dashboard/PrintAgentPairingPanel';
 import { PrintAgentSchedulePanel } from '@/components/dashboard/PrintAgentSchedulePanel';
 
@@ -52,9 +54,12 @@ export default async function PrintAssistantSettingsPage() {
     ? []
     : ((jobRows || []) as PrintJobSummary[]);
 
+  const downloadUrls = getPrintAgentDownloadUrls();
+
   return (
     <div className="space-y-6">
       <PrintAssistantIntro />
+      {downloadUrls ? <PrintAgentDownloadPanel urls={downloadUrls} /> : null}
       <PrintAgentSchedulePanel initialForm={initialScheduleForm} />
       <PrintAgentPairingPanel />
       <PrintJobsQueuePanel initialJobs={initialJobs} />

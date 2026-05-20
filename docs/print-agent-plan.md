@@ -407,18 +407,18 @@
 - [ ] **到期前 15 天（必做，Next/Mesa 功能端）**：**`print_agent_devices`** 驱动 — **`/dashboard` layout 顶栏全局条（已定）** + **「打印助手」** 区块强提示 + 日期（见 **P0-D**，**两处缺一不可**）；**已配对设备列表**；**按设备吊销（`revoked_at`）** — **UI 与 RLS 验收** 与上条 **同期或略晚**（不挡 `print_stations`）；**claim** 在 `valid_until` 后拒绝并提示重新配对。**与代理托盘（P1-3）双通道**，功能端 **不因未装代理而省略**
 - [ ] **无代理 / 未配对**：Mesa **保留 `window.print()` HTML 兜底**；**有代理** 以 **`print_jobs`** 为主路径（见 **无代理时打印**）
 - [ ] **§五 安全**：配对限流、HTTPS、claim 只信服务端 `restaurant_id`、scoped JWT、payload 大小限制、创建任务限流  
-- [ ] 后台「打印助手」UI + **下载链接（主：Inno amd64 Setup；次：zip）** + **最近 5 条 `print_jobs` 排障表（已定，见 P0-D）**（**SHA256**；**未签名** 时附 **SmartScreen /「仍要运行」** 等简短安装说明，与 **已确认安装包分发** 一致）  
+- [x] 后台「打印助手」UI + **下载链接（主：Inno amd64 Setup；次：zip）** + SmartScreen 说明（`PrintAgentDownloadPanel` + `NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO`）；**最近 5 条 `print_jobs` 排障表（已定，见 P0-D）**  
 - [ ] **`restaurants.country_code`**（ISO 3166-1 alpha-2，`NOT NULL`）迁移 + **注册/代建开店表单必填** + dashboard **餐厅设置** 可编辑（与 **票面语言解耦**，见 **已确认产品与场景**）  
 - [x] **`restaurants.print_locale`**（`zh`|`en`|`pt`，默认 **`pt`**）迁移已含于 **`20260514120000_print_jobs_and_print_locale.sql`**；**Dashboard 餐厅设置三选一** 仍待接 UI（入队已读库字段）  
 - [ ] **订单小票** + **预结单** 入队入口与代理模板（**`station_ticket` 已**由下单自动入队；**全票单一 `locale`**）  
 - [x] **入队策略（出品联）**：**每批提交自动** `insert`（按档口多条）；**pending 重复跳过** + **`station-tickets/auto` 限流**；**无** `client_request_id`（见 **入队幂等**）  
 **安装包端**  
-- [ ] **`apps/print-agent`（Go）**：配对、Realtime（主）+ 补偿查询、TCP RAW、状态回写  
+- [x] **`apps/print-agent`（Go）**：配对、轮询拉取 + TCP RAW、状态回写（**Realtime 主路径仍待办**）  
 - [ ] **§五 安全**：本地 token 加密存储、日志脱敏、设备/版本回写；**解析 `valid_until`，到期前 15 天托盘到期提醒**（**已定 P1**，见 **§二 · P1-3**；与文首生命周期一致）  
 - [ ] Windows：**Inno Setup 安装包 + 登录时自动启动（默认勾选）** + **便携 zip**（见 **P1-4**、**已确认安装包分发**）  
 - [ ] 试打链路：**`claim` 成功后** 插入 **`print_jobs`**，`type=order_receipt` 且 **`payload.connection_test`**（**无 `agent_test` 枚举**），代理走与生产相同的拉取/确认路径
 - [ ] **采购/文档**：热敏机 **带网口**；**首期参考样机 UNYKA UK56009**（见 **`docs/assets/reference-printer-unyka-uk56009.png`**；官方技术页 PDF：Unykach *Ficha-Impresora-Termica-POS5-UK56009*）上完成 **zh / pt / en** ESC/POS **打样与编码定稿**；实施说明含 **DHCP 保留** 与私网 IP 说明（见已确认网络与打印机）  
-- [ ] **GitHub Actions** → **GitHub Releases**：**每架构 zip + Inno Setup** + `SHA256SUMS`；Mesa **主下载链** 指向 **amd64 Setup**（见 **已确认安装包分发**）  
+- [x] **GitHub Actions** → **GitHub Releases**：`.github/workflows/print-agent-release.yml` + `scripts/build-release.ps1` + Inno（**须打 tag `print-agent-v*` 才有 Release 附件**）  
 - [ ] （**P2**）自有 OSS/CDN 镜像（若 GitHub 访问或合规有问题再加）  
 
 ---

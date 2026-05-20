@@ -234,10 +234,20 @@ export const MESSAGES = {
     },
     printAssistant: {
       title: '打印助手',
-      subtitle: '查看最近热敏打印任务；在此生成 Windows 打印助手的配对码。',
+      subtitle: '查看最近热敏打印任务；下载 Windows 打印助手并在此生成配对码。',
+      downloadTitle: '下载 Windows 打印助手',
+      downloadSubtitle:
+        '在收银电脑安装后，用下方配对码完成首次连接。订单提交后会自动入队打印（无需在厨房手动点「打印出品」）。',
+      downloadSetupAmd64: '下载安装包（64 位，推荐）',
+      downloadZipAmd64: '免安装 zip（64 位）',
+      downloadAllReleases: '全部版本与 ARM64',
+      downloadArm64Hint:
+        'Surface 等 ARM 电脑请在「全部版本」页下载 MesaPrintAgent-Setup-arm64.exe 或 arm64 zip。',
+      downloadSmartScreen:
+        '安装包未做代码签名，Windows 可能提示「未知发布者」。请选择「更多信息」→「仍要运行」，或在文件属性中勾选「解除锁定」。可在 GitHub Release 页核对 SHA256SUMS。',
       pairingTitle: '配对 Windows 打印助手',
       pairingSubtitle:
-        '在收银电脑安装仓库内 apps/print-agent 代理（或后续 GitHub 安装包），运行后按提示输入 6 位码。码约 10 分钟有效；未过期期间每店最多保留 3 条配对记录。',
+        '安装并启动打印助手后，首次运行需传入 Mesa 网址与 6 位配对码（见上方下载说明）。码约 10 分钟有效；未过期期间每店最多保留 3 条配对记录。',
       pairingGenerate: '生成配对码',
       pairingRefreshList: '刷新列表',
       pairingListTitle: '当前未过期的配对',
@@ -250,7 +260,7 @@ export const MESSAGES = {
       pairingSlotFull: '未过期记录已满 3 条，请等待过期后再生成。',
       pairingErrorPrefix: '操作失败：',
       pairingAgentHint:
-        '代理通过 Mesa 的 HTTPS API 拉取任务（需环境变量 PRINT_AGENT_JWT_SECRET）。在本机运行 `go run . discover` 扫描局域网 9100 端口，再将地址写入 config.json 的 default_printer / station_printers。',
+        '代理通过 Mesa HTTPS API 拉取任务。配对成功后，在收银机运行 `MesaPrintAgent.exe discover` 扫描局域网 9100，将地址写入 %USERPROFILE%\\.config\\mesa-print-agent\\config.json（default_printer / station_printers）。',
       queueTitle: '最近打印队列',
       refresh: '刷新',
       empty: '暂无打印任务。顾客或服务员下单成功后会自动入队；请确认已绑定出品档口且打印代理在线。',
@@ -693,10 +703,20 @@ export const MESSAGES = {
     printStations: { title: 'Print stations', subtitle: 'Split kitchen/bar windows for thermal station tickets; used with the print agent.', hintShort: 'Bind on menu categories or override per dish; empty category means no station ticket for that category.', colLayout: 'Thermal layout', colActions: 'Actions', namePt: 'Portuguese name *', nameEn: 'English name', nameZh: 'Chinese name', add: 'New station', save: 'Save', delete: 'Delete', moveUp: 'Move up', moveDown: 'Move down', empty: 'No stations yet (refresh after database upgrade).', saveFail: 'Save failed, please retry', deleteFail: 'Delete failed', namePtRequired: 'Portuguese name is required', confirmDeleteTitle: 'Delete station', confirmDeleteBody: 'Delete this station? Category and dish bindings will be cleared.', cancel: 'Cancel', confirm: 'Delete', layoutKitchen: 'Kitchen layout', layoutBeverage: 'Bar / drinks layout', layoutStandard: 'Standard ticket', submitAdd: 'Add station', modalAdd: 'Add print station',       modalEdit: 'Edit print station' },
     printAssistant: {
       title: 'Print assistant',
-      subtitle: 'Recent thermal print jobs; generate pairing codes for the Windows print agent here.',
+      subtitle: 'Recent thermal print jobs; download the Windows agent and generate pairing codes here.',
+      downloadTitle: 'Download Windows print agent',
+      downloadSubtitle:
+        'Install on the POS PC, then pair below. Orders enqueue print jobs automatically after submit.',
+      downloadSetupAmd64: 'Installer (64-bit, recommended)',
+      downloadZipAmd64: 'Portable zip (64-bit)',
+      downloadAllReleases: 'All releases & ARM64',
+      downloadArm64Hint:
+        'For ARM64 Windows PCs, open All releases and download MesaPrintAgent-Setup-arm64.exe or the arm64 zip.',
+      downloadSmartScreen:
+        'Builds are not Authenticode-signed. If SmartScreen blocks the installer, choose More info → Run anyway, or Unblock in file Properties. Verify SHA256SUMS on the GitHub release page.',
       pairingTitle: 'Pair Windows print agent',
       pairingSubtitle:
-        'Install and run the Go agent from apps/print-agent (or a future GitHub release build). Enter the 6-digit code in the agent. Codes expire in about 10 minutes; at most 3 non-expired rows per restaurant.',
+        'After installing, first run needs your Mesa URL and a 6-digit code (see download section). Codes expire in ~10 minutes; at most 3 non-expired rows per restaurant.',
       pairingGenerate: 'Generate pairing code',
       pairingRefreshList: 'Refresh list',
       pairingListTitle: 'Non-expired pairings',
@@ -709,7 +729,7 @@ export const MESSAGES = {
       pairingSlotFull: 'You already have 3 non-expired pairing rows; wait for expiry before creating another.',
       pairingErrorPrefix: 'Something went wrong: ',
       pairingAgentHint:
-        'The agent pulls jobs over Mesa HTTPS APIs (set PRINT_AGENT_JWT_SECRET on the server). On the PC run `go run . discover` to scan LAN port 9100, then map addresses in config.json (default_printer / station_printers).',
+        'The agent pulls jobs over Mesa HTTPS. After pairing, run `MesaPrintAgent.exe discover` on the PC, then edit %USERPROFILE%\\.config\\mesa-print-agent\\config.json (default_printer / station_printers).',
       queueTitle: 'Recent print queue',
       refresh: 'Refresh',
       empty: 'No print jobs yet. Jobs are queued automatically after an order is submitted; check station bindings and that the print agent is online.',
@@ -931,10 +951,20 @@ export const MESSAGES = {
     printStations: { title: 'Estacoes de impressao', subtitle: 'Janelas cozinha/bar para taloes termicos; usado com o agente de impressao.', hintShort: 'Ligue nas categorias ou por prato; categoria vazia = sem talao de estacao.', colLayout: 'Layout termico', colActions: 'Acoes', namePt: 'Nome em portugues *', nameEn: 'Nome em ingles', nameZh: 'Nome em chines', add: 'Nova estacao', save: 'Guardar', delete: 'Eliminar', moveUp: 'Subir', moveDown: 'Descer', empty: 'Sem estacoes (atualize apos migracao).', saveFail: 'Falha ao guardar', deleteFail: 'Falha ao eliminar', namePtRequired: 'Nome em portugues e obrigatorio', confirmDeleteTitle: 'Eliminar estacao', confirmDeleteBody: 'Eliminar esta estacao? As ligacoes em categorias e pratos serao limpas.', cancel: 'Cancelar', confirm: 'Eliminar', layoutKitchen: 'Layout cozinha', layoutBeverage: 'Layout bar / bebidas', layoutStandard: 'Talao generico', submitAdd: 'Adicionar estacao', modalAdd: 'Nova estacao de impressao',       modalEdit: 'Editar estacao' },
     printAssistant: {
       title: 'Assistente de impressao',
-      subtitle: 'Ultimas tarefas termicas; gere aqui codigos para o agente Windows.',
+      subtitle: 'Tarefas termicas recentes; descarregue o agente Windows e gere codigos aqui.',
+      downloadTitle: 'Descarregar agente Windows',
+      downloadSubtitle:
+        'Instale no PC da caixa e emparelhe abaixo. Os pedidos entram na fila de impressao automaticamente apos envio.',
+      downloadSetupAmd64: 'Instalador (64 bits, recomendado)',
+      downloadZipAmd64: 'Zip portatil (64 bits)',
+      downloadAllReleases: 'Todas as versoes e ARM64',
+      downloadArm64Hint:
+        'Em PCs Windows ARM64, abra Todas as versoes e descarregue MesaPrintAgent-Setup-arm64.exe ou o zip arm64.',
+      downloadSmartScreen:
+        'Sem assinatura Authenticode. Se o SmartScreen bloquear, escolha Mais informacoes → Executar mesmo assim, ou Desbloquear nas propriedades. Verifique SHA256SUMS no GitHub.',
       pairingTitle: 'Emparelhar agente Windows',
       pairingSubtitle:
-        'Instale e execute o agente Go em apps/print-agent (ou build futuro no GitHub). Introduza o codigo de 6 digitos no agente. Validade ~10 minutos; no maximo 3 linhas nao expiradas por restaurante.',
+        'Apos instalar, a primeira execucao precisa do URL Mesa e de um codigo de 6 digitos (ver descarregar). Validade ~10 minutos; maximo 3 linhas nao expiradas por restaurante.',
       pairingGenerate: 'Gerar codigo',
       pairingRefreshList: 'Atualizar lista',
       pairingListTitle: 'Emparelhamentos nao expirados',
@@ -947,7 +977,7 @@ export const MESSAGES = {
       pairingSlotFull: 'Ja existem 3 linhas nao expiradas; aguarde expirar antes de criar outra.',
       pairingErrorPrefix: 'Erro: ',
       pairingAgentHint:
-        'O agente obtem tarefas via HTTPS do Mesa (PRINT_AGENT_JWT_SECRET no servidor). Na maquina: `go run . discover` para varrer a rede na porta 9100; depois mapeie em config.json.',
+        'O agente obtem tarefas via HTTPS do Mesa. Apos emparelhar, execute `MesaPrintAgent.exe discover` e edite %USERPROFILE%\\.config\\mesa-print-agent\\config.json (default_printer / station_printers).',
       queueTitle: 'Fila recente',
       refresh: 'Atualizar',
       empty: 'Sem tarefas ainda. As tarefas entram na fila ao confirmar um pedido; confirme estacoes ligadas e agente online.',

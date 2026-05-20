@@ -196,6 +196,7 @@ func runAgent(args []string) {
 	if err != nil {
 		log.Fatal("schedule:", err)
 	}
+	log.Printf("Mesa Print Agent %s", Version)
 	logAgentStartup(cfg, cfg.APIBase, def, stationCount)
 
 	var lastLogged pollPhase
@@ -299,13 +300,17 @@ func main() {
 			runDiscover(os.Args[2:])
 			return
 		case "help", "-h", "--help":
+			fmt.Printf("Mesa Print Agent %s\n\n", Version)
 			fmt.Println(`Usage:
-  mesa-print-agent discover [-json] [-timeout-ms 400] [-workers 64]
-  mesa-print-agent [-api URL] [-code CODE] [-default-printer HOST:9100]
+  MesaPrintAgent discover [-json] [-timeout-ms 400] [-workers 64]
+  MesaPrintAgent [-api URL] [-code CODE] [-default-printer HOST:9100]
 
 Config: schedule (open windows) + poll (idle/busy/warm intervals). See README.
 
 Subcommand "discover" scans local IPv4 subnets for TCP port 9100 (RAW thermal printers).`)
+			return
+		case "version", "-v", "--version":
+			fmt.Println(Version)
 			return
 		case "run":
 			runAgent(os.Args[2:])

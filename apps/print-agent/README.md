@@ -91,6 +91,46 @@ See **[dev/config.example.json](./dev/config.example.json)** for a Pirata-style 
 
 Get station UUIDs from **Dashboard → 餐厅设置 → 出品档口** (`print_stations.id`).
 
+## Windows release (installers)
+
+Version is in **[VERSION](./VERSION)**. Production builds run on **GitHub Actions** (`.github/workflows/print-agent-release.yml`).
+
+### Publish a release
+
+```bash
+git tag print-agent-v0.1.0
+git push origin print-agent-v0.1.0
+```
+
+Assets (stable names for Dashboard `latest/download` links):
+
+| File | Use |
+|------|-----|
+| `MesaPrintAgent-Setup-amd64.exe` | Inno installer, x64 (recommended) |
+| `MesaPrintAgent-Setup-arm64.exe` | Inno installer, ARM64 Windows |
+| `MesaPrintAgent-windows-amd64.zip` | Portable zip |
+| `MesaPrintAgent-windows-arm64.zip` | Portable zip, ARM64 |
+| `SHA256SUMS` | Hashes |
+
+### Build on Windows locally
+
+Requires [Go](https://go.dev/) and [Inno Setup 6](https://jrsoftware.org/isinfo.php):
+
+```powershell
+cd apps/print-agent
+.\scripts\build-release.ps1
+```
+
+First run on a POS PC (after pairing code from Dashboard):
+
+```text
+MesaPrintAgent.exe -api https://your-mesa.example.com -code 123456
+```
+
+Config: `%USERPROFILE%\.config\mesa-print-agent\config.json`
+
+Mesa Dashboard reads `NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO` (see `.env.local.example`) for download buttons.
+
 ## Local Docker dev (optional, isolated)
 
 Fake printers on host ports **19100–19102** — does not start Mesa or touch app code. See **[dev/README.md](./dev/README.md)**.

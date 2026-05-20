@@ -32,21 +32,68 @@ jobs:
       - name: Install Inno Setup
         run: choco install innosetup -y --no-progress
 
-      - name: Build installers and zip
+      - name: Locate ISCC
+        id: iscc
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          try {
-            ./apps/print-agent/scripts/build-release.ps1 -Version "${{ steps.ver.outputs.version }}" -Amd64Only
-          } catch {
-            if (Test-Path apps/print-agent/dist) {
-              Get-ChildItem -Recurse apps/print-agent/dist | Format-Table FullName, Length
+          $candidates = @(
+            "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+            "${env:ProgramFiles}\Inno Setup 6\ISCC.exe"
+          )
+          foreach ($c in $candidates) {
+            if (Test-Path $c) {
+              "path=$c" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+              Write-Host "Found ISCC: $c"
+              exit 0
             }
-            throw
           }
-          if (-not (Test-Path apps/print-agent/dist/MesaPrintAgent-Setup-amd64.exe)) {
-            throw 'Missing MesaPrintAgent-Setup-amd64.exe'
+          Get-ChildItem -Path "${env:ProgramFiles(x86)}","${env:ProgramFiles}" -Filter ISCC.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 5 | Format-Table FullName
+          throw 'ISCC.exe not found after Inno Setup install'
+
+      - name: Build Windows exe and zip
+        shell: pwsh
+        working-directory: apps/print-agent
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ver = '${{ steps.ver.outputs.version }}'
+          if (Test-Path dist) { Remove-Item -Recurse -Force dist }
+          New-Item -ItemType Directory -Force -Path dist/amd64 | Out-Null
+          $env:GOOS = 'windows'
+          $env:GOARCH = 'amd64'
+          go build -ldflags "-s -w -X main.Version=$ver" -o dist/amd64/MesaPrintAgent.exe .
+          if ($LASTEXITCODE -ne 0) { throw "go build failed (exit $LASTEXITCODE)" }
+          if (-not (Test-Path dist/amd64/MesaPrintAgent.exe)) { throw 'MesaPrintAgent.exe missing' }
+          Copy-Item installer/WINDOWS-README.txt dist/amd64/ -Force
+          Compress-Archive -Path dist/amd64/* -DestinationPath dist/MesaPrintAgent-windows-amd64.zip -Force
+          Get-ChildItem dist/amd64 | Format-Table Name, Length
+
+      - name: Build Inno installer
+        shell: pwsh
+        working-directory: apps/print-agent
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ver = '${{ steps.ver.outputs.version }}'
+          $src = (Resolve-Path dist/amd64).Path.Replace('\', '/')
+          Write-Host "ISCC SourceDir=$src"
+          & '${{ steps.iscc.outputs.path }}' "/DMyAppVersion=$ver" "/DMyArch=amd64" "/DSourceDir=$src" installer/mesa-print-agent.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed (exit $LASTEXITCODE)" }
+          if (-not (Test-Path dist/MesaPrintAgent-Setup-amd64.exe)) {
+            Get-ChildItem dist -Recurse | Format-Table FullName, Length
+            throw 'Missing dist/MesaPrintAgent-Setup-amd64.exe'
           }
+          Get-ChildItem dist -File | Format-Table Name, Length
+
+      - name: Write SHA256SUMS
+        shell: pwsh
+        working-directory: apps/print-agent
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $lines = Get-ChildItem dist -File | ForEach-Object {
+            $h = Get-FileHash $_.FullName -Algorithm SHA256
+            "$($h.Hash.ToLower())  $($_.Name)"
+          }
+          $lines | Set-Content dist/SHA256SUMS -Encoding ascii
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
@@ -60,8 +107,6 @@ jobs:
             **Install (recommended, x64 PCs):** `MesaPrintAgent-Setup-amd64.exe`
 
             **Portable:** `MesaPrintAgent-windows-amd64.zip`
-
-            **ARM64 Windows:** use `*-arm64` assets.
 
             Verify `SHA256SUMS`. Builds are not Authenticode-signed; see WINDOWS-README in the zip.
           files: |
@@ -77,3 +122,11 @@ jobs:
         with:
           name: mesa-print-agent-${{ steps.ver.outputs.version }}
           path: apps/print-agent/dist/
+
+      - name: Upload dist on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesa-print-agent-build-debug
+          path: apps/print-agent/dist/
+          if-no-files-found: ignore

@@ -47,11 +47,21 @@ foreach ($a in $archs) {
   Write-Host "zip: $zipPath"
 }
 
-$iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
-if (-not (Test-Path $iscc)) {
-  $iscc = "${env:ProgramFiles}\Inno Setup 6\ISCC.exe"
+$iscc = $null
+foreach ($candidate in @(
+    "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+    "${env:ProgramFiles}\Inno Setup 6\ISCC.exe"
+  )) {
+  if (Test-Path $candidate) {
+    $iscc = $candidate
+    break
+  }
 }
-if (-not (Test-Path $iscc)) {
+if (-not $iscc) {
+  $cmd = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+  if ($cmd) { $iscc = $cmd.Source }
+}
+if (-not $iscc) {
   throw "Inno Setup ISCC.exe not found. Install Inno Setup 6 or run: choco install innosetup -y"
 }
 

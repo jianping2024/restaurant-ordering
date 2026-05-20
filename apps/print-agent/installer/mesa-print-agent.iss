@@ -18,11 +18,9 @@
 
 #if MyArch == arm64
   #define ArchAllowed arm64
-  #define ArchInstall arm64
   #define OutputBase "MesaPrintAgent-Setup-arm64"
 #else
   #define ArchAllowed x64compatible
-  #define ArchInstall x64
   #define OutputBase "MesaPrintAgent-Setup-amd64"
 #endif
 
@@ -44,7 +42,7 @@ SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=lowest
 ArchitecturesAllowed={#ArchAllowed}
-ArchitecturesInstallIn64BitMode={#ArchInstall}
+ArchitecturesInstallIn64BitMode={#ArchAllowed}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

@@ -60,7 +60,7 @@ export type StationTicketJobPayload = {
   }>;
 };
 
-export function stationTicketPayloadMatch(
+function stationTicketPayloadMatch(
   p: Record<string, unknown>,
   orderId: string,
   batchId: string,
@@ -73,37 +73,30 @@ export function stationTicketPayloadMatch(
   );
 }
 
-export function isMainPathDoneStationTicket(p: Record<string, unknown>): boolean {
-  if (p.reprint_scope === 'full_order') return false;
-  return true;
-}
-
 export type RestaurantEnqueueRow = {
   id: string;
   name?: string | null;
   print_locale: string | null;
 };
 
+/** Enqueue station_ticket jobs for one order batch (called after guest/waiter submit). */
 export async function enqueueStationTicketsForOrder(params: {
   admin: SupabaseClient;
   restaurant: RestaurantEnqueueRow;
   orderId: string;
-  /** If set, use this batch instead of auto “earliest pending” */
-  explicitBatchId?: string | null;
+  batchId: string;
 }): Promise<
   | {
       ok: true;
       batch_id: string;
       inserted: number;
       skipped_duplicates: number;
-      /** Display names (per restaurant print_locale) for each newly inserted station ticket */
       station_names: string[];
     }
   | { ok: false; status: number; code: string; message?: string }
 > {
-  const { admin, restaurant, orderId, explicitBatchId } = params;
+  const { admin, restaurant, orderId, batchId } = params;
   const restaurantId = restaurant.id;
-
   const locale = (restaurant.print_locale || 'pt') as 'zh' | 'en' | 'pt';
 
   const { data: order, error: oErr } = await admin
@@ -130,6 +123,11 @@ export async function enqueueStationTicketsForOrder(params: {
 
   if (kitchenLines.length === 0) {
     return { ok: false, status: 400, code: 'no_printable_lines' };
+  }
+
+  const batchKnown = kitchenLines.some((l) => l.batch === batchId);
+  if (!batchKnown) {
+    return { ok: false, status: 400, code: 'unknown_batch' };
   }
 
   const menuIds = Array.from(new Set(kitchenLines.map((l) => l.item.id)));
@@ -175,74 +173,39 @@ export async function enqueueStationTicketsForOrder(params: {
     resolveMap.set(r.id, eff);
   }
 
-  const withStation = kitchenLines
+  const linesInBatch = kitchenLines
+    .filter((l) => l.batch === batchId)
     .map((l) => ({ ...l, station_id: resolveMap.get(l.item.id) ?? null }))
     .filter((l) => l.station_id);
 
-  if (withStation.length === 0) {
+  if (linesInBatch.length === 0) {
     return { ok: false, status: 400, code: 'no_station_bound_lines' };
   }
 
-  const distinctBatches = Array.from(new Set(withStation.map((l) => l.batch))).sort((a, b) =>
-    a.localeCompare(b),
-  );
+  const stationIds = Array.from(new Set(linesInBatch.map((l) => l.station_id as string)));
 
   const { data: existingJobs, error: jErr } = await admin
     .from('print_jobs')
     .select('status, payload')
     .eq('restaurant_id', restaurantId)
     .eq('type', 'station_ticket')
-    .contains('payload', { order_id: orderId });
+    .contains('payload', { order_id: orderId, batch_id: batchId });
 
   if (jErr) {
     return { ok: false, status: 500, code: 'jobs_lookup_failed', message: jErr.message };
   }
 
-  const jobs = (existingJobs || []) as { status: string; payload: Record<string, unknown> }[];
-
-  const hasPendingDuplicate = (batchId: string, printStationId: string) =>
-    jobs.some(
+  const hasPendingDuplicate = (printStationId: string) =>
+    (existingJobs || []).some(
       (j) =>
-        ['pending', 'processing'].includes(j.status) &&
-        stationTicketPayloadMatch(j.payload, orderId, batchId, printStationId),
+        ['pending', 'processing'].includes((j as { status: string }).status) &&
+        stationTicketPayloadMatch(
+          (j as { payload: Record<string, unknown> }).payload,
+          orderId,
+          batchId,
+          printStationId,
+        ),
     );
-
-  const hasMainPathDone = (batchId: string, printStationId: string) =>
-    jobs.some(
-      (j) =>
-        j.status === 'done' &&
-        stationTicketPayloadMatch(j.payload, orderId, batchId, printStationId) &&
-        isMainPathDoneStationTicket(j.payload),
-    );
-
-  const stationSatisfied = (batchId: string, printStationId: string) =>
-    hasMainPathDone(batchId, printStationId) || hasPendingDuplicate(batchId, printStationId);
-
-  let targetBatch: string | null = null;
-  if (explicitBatchId != null && explicitBatchId !== '') {
-    if (!distinctBatches.includes(explicitBatchId)) {
-      return { ok: false, status: 400, code: 'unknown_batch' };
-    }
-    targetBatch = explicitBatchId;
-  } else {
-    for (const b of distinctBatches) {
-      const stationsInBatch = Array.from(
-        new Set(withStation.filter((x) => x.batch === b).map((x) => x.station_id as string)),
-      );
-      if (stationsInBatch.length === 0) continue;
-      if (!stationsInBatch.every((sid) => stationSatisfied(b, sid))) {
-        targetBatch = b;
-        break;
-      }
-    }
-  }
-
-  if (!targetBatch) {
-    return { ok: false, status: 409, code: 'no_pending_batch' };
-  }
-
-  const linesInBatch = withStation.filter((l) => l.batch === targetBatch);
-  const stationIds = Array.from(new Set(linesInBatch.map((l) => l.station_id as string)));
 
   const { data: stations, error: sErr } = await admin
     .from('print_stations')
@@ -261,11 +224,8 @@ export async function enqueueStationTicketsForOrder(params: {
   const stationNames: string[] = [];
 
   for (const sid of stationIds) {
-    if (hasPendingDuplicate(targetBatch, sid)) {
+    if (hasPendingDuplicate(sid)) {
       skipped_duplicates += 1;
-      continue;
-    }
-    if (hasMainPathDone(targetBatch, sid)) {
       continue;
     }
 
@@ -275,7 +235,7 @@ export async function enqueueStationTicketsForOrder(params: {
     const stationLines = linesInBatch.filter((l) => l.station_id === sid);
     const payload: StationTicketJobPayload = {
       order_id: orderId,
-      batch_id: targetBatch,
+      batch_id: batchId,
       print_station_id: sid,
       ticket_layout: stMeta.ticket_layout,
       locale,
@@ -314,14 +274,14 @@ export async function enqueueStationTicketsForOrder(params: {
       code: 'nothing_enqueued',
       message:
         skipped_duplicates > 0
-          ? 'Tasks may already be pending for this batch, or all stations are already printed.'
+          ? 'Station ticket tasks may already be pending for this batch.'
           : 'No station tickets to enqueue for this batch.',
     };
   }
 
   return {
     ok: true,
-    batch_id: targetBatch,
+    batch_id: batchId,
     inserted,
     skipped_duplicates,
     station_names: stationNames,

@@ -101,7 +101,7 @@ export async function POST(
       print_locale: restaurant.print_locale ?? null,
     },
     orderId,
-    explicitBatchId: batchId,
+    batchId,
   });
 
   if (!result.ok) {

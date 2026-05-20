@@ -98,7 +98,7 @@
 - **员工统一登录入口（二维码打印）**：`/[slug]/staff/login`（与 `src/components/dashboard/TablesManager.tsx` 中链接一致）。
 - 厨房 / 服务员 **业务页** `/[slug]/kitchen`、`/[slug]/waiter`：**需已由上述入口完成员工登录**，未登录会跳转回 `staff/login`。
 - 支持下载二维码，已接入三语文案。
-- **打印队列（出品联）**：菜单提交走 **`POST /api/restaurants/[slug]/orders/append`**（服务端地理围栏 + 返回 **`enqueue_token`**），再经 **`POST .../station-tickets/auto`**（校验 token）入队 **`print_jobs`**。店主在 **餐厅设置 → 打印助手** 排障；本地 **print-agent** 拉取打印。档口：**`COALESCE(菜品档口, 分类档口)`**，分类沿 **`parent_id` 继承**；无档口不入队（服务员代点会提示）。**服务员侧出品入队**以 **已认证员工** 调用 API 为准（见各路由实现与 [`docs/print-agent-plan.md`](docs/print-agent-plan.md)）。
+- **打印队列（出品联）**：顾客或服务员提交订单后，经 **`POST /api/restaurants/[slug]/orders/append`**（地理围栏 + **`enqueue_token`**）再 **`POST .../station-tickets/auto`**（校验 token）**自动入队** **`print_jobs`**（按本批 `batch_id`、各出品档口分组）。**无**厨房/服务员页「手动打印出品」按钮。店主在 **餐厅设置 → 打印助手** 排障；本地 **print-agent** 拉取打印。档口：**`COALESCE(菜品档口, 分类档口)`**，分类沿 **`parent_id` 继承**；无档口不入队（代点时会提示）。见 [`docs/print-agent-plan.md`](docs/print-agent-plan.md)。
 
 ## 11. 已知设计取向（当前版本）
 

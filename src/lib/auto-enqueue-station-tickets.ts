@@ -2,7 +2,7 @@ import type { Language } from '@/types';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { showToast } from '@/components/ui/Toast';
 
-const SILENT_ERRORS = new Set(['nothing_enqueued', 'no_pending_batch']);
+const SILENT_ERRORS = new Set(['nothing_enqueued']);
 
 type PrintEnqueueMessages = (typeof MENU_PAGE_MESSAGES)[Language];
 

@@ -39,6 +39,10 @@ import 'rc-tree/assets/index.css';
 
 const FOOD_EMOJIS = ['🍽️', '🍞', '🥗', '🥣', '🐟', '🥚', '🍗', '🐙', '🥩', '🦆', '🫒', '🍷', '🍺', '💧', '☕', '🥧', '🍮', '🫕', '🥘', '🍲'];
 
+/** Shared height/padding for dish-list search + category filter (matches form selects). */
+const MENU_TOOLBAR_CONTROL =
+  'w-full h-11 rounded-lg border border-brand-border bg-brand-card px-4 text-sm text-brand-text placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-gold/50';
+
 interface MenuManagerProps {
   restaurantId: string;
   initialItems: MenuItem[];
@@ -1147,48 +1151,54 @@ export function MenuManager({
                   + {t.addItem}
                 </button>
               </div>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 min-w-0 w-full sm:max-w-3xl">
-                <div className="flex flex-row items-center gap-2 min-w-0 flex-1">
-                  <label htmlFor="menu-dish-search" className="text-sm text-brand-text-muted font-medium shrink-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full min-w-0">
+                <div className="flex flex-col gap-1.5 min-w-0">
+                  <label htmlFor="menu-dish-search" className="text-sm text-brand-text-muted font-medium">
                     {t.searchDishes}
                   </label>
-                  <Input
+                  <input
                     id="menu-dish-search"
+                    type="search"
                     value={dishSearch}
                     onChange={(e) => setDishSearch(e.target.value)}
                     placeholder={t.searchPlaceholder}
-                    className="min-w-0 flex-1"
+                    className={MENU_TOOLBAR_CONTROL}
                   />
                 </div>
                 {topCategories.length > 0 ? (
-                  <div className="flex flex-row items-center gap-2 min-w-0 flex-1 sm:max-w-md">
-                    <label
-                      htmlFor="menu-item-list-filter"
-                      className="text-sm text-brand-text-muted font-medium shrink-0 sm:whitespace-nowrap"
-                    >
+                  <div className="flex flex-col gap-1.5 min-w-0">
+                    <label htmlFor="menu-item-list-filter" className="text-sm text-brand-text-muted font-medium">
                       {t.filterDishList}
                     </label>
-                    <select
-                      id="menu-item-list-filter"
-                      value={itemListFilterValue}
-                      onChange={handleItemListFilterChange}
-                      className="min-w-0 flex-1 bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
-                    >
-                      <option value="all:menu">{t.filterAllTypes}</option>
-                      <option value="uncategorized">{t.filterUncategorized}</option>
-                      {groupedCategoryOptions.map(({ top, children }) => (
-                        <optgroup key={top.id} label={getCategoryLabel(top)}>
-                          <option value={`top:${top.id}`}>
-                            {t.allInTopCategory.replace('{name}', getCategoryLabel(top))}
-                          </option>
-                          {children.map((c) => (
-                            <option key={c.id} value={`cat:${c.id}`}>
-                              {`${'\u00A0\u00A0'.repeat(Math.max(0, c.depth - 1))}${c.depth > 1 ? '▸ ' : ''}${getCategoryLabel(c)}`}
+                    <div className="relative">
+                      <select
+                        id="menu-item-list-filter"
+                        value={itemListFilterValue}
+                        onChange={handleItemListFilterChange}
+                        className={`${MENU_TOOLBAR_CONTROL} appearance-none pr-10`}
+                      >
+                        <option value="all:menu">{t.filterAllTypes}</option>
+                        <option value="uncategorized">{t.filterUncategorized}</option>
+                        {groupedCategoryOptions.map(({ top, children }) => (
+                          <optgroup key={top.id} label={getCategoryLabel(top)}>
+                            <option value={`top:${top.id}`}>
+                              {t.allInTopCategory.replace('{name}', getCategoryLabel(top))}
                             </option>
-                          ))}
-                        </optgroup>
-                      ))}
-                    </select>
+                            {children.map((c) => (
+                              <option key={c.id} value={`cat:${c.id}`}>
+                                {`${'\u00A0\u00A0'.repeat(Math.max(0, c.depth - 1))}${c.depth > 1 ? '▸ ' : ''}${getCategoryLabel(c)}`}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                      <span
+                        className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-brand-text-muted text-sm"
+                        aria-hidden
+                      >
+                        ▾
+                      </span>
+                    </div>
                   </div>
                 ) : null}
               </div>

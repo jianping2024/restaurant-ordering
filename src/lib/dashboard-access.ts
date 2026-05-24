@@ -45,8 +45,10 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
       return { mode: 'unauthenticated' };
     }
 
+    // Staff cannot read `restaurants` until restaurants_staff_select_own migration;
+    // `restaurants_public` is safe columns only and readable by authenticated role.
     const { data: restaurant } = await supabase
-      .from('restaurants')
+      .from('restaurants_public')
       .select('id, name, slug')
       .eq('id', account.restaurant_id)
       .maybeSingle();

@@ -395,7 +395,7 @@ export const MESSAGES = {
       downloadVersionHint:
         '下载链接固定为本站地址（自动跳转到 GitHub 对应版本安装包）。徽章为当前版本 {version}；安装目录有 VERSION.txt，或运行 MesaPrintAgent.exe -version 核对。',
       downloadSubtitle:
-        '在收银电脑安装或解压后，双击 Mesa Print Agent，按浏览器打开的配对页完成连接（无需命令行）。',
+        '安装包向导默认勾选「当前用户登录 Windows 时自动运行 Mesa Print Agent」（可取消）；免安装 zip 不含开机自启。安装或解压后双击程序，按浏览器配对页完成连接。',
       downloadSetupAmd64: '下载安装包（64 位，推荐）',
       downloadZipAmd64: '免安装 zip（64 位）',
       downloadAllReleases: '全部版本与 ARM64',
@@ -1138,7 +1138,7 @@ export const MESSAGES = {
       downloadVersionHint:
         'Download links use permanent URLs on this site (redirect to the matching GitHub release). Badge shows build {version}. Check VERSION.txt or MesaPrintAgent.exe -version.',
       downloadSubtitle:
-        'On the POS PC, double-click Mesa Print Agent and complete pairing in the browser (no command line).',
+        'The installer checks “run at Windows sign-in” by default (you can uncheck). Portable zip has no autostart. Double-click the agent and complete pairing in the browser.',
       downloadSetupAmd64: 'Installer (64-bit, recommended)',
       downloadZipAmd64: 'Portable zip (64-bit)',
       downloadAllReleases: 'All releases & ARM64',
@@ -1680,7 +1680,7 @@ export const MESSAGES = {
       downloadVersionHint:
         'Links permanentes neste site (redirecionam para o release no GitHub). Insignia: versao {version}. VERSION.txt ou MesaPrintAgent.exe -version.',
       downloadSubtitle:
-        'No PC da caixa, execute duplo clique no Mesa Print Agent e emparelhe no browser (sem linha de comandos).',
+        'O instalador marca por defeito «executar ao iniciar sessao no Windows» (pode desmarcar). O zip portatil nao configura arranque automatico. Duplo clique no agente e emparelhe no browser.',
       downloadSetupAmd64: 'Instalador (64 bits, recomendado)',
       downloadZipAmd64: 'Zip portatil (64 bits)',
       downloadAllReleases: 'Todas as versoes e ARM64',

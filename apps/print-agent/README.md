@@ -105,7 +105,7 @@ Assets (stable names for Dashboard `latest/download` links):
 
 | File | Use |
 |------|-----|
-| `MesaPrintAgent-Setup-amd64.exe` | Inno installer, x64 (recommended) |
+| `MesaPrintAgent-Setup-amd64.exe` | Inno installer, x64; wizard **checks “run at user logon” by default** (HKCU Run; uninstall removes) |
 | `MesaPrintAgent-Setup-arm64.exe` | Inno installer, ARM64 Windows |
 | `MesaPrintAgent-windows-amd64.zip` | Portable zip |
 | `MesaPrintAgent-windows-arm64.zip` | Portable zip, ARM64 |

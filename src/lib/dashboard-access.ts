@@ -33,20 +33,13 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
     return { mode: 'owner', restaurant: ownedRestaurant as Restaurant };
   }
 
-  const meta = parseStaffUserMetadata(user.user_metadata as Record<string, unknown>);
-  if (meta?.staff_role === 'cashier') {
-    const { data: account } = await supabase
-      .from('restaurant_staff_accounts')
-      .select('restaurant_id, disabled_at')
-      .eq('user_id', user.id)
-      .maybeSingle();
+  const { data: account } = await supabase
+    .from('restaurant_staff_accounts')
+    .select('restaurant_id, disabled_at, role')
+    .eq('user_id', user.id)
+    .maybeSingle();
 
-    if (!account || account.disabled_at) {
-      return { mode: 'unauthenticated' };
-    }
-
-    // Staff cannot read `restaurants` until restaurants_staff_select_own migration;
-    // `restaurants_public` is safe columns only and readable by authenticated role.
+  if (account && !account.disabled_at && account.role === 'cashier') {
     const { data: restaurant } = await supabase
       .from('restaurants_public')
       .select('id, name, slug')
@@ -61,7 +54,8 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
     }
   }
 
-  if (meta?.account_type === 'staff') {
+  const meta = parseStaffUserMetadata(user.user_metadata as Record<string, unknown>);
+  if (meta?.account_type === 'staff' || (account && !account.disabled_at)) {
     return { mode: 'unauthenticated' };
   }
 
@@ -70,4 +64,23 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
 
 export function isCashierCheckoutPath(pathname: string): boolean {
   return pathname === '/dashboard/checkout' || pathname.startsWith('/dashboard/checkout/');
+}
+
+export async function isCashierStaffUser(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  userMetadata: Record<string, unknown> | undefined,
+): Promise<boolean> {
+  const { data: account } = await supabase
+    .from('restaurant_staff_accounts')
+    .select('role, disabled_at')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (account && !account.disabled_at && account.role === 'cashier') {
+    return true;
+  }
+
+  const meta = parseStaffUserMetadata(userMetadata);
+  return meta?.staff_role === 'cashier';
 }

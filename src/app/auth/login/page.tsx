@@ -4,8 +4,7 @@ import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { parseStaffUserMetadata } from '@/lib/staff-account';
-import { staffRolePath } from '@/lib/staff-auth-client';
+import { resolveStaffLoginRedirect } from '@/lib/staff-auth-client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -40,14 +39,26 @@ export default function LoginPage() {
         return;
       }
 
-      const meta = parseStaffUserMetadata(data.user.user_metadata as Record<string, unknown>);
-      if (meta?.account_type === 'staff') {
-        if (meta.must_change_password) {
+      const redirect = await resolveStaffLoginRedirect(
+        data.user.id,
+        data.user.user_metadata as Record<string, unknown>,
+      );
+
+      if (redirect.kind === 'staff_error') {
+        await supabase.auth.signOut();
+        setError(redirect.code === 'disabled' ? t.staffDisabled : t.staffIncomplete);
+        setLoading(false);
+        submittingRef.current = false;
+        return;
+      }
+
+      if (redirect.kind === 'staff') {
+        if (redirect.mustChangePassword) {
           router.push('/auth/staff/change-password');
           router.refresh();
           return;
         }
-        router.push(staffRolePath(meta.restaurant_slug, meta.staff_role));
+        router.push(redirect.path);
         router.refresh();
         return;
       }

@@ -1,7 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { parseStaffUserMetadata } from '@/lib/staff-account';
-import { isCashierCheckoutPath } from '@/lib/dashboard-access';
+import { isCashierCheckoutPath, isCashierStaffUser } from '@/lib/dashboard-access';
 
 // Middleware 中使用的 Supabase 客户端
 export async function updateSession(request: NextRequest) {
@@ -40,8 +39,12 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && pathname.startsWith('/dashboard')) {
-    const meta = parseStaffUserMetadata(user.user_metadata as Record<string, unknown>);
-    if (meta?.staff_role === 'cashier') {
+    const isCashier = await isCashierStaffUser(
+      supabase,
+      user.id,
+      user.user_metadata as Record<string, unknown>,
+    );
+    if (isCashier) {
       if (pathname === '/dashboard' || pathname === '/dashboard/') {
         const url = request.nextUrl.clone();
         url.pathname = '/dashboard/checkout';

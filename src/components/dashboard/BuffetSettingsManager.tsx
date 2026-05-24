@@ -522,7 +522,7 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
             onClick={() => setTab(x.id)}
             className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
               tab === x.id
-                ? 'bg-brand-gold text-brand-bg font-medium'
+                ? 'bg-brand-gold text-brand-on-gold font-medium'
                 : 'bg-brand-card border border-brand-border text-brand-text-muted hover:text-brand-text'
             }`}
           >
@@ -572,7 +572,7 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                     <button
                       type="button"
                       onClick={() => setConfirm({ kind: 'buffet', row: b })}
-                      className="text-[12px] text-rose-700 border border-rose-500/35 px-2 py-0.5 rounded-md"
+                      className="text-[12px] mesa-text-danger border border-status-danger/35 px-2 py-0.5 rounded-md"
                     >
                       {t.delete}
                     </button>
@@ -634,7 +634,7 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                 <button
                   type="button"
                   onClick={() => setConfirm({ kind: 'slot', id: slot.id })}
-                  className="text-[12px] text-rose-700 border border-rose-500/35 px-2 py-0.5 rounded-md"
+                  className="text-[12px] mesa-text-danger border border-status-danger/35 px-2 py-0.5 rounded-md"
                 >
                   {t.delete}
                 </button>
@@ -669,14 +669,14 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                 <button
                   type="button"
                   onClick={() => setRulesView('matrix')}
-                  className={`px-3 py-1.5 ${rulesView === 'matrix' ? 'bg-brand-gold text-brand-bg' : 'text-brand-text-muted'}`}
+                  className={`px-3 py-1.5 ${rulesView === 'matrix' ? 'bg-brand-gold text-brand-on-gold' : 'text-brand-text-muted'}`}
                 >
                   {t.viewMatrix}
                 </button>
                 <button
                   type="button"
                   onClick={() => setRulesView('list')}
-                  className={`px-3 py-1.5 ${rulesView === 'list' ? 'bg-brand-gold text-brand-bg' : 'text-brand-text-muted'}`}
+                  className={`px-3 py-1.5 ${rulesView === 'list' ? 'bg-brand-gold text-brand-on-gold' : 'text-brand-text-muted'}`}
                 >
                   {t.viewList}
                 </button>
@@ -844,7 +844,7 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                                 <button
                                   type="button"
                                   onClick={() => setConfirm({ kind: 'rule', id: rule.id })}
-                                  className="text-[12px] text-rose-700 border border-rose-500/35 px-2 py-0.5 rounded-md"
+                                  className="text-[12px] mesa-text-danger border border-status-danger/35 px-2 py-0.5 rounded-md"
                                 >
                                   {t.delete}
                                 </button>
@@ -868,7 +868,7 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
             {ruleDraft && (
               <>
                 {pendingConflictSave && overlapNames && (
-                  <div className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[13px] text-amber-100/95">
+                  <div className="mb-4 mesa-alert-warning px-3 py-2 text-[13px] leading-relaxed">
                     <p className="font-medium">{t.ruleConflictTitle}</p>
                     <p className="mt-1">{t.ruleConflictBody.replace('{names}', overlapNames)}</p>
                   </div>

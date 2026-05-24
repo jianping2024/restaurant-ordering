@@ -21,7 +21,7 @@ export function BuffetPricingGuide({ t }: { t: BuffetAdminMessages }) {
         </button>
       </div>
       {open && (
-        <ol className="mt-3 space-y-2.5 text-[13px] text-brand-text-muted list-decimal list-inside">
+        <ol className="mt-3 space-y-2.5 text-[13px] text-brand-text list-decimal list-inside">
           <li>{t.guideStepBuffet}</li>
           <li>{t.guideStepSlots}</li>
           <li>{t.guideStepPrices}</li>
@@ -29,7 +29,7 @@ export function BuffetPricingGuide({ t }: { t: BuffetAdminMessages }) {
         </ol>
       )}
       {open && (
-        <div className="mt-3 space-y-2 text-[12px] text-brand-text-muted/90 border-t border-brand-border/50 pt-3">
+        <div className="mt-3 space-y-2 text-[12px] text-brand-text-muted border-t border-brand-border/50 pt-3">
           <p>{t.guideResolveNote}</p>
           <p>{t.guideDayKindNote}</p>
         </div>

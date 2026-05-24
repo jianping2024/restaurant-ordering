@@ -158,11 +158,14 @@ export function BuffetPricePreview({
       )}
 
       {ran && !loading && (
-        <div className="rounded-lg border border-brand-border/60 bg-brand-bg/50 px-3 py-2 text-sm">
+        <div className="rounded-lg border border-brand-border/60 bg-brand-card px-3 py-2 text-sm">
           {resolved?.adult_price != null && resolved?.child_price != null ? (
             <div className="space-y-1">
-              <p className="text-brand-gold font-medium">
-                {t.previewPrices}: €{resolved.adult_price.toFixed(2)} / €{resolved.child_price.toFixed(2)}
+              <p className="text-brand-text font-medium">
+                {t.previewPrices}:{' '}
+                <span className="text-brand-gold">
+                  €{resolved.adult_price.toFixed(2)} / €{resolved.child_price.toFixed(2)}
+                </span>
               </p>
               {slotName && (
                 <p className="text-brand-text-muted text-[13px]">
@@ -171,7 +174,7 @@ export function BuffetPricePreview({
               )}
             </div>
           ) : (
-            <p className="text-amber-200/90 text-[13px]">{t.previewNoRule}</p>
+            <p className="mesa-alert-warning px-3 py-2 text-[13px] leading-relaxed">{t.previewNoRule}</p>
           )}
         </div>
       )}

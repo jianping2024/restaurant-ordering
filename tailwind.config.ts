@@ -19,6 +19,12 @@ const config: Config = {
           border: "rgb(var(--color-brand-border) / <alpha-value>)",
           text: "rgb(var(--color-brand-text) / <alpha-value>)",
           "text-muted": "rgb(var(--color-brand-text-muted) / <alpha-value>)",
+          "on-gold": "rgb(var(--color-on-gold) / <alpha-value>)",
+        },
+        status: {
+          warning: "rgb(var(--color-status-warning-fg) / <alpha-value>)",
+          success: "rgb(var(--color-status-success-fg) / <alpha-value>)",
+          danger: "rgb(var(--color-status-danger-fg) / <alpha-value>)",
         },
       },
       fontFamily: {

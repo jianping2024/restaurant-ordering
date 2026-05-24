@@ -206,7 +206,7 @@ export function PrintStationsManager({ restaurantId, initialStations, embedded }
       </div>
 
       {error ? (
-        <p className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-2 mb-4">{error}</p>
+        <p className="mesa-alert-danger text-sm px-4 py-2 mb-4">{error}</p>
       ) : null}
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -277,7 +277,7 @@ export function PrintStationsManager({ restaurantId, initialStations, embedded }
                   <button
                     type="button"
                     onClick={() => setDeleteTarget(row)}
-                    className="text-brand-text-muted hover:text-red-400 transition-colors text-sm"
+                    className="text-brand-text-muted hover:text-status-danger transition-colors text-sm"
                   >
                     {tm.remove}
                   </button>
@@ -332,7 +332,7 @@ export function PrintStationsManager({ restaurantId, initialStations, embedded }
             </select>
           </div>
           {stationError ? (
-            <p className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-2">{stationError}</p>
+            <p className="mesa-alert-danger text-sm px-4 py-2">{stationError}</p>
           ) : null}
           <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
             <Button onClick={saveStation} loading={stationSaving} className="flex-1">

@@ -110,7 +110,7 @@ export function BuffetCalendarPanel({
             type="button"
             disabled={submitting || !calDate}
             onClick={() => void addSingle()}
-            className="text-sm px-3 py-1.5 rounded-lg bg-brand-gold text-brand-bg font-medium disabled:opacity-50"
+            className="text-sm px-3 py-1.5 rounded-lg bg-brand-gold text-brand-on-gold font-medium disabled:opacity-50"
           >
             {t.addCalendar}
           </button>
@@ -194,7 +194,7 @@ export function BuffetCalendarPanel({
                   </p>
                   {primaryBuffetId && (
                     <p
-                      className={`text-[12px] mt-0.5 ${covered ? 'text-emerald-400/90' : 'text-amber-300/90'}`}
+                      className={`text-[12px] mt-0.5 leading-relaxed ${covered ? 'mesa-text-success' : 'mesa-text-warning'}`}
                     >
                       {covered
                         ? t.calendarCoverageOk.replace('{kind}', kindName)
@@ -214,7 +214,7 @@ export function BuffetCalendarPanel({
                 <button
                   type="button"
                   onClick={() => onRemove(date)}
-                  className="text-[12px] text-rose-700 shrink-0"
+                  className="text-[12px] mesa-text-danger shrink-0 hover:underline"
                 >
                   {t.removeCalendar}
                 </button>

@@ -119,7 +119,7 @@ export default function AdminRegisterPage() {
         <div className="bg-brand-card border border-brand-border rounded-2xl p-8">
           {success ? (
             <div className="text-center space-y-4">
-              <p className="text-emerald-400 text-sm">{t.success}</p>
+              <p className="mesa-text-success text-sm">{t.success}</p>
               <Button type="button" variant="outline" className="w-full" onClick={() => setSuccess(false)}>
                 {lang === 'zh' ? '继续创建' : lang === 'pt' ? 'Criar outro' : 'Create another'}
               </Button>
@@ -172,7 +172,7 @@ export default function AdminRegisterPage() {
               />
 
               {error ? (
-                <p className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-2">
+                <p className="mesa-alert-danger text-sm px-4 py-2">
                   {error}
                 </p>
               ) : null}

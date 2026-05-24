@@ -638,7 +638,7 @@ function WaiterTableDetailInner({
                   <p className="text-[10px] text-brand-text-muted leading-snug pt-1">{t.buffetPriceNearestNote}</p>
                 </>
               ) : (
-                <p className="text-[12px] text-amber-800/95">{t.buffetNoRule}</p>
+                <p className="text-[12px] mesa-text-warning">{t.buffetNoRule}</p>
               )}
             </div>
             <div className="flex flex-wrap gap-2 items-end">
@@ -756,7 +756,7 @@ function WaiterTableDetailInner({
                 <p className="text-brand-text-muted text-sm">{t.noReady}</p>
               ) : (
                 selectedCard.readyItems.map((line, idx) => (
-                  <p key={idx} className="text-sm text-emerald-800">{line}</p>
+                  <p key={idx} className="text-sm mesa-text-success">{line}</p>
                 ))
               )}
             </div>

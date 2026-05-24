@@ -98,11 +98,11 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
       </div>
       <p className="text-[12px] text-brand-text-muted mb-3 leading-relaxed">{t.tableHint}</p>
       {failedCount > 0 ? (
-        <p className="text-[12px] text-amber-900 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2 mb-3 leading-relaxed">
+        <p className="text-[12px] mesa-alert-warning px-3 py-2 mb-3 leading-relaxed">
           {t.failedJobsHint}
         </p>
       ) : null}
-      {loadError && <p className="text-[13px] text-red-600 mb-2">{t.loadError}</p>}
+      {loadError && <p className="text-[13px] mesa-text-danger mb-2">{t.loadError}</p>}
       {jobs.length === 0 ? (
         <p className="text-sm text-brand-text-muted py-4">{t.empty}</p>
       ) : (
@@ -143,11 +143,11 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
                     <span
                       className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium border ${
                         row.status === 'failed'
-                          ? 'bg-red-500/12 text-red-800 border-red-500/35'
+                          ? 'mesa-badge-danger'
                           : row.status === 'done'
-                            ? 'bg-emerald-500/12 text-emerald-900 border-emerald-500/35'
+                            ? 'mesa-badge-success'
                             : row.status === 'processing'
-                              ? 'bg-amber-500/12 text-amber-900 border-amber-500/35'
+                              ? 'mesa-badge-warning'
                               : 'bg-slate-500/10 text-slate-700 border-slate-500/30'
                       }`}
                     >

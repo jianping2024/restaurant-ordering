@@ -34,7 +34,7 @@ export function PrintAgentDownloadPanel({ urls, version }: Props) {
       <div className="flex flex-wrap gap-2">
         <a
           href={urls.setupAmd64}
-          className="inline-flex items-center justify-center rounded-lg bg-brand-gold text-brand-bg px-4 py-2 text-sm font-semibold hover:bg-brand-gold-light transition-colors"
+          className="inline-flex items-center justify-center rounded-lg bg-brand-gold text-brand-on-gold px-4 py-2 text-sm font-semibold hover:bg-brand-gold-light transition-colors"
           rel="noopener noreferrer"
           target="_blank"
         >
@@ -58,7 +58,7 @@ export function PrintAgentDownloadPanel({ urls, version }: Props) {
         </a>
       </div>
       <p className="text-brand-text-muted text-[13px] leading-relaxed">{t.downloadArm64Hint}</p>
-      <p className="text-brand-text-muted text-[13px] leading-relaxed border border-amber-500/30 bg-amber-500/8 rounded-lg px-3 py-2">
+      <p className="text-[13px] leading-relaxed mesa-alert-warning px-3 py-2">
         {t.downloadSmartScreen}
       </p>
     </div>

@@ -23,7 +23,7 @@ export default function RegisterClosedPage() {
           <p className="text-brand-text-muted text-sm leading-relaxed mb-6">{t.closedBody}</p>
           <Link
             href="/auth/login"
-            className="inline-flex w-full justify-center rounded-xl bg-brand-gold text-brand-bg py-3 font-semibold hover:bg-brand-gold-light transition-colors"
+            className="inline-flex w-full justify-center rounded-xl bg-brand-gold text-brand-on-gold py-3 font-semibold hover:bg-brand-gold-light transition-colors"
           >
             {t.closedToLogin}
           </Link>

@@ -108,7 +108,7 @@ export function PrintAgentPairingPanel() {
               href={buildPrintAgentConfigureUrl(siteOrigin, freshCode.code)}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-lg bg-brand-gold text-brand-bg px-4 py-2 text-sm font-semibold hover:bg-brand-gold-light transition-colors"
+              className="inline-flex items-center justify-center rounded-lg bg-brand-gold text-brand-on-gold px-4 py-2 text-sm font-semibold hover:bg-brand-gold-light transition-colors"
             >
               {t.configureOpenWithCode}
             </a>
@@ -131,7 +131,7 @@ export function PrintAgentPairingPanel() {
           type="button"
           disabled={!canCreate || creating}
           onClick={() => void createPairing()}
-          className="text-[13px] px-4 py-2 rounded-lg bg-brand-gold text-brand-bg font-medium hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+          className="text-[13px] px-4 py-2 rounded-lg bg-brand-gold text-brand-on-gold font-medium hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {creating ? '…' : t.pairingGenerate}
         </button>
@@ -143,7 +143,7 @@ export function PrintAgentPairingPanel() {
         >
           {loading ? '…' : t.pairingRefreshList}
         </button>
-        {!canCreate && <span className="text-[12px] text-amber-800">{t.pairingSlotFull}</span>}
+        {!canCreate && <span className="text-[12px] mesa-text-warning">{t.pairingSlotFull}</span>}
       </div>
 
       <div>

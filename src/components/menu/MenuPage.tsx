@@ -480,7 +480,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
             <p className="text-brand-gold text-[13px]">{t.demoMode}</p>
             <a
               href="/auth/login"
-              className="flex-shrink-0 text-[13px] bg-brand-gold text-brand-bg px-3 py-1 rounded-full font-semibold hover:bg-brand-gold-light transition-colors"
+              className="flex-shrink-0 text-[13px] bg-brand-gold text-brand-on-gold px-3 py-1 rounded-full font-semibold hover:bg-brand-gold-light transition-colors"
             >
               {t.freeSignup}
             </a>
@@ -535,7 +535,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
                 onClick={() => setLangAndSave(l)}
                 className={`px-2.5 py-1 rounded-full text-[13px] transition-all ${
                   lang === l
-                    ? 'bg-brand-gold text-brand-bg font-semibold'
+                    ? 'bg-brand-gold text-brand-on-gold font-semibold'
                     : 'text-brand-text-muted hover:text-brand-text'
                 }`}
               >
@@ -615,10 +615,10 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
                       displayStatus === 'voided'
                         ? 'bg-slate-500/12 border border-slate-500/35 text-slate-700'
                         : displayStatus === 'done'
-                        ? 'bg-emerald-500/16 border border-emerald-500/35 text-emerald-800'
+                        ? 'mesa-badge-success'
                         : displayStatus === 'cooking'
-                          ? 'bg-amber-500/18 border border-amber-500/35 text-amber-800'
-                          : 'bg-red-500/15 border border-red-500/35 text-red-700'
+                          ? 'mesa-badge-warning'
+                          : 'mesa-badge-danger'
                     }`}>
                       {displayStatus === 'voided'
                         ? t.statusVoided
@@ -646,17 +646,17 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
                             </span>
                           )}
                           {itemSt === 'pending' && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/35 text-red-700">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-danger">
                               {t.statusPending}
                             </span>
                           )}
                           {itemSt === 'cooking' && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/18 border border-amber-500/35 text-amber-800">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-warning">
                               {t.statusCooking}
                             </span>
                           )}
                           {itemSt === 'done' && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/16 border border-emerald-500/35 text-emerald-800">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-success">
                               {t.statusDone}
                             </span>
                           )}
@@ -680,7 +680,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
               aria-disabled={!canGoBill}
               className={`w-full block text-center rounded-xl py-2.5 text-sm font-semibold transition-colors ${
                 canGoBill
-                  ? 'bg-brand-gold text-brand-bg hover:bg-brand-gold-light'
+                  ? 'bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light'
                   : 'bg-brand-border text-brand-text-muted pointer-events-none'
               }`}
             >
@@ -719,7 +719,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
           )}
           <button
             onClick={() => setCartOpen(true)}
-            className="w-full bg-brand-gold text-brand-bg rounded-2xl px-5 py-4 flex items-center justify-between shadow-2xl shadow-brand-gold/20 active:scale-95 transition-transform"
+            className="w-full bg-brand-gold text-brand-on-gold rounded-2xl px-5 py-4 flex items-center justify-between shadow-2xl shadow-brand-gold/20 active:scale-95 transition-transform"
           >
             <div className="flex items-center gap-3">
               <span className="bg-brand-bg text-brand-gold w-7 h-7 rounded-full text-sm font-bold flex items-center justify-center">

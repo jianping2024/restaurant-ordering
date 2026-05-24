@@ -149,7 +149,7 @@ export default function StaffChangePasswordPage() {
             required
             disabled={loading}
           />
-          {error ? <p className="text-red-400 text-sm text-center">{error}</p> : null}
+          {error ? <p className="mesa-text-danger text-sm text-center">{error}</p> : null}
           <Button type="submit" className="w-full" disabled={loading}>
             {t.changeSubmit}
           </Button>

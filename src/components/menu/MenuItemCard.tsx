@@ -60,7 +60,7 @@ export function MenuItemCard({ item, lang, cartQty, onAdd }: Props) {
               onClick={onAdd}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all ${
                 cartQty > 0
-                  ? 'bg-brand-gold text-brand-bg font-semibold'
+                  ? 'bg-brand-gold text-brand-on-gold font-semibold'
                   : 'bg-brand-border text-brand-text hover:bg-brand-gold/20'
               }`}
             >

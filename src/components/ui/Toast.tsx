@@ -24,9 +24,9 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
   }, [duration, onClose]);
 
   const colors = {
-    success: 'border-emerald-500/70 bg-emerald-500/10',
-    error: 'border-red-500/75 bg-red-500/12',
-    info: 'border-brand-gold/70 bg-brand-gold/12',
+    success: 'mesa-alert-success',
+    error: 'mesa-alert-danger',
+    info: 'mesa-alert-warning',
   };
   const iconMap: Record<ToastType, string> = {
     success: '✅',
@@ -35,12 +35,14 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
   };
 
   return (
-    <div className={`
-      inline-flex bg-brand-card border rounded-lg px-3 py-2 shadow-2xl ring-1 ring-black/10
+    <div
+      className={`
+      inline-flex rounded-lg px-3 py-2 shadow-2xl ring-1 ring-black/10
       transition-all duration-300 min-w-[12rem] max-w-[calc(100vw-2rem)]
       ${colors[type]}
       ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'}
-    `}>
+    `}
+    >
       <div className="flex items-center justify-center gap-2">
         <span className="text-base leading-none" aria-hidden>{iconMap[type]}</span>
         <p className="text-sm font-semibold text-brand-text text-center">{message}</p>

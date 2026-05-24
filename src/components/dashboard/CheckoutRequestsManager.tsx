@@ -306,7 +306,7 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
                   <p className="text-brand-text-muted text-[13px] mt-2">
                     {new Date(request.created_at).toLocaleString(locale)}
                   </p>
-                  <p className="text-amber-800/90 text-[12px] mt-1">
+                  <p className="mesa-text-warning text-[12px] mt-1">
                     {t.waitingSince.replace(
                       '{duration}',
                       formatWaitDuration(request.created_at, t),
@@ -318,7 +318,7 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
                   <p className="text-[12px] text-brand-text-muted mt-1">
                     {t.finalAmount} €{getPayable(request).toFixed(2)}
                   </p>
-                  <span className="text-[13px] px-2 py-0.5 rounded-full bg-amber-500/18 border border-amber-500/35 text-amber-800">
+                  <span className="text-[13px] px-2 py-0.5 rounded-full mesa-badge-warning">
                     {t.requested}
                   </span>
                 </div>
@@ -344,17 +344,17 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
                             </span>
                           )}
                           {line.status === 'pending' && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/35 text-red-700">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-danger">
                               {billT.itemPending}
                             </span>
                           )}
                           {line.status === 'cooking' && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/18 border border-amber-500/35 text-amber-800">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-warning">
                               {billT.itemCooking}
                             </span>
                           )}
                           {line.status === 'done' && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/16 border border-emerald-500/35 text-emerald-800">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-success">
                               {billT.itemDone}
                             </span>
                           )}
@@ -398,7 +398,7 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
                       <div key={`${request.id}-${idx}`} className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
                           <span className="text-brand-text">{row.name}</span>
-                          {row.paid && <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/16 border border-emerald-500/35 text-emerald-800">{t.paid}</span>}
+                          {row.paid && <span className="text-[11px] px-2 py-0.5 rounded-full mesa-badge-success">{t.paid}</span>}
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-brand-gold">€{Number(row.amount).toFixed(2)}</span>
@@ -406,7 +406,7 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
                             type="button"
                             onClick={() => handleConfirmPersonPaid(request, idx)}
                             disabled={!!row.paid || processingKey === `${request.id}-${idx}`}
-                            className="text-sm font-semibold px-4 py-2 rounded-lg border border-emerald-500/50 bg-emerald-500/20 text-emerald-900 hover:bg-emerald-500/30 disabled:opacity-50 transition-colors"
+                            className="text-sm font-semibold px-4 py-2 rounded-lg mesa-badge-success hover:opacity-90 disabled:opacity-50 transition-opacity"
                           >
                             {processingKey === `${request.id}-${idx}` ? t.processing : t.confirmOnePaid}
                           </button>

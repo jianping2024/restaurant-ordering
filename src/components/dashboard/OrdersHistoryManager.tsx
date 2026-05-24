@@ -35,9 +35,9 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
     done: i18n.done,
   };
   const statusColor: Record<OrderStatus, string> = {
-    pending: 'bg-red-500/15 border border-red-500/35 text-red-700',
-    cooking: 'bg-amber-500/18 border border-amber-500/35 text-amber-800',
-    done: 'bg-emerald-500/16 border border-emerald-500/35 text-emerald-800',
+    pending: 'mesa-badge-danger',
+    cooking: 'mesa-badge-warning',
+    done: 'mesa-badge-success',
   };
 
   const tableOptions = useMemo<TableOption[]>(

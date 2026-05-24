@@ -82,7 +82,7 @@ export function FeedbackInsightsPanel({
               {topIssues.map((issue) => (
                 <div key={issue.menu_item_id} className="flex items-center justify-between rounded-lg border border-brand-border px-3 py-2">
                   <p className="text-sm text-brand-text">{issue.dish_name}</p>
-                  <span className="text-[13px] px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/35 text-red-700">
+                  <span className="text-[13px] px-2 py-0.5 rounded-full mesa-badge-danger">
                     👎 {issue.down_count}
                   </span>
                 </div>
@@ -99,7 +99,7 @@ export function FeedbackInsightsPanel({
               {topPraise.map((item) => (
                 <div key={item.menu_item_id} className="flex items-center justify-between rounded-lg border border-brand-border px-3 py-2">
                   <p className="text-sm text-brand-text">{item.dish_name}</p>
-                  <span className="text-[13px] px-2 py-0.5 rounded-full bg-emerald-500/16 border border-emerald-500/35 text-emerald-700">
+                  <span className="text-[13px] px-2 py-0.5 rounded-full mesa-badge-success">
                     👍 {item.up_count}
                   </span>
                 </div>

@@ -21,7 +21,7 @@ export default function LandingPage() {
             <LanguageSwitcher compact />
             <Link
               href="/auth/login"
-              className="bg-brand-gold text-brand-bg px-3 sm:px-5 py-2 rounded-lg text-[13px] sm:text-sm font-semibold hover:bg-brand-gold-light transition-colors whitespace-nowrap flex-shrink-0"
+              className="bg-brand-gold text-brand-on-gold px-3 sm:px-5 py-2 rounded-lg text-[13px] sm:text-sm font-semibold hover:bg-brand-gold-light transition-colors whitespace-nowrap flex-shrink-0"
             >
               {dict.ownerCta}
             </Link>
@@ -45,7 +45,7 @@ export default function LandingPage() {
           <div className="flex flex-col items-center gap-1.5 w-full sm:w-auto">
             <Link
               href="/auth/login"
-              className="w-full sm:w-auto bg-brand-gold text-brand-bg px-8 py-3.5 sm:py-4 rounded-xl text-[15px] sm:text-base font-semibold hover:bg-brand-gold-light transition-colors"
+              className="w-full sm:w-auto bg-brand-gold text-brand-on-gold px-8 py-3.5 sm:py-4 rounded-xl text-[15px] sm:text-base font-semibold hover:bg-brand-gold-light transition-colors"
             >
               {dict.ownerCta}
             </Link>
@@ -90,7 +90,7 @@ export default function LandingPage() {
         <p className="text-brand-text-muted text-[15px] sm:text-base mb-6 sm:mb-8">{dict.readyDesc}</p>
         <Link
           href="/auth/login"
-          className="inline-block w-full max-w-xs sm:w-auto bg-brand-gold text-brand-bg px-10 py-3.5 sm:py-4 rounded-xl text-[15px] sm:text-base font-semibold hover:bg-brand-gold-light transition-colors"
+          className="inline-block w-full max-w-xs sm:w-auto bg-brand-gold text-brand-on-gold px-10 py-3.5 sm:py-4 rounded-xl text-[15px] sm:text-base font-semibold hover:bg-brand-gold-light transition-colors"
         >
           {dict.readyBtn}
         </Link>

@@ -22,7 +22,7 @@ export function DashboardSettingsShell({ children }: { children: React.ReactNode
   const tabClass = (active: boolean) =>
     `px-3 py-2 rounded-xl text-sm font-medium transition-colors border ${
       active
-        ? 'bg-brand-gold text-brand-bg border-brand-gold'
+        ? 'bg-brand-gold text-brand-on-gold border-brand-gold'
         : 'bg-brand-card text-brand-text-muted border-brand-border hover:text-brand-text hover:border-brand-gold/35'
     }`;
 

@@ -9,7 +9,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants = {
-  gold: 'bg-brand-gold text-brand-bg hover:bg-brand-gold-light font-semibold',
+  gold: 'bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light font-semibold',
   outline: 'border border-brand-gold text-brand-gold hover:bg-brand-gold/10',
   ghost: 'text-brand-text-muted hover:text-brand-text hover:bg-brand-border',
   danger: 'bg-red-600 text-white hover:bg-red-700',

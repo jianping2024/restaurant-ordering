@@ -146,8 +146,8 @@ export function DashboardPageClient({
                         order.status === 'done'
                           ? 'bg-green-400/15 text-green-400'
                           : order.status === 'cooking'
-                            ? 'bg-yellow-400/15 text-yellow-400'
-                            : 'bg-red-400/15 text-red-400'
+                            ? 'mesa-badge-warning'
+                            : 'mesa-badge-danger'
                       }`}
                     >
                       {order.status === 'done'

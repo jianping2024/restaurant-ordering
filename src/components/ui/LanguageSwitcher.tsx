@@ -30,7 +30,7 @@ export function LanguageSwitcher({ compact = false }: LanguageSwitcherProps) {
           }}
           className={`px-2.5 py-1 rounded-full text-xs transition-all ${
             lang === option.id
-              ? 'bg-brand-gold text-brand-bg font-semibold'
+              ? 'bg-brand-gold text-brand-on-gold font-semibold'
               : 'text-brand-text-muted hover:text-brand-text'
           }`}
         >

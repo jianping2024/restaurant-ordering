@@ -169,7 +169,7 @@ export function DashboardNav({
               <span className="text-lg">{item.icon}</span>
               <span>{t[item.key]}</span>
               {item.key === 'checkout' && checkoutRequestCount > 0 && (
-                <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500/18 border border-red-500/45 px-1.5 text-[11px] font-semibold text-red-700">
+                <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full mesa-badge-danger px-1.5 text-[11px] font-semibold">
                   {checkoutRequestCount > 99 ? '99+' : checkoutRequestCount}
                 </span>
               )}
@@ -205,7 +205,7 @@ export function DashboardNav({
       <div className="px-4 py-4 border-t border-brand-border">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] leading-6 text-brand-text-muted hover:text-red-400 hover:bg-red-400/10 transition-all"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] leading-6 text-brand-text-muted hover:text-status-danger hover:bg-[rgb(var(--color-status-danger-border)/0.12)] transition-all"
         >
           <span>🚪</span>
           {t.logout}

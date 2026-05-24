@@ -70,7 +70,7 @@ export default async function DemoHubPage() {
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
               href="/demo/menu"
-              className="rounded-xl bg-brand-gold px-4 py-2 text-[15px] font-semibold text-brand-bg hover:bg-brand-gold-light transition-colors"
+              className="rounded-xl bg-brand-gold px-4 py-2 text-[15px] font-semibold text-brand-on-gold hover:bg-brand-gold-light transition-colors"
             >
               {text.start}
             </Link>

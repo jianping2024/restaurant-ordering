@@ -804,7 +804,7 @@ export function MenuManager({
             setSelectedCategoryId(category.id);
             void deleteCategoryById(category.id);
           }}
-          className="h-5 w-5 inline-flex items-center justify-center rounded-md border border-red-400/35 bg-red-500/10 text-red-300 leading-none hover:text-red-100 hover:border-red-400/55 hover:bg-red-500/22 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/45 focus-visible:bg-red-500/22 transition-colors"
+          className="h-5 w-5 inline-flex items-center justify-center rounded-md border border-status-danger/35 bg-[rgb(var(--color-status-danger-border)/0.12)] mesa-text-danger leading-none hover:bg-[rgb(var(--color-status-danger-border)/0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--color-status-danger-border)/0.45)] transition-colors"
         >
           ×
         </button>
@@ -967,7 +967,7 @@ export function MenuManager({
                   <p className="text-[12px] text-brand-text-muted mt-1">{t.categoryPrintStationHint}</p>
                 </div>
                 {categoryError && (
-                  <p className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-2">{categoryError}</p>
+                  <p className="mesa-alert-danger text-sm px-4 py-2">{categoryError}</p>
                 )}
                 <div className="flex gap-2">
                   {categoryPanelMode === 'edit' ? (
@@ -998,7 +998,7 @@ export function MenuManager({
                   <button
                     type="button"
                     onClick={() => batchAvailable(false)}
-                    className="text-[13px] text-red-400 hover:underline"
+                    className="text-[13px] text-status-danger hover:underline"
                   >
                     {t.allOff}
                   </button>
@@ -1115,7 +1115,7 @@ export function MenuManager({
                             message: `${t.deleteConfirm} "${item.name_pt}"?`,
                             itemId: item.id,
                           })}
-                          className="text-brand-text-muted hover:text-red-400 transition-colors text-sm"
+                          className="text-brand-text-muted hover:text-status-danger transition-colors text-sm"
                         >
                           {t.remove}
                         </button>
@@ -1134,7 +1134,7 @@ export function MenuManager({
           <div className="rounded-xl border-2 border-dashed border-brand-gold/35 bg-brand-bg/40 p-4 space-y-3">
             <div><span className="text-brand-gold mr-2" aria-hidden>📷</span><span className="text-sm text-brand-text font-medium">{t.dishPhoto}</span></div>
             <p className="text-[13px] text-brand-text-muted">{t.dishPhotoHint}</p>
-            {isImageError && <p className="text-red-400 text-[13px] bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">{itemError}</p>}
+            {isImageError && <p className="mesa-alert-danger text-[13px] px-3 py-2">{itemError}</p>}
             <input ref={fileInputRef} type="file" accept={MENU_IMAGE_ACCEPT} className="hidden" onChange={(e) => onPickImage(e.target.files)} />
             <div className="flex flex-wrap items-center gap-3 min-h-[5.5rem]">
               {itemModalPreviewSrc ? (
@@ -1288,7 +1288,7 @@ export function MenuManager({
             </div>
           </div>
 
-          {itemError && !isImageError && <p className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-2">{itemError}</p>}
+          {itemError && !isImageError && <p className="mesa-alert-danger text-sm px-4 py-2">{itemError}</p>}
 
           <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
             <Button onClick={saveItem} loading={itemSaving} className="flex-1">{editingItem ? t.saveEdit : t.addItem}</Button>

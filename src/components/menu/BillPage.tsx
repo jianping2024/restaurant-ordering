@@ -509,7 +509,7 @@ export function BillPage({
                   <div className="flex items-center gap-2">
                     <span className="text-brand-text text-sm">{r.name}</span>
                     {r.paid && (
-                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/16 border border-emerald-500/35 text-emerald-800">
+                      <span className="text-[11px] px-2 py-0.5 rounded-full mesa-badge-success">
                         {lang === 'zh' ? '已收款' : lang === 'en' ? 'Paid' : 'Pago'}
                       </span>
                     )}
@@ -521,7 +521,7 @@ export function BillPage({
                         type="button"
                         onClick={() => handleConfirmPersonPaidFromWaiter(i)}
                         disabled={!persistedSplitId || !!r.paid || personPayProcessingIdx === i}
-                        className="text-[11px] px-2 py-1 rounded-md border border-emerald-500/45 bg-emerald-500/16 text-emerald-800 hover:bg-emerald-500/26 disabled:opacity-50"
+                        className="text-[11px] px-2 py-1 rounded-md mesa-badge-success border hover:bg-emerald-500/26 disabled:opacity-50"
                       >
                         {personPayProcessingIdx === i
                           ? (lang === 'zh' ? '处理中...' : lang === 'en' ? 'Processing...' : 'Processando...')
@@ -564,7 +564,7 @@ export function BillPage({
                               onClick={() => setVote(item.menu_item_id, 'up')}
                               className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
                                 draft?.vote === 'up'
-                                  ? 'bg-emerald-500/16 border-emerald-500/40 text-emerald-800'
+                                  ? 'mesa-badge-success'
                                   : 'border-brand-border text-brand-text-muted hover:text-brand-text'
                               }`}
                             >
@@ -575,7 +575,7 @@ export function BillPage({
                               onClick={() => setVote(item.menu_item_id, 'down')}
                               className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
                                 draft?.vote === 'down'
-                                  ? 'bg-red-500/15 border-red-500/40 text-red-700'
+                                  ? 'mesa-badge-danger'
                                   : 'border-brand-border text-brand-text-muted hover:text-brand-text'
                               }`}
                             >
@@ -592,7 +592,7 @@ export function BillPage({
                                 onClick={() => toggleReason(item.menu_item_id, reason)}
                                 className={`text-[13px] px-2 py-0.5 rounded-full border ${
                                   reasons.includes(reason)
-                                    ? 'bg-amber-500/16 border-amber-500/40 text-amber-800'
+                                    ? 'mesa-badge-warning'
                                     : 'border-brand-border text-brand-text-muted hover:text-brand-text'
                                 }`}
                               >
@@ -668,17 +668,17 @@ export function BillPage({
                   </span>
                 )}
                 {itemSt === 'pending' && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/35 text-red-700">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-danger">
                     {t.itemPending}
                   </span>
                 )}
                 {itemSt === 'cooking' && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/18 border border-amber-500/35 text-amber-800">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-warning">
                     {t.itemCooking}
                   </span>
                 )}
                 {itemSt === 'done' && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/16 border border-emerald-500/35 text-emerald-800">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-success">
                     {t.itemDone}
                   </span>
                 )}
@@ -708,7 +708,7 @@ export function BillPage({
               onClick={() => setSplitMode(prev => (prev === mode ? null : mode))}
               className={`py-2.5 rounded-xl text-sm transition-all ${
                 splitMode === mode
-                  ? 'bg-brand-gold text-brand-bg font-semibold'
+                  ? 'bg-brand-gold text-brand-on-gold font-semibold'
                   : 'bg-brand-card border border-brand-border text-brand-text-muted'
               }`}
             >
@@ -792,7 +792,7 @@ export function BillPage({
                       onClick={() => togglePersonForItem(item.key, person.id)}
                       className={`text-[13px] px-3 py-1 rounded-full transition-all ${
                         (byItemAssign[item.key] || []).includes(person.id)
-                          ? 'bg-brand-gold text-brand-bg font-semibold'
+                          ? 'bg-brand-gold text-brand-on-gold font-semibold'
                           : 'bg-brand-border text-brand-text-muted'
                       }`}
                     >

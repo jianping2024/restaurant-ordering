@@ -252,7 +252,7 @@ function KitchenDisplayInner({
         </div>
       </div>
       {updateConflict && (
-        <div className="mb-4 rounded-lg border border-amber-500/35 bg-amber-500/12 px-4 py-2 text-sm text-brand-text">
+        <div className="mb-4 mesa-alert-warning px-4 py-2 text-sm">
           {demoText.conflict}
         </div>
       )}
@@ -378,10 +378,10 @@ function OrderCard({
             allVoided
               ? 'bg-slate-500/14 border border-slate-500/35 text-slate-700'
               : order.status === 'pending'
-                ? 'bg-red-500/15 border border-red-500/35 text-red-700'
+                ? 'mesa-badge-danger'
                 : order.status === 'cooking'
-                  ? 'bg-amber-500/18 border border-amber-500/35 text-amber-800'
-                  : 'bg-emerald-500/16 border border-emerald-500/35 text-emerald-800'
+                  ? 'mesa-badge-warning'
+                  : 'mesa-badge-success'
           }`}
         >
           {allVoided
@@ -438,12 +438,12 @@ function OrderCard({
                       <div className="flex items-center gap-2 mt-1.5">
                         <span className={`text-[10px] px-2 py-0.5 rounded-full ${
                           status === 'done'
-                            ? 'bg-emerald-500/16 border border-emerald-500/35 text-emerald-800'
+                            ? 'mesa-badge-success'
                             : status === 'voided'
                               ? 'bg-slate-500/12 border border-slate-500/30 text-slate-700'
                             : status === 'cooking'
-                              ? 'bg-amber-500/18 border border-amber-500/35 text-amber-800'
-                              : 'bg-red-500/15 border border-red-500/35 text-red-700'
+                              ? 'mesa-badge-warning'
+                              : 'mesa-badge-danger'
                         }`}>
                           {status === 'done'
                             ? labels.completed
@@ -457,7 +457,7 @@ function OrderCard({
                           <button
                             onClick={() => handleItemStatusChange(idx, 'cooking')}
                             disabled={updating}
-                            className="text-[11px] bg-amber-500/18 text-amber-800 border border-amber-500/45 px-2 py-0.5 rounded-md hover:bg-amber-500/28 disabled:opacity-50"
+                            className="text-[11px] mesa-badge-warning border px-2 py-0.5 rounded-md hover:bg-amber-500/28 disabled:opacity-50"
                           >
                             {labels.startCooking}
                           </button>
@@ -466,7 +466,7 @@ function OrderCard({
                           <button
                             onClick={() => handleItemStatusChange(idx, 'done')}
                             disabled={updating}
-                            className="text-[11px] bg-emerald-500/16 text-emerald-800 border border-emerald-500/45 px-2 py-0.5 rounded-md hover:bg-emerald-500/26 disabled:opacity-50"
+                            className="text-[11px] mesa-badge-success border px-2 py-0.5 rounded-md hover:bg-emerald-500/26 disabled:opacity-50"
                           >
                             {labels.finishServing}
                           </button>

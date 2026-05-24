@@ -210,14 +210,14 @@ export function PrintAgentSchedulePanel({
       </details>
 
       {errLabel && <p className="text-[13px] text-red-600">{errLabel}</p>}
-      {saved && <p className="text-[13px] text-emerald-700">{t.scheduleSaved}</p>}
+      {saved && <p className="text-[13px] mesa-text-success">{t.scheduleSaved}</p>}
 
       <div className="flex flex-wrap items-center gap-2 pt-1">
         <button
           type="button"
           disabled={saving}
           onClick={() => void save()}
-          className="text-[13px] px-4 py-2 rounded-lg bg-brand-gold text-brand-bg font-medium hover:opacity-90 disabled:opacity-50"
+          className="text-[13px] px-4 py-2 rounded-lg bg-brand-gold text-brand-on-gold font-medium hover:opacity-90 disabled:opacity-50"
         >
           {saving ? '…' : t.scheduleSave}
         </button>

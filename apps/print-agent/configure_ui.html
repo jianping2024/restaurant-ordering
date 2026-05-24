@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mesa Print Agent — 重新配置</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; background: #0f1419; color: #e8e6e3; margin: 0; min-height: 100vh; padding: 24px; }
+    .wrap { max-width: 560px; margin: 0 auto; }
+    h1 { font-size: 1.3rem; margin: 0 0 6px; color: #d4a853; }
+    .sub { font-size: 13px; color: #9aa5b1; margin-bottom: 20px; line-height: 1.5; }
+    .card { background: #1a222c; border: 1px solid #2d3a4a; border-radius: 16px; padding: 22px 20px; margin-bottom: 16px; }
+    .card h2 { font-size: 14px; color: #d4a853; margin: 0 0 12px; }
+    .status { font-size: 13px; color: #9aa5b1; line-height: 1.55; padding: 10px 12px; background: #0f1419; border-radius: 8px; margin-bottom: 16px; border: 1px solid #2d3a4a; }
+    .status strong { color: #e8e6e3; }
+    label { display: block; font-size: 12px; color: #9aa5b1; margin-bottom: 6px; }
+    select, input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #2d3a4a; background: #0f1419; color: #e8e6e3; font-size: 14px; margin-bottom: 14px; }
+    input.code { font-size: 24px; letter-spacing: 0.3em; text-align: center; font-family: ui-monospace, monospace; }
+    .row { display: flex; gap: 8px; margin-bottom: 14px; }
+    .row label { flex: 1; display: flex; align-items: center; gap: 8px; padding: 10px; border: 1px solid #2d3a4a; border-radius: 8px; cursor: pointer; font-size: 14px; color: #e8e6e3; margin-bottom: 0; }
+    .row input { width: auto; margin: 0; }
+    button { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #d4a853; color: #0f1419; font-size: 15px; font-weight: 600; cursor: pointer; }
+    button.secondary { background: transparent; border: 1px solid #2d3a4a; color: #9aa5b1; margin-top: 8px; }
+    .err { color: #f87171; font-size: 13px; min-height: 1.2em; margin-top: 8px; }
+    .ok-msg { color: #4ade80; font-size: 13px; min-height: 1.2em; margin-top: 8px; }
+    .hint { font-size: 11px; color: #9aa5b1; margin-top: -8px; margin-bottom: 14px; line-height: 1.45; }
+    .warn { font-size: 12px; color: #fbbf24; margin-bottom: 12px; line-height: 1.45; }
+    .hidden { display: none; }
+    .stations { border-top: 1px solid #2d3a4a; margin-top: 8px; padding-top: 14px; }
+    .station-row { margin-bottom: 12px; }
+    .station-name { font-size: 14px; color: #e8e6e3; margin-bottom: 4px; }
+    .station-sub { font-size: 11px; color: #9aa5b1; margin-bottom: 6px; }
+    .footer { text-align: center; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Mesa 打印助手 — 重新配置</h1>
+    <p class="sub">可在此重新配对，或调整默认打印机与各出品档口的映射。保存后请重启打印助手窗口（若正在运行）。</p>
+
+    <div class="status" id="status">正在读取当前配置…</div>
+
+    <div class="card">
+      <h2>① 重新配对</h2>
+      <p class="hint">换电脑、配对码过期，或需连接另一 Mesa 账号时使用。重新配对会保留已有打印机设置。</p>
+      <label for="api">Mesa 网址</label>
+      <input id="api" type="url" placeholder="https://your-app.vercel.app" autocomplete="url" />
+      <label for="code">配对码（6 位，在 Mesa「打印助手」生成）</label>
+      <input id="code" class="code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" />
+      <button type="button" id="pairBtn">重新配对</button>
+      <p class="err" id="pairErr"></p>
+      <p class="ok-msg" id="pairOk"></p>
+    </div>
+
+    <div class="card" id="printerCard">
+      <h2>② 打印机与出品档口</h2>
+      <p class="hint" id="printerGate">请先完成配对后再设置打印机。</p>
+      <div id="printerForm" class="hidden">
+        <div class="row">
+          <label><input type="radio" name="kind" value="tcp" checked /> 网线 (LAN :9100)</label>
+          <label><input type="radio" name="kind" value="winspool" /> USB (Windows 打印机)</label>
+        </div>
+        <label for="printer">默认打印机</label>
+        <select id="printer"></select>
+        <p class="hint" id="scanHint">正在扫描…</p>
+        <button type="button" id="refreshBtn" class="secondary" style="width:auto;margin-bottom:14px">重新扫描</button>
+        <div class="stations">
+          <p class="hint" id="stationsHint">正在加载档口…</p>
+          <p class="warn hidden" id="stationsWarn"></p>
+          <div id="stations"></div>
+        </div>
+        <button type="button" id="saveBtn">保存打印机设置</button>
+        <p class="err" id="saveErr"></p>
+        <p class="ok-msg" id="saveOk"></p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <button type="button" id="doneBtn" class="secondary">完成并关闭本页</button>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search);
+      var kindRadios = document.querySelectorAll('input[name="kind"]');
+      var sel = document.getElementById('printer');
+      var cache = { tcp: [], winspool: [] };
+      var stations = [];
+      var state = { paired: false, default_printer: '', station_printers: {} };
+
+      function stationLabel(s) {
+        if (s.name_zh) return s.name_zh + ' · ' + s.name_pt;
+        return s.name_pt || s.name_en || s.id;
+      }
+
+      function allPrinterOptions() {
+        var out = [];
+        (cache.tcp || []).forEach(function (p) { out.push(p); });
+        (cache.winspool || []).forEach(function (p) { out.push(p); });
+        return out;
+      }
+
+      function currentKind() {
+        var k = 'tcp';
+        kindRadios.forEach(function (r) { if (r.checked) k = r.value; });
+        return k;
+      }
+
+      function fillSelect(selectEl, kind, selected) {
+        var list = cache[kind] || [];
+        selectEl.innerHTML = '';
+        if (!list.length) {
+          var o = document.createElement('option');
+          o.value = '';
+          o.textContent = kind === 'tcp' ? '（未发现网口打印机）' : '（未发现 Windows 打印机）';
+          selectEl.appendChild(o);
+          return;
+        }
+        list.forEach(function (p) {
+          var o = document.createElement('option');
+          o.value = p.addr;
+          o.textContent = p.label || p.addr;
+          if (selected && selected === p.addr) o.selected = true;
+          selectEl.appendChild(o);
+        });
+      }
+
+      function fillStationSelect(selectEl, selected) {
+        selectEl.innerHTML = '';
+        var def = document.createElement('option');
+        def.value = '';
+        def.textContent = '同默认打印机';
+        selectEl.appendChild(def);
+        allPrinterOptions().forEach(function (p) {
+          var o = document.createElement('option');
+          o.value = p.addr;
+          o.textContent = p.label || p.addr;
+          if (selected && selected === p.addr) o.selected = true;
+          selectEl.appendChild(o);
+        });
+      }
+
+      function renderStations() {
+        var stationsEl = document.getElementById('stations');
+        var stationsHint = document.getElementById('stationsHint');
+        stationsEl.innerHTML = '';
+        if (!stations.length) {
+          stationsHint.textContent = '后台暂无出品档口；出品联将使用默认打印机。';
+          return;
+        }
+        stationsHint.textContent = '为每个档口选择打印机（仅一台时可保持「同默认」）。';
+        stations.forEach(function (s) {
+          var row = document.createElement('div');
+          row.className = 'station-row';
+          row.dataset.stationId = s.id;
+          var lab = document.createElement('div');
+          lab.className = 'station-name';
+          lab.textContent = stationLabel(s);
+          var sub = document.createElement('div');
+          sub.className = 'station-sub';
+          if (s.name_en) sub.textContent = s.name_en;
+          var stationSel = document.createElement('select');
+          stationSel.className = 'station-printer';
+          var mapped = (state.station_printers && state.station_printers[s.id]) || '';
+          fillStationSelect(stationSel, mapped);
+          row.appendChild(lab);
+          if (sub.textContent) row.appendChild(sub);
+          row.appendChild(stationSel);
+          stationsEl.appendChild(row);
+        });
+      }
+
+      function refreshStationSelects() {
+        document.querySelectorAll('.station-printer').forEach(function (el) {
+          fillStationSelect(el, el.value);
+        });
+      }
+
+      function renderStatus() {
+        var el = document.getElementById('status');
+        if (!state.paired) {
+          el.innerHTML = '当前状态：<strong>未配对</strong>。请先在下方重新配对。';
+          document.getElementById('printerGate').classList.remove('hidden');
+          document.getElementById('printerForm').classList.add('hidden');
+          return;
+        }
+        var printer = state.default_printer || '（未设置）';
+        var n = state.station_count || 0;
+        el.innerHTML = '已连接：<strong>' + (state.api_base || 'Mesa') + '</strong><br/>默认打印机：<strong>' + printer + '</strong> · 档口映射：<strong>' + n + '</strong> 条';
+        document.getElementById('printerGate').classList.add('hidden');
+        document.getElementById('printerForm').classList.remove('hidden');
+      }
+
+      function loadPrinters() {
+        document.getElementById('scanHint').textContent = '正在扫描…';
+        fetch('/api/printers')
+          .then(function (r) { return r.json(); })
+          .then(function (j) {
+            cache.tcp = j.tcp || [];
+            cache.winspool = j.winspool || [];
+            document.getElementById('scanHint').textContent = '网线: ' + cache.tcp.length + ' 台 · USB: ' + cache.winspool.length + ' 个';
+            fillSelect(sel, currentKind(), state.default_printer);
+            refreshStationSelects();
+          });
+      }
+
+      function loadStations() {
+        fetch('/api/print-stations')
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+          .then(function (res) {
+            if (!res.ok) {
+              document.getElementById('stationsWarn').classList.remove('hidden');
+              document.getElementById('stationsWarn').textContent = '无法加载档口列表；出品联将使用默认打印机。';
+              stations = [];
+              renderStations();
+              return;
+            }
+            stations = res.j.stations || [];
+            renderStations();
+          });
+      }
+
+      function loadState() {
+        fetch('/api/configure-state')
+          .then(function (r) { return r.json(); })
+          .then(function (j) {
+            state = j;
+            if (params.get('api') && !document.getElementById('api').value) {
+              document.getElementById('api').value = params.get('api');
+            } else if (j.api_base) {
+              document.getElementById('api').value = j.api_base;
+            }
+            if (params.get('code')) {
+              document.getElementById('code').value = params.get('code').replace(/\D/g, '').slice(0, 6);
+            }
+            if (j.default_printer && j.default_printer.indexOf('winspool:') === 0) {
+              kindRadios.forEach(function (r) { r.checked = r.value === 'winspool'; });
+            }
+            renderStatus();
+            if (state.paired) {
+              loadPrinters();
+              loadStations();
+            }
+          });
+      }
+
+      kindRadios.forEach(function (r) {
+        r.addEventListener('change', function () { fillSelect(sel, currentKind(), sel.value); });
+      });
+
+      document.getElementById('refreshBtn').addEventListener('click', loadPrinters);
+
+      document.getElementById('pairBtn').addEventListener('click', function () {
+        var err = document.getElementById('pairErr');
+        var ok = document.getElementById('pairOk');
+        err.textContent = '';
+        ok.textContent = '';
+        fetch('/api/pair', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            api_base: document.getElementById('api').value.trim(),
+            code: document.getElementById('code').value.trim()
+          })
+        })
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+          .then(function (res) {
+            if (!res.ok) {
+              err.textContent = res.j.error || '配对失败';
+              return;
+            }
+            ok.textContent = '配对成功。可继续调整下方打印机设置。';
+            loadState();
+          })
+          .catch(function () { err.textContent = '无法连接本机配置服务'; });
+      });
+
+      document.getElementById('saveBtn').addEventListener('click', function () {
+        var err = document.getElementById('saveErr');
+        var ok = document.getElementById('saveOk');
+        err.textContent = '';
+        ok.textContent = '';
+        var target = sel.value;
+        if (!target) {
+          err.textContent = '请选择默认打印机';
+          return;
+        }
+        var station_printers = {};
+        document.querySelectorAll('.station-row').forEach(function (row) {
+          var sid = row.dataset.stationId;
+          var addr = row.querySelector('.station-printer').value;
+          if (sid && addr) station_printers[sid] = addr;
+        });
+        fetch('/api/setup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ default_printer: target, station_printers: station_printers })
+        })
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+          .then(function (res) {
+            if (!res.ok) {
+              err.textContent = res.j.error || '保存失败';
+              return;
+            }
+            ok.textContent = '已保存。若打印助手正在运行，请关闭后重新打开以加载新配置。';
+            loadState();
+          })
+          .catch(function () { err.textContent = '无法连接本机配置服务'; });
+      });
+
+      document.getElementById('doneBtn').addEventListener('click', function () {
+        fetch('/api/configure-done', { method: 'POST' }).finally(function () { window.close(); });
+      });
+
+      loadState();
+    })();
+  </script>
+</body>
+</html>

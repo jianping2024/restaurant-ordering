@@ -327,11 +327,24 @@ func main() {
 			}
 			fmt.Println("Pairing saved to", path)
 			return
+		case "configure", "config":
+			path := defaultConfigPath()
+			prefill := ""
+			if loaded, err := loadConfig(path); err == nil && loaded.APIBase != "" {
+				prefill = loaded.APIBase
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), 60*time.Minute)
+			defer cancel()
+			if err := runConfigureWizard(ctx, path, prefill); err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println("Configuration saved to", path)
+			return
 		case "setup":
 			path := defaultConfigPath()
 			cfg, err := loadConfig(path)
 			if err != nil || cfg.AgentJWT == "" {
-				log.Fatal("pair with Mesa first (run MesaPrintAgent without setup subcommand)")
+				log.Fatal("pair with Mesa first (run MesaPrintAgent configure or pair)")
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 			defer cancel()
@@ -344,12 +357,14 @@ func main() {
 			fmt.Printf("Mesa Print Agent %s\n\n", Version)
 			fmt.Println(`Usage:
   MesaPrintAgent              Run agent (opens pairing web UI on first run)
-  MesaPrintAgent pair         Open pairing web UI again
-  MesaPrintAgent setup        Open printer setup (LAN or USB)
-  MesaPrintAgent discover     Scan LAN :9100 and list Windows printers
+  MesaPrintAgent configure     Re-pair + printer/station setup (recommended)
+  MesaPrintAgent pair          Open pairing web UI only
+  MesaPrintAgent setup         Open printer setup only (LAN or USB)
+  MesaPrintAgent discover      Scan LAN :9100 and list Windows printers
   MesaPrintAgent [-api URL] [-code CODE]   Optional CLI pairing (advanced)
 
-Pairing UI: http://127.0.0.1:17890/pair (while agent is waiting for first pairing)
+Configure UI: http://127.0.0.1:17892/configure (run MesaPrintAgent configure)
+Pairing UI: http://127.0.0.1:17890/pair
 
 Config: schedule + poll intervals. See README.`)
 			return

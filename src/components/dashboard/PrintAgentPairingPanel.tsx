@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import { buildPrintAgentPairUrl } from '@/lib/print-agent-local';
+import { buildPrintAgentConfigureUrl, buildPrintAgentPairUrl } from '@/lib/print-agent-local';
 
 type PairingRow = {
   id: string;
@@ -103,13 +103,24 @@ export function PrintAgentPairingPanel() {
           </ol>
           <div className="flex flex-wrap gap-2 pt-1">
             <a
-              href={buildPrintAgentPairUrl(
+              href={buildPrintAgentConfigureUrl(
                 typeof window !== 'undefined' ? window.location.origin : '',
                 freshCode.code
               )}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-lg bg-brand-gold text-brand-bg px-4 py-2 text-sm font-semibold hover:bg-brand-gold-light transition-colors"
+            >
+              {t.configureOpenWithCode}
+            </a>
+            <a
+              href={buildPrintAgentPairUrl(
+                typeof window !== 'undefined' ? window.location.origin : '',
+                freshCode.code
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center rounded-lg border border-brand-border text-brand-text px-4 py-2 text-sm font-medium hover:border-brand-gold/40 transition-colors"
             >
               {t.pairingOpenLocalWizard}
             </a>
@@ -169,7 +180,26 @@ export function PrintAgentPairingPanel() {
         )}
       </div>
 
-      <div className="border-t border-brand-border/60 pt-3 space-y-2">
+      <div className="border-t border-brand-border/60 pt-3 space-y-3">
+        <div>
+          <p className="text-[12px] font-medium text-brand-text mb-1">{t.configureTitle}</p>
+          <p className="text-[12px] text-brand-text-muted leading-relaxed mb-2">{t.configureSubtitle}</p>
+          <ol className="text-[12px] text-brand-text-muted space-y-1 list-decimal list-inside leading-relaxed mb-2">
+            <li>{t.configureStep1}</li>
+            <li>{t.configureStep2}</li>
+            <li>{t.configureStep3}</li>
+          </ol>
+          <a
+            href={buildPrintAgentConfigureUrl(
+              typeof window !== 'undefined' ? window.location.origin : ''
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex text-[12px] text-brand-gold hover:underline font-medium"
+          >
+            {t.configureOpenIdle}
+          </a>
+        </div>
         <p className="text-[12px] text-brand-text-muted leading-relaxed">{t.pairingAgentHint}</p>
         <a
           href={buildPrintAgentPairUrl(

@@ -41,6 +41,9 @@ func normalizeAPIBase(raw string) (string, error) {
 // SetupWizardPort is the localhost port for printer setup UI (dashboard need not link).
 const SetupWizardPort = 17891
 
+// ConfigureWizardPort is the unified re-pair + printer setup UI.
+const ConfigureWizardPort = 17892
+
 func pickLocalListenAddr(startPort int) (string, error) {
 	for port := startPort; port < startPort+8; port++ {
 		addr := fmt.Sprintf("127.0.0.1:%d", port)
@@ -114,7 +117,7 @@ func runPairingWizard(ctx context.Context, configPath, prefillAPI string) error 
 			writePairJSON(w, http.StatusBadRequest, map[string]string{"error": msg})
 			return
 		}
-		if err := saveConfig(configPath, cfg); err != nil {
+		if err := savePairConfig(configPath, cfg); err != nil {
 			writePairJSON(w, http.StatusInternalServerError, map[string]string{"error": "保存配置失败: " + err.Error()})
 			return
 		}

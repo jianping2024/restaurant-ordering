@@ -108,3 +108,27 @@ func (c *config) printerAddrForJob(job printJob) (string, error) {
 	}
 	return raw, nil
 }
+
+// mergePrinterConfig keeps local printer routing when re-pairing with a new code.
+func mergePrinterConfig(prev, next *config) {
+	if prev == nil || next == nil {
+		return
+	}
+	if s := strings.TrimSpace(prev.DefaultPrinter); s != "" {
+		next.DefaultPrinter = s
+	} else if s := strings.TrimSpace(prev.PrinterHost); s != "" {
+		next.PrinterHost = s
+	}
+	if len(prev.StationPrinters) > 0 {
+		next.StationPrinters = prev.StationPrinters
+	}
+}
+
+func savePairConfig(configPath string, next *config) error {
+	var prev *config
+	if p, err := loadConfig(configPath); err == nil {
+		prev = p
+	}
+	mergePrinterConfig(prev, next)
+	return saveConfig(configPath, next)
+}

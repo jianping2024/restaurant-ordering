@@ -12,8 +12,9 @@ First-time setup (no command line)
 5. Browser: printer setup — choose LAN (network cable) or USB (Windows printer).
 6. Keep the black agent window open for automatic printing.
 
-Re-open setup later: MesaPrintAgent.exe setup
-Re-pair Mesa: MesaPrintAgent.exe pair
+Re-open setup later: MesaPrintAgent.exe configure   (re-pair + printers, recommended)
+Printer only: MesaPrintAgent.exe setup
+Pair only: MesaPrintAgent.exe pair
 
 Config file
 -----------

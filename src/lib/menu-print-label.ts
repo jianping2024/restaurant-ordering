@@ -2,7 +2,7 @@ import type { OrderItem } from '@/types';
 
 export type MenuCategoryForPrint = {
   id: string;
-  parent_id: string | null;
+  parent_id?: string | null;
   item_code?: string | null;
 };
 

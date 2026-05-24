@@ -147,7 +147,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     locationTooFar: '您当前不在餐厅 50 米范围内，暂时无法下单',
     locationBypassedLocal: '当前为本地环境，已跳过定位校验（仅用于调试）',
     printEnqueueNoStation:
-      '订单已保存，但未打出品联：请在「餐厅设置 → 菜单管理」为分类或菜品绑定「出品档口」。',
+      '订单已保存，但未打出品联：请在「菜单管理 → 出品档口」定义档口，并在分类或菜品上绑定。',
     printEnqueueFailed: '订单已保存，但送入打印队列失败，请检查打印助手与代理。',
     printEnqueueRateLimited: '打印请求过于频繁，请稍后再试。',
   },

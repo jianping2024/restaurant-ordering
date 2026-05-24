@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Tree from 'rc-tree';
 import type { DataNode } from 'rc-tree/lib/interface';
@@ -35,6 +36,15 @@ import { getPrintStationDisplayName } from '@/lib/print-station-admin';
 import { categoryCodePathFromLeaf, normalizeMenuItemCode } from '@/lib/menu-print-label';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import { MenuManagementGuide } from '@/components/dashboard/menu/MenuManagementGuide';
+import { PrintStationsManager } from '@/components/dashboard/PrintStationsManager';
+import {
+  isMenuManagerTab,
+  loadSavedMenuManagerTab,
+  MENU_MANAGER_DEFAULT_TAB,
+  menuManagerSettingsPath,
+  saveMenuManagerTab,
+  type MenuManagerTab,
+} from '@/lib/menu-manager-tab-preference';
 import 'rc-tree/assets/index.css';
 
 const FOOD_EMOJIS = ['🍽️', '🍞', '🥗', '🥣', '🐟', '🥚', '🍗', '🐙', '🥩', '🦆', '🫒', '🍷', '🍺', '💧', '☕', '🥧', '🍮', '🫕', '🥘', '🍲'];
@@ -48,6 +58,7 @@ interface MenuManagerProps {
   initialItems: MenuItem[];
   initialCategories: MenuCategory[];
   initialPrintStations: PrintStation[];
+  initialTab?: MenuManagerTab;
   embedded?: boolean;
 }
 
@@ -121,13 +132,42 @@ export function MenuManager({
   initialItems,
   initialCategories,
   initialPrintStations,
+  initialTab = MENU_MANAGER_DEFAULT_TAB,
   embedded,
 }: MenuManagerProps) {
   const { lang } = useLanguage();
   const t = getMessages(lang).menuManager;
+  const ps = getMessages(lang).printStations;
+  const router = useRouter();
   const supabase = createClient();
 
-  const [activeTab, setActiveTab] = useState<'items' | 'categories'>('categories');
+  const [activeTab, setActiveTab] = useState<MenuManagerTab>(initialTab);
+
+  useEffect(() => {
+    if (!embedded) return;
+    const urlTab = new URLSearchParams(window.location.search).get('tab');
+    if (isMenuManagerTab(urlTab)) {
+      setActiveTab(urlTab);
+      saveMenuManagerTab(restaurantId, urlTab);
+      return;
+    }
+    const saved = loadSavedMenuManagerTab(restaurantId) ?? MENU_MANAGER_DEFAULT_TAB;
+    setActiveTab(saved);
+    saveMenuManagerTab(restaurantId, saved);
+    const path = menuManagerSettingsPath(saved);
+    const current = `${window.location.pathname}${window.location.search}`;
+    if (current !== path) {
+      router.replace(path, { scroll: false });
+    }
+  }, [embedded, restaurantId, router]);
+
+  const switchTab = (tab: MenuManagerTab) => {
+    setActiveTab(tab);
+    saveMenuManagerTab(restaurantId, tab);
+    if (embedded) {
+      router.replace(menuManagerSettingsPath(tab), { scroll: false });
+    }
+  };
   const [dishSearch, setDishSearch] = useState('');
   const [deleteMigrateTargetId, setDeleteMigrateTargetId] = useState('');
   const [items, setItems] = useState<MenuItem[]>(initialItems);
@@ -936,7 +976,18 @@ export function MenuManager({
       <div className="flex flex-wrap gap-2 mb-6">
         <button
           type="button"
-          onClick={() => setActiveTab('categories')}
+          onClick={() => switchTab('stations')}
+          className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
+            activeTab === 'stations'
+              ? 'bg-brand-gold/15 border-brand-gold/40 text-brand-gold font-medium'
+              : 'border-brand-border text-brand-text-muted hover:text-brand-text'
+          }`}
+        >
+          {t.tabStations}
+        </button>
+        <button
+          type="button"
+          onClick={() => switchTab('categories')}
           className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
             activeTab === 'categories'
               ? 'bg-brand-gold/15 border-brand-gold/40 text-brand-gold font-medium'
@@ -947,7 +998,7 @@ export function MenuManager({
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab('items')}
+          onClick={() => switchTab('items')}
           className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
             activeTab === 'items'
               ? 'bg-brand-gold/15 border-brand-gold/40 text-brand-gold font-medium'
@@ -958,7 +1009,28 @@ export function MenuManager({
         </button>
       </div>
 
-      {activeTab === 'categories' ? (
+      {activeTab === 'stations' ? (
+        <div>
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[13px] text-brand-text-muted">{ps.hintShort}</p>
+            <Link
+              href="/dashboard/settings/print-assistant"
+              className="text-[13px] text-brand-gold hover:underline shrink-0"
+            >
+              {ps.linkPrintAssistant}
+            </Link>
+          </div>
+          <PrintStationsManager
+            restaurantId={restaurantId}
+            initialStations={printStations}
+            initialCategories={categories}
+            initialItems={items}
+            embedded
+            inMenuTab
+            onStationsChange={setPrintStations}
+          />
+        </div>
+      ) : activeTab === 'categories' ? (
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(260px,360px)_minmax(0,1fr)] gap-4 min-w-0">
           <div className="bg-brand-card border border-brand-border rounded-2xl p-4 min-w-0">
             <p className="text-[12px] text-brand-text-muted mb-2">{t.categoryTreeHint}</p>
@@ -1010,12 +1082,9 @@ export function MenuManager({
                     {t.panelEmptyAddRoot}
                   </Button>
                   {embedded ? (
-                    <Link
-                      href="/dashboard/settings/print-stations"
-                      className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-sm border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/35 transition-colors"
-                    >
+                    <Button type="button" variant="outline" onClick={() => switchTab('stations')}>
                       {t.linkPrintStations}
-                    </Link>
+                    </Button>
                   ) : null}
                 </div>
               </div>

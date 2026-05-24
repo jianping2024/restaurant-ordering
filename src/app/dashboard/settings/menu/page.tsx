@@ -1,7 +1,24 @@
+import { Suspense } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { MenuManager } from '@/components/dashboard/MenuManager';
+import {
+  isMenuManagerTab,
+  MENU_MANAGER_DEFAULT_TAB,
+  type MenuManagerTab,
+} from '@/lib/menu-manager-tab-preference';
 
-export default async function SettingsMenuPage() {
+function parseMenuTab(tab: string | undefined): MenuManagerTab {
+  if (isMenuManagerTab(tab)) return tab;
+  return MENU_MANAGER_DEFAULT_TAB;
+}
+
+interface Props {
+  searchParams: Promise<{ tab?: string }>;
+}
+
+export default async function SettingsMenuPage({ searchParams }: Props) {
+  const { tab } = await searchParams;
+  const initialTab = parseMenuTab(tab);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -33,12 +50,15 @@ export default async function SettingsMenuPage() {
     .order('created_at', { ascending: true });
 
   return (
-    <MenuManager
-      embedded
-      restaurantId={restaurant!.id}
-      initialItems={menuItems || []}
-      initialCategories={menuCategories || []}
-      initialPrintStations={printStations ?? []}
-    />
+    <Suspense fallback={null}>
+      <MenuManager
+        embedded
+        initialTab={initialTab}
+        restaurantId={restaurant!.id}
+        initialItems={menuItems || []}
+        initialCategories={menuCategories || []}
+        initialPrintStations={printStations ?? []}
+      />
+    </Suspense>
   );
 }

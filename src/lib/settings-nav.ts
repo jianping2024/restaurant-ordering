@@ -4,7 +4,6 @@ export type SettingsNavId =
   | 'staff'
   | 'menu'
   | 'buffet'
-  | 'print-stations'
   | 'print-assistant';
 
 export type SettingsNavGroupId = 'basics' | 'venue' | 'menu' | 'print';
@@ -15,7 +14,6 @@ export type SettingsHubLabelKey =
   | 'tabStaff'
   | 'tabMenu'
   | 'tabBuffet'
-  | 'tabPrintStations'
   | 'tabPrintAssistant';
 
 export type SettingsHubHintKey =
@@ -24,7 +22,6 @@ export type SettingsHubHintKey =
   | 'hintStaff'
   | 'hintMenu'
   | 'hintBuffet'
-  | 'hintPrintStations'
   | 'hintPrintAssistant';
 
 export type SettingsNavItem = {
@@ -104,13 +101,6 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
     groupId: 'print',
     groupKey: 'groupPrint',
     items: [
-      {
-        id: 'print-stations',
-        href: '/dashboard/settings/print-stations',
-        labelKey: 'tabPrintStations',
-        hintKey: 'hintPrintStations',
-        isActive: (pathname) => pathname.startsWith('/dashboard/settings/print-stations'),
-      },
       {
         id: 'print-assistant',
         href: '/dashboard/settings/print-assistant',

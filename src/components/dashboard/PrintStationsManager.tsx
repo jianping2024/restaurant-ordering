@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -21,6 +21,9 @@ interface PrintStationsManagerProps {
   initialItems?: Pick<MenuItem, 'id' | 'print_station_id'>[];
   /** When true (e.g. under `/dashboard/settings`), hide page title — same pattern as `MenuManager`. */
   embedded?: boolean;
+  /** Embedded as a tab inside menu management — hide cross-links back to menu. */
+  inMenuTab?: boolean;
+  onStationsChange?: (stations: PrintStation[]) => void;
 }
 
 type StationForm = {
@@ -49,6 +52,8 @@ export function PrintStationsManager({
   initialCategories = [],
   initialItems = [],
   embedded,
+  inMenuTab,
+  onStationsChange,
 }: PrintStationsManagerProps) {
   const { lang } = useLanguage();
   const t = getMessages(lang).printStations;
@@ -58,6 +63,10 @@ export function PrintStationsManager({
   const [stations, setStations] = useState<PrintStation[]>(() =>
     [...initialStations].sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at)),
   );
+
+  useEffect(() => {
+    onStationsChange?.(stations);
+  }, [stations, onStationsChange]);
   const [error, setError] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<PrintStation | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -230,7 +239,7 @@ export function PrintStationsManager({
           embedded ? 'sm:justify-between' : 'sm:justify-end'
         }`}
       >
-        {embedded ? (
+        {embedded && !inMenuTab ? (
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
             <Link href="/dashboard/settings/menu" className="text-brand-text-muted hover:text-brand-gold transition-colors">
               {t.linkMenu}

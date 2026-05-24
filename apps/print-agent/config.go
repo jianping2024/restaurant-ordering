@@ -96,6 +96,9 @@ func (c *config) printerAddrForJob(job printJob) (string, error) {
 				return v, nil
 			}
 		}
+		if raw := c.defaultPrinterTargetRaw(); raw != "" {
+			return raw, nil
+		}
 		return "", fmt.Errorf("no station_printers mapping for print_station_id %s", sid)
 	}
 

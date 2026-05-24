@@ -6,7 +6,7 @@ import type { Buffet, Order, OrderItem } from '@/types';
 import { sumLineTotals } from '@/lib/cart-totals';
 import { buildBuffetBaseLine, stripBuffetBaseLines, type ResolvedBuffetPriceRow } from '@/lib/buffet-order';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
 import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { Modal } from '@/components/ui/Modal';
 import { IntegerInput } from '@/components/ui/IntegerInput';
@@ -589,16 +589,7 @@ function WaiterTableDetailInner({
           >
             ← {t.backToBoard}
           </Link>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher compact />
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className={`${waiterUi.btnSecondary} ${waiterUi.btnGhost} text-[12px] px-2 py-1`}
-            >
-              {exitLabel}
-            </button>
-          </div>
+          <StaffRoleToolbar exitLabel={exitLabel} onSignOut={handleSignOut} />
         </div>
         <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
         <p className="text-brand-text-muted text-sm mt-1">{t.boardTitle}</p>

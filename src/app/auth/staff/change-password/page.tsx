@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { parseStaffUserMetadata, staffPasswordValid } from '@/lib/staff-account';
-import { staffRolePath } from '@/lib/staff-auth-client';
+import { staffRolePath, staffSignOut } from '@/lib/staff-auth-client';
+import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 
@@ -101,6 +101,11 @@ export default function StaffChangePasswordPage() {
     }
   };
 
+  const handleSignOut = async () => {
+    await staffSignOut();
+    router.replace('/auth/staff/login');
+  };
+
   if (checking) {
     return (
       <div className="min-h-screen bg-brand-bg flex items-center justify-center text-brand-text-muted text-sm">
@@ -112,9 +117,7 @@ export default function StaffChangePasswordPage() {
   return (
     <div className="min-h-screen bg-brand-bg flex items-center justify-center p-4">
       <div className="bg-brand-card border border-brand-border rounded-2xl p-8 w-full max-w-sm">
-        <div className="flex justify-end mb-3">
-          <LanguageSwitcher compact />
-        </div>
+        <StaffRoleToolbar exitLabel={t.signOut} onSignOut={() => void handleSignOut()} />
         <h1 className="font-heading text-3xl text-brand-gold text-center mb-2">{t.changeTitle}</h1>
         <p className="text-brand-text-muted text-sm text-center mb-6">{t.changeSubtitle}</p>
         <form onSubmit={handleSubmit} className="space-y-4">

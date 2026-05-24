@@ -841,8 +841,8 @@ export function MenuManager({
           ) : null}
         </button>
         <div
-          className={`mt-1 flex items-center justify-end gap-0.5 transition-opacity ${
-            showActions ? 'opacity-100' : 'opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto'
+          className={`mesa-category-tree-actions mt-1 flex items-center justify-end gap-0.5 ${
+            showActions ? 'is-visible' : ''
           }`}
         >
           <button
@@ -857,7 +857,7 @@ export function MenuManager({
               setCategoryDraft(defaultCategoryDraft);
               setCategoryPanelMode('create-child');
             }}
-            className={actionBtn}
+            className={`${actionBtn} min-w-[1.75rem] px-1 text-xs font-medium`}
           >
             +
           </button>
@@ -869,9 +869,9 @@ export function MenuManager({
               e.stopPropagation();
               openCategoryEdit(category);
             }}
-            className={actionBtn}
+            className={`${actionBtn} px-1.5 text-[11px]`}
           >
-            ✎
+            {t.editAction}
           </button>
           <button
             type="button"
@@ -882,9 +882,9 @@ export function MenuManager({
               setSelectedCategoryId(category.id);
               void deleteCategoryById(category.id);
             }}
-            className={`${actionBtn} mesa-text-danger border-status-danger/35 hover:bg-[rgb(var(--color-status-danger-border)/0.12)]`}
+            className={`${actionBtn} px-1.5 text-[11px] mesa-text-danger border-status-danger/35 hover:bg-[rgb(var(--color-status-danger-border)/0.12)]`}
           >
-            ×
+            {t.deleteAction}
           </button>
         </div>
       </div>
@@ -1483,12 +1483,23 @@ export function MenuManager({
           width: 100% !important;
           max-width: 100%;
           border-radius: 8px;
-          min-height: 30px;
+          min-height: 2.75rem;
           padding: 2px 4px;
           display: flex;
           align-items: flex-start;
           box-sizing: border-box;
-          overflow: hidden;
+          overflow: visible;
+        }
+        .mesa-category-tree .mesa-category-tree-actions {
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.15s ease;
+        }
+        .mesa-category-tree .rc-tree-node-content-wrapper:hover .mesa-category-tree-actions,
+        .mesa-category-tree .mesa-category-tree-actions.is-visible,
+        .mesa-category-tree .rc-tree-treenode-selected .mesa-category-tree-actions {
+          opacity: 1;
+          pointer-events: auto;
         }
         .mesa-category-tree .rc-tree-node-content-wrapper:hover {
           background: rgb(var(--color-brand-gold) / 0.1);

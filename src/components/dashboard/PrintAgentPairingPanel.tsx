@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import { buildPrintAgentConfigureUrl, buildPrintAgentPairUrl } from '@/lib/print-agent-local';
+import { buildPrintAgentConfigureUrl } from '@/lib/print-agent-local';
 
 type PairingRow = {
   id: string;
@@ -76,6 +76,8 @@ export function PrintAgentPairingPanel() {
     }
   };
 
+  const siteOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+
   return (
     <div className="rounded-2xl border border-brand-border bg-brand-card p-4 sm:p-5 space-y-4">
       <div>
@@ -97,32 +99,18 @@ export function PrintAgentPairingPanel() {
             {new Date(freshCode.expires_at).toLocaleString()}
           </p>
           <ol className="text-[12px] text-brand-text-muted space-y-1 list-decimal list-inside leading-relaxed">
-            <li>{t.pairingWizardStep1}</li>
-            <li>{t.pairingWizardStep2}</li>
-            <li>{t.pairingWizardStep3}</li>
+            <li>{t.configureStep1}</li>
+            <li>{t.configureStep2}</li>
+            <li>{t.configureStep3}</li>
           </ol>
           <div className="flex flex-wrap gap-2 pt-1">
             <a
-              href={buildPrintAgentConfigureUrl(
-                typeof window !== 'undefined' ? window.location.origin : '',
-                freshCode.code
-              )}
+              href={buildPrintAgentConfigureUrl(siteOrigin, freshCode.code)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-lg bg-brand-gold text-brand-bg px-4 py-2 text-sm font-semibold hover:bg-brand-gold-light transition-colors"
             >
               {t.configureOpenWithCode}
-            </a>
-            <a
-              href={buildPrintAgentPairUrl(
-                typeof window !== 'undefined' ? window.location.origin : '',
-                freshCode.code
-              )}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-lg border border-brand-border text-brand-text px-4 py-2 text-sm font-medium hover:border-brand-gold/40 transition-colors"
-            >
-              {t.pairingOpenLocalWizard}
             </a>
             <button
               type="button"
@@ -180,37 +168,23 @@ export function PrintAgentPairingPanel() {
         )}
       </div>
 
-      <div className="border-t border-brand-border/60 pt-3 space-y-3">
-        <div>
-          <p className="text-[12px] font-medium text-brand-text mb-1">{t.configureTitle}</p>
-          <p className="text-[12px] text-brand-text-muted leading-relaxed mb-2">{t.configureSubtitle}</p>
-          <ol className="text-[12px] text-brand-text-muted space-y-1 list-decimal list-inside leading-relaxed mb-2">
-            <li>{t.configureStep1}</li>
-            <li>{t.configureStep2}</li>
-            <li>{t.configureStep3}</li>
-          </ol>
-          <a
-            href={buildPrintAgentConfigureUrl(
-              typeof window !== 'undefined' ? window.location.origin : ''
-            )}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex text-[12px] text-brand-gold hover:underline font-medium"
-          >
-            {t.configureOpenIdle}
-          </a>
-        </div>
-        <p className="text-[12px] text-brand-text-muted leading-relaxed">{t.pairingAgentHint}</p>
+      <div className="border-t border-brand-border/60 pt-3 space-y-2">
+        <p className="text-[12px] font-medium text-brand-text">{t.configureTitle}</p>
+        <p className="text-[12px] text-brand-text-muted leading-relaxed">{t.configureSubtitle}</p>
+        <ol className="text-[12px] text-brand-text-muted space-y-1 list-decimal list-inside leading-relaxed">
+          <li>{t.configureStep1}</li>
+          <li>{t.configureStep2}</li>
+          <li>{t.configureStep3}</li>
+        </ol>
         <a
-          href={buildPrintAgentPairUrl(
-            typeof window !== 'undefined' ? window.location.origin : ''
-          )}
+          href={buildPrintAgentConfigureUrl(siteOrigin)}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex text-[12px] text-brand-gold hover:underline"
+          className="inline-flex text-[12px] text-brand-gold hover:underline font-medium"
         >
-          {t.pairingOpenLocalWizardIdle}
+          {t.configureOpenIdle}
         </a>
+        <p className="text-[12px] text-brand-text-muted leading-relaxed pt-1">{t.pairingAgentHint}</p>
       </div>
     </div>
   );

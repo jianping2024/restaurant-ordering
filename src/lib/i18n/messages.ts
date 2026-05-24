@@ -253,9 +253,9 @@ export const MESSAGES = {
         '在收银电脑双击 Mesa Print Agent 会打开本机配对网页；在此生成 6 位码后填入即可。码约 10 分钟有效；未过期期间每店最多保留 3 条配对记录。',
       pairingWizardStep1: '在收银电脑双击 Mesa Print Agent（或免安装 zip 里的 exe）',
       pairingWizardStep2: '保持程序窗口不要关，浏览器会打开配对页',
-      pairingWizardStep3: '点击下方按钮，在配对页确认 Mesa 网址并填入配对码',
-      pairingOpenLocalWizard: '在本机打开配对页（已填入配对码）',
-      pairingOpenLocalWizardIdle: '在本机打开配对页（需先启动打印助手）',
+      pairingWizardStep3: '点击下方按钮，在本机配置页填入配对码并完成连接',
+      pairingOpenLocalWizard: '在本机打开配置页（已填入配对码）',
+      pairingOpenLocalWizardIdle: '在本机打开配置页（需先运行 configure）',
       pairingWizardNote:
         '若按钮打不开页面，请确认收银电脑上 Mesa Print Agent 已运行；网址须为 https 开头的 Mesa 根地址（不要带 /dashboard 路径）。',
       pairingGenerate: '生成配对码',

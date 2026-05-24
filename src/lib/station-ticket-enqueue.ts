@@ -3,6 +3,7 @@ import type { OrderItem, PrintStationTicketLayout } from '@/types';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
+import { orderItemPrintDisplayName, type MenuItemForPrint } from '@/lib/menu-print-label';
 import {
   formatStationTicketOrderTime,
   guestCountFromTableOrders,
@@ -27,11 +28,6 @@ type StationRow = {
   name_en: string | null;
   name_zh: string | null;
 };
-
-/** Menu line as stored on the order (not print-locale translation). */
-function stationTicketLineName(item: OrderItem): string {
-  return (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
-}
 
 function stationLabelForLocale(st: StationRow, locale: 'zh' | 'en' | 'pt'): string {
   if (locale === 'zh') return (st.name_zh || st.name_en || st.name_pt || '').trim() || st.name_pt;
@@ -137,12 +133,12 @@ export async function enqueueStationTicketsForOrder(params: {
   const [{ data: menuRows, error: mErr }, { data: categoryRows, error: cErr }] = await Promise.all([
     admin
       .from('menu_items')
-      .select('id, category_id, print_station_id')
+      .select('id, category_id, print_station_id, item_code')
       .eq('restaurant_id', restaurantId)
       .in('id', menuIds),
     admin
       .from('menu_categories')
-      .select('id, parent_id, print_station_id')
+      .select('id, parent_id, print_station_id, item_code')
       .eq('restaurant_id', restaurantId),
   ]);
 
@@ -159,7 +155,18 @@ export async function enqueueStationTicketsForOrder(params: {
     id: string;
     parent_id: string | null;
     print_station_id: string | null;
+    item_code?: string | null;
   }[];
+
+  const menuById = new Map<string, MenuItemForPrint>();
+  for (const row of menuRows || []) {
+    const r = row as MenuItemForPrint & { print_station_id?: string | null };
+    menuById.set(r.id, {
+      id: r.id,
+      category_id: r.category_id,
+      item_code: r.item_code ?? null,
+    });
+  }
 
   const resolveMap = new Map<string, string | null>();
   for (const row of menuRows || []) {
@@ -311,7 +318,7 @@ export async function enqueueStationTicketsForOrder(params: {
         menu_item_id: l.item.id,
         qty: l.item.qty,
         note: l.item.note,
-        display_name: stationTicketLineName(l.item),
+        display_name: orderItemPrintDisplayName(l.item, menuById, categoryList),
         emoji: l.item.emoji || '🍽️',
       })),
     };

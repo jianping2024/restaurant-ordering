@@ -24,6 +24,7 @@ import {
   NOTE_PRESET_GROUP_LABELS,
   type NotePresetGroup,
 } from '@/lib/note-presets';
+import { normalizeMenuItemCode } from '@/lib/menu-print-label';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import 'rc-tree/assets/index.css';
 
@@ -45,6 +46,7 @@ type ItemForm = {
   description_en: string;
   price: string;
   category_id: string;
+  item_code: string;
   print_station_id: string;
   emoji: string;
   available: boolean;
@@ -59,6 +61,7 @@ const defaultItemForm: ItemForm = {
   description_en: '',
   price: '',
   category_id: '',
+  item_code: '',
   print_station_id: '',
   emoji: '🍽️',
   available: true,
@@ -69,10 +72,17 @@ type CategoryDraft = {
   name_pt: string;
   name_en: string;
   name_zh: string;
+  item_code: string;
   print_station_id: string;
 };
 
-const defaultCategoryDraft: CategoryDraft = { name_pt: '', name_en: '', name_zh: '', print_station_id: '' };
+const defaultCategoryDraft: CategoryDraft = {
+  name_pt: '',
+  name_en: '',
+  name_zh: '',
+  item_code: '',
+  print_station_id: '',
+};
 
 type ConfirmDialogState =
   | { open: false }
@@ -254,6 +264,7 @@ export function MenuManager({
         name_pt: selectedCategory.name_pt || '',
         name_en: selectedCategory.name_en || '',
         name_zh: selectedCategory.name_zh || '',
+        item_code: selectedCategory.item_code || '',
         print_station_id: selectedCategory.print_station_id ?? '',
       });
       setCategoryError('');
@@ -298,7 +309,13 @@ export function MenuManager({
       cur = parentId ? categories.find((c) => c.id === parentId) : undefined;
     }
     if (chain.length === 0) return item.category?.trim() || t.uncategorized;
-    return chain.map((c) => getCategoryLabel(c)).join(' · ');
+    return chain
+      .map((c) => {
+        const label = getCategoryLabel(c);
+        const code = c.item_code?.trim();
+        return code ? `${label} [${code}]` : label;
+      })
+      .join(' · ');
   };
 
   const getEffectiveStationTicketLine = (item: MenuItem): string => {
@@ -380,6 +397,7 @@ export function MenuManager({
       description_en: item.description_en || '',
       price: String(item.price),
       category_id: item.category_id || '',
+      item_code: item.item_code || '',
       print_station_id: item.print_station_id ?? '',
       emoji: item.emoji,
       available: item.available,
@@ -434,6 +452,7 @@ export function MenuManager({
       available: itemForm.available,
       note_preset_keys: itemForm.note_preset_keys,
       print_station_id: itemForm.print_station_id || null,
+      item_code: normalizeMenuItemCode(itemForm.item_code),
     };
 
     try {
@@ -528,6 +547,7 @@ export function MenuManager({
         name_pt: categoryDraft.name_pt.trim(),
         name_en: categoryDraft.name_en.trim() || null,
         name_zh: categoryDraft.name_zh.trim() || null,
+        item_code: normalizeMenuItemCode(categoryDraft.item_code),
         print_station_id: categoryDraft.print_station_id || null,
         sort_order: siblings.length,
         active: true,
@@ -562,6 +582,7 @@ export function MenuManager({
         name_pt: categoryDraft.name_pt.trim(),
         name_en: categoryDraft.name_en.trim() || null,
         name_zh: categoryDraft.name_zh.trim() || null,
+        item_code: normalizeMenuItemCode(categoryDraft.item_code),
         print_station_id: categoryDraft.print_station_id || null,
       })
       .eq('id', selectedCategory.id)
@@ -863,6 +884,18 @@ export function MenuManager({
                   />
                 </div>
                 <div>
+                  <Input
+                    label={t.categoryCode}
+                    value={categoryDraft.item_code}
+                    maxLength={10}
+                    onChange={(e) =>
+                      setCategoryDraft((prev) => ({ ...prev, item_code: e.target.value.slice(0, 10) }))
+                    }
+                    placeholder="A01"
+                  />
+                  <p className="text-[12px] text-brand-text-muted mt-1">{t.categoryCodeHint}</p>
+                </div>
+                <div>
                   <label className="text-sm text-brand-text-muted font-medium block mb-1.5">{t.categoryPrintStation}</label>
                   <select
                     value={categoryDraft.print_station_id}
@@ -984,7 +1017,10 @@ export function MenuManager({
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="text-brand-text font-medium truncate">{item.name_pt}</p>
+                        <p className="text-brand-text font-medium truncate">
+                          {item.item_code?.trim() ? `[${item.item_code.trim()}] ` : ''}
+                          {item.name_pt}
+                        </p>
                         {item.name_zh && <span className="text-brand-text-muted text-[13px] shrink-0">({item.name_zh})</span>}
                       </div>
                       {item.description_pt && <p className="text-brand-text-muted text-[13px] mt-0.5 line-clamp-2">{item.description_pt}</p>}
@@ -1101,6 +1137,14 @@ export function MenuManager({
             <Input label={t.enName} value={itemForm.name_en} onChange={(e) => setItemForm((f) => ({ ...f, name_en: e.target.value }))} placeholder="Codfish à Brás" />
           </div>
           <Input label={t.zhName} value={itemForm.name_zh} onChange={(e) => setItemForm((f) => ({ ...f, name_zh: e.target.value }))} placeholder="碎蛋鳕鱼" />
+          <Input
+            label={t.itemCode}
+            value={itemForm.item_code}
+            maxLength={10}
+            onChange={(e) => setItemForm((f) => ({ ...f, item_code: e.target.value.slice(0, 10) }))}
+            placeholder="001"
+          />
+          <p className="text-[12px] text-brand-text-muted -mt-2">{t.itemCodeHint}</p>
           <Input label={t.ptDesc} value={itemForm.description_pt} onChange={(e) => setItemForm((f) => ({ ...f, description_pt: e.target.value }))} placeholder="简短描述..." />
           <Input label={t.enDesc} value={itemForm.description_en} onChange={(e) => setItemForm((f) => ({ ...f, description_en: e.target.value }))} placeholder="Short description..." />
 

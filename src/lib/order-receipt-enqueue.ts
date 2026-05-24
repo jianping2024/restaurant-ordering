@@ -1,6 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BillSplit, Order, OrderItem, PrintJobType } from '@/types';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
+import { fetchMenuPrintContext } from '@/lib/menu-print-context';
+import { orderItemPrintDisplayName } from '@/lib/menu-print-label';
 import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
 import {
   formatStationTicketOrderTime,
@@ -34,11 +36,10 @@ export type OrderReceiptJobPayload = {
   }>;
 };
 
-function receiptLineName(item: OrderItem): string {
-  return (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
-}
-
-export function buildReceiptLinesFromOrders(orders: Order[]): OrderReceiptJobPayload['lines'] {
+export function buildReceiptLinesFromOrders(
+  orders: Order[],
+  printCtx?: Awaited<ReturnType<typeof fetchMenuPrintContext>>,
+): OrderReceiptJobPayload['lines'] {
   const lines: OrderReceiptJobPayload['lines'] = [];
   let itemIndex = 0;
   for (const order of orders) {
@@ -46,9 +47,12 @@ export function buildReceiptLinesFromOrders(orders: Order[]): OrderReceiptJobPay
       const st = normalizeOrderItemStatus(item, order.status);
       if (st === 'voided') continue;
       itemIndex += 1;
+      const display_name = printCtx
+        ? orderItemPrintDisplayName(item, printCtx.menuById, printCtx.categories)
+        : (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
       lines.push({
         item_index: itemIndex,
-        display_name: receiptLineName(item),
+        display_name,
         qty: item.qty,
         unit_price: item.price,
         ...(item.note?.trim() ? { note: item.note.trim() } : {}),
@@ -63,15 +67,36 @@ export function buildSplitPersonReceiptLines(
   split: BillSplit,
   personIndex: number,
   orders: Order[],
+  printCtx?: Awaited<ReturnType<typeof fetchMenuPrintContext>>,
 ): OrderReceiptJobPayload['lines'] {
   const row = split.result?.[personIndex];
   if (row?.items?.length) {
-    return row.items.map((it, idx) => ({
-      item_index: idx + 1,
-      display_name: it.name,
-      qty: it.qty,
-      unit_price: it.qty > 0 ? it.price / it.qty : it.price,
-    }));
+    return row.items.map((it, idx) => {
+      const baseName = (it.name || '').trim();
+      let display_name = baseName;
+      if (printCtx) {
+        const match = (orders || [])
+          .flatMap((o) => (o.items || []).map((line) => ({ order: o, line })))
+          .find(
+            ({ line }) =>
+              (line.name_pt || line.name || '').trim() === baseName ||
+              (line.name || '').trim() === baseName,
+          );
+        if (match) {
+          display_name = orderItemPrintDisplayName(
+            match.line,
+            printCtx.menuById,
+            printCtx.categories,
+          );
+        }
+      }
+      return {
+        item_index: idx + 1,
+        display_name,
+        qty: it.qty,
+        unit_price: it.qty > 0 ? it.price / it.qty : it.price,
+      };
+    });
   }
 
   if (split.split_mode !== 'by_item') return [];
@@ -89,9 +114,12 @@ export function buildSplitPersonReceiptLines(
       const key = `${order.id}-${idx}`;
       if (!keys.has(key) && !keys.has(item.id)) return;
       itemIndex += 1;
+      const display_name = printCtx
+        ? orderItemPrintDisplayName(item, printCtx.menuById, printCtx.categories)
+        : (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
       lines.push({
         item_index: itemIndex,
-        display_name: receiptLineName(item),
+        display_name,
         qty: item.qty,
         unit_price: item.price,
       });
@@ -157,7 +185,15 @@ export async function enqueueReceiptPrint(
   }
 
   const orderRows = orders as Order[];
-  let lines = buildReceiptLinesFromOrders(orderRows);
+  const menuItemIds = orderRows.flatMap((o) => (o.items || []).map((it) => it.id));
+  let printCtx: Awaited<ReturnType<typeof fetchMenuPrintContext>> | undefined;
+  try {
+    printCtx = await fetchMenuPrintContext(admin, restaurantId, menuItemIds);
+  } catch {
+    printCtx = undefined;
+  }
+
+  let lines = buildReceiptLinesFromOrders(orderRows, printCtx);
   let amountDue = lines.reduce((sum, ln) => sum + ln.unit_price * ln.qty, 0);
 
   if (variant === 'split_payment') {
@@ -173,7 +209,7 @@ export async function enqueueReceiptPrint(
     if (splitErr || !split) {
       return { ok: false, status: 404, code: 'bill_split_not_found' };
     }
-    lines = buildSplitPersonReceiptLines(split as BillSplit, personIndex, orderRows);
+    lines = buildSplitPersonReceiptLines(split as BillSplit, personIndex, orderRows, printCtx);
     const rowAmount = Number((split as BillSplit).result?.[personIndex]?.amount ?? personAmount ?? 0);
     amountDue = rowAmount;
   }

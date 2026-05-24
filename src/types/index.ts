@@ -89,6 +89,8 @@ export interface MenuItem {
   price: number;
   category: Category;
   category_id?: string | null;
+  /** Optional code (max 10) for thermal ticket prefix. */
+  item_code?: string | null;
   print_station_id?: string | null;
   category_en?: Category | null;
   category_zh?: Category | null;
@@ -107,6 +109,8 @@ export interface MenuCategory {
   name_pt: string;
   name_en?: string | null;
   name_zh?: string | null;
+  /** Optional code (max 10) for thermal ticket prefix. */
+  item_code?: string | null;
   sort_order: number;
   active: boolean;
   created_at: string;

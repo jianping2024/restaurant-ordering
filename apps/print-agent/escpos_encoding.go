@@ -32,6 +32,21 @@ func payloadNeedsGBK(p jobPayload) bool {
 	return false
 }
 
+// stationTicketNeedsGBK — internal station slips use a fixed English header ("restaurant").
+func stationTicketNeedsGBK(p jobPayload) bool {
+	for _, ln := range p.Lines {
+		if hasHan(ln.DisplayName) || hasHan(ln.Note) {
+			return true
+		}
+	}
+	return false
+}
+
+// stationTicketLabels — fixed English layout per docs/print-samples guest-order reference.
+func stationTicketLabels() ticketLabels {
+	return labelsFor("en")
+}
+
 // labelsASCII strips accents for printers in GBK mode with pt/en locale.
 func labelsASCII(lab ticketLabels) ticketLabels {
 	return ticketLabels{

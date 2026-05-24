@@ -169,6 +169,16 @@ func newEscpos() *escposWriter {
 	return w
 }
 
+func newEscposForStationTicket(p jobPayload) *escposWriter {
+	w := newEscpos()
+	if stationTicketNeedsGBK(p) {
+		w.enableGBK()
+	} else {
+		w.enableLatin()
+	}
+	return w
+}
+
 func newEscposForPayload(p jobPayload) *escposWriter {
 	w := newEscpos()
 	if payloadNeedsGBK(p) {
@@ -318,7 +328,7 @@ func escposFromJob(job printJob) []byte {
 
 	switch job.Type {
 	case "station_ticket":
-		return buildStationTicket(p, lab)
+		return buildStationTicket(p)
 	case "order_receipt":
 		if p.ConnectionTest {
 			return buildConnectionTest(p, lab)
@@ -327,19 +337,19 @@ func escposFromJob(job printJob) []byte {
 	case "pre_bill":
 		return buildOrderReceipt(p, lab) // same layout as receipt without payment lines
 	default:
-		return buildStationTicket(p, lab)
+		return buildStationTicket(p)
 	}
 }
 
-// buildStationTicket — reference: guest order slip (table, items/qty, footer times).
-func buildStationTicket(p jobPayload, lab ticketLabels) []byte {
-	w := newEscposForPayload(p)
-	venue := strings.ToLower(p.venueName())
+// buildStationTicket — internal station slip; English Guest Order layout (reference sample).
+func buildStationTicket(p jobPayload) []byte {
+	lab := stationTicketLabels()
+	w := newEscposForStationTicket(p)
 
 	w.align(0)
 	w.size(false, false)
 	w.bold(false)
-	w.text(venue)
+	w.text("restaurant")
 	w.lf()
 
 	w.align(1)
@@ -354,9 +364,7 @@ func buildStationTicket(p jobPayload, lab ticketLabels) []byte {
 	w.size(true, true)
 	w.bold(true)
 	if p.TableNumber > 0 {
-		w.text(fmt.Sprintf("%s:%02d", lab.tableNo, p.TableNumber))
-	} else if st := p.stationName(); st != "" {
-		w.text(st)
+		w.text(fmt.Sprintf("%s:%d", lab.tableNo, p.TableNumber))
 	}
 	w.lf()
 
@@ -364,10 +372,6 @@ func buildStationTicket(p jobPayload, lab ticketLabels) []byte {
 	w.bold(false)
 	if p.GuestCount > 0 {
 		w.text(fmt.Sprintf("%s:%d", lab.guest, p.GuestCount))
-		w.lf()
-	}
-	if st := p.stationName(); st != "" && p.TableNumber > 0 {
-		w.text(fmt.Sprintf("%s:%s", lab.station, st))
 		w.lf()
 	}
 
@@ -381,7 +385,10 @@ func buildStationTicket(p jobPayload, lab ticketLabels) []byte {
 		if qty <= 0 {
 			qty = 1
 		}
-		label := formatItemLabel(ln.ItemIndex, ln.DisplayName)
+		label := strings.TrimSpace(ln.DisplayName)
+		if label == "" {
+			label = formatItemLabel(ln.ItemIndex, "")
+		}
 		w.text(escposPadLine(label, fmt.Sprintf("%d", qty), escposWidth))
 		w.lf()
 		if note := strings.TrimSpace(ln.Note); note != "" {
@@ -399,8 +406,6 @@ func buildStationTicket(p jobPayload, lab ticketLabels) []byte {
 	w.text(fmt.Sprintf("%s:%s", lab.orderTime, orderAt))
 	w.lf()
 	w.text(fmt.Sprintf("%s:%s", lab.printedBy, lab.printedByVal))
-	w.lf()
-	w.text(fmt.Sprintf("%s:%s", lab.printTime, nowLocal()))
 	w.lf()
 
 	w.cut()

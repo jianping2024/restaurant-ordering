@@ -3,6 +3,11 @@ import type { OrderItem, PrintStationTicketLayout } from '@/types';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
+import {
+  formatStationTicketOrderTime,
+  guestCountFromTableOrders,
+  stationTicketOrderTimeIso,
+} from '@/lib/table-guest-count';
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -23,13 +28,9 @@ type StationRow = {
   name_zh: string | null;
 };
 
-function displayNameForLocale(
-  item: OrderItem,
-  locale: 'zh' | 'en' | 'pt',
-): string {
-  if (locale === 'zh') return item.name_zh || item.name || item.name_pt;
-  if (locale === 'en') return item.name_en || item.name || item.name_pt;
-  return item.name_pt || item.name || '';
+/** Menu line as stored on the order (not print-locale translation). */
+function stationTicketLineName(item: OrderItem): string {
+  return (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
 }
 
 function stationLabelForLocale(st: StationRow, locale: 'zh' | 'en' | 'pt'): string {
@@ -50,6 +51,8 @@ export type StationTicketJobPayload = {
   station_display_name_en: string | null;
   station_display_name_zh: string | null;
   table_number: number;
+  guest_count?: number;
+  order_time?: string;
   lines: Array<{
     item_index: number;
     menu_item_id: string;
@@ -101,7 +104,7 @@ export async function enqueueStationTicketsForOrder(params: {
 
   const { data: order, error: oErr } = await admin
     .from('orders')
-    .select('id, restaurant_id, table_number, status, items')
+    .select('id, restaurant_id, table_number, status, items, session_id, created_at, updated_at')
     .eq('id', orderId)
     .maybeSingle();
 
@@ -184,6 +187,63 @@ export async function enqueueStationTicketsForOrder(params: {
 
   const stationIds = Array.from(new Set(linesInBatch.map((l) => l.station_id as string)));
 
+  let tableOrders: Array<{
+    status: 'pending' | 'cooking' | 'done';
+    items: OrderItem[];
+    created_at: string;
+    updated_at: string;
+  }> = [
+    {
+      status: order.status as 'pending' | 'cooking' | 'done',
+      items,
+      created_at: order.created_at as string,
+      updated_at: order.updated_at as string,
+    },
+  ];
+  const sessionId = order.session_id as string | null | undefined;
+  if (sessionId) {
+    const { data: sessionOrderRows, error: soErr } = await admin
+      .from('orders')
+      .select('status, items, created_at, updated_at')
+      .eq('restaurant_id', restaurantId)
+      .eq('session_id', sessionId);
+    if (soErr) {
+      return { ok: false, status: 500, code: 'session_orders_lookup_failed', message: soErr.message };
+    }
+    if (sessionOrderRows?.length) {
+      tableOrders = sessionOrderRows as typeof tableOrders;
+    }
+  } else {
+    const { data: activeSession } = await admin
+      .from('table_sessions')
+      .select('id')
+      .eq('restaurant_id', restaurantId)
+      .eq('table_number', order.table_number as number)
+      .in('status', ['open', 'billing'])
+      .maybeSingle();
+    if (activeSession?.id) {
+      const { data: sessionOrderRows, error: soErr } = await admin
+        .from('orders')
+        .select('status, items, created_at, updated_at')
+        .eq('restaurant_id', restaurantId)
+        .eq('session_id', activeSession.id);
+      if (soErr) {
+        return { ok: false, status: 500, code: 'session_orders_lookup_failed', message: soErr.message };
+      }
+      if (sessionOrderRows?.length) {
+        tableOrders = sessionOrderRows as typeof tableOrders;
+      }
+    }
+  }
+
+  const guestCount = guestCountFromTableOrders(tableOrders);
+  const orderTimeIso = stationTicketOrderTimeIso(
+    items,
+    batchId,
+    (order.created_at as string) || new Date().toISOString(),
+  );
+  const orderTime = formatStationTicketOrderTime(orderTimeIso);
+
   const { data: existingJobs, error: jErr } = await admin
     .from('print_jobs')
     .select('status, payload')
@@ -244,12 +304,14 @@ export async function enqueueStationTicketsForOrder(params: {
       station_display_name_en: stMeta.name_en,
       station_display_name_zh: stMeta.name_zh,
       table_number: order.table_number as number,
+      ...(guestCount > 0 ? { guest_count: guestCount } : {}),
+      ...(orderTime ? { order_time: orderTime } : {}),
       lines: stationLines.map((l) => ({
         item_index: l.idx,
         menu_item_id: l.item.id,
         qty: l.item.qty,
         note: l.item.note,
-        display_name: displayNameForLocale(l.item, locale),
+        display_name: stationTicketLineName(l.item),
         emoji: l.item.emoji || '🍽️',
       })),
     };

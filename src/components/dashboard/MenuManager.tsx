@@ -30,7 +30,7 @@ import {
   menuItemHasDuplicateCode,
   siblingCategoryHasDuplicateCode,
 } from '@/lib/menu-code-uniqueness';
-import { getMenuCategoryLabel, getMenuItemDisplayName, itemMatchesSearch } from '@/lib/menu-admin';
+import { getMenuCategoryLabel, itemMatchesSearch } from '@/lib/menu-admin';
 import { getPrintStationDisplayName } from '@/lib/print-station-admin';
 import { categoryCodePathFromLeaf, normalizeMenuItemCode } from '@/lib/menu-print-label';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
@@ -324,8 +324,6 @@ export function MenuManager({
   });
 
   const getCategoryLabel = (c: MenuCategory) => getMenuCategoryLabel(c, lang);
-
-  const getItemDisplayName = (item: MenuItem) => getMenuItemDisplayName(item, lang);
 
   const getItemCategoryLine = (item: MenuItem): string => {
     const id = item.category_id;
@@ -1240,11 +1238,28 @@ export function MenuManager({
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-brand-text font-medium truncate">
-                          {item.item_code?.trim() ? `[${item.item_code.trim()}] ` : ''}
-                          {getItemDisplayName(item)}
-                        </p>
+                      <div className="flex items-start gap-2 flex-wrap">
+                        <div className="min-w-0 flex-1 space-y-0.5">
+                          {item.item_code?.trim() ? (
+                            <p className="text-[12px] font-mono text-brand-gold leading-snug">
+                              [{item.item_code.trim()}]
+                            </p>
+                          ) : null}
+                          <p className="text-brand-text font-medium leading-snug break-words">
+                            <span className="text-brand-text-muted/80 text-[12px] font-normal">
+                              {t.listNamePt}:{' '}
+                            </span>
+                            {item.name_pt}
+                          </p>
+                          <p className="text-[13px] text-brand-text-muted leading-snug break-words">
+                            <span className="text-brand-text-muted/75">{t.listNameEn}: </span>
+                            {item.name_en?.trim() || t.listNameEmpty}
+                          </p>
+                          <p className="text-[13px] text-brand-text-muted leading-snug break-words">
+                            <span className="text-brand-text-muted/75">{t.listNameZh}: </span>
+                            {item.name_zh?.trim() || t.listNameEmpty}
+                          </p>
+                        </div>
                         {!item.available && (
                           <span className="mesa-badge-danger text-[11px] px-1.5 py-0.5 rounded shrink-0">
                             {t.unavailableBadge}

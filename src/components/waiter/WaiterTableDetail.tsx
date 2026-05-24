@@ -710,7 +710,7 @@ function WaiterTableDetailInner({
                 href={menuHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex text-[12px] bg-brand-gold/18 text-brand-gold border border-brand-gold/35 px-3 py-2 rounded-lg hover:bg-brand-gold/28 transition-colors font-medium"
+                className="inline-flex items-center text-[14px] font-semibold px-4 py-2.5 rounded-xl bg-brand-gold text-brand-bg shadow-md hover:brightness-95 active:brightness-90 transition-[filter,transform] hover:scale-[1.02]"
               >
                 {t.takeOrder}
               </Link>
@@ -724,9 +724,9 @@ function WaiterTableDetailInner({
                 href={menuHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[11px] bg-brand-gold/18 text-brand-gold border border-brand-gold/35 px-2 py-0.5 rounded-md hover:bg-brand-gold/28 transition-colors"
+                className="inline-flex items-center text-[14px] font-semibold px-4 py-2.5 rounded-xl bg-brand-gold text-brand-bg shadow-md hover:brightness-95 active:brightness-90 transition-[filter,transform] hover:scale-[1.02] mr-1"
               >
-                {t.addDish}
+                + {t.addDish}
               </Link>
               {checkoutRequestedTables.includes(selectedCard.table) && (
                 <Link

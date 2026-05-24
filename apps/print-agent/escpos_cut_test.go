@@ -49,13 +49,31 @@ func TestCutSequenceUsesFeedThenCut(t *testing.T) {
 	}
 }
 
-func TestSymmetricTicketMarginsTwoLines(t *testing.T) {
+func TestTicketTopMarginMinimal(t *testing.T) {
 	w := newEscpos()
 	w.text("restaurant")
 	raw := w.finish(true)
 	before := marginLinesBeforeContent(raw, []byte("restaurant"))
-	if before != escposSymmetricMarginLines {
-		t.Fatalf("want %d line feeds before content, got %d", escposSymmetricMarginLines, before)
+	if before != escposTopMarginLines {
+		t.Fatalf("want %d line feeds before content, got %d", escposTopMarginLines, before)
+	}
+}
+
+func TestTicketBottomMarginBeforeCut(t *testing.T) {
+	w := newEscpos()
+	w.text("footer")
+	w.lf()
+	raw := w.finish(true)
+	idx := bytesIndex(raw, []byte{0x1D, 0x56, 0x42})
+	if idx < 0 {
+		t.Fatal("missing cut command")
+	}
+	n := 0
+	for i := idx - 1; i >= 0 && raw[i] == '\n'; i-- {
+		n++
+	}
+	if n != escposBottomMarginLines {
+		t.Fatalf("want %d line feeds before cut, got %d", escposBottomMarginLines, n)
 	}
 }
 

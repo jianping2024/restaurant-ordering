@@ -11,8 +11,12 @@ import (
 // 80mm paper ≈ 48 chars (Font A). Layout follows reference thermal receipts.
 const escposWidth = 48
 
-// Symmetric pad: 2× the single-height "restaurant" row (two line feeds).
-const escposSymmetricMarginLines = 2
+// Top: no extra LF — most printers already feed after ESC @ init.
+// Bottom: 2× single-height "restaurant" row before cut (visible pad only).
+const (
+	escposTopMarginLines    = 0
+	escposBottomMarginLines = 2
+)
 
 // Minimal feed before blade after bottom pad (not part of visible margin).
 const (
@@ -168,8 +172,8 @@ type escposWriter struct {
 	hadDoubleHeight bool
 }
 
-func writeSymmetricMargin(b *bytes.Buffer) {
-	for i := 0; i < escposSymmetricMarginLines; i++ {
+func writeMarginLines(b *bytes.Buffer, lines int) {
+	for i := 0; i < lines; i++ {
 		b.WriteByte('\n')
 	}
 }
@@ -266,18 +270,18 @@ func (w *escposWriter) writeResetPrintMode(out *bytes.Buffer) {
 	out.Write([]byte{0x1B, 0x32}) // ESC 2 — default line spacing after enlarged text
 }
 
-// finish assembles init + 2-line symmetric pad + body (+ cut tail when cut is true).
+// finish assembles init + top pad + body + bottom pad (+ cut feed when cut is true).
 func (w *escposWriter) finish(cut bool) []byte {
 	var out bytes.Buffer
 	out.Write(w.prefix)
-	writeSymmetricMargin(&out)
+	writeMarginLines(&out, escposTopMarginLines)
 	out.Write(w.content.Bytes())
 	if cut {
 		w.writeResetPrintMode(&out)
 		if w.gbk {
 			out.Write([]byte{0x1C, 0x2E}) // FS . — exit Chinese mode before feed/cut
 		}
-		writeSymmetricMargin(&out)
+		writeMarginLines(&out, escposBottomMarginLines)
 		out.Write([]byte{0x1D, 0x56, 0x42, cutFeedDots(w.hadDoubleHeight)})
 	}
 	return out.Bytes()

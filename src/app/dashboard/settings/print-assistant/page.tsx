@@ -7,7 +7,6 @@ import {
 } from '@/lib/print-agent-config';
 import type { PrintJobSummary } from '@/types';
 import { PrintJobsQueuePanel } from '@/components/dashboard/PrintJobsQueuePanel';
-import { PrintAssistantIntro } from '@/components/dashboard/PrintAssistantIntro';
 import { PrintAgentDownloadPanel } from '@/components/dashboard/PrintAgentDownloadPanel';
 import {
   getPrintAgentDownloadUrls,
@@ -64,7 +63,6 @@ export default async function PrintAssistantSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <PrintAssistantIntro />
       {downloadUrls ? (
         <PrintAgentDownloadPanel urls={downloadUrls} version={printAgentVersion} />
       ) : null}

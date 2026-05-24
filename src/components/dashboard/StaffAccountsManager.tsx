@@ -225,7 +225,6 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
         </div>
       )}
 
-      {embedded ? <p className="text-sm text-brand-text-muted mb-4">{t.desc}</p> : null}
 
       {banner ? (
         <p

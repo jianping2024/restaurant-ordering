@@ -200,11 +200,6 @@ export function PrintStationsManager({ restaurantId, initialStations, embedded }
         </div>
       )}
 
-      <div className="text-[12px] text-brand-text-muted space-y-2 mb-6">
-        {embedded ? <p className="text-sm text-brand-text-muted">{t.subtitle}</p> : null}
-        <p>{t.hintShort}</p>
-      </div>
-
       {error ? (
         <p className="mesa-alert-danger text-sm px-4 py-2 mb-4">{error}</p>
       ) : null}
@@ -219,39 +214,102 @@ export function PrintStationsManager({ restaurantId, initialStations, embedded }
         </button>
       </div>
 
-      <div className="space-y-2">
-        {stations.length === 0 ? (
-          <div className="bg-brand-card border border-brand-border rounded-2xl p-10 sm:p-12 text-center">
-            <p className="text-brand-text-muted text-sm">{t.empty}</p>
+      {stations.length === 0 ? (
+        <div className="bg-brand-card border border-brand-border rounded-2xl p-10 sm:p-12 text-center">
+          <p className="text-brand-text-muted text-sm">{t.empty}</p>
+        </div>
+      ) : (
+        <>
+          <div className="hidden md:block overflow-x-auto rounded-xl border border-brand-border bg-brand-card">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-brand-border text-left text-brand-text-muted">
+                  <th className="px-4 py-3 font-medium w-12" scope="col" aria-hidden />
+                  <th className="px-4 py-3 font-medium" scope="col">
+                    {tm.ptNameReq.replace(' *', '')}
+                  </th>
+                  <th className="px-4 py-3 font-medium" scope="col">
+                    {t.colLayout}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-right" scope="col">
+                    {t.colActions}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {stations.map((row, index) => (
+                  <tr key={row.id} className="border-b border-brand-border/80 last:border-0">
+                    <td className="px-4 py-3 text-2xl text-center">{layoutEmoji(row.ticket_layout)}</td>
+                    <td className="px-4 py-3 min-w-[10rem]">
+                      <p className="text-brand-text font-medium">{row.name_pt}</p>
+                      {row.name_en ? (
+                        <p className="text-[12px] text-brand-text-muted mt-0.5">{row.name_en}</p>
+                      ) : null}
+                      {row.name_zh ? (
+                        <p className="text-[12px] text-brand-text-muted mt-0.5">{row.name_zh}</p>
+                      ) : null}
+                    </td>
+                    <td className="px-4 py-3 text-brand-text-muted">{layoutLabel(row.ticket_layout)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap items-center justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => moveRow(index, -1)}
+                          disabled={index === 0}
+                        >
+                          {t.moveUp}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => moveRow(index, 1)}
+                          disabled={index === stations.length - 1}
+                        >
+                          {t.moveDown}
+                        </Button>
+                        <button
+                          type="button"
+                          onClick={() => openStationEditModal(row)}
+                          className="text-brand-text-muted hover:text-brand-gold transition-colors text-sm px-2"
+                        >
+                          {tm.edit}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteTarget(row)}
+                          className="mesa-text-danger hover:opacity-90 transition-colors text-sm px-2"
+                        >
+                          {tm.remove}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ) : (
-          stations.map((row, index) => (
-            <div
-              key={row.id}
-              className="bg-brand-card border border-brand-border rounded-xl px-4 py-4 sm:px-5 flex flex-col gap-3 min-[480px]:flex-row min-[480px]:items-center min-[480px]:gap-4 transition-all"
-            >
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="w-12 h-12 rounded-xl overflow-hidden bg-brand-border flex-shrink-0 flex items-center justify-center text-2xl">
-                  {layoutEmoji(row.ticket_layout)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-brand-text font-medium truncate">{row.name_pt}</p>
-                    {row.name_zh ? (
-                      <span className="text-brand-text-muted text-[13px] shrink-0">({row.name_zh})</span>
-                    ) : null}
+
+          <div className="md:hidden space-y-2">
+            {stations.map((row, index) => (
+              <div
+                key={row.id}
+                className="bg-brand-card border border-brand-border rounded-xl px-4 py-4 flex flex-col gap-3"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-lg bg-brand-border flex items-center justify-center text-xl shrink-0">
+                    {layoutEmoji(row.ticket_layout)}
                   </div>
-                  {row.name_en ? (
-                    <p className="text-brand-text-muted text-[13px] mt-0.5 line-clamp-1">{row.name_en}</p>
-                  ) : null}
-                  <p className="text-[12px] text-brand-text-muted mt-0.5 line-clamp-1">
-                    <span className="text-brand-text-muted/75">{t.colLayout}: </span>
-                    {layoutLabel(row.ticket_layout)}
-                  </p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-brand-text font-medium truncate">{row.name_pt}</p>
+                    <p className="text-[12px] text-brand-text-muted mt-0.5">
+                      {layoutLabel(row.ticket_layout)}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 justify-between min-[480px]:justify-end sm:flex-nowrap sm:shrink-0 border-t border-brand-border pt-3 min-[480px]:border-0 min-[480px]:pt-0">
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex flex-wrap items-center gap-2 border-t border-brand-border pt-3">
                   <Button type="button" variant="outline" size="sm" onClick={() => moveRow(index, -1)} disabled={index === 0}>
                     {t.moveUp}
                   </Button>
@@ -264,29 +322,26 @@ export function PrintStationsManager({ restaurantId, initialStations, embedded }
                   >
                     {t.moveDown}
                   </Button>
-                </div>
-                <div className="w-px h-4 bg-brand-border/80 mx-1 hidden sm:block" aria-hidden />
-                <div className="flex items-center gap-4">
                   <button
                     type="button"
                     onClick={() => openStationEditModal(row)}
-                    className="text-brand-text-muted hover:text-brand-gold transition-colors text-sm"
+                    className="text-brand-text-muted hover:text-brand-gold text-sm ml-auto"
                   >
                     {tm.edit}
                   </button>
                   <button
                     type="button"
                     onClick={() => setDeleteTarget(row)}
-                    className="text-brand-text-muted hover:text-status-danger transition-colors text-sm"
+                    className="mesa-text-danger text-sm"
                   >
                     {tm.remove}
                   </button>
                 </div>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            ))}
+          </div>
+        </>
+      )}
 
       <Modal
         open={stationModalOpen}

@@ -458,7 +458,7 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
   ];
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 w-full">
       <PromptModal
         open={prompt?.kind === 'buffet'}
         onClose={() => !promptSubmitting && setPrompt(null)}
@@ -520,10 +520,10 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
             key={x.id}
             type="button"
             onClick={() => setTab(x.id)}
-            className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+            className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
               tab === x.id
-                ? 'bg-brand-gold text-brand-on-gold font-medium'
-                : 'bg-brand-card border border-brand-border text-brand-text-muted hover:text-brand-text'
+                ? 'bg-brand-gold/15 border-brand-gold/40 text-brand-gold font-medium'
+                : 'border-brand-border text-brand-text-muted hover:text-brand-text'
             }`}
           >
             {x.label}

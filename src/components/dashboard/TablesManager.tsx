@@ -11,9 +11,10 @@ import { showToast } from '@/components/ui/Toast';
 
 interface TablesManagerProps {
   restaurant: { id: string; slug: string; name: string };
+  embedded?: boolean;
 }
 
-export function TablesManager({ restaurant }: TablesManagerProps) {
+export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
   const { lang } = useLanguage();
   const [tableCount, setTableCount] = useState(10);
   const t = getMessages(lang).tables;
@@ -214,12 +215,20 @@ export function TablesManager({ restaurant }: TablesManagerProps) {
 
   return (
     <div>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
-        <div>
-          <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
-          <p className="text-brand-text-muted text-sm mt-1">{t.desc}</p>
-        </div>
-        <Button onClick={printAll} variant="outline" className="w-full sm:w-auto">🖨️ {t.print}</Button>
+      <div
+        className={`flex flex-col gap-3 sm:flex-row sm:items-center mb-6 ${
+          embedded ? 'sm:justify-end' : 'sm:justify-between'
+        }`}
+      >
+        {!embedded ? (
+          <div>
+            <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
+            <p className="text-brand-text-muted text-sm mt-1">{t.desc}</p>
+          </div>
+        ) : null}
+        <Button onClick={printAll} variant="outline" className="w-full sm:w-auto shrink-0">
+          🖨️ {t.print}
+        </Button>
       </div>
 
       {/* 桌位数量设置 */}

@@ -11,5 +11,5 @@ export default async function SettingsTablesPage() {
     .eq('owner_id', user!.id)
     .single();
 
-  return <TablesManager restaurant={restaurant!} />;
+  return <TablesManager embedded restaurant={restaurant!} />;
 }

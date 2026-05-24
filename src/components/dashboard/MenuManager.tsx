@@ -29,8 +29,10 @@ import {
   menuItemHasDuplicateCode,
   siblingCategoryHasDuplicateCode,
 } from '@/lib/menu-code-uniqueness';
-import { normalizeMenuItemCode } from '@/lib/menu-print-label';
+import { getMenuCategoryLabel, getMenuItemDisplayName, itemMatchesSearch } from '@/lib/menu-admin';
+import { categoryCodePathFromLeaf, normalizeMenuItemCode } from '@/lib/menu-print-label';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
+import { MenuManagementGuide } from '@/components/dashboard/menu/MenuManagementGuide';
 import 'rc-tree/assets/index.css';
 
 const FOOD_EMOJIS = ['🍽️', '🍞', '🥗', '🥣', '🐟', '🥚', '🍗', '🐙', '🥩', '🦆', '🫒', '🍷', '🍺', '💧', '☕', '🥧', '🍮', '🫕', '🥘', '🍲'];
@@ -95,9 +97,11 @@ type ConfirmDialogState =
       open: true;
       title: string;
       message: string;
-      intent: 'delete_item' | 'delete_category' | 'ack';
+      intent: 'delete_item' | 'delete_category' | 'batch_available' | 'ack';
       itemId?: string;
       categoryId?: string;
+      batchAvailable?: boolean;
+      batchCount?: number;
     };
 
 const NOTE_UI_TEXT = {
@@ -117,7 +121,9 @@ export function MenuManager({
   const t = getMessages(lang).menuManager;
   const supabase = createClient();
 
-  const [activeTab, setActiveTab] = useState<'items' | 'categories'>('items');
+  const [activeTab, setActiveTab] = useState<'items' | 'categories'>('categories');
+  const [dishSearch, setDishSearch] = useState('');
+  const [deleteMigrateTargetId, setDeleteMigrateTargetId] = useState('');
   const [items, setItems] = useState<MenuItem[]>(initialItems);
   const [categories, setCategories] = useState<MenuCategory[]>(initialCategories);
   const [printStations, setPrintStations] = useState<PrintStation[]>(initialPrintStations);
@@ -129,6 +135,7 @@ export function MenuManager({
   const [selectedTopCategoryId, setSelectedTopCategoryId] = useState('');
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState('');
   const [showAllMenuItemTypes, setShowAllMenuItemTypes] = useState(false);
+  const [showUncategorizedOnly, setShowUncategorizedOnly] = useState(false);
 
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [expandedCategoryKeys, setExpandedCategoryKeys] = useState<string[]>([]);
@@ -173,28 +180,39 @@ export function MenuManager({
     : '';
 
   const itemListFilterValue = useMemo(() => {
+    if (showUncategorizedOnly) return 'uncategorized';
     if (showAllMenuItemTypes) return 'all:menu';
     if (!selectedTopId) return '';
     return selectedSubId ? `cat:${selectedSubId}` : `top:${selectedTopId}`;
-  }, [showAllMenuItemTypes, selectedTopId, selectedSubId]);
+  }, [showUncategorizedOnly, showAllMenuItemTypes, selectedTopId, selectedSubId]);
 
   const handleItemListFilterChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const v = e.target.value;
       if (!v) return;
+      if (v === 'uncategorized') {
+        setShowUncategorizedOnly(true);
+        setShowAllMenuItemTypes(false);
+        setSelectedSubCategoryId('');
+        setSelectedTopCategoryId('');
+        return;
+      }
       if (v === 'all:menu') {
+        setShowUncategorizedOnly(false);
         setShowAllMenuItemTypes(true);
         setSelectedSubCategoryId('');
         setSelectedTopCategoryId('');
         return;
       }
       if (v.startsWith('top:')) {
+        setShowUncategorizedOnly(false);
         setShowAllMenuItemTypes(false);
         setSelectedTopCategoryId(v.slice(4));
         setSelectedSubCategoryId('');
         return;
       }
       if (v.startsWith('cat:')) {
+        setShowUncategorizedOnly(false);
         setShowAllMenuItemTypes(false);
         const catId = v.slice(4);
         let topId = '';
@@ -299,11 +317,9 @@ export function MenuManager({
     print_station_id: category.print_station_id ?? '',
   });
 
-  const getCategoryLabel = (c: MenuCategory) => {
-    if (lang === 'en') return c.name_en || c.name_pt;
-    if (lang === 'zh') return c.name_zh || c.name_pt;
-    return c.name_pt;
-  };
+  const getCategoryLabel = (c: MenuCategory) => getMenuCategoryLabel(c, lang);
+
+  const getItemDisplayName = (item: MenuItem) => getMenuItemDisplayName(item, lang);
 
   const getItemCategoryLine = (item: MenuItem): string => {
     const id = item.category_id;
@@ -343,7 +359,7 @@ export function MenuManager({
     return `${t.effectiveStationPrefix}: ${name}`;
   };
 
-  const selectedItems = useMemo(() => {
+  const filteredItems = useMemo(() => {
     const collectDescendants = (rootId: string): string[] => {
       const acc: string[] = [];
       const walk = (id: string) => {
@@ -359,6 +375,7 @@ export function MenuManager({
     };
 
     return items.filter((item) => {
+      if (itemListFilterValue === 'uncategorized') return !item.category_id;
       if (showAllMenuItemTypes) return true;
       if (!selectedTopId) return true;
       if (!item.category_id) return false;
@@ -367,7 +384,12 @@ export function MenuManager({
       const descendants = collectDescendants(selectedTopId);
       return descendants.includes(item.category_id);
     });
-  }, [items, categories, selectedTopId, selectedSubId, showAllMenuItemTypes]);
+  }, [items, categories, selectedTopId, selectedSubId, showAllMenuItemTypes, itemListFilterValue]);
+
+  const visibleItems = useMemo(
+    () => filteredItems.filter((item) => itemMatchesSearch(item, dishSearch)),
+    [filteredItems, dishSearch],
+  );
 
   const resetImageUi = () => {
     setPendingImage(null);
@@ -437,9 +459,9 @@ export function MenuManager({
   const saveItem = async () => {
     if (!itemForm.name_pt.trim()) return setItemError(t.ptNameRequired);
     if (!itemForm.price || Number.isNaN(Number(itemForm.price))) return setItemError(t.validPrice);
-    if (!itemForm.category_id) return setItemError(t.category);
+    if (!itemForm.category_id) return setItemError(t.categoryRequired);
     const selectedCategoryRow = categories.find((c) => c.id === itemForm.category_id);
-    if (!selectedCategoryRow) return setItemError(t.category);
+    if (!selectedCategoryRow) return setItemError(t.categoryRequired);
 
     const normalizedItemCode = normalizeMenuItemCode(itemForm.item_code);
     if (menuItemHasDuplicateCode(items, normalizedItemCode, editingItem?.id)) {
@@ -538,26 +560,35 @@ export function MenuManager({
   };
 
   const batchAvailable = async (available: boolean) => {
-    const ids = selectedItems.map((i) => i.id);
+    const ids = visibleItems.map((i) => i.id);
     if (ids.length === 0) return;
     await supabase.from('menu_items').update({ available }).in('id', ids);
     setItems((prev) => prev.map((i) => (ids.includes(i.id) ? { ...i, available } : i)));
   };
 
+  const openBatchConfirm = (available: boolean) => {
+    if (visibleItems.length === 0) return;
+    setConfirmDialog({
+      open: true,
+      intent: 'batch_available',
+      title: available ? t.batchConfirmOnTitle : t.batchConfirmOffTitle,
+      message: t.batchConfirmBody.replace('{count}', String(visibleItems.length)),
+      batchAvailable: available,
+      batchCount: visibleItems.length,
+    });
+  };
+
   const createCategory = async (parentId: string | null) => {
     if (!categoryDraft.name_pt.trim()) {
-      setCategoryError('PT name is required');
+      setCategoryError(t.ptNameRequired);
       return;
     }
     if (parentId) {
       const parentDepth = categoryDepthMap.get(parentId) || 1;
       if (parentDepth >= MAX_CATEGORY_DEPTH) {
-        const message = lang === 'zh'
-          ? `最多支持 ${MAX_CATEGORY_DEPTH} 级菜单，当前节点已是第 ${parentDepth} 级。`
-          : lang === 'en'
-            ? `Maximum ${MAX_CATEGORY_DEPTH} levels are supported. The current node is already level ${parentDepth}.`
-            : `O maximo suportado e ${MAX_CATEGORY_DEPTH} niveis. O nodo atual ja esta no nivel ${parentDepth}.`;
-        setCategoryError(message);
+        setCategoryError(
+          t.depthExceeded.replace('{max}', String(MAX_CATEGORY_DEPTH)).replace('{depth}', String(parentDepth)),
+        );
         return;
       }
     }
@@ -606,7 +637,7 @@ export function MenuManager({
   const updateSelectedCategory = async () => {
     if (!selectedCategory) return;
     if (!categoryDraft.name_pt.trim()) {
-      setCategoryError('PT name is required');
+      setCategoryError(t.ptNameRequired);
       return;
     }
     const normalizedCode = normalizeMenuItemCode(categoryDraft.item_code);
@@ -649,46 +680,77 @@ export function MenuManager({
     const linkedItemCount = items.filter((item) => item.category_id === category.id).length;
 
     if (hasChildren) {
-      const message = lang === 'zh'
-        ? '该父分类下仍有子分类，请先删除或迁移子分类后再删除父分类。'
-        : lang === 'en'
-          ? 'This parent category still has child categories. Remove or move child categories first.'
-          : 'Esta categoria pai ainda possui subcategorias. Remova ou mova as subcategorias antes de excluir.';
       setConfirmDialog({
         open: true,
         intent: 'ack',
-        title: t.remove,
-        message,
+        title: t.deleteCategoryTitle,
+        message: t.hasChildrenBlock,
       });
       return;
     }
 
-    const confirmMessage = linkedItemCount > 0
-      ? (lang === 'zh'
-        ? `分类 "${category.name_pt}" 下有 ${linkedItemCount} 道菜品。确认后会一起删除该分类及其菜品，是否继续？`
-        : lang === 'en'
-          ? `Category "${category.name_pt}" has ${linkedItemCount} dishes. Confirming will delete both the category and its dishes. Continue?`
-          : `A categoria "${category.name_pt}" tem ${linkedItemCount} pratos. Ao confirmar, a categoria e os pratos serao excluidos. Continuar?`)
-      : `Delete category "${category.name_pt}"?`;
+    const label = getCategoryLabel(category);
+    if (linkedItemCount > 0) {
+      const migrateCandidates = categories.filter((c) => c.id !== category.id && c.active);
+      setDeleteMigrateTargetId(migrateCandidates[0]?.id ?? '');
+      setConfirmDialog({
+        open: true,
+        intent: 'delete_category',
+        title: t.deleteCategoryTitle,
+        message: t.deleteCategoryWithDishes.replace('{name}', label).replace('{count}', String(linkedItemCount)),
+        categoryId: category.id,
+      });
+      return;
+    }
 
     setConfirmDialog({
       open: true,
       intent: 'delete_category',
-      title: t.deleteConfirm,
-      message: confirmMessage,
+      title: t.deleteCategoryTitle,
+      message: t.deleteCategoryNoDishes.replace('{name}', label),
       categoryId: category.id,
     });
   };
 
-  const confirmDeleteCategory = async (categoryId: string) => {
+  const confirmDeleteCategory = async (categoryId: string, mode: 'migrate' | 'delete_all') => {
     const category = categories.find((c) => c.id === categoryId);
     if (!category) return;
-    const linkedItemCount = items.filter((item) => item.category_id === category.id).length;
-    if (linkedItemCount > 0) {
-      const { error: dishDeleteError } = await supabase
+    const linked = items.filter((item) => item.category_id === category.id);
+
+    if (mode === 'migrate' && deleteMigrateTargetId) {
+      const target = categories.find((c) => c.id === deleteMigrateTargetId);
+      if (!target) return;
+      const { error: moveError } = await supabase
         .from('menu_items')
-        .delete()
+        .update({
+          category_id: target.id,
+          category: target.name_pt,
+          category_en: target.name_en || target.name_pt,
+          category_zh: target.name_zh || target.name_pt,
+        })
         .eq('category_id', category.id);
+      if (moveError) {
+        setCategoryError(moveError.message);
+        return;
+      }
+      setItems((prev) =>
+        prev.map((item) =>
+          item.category_id === category.id
+            ? {
+                ...item,
+                category_id: target.id,
+                category: target.name_pt,
+                category_en: target.name_en || target.name_pt,
+                category_zh: target.name_zh || target.name_pt,
+              }
+            : item,
+        ),
+      );
+    } else if (linked.length > 0) {
+      for (const item of linked) {
+        await removeMenuImageFromStorage(supabase, item.image_url);
+      }
+      const { error: dishDeleteError } = await supabase.from('menu_items').delete().eq('category_id', category.id);
       if (dishDeleteError) {
         setCategoryError(dishDeleteError.message);
         return;
@@ -714,8 +776,8 @@ export function MenuManager({
       if (confirmDialog.intent === 'delete_item' && confirmDialog.itemId) {
         const item = items.find((i) => i.id === confirmDialog.itemId);
         if (item) await deleteItem(item);
-      } else if (confirmDialog.intent === 'delete_category' && confirmDialog.categoryId) {
-        await confirmDeleteCategory(confirmDialog.categoryId);
+      } else if (confirmDialog.intent === 'batch_available' && confirmDialog.batchAvailable != null) {
+        await batchAvailable(confirmDialog.batchAvailable);
       }
       setConfirmDialog({ open: false });
     } finally {
@@ -723,94 +785,124 @@ export function MenuManager({
     }
   };
 
-  const itemModalPreviewSrc = objectPreviewUrl || (!stripImage && editingItem?.image_url ? editingItem.image_url : null);
-
-  const tabLabels = {
-    items: lang === 'zh' ? '菜品管理' : lang === 'en' ? 'Dish manager' : 'Gestao de pratos',
-    categories: lang === 'zh' ? '菜单类型管理' : lang === 'en' ? 'Category manager' : 'Gestao de categorias',
-    all: lang === 'zh' ? '全部' : lang === 'en' ? 'All' : 'Todos',
-    addRoot: lang === 'zh' ? '新增一级分类' : lang === 'en' ? 'Add top category' : 'Adicionar categoria raiz',
-    addRootShort: lang === 'zh' ? '新增大类' : lang === 'en' ? 'Add root' : 'Nova raiz',
-    addChild: lang === 'zh' ? '新增子分类' : lang === 'en' ? 'Add child category' : 'Adicionar subcategoria',
-    categoryTreeHint: lang === 'zh' ? '在分类节点右侧直接操作：新增子类、编辑、删除。' : lang === 'en' ? 'Use the inline node actions: add child, edit, delete.' : 'Use as acoes inline no nodo: adicionar subcategoria, editar, excluir.',
-    editCategoryTitle: lang === 'zh' ? '编辑分类' : lang === 'en' ? 'Edit category' : 'Editar categoria',
-    addChildTitle: lang === 'zh' ? '新增子分类' : lang === 'en' ? 'Add child category' : 'Adicionar subcategoria',
-    save: lang === 'zh' ? '保存' : lang === 'en' ? 'Save' : 'Salvar',
-    close: lang === 'zh' ? '关闭' : lang === 'en' ? 'Close' : 'Fechar',
-    linkedDishes: lang === 'zh' ? '道菜品已绑定。' : lang === 'en' ? 'dishes linked.' : 'pratos vinculados.',
-    hasChildren: lang === 'zh' ? '包含子分类。' : lang === 'en' ? 'Has child categories.' : 'Possui subcategorias.',
-    noChildren: lang === 'zh' ? '无子分类。' : lang === 'en' ? 'No child categories.' : 'Sem subcategorias.',
-    pickNode: lang === 'zh' ? '请选择左侧分类节点。' : lang === 'en' ? 'Please select a category node from the left tree.' : 'Selecione uma categoria na arvore.',
-    panelEmpty: lang === 'zh' ? '点击左侧分类节点的“编辑”或“新增子类”开始。' : lang === 'en' ? 'Click Edit or Add child on a category node to continue.' : 'Clique em Editar ou Adicionar subcategoria em um nodo para continuar.',
-    depthHint: lang === 'zh' ? `最多支持 ${MAX_CATEGORY_DEPTH} 级菜单。` : lang === 'en' ? `Up to ${MAX_CATEGORY_DEPTH} menu levels are supported.` : `Suporta ate ${MAX_CATEGORY_DEPTH} niveis de menu.`,
-    cancel: lang === 'zh' ? '取消' : lang === 'en' ? 'Cancel' : 'Cancelar',
-    confirm: lang === 'zh' ? '确认' : lang === 'en' ? 'Confirm' : 'Confirmar',
+  const runDeleteCategoryConfirm = async (mode: 'migrate' | 'delete_all') => {
+    if (!confirmDialog.open || confirmDialog.intent !== 'delete_category' || !confirmDialog.categoryId) return;
+    setConfirmLoading(true);
+    try {
+      await confirmDeleteCategory(confirmDialog.categoryId, mode);
+      setConfirmDialog({ open: false });
+    } finally {
+      setConfirmLoading(false);
+    }
   };
 
-  const renderCategoryNodeTitle = (category: MenuCategory) => (
-    <div className="group flex w-full items-center gap-2 min-h-7 pr-1">
-      <span className={`truncate text-sm leading-5 ${selectedCategoryId === category.id ? 'text-brand-gold font-medium' : 'text-brand-text'}`}>
-        {getCategoryLabel(category)}
-        {category.item_code?.trim() ? (
-          <span className="text-brand-text-muted font-normal"> [{category.item_code.trim()}]</span>
-        ) : null}
-      </span>
-      <div className={`ml-auto flex h-6 items-center gap-1 rounded-md bg-brand-border/35 px-1 transition-opacity ${selectedCategoryId === category.id ? 'opacity-100' : 'opacity-75 group-hover:opacity-100'}`}>
-        {(() => {
-          const depth = categoryDepthMap.get(category.id) || 1;
-          const canAddChild = depth < MAX_CATEGORY_DEPTH;
-          const maxDepthTitle = lang === 'zh'
-            ? `最多${MAX_CATEGORY_DEPTH}级`
-            : lang === 'en'
-              ? `Max ${MAX_CATEGORY_DEPTH} levels`
-              : `Max ${MAX_CATEGORY_DEPTH} niveis`;
-          return (
+  const deleteCategoryLinkedCount =
+    confirmDialog.open && confirmDialog.intent === 'delete_category' && confirmDialog.categoryId
+      ? items.filter((i) => i.category_id === confirmDialog.categoryId).length
+      : 0;
+
+  const deleteCategoryMigrateOptions =
+    confirmDialog.open && confirmDialog.intent === 'delete_category' && confirmDialog.categoryId
+      ? categories.filter((c) => c.id !== confirmDialog.categoryId && c.active)
+      : [];
+
+  const itemModalPreviewSrc = objectPreviewUrl || (!stripImage && editingItem?.image_url ? editingItem.image_url : null);
+
+  const openCategoryEdit = (category: MenuCategory) => {
+    setSelectedCategoryId(category.id);
+    setCategoryDraft(categoryDraftFromRow(category));
+    setCategoryError('');
+    setCategoryPanelMode('edit');
+  };
+
+  const renderCategoryNodeTitle = (category: MenuCategory) => {
+    const depth = categoryDepthMap.get(category.id) || 1;
+    const canAddChild = depth < MAX_CATEGORY_DEPTH;
+    return (
+      <div className="group flex w-full flex-wrap items-center gap-x-2 gap-y-1 min-h-8 py-0.5 pr-1">
         <button
           type="button"
-          title={canAddChild ? tabLabels.addChild : maxDepthTitle}
-          disabled={!canAddChild}
+          className={`truncate text-sm leading-5 text-left hover:underline ${
+            selectedCategoryId === category.id ? 'text-brand-gold font-medium' : 'text-brand-text'
+          }`}
           onClick={(e) => {
             e.stopPropagation();
-            if (!canAddChild) return;
-            setSelectedCategoryId(category.id);
-            setCategoryDraft(defaultCategoryDraft);
-            setCategoryPanelMode('create-child');
+            openCategoryEdit(category);
           }}
-          className="h-5 w-5 inline-flex items-center justify-center rounded-md border border-brand-border/70 bg-brand-card/80 text-brand-text leading-none hover:text-brand-gold hover:border-brand-gold/35 hover:bg-brand-gold/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/45 focus-visible:bg-brand-gold/15 transition-colors disabled:opacity-35 disabled:hover:bg-brand-card/80 disabled:hover:text-brand-text disabled:cursor-not-allowed"
         >
-          +
+          {getCategoryLabel(category)}
+          {category.item_code?.trim() ? (
+            <span className="text-brand-text-muted font-normal"> [{category.item_code.trim()}]</span>
+          ) : null}
         </button>
-          );
-        })()}
-        <button
-          type="button"
-          title={t.edit}
-          onClick={(e) => {
-            e.stopPropagation();
-            setSelectedCategoryId(category.id);
-            setCategoryDraft(categoryDraftFromRow(category));
-            setCategoryError('');
-            setCategoryPanelMode('edit');
-          }}
-          className="h-5 w-5 inline-flex items-center justify-center rounded-md border border-brand-border/70 bg-brand-card/80 text-brand-text leading-none hover:text-brand-gold hover:border-brand-gold/35 hover:bg-brand-gold/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/45 focus-visible:bg-brand-gold/15 transition-colors"
+        <div
+          className={`ml-auto flex flex-wrap items-center gap-1 text-[11px] ${
+            selectedCategoryId === category.id ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'
+          }`}
         >
-          ✎
-        </button>
-        <button
-          type="button"
-          title={t.remove}
-          onClick={(e) => {
-            e.stopPropagation();
-            setSelectedCategoryId(category.id);
-            void deleteCategoryById(category.id);
-          }}
-          className="h-5 w-5 inline-flex items-center justify-center rounded-md border border-status-danger/35 bg-[rgb(var(--color-status-danger-border)/0.12)] mesa-text-danger leading-none hover:bg-[rgb(var(--color-status-danger-border)/0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--color-status-danger-border)/0.45)] transition-colors"
-        >
-          ×
-        </button>
+          <button
+            type="button"
+            disabled={!canAddChild}
+            title={canAddChild ? t.addChild : t.maxDepthTitle.replace('{max}', String(MAX_CATEGORY_DEPTH))}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!canAddChild) return;
+              setSelectedCategoryId(category.id);
+              setCategoryDraft(defaultCategoryDraft);
+              setCategoryPanelMode('create-child');
+            }}
+            className="px-1.5 py-0.5 rounded border border-brand-border/70 text-brand-text-muted hover:text-brand-gold hover:border-brand-gold/40 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            + {t.addChildAction}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              openCategoryEdit(category);
+            }}
+            className="px-1.5 py-0.5 rounded border border-brand-border/70 text-brand-text-muted hover:text-brand-gold hover:border-brand-gold/40"
+          >
+            {t.editAction}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedCategoryId(category.id);
+              void deleteCategoryById(category.id);
+            }}
+            className="px-1.5 py-0.5 rounded border border-status-danger/35 mesa-text-danger hover:bg-[rgb(var(--color-status-danger-border)/0.12)]"
+          >
+            {t.deleteAction}
+          </button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
+
+  const categoryPreviewId =
+    categoryPanelMode === 'edit' && selectedCategory
+      ? selectedCategory.id
+      : categoryPanelMode === 'create-child' && selectedCategory
+        ? selectedCategory.id
+        : null;
+
+  const categoryCodePreview = useMemo(() => {
+    if (!categoryPreviewId) return '';
+    const path = categoryCodePathFromLeaf(categoryPreviewId, categories);
+    const draftCode = normalizeMenuItemCode(categoryDraft.item_code);
+    const withDraft = [...path];
+    if (draftCode && categoryPanelMode === 'create-child') {
+      withDraft.push(draftCode);
+    } else if (draftCode && categoryPanelMode === 'edit' && selectedCategory) {
+      const idx = withDraft.length - 1;
+      if (idx >= 0) withDraft[idx] = draftCode;
+      else withDraft.push(draftCode);
+    }
+    if (withDraft.length === 0) return '';
+    return withDraft.join('-');
+  }, [categoryPreviewId, categories, categoryDraft.item_code, categoryPanelMode, selectedCategory]);
 
   const buildTreeNodes = (parentId: string | null): DataNode[] =>
     categories
@@ -839,28 +931,40 @@ export function MenuManager({
         </div>
       )}
 
-      <div className="flex gap-2 mb-6">
+      <MenuManagementGuide t={t} />
+
+      <div className="flex flex-wrap gap-2 mb-6">
         <button
+          type="button"
           onClick={() => setActiveTab('categories')}
-          className={`px-4 py-2 rounded-lg text-sm border ${activeTab === 'categories' ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold' : 'border-brand-border text-brand-text-muted'}`}
+          className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
+            activeTab === 'categories'
+              ? 'bg-brand-gold/15 border-brand-gold/40 text-brand-gold font-medium'
+              : 'border-brand-border text-brand-text-muted hover:text-brand-text'
+          }`}
         >
-          {tabLabels.categories}
+          {t.tabCategories}
         </button>
         <button
+          type="button"
           onClick={() => setActiveTab('items')}
-          className={`px-4 py-2 rounded-lg text-sm border ${activeTab === 'items' ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold' : 'border-brand-border text-brand-text-muted'}`}
+          className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
+            activeTab === 'items'
+              ? 'bg-brand-gold/15 border-brand-gold/40 text-brand-gold font-medium'
+              : 'border-brand-border text-brand-text-muted hover:text-brand-text'
+          }`}
         >
-          {tabLabels.items}
+          {t.tabItems}
         </button>
       </div>
 
       {activeTab === 'categories' ? (
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(260px,360px),1fr] gap-4">
           <div className="bg-brand-card border border-brand-border rounded-2xl p-4">
-            <p className="text-[12px] text-brand-text-muted mb-2">{tabLabels.categoryTreeHint}</p>
-            <p className="text-[12px] text-brand-text-muted mb-3">{tabLabels.depthHint}</p>
+            <p className="text-[12px] text-brand-text-muted mb-2">{t.categoryTreeHint}</p>
+            <p className="text-[12px] text-brand-text-muted mb-3">{t.depthHint.replace('{max}', String(MAX_CATEGORY_DEPTH))}</p>
             {categoryTreeData.length === 0 ? (
-              <p className="text-sm text-brand-text-muted">{tabLabels.pickNode}</p>
+              <p className="text-sm text-brand-text-muted">{t.pickNode}</p>
             ) : (
               <>
                 <Tree
@@ -871,7 +975,8 @@ export function MenuManager({
                   onSelect={(keys) => {
                     const selected = keys[0];
                     if (!selected) return;
-                    setSelectedCategoryId(String(selected));
+                    const cat = categories.find((c) => c.id === String(selected));
+                    if (cat) openCategoryEdit(cat);
                   }}
                   className="mesa-category-tree"
                   switcherIcon={<span className="text-brand-text-muted">▸</span>}
@@ -884,7 +989,7 @@ export function MenuManager({
                   }}
                   className="mt-2 w-full text-left text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
                 >
-                  + {tabLabels.addRootShort}
+                  + {t.addRootShort}
                 </button>
               </>
             )}
@@ -892,28 +997,24 @@ export function MenuManager({
 
           <div className="bg-brand-card border border-brand-border rounded-2xl p-4">
             {categoryPanelMode === 'none' || (categoryPanelMode !== 'create-root' && !selectedCategory) ? (
-              <p className="text-sm text-brand-text-muted">{tabLabels.panelEmpty}</p>
+              <p className="text-sm text-brand-text-muted">{t.panelEmpty}</p>
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="text-brand-text font-medium">
                     {categoryPanelMode === 'edit'
-                      ? tabLabels.editCategoryTitle
+                      ? t.editCategoryTitle
                       : categoryPanelMode === 'create-root'
-                        ? tabLabels.addRoot
-                        : tabLabels.addChildTitle}
+                        ? t.addRootTitle
+                        : t.addChildTitle}
                   </h3>
                   <Button variant="outline" size="sm" onClick={() => setCategoryPanelMode('none')}>
-                    {tabLabels.close}
+                    {t.close}
                   </Button>
                 </div>
                 {categoryPanelMode === 'create-child' && selectedCategory && (
                   <p className="text-[13px] text-brand-text-muted">
-                    {lang === 'zh'
-                      ? `父分类：${getCategoryLabel(selectedCategory)}`
-                      : lang === 'en'
-                        ? `Parent category: ${getCategoryLabel(selectedCategory)}`
-                        : `Categoria pai: ${getCategoryLabel(selectedCategory)}`}
+                    {t.parentCategory}：{getCategoryLabel(selectedCategory)}
                   </p>
                 )}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -947,6 +1048,12 @@ export function MenuManager({
                     placeholder={t.categoryCodePlaceholder}
                   />
                   <p className="text-[12px] text-brand-text-muted mt-1">{t.categoryCodeHint}</p>
+                  <p className="text-[12px] mt-2">
+                    <span className="text-brand-text-muted">{t.categoryCodePrintPreview}: </span>
+                    <span className="font-mono text-brand-gold">
+                      {categoryCodePreview || t.categoryCodePrintPreviewEmpty}
+                    </span>
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm text-brand-text-muted font-medium block mb-1.5">{t.categoryPrintStation}</label>
@@ -973,9 +1080,9 @@ export function MenuManager({
                   {categoryPanelMode === 'edit' ? (
                     <Button onClick={updateSelectedCategory} loading={categorySaving}>{t.saveEdit}</Button>
                   ) : categoryPanelMode === 'create-root' ? (
-                    <Button onClick={() => createCategory(null)} loading={categorySaving}>{tabLabels.save}</Button>
+                    <Button onClick={() => createCategory(null)} loading={categorySaving}>{t.save}</Button>
                   ) : (
-                    <Button onClick={() => selectedCategory && createCategory(selectedCategory.id)} loading={categorySaving}>{tabLabels.save}</Button>
+                    <Button onClick={() => selectedCategory && createCategory(selectedCategory.id)} loading={categorySaving}>{t.save}</Button>
                   )}
                 </div>
               </div>
@@ -984,76 +1091,104 @@ export function MenuManager({
         </div>
       ) : (
         <>
-          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 shrink-0">
-              {selectedItems.length > 0 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => batchAvailable(true)}
-                    className="text-[13px] text-green-400 hover:underline"
-                  >
-                    {t.allOn}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => batchAvailable(false)}
-                    className="text-[13px] text-status-danger hover:underline"
-                  >
-                    {t.allOff}
-                  </button>
-                  <span className="hidden sm:block h-3 w-px bg-brand-border shrink-0" aria-hidden />
-                </>
-              )}
-              <button
-                type="button"
-                onClick={openItemCreateModal}
-                className="text-[13px] font-medium text-brand-gold hover:underline"
-              >
-                + {t.addItem}
-              </button>
-            </div>
-            {topCategories.length > 0 ? (
-              <div className="flex flex-row items-center gap-2 sm:gap-3 min-w-0 w-full sm:w-auto sm:max-w-2xl">
-                <label
-                  htmlFor="menu-item-list-filter"
-                  className="text-sm text-brand-text-muted font-medium shrink-0 sm:whitespace-nowrap"
+          <div className="mb-4 flex flex-col gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 shrink-0">
+                {visibleItems.length > 0 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => openBatchConfirm(true)}
+                      className="text-[13px] mesa-text-success hover:underline"
+                    >
+                      {t.allOn}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openBatchConfirm(false)}
+                      className="text-[13px] mesa-text-danger hover:underline"
+                    >
+                      {t.allOff}
+                    </button>
+                    <span className="hidden sm:block h-3 w-px bg-brand-border shrink-0" aria-hidden />
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={openItemCreateModal}
+                  className="text-[13px] font-medium text-brand-gold hover:underline"
                 >
-                  {t.filterDishList}
-                </label>
-                <select
-                  id="menu-item-list-filter"
-                  value={itemListFilterValue}
-                  onChange={handleItemListFilterChange}
-                  className="min-w-0 flex-1 sm:min-w-[12rem] sm:max-w-md bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
-                >
-                  <option value="all:menu">{t.filterAllTypes}</option>
-                  {groupedCategoryOptions.map(({ top, children }) => (
-                    <optgroup key={top.id} label={getCategoryLabel(top)}>
-                      <option value={`top:${top.id}`}>
-                        {t.allInTopCategory.replace('{name}', getCategoryLabel(top))}
-                      </option>
-                      {children.map((c) => (
-                        <option key={c.id} value={`cat:${c.id}`}>
-                          {`${'\u00A0\u00A0'.repeat(Math.max(0, c.depth - 1))}${c.depth > 1 ? '▸ ' : ''}${getCategoryLabel(c)}`}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
+                  + {t.addItem}
+                </button>
               </div>
-            ) : null}
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 min-w-0 w-full sm:max-w-3xl">
+                <div className="flex flex-row items-center gap-2 min-w-0 flex-1">
+                  <label htmlFor="menu-dish-search" className="text-sm text-brand-text-muted font-medium shrink-0">
+                    {t.searchDishes}
+                  </label>
+                  <Input
+                    id="menu-dish-search"
+                    value={dishSearch}
+                    onChange={(e) => setDishSearch(e.target.value)}
+                    placeholder={t.searchPlaceholder}
+                    className="min-w-0 flex-1"
+                  />
+                </div>
+                {topCategories.length > 0 ? (
+                  <div className="flex flex-row items-center gap-2 min-w-0 flex-1 sm:max-w-md">
+                    <label
+                      htmlFor="menu-item-list-filter"
+                      className="text-sm text-brand-text-muted font-medium shrink-0 sm:whitespace-nowrap"
+                    >
+                      {t.filterDishList}
+                    </label>
+                    <select
+                      id="menu-item-list-filter"
+                      value={itemListFilterValue}
+                      onChange={handleItemListFilterChange}
+                      className="min-w-0 flex-1 bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+                    >
+                      <option value="all:menu">{t.filterAllTypes}</option>
+                      <option value="uncategorized">{t.filterUncategorized}</option>
+                      {groupedCategoryOptions.map(({ top, children }) => (
+                        <optgroup key={top.id} label={getCategoryLabel(top)}>
+                          <option value={`top:${top.id}`}>
+                            {t.allInTopCategory.replace('{name}', getCategoryLabel(top))}
+                          </option>
+                          {children.map((c) => (
+                            <option key={c.id} value={`cat:${c.id}`}>
+                              {`${'\u00A0\u00A0'.repeat(Math.max(0, c.depth - 1))}${c.depth > 1 ? '▸ ' : ''}${getCategoryLabel(c)}`}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+            {visibleItems.length > 0 && (
+              <p className="text-[12px] text-brand-text-muted">
+                {t.batchScopeHint.replace('{count}', String(visibleItems.length))}
+              </p>
+            )}
           </div>
 
-          {selectedItems.length === 0 ? (
+          {visibleItems.length === 0 ? (
             <div className="bg-brand-card border border-brand-border rounded-2xl p-10 sm:p-12 text-center">
               <p className="text-brand-text-muted text-sm">
-                {showAllMenuItemTypes ? t.emptyEntireMenu : t.empty}
+                {dishSearch.trim()
+                  ? t.emptySearch
+                  : showAllMenuItemTypes
+                    ? t.emptyEntireMenu
+                    : showUncategorizedOnly
+                      ? t.filterUncategorized
+                      : t.empty}
               </p>
             </div>
           ) : (
             <div className="space-y-2">
-              {selectedItems.map((item) => (
+              {visibleItems.map((item) => (
                 <div
                   key={item.id}
                   className={`bg-brand-card border rounded-xl px-4 py-4 sm:px-5 flex flex-col gap-3 min-[480px]:flex-row min-[480px]:items-center min-[480px]:gap-4 transition-all ${
@@ -1069,12 +1204,16 @@ export function MenuManager({
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <p className="text-brand-text font-medium truncate">
                           {item.item_code?.trim() ? `[${item.item_code.trim()}] ` : ''}
-                          {item.name_pt}
+                          {getItemDisplayName(item)}
                         </p>
-                        {item.name_zh && <span className="text-brand-text-muted text-[13px] shrink-0">({item.name_zh})</span>}
+                        {!item.available && (
+                          <span className="mesa-badge-danger text-[11px] px-1.5 py-0.5 rounded shrink-0">
+                            {t.unavailableBadge}
+                          </span>
+                        )}
                       </div>
                       {item.description_pt && <p className="text-brand-text-muted text-[13px] mt-0.5 line-clamp-2">{item.description_pt}</p>}
                       <p
@@ -1310,15 +1449,22 @@ export function MenuManager({
           align-items: center;
           box-sizing: border-box;
         }
-        .mesa-category-tree .rc-tree-node-selected,
         .mesa-category-tree .rc-tree-node-content-wrapper:hover {
-          background: rgba(212, 175, 55, 0.08);
+          background: rgb(var(--color-brand-gold) / 0.1);
+        }
+        .mesa-category-tree .rc-tree-node-selected {
+          background: rgb(var(--color-brand-gold) / 0.16) !important;
+          box-shadow: inset 0 0 0 1px rgb(var(--color-brand-gold) / 0.35);
         }
         .mesa-category-tree .rc-tree-switcher {
           width: 18px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
+          color: rgb(var(--color-brand-text-muted));
+        }
+        .mesa-category-tree .rc-tree-title {
+          width: 100%;
         }
       `}</style>
 
@@ -1333,15 +1479,54 @@ export function MenuManager({
         {confirmDialog.open && (
           <div className="space-y-4">
             <p className="text-sm text-brand-text">{confirmDialog.message}</p>
-            <div className="flex justify-end gap-2">
+            {confirmDialog.intent === 'delete_category' && deleteCategoryLinkedCount > 0 && (
+              <div>
+                <label className="text-sm text-brand-text-muted font-medium block mb-1.5">
+                  {t.migrateDishesTo}
+                </label>
+                <select
+                  value={deleteMigrateTargetId}
+                  onChange={(e) => setDeleteMigrateTargetId(e.target.value)}
+                  className="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+                >
+                  {deleteCategoryMigrateOptions.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {getCategoryLabel(c)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="flex flex-wrap justify-end gap-2">
               <Button variant="outline" onClick={() => setConfirmDialog({ open: false })} disabled={confirmLoading}>
-                {tabLabels.cancel}
+                {t.cancel}
               </Button>
               {confirmDialog.intent === 'ack' ? (
-                <Button onClick={() => setConfirmDialog({ open: false })}>{tabLabels.confirm}</Button>
+                <Button onClick={() => setConfirmDialog({ open: false })}>{t.confirm}</Button>
+              ) : confirmDialog.intent === 'delete_category' && confirmDialog.categoryId ? (
+                <>
+                  {deleteCategoryLinkedCount > 0 ? (
+                    <>
+                      <Button
+                        onClick={() => runDeleteCategoryConfirm('migrate')}
+                        loading={confirmLoading}
+                        disabled={!deleteMigrateTargetId}
+                      >
+                        {t.deleteCategoryOnly}
+                      </Button>
+                      <Button variant="danger" onClick={() => runDeleteCategoryConfirm('delete_all')} loading={confirmLoading}>
+                        {t.deleteCategoryAndDishes}
+                      </Button>
+                    </>
+                  ) : (
+                    <Button variant="danger" onClick={() => runDeleteCategoryConfirm('delete_all')} loading={confirmLoading}>
+                      {t.confirm}
+                    </Button>
+                  )}
+                </>
               ) : (
                 <Button variant="danger" onClick={runConfirmAction} loading={confirmLoading}>
-                  {tabLabels.confirm}
+                  {t.confirm}
                 </Button>
               )}
             </div>

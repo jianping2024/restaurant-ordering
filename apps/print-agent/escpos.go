@@ -11,6 +11,12 @@ import (
 // 80mm paper ≈ 48 chars (Font A). Layout follows reference thermal receipts.
 const escposWidth = 48
 
+// Margin before cutter — many POS-80 units need extra feed after double-height headers.
+const (
+	escposFeedLinesBeforeCut = 8
+	escposFeedDotsBeforeCut    = 0x60 // GS V 66 n — feed n units then full cut
+)
+
 type ticketLabels struct {
 	connectionTest string
 	guestOrder     string
@@ -221,9 +227,36 @@ func (w *escposWriter) text(s string) {
 func (w *escposWriter) lf() { w.buf.WriteByte('\n') }
 
 func (w *escposWriter) feed(n int) {
+	if n < 0 {
+		n = 0
+	}
+	if n > 255 {
+		n = 255
+	}
 	w.buf.Write([]byte{0x1B, 0x64, byte(n)})
 }
 
+func (w *escposWriter) resetPrintMode() {
+	w.align(0)
+	w.size(false, false)
+	w.bold(false)
+	w.buf.Write([]byte{0x1B, 0x32}) // ESC 2 — default line spacing after enlarged text
+}
+
+func (w *escposWriter) cut() {
+	w.resetPrintMode()
+	if w.gbk {
+		w.buf.Write([]byte{0x1C, 0x2E}) // FS . — exit Chinese mode before feed/cut
+		w.gbk = false
+	}
+	// Blank lines + ESC d feed so the last printed row clears the print head.
+	for i := 0; i < 3; i++ {
+		w.lf()
+	}
+	w.feed(escposFeedLinesBeforeCut)
+	// Feed then full cut (preferred on Epson / POS-80 clones; avoids cutting through footer).
+	w.buf.Write([]byte{0x1D, 0x56, 0x42, escposFeedDotsBeforeCut})
+}
 func (w *escposWriter) separator(ch rune) {
 	w.align(0)
 	w.size(false, false)
@@ -231,14 +264,6 @@ func (w *escposWriter) separator(ch rune) {
 	line := strings.Repeat(string(ch), escposWidth)
 	w.text(line)
 	w.lf()
-}
-
-func (w *escposWriter) cut() {
-	w.feed(3)
-	if w.gbk {
-		w.buf.Write([]byte{0x1C, 0x2E}) // FS . — leave Chinese mode before cut
-	}
-	w.buf.Write([]byte{0x1D, 0x56, 0x00})
 }
 
 func (w *escposWriter) bytes() []byte { return w.buf.Bytes() }

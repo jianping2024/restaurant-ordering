@@ -16,6 +16,11 @@ Re-open setup later: MesaPrintAgent.exe configure   (re-pair + printers, recomme
 Printer only: MesaPrintAgent.exe setup
 Pair only: MesaPrintAgent.exe pair
 
+Version check
+-------------
+Installed folder contains VERSION.txt (same as MesaPrintAgent.exe -version).
+Default: C:\Program Files\Mesa Print Agent\
+
 Config file
 -----------
 %USERPROFILE%\.config\mesa-print-agent\config.json

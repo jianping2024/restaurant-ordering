@@ -30,6 +30,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 Source: "..\dist\amd64\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\dist\amd64\VERSION.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "WINDOWS-README.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]

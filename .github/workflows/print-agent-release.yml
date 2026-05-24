@@ -64,6 +64,7 @@ jobs:
           go build -ldflags "-s -w -X main.Version=$ver" -o dist/amd64/MesaPrintAgent.exe .
           if ($LASTEXITCODE -ne 0) { throw "go build failed (exit $LASTEXITCODE)" }
           if (-not (Test-Path dist/amd64/MesaPrintAgent.exe)) { throw 'MesaPrintAgent.exe missing' }
+          Set-Content -Path dist/amd64/VERSION.txt -Value $ver -NoNewline
           Copy-Item installer/WINDOWS-README.txt dist/amd64/ -Force
           Compress-Archive -Path dist/amd64/* -DestinationPath dist/MesaPrintAgent-windows-amd64.zip -Force
           Get-ChildItem dist/amd64 | Format-Table Name, Length

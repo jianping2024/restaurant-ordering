@@ -1,0 +1,90 @@
+'use client';
+
+import type { ReactNode } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/components/providers/LanguageProvider';
+import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
+import type { StaffRole } from '@/lib/staff-account';
+import { resolveStaffSession, staffSignOut } from '@/lib/staff-auth-client';
+import type { UILanguage } from '@/lib/i18n';
+import { getMessages } from '@/lib/i18n/messages';
+
+export type StaffShellContext = {
+  handleSignOut: () => void;
+  exitLabel: string;
+};
+
+type Props = {
+  restaurant: { id: string; name: string; slug: string };
+  expectedRole: StaffRole;
+  isDemo?: boolean;
+  children: (ctx: StaffShellContext) => ReactNode;
+};
+
+function exitLabels(lang: UILanguage, role: StaffRole) {
+  if (role === 'kitchen') {
+    const k = getMessages(lang).kitchen;
+    return { signOut: k.signOut, backToDashboard: k.backToDashboard };
+  }
+  const w = WAITER_TEXT[lang];
+  return { signOut: w.signOut, backToDashboard: w.backToDashboard };
+}
+
+export function StaffAuthenticatedShell({
+  restaurant,
+  expectedRole,
+  isDemo = false,
+  children,
+}: Props) {
+  const router = useRouter();
+  const { lang } = useLanguage();
+  const labels = exitLabels(lang, expectedRole);
+  const [authenticated, setAuthenticated] = useState(isDemo);
+  const [checkingSession, setCheckingSession] = useState(!isDemo);
+  const [asOwner, setAsOwner] = useState(false);
+
+  useEffect(() => {
+    if (isDemo) return;
+    let cancelled = false;
+    void resolveStaffSession(restaurant.slug, expectedRole).then((state) => {
+      if (cancelled) return;
+      if (state.status === 'ok') {
+        setAsOwner(!!state.asOwner);
+        setAuthenticated(true);
+        setCheckingSession(false);
+        return;
+      }
+      if (state.status === 'needs_password_change') {
+        router.replace('/auth/staff/change-password');
+        return;
+      }
+      router.replace(`/${restaurant.slug}/staff/login`);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isDemo, expectedRole, restaurant.slug, router]);
+
+  const handleSignOut = async () => {
+    if (asOwner) {
+      router.push('/dashboard');
+      return;
+    }
+    if (!isDemo) await staffSignOut();
+    setAuthenticated(false);
+    if (!isDemo) router.replace(`/${restaurant.slug}/staff/login`);
+  };
+
+  const exitLabel = asOwner ? labels.backToDashboard : labels.signOut;
+
+  if (checkingSession || !authenticated) {
+    return (
+      <div className="min-h-screen bg-brand-bg flex items-center justify-center text-brand-text-muted text-sm">
+        …
+      </div>
+    );
+  }
+
+  return <>{children({ handleSignOut, exitLabel })}</>;
+}

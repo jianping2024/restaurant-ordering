@@ -589,7 +589,7 @@ function WaiterTableDetailInner({
           >
             ← {t.backToBoard}
           </Link>
-          <StaffRoleToolbar exitLabel={exitLabel} onSignOut={handleSignOut} />
+          <StaffRoleToolbar exitLabel={exitLabel} onSignOut={handleSignOut} className="mb-0" />
         </div>
         <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
         <p className="text-brand-text-muted text-sm mt-1">{t.boardTitle}</p>

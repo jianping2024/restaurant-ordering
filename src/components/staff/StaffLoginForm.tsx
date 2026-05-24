@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import Link from 'next/link';
-import { composeStaffEmail } from '@/lib/staff-auth-client';
+import { composeStaffEmail } from '@/lib/staff-account';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';

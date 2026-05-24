@@ -120,6 +120,15 @@ export function buildStaffEmail(loginName: string): string {
   return `${ln}@${STAFF_EMAIL_DOMAIN}`;
 }
 
+/** Store mode: bare login → `{login}@mesa.in`; global or input with `@` → trimmed as-is. */
+export function composeStaffEmail(loginOrEmail: string, mode: 'store' | 'global'): string {
+  const raw = loginOrEmail.trim().toLowerCase();
+  if (mode === 'global' || raw.includes('@')) {
+    return raw;
+  }
+  return buildStaffEmail(raw);
+}
+
 export function staffPasswordValid(password: string): boolean {
   return typeof password === 'string' && password.length >= 6;
 }

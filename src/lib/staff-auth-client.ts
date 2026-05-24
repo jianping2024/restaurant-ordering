@@ -1,11 +1,9 @@
 'use client';
 
 import { createClient } from '@/lib/supabase/client';
-import { buildStaffEmail, parseStaffUserMetadata } from '@/lib/staff-account';
+import { parseStaffUserMetadata } from '@/lib/staff-account';
 import type { StaffAccountRole } from '@/types';
 import type { StaffRole } from '@/lib/staff-account';
-
-export { staffRolePath } from '@/lib/staff-routes';
 
 export type StaffSessionState =
   | { status: 'ok'; role: StaffRole; slug: string; asOwner?: boolean }
@@ -63,13 +61,4 @@ export async function resolveStaffSession(
 export async function staffSignOut(): Promise<void> {
   const supabase = createClient();
   await supabase.auth.signOut();
-}
-
-/** Store mode: bare login → `{login}@mesa.in`; global or input with `@` → trimmed as-is. */
-export function composeStaffEmail(loginOrEmail: string, mode: 'store' | 'global'): string {
-  const raw = loginOrEmail.trim().toLowerCase();
-  if (mode === 'global' || raw.includes('@')) {
-    return raw;
-  }
-  return buildStaffEmail(raw);
 }

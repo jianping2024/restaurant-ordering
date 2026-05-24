@@ -5,12 +5,13 @@ import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 type Props = {
   exitLabel: string;
   onSignOut: () => void;
+  className?: string;
 };
 
 /** Top-right language + sign-out row shared by kitchen / waiter staff boards. */
-export function StaffRoleToolbar({ exitLabel, onSignOut }: Props) {
+export function StaffRoleToolbar({ exitLabel, onSignOut, className = 'mb-3' }: Props) {
   return (
-    <div className="flex justify-end items-center gap-2 mb-3">
+    <div className={`flex justify-end items-center gap-2 ${className}`}>
       <LanguageSwitcher compact />
       <button
         type="button"

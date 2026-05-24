@@ -1,18 +1,18 @@
 'use client';
 
-import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import { useState, useRef, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { Order, OrderItemStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { deriveOrderStatusFromItems, itemsEveryVoided, normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
-import { resolveStaffSession, staffSignOut } from '@/lib/staff-auth-client';
+import { StaffAuthenticatedShell, type StaffShellContext } from '@/components/staff/StaffAuthenticatedShell';
 import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
 import { fetchKitchenBoardClient } from '@/lib/staff-board-client';
 import { useRestaurantRealtimeRefresh } from '@/lib/use-restaurant-realtime-refresh';
+import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -55,38 +55,30 @@ const KITCHEN_DEMO_TEXT = {
   },
 } as const;
 
-// Web Audio API 生成提示音
-function playBeep() {
-  try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.5);
-  } catch {
-    // 静默失败（某些浏览器需要用户交互）
-  }
+export function KitchenDisplay(props: Props) {
+  return (
+    <StaffAuthenticatedShell
+      restaurant={props.restaurant}
+      expectedRole="kitchen"
+      isDemo={props.isDemo}
+    >
+      {(ctx) => <KitchenDisplayInner {...props} {...ctx} />}
+    </StaffAuthenticatedShell>
+  );
 }
 
-export function KitchenDisplay({
+function KitchenDisplayInner({
   restaurant,
   initialOrders = [],
   initialActiveTables = [],
   isDemo = false,
-}: Props) {
-  const router = useRouter();
+  handleSignOut,
+  exitLabel,
+}: Props & StaffShellContext) {
   const { lang } = useLanguage();
   const t = getMessages(lang).kitchen;
   const demoText = KITCHEN_DEMO_TEXT[lang];
   const locale = UI_LOCALE_BY_LANG[lang];
-  const [authenticated, setAuthenticated] = useState(isDemo);
-  const [authChecking, setAuthChecking] = useState(!isDemo);
-  const [asOwner, setAsOwner] = useState(false);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [activeTables, setActiveTables] = useState<number[]>(initialActiveTables);
   const [updateConflict, setUpdateConflict] = useState(false);
@@ -131,45 +123,11 @@ export function KitchenDisplay({
     return cols;
   }, [boardOrders, activeTables]);
 
-  useEffect(() => {
-    if (isDemo) return;
-    let cancelled = false;
-    void resolveStaffSession(restaurant.slug, 'kitchen').then((state) => {
-      if (cancelled) return;
-      if (state.status === 'ok') {
-        setAsOwner(!!state.asOwner);
-        setAuthenticated(true);
-        setAuthChecking(false);
-        return;
-      }
-      if (state.status === 'needs_password_change') {
-        router.replace('/auth/staff/change-password');
-        return;
-      }
-      router.replace(`/${restaurant.slug}/staff/login`);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [isDemo, restaurant.slug, router]);
-
-  const handleSignOut = async () => {
-    if (asOwner) {
-      router.push('/dashboard');
-      return;
-    }
-    if (!isDemo) await staffSignOut();
-    setAuthenticated(false);
-    if (!isDemo) router.replace(`/${restaurant.slug}/staff/login`);
-  };
-
-  const exitLabel = asOwner ? t.backToDashboard : t.signOut;
-
   const refreshKitchenBoard = useCallback(async () => {
     const board = await fetchKitchenBoardClient(restaurant.id);
     board.orders.forEach((o) => {
       if (!prevOrderIds.current.has(o.id)) {
-        playBeep();
+        playCheckoutRequestChime();
         prevOrderIds.current.add(o.id);
       }
     });
@@ -245,18 +203,10 @@ export function KitchenDisplay({
     supabase,
     restaurant.id,
     `kitchen-${restaurant.id}`,
-    authenticated,
+    true,
     refreshKitchenBoard,
   );
 
-  if (!authenticated) {
-    return (
-      <div className="min-h-screen bg-brand-bg flex items-center justify-center text-brand-text-muted text-sm">
-        {authChecking ? '…' : null}
-      </div>
-    );
-  }
-  // 厨房显示页
   return (
     <div className="min-h-screen bg-brand-bg p-4">
       {isDemo && (

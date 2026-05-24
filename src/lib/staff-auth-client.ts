@@ -17,65 +17,6 @@ export function staffRolePath(slug: string, role: StaffRole): string {
   return `/${slug}/waiter`;
 }
 
-export type StaffLoginRedirect =
-  | { kind: 'owner' }
-  | { kind: 'staff'; path: string; mustChangePassword: boolean }
-  | { kind: 'staff_error'; code: 'disabled' | 'incomplete' };
-
-function isStaffRole(role: string): role is StaffRole {
-  return role === 'kitchen' || role === 'waiter' || role === 'cashier';
-}
-
-/** After sign-in: DB role + slug win over JWT metadata (fixes stale/wrong staff_role). */
-export async function resolveStaffLoginRedirect(
-  userId: string,
-  userMetadata: Record<string, unknown> | undefined,
-): Promise<StaffLoginRedirect> {
-  const supabase = createClient();
-  const meta = parseStaffUserMetadata(userMetadata);
-
-  const { data: account } = await supabase
-    .from('restaurant_staff_accounts')
-    .select('role, restaurant_id, disabled_at')
-    .eq('user_id', userId)
-    .maybeSingle();
-
-  if (!account) {
-    if (meta?.account_type === 'staff') {
-      return { kind: 'staff_error', code: 'incomplete' };
-    }
-    return { kind: 'owner' };
-  }
-
-  if (account.disabled_at) {
-    return { kind: 'staff_error', code: 'disabled' };
-  }
-
-  const roleRaw = String(account.role || meta?.staff_role || '');
-  if (!isStaffRole(roleRaw)) {
-    return { kind: 'staff_error', code: 'incomplete' };
-  }
-
-  let slug = meta?.restaurant_slug;
-  if (!slug) {
-    const { data: rest } = await supabase
-      .from('restaurants_public')
-      .select('slug')
-      .eq('id', account.restaurant_id)
-      .maybeSingle();
-    slug = rest?.slug ?? undefined;
-  }
-  if (!slug) {
-    return { kind: 'staff_error', code: 'incomplete' };
-  }
-
-  return {
-    kind: 'staff',
-    path: staffRolePath(slug, roleRaw),
-    mustChangePassword: meta?.must_change_password === true,
-  };
-}
-
 export async function resolveStaffSession(
   slug: string,
   expectedRole: StaffRole,

@@ -2,17 +2,21 @@
 
 import { useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { resolveStaffLoginRedirect } from '@/lib/staff-auth-client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages } from '@/lib/i18n/messages';
 
+type LoginResponse = {
+  ok?: boolean;
+  kind?: 'owner' | 'onboarding' | 'staff';
+  path?: string;
+  error?: string;
+  message?: string;
+};
+
 export default function LoginPage() {
-  const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).authLogin;
   const [email, setEmail] = useState('');
@@ -29,43 +33,36 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const supabase = createClient();
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
 
-      if (error || !data.user) {
-        setError(t.invalid);
+      const json = (await res.json().catch(() => ({}))) as LoginResponse;
+
+      if (res.status === 429 || json.error === 'rate_limited') {
+        setError(t.rateLimited);
         setLoading(false);
         submittingRef.current = false;
         return;
       }
 
-      const redirect = await resolveStaffLoginRedirect(
-        data.user.id,
-        data.user.user_metadata as Record<string, unknown>,
-      );
-
-      if (redirect.kind === 'staff_error') {
-        await supabase.auth.signOut();
-        setError(redirect.code === 'disabled' ? t.staffDisabled : t.staffIncomplete);
-        setLoading(false);
-        submittingRef.current = false;
-        return;
-      }
-
-      if (redirect.kind === 'staff') {
-        if (redirect.mustChangePassword) {
-          router.push('/auth/staff/change-password');
-          router.refresh();
-          return;
+      if (!res.ok || !json.ok || !json.path) {
+        if (json.error === 'disabled') {
+          setError(t.staffDisabled);
+        } else if (json.error === 'incomplete') {
+          setError(t.staffIncomplete);
+        } else {
+          setError(t.invalid);
         }
-        router.push(redirect.path);
-        router.refresh();
+        setLoading(false);
+        submittingRef.current = false;
         return;
       }
 
-      router.push('/dashboard');
-      router.refresh();
-      // 保持 loading，直到离开本页；避免导航未完成时按钮又可点
+      window.location.assign(json.path);
     } catch {
       setError(t.network);
       setLoading(false);
@@ -76,7 +73,6 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-between mb-4">
             <Link href="/">
@@ -87,7 +83,6 @@ export default function LoginPage() {
           <p className="text-brand-text-muted text-sm mt-2">{t.subtitle}</p>
         </div>
 
-        {/* 表单 */}
         <div className="bg-brand-card border border-brand-border rounded-2xl p-8">
           <form onSubmit={handleLogin} className="space-y-5" aria-busy={loading}>
             <Input

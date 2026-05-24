@@ -19,7 +19,7 @@ function bucket(key: string): Bucket {
 function keys(email: string, ip: string): string[] {
   const normalized = email.trim().toLowerCase();
   const safeIp = ip || 'unknown';
-  return [`staff-email:${normalized}`, `staff-ip:${safeIp}:${normalized}`];
+  return [`login-email:${normalized}`, `login-ip:${safeIp}:${normalized}`];
 }
 
 function evaluate(key: string): { ok: true } | { ok: false; retryAfterSec: number } {
@@ -52,7 +52,7 @@ function worstRetry(
   return max > 0 ? { ok: false, retryAfterSec: max } : null;
 }
 
-export function staffLoginRateLimitCheck(
+export function authLoginRateLimitCheck(
   email: string,
   ip: string,
 ): { ok: true } | { ok: false; retryAfterSec: number } {
@@ -63,7 +63,7 @@ export function staffLoginRateLimitCheck(
   return { ok: true };
 }
 
-export function staffLoginRecordFailure(email: string, ip: string): void {
+export function authLoginRecordFailure(email: string, ip: string): void {
   for (const key of keys(email, ip)) {
     const b = bucket(key);
     b.consecutiveFailures += 1;
@@ -74,7 +74,7 @@ export function staffLoginRecordFailure(email: string, ip: string): void {
   }
 }
 
-export function staffLoginRecordSuccess(email: string, ip: string): void {
+export function authLoginRecordSuccess(email: string, ip: string): void {
   for (const key of keys(email, ip)) {
     bucket(key).consecutiveFailures = 0;
   }

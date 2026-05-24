@@ -2,8 +2,7 @@
 
 import { useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { composeStaffEmail, staffRolePath } from '@/lib/staff-auth-client';
+import { composeStaffEmail } from '@/lib/staff-auth-client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
@@ -19,7 +18,6 @@ type Props = {
 };
 
 export function StaffLoginForm({ mode, slug, restaurantName, expectedRole }: Props) {
-  const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).staffAuth;
   const [login, setLogin] = useState('');
@@ -47,6 +45,7 @@ export function StaffLoginForm({ mode, slug, restaurantName, expectedRole }: Pro
 
       const json = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
+        path?: string;
         must_change_password?: boolean;
         role?: StaffRole;
         slug?: string;
@@ -81,15 +80,9 @@ export function StaffLoginForm({ mode, slug, restaurantName, expectedRole }: Pro
         return;
       }
 
-      if (json.must_change_password) {
-        router.push('/auth/staff/change-password');
-        router.refresh();
+      if (json.path) {
+        window.location.assign(json.path);
         return;
-      }
-
-      if (json.slug && json.role) {
-        router.push(staffRolePath(json.slug, json.role));
-        router.refresh();
       }
     } catch {
       setError(t.network);

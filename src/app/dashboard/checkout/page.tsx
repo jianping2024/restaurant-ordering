@@ -7,7 +7,7 @@ import { loadDashboardAccess } from '@/lib/dashboard-access';
 export default async function CheckoutRequestsPage() {
   const access = await loadDashboardAccess();
   if (access.mode === 'unauthenticated') redirect('/auth/login');
-  if (access.mode === 'onboarding') redirect('/dashboard');
+  if (access.mode === 'onboarding' || access.mode === 'access_error') redirect('/dashboard');
 
   const restaurant = access.restaurant;
   const supabase = await createClient();

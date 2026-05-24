@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/admin';
 import { resolvePostLoginRedirect } from '@/lib/auth/post-login-redirect';
 import {
   authLoginRateLimitCheck,
@@ -34,24 +33,6 @@ export async function POST(req: Request) {
     );
   }
 
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
-  }
-
-  const { data: account } = await admin
-    .from('restaurant_staff_accounts')
-    .select('id, disabled_at, role')
-    .eq('email', email)
-    .maybeSingle();
-
-  if (!account || account.disabled_at) {
-    authLoginRecordFailure(email, ip);
-    return NextResponse.json({ error: 'invalid_credentials' }, { status: 401 });
-  }
-
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
@@ -73,20 +54,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: redirect.code }, { status: 403 });
     }
 
-    if (redirect.kind !== 'staff') {
-      await supabase.auth.signOut();
-      authLoginRecordFailure(email, ip);
-      return NextResponse.json({ error: 'invalid_credentials' }, { status: 401 });
-    }
-
     authLoginRecordSuccess(email, ip);
+
+    if (redirect.kind === 'staff') {
+      return NextResponse.json({
+        ok: true,
+        kind: 'staff',
+        path: redirect.mustChangePassword ? '/auth/staff/change-password' : redirect.path,
+        must_change_password: redirect.mustChangePassword,
+        slug: redirect.slug,
+        role: redirect.role,
+      });
+    }
 
     return NextResponse.json({
       ok: true,
-      path: redirect.mustChangePassword ? '/auth/staff/change-password' : redirect.path,
-      must_change_password: redirect.mustChangePassword,
-      slug: redirect.slug,
-      role: redirect.role,
+      kind: redirect.kind,
+      path: redirect.path,
     });
   } catch (e) {
     await supabase.auth.signOut();

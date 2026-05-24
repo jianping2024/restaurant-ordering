@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { DashboardAccessError } from '@/components/dashboard/DashboardAccessError';
 import { DashboardNav } from '@/components/dashboard/DashboardNav';
 import { RestaurantOnboarding } from '@/components/dashboard/RestaurantOnboarding';
 import { loadDashboardAccess } from '@/lib/dashboard-access';
@@ -12,6 +13,14 @@ export default async function DashboardLayout({
 
   if (access.mode === 'unauthenticated') {
     redirect('/auth/login');
+  }
+
+  if (access.mode === 'access_error') {
+    return (
+      <div className="min-h-screen bg-brand-bg flex">
+        <DashboardAccessError message={access.message} />
+      </div>
+    );
   }
 
   if (access.mode === 'onboarding') {

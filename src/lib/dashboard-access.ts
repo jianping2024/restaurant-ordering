@@ -11,7 +11,11 @@ export type DashboardAccess =
 export type DashboardAccessResult =
   | DashboardAccess
   | { mode: 'unauthenticated' }
-  | { mode: 'onboarding' };
+  | { mode: 'onboarding' }
+  | { mode: 'access_error'; message: string };
+
+const OWNER_RESTAURANT_SELECT =
+  'id, name, slug, owner_id, logo_url, address, phone, geo_latitude, geo_longitude, plan, print_locale, created_at';
 
 export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
   const supabase = await createClient();
@@ -21,30 +25,40 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
 
   if (!user) return { mode: 'unauthenticated' };
 
-  const { data: ownedRestaurant } = await supabase
+  const { data: ownedRestaurant, error: ownerError } = await supabase
     .from('restaurants')
-    .select(
-      'id, name, slug, owner_id, logo_url, address, phone, geo_latitude, geo_longitude, plan, print_locale, created_at',
-    )
+    .select(OWNER_RESTAURANT_SELECT)
     .eq('owner_id', user.id)
     .maybeSingle();
+
+  if (ownerError) {
+    return { mode: 'access_error', message: ownerError.message };
+  }
 
   if (ownedRestaurant) {
     return { mode: 'owner', restaurant: ownedRestaurant as Restaurant };
   }
 
-  const { data: account } = await supabase
+  const { data: account, error: staffError } = await supabase
     .from('restaurant_staff_accounts')
     .select('restaurant_id, disabled_at, role')
     .eq('user_id', user.id)
     .maybeSingle();
 
+  if (staffError) {
+    return { mode: 'access_error', message: staffError.message };
+  }
+
   if (account && !account.disabled_at && account.role === 'cashier') {
-    const { data: restaurant } = await supabase
+    const { data: restaurant, error: restaurantError } = await supabase
       .from('restaurants_public')
       .select('id, name, slug')
       .eq('id', account.restaurant_id)
       .maybeSingle();
+
+    if (restaurantError) {
+      return { mode: 'access_error', message: restaurantError.message };
+    }
 
     if (restaurant) {
       return {

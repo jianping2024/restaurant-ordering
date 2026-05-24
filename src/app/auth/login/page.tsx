@@ -43,7 +43,9 @@ export default function LoginPage() {
       const json = (await res.json().catch(() => ({}))) as LoginResponse;
 
       if (res.status === 429 || json.error === 'rate_limited') {
-        setError(t.rateLimited);
+        const retrySec = (json as { retry_after_sec?: number }).retry_after_sec;
+        const mins = retrySec ? Math.max(1, Math.ceil(retrySec / 60)) : 5;
+        setError(t.rateLimitedWithMinutes.replace('{minutes}', String(mins)));
         setLoading(false);
         submittingRef.current = false;
         return;

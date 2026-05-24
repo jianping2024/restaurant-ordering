@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   const rl = authLoginRateLimitCheck(email, ip);
   if (!rl.ok) {
     return NextResponse.json(
-      { error: 'rate_limited' },
+      { error: 'rate_limited', retry_after_sec: rl.retryAfterSec },
       { status: 429, headers: { 'Retry-After': String(rl.retryAfterSec) } },
     );
   }
@@ -74,7 +74,6 @@ export async function POST(req: Request) {
     });
   } catch (e) {
     await supabase.auth.signOut();
-    authLoginRecordFailure(email, ip);
     const message = e instanceof Error ? e.message : 'redirect_failed';
     return NextResponse.json({ error: 'redirect_failed', message }, { status: 500 });
   }

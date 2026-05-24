@@ -16,6 +16,7 @@ import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticate
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
+import { waiterUi } from '@/components/waiter/waiter-ui';
 import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -562,19 +563,19 @@ function WaiterTableDetailInner({
           <div className="mt-2 flex flex-wrap gap-2">
             <Link
               href="/demo/menu"
-              className="text-[13px] rounded-lg border border-brand-border px-3 py-1.5 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+              className={waiterUi.navLink}
             >
               {t.openCustomer}
             </Link>
             <Link
               href="/demo/kitchen"
-              className="text-[13px] rounded-lg border border-brand-border px-3 py-1.5 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+              className={waiterUi.navLink}
             >
               {t.openKitchen}
             </Link>
             <Link
               href="/demo"
-              className="text-[13px] rounded-lg border border-brand-border px-3 py-1.5 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+              className={waiterUi.navLink}
             >
               {t.backHub}
             </Link>
@@ -586,7 +587,7 @@ function WaiterTableDetailInner({
         <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
           <Link
             href={boardHref}
-            className="text-[13px] rounded-lg border border-brand-border px-3 py-1.5 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+            className={waiterUi.navLink}
           >
             ← {t.backToBoard}
           </Link>
@@ -595,7 +596,7 @@ function WaiterTableDetailInner({
             <button
               type="button"
               onClick={handleSignOut}
-              className="text-[12px] px-2 py-1 rounded-md border border-brand-border text-brand-text-muted hover:text-brand-text transition-colors"
+              className={`${waiterUi.btnSecondary} ${waiterUi.btnGhost} text-[12px] px-2 py-1`}
             >
               {exitLabel}
             </button>
@@ -605,7 +606,7 @@ function WaiterTableDetailInner({
         <p className="text-brand-text-muted text-sm mt-1">{t.boardTitle}</p>
       </div>
 
-      <div className="border-2 rounded-2xl p-4 border-brand-border bg-brand-card">
+      <div className="rounded-2xl p-4 border border-brand-border/50 bg-brand-card shadow-sm shadow-black/5">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-heading text-2xl text-brand-text">{t.detailsTitle} - {t.table} {selectedCard.table}</h2>
           <span className="text-[13px] text-brand-text-muted">
@@ -688,7 +689,7 @@ function WaiterTableDetailInner({
                 type="button"
                 onClick={() => void applyBuffetToTable()}
                 disabled={buffetSubmitting}
-                className="text-[12px] px-3 py-2 rounded-lg bg-brand-gold text-brand-bg font-medium disabled:opacity-50"
+                className={waiterUi.btnBuffet}
               >
                 {buffetSubmitting ? '…' : t.buffetApply}
               </button>
@@ -710,7 +711,7 @@ function WaiterTableDetailInner({
                 href={menuHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center text-[14px] font-semibold px-4 py-2.5 rounded-xl bg-brand-gold text-brand-bg shadow-md hover:brightness-95 active:brightness-90 transition-[filter,transform] hover:scale-[1.02]"
+                className={waiterUi.btnPrimary}
               >
                 {t.takeOrder}
               </Link>
@@ -724,14 +725,14 @@ function WaiterTableDetailInner({
                 href={menuHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center text-[14px] font-semibold px-4 py-2.5 rounded-xl bg-brand-gold text-brand-bg shadow-md hover:brightness-95 active:brightness-90 transition-[filter,transform] hover:scale-[1.02] mr-1"
+                className={`${waiterUi.btnPrimary} mr-1`}
               >
                 + {t.addDish}
               </Link>
               {checkoutRequestedTables.includes(selectedCard.table) && (
                 <Link
                   href={billHref}
-                  className="text-[11px] px-2 py-0.5 rounded-md border transition-colors bg-brand-gold/18 text-brand-gold border-brand-gold/35 hover:bg-brand-gold/28"
+                  className={waiterUi.btnGoldSoft}
                 >
                   {t.checkout}
                 </Link>
@@ -739,14 +740,14 @@ function WaiterTableDetailInner({
               <button
                 type="button"
                 onClick={() => openAction('transfer', selectedCard.table)}
-                className="text-[11px] bg-amber-500/18 text-amber-800 border border-amber-500/45 px-2 py-0.5 rounded-md hover:bg-amber-500/28 transition-colors"
+                className={`${waiterUi.btnSecondary} ${waiterUi.btnWarm}`}
               >
                 {t.transfer}
               </button>
               <button
                 type="button"
                 onClick={() => openAction('merge', selectedCard.table)}
-                className="text-[11px] bg-slate-500/12 text-slate-700 border border-slate-500/35 px-2 py-0.5 rounded-md hover:bg-slate-500/22 transition-colors"
+                className={`${waiterUi.btnSecondary} ${waiterUi.btnGhost}`}
               >
                 {t.merge}
               </button>
@@ -755,7 +756,7 @@ function WaiterTableDetailInner({
                   type="button"
                   onClick={() => closeTableFromWaiter(selectedCard.table)}
                   disabled={closingTable === selectedCard.table}
-                  className="text-[11px] bg-rose-500/14 text-rose-800 border border-rose-500/40 px-2 py-0.5 rounded-md hover:bg-rose-500/24 transition-colors disabled:opacity-50"
+                  className={`${waiterUi.btnSecondary} ${waiterUi.btnDanger} disabled:opacity-50`}
                 >
                   {closingTable === selectedCard.table ? t.closeTableOperating : t.closeTable}
                 </button>
@@ -763,9 +764,9 @@ function WaiterTableDetailInner({
             </div>
 
             <div className="flex items-center gap-2 text-[13px] mb-3">
-              <span className="px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/35 text-red-700">{t.pending} {selectedCard.pending}</span>
-              <span className="px-2 py-0.5 rounded-full bg-amber-500/18 border border-amber-500/35 text-amber-800">{t.cooking} {selectedCard.cooking}</span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/16 border border-emerald-500/35 text-emerald-800">{t.ready} {selectedCard.ready}</span>
+              <span className={waiterUi.badgePending}>{t.pending} {selectedCard.pending}</span>
+              <span className={waiterUi.badgeCooking}>{t.cooking} {selectedCard.cooking}</span>
+              <span className={waiterUi.badgeReady}>{t.ready} {selectedCard.ready}</span>
             </div>
 
             <div className="rounded-lg border border-brand-border/60 p-2.5 space-y-2">
@@ -795,7 +796,7 @@ function WaiterTableDetailInner({
                     <button
                       type="button"
                       onClick={() => voidItemFromWaiter(item.orderId, item.itemIdx)}
-                      className="shrink-0 text-[11px] bg-slate-500/12 text-slate-700 border border-slate-500/35 px-2 py-0.5 rounded-md hover:bg-slate-500/22 transition-colors"
+                      className={`shrink-0 ${waiterUi.btnSecondary} ${waiterUi.btnGhost}`}
                     >
                       {t.voidItem}
                     </button>
@@ -845,7 +846,7 @@ function WaiterTableDetailInner({
           <button
             type="button"
             onClick={closeAction}
-            className="px-3 py-2 rounded-lg border border-brand-border text-sm text-brand-text-muted hover:text-brand-text transition-colors"
+            className={`${waiterUi.btnSecondary} ${waiterUi.btnGhost} text-sm`}
           >
             {lang === 'zh' ? '取消' : lang === 'en' ? 'Cancel' : 'Cancelar'}
           </button>
@@ -853,7 +854,7 @@ function WaiterTableDetailInner({
             type="button"
             onClick={handleActionSubmit}
             disabled={!sourceTable || !targetTable || operating}
-            className="px-3 py-2 rounded-lg text-sm bg-brand-gold text-brand-bg font-medium disabled:opacity-50"
+            className={`${waiterUi.btnBuffet} text-sm disabled:opacity-50`}
           >
             {operationType === 'transfer'
               ? (operating ? t.operatingTransfer : t.confirmTransfer)

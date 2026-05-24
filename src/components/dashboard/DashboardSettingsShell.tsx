@@ -55,7 +55,7 @@ export function DashboardSettingsShell({ children }: { children: React.ReactNode
     ));
 
   return (
-    <div className="w-full max-w-full">
+    <div className="w-full min-w-0 max-w-full overflow-x-hidden">
       <nav className="mb-4 text-[13px] text-brand-text-muted" aria-label="Breadcrumb">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>
@@ -74,16 +74,16 @@ export function DashboardSettingsShell({ children }: { children: React.ReactNode
         </ol>
       </nav>
 
-      <div className="lg:hidden -mx-1 overflow-x-auto pb-3 mb-2 border-b border-brand-border/80">
-        <div className="flex gap-4 min-w-max px-1">{renderNavLinks(true)}</div>
+      <div className="lg:hidden overflow-x-auto pb-3 mb-2 border-b border-brand-border/80">
+        <div className="flex gap-4 min-w-max pr-2">{renderNavLinks(true)}</div>
       </div>
 
-      <div className="flex flex-col lg:flex-row lg:gap-8 lg:items-start">
-        <aside className="hidden lg:block w-52 shrink-0 sticky top-8 self-start rounded-xl border border-brand-border bg-brand-card/40 p-3">
+      <div className="flex flex-col lg:flex-row lg:gap-6 xl:gap-8 lg:items-start min-w-0">
+        <aside className="hidden lg:block w-48 xl:w-52 shrink-0 sticky top-8 self-start rounded-xl border border-brand-border bg-brand-card/40 p-3">
           {renderNavLinks(false)}
         </aside>
 
-        <div className={`min-w-0 flex-1 ${wide ? 'max-w-6xl' : 'max-w-4xl'}`}>
+        <div className={`min-w-0 flex-1 w-full ${wide ? '' : 'max-w-4xl'}`}>
           <header className="mb-5">
             <h1 className="font-heading text-2xl sm:text-3xl text-brand-text">{pageTitle}</h1>
           </header>

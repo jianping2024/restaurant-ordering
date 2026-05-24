@@ -824,10 +824,10 @@ export function MenuManager({
     const actionBtn =
       'h-7 w-7 inline-flex items-center justify-center rounded-md border border-brand-border/70 text-brand-text-muted hover:text-brand-gold hover:border-brand-gold/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 disabled:opacity-35 disabled:cursor-not-allowed shrink-0';
     return (
-      <div className="group flex w-full items-center gap-1 min-h-8 py-0.5 pr-0.5 min-w-0">
+      <div className="group w-full min-w-0 max-w-full py-0.5">
         <button
           type="button"
-          className={`flex-1 min-w-0 truncate text-sm leading-5 text-left hover:underline ${
+          className={`block w-full min-w-0 truncate text-sm leading-5 text-left hover:underline ${
             selectedCategoryId === category.id ? 'text-brand-gold font-medium' : 'text-brand-text'
           }`}
           onClick={(e) => {
@@ -841,7 +841,7 @@ export function MenuManager({
           ) : null}
         </button>
         <div
-          className={`flex shrink-0 items-center gap-0.5 transition-opacity ${
+          className={`mt-1 flex items-center justify-end gap-0.5 transition-opacity ${
             showActions ? 'opacity-100' : 'opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto'
           }`}
         >
@@ -969,8 +969,8 @@ export function MenuManager({
       </div>
 
       {activeTab === 'categories' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(260px,360px),1fr] gap-4">
-          <div className="bg-brand-card border border-brand-border rounded-2xl p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] gap-4 min-w-0">
+          <div className="bg-brand-card border border-brand-border rounded-2xl p-4 min-w-0 max-w-full overflow-hidden">
             <p className="text-[12px] text-brand-text-muted mb-3" title={t.depthHint.replace('{max}', String(MAX_CATEGORY_DEPTH))}>
               {t.categoryTreeHint}
             </p>
@@ -978,20 +978,22 @@ export function MenuManager({
               <p className="text-sm text-brand-text-muted">{t.pickNode}</p>
             ) : (
               <>
-                <Tree
-                  treeData={categoryTreeData}
-                  selectedKeys={selectedCategoryId ? [selectedCategoryId] : []}
-                  expandedKeys={expandedCategoryKeys}
-                  onExpand={(keys) => setExpandedCategoryKeys(keys.map(String))}
-                  onSelect={(keys) => {
-                    const selected = keys[0];
-                    if (!selected) return;
-                    const cat = categories.find((c) => c.id === String(selected));
-                    if (cat) openCategoryEdit(cat);
-                  }}
-                  className="mesa-category-tree"
-                  switcherIcon={<span className="text-brand-text-muted">▸</span>}
-                />
+                <div className="min-w-0 max-w-full overflow-x-auto">
+                  <Tree
+                    treeData={categoryTreeData}
+                    selectedKeys={selectedCategoryId ? [selectedCategoryId] : []}
+                    expandedKeys={expandedCategoryKeys}
+                    onExpand={(keys) => setExpandedCategoryKeys(keys.map(String))}
+                    onSelect={(keys) => {
+                      const selected = keys[0];
+                      if (!selected) return;
+                      const cat = categories.find((c) => c.id === String(selected));
+                      if (cat) openCategoryEdit(cat);
+                    }}
+                    className="mesa-category-tree"
+                    switcherIcon={<span className="text-brand-text-muted">▸</span>}
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={() => {
@@ -1006,7 +1008,7 @@ export function MenuManager({
             )}
           </div>
 
-          <div className="bg-brand-card border border-brand-border rounded-2xl p-4 min-h-[min(320px,50vh)]">
+          <div className="bg-brand-card border border-brand-border rounded-2xl p-4 min-h-[min(320px,50vh)] min-w-0 max-w-full">
             {categoryPanelMode === 'none' || (categoryPanelMode !== 'create-root' && !selectedCategory) ? (
               <div className="flex flex-col items-center justify-center h-full min-h-[min(280px,45vh)] text-center px-2 py-8">
                 <p className="text-sm text-brand-text-muted mb-5 max-w-sm">{t.panelEmpty}</p>
@@ -1469,17 +1471,24 @@ export function MenuManager({
       </Modal>
 
       <style jsx global>{`
+        .mesa-category-tree {
+          width: 100%;
+          max-width: 100%;
+        }
         .mesa-category-tree .rc-tree-treenode {
           margin: 2px 0;
+          max-width: 100%;
         }
         .mesa-category-tree .rc-tree-node-content-wrapper {
-          width: 100%;
+          width: 100% !important;
+          max-width: 100%;
           border-radius: 8px;
           min-height: 30px;
-          padding: 1px 4px;
+          padding: 2px 4px;
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           box-sizing: border-box;
+          overflow: hidden;
         }
         .mesa-category-tree .rc-tree-node-content-wrapper:hover {
           background: rgb(var(--color-brand-gold) / 0.1);

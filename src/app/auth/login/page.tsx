@@ -4,6 +4,8 @@ import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { parseStaffUserMetadata } from '@/lib/staff-account';
+import { staffRolePath } from '@/lib/staff-auth-client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -29,12 +31,24 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-      if (error) {
+      if (error || !data.user) {
         setError(t.invalid);
         setLoading(false);
         submittingRef.current = false;
+        return;
+      }
+
+      const meta = parseStaffUserMetadata(data.user.user_metadata as Record<string, unknown>);
+      if (meta?.account_type === 'staff') {
+        if (meta.must_change_password) {
+          router.push('/auth/staff/change-password');
+          router.refresh();
+          return;
+        }
+        router.push(staffRolePath(meta.restaurant_slug, meta.staff_role));
+        router.refresh();
         return;
       }
 

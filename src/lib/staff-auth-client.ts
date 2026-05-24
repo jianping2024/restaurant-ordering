@@ -12,7 +12,9 @@ export type StaffSessionState =
   | { status: 'wrong_context' };
 
 export function staffRolePath(slug: string, role: StaffRole): string {
-  return role === 'kitchen' ? `/${slug}/kitchen` : `/${slug}/waiter`;
+  if (role === 'kitchen') return `/${slug}/kitchen`;
+  if (role === 'cashier') return '/dashboard/checkout';
+  return `/${slug}/waiter`;
 }
 
 export async function resolveStaffSession(

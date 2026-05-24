@@ -1,5 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { parseStaffUserMetadata } from '@/lib/staff-account';
+import { isCashierCheckoutPath } from '@/lib/dashboard-access';
 
 // Middleware 中使用的 Supabase 客户端
 export async function updateSession(request: NextRequest) {
@@ -28,11 +30,29 @@ export async function updateSession(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
+  const pathname = request.nextUrl.pathname;
+
   // 未登录用户访问 dashboard 重定向到登录页
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+  if (!user && pathname.startsWith('/dashboard')) {
     const url = request.nextUrl.clone();
     url.pathname = '/auth/login';
     return NextResponse.redirect(url);
+  }
+
+  if (user && pathname.startsWith('/dashboard')) {
+    const meta = parseStaffUserMetadata(user.user_metadata as Record<string, unknown>);
+    if (meta?.staff_role === 'cashier') {
+      if (pathname === '/dashboard' || pathname === '/dashboard/') {
+        const url = request.nextUrl.clone();
+        url.pathname = '/dashboard/checkout';
+        return NextResponse.redirect(url);
+      }
+      if (!isCashierCheckoutPath(pathname)) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/dashboard/checkout';
+        return NextResponse.redirect(url);
+      }
+    }
   }
 
   return supabaseResponse;

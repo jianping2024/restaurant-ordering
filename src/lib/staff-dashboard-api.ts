@@ -91,7 +91,9 @@ export function validateStaffCreateBody(body: Record<string, unknown>) {
   if (!display_name) return { error: 'display_name_required' as const };
   const login = validateLoginName(loginRaw);
   if (!login.ok) return { error: `login_name_${login.code}` as const };
-  if (role !== 'kitchen' && role !== 'waiter') return { error: 'invalid_role' as const };
+  if (role !== 'kitchen' && role !== 'waiter' && role !== 'cashier') {
+    return { error: 'invalid_role' as const };
+  }
   if (!staffPasswordValid(password)) return { error: 'password_too_short' as const };
 
   return {

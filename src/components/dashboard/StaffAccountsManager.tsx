@@ -83,7 +83,11 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
     setTimeout(() => setBanner(null), 4000);
   }, []);
 
-  const roleLabel = (role: StaffAccountRole) => (role === 'kitchen' ? t.roleKitchen : t.roleWaiter);
+  const roleLabel = (role: StaffAccountRole) => {
+    if (role === 'kitchen') return t.roleKitchen;
+    if (role === 'cashier') return t.roleCashier;
+    return t.roleWaiter;
+  };
 
   const runCreate = async () => {
     setCreateSaving(true);
@@ -415,6 +419,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
             >
               <option value="kitchen">{t.roleKitchen}</option>
               <option value="waiter">{t.roleWaiter}</option>
+              <option value="cashier">{t.roleCashier}</option>
             </select>
           </div>
           <Input

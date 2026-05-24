@@ -9,8 +9,9 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { getMessages } from '@/lib/i18n/messages';
+import type { DashboardAccessMode } from '@/lib/dashboard-access';
 
-const navItems = [
+const ownerNavItems = [
   { href: '/dashboard/unpaid-orders', key: 'unpaidOrders', icon: '🧾', exact: false },
   { href: '/dashboard/orders', key: 'orders', icon: '📋', exact: false },
   { href: '/dashboard/checkout', key: 'checkout', icon: '💳', exact: false },
@@ -18,11 +19,22 @@ const navItems = [
   { href: '/dashboard', key: 'overview', icon: '📊', exact: true },
 ] as const;
 
-export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
+const cashierNavItems = [
+  { href: '/dashboard/checkout', key: 'checkout', icon: '💳', exact: false },
+] as const;
+
+export function DashboardNav({
+  restaurant,
+  accessMode = 'owner',
+}: {
+  restaurant: Pick<Restaurant, 'id' | 'name' | 'slug'>;
+  accessMode?: DashboardAccessMode;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).nav;
+  const navItems = accessMode === 'cashier' ? cashierNavItems : ownerNavItems;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [checkoutRequestCount, setCheckoutRequestCount] = useState(0);
 
@@ -166,27 +178,28 @@ export function DashboardNav({ restaurant }: { restaurant: Restaurant }) {
         })}
       </nav>
 
-      {/* 快捷链接 */}
-      <div className="px-4 py-3 border-t border-brand-border">
-        <a
-          href={`/${restaurant.slug}/kitchen`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 px-4 py-2 text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
-        >
-          <span>🍳</span>
-          {t.viewKitchen}
-        </a>
-        <a
-          href={`/${restaurant.slug}/waiter`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 px-4 py-2 text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
-        >
-          <span>🛎️</span>
-          {t.viewWaiter}
-        </a>
-      </div>
+      {accessMode === 'owner' ? (
+        <div className="px-4 py-3 border-t border-brand-border">
+          <a
+            href={`/${restaurant.slug}/kitchen`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
+          >
+            <span>🍳</span>
+            {t.viewKitchen}
+          </a>
+          <a
+            href={`/${restaurant.slug}/waiter`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
+          >
+            <span>🛎️</span>
+            {t.viewWaiter}
+          </a>
+        </div>
+      ) : null}
 
       {/* 退出 */}
       <div className="px-4 py-4 border-t border-brand-border">

@@ -419,7 +419,7 @@ export const MESSAGES = {
     },
     staffSettings: {
       title: '员工账号',
-      desc: '为厨房与服务员创建独立登录（邮箱格式：登录名@mesa.in）。',
+      desc: '为厨房、服务员与收银员创建独立登录（邮箱格式：登录名@mesa.in）。',
       add: '新增员工',
       empty: '暂无员工账号',
       emailHint:
@@ -431,6 +431,7 @@ export const MESSAGES = {
       colActions: '操作',
       roleKitchen: '厨房',
       roleWaiter: '服务员',
+      roleCashier: '收银员',
       statusActive: '启用',
       statusDisabled: '停用',
       fieldDisplayName: '显示名',
@@ -842,7 +843,7 @@ export const MESSAGES = {
     },
     staffSettings: {
       title: 'Staff accounts',
-      desc: 'Kitchen and waiter logins (email: login_name@mesa.in).',
+      desc: 'Kitchen, waiter, and cashier logins (email: login_name@mesa.in).',
       add: 'Add staff',
       empty: 'No staff accounts yet',
       emailHint: 'Staff email is login_name@mesa.in. Login names are unique platform-wide.',
@@ -853,6 +854,7 @@ export const MESSAGES = {
       colActions: 'Actions',
       roleKitchen: 'Kitchen',
       roleWaiter: 'Waiter',
+      roleCashier: 'Cashier',
       statusActive: 'Active',
       statusDisabled: 'Disabled',
       fieldDisplayName: 'Display name',
@@ -1112,7 +1114,7 @@ export const MESSAGES = {
     },
     staffSettings: {
       title: 'Contas da equipa',
-      desc: 'Logins de cozinha e sala (email: login_name@mesa.in).',
+      desc: 'Logins de cozinha, sala e caixa (email: login_name@mesa.in).',
       add: 'Adicionar',
       empty: 'Sem contas de equipa',
       emailHint: 'Email: login_name@mesa.in; nome de login unico em toda a plataforma.',
@@ -1123,6 +1125,7 @@ export const MESSAGES = {
       colActions: 'Acoes',
       roleKitchen: 'Cozinha',
       roleWaiter: 'Sala',
+      roleCashier: 'Caixa',
       statusActive: 'Ativo',
       statusDisabled: 'Desativado',
       fieldDisplayName: 'Nome visivel',

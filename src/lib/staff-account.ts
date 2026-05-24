@@ -1,4 +1,4 @@
-export type StaffRole = 'kitchen' | 'waiter';
+export type StaffRole = 'kitchen' | 'waiter' | 'cashier';
 
 export const STAFF_EMAIL_DOMAIN = 'mesa.in';
 
@@ -6,6 +6,7 @@ const RESERVED_LOGIN_NAMES = new Set([
   'admin',
   'kitchen',
   'waiter',
+  'cashier',
   'owner',
   'root',
   'support',
@@ -65,7 +66,7 @@ export function suggestLoginNameFromDisplay(
     .replace(/[^a-z0-9]+/g, '')
     .slice(0, 24);
 
-  const tag = role === 'waiter' ? 'w' : 'k';
+  const tag = role === 'waiter' ? 'w' : role === 'cashier' ? 'c' : 'k';
   let candidate =
     latin.length >= 3
       ? latin
@@ -135,7 +136,9 @@ export type StaffUserMetadata = {
 export function parseStaffUserMetadata(meta: Record<string, unknown> | undefined): StaffUserMetadata | null {
   if (!meta || meta.account_type !== 'staff') return null;
   const staff_role = meta.staff_role;
-  if (staff_role !== 'kitchen' && staff_role !== 'waiter') return null;
+  if (staff_role !== 'kitchen' && staff_role !== 'waiter' && staff_role !== 'cashier') {
+    return null;
+  }
   if (typeof meta.restaurant_id !== 'string' || typeof meta.staff_account_id !== 'string') return null;
   if (typeof meta.restaurant_slug !== 'string') return null;
   return {

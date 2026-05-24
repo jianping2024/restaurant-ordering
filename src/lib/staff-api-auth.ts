@@ -108,3 +108,16 @@ export async function staffAuthFromRequest(
     user_id: user.id,
   };
 }
+
+/** Owner or staff with one of the given roles for this restaurant slug. */
+export async function staffAuthFromRequestWithRoles(
+  req: Request,
+  slug: string,
+  roles: StaffRole[],
+): Promise<StaffAuthContext | null> {
+  for (const role of roles) {
+    const ctx = await staffAuthFromRequest(req, slug, role);
+    if (ctx) return ctx;
+  }
+  return null;
+}

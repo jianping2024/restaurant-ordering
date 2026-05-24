@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { staffAuthFromRequest } from '@/lib/staff-api-auth';
+import { staffAuthFromRequestWithRoles } from '@/lib/staff-api-auth';
 import { confirmBillSplitPayment } from '@/lib/checkout-confirm-payment';
 
 export const runtime = 'nodejs';
@@ -14,16 +14,16 @@ async function authorizeRestaurant(slug: string, req: Request) {
     return { error: NextResponse.json({ error: 'server_misconfigured' }, { status: 503 }) };
   }
 
-  const waiterCtx = await staffAuthFromRequest(req, slug, 'waiter');
-  if (waiterCtx) {
+  const staffCtx = await staffAuthFromRequestWithRoles(req, slug, ['waiter', 'cashier']);
+  if (staffCtx) {
     const { data: rest } = await admin
       .from('restaurants')
       .select('name, print_locale')
-      .eq('id', waiterCtx.restaurant_id)
+      .eq('id', staffCtx.restaurant_id)
       .single();
     return {
       admin,
-      restaurantId: waiterCtx.restaurant_id,
+      restaurantId: staffCtx.restaurant_id,
       restaurantName: rest?.name ?? null,
       printLocale: rest?.print_locale ?? null,
     };

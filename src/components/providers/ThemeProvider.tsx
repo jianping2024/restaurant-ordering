@@ -24,15 +24,22 @@ function applyTheme(theme: ThemeMode) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeMode>(() => {
-    if (typeof window === 'undefined') return DEFAULT_THEME;
-    const attr = document.documentElement.getAttribute('data-theme');
-    return attr === 'dark' || attr === 'light' ? attr : DEFAULT_THEME;
-  });
+  // Must match server HTML on first paint; real theme is applied via layout inline script + useEffect below.
+  const [theme, setThemeState] = useState<ThemeMode>(DEFAULT_THEME);
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    const initial: ThemeMode = saved === 'dark' || saved === 'light' ? saved : DEFAULT_THEME;
+    const attr = document.documentElement.getAttribute('data-theme');
+    const fromDom = attr === 'dark' || attr === 'light' ? attr : null;
+    let saved: string | null = null;
+    try {
+      saved = localStorage.getItem(STORAGE_KEY);
+    } catch {
+      saved = null;
+    }
+    const initial: ThemeMode =
+      saved === 'dark' || saved === 'light'
+        ? saved
+        : fromDom ?? DEFAULT_THEME;
     setThemeState(initial);
     applyTheme(initial);
     document.documentElement.style.colorScheme = initial;

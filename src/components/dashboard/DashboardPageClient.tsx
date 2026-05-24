@@ -2,7 +2,7 @@
 
 import type { Order } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import { getMessages } from '@/lib/i18n/messages';
 import { FeedbackInsightsPanel } from '@/components/dashboard/FeedbackInsightsPanel';
 
 export interface DashboardTopItem {
@@ -11,13 +11,16 @@ export interface DashboardTopItem {
   count: number;
 }
 
+export type DashboardRecentOrder = Order & { createdAtLabel: string };
+
 interface Props {
+  overviewDateLabel: string;
   todayOrderCount: number;
   todayRevenue: number;
   doneOrderCount: number;
   menuCount: number;
   topItems: DashboardTopItem[];
-  recentOrders: Order[];
+  recentOrders: DashboardRecentOrder[];
   touchedRate?: number;
   completedRate?: number;
   actionableRate?: number;
@@ -28,6 +31,7 @@ interface Props {
 }
 
 export function DashboardPageClient({
+  overviewDateLabel,
   todayOrderCount,
   todayRevenue,
   doneOrderCount,
@@ -45,8 +49,6 @@ export function DashboardPageClient({
   const { lang } = useLanguage();
   const i18n = getMessages(lang).dashboard;
   const feedbackI18n = getMessages(lang).orderHistory;
-  const locale = UI_LOCALE_BY_LANG[lang];
-
   const stats = [
     { label: i18n.todayOrders, value: todayOrderCount, unit: i18n.unitOrder, color: 'text-brand-gold' },
     { label: i18n.todayRevenue, value: `€${todayRevenue.toFixed(2)}`, unit: '', color: 'text-green-400' },
@@ -58,9 +60,7 @@ export function DashboardPageClient({
     <div>
       <div className="mb-8">
         <h1 className="font-heading text-3xl text-brand-text">{i18n.title}</h1>
-        <p className="text-brand-text-muted text-sm mt-1">
-          {new Date().toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
-        </p>
+        <p className="text-brand-text-muted text-sm mt-1">{overviewDateLabel}</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -130,14 +130,7 @@ export function DashboardPageClient({
                     <p className="text-sm text-brand-text">
                       {i18n.table} {order.table_number}
                     </p>
-                    <p className="text-[13px] text-brand-text-muted">
-                      {new Date(order.created_at).toLocaleString(locale, {
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
+                    <p className="text-[13px] text-brand-text-muted">{order.createdAtLabel}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-brand-gold">€{order.total_amount.toFixed(2)}</p>

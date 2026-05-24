@@ -555,6 +555,7 @@ export const MESSAGES = {
     },
     settingsHub: {
       title: '餐厅设置',
+      navJumpLabel: '设置页面',
       groupBasics: '基础',
       groupVenue: '门店',
       groupMenu: '菜单与定价',
@@ -1231,6 +1232,7 @@ export const MESSAGES = {
     settings: { nameEmpty: 'Restaurant name is required', kitchenPwd: 'Kitchen password must be 4 digits', waiterPwd: 'Waiter password must be 4 digits', saveFail: 'Save failed, please retry', migrationRequired: 'Database migration missing. From project root run: supabase db push', title: 'Restaurant Settings', desc: 'Manage your restaurant profile', name: 'Restaurant name *', slug: 'Restaurant slug (URL)', slugTip: 'Slug cannot be changed after creation', address: 'Address', phone: 'Phone', geoLatitude: 'Restaurant latitude', geoLongitude: 'Restaurant longitude', geoHint: 'Used for order distance checks (customers must be within 50 meters).', useCurrentLocation: 'Use current location', geoInvalid: 'Please enter valid coordinates (latitude -90~90, longitude -180~180)', geoLocateFail: 'Failed to get current location; check location permission', kitchenLabel: 'Kitchen password (4 digits)', kitchenTip: 'Staff use this password to access kitchen display.', waiterLabel: 'Waiter password (4 digits)', waiterTip: 'Staff use this password to access waiter board.', passwordPlaceholder: 'Leave blank to keep', passwordKeepHint: 'Leave blank to keep current PIN; enter 4 digits to set a new one.', saved: 'Settings saved', save: 'Save settings', danger: 'Danger Zone', dangerTip: 'Actions below are irreversible.', openKitchen: 'Open kitchen display' },
     settingsHub: {
       title: 'Settings',
+      navJumpLabel: 'Settings page',
       groupBasics: 'Basics',
       groupVenue: 'Venue',
       groupMenu: 'Menu & pricing',
@@ -1772,6 +1774,7 @@ export const MESSAGES = {
     settings: { nameEmpty: 'Nome do restaurante e obrigatorio', kitchenPwd: 'Senha da cozinha deve ter 4 digitos', waiterPwd: 'Senha do garcom deve ter 4 digitos', saveFail: 'Falha ao salvar, tente novamente', migrationRequired: 'Migracao em falta. Na raiz do projeto execute: supabase db push', title: 'Configuracoes do restaurante', desc: 'Gerencie os dados basicos do restaurante', name: 'Nome do restaurante *', slug: 'Slug do restaurante (URL)', slugTip: 'O slug nao pode ser alterado', address: 'Endereco', phone: 'Telefone', geoLatitude: 'Latitude do restaurante', geoLongitude: 'Longitude do restaurante', geoHint: 'Usado para validar distancia do pedido (cliente dentro de 50 metros).', useCurrentLocation: 'Usar localizacao atual', geoInvalid: 'Informe coordenadas validas (latitude -90~90, longitude -180~180)', geoLocateFail: 'Falha ao obter localizacao atual; verifique a permissao', kitchenLabel: 'Senha da cozinha (4 digitos)', kitchenTip: 'Equipe usa esta senha para abrir a tela da cozinha.', waiterLabel: 'Senha do garcom (4 digitos)', waiterTip: 'Equipe usa esta senha para abrir o painel do garcom.', passwordPlaceholder: 'Deixe em branco para manter', passwordKeepHint: 'Deixe em branco para manter o PIN atual; digite 4 numeros para definir um novo.', saved: 'Configuracoes salvas', save: 'Salvar configuracoes', danger: 'Area de risco', dangerTip: 'As acoes abaixo nao podem ser desfeitas.', openKitchen: 'Abrir tela da cozinha' },
     settingsHub: {
       title: 'Configuracoes',
+      navJumpLabel: 'Pagina de configuracao',
       groupBasics: 'Basico',
       groupVenue: 'Sala',
       groupMenu: 'Menu e precos',

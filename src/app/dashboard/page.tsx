@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import type { Order } from '@/types';
 import { DashboardPageClient } from '@/components/dashboard/DashboardPageClient';
+import { getServerLanguage } from '@/lib/i18n.server';
+import { formatOrderDateTime, formatOverviewDate } from '@/lib/format-dashboard-date';
 
 // 数据概览（数据服务端获取，文案与 LanguageProvider 同步）
 export default async function DashboardPage() {
@@ -75,7 +77,12 @@ export default async function DashboardPage() {
     .sort((a, b) => b.count - a.count)
     .slice(0, 5);
 
-  const recentOrders = ((allOrders || []) as Order[]).slice(0, 6);
+  const lang = getServerLanguage();
+  const overviewDateLabel = formatOverviewDate(lang);
+  const recentOrders = ((allOrders || []) as Order[]).slice(0, 6).map((order) => ({
+    ...order,
+    createdAtLabel: formatOrderDateTime(lang, order.created_at),
+  }));
 
   const billedSessionIds = new Set((billedSplits || []).map((row) => row.session_id).filter(Boolean));
   const touchedSessionIds = new Set((feedbackSessions || []).map((row) => row.session_id).filter(Boolean));
@@ -124,6 +131,7 @@ export default async function DashboardPage() {
 
   return (
     <DashboardPageClient
+      overviewDateLabel={overviewDateLabel}
       todayOrderCount={orders.length}
       todayRevenue={todayRevenue}
       doneOrderCount={doneOrders}

@@ -47,6 +47,10 @@ export async function GET(req: Request) {
     restaurantId = rest.id;
   }
 
+  if (!restaurantId) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+
   const snapshot = await loadRestaurantReceiptPrinterSnapshot(admin, restaurantId);
   const printers: ReceiptPrinterOption[] = snapshot?.receipt_printers ?? [];
 

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { BillSplit, Order, OrderItem, PrintJobType } from '@/types';
+import type { BillSplit, Order, PrintJobType } from '@/types';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { fetchMenuPrintContext } from '@/lib/menu-print-context';
 import { orderItemPrintDisplayName } from '@/lib/menu-print-label';

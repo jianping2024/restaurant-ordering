@@ -1,5 +1,5 @@
 /** Default split-person labels from bill UI (any locale). */
-const DEFAULT_GUEST_NAME_RE = /^(?:客人|Guest|Pessoa)\s*(\d+)$/iu;
+const DEFAULT_GUEST_NAME_RE = /^(?:客人|Guest|Pessoa)\s*(\d+)$/i;
 
 /**
  * Payer line on thermal receipts already has a "Guest" prefix.

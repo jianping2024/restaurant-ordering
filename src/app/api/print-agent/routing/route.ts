@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   const { data: stations } = await admin
     .from('print_stations')
     .select('id, name_pt, name_en, name_zh')
-    .eq('restaurant_id', auth.restaurantId);
+    .eq('restaurant_id', auth.restaurant_id);
 
   const snapshot = buildReceiptPrinterSnapshot({
     stationPrinters,
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     .from('print_agent_devices')
     .update({ routing_snapshot: snapshot })
     .eq('id', auth.device_id)
-    .eq('restaurant_id', auth.restaurantId);
+    .eq('restaurant_id', auth.restaurant_id);
 
   if (error) {
     return NextResponse.json({ error: 'update_failed', message: error.message }, { status: 500 });

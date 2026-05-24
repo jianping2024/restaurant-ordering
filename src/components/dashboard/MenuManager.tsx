@@ -24,6 +24,11 @@ import {
   NOTE_PRESET_GROUP_LABELS,
   type NotePresetGroup,
 } from '@/lib/note-presets';
+import {
+  isPostgresUniqueViolation,
+  menuItemHasDuplicateCode,
+  siblingCategoryHasDuplicateCode,
+} from '@/lib/menu-code-uniqueness';
 import { normalizeMenuItemCode } from '@/lib/menu-print-label';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import 'rc-tree/assets/index.css';
@@ -436,6 +441,12 @@ export function MenuManager({
     const selectedCategoryRow = categories.find((c) => c.id === itemForm.category_id);
     if (!selectedCategoryRow) return setItemError(t.category);
 
+    const normalizedItemCode = normalizeMenuItemCode(itemForm.item_code);
+    if (menuItemHasDuplicateCode(items, normalizedItemCode, editingItem?.id)) {
+      setItemError(t.errItemCodeDuplicate);
+      return;
+    }
+
     setItemSaving(true);
     setItemError('');
     const payload = {
@@ -454,19 +465,31 @@ export function MenuManager({
       available: itemForm.available,
       note_preset_keys: itemForm.note_preset_keys,
       print_station_id: itemForm.print_station_id || null,
-      item_code: normalizeMenuItemCode(itemForm.item_code),
+      item_code: normalizedItemCode,
     };
 
     try {
       let row: MenuItem;
       if (editingItem) {
         const { data, error } = await supabase.from('menu_items').update(payload).eq('id', editingItem.id).select().single();
-        if (error) throw error;
+        if (error) {
+          if (isPostgresUniqueViolation(error)) {
+            setItemError(t.errItemCodeDuplicate);
+            return;
+          }
+          throw error;
+        }
         row = data;
       } else {
         const sortOrder = items.filter((i) => i.category_id === selectedCategoryRow.id).length;
         const { data, error } = await supabase.from('menu_items').insert({ ...payload, sort_order: sortOrder }).select().single();
-        if (error) throw error;
+        if (error) {
+          if (isPostgresUniqueViolation(error)) {
+            setItemError(t.errItemCodeDuplicate);
+            return;
+          }
+          throw error;
+        }
         row = data;
       }
 
@@ -538,6 +561,12 @@ export function MenuManager({
         return;
       }
     }
+    const normalizedCode = normalizeMenuItemCode(categoryDraft.item_code);
+    if (siblingCategoryHasDuplicateCode(categories, parentId, normalizedCode)) {
+      setCategoryError(t.errCategoryCodeDuplicate);
+      return;
+    }
+
     setCategorySaving(true);
     setCategoryError('');
     const siblings = categories.filter((c) => (c.parent_id || null) === parentId);
@@ -549,7 +578,7 @@ export function MenuManager({
         name_pt: categoryDraft.name_pt.trim(),
         name_en: categoryDraft.name_en.trim() || null,
         name_zh: categoryDraft.name_zh.trim() || null,
-        item_code: normalizeMenuItemCode(categoryDraft.item_code),
+        item_code: normalizedCode,
         print_station_id: categoryDraft.print_station_id || null,
         sort_order: siblings.length,
         active: true,
@@ -557,7 +586,11 @@ export function MenuManager({
       .select()
       .single();
     setCategorySaving(false);
-    if (error) return setCategoryError(error.message);
+    if (error) {
+      return setCategoryError(
+        isPostgresUniqueViolation(error) ? t.errCategoryCodeDuplicate : error.message,
+      );
+    }
     setCategories((prev) => [...prev, data]);
     setSelectedCategoryId(data.id);
     if (parentId) {
@@ -576,6 +609,13 @@ export function MenuManager({
       setCategoryError('PT name is required');
       return;
     }
+    const normalizedCode = normalizeMenuItemCode(categoryDraft.item_code);
+    const parentId = selectedCategory.parent_id ?? null;
+    if (siblingCategoryHasDuplicateCode(categories, parentId, normalizedCode, selectedCategory.id)) {
+      setCategoryError(t.errCategoryCodeDuplicate);
+      return;
+    }
+
     setCategorySaving(true);
     setCategoryError('');
     const { data, error } = await supabase
@@ -584,14 +624,18 @@ export function MenuManager({
         name_pt: categoryDraft.name_pt.trim(),
         name_en: categoryDraft.name_en.trim() || null,
         name_zh: categoryDraft.name_zh.trim() || null,
-        item_code: normalizeMenuItemCode(categoryDraft.item_code),
+        item_code: normalizedCode,
         print_station_id: categoryDraft.print_station_id || null,
       })
       .eq('id', selectedCategory.id)
       .select()
       .single();
     setCategorySaving(false);
-    if (error) return setCategoryError(error.message);
+    if (error) {
+      return setCategoryError(
+        isPostgresUniqueViolation(error) ? t.errCategoryCodeDuplicate : error.message,
+      );
+    }
     const row = data as MenuCategory;
     setCategories((prev) => prev.map((c) => (c.id === selectedCategory.id ? row : c)));
     setCategoryDraft(categoryDraftFromRow(row));

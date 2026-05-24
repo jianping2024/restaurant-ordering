@@ -17,15 +17,15 @@ type daySchedule struct {
 }
 
 type scheduleConfig struct {
-	Timezone string                  `json:"timezone,omitempty"`
-	Weekday  *daySchedule            `json:"weekday,omitempty"`
-	Saturday *daySchedule            `json:"saturday,omitempty"`
-	Sunday   *daySchedule            `json:"sunday,omitempty"`
-	Monday   *daySchedule            `json:"monday,omitempty"`
-	Tuesday  *daySchedule            `json:"tuesday,omitempty"`
-	Wednesday *daySchedule           `json:"wednesday,omitempty"`
-	Thursday *daySchedule            `json:"thursday,omitempty"`
-	Friday   *daySchedule            `json:"friday,omitempty"`
+	Timezone  string       `json:"timezone,omitempty"`
+	Weekday   *daySchedule `json:"weekday,omitempty"`
+	Saturday  *daySchedule `json:"saturday,omitempty"`
+	Sunday    *daySchedule `json:"sunday,omitempty"`
+	Monday    *daySchedule `json:"monday,omitempty"`
+	Tuesday   *daySchedule `json:"tuesday,omitempty"`
+	Wednesday *daySchedule `json:"wednesday,omitempty"`
+	Thursday  *daySchedule `json:"thursday,omitempty"`
+	Friday    *daySchedule `json:"friday,omitempty"`
 }
 
 func (s *scheduleConfig) enabled() bool {

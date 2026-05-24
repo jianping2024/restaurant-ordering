@@ -39,7 +39,7 @@ func TestSchedulePirataWeekdayLunch(t *testing.T) {
 
 func TestPollPhaseWarm(t *testing.T) {
 	pc := &pollController{
-		cfg: defaultPollConfig(),
+		cfg:     defaultPollConfig(),
 		lastAct: time.Now().Add(-5 * time.Minute),
 	}
 	if pc.phase(false, false) != pollPhaseWarm {

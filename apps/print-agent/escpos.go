@@ -14,7 +14,7 @@ const escposWidth = 48
 // Margin before cutter — many POS-80 units need extra feed after double-height headers.
 const (
 	escposFeedLinesBeforeCut = 8
-	escposFeedDotsBeforeCut    = 0x60 // GS V 66 n — feed n units then full cut
+	escposFeedDotsBeforeCut  = 0x60 // GS V 66 n — feed n units then full cut
 )
 
 type ticketLabels struct {
@@ -111,18 +111,18 @@ type jobLine struct {
 }
 
 type jobPayload struct {
-	Locale               string  `json:"locale"`
-	ConnectionTest       bool    `json:"connection_test"`
-	RestaurantName       string  `json:"restaurant_name"`
-	TableNumber          int     `json:"table_number"`
-	GuestCount           int     `json:"guest_count"`
-	StationDisplayNamePt string  `json:"station_display_name_pt"`
-	StationDisplayNameEn string  `json:"station_display_name_en"`
-	StationDisplayNameZh string  `json:"station_display_name_zh"`
+	Locale               string    `json:"locale"`
+	ConnectionTest       bool      `json:"connection_test"`
+	RestaurantName       string    `json:"restaurant_name"`
+	TableNumber          int       `json:"table_number"`
+	GuestCount           int       `json:"guest_count"`
+	StationDisplayNamePt string    `json:"station_display_name_pt"`
+	StationDisplayNameEn string    `json:"station_display_name_en"`
+	StationDisplayNameZh string    `json:"station_display_name_zh"`
 	Lines                []jobLine `json:"lines"`
-	Subtotal             float64 `json:"subtotal"`
-	AmountDue            float64 `json:"amount_due"`
-	OrderTime            string  `json:"order_time"`
+	Subtotal             float64   `json:"subtotal"`
+	AmountDue            float64   `json:"amount_due"`
+	OrderTime            string    `json:"order_time"`
 }
 
 func parseJobPayload(job printJob) jobPayload {
@@ -159,8 +159,8 @@ func (p jobPayload) venueName() string {
 }
 
 type escposWriter struct {
-	buf  bytes.Buffer
-	gbk  bool
+	buf bytes.Buffer
+	gbk bool
 }
 
 func newEscpos() *escposWriter {

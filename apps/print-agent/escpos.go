@@ -11,10 +11,12 @@ import (
 // 80mm paper ≈ 48 chars (Font A). Layout follows reference thermal receipts.
 const escposWidth = 48
 
-// Margin before cutter — many POS-80 units need extra feed after double-height headers.
+// Max margin before cutter — long tickets or double-height blocks need more clearance.
 const (
-	escposFeedLinesBeforeCut = 8
-	escposFeedDotsBeforeCut  = 0x60 // GS V 66 n — feed n units then full cut
+	escposFeedLinesBeforeCutMax = 8
+	escposFeedDotsBeforeCutMax  = 0x60 // GS V 66 n — feed n units then full cut
+	escposFeedLinesBeforeCutMin = 2
+	escposFeedDotsBeforeCutMin  = 0x28
 )
 
 type ticketLabels struct {
@@ -159,8 +161,42 @@ func (p jobPayload) venueName() string {
 }
 
 type escposWriter struct {
-	buf bytes.Buffer
-	gbk bool
+	prefix          []byte
+	content         bytes.Buffer
+	gbk             bool
+	bodyLines       int
+	hadDoubleHeight bool
+}
+
+type ticketMargins struct {
+	blankLF  int
+	escDFeed int
+	cutDots  byte
+}
+
+// marginsForTicket scales symmetric top/bottom feed (cut dots only at the tail).
+func marginsForTicket(bodyLines int, hadDoubleHeight bool) ticketMargins {
+	score := bodyLines
+	if hadDoubleHeight {
+		score += 6
+	}
+	switch {
+	case score <= 14:
+		return ticketMargins{1, escposFeedLinesBeforeCutMin, escposFeedDotsBeforeCutMin}
+	case score <= 22:
+		return ticketMargins{2, 4, 0x38}
+	case score <= 32:
+		return ticketMargins{2, 6, 0x48}
+	default:
+		return ticketMargins{3, escposFeedLinesBeforeCutMax, escposFeedDotsBeforeCutMax}
+	}
+}
+
+func writeMargin(b *bytes.Buffer, m ticketMargins) {
+	for i := 0; i < m.blankLF; i++ {
+		b.WriteByte('\n')
+	}
+	b.Write([]byte{0x1B, 0x64, byte(m.escDFeed)})
 }
 
 func newEscpos() *escposWriter {
@@ -189,22 +225,22 @@ func newEscposForPayload(p jobPayload) *escposWriter {
 	return w
 }
 
-func (w *escposWriter) init() { w.buf.Write([]byte{0x1B, 0x40}) }
+func (w *escposWriter) init() { w.prefix = append(w.prefix, 0x1B, 0x40) }
 
 // enableLatin selects WPC1252 (covers Portuguese accents on most 80mm printers).
 func (w *escposWriter) enableLatin() {
 	w.gbk = false
-	w.buf.Write([]byte{0x1B, 0x74, 16})
+	w.prefix = append(w.prefix, 0x1B, 0x74, 16)
 }
 
 // enableGBK selects simplified Chinese mode (common on POS-80 USB printers).
 func (w *escposWriter) enableGBK() {
 	w.gbk = true
-	w.buf.Write([]byte{0x1C, 0x26}) // FS &
+	w.prefix = append(w.prefix, 0x1C, 0x26) // FS &
 }
 
 func (w *escposWriter) align(mode byte) {
-	w.buf.Write([]byte{0x1B, 0x61, mode})
+	w.content.Write([]byte{0x1B, 0x61, mode})
 }
 
 func (w *escposWriter) bold(on bool) {
@@ -212,10 +248,13 @@ func (w *escposWriter) bold(on bool) {
 	if on {
 		n = 1
 	}
-	w.buf.Write([]byte{0x1B, 0x45, n})
+	w.content.Write([]byte{0x1B, 0x45, n})
 }
 
 func (w *escposWriter) size(doubleW, doubleH bool) {
+	if doubleH {
+		w.hadDoubleHeight = true
+	}
 	n := byte(0)
 	if doubleH {
 		n |= 0x01
@@ -223,49 +262,45 @@ func (w *escposWriter) size(doubleW, doubleH bool) {
 	if doubleW {
 		n |= 0x10
 	}
-	w.buf.Write([]byte{0x1D, 0x21, n})
+	w.content.Write([]byte{0x1D, 0x21, n})
 }
 
 func (w *escposWriter) text(s string) {
 	if w.gbk {
-		w.buf.Write(encodeGBK(s))
+		w.content.Write(encodeGBK(s))
 	} else {
-		w.buf.Write(encodeWindows1252(s))
+		w.content.Write(encodeWindows1252(s))
 	}
 }
 
-func (w *escposWriter) lf() { w.buf.WriteByte('\n') }
-
-func (w *escposWriter) feed(n int) {
-	if n < 0 {
-		n = 0
-	}
-	if n > 255 {
-		n = 255
-	}
-	w.buf.Write([]byte{0x1B, 0x64, byte(n)})
+func (w *escposWriter) lf() {
+	w.content.WriteByte('\n')
+	w.bodyLines++
 }
 
-func (w *escposWriter) resetPrintMode() {
-	w.align(0)
-	w.size(false, false)
-	w.bold(false)
-	w.buf.Write([]byte{0x1B, 0x32}) // ESC 2 — default line spacing after enlarged text
+func (w *escposWriter) writeResetPrintMode(out *bytes.Buffer) {
+	out.Write([]byte{0x1B, 0x61, 0})
+	out.Write([]byte{0x1D, 0x21, 0})
+	out.Write([]byte{0x1B, 0x45, 0})
+	out.Write([]byte{0x1B, 0x32}) // ESC 2 — default line spacing after enlarged text
 }
 
-func (w *escposWriter) cut() {
-	w.resetPrintMode()
-	if w.gbk {
-		w.buf.Write([]byte{0x1C, 0x2E}) // FS . — exit Chinese mode before feed/cut
-		w.gbk = false
+// finish assembles init + symmetric margins + body (+ cut tail when cut is true).
+func (w *escposWriter) finish(cut bool) []byte {
+	m := marginsForTicket(w.bodyLines, w.hadDoubleHeight)
+	var out bytes.Buffer
+	out.Write(w.prefix)
+	writeMargin(&out, m)
+	out.Write(w.content.Bytes())
+	if cut {
+		w.writeResetPrintMode(&out)
+		if w.gbk {
+			out.Write([]byte{0x1C, 0x2E}) // FS . — exit Chinese mode before feed/cut
+		}
+		writeMargin(&out, m)
+		out.Write([]byte{0x1D, 0x56, 0x42, m.cutDots})
 	}
-	// Blank lines + ESC d feed so the last printed row clears the print head.
-	for i := 0; i < 3; i++ {
-		w.lf()
-	}
-	w.feed(escposFeedLinesBeforeCut)
-	// Feed then full cut (preferred on Epson / POS-80 clones; avoids cutting through footer).
-	w.buf.Write([]byte{0x1D, 0x56, 0x42, escposFeedDotsBeforeCut})
+	return out.Bytes()
 }
 func (w *escposWriter) separator(ch rune) {
 	w.align(0)
@@ -275,8 +310,6 @@ func (w *escposWriter) separator(ch rune) {
 	w.text(line)
 	w.lf()
 }
-
-func (w *escposWriter) bytes() []byte { return w.buf.Bytes() }
 
 func escposPadLine(left, right string, width int) string {
 	left = truncateRunes(left, width-2)
@@ -408,8 +441,7 @@ func buildStationTicket(p jobPayload) []byte {
 	w.text(fmt.Sprintf("%s:%s", lab.printedBy, lab.printedByVal))
 	w.lf()
 
-	w.cut()
-	return w.bytes()
+	return w.finish(true)
 }
 
 // buildOrderReceipt — reference: full receipt with items, qty, price, totals.
@@ -511,8 +543,7 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels) []byte {
 	w.text(fmt.Sprintf("%s:%s", lab.printTime, nowLocal()))
 	w.lf()
 
-	w.cut()
-	return w.bytes()
+	return w.finish(true)
 }
 
 func buildConnectionTest(p jobPayload, lab ticketLabels) []byte {
@@ -530,6 +561,5 @@ func buildConnectionTest(p jobPayload, lab ticketLabels) []byte {
 	w.lf()
 	w.text(nowLocal())
 	w.lf()
-	w.cut()
-	return w.bytes()
+	return w.finish(true)
 }

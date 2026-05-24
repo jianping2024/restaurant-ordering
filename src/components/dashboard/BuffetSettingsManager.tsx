@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Buffet, BuffetCalendarKind, BuffetPriceRule, BuffetTimeSlot } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -13,9 +13,19 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { DecimalInput } from '@/components/ui/DecimalInput';
 import { IntegerInput } from '@/components/ui/IntegerInput';
+import { BuffetPricingGuide } from '@/components/dashboard/buffet/BuffetPricingGuide';
+import { BuffetPricePreview } from '@/components/dashboard/buffet/BuffetPricePreview';
+import { BuffetPriceMatrix } from '@/components/dashboard/buffet/BuffetPriceMatrix';
+import { BuffetCalendarPanel } from '@/components/dashboard/buffet/BuffetCalendarPanel';
+import {
+  CALENDAR_KINDS,
+  findOverlappingRules,
+  getRuleStatus,
+  todayIsoLocal,
+  type RuleStatusFilter,
+} from '@/lib/buffet-pricing-admin';
 
 const DOW_LABELS_ZH = ['日', '一', '二', '三', '四', '五', '六'];
-const CALENDAR_KINDS: BuffetCalendarKind[] = ['weekday', 'weekend', 'holiday', 'special'];
 
 interface Props {
   restaurantId: string;
@@ -43,13 +53,17 @@ type RuleDraft = {
   note: string;
 };
 
-function buildDefaultRuleDraft(buffets: Buffet[], slots: BuffetTimeSlot[]): RuleDraft | null {
+function buildRuleDraft(
+  buffets: Buffet[],
+  slots: BuffetTimeSlot[],
+  overrides?: Partial<RuleDraft>,
+): RuleDraft | null {
   if (!buffets[0] || !slots[0]) return null;
   const today = new Date();
   const y = today.getFullYear();
   const m = String(today.getMonth() + 1).padStart(2, '0');
   const d = String(today.getDate()).padStart(2, '0');
-  return {
+  const base: RuleDraft = {
     buffet_id: buffets[0].id,
     time_slot_id: slots[0].id,
     calendar_kind: 'weekday',
@@ -61,6 +75,7 @@ function buildDefaultRuleDraft(buffets: Buffet[], slots: BuffetTimeSlot[]): Rule
     is_active: true,
     note: '',
   };
+  return { ...base, ...overrides };
 }
 
 function ruleToDraft(rule: BuffetPriceRule): RuleDraft {
@@ -82,6 +97,7 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).buffetAdmin;
   const supabase = createClient();
+  const today = todayIsoLocal();
 
   const [tab, setTab] = useState<'buffets' | 'slots' | 'rules' | 'calendar'>('buffets');
   const [buffets, setBuffets] = useState<Buffet[]>([]);
@@ -98,6 +114,45 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
   const [ruleModal, setRuleModal] = useState<null | { mode: 'create' } | { mode: 'edit'; id: string }>(null);
   const [ruleDraft, setRuleDraft] = useState<RuleDraft | null>(null);
   const [ruleSaveSubmitting, setRuleSaveSubmitting] = useState(false);
+  const [pendingConflictSave, setPendingConflictSave] = useState(false);
+
+  const [rulesView, setRulesView] = useState<'matrix' | 'list'>('matrix');
+  const [matrixBuffetId, setMatrixBuffetId] = useState('');
+  const [filterBuffetId, setFilterBuffetId] = useState('');
+  const [filterSlotId, setFilterSlotId] = useState('');
+  const [filterDayKind, setFilterDayKind] = useState<BuffetCalendarKind | ''>('');
+  const [filterStatus, setFilterStatus] = useState<RuleStatusFilter | 'all'>('all');
+
+  const dayKindLabel = useCallback(
+    (k: BuffetCalendarKind | string) => {
+      switch (k) {
+        case 'weekday':
+          return t.weekday;
+        case 'weekend':
+          return t.weekend;
+        case 'holiday':
+          return t.holiday;
+        case 'special':
+          return t.special;
+        default:
+          return k;
+      }
+    },
+    [t],
+  );
+
+  const kindHelp = (k: BuffetCalendarKind) => {
+    switch (k) {
+      case 'weekday':
+        return t.kindHelpWeekday;
+      case 'weekend':
+        return t.kindHelpWeekend;
+      case 'holiday':
+        return t.kindHelpHoliday;
+      case 'special':
+        return t.kindHelpSpecial;
+    }
+  };
 
   const reload = useCallback(async () => {
     const client = createClient();
@@ -128,6 +183,25 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
       cancelled = true;
     };
   }, [reload]);
+
+  useEffect(() => {
+    if (!matrixBuffetId && buffets[0]) setMatrixBuffetId(buffets[0].id);
+  }, [buffets, matrixBuffetId]);
+
+  const filteredRules = useMemo(() => {
+    return rules.filter((rule) => {
+      if (filterBuffetId && rule.buffet_id !== filterBuffetId) return false;
+      if (filterSlotId && rule.time_slot_id !== filterSlotId) return false;
+      if (filterDayKind && rule.calendar_kind !== filterDayKind) return false;
+      if (filterStatus !== 'all') {
+        const st = getRuleStatus(rule, today);
+        if (filterStatus === 'expired' && st !== 'expired') return false;
+        if (filterStatus === 'active' && st !== 'active') return false;
+        if (filterStatus === 'upcoming' && st !== 'upcoming') return false;
+      }
+      return true;
+    });
+  }, [rules, filterBuffetId, filterSlotId, filterDayKind, filterStatus, today]);
 
   const handlePromptSubmit = async (name: string) => {
     const kind = prompt?.kind;
@@ -209,24 +283,66 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
     else await reload();
   };
 
-  const openRuleCreateModal = () => {
-    const draft = buildDefaultRuleDraft(buffets, slots);
+  const openRuleCreateModal = (overrides?: Partial<RuleDraft>) => {
+    const draft = buildRuleDraft(buffets, slots, overrides);
     if (!draft) {
       showToast(t.needSlotAndBuffet, 'error');
       return;
     }
     setRuleDraft(draft);
     setRuleModal({ mode: 'create' });
+    setPendingConflictSave(false);
   };
 
   const openRuleEditModal = (rule: BuffetPriceRule) => {
     setRuleDraft(ruleToDraft(rule));
     setRuleModal({ mode: 'edit', id: rule.id });
+    setPendingConflictSave(false);
+  };
+
+  const openRuleCopyModal = (rule: BuffetPriceRule) => {
+    const draft = ruleToDraft(rule);
+    setRuleDraft(draft);
+    setRuleModal({ mode: 'create' });
+    setPendingConflictSave(false);
   };
 
   const closeRuleModal = () => {
     setRuleModal(null);
     setRuleDraft(null);
+    setPendingConflictSave(false);
+  };
+
+  const persistRule = async () => {
+    if (!ruleDraft || !ruleModal) return;
+    const payload = {
+      restaurant_id: restaurantId,
+      buffet_id: ruleDraft.buffet_id,
+      time_slot_id: ruleDraft.time_slot_id,
+      calendar_kind: ruleDraft.calendar_kind,
+      valid_from: ruleDraft.valid_from,
+      valid_to: ruleDraft.valid_to,
+      adult_price: ruleDraft.adult_price,
+      child_price: ruleDraft.child_price,
+      priority: ruleDraft.priority,
+      is_active: ruleDraft.is_active,
+      note: ruleDraft.note.trim() || null,
+    };
+    if (ruleModal.mode === 'create') {
+      const { error } = await supabase.from('buffet_price_rules').insert(payload);
+      if (error) showToast(t.saveError, 'error');
+      else {
+        await reload();
+        closeRuleModal();
+      }
+    } else {
+      const { error } = await supabase.from('buffet_price_rules').update(payload).eq('id', ruleModal.id);
+      if (error) showToast(t.saveError, 'error');
+      else {
+        await reload();
+        closeRuleModal();
+      }
+    }
   };
 
   const saveRuleModal = async () => {
@@ -239,36 +355,24 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
       showToast(t.ruleInvalidDateRange, 'error');
       return;
     }
+
+    const overlaps = findOverlappingRules(rules, {
+      buffet_id: ruleDraft.buffet_id,
+      time_slot_id: ruleDraft.time_slot_id,
+      calendar_kind: ruleDraft.calendar_kind,
+      valid_from: ruleDraft.valid_from,
+      valid_to: ruleDraft.valid_to,
+      excludeId: ruleModal.mode === 'edit' ? ruleModal.id : undefined,
+    });
+
+    if (overlaps.length > 0 && !pendingConflictSave) {
+      setPendingConflictSave(true);
+      return;
+    }
+
     setRuleSaveSubmitting(true);
     try {
-      const payload = {
-        restaurant_id: restaurantId,
-        buffet_id: ruleDraft.buffet_id,
-        time_slot_id: ruleDraft.time_slot_id,
-        calendar_kind: ruleDraft.calendar_kind,
-        valid_from: ruleDraft.valid_from,
-        valid_to: ruleDraft.valid_to,
-        adult_price: ruleDraft.adult_price,
-        child_price: ruleDraft.child_price,
-        priority: ruleDraft.priority,
-        is_active: ruleDraft.is_active,
-        note: ruleDraft.note.trim() || null,
-      };
-      if (ruleModal.mode === 'create') {
-        const { error } = await supabase.from('buffet_price_rules').insert(payload);
-        if (error) showToast(t.saveError, 'error');
-        else {
-          await reload();
-          closeRuleModal();
-        }
-      } else {
-        const { error } = await supabase.from('buffet_price_rules').update(payload).eq('id', ruleModal.id);
-        if (error) showToast(t.saveError, 'error');
-        else {
-          await reload();
-          closeRuleModal();
-        }
-      }
+      await persistRule();
     } finally {
       setRuleSaveSubmitting(false);
     }
@@ -283,16 +387,14 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
     else await reload();
   };
 
-  const [calDate, setCalDate] = useState('');
-  const [calKind, setCalKind] = useState<'holiday' | 'special'>('holiday');
-
-  const upsertCalendar = async () => {
-    if (!calDate) return;
-    const { error } = await supabase.from('buffet_calendar_overrides').upsert({
-      restaurant_id: restaurantId,
-      on_date: calDate,
-      kind: calKind,
-    });
+  const upsertCalendarRows = async (rows: Array<{ on_date: string; kind: 'holiday' | 'special' }>) => {
+    const { error } = await supabase.from('buffet_calendar_overrides').upsert(
+      rows.map((r) => ({
+        restaurant_id: restaurantId,
+        on_date: r.on_date.slice(0, 10),
+        kind: r.kind,
+      })),
+    );
     if (error) showToast(t.saveError, 'error');
     else await reload();
   };
@@ -308,6 +410,29 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
     void updateSlotField(slot.id, { weekdays: Array.from(set).sort((a, b) => a - b) });
   };
 
+  const goAddRuleForKind = (calendarKind: BuffetCalendarKind) => {
+    setTab('rules');
+    setRulesView('matrix');
+    openRuleCreateModal({ calendar_kind: calendarKind });
+  };
+
+  const overlapNames =
+    ruleDraft && ruleModal
+      ? findOverlappingRules(rules, {
+          buffet_id: ruleDraft.buffet_id,
+          time_slot_id: ruleDraft.time_slot_id,
+          calendar_kind: ruleDraft.calendar_kind,
+          valid_from: ruleDraft.valid_from,
+          valid_to: ruleDraft.valid_to,
+          excludeId: ruleModal.mode === 'edit' ? ruleModal.id : undefined,
+        })
+          .map((r) => {
+            const slot = slots.find((s) => s.id === r.time_slot_id)?.name ?? '';
+            return `${dayKindLabel(r.calendar_kind)} ${r.valid_from?.slice(0, 10)}–${r.valid_to?.slice(0, 10)} (P${r.priority}${slot ? `, ${slot}` : ''})`;
+          })
+          .join('; ')
+      : '';
+
   const confirmMessage =
     confirm?.kind === 'buffet'
       ? t.confirmDeleteBuffet.replace('{name}', confirm.row.name)
@@ -318,6 +443,8 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
           : confirm?.kind === 'calendar'
             ? t.confirmRemoveCalendar
             : '';
+
+  const showPricingTools = tab === 'rules' || tab === 'calendar';
 
   if (loading) {
     return <p className="text-brand-text-muted text-sm">…</p>;
@@ -331,7 +458,7 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
   ];
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-5xl">
       <PromptModal
         open={prompt?.kind === 'buffet'}
         onClose={() => !promptSubmitting && setPrompt(null)}
@@ -373,6 +500,20 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
         </div>
       )}
 
+      <BuffetPricingGuide t={t} />
+
+      {showPricingTools && buffets.length > 0 && (
+        <BuffetPricePreview
+          restaurantId={restaurantId}
+          buffets={buffets}
+          slots={slots}
+          calendarRows={calendarRows}
+          t={t}
+          lang={lang}
+          dayKindLabel={dayKindLabel}
+        />
+      )}
+
       <div className="flex flex-wrap gap-2">
         {tabs.map((x) => (
           <button
@@ -404,7 +545,10 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
           ) : (
             <ul className="space-y-2">
               {buffets.map((b) => (
-                <li key={b.id} className="flex flex-wrap items-center gap-2 justify-between border border-brand-border/60 rounded-lg px-3 py-2">
+                <li
+                  key={b.id}
+                  className="flex flex-wrap items-center gap-2 justify-between border border-brand-border/60 rounded-lg px-3 py-2"
+                >
                   <input
                     key={`${b.id}-${b.name}`}
                     className="rounded-lg bg-brand-bg border border-brand-border px-2 py-1 text-sm text-brand-text font-medium flex-1 min-w-[120px] max-w-md"
@@ -442,6 +586,7 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
 
       {tab === 'slots' && (
         <div className="bg-brand-card border border-brand-border rounded-xl p-4 space-y-4">
+          <p className="text-[13px] text-brand-text-muted">{t.slotsHint}</p>
           <button
             type="button"
             onClick={() => setPrompt({ kind: 'slot' })}
@@ -519,87 +664,198 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
         <div className="bg-brand-card border border-brand-border rounded-xl p-4 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-[13px] text-brand-text-muted max-w-xl">{t.ruleListHint}</p>
-            <Button type="button" size="sm" onClick={openRuleCreateModal}>
-              {t.addRule}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <div className="flex rounded-lg border border-brand-border overflow-hidden text-[12px]">
+                <button
+                  type="button"
+                  onClick={() => setRulesView('matrix')}
+                  className={`px-3 py-1.5 ${rulesView === 'matrix' ? 'bg-brand-gold text-brand-bg' : 'text-brand-text-muted'}`}
+                >
+                  {t.viewMatrix}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRulesView('list')}
+                  className={`px-3 py-1.5 ${rulesView === 'list' ? 'bg-brand-gold text-brand-bg' : 'text-brand-text-muted'}`}
+                >
+                  {t.viewList}
+                </button>
+              </div>
+              <Button type="button" size="sm" onClick={() => openRuleCreateModal()}>
+                {t.addRule}
+              </Button>
+            </div>
           </div>
 
-          {rules.length === 0 ? (
-            <p className="text-sm text-brand-text-muted text-center py-8 border border-dashed border-brand-border rounded-xl">
-              {t.ruleListEmpty}
-            </p>
+          {rulesView === 'matrix' ? (
+            <>
+              {buffets.length > 1 && (
+                <label className="text-[12px] text-brand-text-muted block max-w-xs">
+                  {t.matrixSelectBuffet}
+                  <select
+                    className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-brand-text text-sm"
+                    value={matrixBuffetId}
+                    onChange={(e) => setMatrixBuffetId(e.target.value)}
+                  >
+                    {buffets.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <BuffetPriceMatrix
+                buffetId={matrixBuffetId || buffets[0]?.id || ''}
+                buffets={buffets}
+                slots={slots}
+                rules={rules}
+                t={t}
+                dayKindLabel={dayKindLabel}
+                onSetPrice={({ buffetId, slotId, calendarKind, existingRule }) => {
+                  if (existingRule) openRuleEditModal(existingRule);
+                  else openRuleCreateModal({ buffet_id: buffetId, time_slot_id: slotId, calendar_kind: calendarKind });
+                }}
+              />
+            </>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-brand-border/60">
-              <table className="w-full min-w-[720px] text-left text-sm">
-                <thead>
-                  <tr className="border-b border-brand-border bg-brand-border/20 text-[12px] text-brand-text-muted">
-                    <th className="px-3 py-2 font-medium">{t.ruleBuffet}</th>
-                    <th className="px-3 py-2 font-medium">{t.ruleSlot}</th>
-                    <th className="px-3 py-2 font-medium">{t.calendarKind}</th>
-                    <th className="px-3 py-2 font-medium">{t.ruleTablePeriod}</th>
-                    <th className="px-3 py-2 font-medium">{t.ruleTablePrices}</th>
-                    <th className="px-3 py-2 font-medium">{t.ruleTablePriority}</th>
-                    <th className="px-3 py-2 font-medium">{t.active}</th>
-                    <th className="px-3 py-2 font-medium text-right">{t.ruleTableActions}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[...rules]
-                    .sort((a, b) => b.priority - a.priority || String(b.valid_from).localeCompare(String(a.valid_from)))
-                    .map((rule) => {
-                      const buffetName = buffets.find((b) => b.id === rule.buffet_id)?.name ?? '—';
-                      const slotName = slots.find((s) => s.id === rule.time_slot_id)?.name ?? '—';
-                      const calLabel =
-                        rule.calendar_kind === 'weekday'
-                          ? t.weekday
-                          : rule.calendar_kind === 'weekend'
-                            ? t.weekend
-                            : rule.calendar_kind === 'holiday'
-                              ? t.holiday
-                              : t.special;
-                      return (
-                        <tr key={rule.id} className="border-b border-brand-border/50 last:border-0 hover:bg-brand-border/10">
-                          <td className="px-3 py-2.5 text-brand-text font-medium">{buffetName}</td>
-                          <td className="px-3 py-2.5 text-brand-text">{slotName}</td>
-                          <td className="px-3 py-2.5 text-brand-text-muted">{calLabel}</td>
-                          <td className="px-3 py-2.5 text-brand-text-muted whitespace-nowrap">
-                            {rule.valid_from?.slice(0, 10)} → {rule.valid_to?.slice(0, 10)}
-                          </td>
-                          <td className="px-3 py-2.5 text-brand-gold whitespace-nowrap">
-                            €{Number(rule.adult_price).toFixed(2)} / €{Number(rule.child_price).toFixed(2)}
-                          </td>
-                          <td className="px-3 py-2.5 text-brand-text-muted">{rule.priority}</td>
-                          <td className="px-3 py-2.5">
-                            <input
-                              type="checkbox"
-                              checked={rule.is_active}
-                              onChange={() => void toggleRuleActive(rule)}
-                              className="rounded border-brand-border"
-                              aria-label={t.active}
-                            />
-                          </td>
-                          <td className="px-3 py-2.5 text-right whitespace-nowrap">
-                            <button
-                              type="button"
-                              onClick={() => openRuleEditModal(rule)}
-                              className="text-[12px] text-brand-gold border border-brand-gold/40 px-2 py-0.5 rounded-md hover:bg-brand-gold/10 mr-2"
+            <>
+              <div className="flex flex-wrap gap-2 text-[12px]">
+                <select
+                  className="rounded-lg bg-brand-bg border border-brand-border px-2 py-1 text-brand-text"
+                  value={filterBuffetId}
+                  onChange={(e) => setFilterBuffetId(e.target.value)}
+                  aria-label={t.filterBuffet}
+                >
+                  <option value="">{t.filterBuffet}: {t.filterAll}</option>
+                  {buffets.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="rounded-lg bg-brand-bg border border-brand-border px-2 py-1 text-brand-text"
+                  value={filterSlotId}
+                  onChange={(e) => setFilterSlotId(e.target.value)}
+                  aria-label={t.filterSlot}
+                >
+                  <option value="">{t.filterSlot}: {t.filterAll}</option>
+                  {slots.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="rounded-lg bg-brand-bg border border-brand-border px-2 py-1 text-brand-text"
+                  value={filterDayKind}
+                  onChange={(e) => setFilterDayKind(e.target.value as BuffetCalendarKind | '')}
+                  aria-label={t.filterDayKind}
+                >
+                  <option value="">{t.filterDayKind}: {t.filterAll}</option>
+                  {CALENDAR_KINDS.map((k) => (
+                    <option key={k} value={k}>
+                      {dayKindLabel(k)}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="rounded-lg bg-brand-bg border border-brand-border px-2 py-1 text-brand-text"
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value as RuleStatusFilter | 'all')}
+                  aria-label={t.filterStatus}
+                >
+                  <option value="all">{t.filterStatusAll}</option>
+                  <option value="active">{t.filterStatusActive}</option>
+                  <option value="upcoming">{t.filterStatusUpcoming}</option>
+                  <option value="expired">{t.filterStatusExpired}</option>
+                </select>
+              </div>
+
+              {filteredRules.length === 0 ? (
+                <p className="text-sm text-brand-text-muted text-center py-8 border border-dashed border-brand-border rounded-xl">
+                  {t.ruleListEmpty}
+                </p>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-brand-border/60">
+                  <table className="w-full min-w-[720px] text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-brand-border bg-brand-border/20 text-[12px] text-brand-text-muted">
+                        <th className="px-3 py-2 font-medium">{t.ruleBuffet}</th>
+                        <th className="px-3 py-2 font-medium">{t.ruleSlot}</th>
+                        <th className="px-3 py-2 font-medium">{t.calendarKind}</th>
+                        <th className="px-3 py-2 font-medium">{t.ruleTablePeriod}</th>
+                        <th className="px-3 py-2 font-medium">{t.ruleTablePrices}</th>
+                        <th className="px-3 py-2 font-medium">{t.ruleTablePriority}</th>
+                        <th className="px-3 py-2 font-medium">{t.active}</th>
+                        <th className="px-3 py-2 font-medium text-right">{t.ruleTableActions}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...filteredRules]
+                        .sort(
+                          (a, b) =>
+                            b.priority - a.priority || String(b.valid_from).localeCompare(String(a.valid_from)),
+                        )
+                        .map((rule) => {
+                          const buffetName = buffets.find((b) => b.id === rule.buffet_id)?.name ?? '—';
+                          const slotName = slots.find((s) => s.id === rule.time_slot_id)?.name ?? '—';
+                          return (
+                            <tr
+                              key={rule.id}
+                              className="border-b border-brand-border/50 last:border-0 hover:bg-brand-border/10"
                             >
-                              {t.ruleEdit}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setConfirm({ kind: 'rule', id: rule.id })}
-                              className="text-[12px] text-rose-700 border border-rose-500/35 px-2 py-0.5 rounded-md"
-                            >
-                              {t.delete}
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              </table>
-            </div>
+                              <td className="px-3 py-2.5 text-brand-text font-medium">{buffetName}</td>
+                              <td className="px-3 py-2.5 text-brand-text">{slotName}</td>
+                              <td className="px-3 py-2.5 text-brand-text-muted">{dayKindLabel(rule.calendar_kind)}</td>
+                              <td className="px-3 py-2.5 text-brand-text-muted whitespace-nowrap">
+                                {rule.valid_from?.slice(0, 10)} → {rule.valid_to?.slice(0, 10)}
+                              </td>
+                              <td className="px-3 py-2.5 text-brand-gold whitespace-nowrap">
+                                €{Number(rule.adult_price).toFixed(2)} / €{Number(rule.child_price).toFixed(2)}
+                              </td>
+                              <td className="px-3 py-2.5 text-brand-text-muted">{rule.priority}</td>
+                              <td className="px-3 py-2.5">
+                                <input
+                                  type="checkbox"
+                                  checked={rule.is_active}
+                                  onChange={() => void toggleRuleActive(rule)}
+                                  className="rounded border-brand-border"
+                                  aria-label={t.active}
+                                />
+                              </td>
+                              <td className="px-3 py-2.5 text-right whitespace-nowrap">
+                                <button
+                                  type="button"
+                                  onClick={() => openRuleEditModal(rule)}
+                                  className="text-[12px] text-brand-gold border border-brand-gold/40 px-2 py-0.5 rounded-md hover:bg-brand-gold/10 mr-1"
+                                >
+                                  {t.ruleEdit}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => openRuleCopyModal(rule)}
+                                  className="text-[12px] text-brand-text-muted border border-brand-border px-2 py-0.5 rounded-md hover:text-brand-text mr-1"
+                                >
+                                  {t.ruleCopy}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setConfirm({ kind: 'rule', id: rule.id })}
+                                  className="text-[12px] text-rose-700 border border-rose-500/35 px-2 py-0.5 rounded-md"
+                                >
+                                  {t.delete}
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
           )}
 
           <Modal
@@ -610,6 +866,12 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
           >
             {ruleDraft && (
               <>
+                {pendingConflictSave && overlapNames && (
+                  <div className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[13px] text-amber-100/95">
+                    <p className="font-medium">{t.ruleConflictTitle}</p>
+                    <p className="mt-1">{t.ruleConflictBody.replace('{names}', overlapNames)}</p>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                   <label className="text-brand-text-muted text-[12px]">
                     {t.ruleBuffet}
@@ -643,31 +905,29 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                       ))}
                     </select>
                   </label>
-                  <label className="text-brand-text-muted text-[12px]">
-                    {t.calendarKind}
-                    <select
-                      className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-brand-text"
-                      value={ruleDraft.calendar_kind}
-                      onChange={(e) =>
-                        setRuleDraft((d) =>
-                          d ? { ...d, calendar_kind: e.target.value as BuffetCalendarKind } : d,
-                        )
-                      }
-                    >
-                      {CALENDAR_KINDS.map((k) => (
-                        <option key={k} value={k}>
-                          {k === 'weekday'
-                            ? t.weekday
-                            : k === 'weekend'
-                              ? t.weekend
-                              : k === 'holiday'
-                                ? t.holiday
-                                : t.special}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="flex items-center gap-2 text-brand-text-muted text-[12px] mt-6 sm:mt-8">
+                  <div className="sm:col-span-2">
+                    <label className="text-brand-text-muted text-[12px] block">
+                      {t.calendarKind}
+                      <select
+                        className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-brand-text"
+                        value={ruleDraft.calendar_kind}
+                        onChange={(e) => {
+                          setPendingConflictSave(false);
+                          setRuleDraft((d) =>
+                            d ? { ...d, calendar_kind: e.target.value as BuffetCalendarKind } : d,
+                          );
+                        }}
+                      >
+                        {CALENDAR_KINDS.map((k) => (
+                          <option key={k} value={k}>
+                            {dayKindLabel(k)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <p className="mt-1 text-[11px] text-brand-text-muted">{kindHelp(ruleDraft.calendar_kind)}</p>
+                  </div>
+                  <label className="flex items-center gap-2 text-brand-text-muted text-[12px] sm:col-span-2">
                     <input
                       type="checkbox"
                       checked={ruleDraft.is_active}
@@ -677,12 +937,19 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                     />
                     {t.active}
                   </label>
-                  <label className="text-brand-text-muted text-[12px] sm:col-span-1">
+                  <label className="text-brand-text-muted text-[12px] sm:col-span-2">
+                    <span className="block">{t.validFrom} / {t.validTo}</span>
+                    <span className="text-[11px] text-brand-text-muted/80">{t.ruleValidHint}</span>
+                  </label>
+                  <label className="text-brand-text-muted text-[12px]">
                     {t.validFrom}
                     <DashboardDatePicker
                       className="mt-0.5 w-full"
                       value={ruleDraft.valid_from}
-                      onChange={(iso) => setRuleDraft((d) => (d ? { ...d, valid_from: iso } : d))}
+                      onChange={(iso) => {
+                        setPendingConflictSave(false);
+                        setRuleDraft((d) => (d ? { ...d, valid_from: iso } : d));
+                      }}
                       lang={lang}
                       placeholder={t.pickDate}
                     />
@@ -692,7 +959,10 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                     <DashboardDatePicker
                       className="mt-0.5 w-full"
                       value={ruleDraft.valid_to}
-                      onChange={(iso) => setRuleDraft((d) => (d ? { ...d, valid_to: iso } : d))}
+                      onChange={(iso) => {
+                        setPendingConflictSave(false);
+                        setRuleDraft((d) => (d ? { ...d, valid_to: iso } : d));
+                      }}
                       lang={lang}
                       placeholder={t.pickDate}
                     />
@@ -713,15 +983,21 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                       onChange={(child_price) => setRuleDraft((d) => (d ? { ...d, child_price } : d))}
                     />
                   </label>
-                  <label className="text-brand-text-muted text-[12px]">
-                    {t.priority}
-                    <IntegerInput
-                      className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-brand-text"
-                      value={ruleDraft.priority}
-                      min={0}
-                      onChange={(priority) => setRuleDraft((d) => (d ? { ...d, priority } : d))}
-                    />
-                  </label>
+                  <div>
+                    <label className="text-brand-text-muted text-[12px] block">
+                      {t.priority}
+                      <IntegerInput
+                        className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-brand-text"
+                        value={ruleDraft.priority}
+                        min={0}
+                        onChange={(priority) => {
+                          setPendingConflictSave(false);
+                          setRuleDraft((d) => (d ? { ...d, priority } : d));
+                        }}
+                      />
+                    </label>
+                    <p className="mt-1 text-[11px] text-brand-text-muted">{t.priorityHint}</p>
+                  </div>
                   <label className="text-brand-text-muted text-[12px] sm:col-span-2">
                     {t.note}
                     <input
@@ -750,7 +1026,7 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                     loading={ruleSaveSubmitting}
                     onClick={() => void saveRuleModal()}
                   >
-                    {t.ruleSave}
+                    {pendingConflictSave ? t.ruleConflictSave : t.ruleSave}
                   </Button>
                 </div>
               </>
@@ -760,53 +1036,18 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
       )}
 
       {tab === 'calendar' && (
-        <div className="bg-brand-card border border-brand-border rounded-xl p-4 space-y-3">
-          <div className="flex flex-wrap gap-2 items-end">
-            <label className="text-brand-text-muted text-[12px] block min-w-[200px]">
-              {t.calendarDate}
-              <DashboardDatePicker
-                className="mt-0.5 w-full max-w-[240px]"
-                value={calDate}
-                onChange={setCalDate}
-                lang={lang}
-                placeholder={t.pickDate}
-              />
-            </label>
-            <label className="text-brand-text-muted text-[12px]">
-              {t.calendarTag}
-              <select
-                className="mt-0.5 block rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-brand-text"
-                value={calKind}
-                onChange={(e) => setCalKind(e.target.value as 'holiday' | 'special')}
-              >
-                <option value="holiday">{t.holiday}</option>
-                <option value="special">{t.special}</option>
-              </select>
-            </label>
-            <button
-              type="button"
-              onClick={() => void upsertCalendar()}
-              className="text-sm px-3 py-1.5 rounded-lg bg-brand-gold text-brand-bg font-medium"
-            >
-              {t.addCalendar}
-            </button>
-          </div>
-          <ul className="space-y-1 text-sm">
-            {calendarRows.map((row) => (
-              <li key={row.on_date} className="flex justify-between items-center border border-brand-border/50 rounded-lg px-3 py-1.5">
-                <span className="text-brand-text">
-                  {row.on_date} — {row.kind === 'holiday' ? t.holiday : t.special}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setConfirm({ kind: 'calendar', onDate: row.on_date })}
-                  className="text-[12px] text-rose-700"
-                >
-                  {t.removeCalendar}
-                </button>
-              </li>
-            ))}
-          </ul>
+        <div className="bg-brand-card border border-brand-border rounded-xl p-4">
+          <BuffetCalendarPanel
+            calendarRows={calendarRows}
+            rules={rules}
+            buffets={buffets}
+            t={t}
+            lang={lang}
+            dayKindLabel={dayKindLabel}
+            onUpsert={upsertCalendarRows}
+            onRemove={(onDate) => setConfirm({ kind: 'calendar', onDate })}
+            onAddRuleForKind={goAddRuleForKind}
+          />
         </div>
       )}
     </div>

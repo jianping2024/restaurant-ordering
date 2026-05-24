@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { IntegerInput } from '@/components/ui/IntegerInput';
@@ -14,6 +14,23 @@ import {
   type CheckoutDisplayLine,
 } from '@/lib/checkout-session-lines';
 import { ReceiptPrinterSelect } from '@/components/dashboard/ReceiptPrinterSelect';
+import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
+import {
+  loadCheckoutSoundEnabled,
+  loadSavedReceiptPrinterId,
+  saveCheckoutSoundEnabled,
+  saveReceiptPrinterId,
+} from '@/lib/receipt-printer-preference';
+
+function formatWaitDuration(
+  createdAt: string,
+  t: ReturnType<typeof getMessages>['checkout'],
+): string {
+  const ms = Date.now() - new Date(createdAt).getTime();
+  const mins = Math.floor(ms / 60_000);
+  if (mins < 1) return t.durationJustNow;
+  return t.durationMinutes.replace('{n}', String(mins));
+}
 
 interface Props {
   initialRequests: BillSplit[];
@@ -33,6 +50,37 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
   const restaurantId = initialRequests[0]?.restaurant_id;
   const [linesByRequestId, setLinesByRequestId] = useState<Record<string, CheckoutDisplayLine[]>>({});
   const [selectedReceiptPrinterId, setSelectedReceiptPrinterId] = useState('');
+  const [printSettingsOpen, setPrintSettingsOpen] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const prevRequestCountRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!restaurantSlug) return;
+    const saved = loadSavedReceiptPrinterId(restaurantSlug);
+    if (saved) {
+      setSelectedReceiptPrinterId(saved);
+      setPrintSettingsOpen(true);
+    }
+    setSoundEnabled(loadCheckoutSoundEnabled());
+  }, [restaurantSlug]);
+
+  useEffect(() => {
+    if (!restaurantSlug) return;
+    saveReceiptPrinterId(restaurantSlug, selectedReceiptPrinterId);
+  }, [restaurantSlug, selectedReceiptPrinterId]);
+
+  useEffect(() => {
+    if (requests.length > 0) setPrintSettingsOpen(true);
+  }, [requests.length]);
+
+  useEffect(() => {
+    const prev = prevRequestCountRef.current;
+    prevRequestCountRef.current = requests.length;
+    if (prev === null) return;
+    if (soundEnabled && requests.length > prev) {
+      playCheckoutRequestChime();
+    }
+  }, [requests.length, soundEnabled]);
 
   useEffect(() => {
     if (!restaurantId) return;
@@ -44,7 +92,7 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
         .eq('restaurant_id', restaurantId)
         .eq('status', 'requested')
         .not('session_id', 'is', null)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: true })
         .limit(100);
       setRequests((data || []) as BillSplit[]);
     };
@@ -173,32 +221,96 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
     }
   };
 
+  const pendingLabel = t.pendingBadge.replace('{n}', String(requests.length));
+
   return (
     <div className="mb-8">
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
-        <h2 className="font-heading text-2xl text-brand-gold">{t.title}</h2>
+      <header className="mb-6 space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
+            <p className="text-brand-text-muted text-sm mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="inline-flex items-center gap-1.5">
+                <span
+                  className="h-2 w-2 rounded-full bg-emerald-500 shrink-0"
+                  aria-hidden
+                />
+                {t.liveConnected}
+              </span>
+              <span aria-hidden>·</span>
+              <span className="font-medium text-brand-text">{pendingLabel}</span>
+            </p>
+          </div>
+          <label className="flex items-center gap-2 text-sm text-brand-text-muted cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={soundEnabled}
+              onChange={(e) => {
+                const next = e.target.checked;
+                setSoundEnabled(next);
+                saveCheckoutSoundEnabled(next);
+              }}
+              className="rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
+            />
+            {t.soundLabel}
+          </label>
+        </div>
+
         {restaurantSlug ? (
-          <ReceiptPrinterSelect
-            restaurantSlug={restaurantSlug}
-            value={selectedReceiptPrinterId}
-            onChange={setSelectedReceiptPrinterId}
-            className="min-w-[200px] sm:max-w-xs w-full sm:w-auto"
-          />
+          <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setPrintSettingsOpen((o) => !o)}
+              className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left text-sm text-brand-text hover:bg-brand-border/30 transition-colors"
+              aria-expanded={printSettingsOpen}
+            >
+              <span className="font-medium">{t.printSettings}</span>
+              <span className="text-brand-text-muted text-[13px]">
+                {printSettingsOpen ? t.printCollapse : t.printExpand}
+              </span>
+            </button>
+            {printSettingsOpen ? (
+              <div className="px-4 pb-4 border-t border-brand-border/60">
+                <ReceiptPrinterSelect
+                  restaurantSlug={restaurantSlug}
+                  value={selectedReceiptPrinterId}
+                  onChange={setSelectedReceiptPrinterId}
+                  className="pt-3"
+                />
+              </div>
+            ) : null}
+          </div>
         ) : null}
-      </div>
+      </header>
+
       {requests.length === 0 ? (
-        <div className="bg-brand-card border border-brand-border rounded-2xl p-6 text-center text-brand-text-muted text-sm">
-          {t.empty}
+        <div className="bg-brand-card border border-brand-border rounded-2xl px-6 py-16 text-center">
+          <p className="text-5xl mb-4" aria-hidden>
+            🧾
+          </p>
+          <h2 className="font-heading text-xl text-brand-text">{t.emptyTitle}</h2>
+          <p className="text-brand-text-muted text-sm mt-2">{t.empty}</p>
+          <p className="text-brand-text-muted text-[13px] mt-4 max-w-md mx-auto leading-relaxed">
+            {t.emptyHint}
+          </p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {requests.map(request => (
-            <div key={request.id} className="bg-brand-card border border-brand-border rounded-xl px-5 py-4">
-              <div className="flex items-center justify-between gap-4">
+            <div key={request.id} className="bg-brand-card border border-brand-border rounded-xl px-5 py-5 shadow-sm">
+              <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-brand-text font-medium">{t.table} {request.table_number}</p>
-                  <p className="text-brand-text-muted text-[13px] mt-1">
+                  <p className="font-heading text-3xl text-brand-text leading-none">
+                    {t.table} {request.table_number}
+                  </p>
+                  <p className="text-brand-text-muted text-[13px] mt-2">
                     {new Date(request.created_at).toLocaleString(locale)}
+                  </p>
+                  <p className="text-amber-800/90 text-[12px] mt-1">
+                    {t.waitingSince.replace(
+                      '{duration}',
+                      formatWaitDuration(request.created_at, t),
+                    )}
                   </p>
                 </div>
                 <div className="text-right">
@@ -294,7 +406,7 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
                             type="button"
                             onClick={() => handleConfirmPersonPaid(request, idx)}
                             disabled={!!row.paid || processingKey === `${request.id}-${idx}`}
-                            className="text-[11px] px-2 py-1 rounded-md border border-emerald-500/45 bg-emerald-500/16 text-emerald-800 hover:bg-emerald-500/26 disabled:opacity-50"
+                            className="text-sm font-semibold px-4 py-2 rounded-lg border border-emerald-500/50 bg-emerald-500/20 text-emerald-900 hover:bg-emerald-500/30 disabled:opacity-50 transition-colors"
                           >
                             {processingKey === `${request.id}-${idx}` ? t.processing : t.confirmOnePaid}
                           </button>

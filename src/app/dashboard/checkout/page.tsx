@@ -18,7 +18,7 @@ export default async function CheckoutRequestsPage() {
     .eq('restaurant_id', restaurant.id)
     .eq('status', 'requested')
     .not('session_id', 'is', null)
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: true })
     .limit(100);
 
   return (

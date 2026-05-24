@@ -914,11 +914,13 @@ export function BillPage({
 
       {/* 呼叫结账 */}
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2">
-        <ReceiptPrinterSelect
-          restaurantSlug={restaurant.slug}
-          value={selectedReceiptPrinterId}
-          onChange={setSelectedReceiptPrinterId}
-        />
+        {isWaiterFlow ? (
+          <ReceiptPrinterSelect
+            restaurantSlug={restaurant.slug}
+            value={selectedReceiptPrinterId}
+            onChange={setSelectedReceiptPrinterId}
+          />
+        ) : null}
         <Button
           className="w-full"
           size="lg"

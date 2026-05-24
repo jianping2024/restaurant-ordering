@@ -57,10 +57,8 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
   useEffect(() => {
     if (!restaurantSlug) return;
     const saved = loadSavedReceiptPrinterId(restaurantSlug);
-    if (saved) {
-      setSelectedReceiptPrinterId(saved);
-      setPrintSettingsOpen(true);
-    }
+    setSelectedReceiptPrinterId(saved);
+    setPrintSettingsOpen(!saved);
     setSoundEnabled(loadCheckoutSoundEnabled());
   }, [restaurantSlug]);
 
@@ -69,9 +67,10 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
     saveReceiptPrinterId(restaurantSlug, selectedReceiptPrinterId);
   }, [restaurantSlug, selectedReceiptPrinterId]);
 
-  useEffect(() => {
-    if (requests.length > 0) setPrintSettingsOpen(true);
-  }, [requests.length]);
+  const handleReceiptPrinterChange = (printerId: string) => {
+    setSelectedReceiptPrinterId(printerId);
+    setPrintSettingsOpen(!printerId);
+  };
 
   useEffect(() => {
     const prev = prevRequestCountRef.current;
@@ -274,7 +273,7 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
                 <ReceiptPrinterSelect
                   restaurantSlug={restaurantSlug}
                   value={selectedReceiptPrinterId}
-                  onChange={setSelectedReceiptPrinterId}
+                  onChange={handleReceiptPrinterChange}
                   className="pt-3"
                 />
               </div>

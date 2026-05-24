@@ -345,22 +345,15 @@ export function MenuManager({
       .join(' · ');
   };
 
-  const getEffectiveStationTicketLine = (item: MenuItem): string => {
+  const getEffectiveStationName = (item: MenuItem): string | null => {
     const eff = resolveEffectivePrintStationId(
       item.print_station_id,
       item.category_id ?? null,
       categories,
     );
-    if (!eff) return t.effectiveStationNone;
+    if (!eff) return null;
     const st = printStations.find((p) => p.id === eff);
-    const name = st
-      ? lang === 'en'
-        ? st.name_en || st.name_pt
-        : lang === 'zh'
-          ? st.name_zh || st.name_pt
-          : st.name_pt
-      : eff;
-    return `${t.effectiveStationPrefix}: ${name}`;
+    return st ? getPrintStationDisplayName(st, lang) : eff;
   };
 
   const filteredItems = useMemo(() => {
@@ -1221,81 +1214,93 @@ export function MenuManager({
               </p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {visibleItems.map((item) => (
-                <div
-                  key={item.id}
-                  className={`bg-brand-card border rounded-xl px-4 py-4 sm:px-5 flex flex-col gap-3 min-[480px]:flex-row min-[480px]:items-center min-[480px]:gap-4 transition-all ${
-                    item.available ? 'border-brand-border' : 'border-brand-border/70 bg-brand-bg/40'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-brand-border flex-shrink-0 flex items-center justify-center text-2xl">
+            <div className="space-y-1.5">
+              {visibleItems.map((item) => {
+                const code = item.item_code?.trim();
+                const nameEn = item.name_en?.trim() || t.listNameEmpty;
+                const nameZh = item.name_zh?.trim() || t.listNameEmpty;
+                const categoryLine = getItemCategoryLine(item);
+                const stationName = getEffectiveStationName(item);
+                const primaryTitle = [
+                  code ? `[${code}]` : null,
+                  `${t.listNamePt}: ${item.name_pt}`,
+                  `${t.listNameEn}: ${nameEn}`,
+                  `${t.listNameZh}: ${nameZh}`,
+                ]
+                  .filter(Boolean)
+                  .join(' · ');
+                const metaTitle = stationName
+                  ? `${t.itemType}: ${categoryLine} · ${t.effectiveStationPrefix}: ${stationName}`
+                  : `${t.itemType}: ${categoryLine}`;
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`bg-brand-card border rounded-lg px-3 py-2 sm:px-4 flex items-center gap-3 sm:gap-4 transition-colors ${
+                      item.available ? 'border-brand-border' : 'border-brand-border/70 bg-brand-bg/40'
+                    }`}
+                  >
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-brand-border flex-shrink-0 flex items-center justify-center text-xl">
                       {item.image_url ? (
-                        <Image src={item.image_url} alt="" width={48} height={48} className="object-cover w-12 h-12" />
+                        <Image src={item.image_url} alt="" width={40} height={40} className="object-cover w-10 h-10" />
                       ) : (
                         item.emoji
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start gap-2 flex-wrap">
-                        <div className="min-w-0 flex-1 space-y-0.5">
-                          {item.item_code?.trim() ? (
-                            <p className="text-[12px] font-mono text-brand-gold leading-snug">
-                              [{item.item_code.trim()}]
-                            </p>
+                      <div className="flex items-baseline gap-2 min-w-0">
+                        <p className="flex-1 min-w-0 text-sm truncate" title={primaryTitle}>
+                          {code ? (
+                            <span className="font-mono text-[11px] text-brand-gold tabular-nums mr-1.5">[{code}]</span>
                           ) : null}
-                          <p className="text-brand-text font-medium leading-snug break-words">
-                            <span className="text-brand-text-muted/80 text-[12px] font-normal">
-                              {t.listNamePt}:{' '}
-                            </span>
-                            {item.name_pt}
-                          </p>
-                          <p className="text-[13px] text-brand-text-muted leading-snug break-words">
-                            <span className="text-brand-text-muted/75">{t.listNameEn}: </span>
-                            {item.name_en?.trim() || t.listNameEmpty}
-                          </p>
-                          <p className="text-[13px] text-brand-text-muted leading-snug break-words">
-                            <span className="text-brand-text-muted/75">{t.listNameZh}: </span>
-                            {item.name_zh?.trim() || t.listNameEmpty}
-                          </p>
-                        </div>
-                        {!item.available && (
-                          <span className="mesa-badge-danger text-[11px] px-1.5 py-0.5 rounded shrink-0">
+                          <span className="text-brand-text-muted/70 text-[11px]">{t.listNamePt}:</span>{' '}
+                          <span className="font-medium text-brand-text">{item.name_pt}</span>
+                          <span className="mx-1 text-brand-border">·</span>
+                          <span className="text-brand-text-muted/70 text-[11px]">{t.listNameEn}:</span> {nameEn}
+                          <span className="mx-1 text-brand-border">·</span>
+                          <span className="text-brand-text-muted/70 text-[11px]">{t.listNameZh}:</span> {nameZh}
+                        </p>
+                        {!item.available ? (
+                          <span className="mesa-badge-danger text-[10px] px-1 py-px rounded shrink-0 leading-tight">
                             {t.unavailableBadge}
                           </span>
-                        )}
+                        ) : null}
                       </div>
-                      {item.description_pt && <p className="text-brand-text-muted text-[13px] mt-0.5 line-clamp-2">{item.description_pt}</p>}
-                      <p
-                        className={`text-[12px] text-brand-text-muted ${item.description_pt ? 'mt-1' : 'mt-0.5'} line-clamp-2`}
-                        title={getItemCategoryLine(item)}
-                      >
-                        <span className="text-brand-text-muted/75">{t.itemType}: </span>
-                        {getItemCategoryLine(item)}
-                      </p>
-                      <p className="text-[12px] text-brand-text-muted/90 mt-0.5 line-clamp-1" title={getEffectiveStationTicketLine(item)}>
-                        {getEffectiveStationTicketLine(item)}
+                      <p className="text-[11px] text-brand-text-muted truncate mt-0.5" title={metaTitle}>
+                        <span className="text-brand-text-muted/70">{t.itemType}:</span> {categoryLine}
+                        {stationName ? (
+                          <>
+                            <span className="mx-1 text-brand-border">·</span>
+                            <span className="text-brand-text-muted/70">{t.effectiveStationPrefix}:</span> {stationName}
+                          </>
+                        ) : null}
                       </p>
                     </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 justify-between min-[480px]:justify-end sm:flex-nowrap sm:shrink-0 border-t border-brand-border pt-3 min-[480px]:border-0 min-[480px]:pt-0">
-                    <span className="text-brand-gold font-medium tabular-nums">EUR{item.price.toFixed(2)}</span>
-                    <div className="flex items-center gap-3 flex-wrap justify-end">
+                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                      <span className="text-brand-gold font-medium text-sm tabular-nums whitespace-nowrap">
+                        EUR{item.price.toFixed(2)}
+                      </span>
                       <button
                         type="button"
                         onClick={() => toggleItemAvailable(item)}
-                        className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${item.available ? 'bg-green-500' : 'bg-brand-border'}`}
+                        className={`relative w-9 h-[18px] rounded-full transition-colors shrink-0 ${item.available ? 'bg-green-500' : 'bg-brand-border'}`}
+                        title={item.available ? t.allOn : t.unavailableBadge}
                       >
                         <span
-                          className={`absolute top-0.5 w-4 h-4 rounded-full bg-brand-card border border-brand-border shadow-sm transition-transform ${
-                            item.available ? 'translate-x-5' : 'translate-x-0.5'
+                          className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-brand-card border border-brand-border shadow-sm transition-transform ${
+                            item.available ? 'translate-x-[18px]' : 'translate-x-0.5'
                           }`}
                         />
                       </button>
-                      <div className="w-px h-4 bg-brand-border/80 mx-1" />
-                      <div className="flex items-center gap-4">
-                        <button type="button" onClick={() => openItemEditModal(item)} className="text-brand-text-muted hover:text-brand-gold transition-colors text-sm">{t.edit}</button>
+                      <div className="hidden sm:block w-px h-3.5 bg-brand-border/80" />
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <button
+                          type="button"
+                          onClick={() => openItemEditModal(item)}
+                          className="text-brand-text-muted hover:text-brand-gold transition-colors text-xs sm:text-sm whitespace-nowrap"
+                        >
+                          {t.edit}
+                        </button>
                         <button
                           type="button"
                           onClick={() => setConfirmDialog({
@@ -1305,15 +1310,15 @@ export function MenuManager({
                             message: `${t.deleteConfirm} "${item.name_pt}"?`,
                             itemId: item.id,
                           })}
-                          className="text-brand-text-muted hover:text-status-danger transition-colors text-sm"
+                          className="text-brand-text-muted hover:text-status-danger transition-colors text-xs sm:text-sm whitespace-nowrap"
                         >
                           {t.remove}
                         </button>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </>
@@ -1375,19 +1380,23 @@ export function MenuManager({
             </div>
           </div>
 
+          <div>
+            <Input
+              label={t.itemCode}
+              value={itemForm.item_code}
+              maxLength={10}
+              onChange={(e) => setItemForm((f) => ({ ...f, item_code: e.target.value.slice(0, 10) }))}
+              placeholder={t.itemCodePlaceholder}
+              className="max-w-xs"
+            />
+            <p className="text-[12px] text-brand-text-muted mt-1">{t.itemCodeHint}</p>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label={t.ptNameReq} value={itemForm.name_pt} onChange={(e) => setItemForm((f) => ({ ...f, name_pt: e.target.value }))} placeholder="Bacalhau à Brás" />
             <Input label={t.enName} value={itemForm.name_en} onChange={(e) => setItemForm((f) => ({ ...f, name_en: e.target.value }))} placeholder="Codfish à Brás" />
           </div>
           <Input label={t.zhName} value={itemForm.name_zh} onChange={(e) => setItemForm((f) => ({ ...f, name_zh: e.target.value }))} placeholder="碎蛋鳕鱼" />
-          <Input
-            label={t.itemCode}
-            value={itemForm.item_code}
-            maxLength={10}
-            onChange={(e) => setItemForm((f) => ({ ...f, item_code: e.target.value.slice(0, 10) }))}
-            placeholder={t.itemCodePlaceholder}
-          />
-          <p className="text-[12px] text-brand-text-muted -mt-2">{t.itemCodeHint}</p>
           <Input label={t.ptDesc} value={itemForm.description_pt} onChange={(e) => setItemForm((f) => ({ ...f, description_pt: e.target.value }))} placeholder="简短描述..." />
           <Input label={t.enDesc} value={itemForm.description_en} onChange={(e) => setItemForm((f) => ({ ...f, description_en: e.target.value }))} placeholder="Short description..." />
 

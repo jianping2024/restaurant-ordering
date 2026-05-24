@@ -25,7 +25,8 @@ export function DashboardSettingsShell({ children }: { children: React.ReactNode
   const hub = getMessages(lang).settingsHub;
   const activeItem = getActiveSettingsNavItem(pathname);
   const pageTitle = activeItem ? hub[activeItem.labelKey] : hub.title;
-  const pageHint = activeItem ? hub[activeItem.hintKey] : '';
+  const pageHint =
+    activeItem && !activeItem.skipShellHint ? hub[activeItem.hintKey] : '';
   const wide = isSettingsWideLayout(pathname);
 
   const renderNavLinks = (compact?: boolean) =>

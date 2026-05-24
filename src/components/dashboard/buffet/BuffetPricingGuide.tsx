@@ -10,30 +10,31 @@ export function BuffetPricingGuide({ t }: { t: BuffetAdminMessages }) {
 
   return (
     <div className="rounded-xl border border-brand-gold/25 bg-brand-gold/5 p-4">
-      <div className="flex flex-wrap items-start justify-between gap-2">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="w-full flex items-center justify-between gap-2 text-left"
+      >
         <h2 className="text-sm font-medium text-brand-gold">{t.guideTitle}</h2>
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="text-[12px] text-brand-text-muted hover:text-brand-text underline-offset-2 hover:underline"
-        >
-          {open ? t.guideHide : t.guideShow}
-        </button>
-      </div>
-      {open && (
-        <ol className="mt-3 space-y-2.5 text-[13px] text-brand-text list-decimal list-inside">
-          <li>{t.guideStepBuffet}</li>
-          <li>{t.guideStepSlots}</li>
-          <li>{t.guideStepPrices}</li>
-          <li>{t.guideStepSpecialDates}</li>
-        </ol>
-      )}
-      {open && (
-        <div className="mt-3 space-y-2 text-[12px] text-brand-text-muted border-t border-brand-border/50 pt-3">
-          <p>{t.guideResolveNote}</p>
-          <p>{t.guideDayKindNote}</p>
-        </div>
-      )}
+        <span className="text-brand-text-muted/80 text-sm shrink-0" aria-hidden>
+          {open ? '▴' : '▾'}
+        </span>
+      </button>
+      {open ? (
+        <>
+          <ol className="mt-3 space-y-2.5 text-[13px] text-brand-text list-decimal list-inside">
+            <li>{t.guideStepBuffet}</li>
+            <li>{t.guideStepSlots}</li>
+            <li>{t.guideStepPrices}</li>
+            <li>{t.guideStepSpecialDates}</li>
+          </ol>
+          <div className="mt-3 space-y-2 text-[12px] text-brand-text-muted border-t border-brand-border/50 pt-3">
+            <p>{t.guideResolveNote}</p>
+            <p>{t.guideDayKindNote}</p>
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

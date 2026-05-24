@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import type { Order } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
 import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticatedShell';
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
@@ -98,16 +98,7 @@ function WaiterBoardInner({
         </div>
       )}
       <div className="mb-6">
-        <div className="flex justify-end items-center gap-2 mb-3">
-          <LanguageSwitcher compact />
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className="text-[12px] px-2 py-1 rounded-md border border-brand-border text-brand-text-muted hover:text-brand-text transition-colors"
-          >
-            {exitLabel}
-          </button>
-        </div>
+        <StaffRoleToolbar exitLabel={exitLabel} onSignOut={handleSignOut} />
         <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
         <p className="text-brand-text-muted text-sm mt-1">{t.boardTitle}</p>
       </div>

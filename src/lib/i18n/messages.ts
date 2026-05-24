@@ -659,6 +659,7 @@ export const MESSAGES = {
       openTableBadge: '在席',
       openTablesIdleNote: '另有 {n} 桌在席，暂无待备餐单',
       backToDashboard: '返回后台',
+      signOut: '登出',
     },
     bill: {
       guest: '客人',
@@ -1005,7 +1006,7 @@ export const MESSAGES = {
       durationMinutes: '{n} min',
       durationJustNow: 'just now',
     },
-    kitchen: { display: 'Kitchen Display', pendingCount: 'pending orders', allDone: 'All orders are completed', table: 'Table', newOrder: 'New', cooking: 'Cooking', completed: 'Done', voided: 'Voided', startCooking: 'Start cooking', finishServing: 'Mark done', voidItem: 'Void', firstBatch: 'First order', addOnBatch: 'Add-on', openTableIdle: 'No kitchen tickets yet — guests may order again', openTableBadge: 'Seated', openTablesIdleNote: '{n} more seated table(s) with no pending tickets', backToDashboard: 'Back to dashboard' },
+    kitchen: { display: 'Kitchen Display', pendingCount: 'pending orders', allDone: 'All orders are completed', table: 'Table', newOrder: 'New', cooking: 'Cooking', completed: 'Done', voided: 'Voided', startCooking: 'Start cooking', finishServing: 'Mark done', voidItem: 'Void', firstBatch: 'First order', addOnBatch: 'Add-on', openTableIdle: 'No kitchen tickets yet — guests may order again', openTableBadge: 'Seated', openTablesIdleNote: '{n} more seated table(s) with no pending tickets', backToDashboard: 'Back to dashboard', signOut: 'Sign out' },
     bill: { guest: 'Guest', actionFailed: 'Action failed, please retry', notified: 'Staff has been notified', comingSoon: 'Please wait, staff will assist checkout soon', feedbackTitle: 'How was each dish?', feedbackHint: 'Takes about 10 seconds, optional', feedbackSkip: 'Skip', feedbackSubmit: 'Submit feedback', feedbackThanks: 'Thanks, your feedback helps us improve', thumbsUp: 'Like', thumbsDown: 'Dislike', reasonTaste: 'Taste issue', reasonTemp: 'Temperature issue', reasonSlow: 'Too slow', reasonMismatch: 'Not as described', reasonOther: 'Other', cancelledTag: 'Cancelled', noFeedbackItems: 'No reviewable dishes this time', totalLabel: 'Total', table: 'Table', settlement: 'Bill Settlement', details: 'Bill Details', total: 'Total', splitMode: 'Split mode', even: 'Even', byItem: 'By item', custom: 'Custom', people: 'People', addPerson: 'Add person', splitResult: 'Split result', callBill: 'Call for bill', itemPending: 'Pending', itemCooking: 'Preparing', itemDone: 'Served' },
   },
   pt: {
@@ -1316,7 +1317,7 @@ export const MESSAGES = {
       durationMinutes: '{n} min',
       durationJustNow: 'agora',
     },
-    kitchen: { display: 'Tela da cozinha', pendingCount: 'pedidos pendentes', allDone: 'Todos os pedidos foram concluídos', table: 'Mesa', newOrder: 'Novo', cooking: 'Em preparo', completed: 'Concluido', voided: 'Cancelado', startCooking: 'Iniciar preparo', finishServing: 'Finalizar pedido', voidItem: 'Cancelar prato', firstBatch: 'Pedido inicial', addOnBatch: 'Adicao', openTableIdle: 'Sem pedidos de cozinha — clientes podem pedir de novo', openTableBadge: 'Na mesa', openTablesIdleNote: 'Mais {n} mesa(s) ativa(s) sem pedidos pendentes', backToDashboard: 'Voltar ao painel' },
+    kitchen: { display: 'Tela da cozinha', pendingCount: 'pedidos pendentes', allDone: 'Todos os pedidos foram concluídos', table: 'Mesa', newOrder: 'Novo', cooking: 'Em preparo', completed: 'Concluido', voided: 'Cancelado', startCooking: 'Iniciar preparo', finishServing: 'Finalizar pedido', voidItem: 'Cancelar prato', firstBatch: 'Pedido inicial', addOnBatch: 'Adicao', openTableIdle: 'Sem pedidos de cozinha — clientes podem pedir de novo', openTableBadge: 'Na mesa', openTablesIdleNote: 'Mais {n} mesa(s) ativa(s) sem pedidos pendentes', backToDashboard: 'Voltar ao painel', signOut: 'Sair' },
     bill: { guest: 'Pessoa', actionFailed: 'Falha na operacao, tente novamente', notified: 'Garcom foi avisado', comingSoon: 'Aguarde, o garcom fara o fechamento em instantes', feedbackTitle: 'Como foi cada prato?', feedbackHint: 'Leva cerca de 10 segundos e e opcional', feedbackSkip: 'Pular', feedbackSubmit: 'Enviar avaliacao', feedbackThanks: 'Obrigado, seu feedback ajuda a melhorar', thumbsUp: 'Curtir', thumbsDown: 'Nao curtir', reasonTaste: 'Problema de sabor', reasonTemp: 'Problema de temperatura', reasonSlow: 'Demorou demais', reasonMismatch: 'Diferente da descricao', reasonOther: 'Outro', cancelledTag: 'Cancelado', noFeedbackItems: 'Sem pratos avaliaveis nesta rodada', totalLabel: 'Total', table: 'Mesa', settlement: 'Fechamento da conta', details: 'Detalhes da conta', total: 'Total', splitMode: 'Forma de divisao', even: 'Igual', byItem: 'Por prato', custom: 'Personalizado', people: 'Pessoas', addPerson: 'Adicionar pessoa', splitResult: 'Resultado da divisao', callBill: 'Chamar fechamento', itemPending: 'Pendente', itemCooking: 'Em preparo', itemDone: 'Servido' },
   },
 } as const;

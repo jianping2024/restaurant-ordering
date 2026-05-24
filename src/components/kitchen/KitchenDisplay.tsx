@@ -6,11 +6,11 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { Order, OrderItemStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { deriveOrderStatusFromItems, itemsEveryVoided, normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
-import { resolveStaffSession } from '@/lib/staff-auth-client';
+import { resolveStaffSession, staffSignOut } from '@/lib/staff-auth-client';
+import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
 import { fetchKitchenBoardClient } from '@/lib/staff-board-client';
 import { useRestaurantRealtimeRefresh } from '@/lib/use-restaurant-realtime-refresh';
 
@@ -153,6 +153,18 @@ export function KitchenDisplay({
     };
   }, [isDemo, restaurant.slug, router]);
 
+  const handleSignOut = async () => {
+    if (asOwner) {
+      router.push('/dashboard');
+      return;
+    }
+    if (!isDemo) await staffSignOut();
+    setAuthenticated(false);
+    if (!isDemo) router.replace(`/${restaurant.slug}/staff/login`);
+  };
+
+  const exitLabel = asOwner ? t.backToDashboard : t.signOut;
+
   const refreshKitchenBoard = useCallback(async () => {
     const board = await fetchKitchenBoardClient(restaurant.id);
     board.orders.forEach((o) => {
@@ -275,10 +287,11 @@ export function KitchenDisplay({
         </div>
       )}
       {/* 标题栏 */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6">
+        <StaffRoleToolbar exitLabel={exitLabel} onSignOut={() => void handleSignOut()} />
         <div>
           <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
-          <p className="text-brand-text-muted text-sm">
+          <p className="text-brand-text-muted text-sm mt-1">
             {t.display} · {boardOrders.length} {t.pendingCount}
           </p>
           {idleTableCount > 0 && (
@@ -286,18 +299,6 @@ export function KitchenDisplay({
               {t.openTablesIdleNote.replace('{n}', String(idleTableCount))}
             </p>
           )}
-        </div>
-        <div className="flex items-center gap-2">
-          {!isDemo && asOwner ? (
-            <button
-              type="button"
-              onClick={() => router.push('/dashboard')}
-              className="text-[12px] px-2 py-1 rounded-md border border-brand-border text-brand-text-muted hover:text-brand-text transition-colors"
-            >
-              {t.backToDashboard}
-            </button>
-          ) : null}
-          <LanguageSwitcher compact />
         </div>
       </div>
       {updateConflict && (

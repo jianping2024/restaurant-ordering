@@ -491,17 +491,12 @@ export const MESSAGES = {
       count: '桌位数量（1-30）',
       table: '桌',
       download: '下载二维码',
-      staffTitle: '员工入口二维码',
-      staffDesc: '打印后贴在后厨和服务台，员工扫码输入4位密码即可进入对应页面。',
-      kitchenEntry: '厨房入口',
-      waiterEntry: '服务员观察页',
-      kitchenAlt: '厨房入口二维码',
-      waiterAlt: '服务员入口二维码',
-      downloadKitchen: '下载厨房二维码',
-      downloadWaiter: '下载服务员二维码',
+      staffTitle: '员工登录二维码',
+      staffDesc: '打印后贴在后厨或服务台。员工扫码后用登录名与密码登录，系统按账号角色进入厨房、服务员等页面。',
+      staffAlt: '员工登录二维码',
+      downloadStaff: '下载二维码',
+      openStaffLogin: '打开登录页',
       openOrder: '打开点餐页',
-      openKitchen: '打开后厨页',
-      openWaiter: '打开服务员页',
       activeSessionsTitle: '活跃餐次操作',
       activeSessionsDesc: '支持转台和并台，并台会自动合并为单账单。',
       noActiveSessions: '当前没有可操作的活跃餐次',
@@ -566,7 +561,7 @@ export const MESSAGES = {
       hintShow: '查看说明',
       hintHide: '收起说明',
       hintProfile: '餐厅名称、地址、定位与厨房/楼面 PIN。定位用于顾客下单距离校验（约 50 米内）。',
-      hintTables: '设置桌位数量并打印桌码；可在此处理换台、并台。员工入口二维码供厨房/楼面扫码登录。',
+      hintTables: '设置桌位数量并打印桌码；可在此处理换台、并台。下载员工登录二维码供后厨/楼面扫码。',
       hintStaff: '为厨房、服务员、收银员创建独立账号（登录名@mesa.in）。登录名全平台唯一。',
       hintMenu: '先建分类树，再添加菜品。分类与菜品可绑「出品档口」；档口在左侧「打印」分组中配置。',
       hintBuffet: '配置自助餐方案、时段与节假日价格规则；与菜单分类独立，用于按人/时段计价。',
@@ -1232,7 +1227,7 @@ export const MESSAGES = {
       scheduleErrInvalidTime: 'Enter valid times (HH:MM).',
       scheduleErrEndBeforeStart: 'End time must be after start time.',
     },
-    tables: { title: 'Table Manager', desc: 'Generate QR codes for each table', print: 'Print all QR codes', count: 'Table count (1-30)', table: 'Table', download: 'Download QR', staffTitle: 'Staff Entry QR Codes', staffDesc: 'Print and place in kitchen/service area. Staff scan and enter a 4-digit password to access pages.', kitchenEntry: 'Kitchen entry', waiterEntry: 'Waiter board', kitchenAlt: 'Kitchen entry QR code', waiterAlt: 'Waiter entry QR code', downloadKitchen: 'Download kitchen QR', downloadWaiter: 'Download waiter QR', openOrder: 'Open ordering', openKitchen: 'Open kitchen page', openWaiter: 'Open waiter page', activeSessionsTitle: 'Active Session Actions', activeSessionsDesc: 'Support table transfer and merge. Merge automatically creates one bill flow.', noActiveSessions: 'No active sessions available', sourceTable: 'Source table', sourceTables: 'Source tables (multi-select)', targetTable: 'Target table', selectedCount: 'Selected', refreshSessions: 'Refresh sessions', transferAction: 'Transfer', mergeAction: 'Merge', transferring: 'Transferring...', merging: 'Merging...', transferTitle: 'Transfer table', mergeTitle: 'Merge tables', transferHint: 'Transfer moves the full active session to a new table.', mergeHint: 'Merge moves source orders into target table and keeps a single bill.', confirmTransfer: 'Confirm transfer', confirmMerge: 'Confirm merge', sameTableError: 'Source and target tables cannot be the same', mergeAtLeastTwo: 'Select at least one source table to merge', sessionConflict: 'Table status changed, please refresh and retry', operationSuccess: 'Operation completed', operationFailed: 'Operation failed, please retry' },
+    tables: { title: 'Table Manager', desc: 'Generate QR codes for each table', print: 'Print all QR codes', count: 'Table count (1-30)', table: 'Table', download: 'Download QR', staffTitle: 'Staff login QR code', staffDesc: 'Print and place in kitchen or service area. Staff scan, then sign in with login name and password; they are routed by role (kitchen, waiter, etc.).', staffAlt: 'Staff login QR code', downloadStaff: 'Download QR', openStaffLogin: 'Open login page', openOrder: 'Open ordering', activeSessionsTitle: 'Active Session Actions', activeSessionsDesc: 'Support table transfer and merge. Merge automatically creates one bill flow.', noActiveSessions: 'No active sessions available', sourceTable: 'Source table', sourceTables: 'Source tables (multi-select)', targetTable: 'Target table', selectedCount: 'Selected', refreshSessions: 'Refresh sessions', transferAction: 'Transfer', mergeAction: 'Merge', transferring: 'Transferring...', merging: 'Merging...', transferTitle: 'Transfer table', mergeTitle: 'Merge tables', transferHint: 'Transfer moves the full active session to a new table.', mergeHint: 'Merge moves source orders into target table and keeps a single bill.', confirmTransfer: 'Confirm transfer', confirmMerge: 'Confirm merge', sameTableError: 'Source and target tables cannot be the same', mergeAtLeastTwo: 'Select at least one source table to merge', sessionConflict: 'Table status changed, please refresh and retry', operationSuccess: 'Operation completed', operationFailed: 'Operation failed, please retry' },
     settings: { nameEmpty: 'Restaurant name is required', kitchenPwd: 'Kitchen password must be 4 digits', waiterPwd: 'Waiter password must be 4 digits', saveFail: 'Save failed, please retry', migrationRequired: 'Database migration missing. From project root run: supabase db push', title: 'Restaurant Settings', desc: 'Manage your restaurant profile', name: 'Restaurant name *', slug: 'Restaurant slug (URL)', slugTip: 'Slug cannot be changed after creation', address: 'Address', phone: 'Phone', geoLatitude: 'Restaurant latitude', geoLongitude: 'Restaurant longitude', geoHint: 'Used for order distance checks (customers must be within 50 meters).', useCurrentLocation: 'Use current location', geoInvalid: 'Please enter valid coordinates (latitude -90~90, longitude -180~180)', geoLocateFail: 'Failed to get current location; check location permission', kitchenLabel: 'Kitchen password (4 digits)', kitchenTip: 'Staff use this password to access kitchen display.', waiterLabel: 'Waiter password (4 digits)', waiterTip: 'Staff use this password to access waiter board.', passwordPlaceholder: 'Leave blank to keep', passwordKeepHint: 'Leave blank to keep current PIN; enter 4 digits to set a new one.', saved: 'Settings saved', save: 'Save settings', danger: 'Danger Zone', dangerTip: 'Actions below are irreversible.', openKitchen: 'Open kitchen display' },
     settingsHub: {
       title: 'Settings',
@@ -1244,7 +1239,7 @@ export const MESSAGES = {
       hintHide: 'Hide guide',
       hintProfile:
         'Restaurant name, address, geo location, and kitchen/waiter PINs. Location is used for order distance checks (~50 m).',
-      hintTables: 'Set table count and print QR codes; transfer or merge active sessions here. Staff entry QR for kitchen/floor login.',
+      hintTables: 'Set table count and print QR codes; transfer or merge active sessions here. One staff login QR for kitchen and floor.',
       hintStaff: 'Create kitchen, waiter, and cashier logins (login_name@mesa.in). Login names are unique platform-wide.',
       hintMenu:
         'Build categories first, then dishes. Bind print stations on categories or dishes — configure stations under Printing in the sidebar.',
@@ -1775,7 +1770,7 @@ export const MESSAGES = {
       scheduleErrInvalidTime: 'Indique horarios validos (HH:MM).',
       scheduleErrEndBeforeStart: 'A hora de fim deve ser depois da de inicio.',
     },
-    tables: { title: 'Gestao de mesas', desc: 'Gerar QR code para cada mesa', print: 'Imprimir todos os QR codes', count: 'Quantidade de mesas (1-30)', table: 'Mesa', download: 'Baixar QR code', staffTitle: 'QR codes de acesso da equipe', staffDesc: 'Imprima e fixe na cozinha e no balcao. A equipe escaneia e informa senha de 4 digitos para acessar.', kitchenEntry: 'Entrada da cozinha', waiterEntry: 'Painel do garcom', kitchenAlt: 'QR code de entrada da cozinha', waiterAlt: 'QR code de entrada do garcom', downloadKitchen: 'Baixar QR da cozinha', downloadWaiter: 'Baixar QR do garcom', openOrder: 'Abrir pedido', openKitchen: 'Abrir pagina da cozinha', openWaiter: 'Abrir pagina do garcom', activeSessionsTitle: 'Acoes de sessao ativa', activeSessionsDesc: 'Suporta troca e uniao de mesas. Uniao gera um unico fluxo de conta.', noActiveSessions: 'Sem sessoes ativas para operar', sourceTable: 'Mesa de origem', sourceTables: 'Mesas de origem (multi-selecao)', targetTable: 'Mesa de destino', selectedCount: 'Selecionadas', refreshSessions: 'Atualizar sessoes', transferAction: 'Trocar mesa', mergeAction: 'Unir mesas', transferring: 'Transferindo...', merging: 'Unindo...', transferTitle: 'Transferir mesa', mergeTitle: 'Unir mesas', transferHint: 'A troca move toda a sessao ativa para a mesa de destino.', mergeHint: 'A uniao move os pedidos para a mesa destino e mantém uma unica conta.', confirmTransfer: 'Confirmar troca', confirmMerge: 'Confirmar uniao', sameTableError: 'Mesa de origem e destino nao podem ser iguais', mergeAtLeastTwo: 'Selecione pelo menos uma mesa de origem para unir', sessionConflict: 'Estado das mesas mudou, atualize e tente novamente', operationSuccess: 'Operacao concluida', operationFailed: 'Falha na operacao, tente novamente' },
+    tables: { title: 'Gestao de mesas', desc: 'Gerar QR code para cada mesa', print: 'Imprimir todos os QR codes', count: 'Quantidade de mesas (1-30)', table: 'Mesa', download: 'Baixar QR code', staffTitle: 'QR code de login da equipe', staffDesc: 'Imprima e fixe na cozinha ou no balcao. A equipe escaneia e entra com login e palavra-passe; o sistema encaminha conforme o perfil (cozinha, garcom, etc.).', staffAlt: 'QR code de login da equipe', downloadStaff: 'Baixar QR', openStaffLogin: 'Abrir pagina de login', openOrder: 'Abrir pedido', activeSessionsTitle: 'Acoes de sessao ativa', activeSessionsDesc: 'Suporta troca e uniao de mesas. Uniao gera um unico fluxo de conta.', noActiveSessions: 'Sem sessoes ativas para operar', sourceTable: 'Mesa de origem', sourceTables: 'Mesas de origem (multi-selecao)', targetTable: 'Mesa de destino', selectedCount: 'Selecionadas', refreshSessions: 'Atualizar sessoes', transferAction: 'Trocar mesa', mergeAction: 'Unir mesas', transferring: 'Transferindo...', merging: 'Unindo...', transferTitle: 'Transferir mesa', mergeTitle: 'Unir mesas', transferHint: 'A troca move toda a sessao ativa para a mesa de destino.', mergeHint: 'A uniao move os pedidos para a mesa destino e mantém uma unica conta.', confirmTransfer: 'Confirmar troca', confirmMerge: 'Confirmar uniao', sameTableError: 'Mesa de origem e destino nao podem ser iguais', mergeAtLeastTwo: 'Selecione pelo menos uma mesa de origem para unir', sessionConflict: 'Estado das mesas mudou, atualize e tente novamente', operationSuccess: 'Operacao concluida', operationFailed: 'Falha na operacao, tente novamente' },
     settings: { nameEmpty: 'Nome do restaurante e obrigatorio', kitchenPwd: 'Senha da cozinha deve ter 4 digitos', waiterPwd: 'Senha do garcom deve ter 4 digitos', saveFail: 'Falha ao salvar, tente novamente', migrationRequired: 'Migracao em falta. Na raiz do projeto execute: supabase db push', title: 'Configuracoes do restaurante', desc: 'Gerencie os dados basicos do restaurante', name: 'Nome do restaurante *', slug: 'Slug do restaurante (URL)', slugTip: 'O slug nao pode ser alterado', address: 'Endereco', phone: 'Telefone', geoLatitude: 'Latitude do restaurante', geoLongitude: 'Longitude do restaurante', geoHint: 'Usado para validar distancia do pedido (cliente dentro de 50 metros).', useCurrentLocation: 'Usar localizacao atual', geoInvalid: 'Informe coordenadas validas (latitude -90~90, longitude -180~180)', geoLocateFail: 'Falha ao obter localizacao atual; verifique a permissao', kitchenLabel: 'Senha da cozinha (4 digitos)', kitchenTip: 'Equipe usa esta senha para abrir a tela da cozinha.', waiterLabel: 'Senha do garcom (4 digitos)', waiterTip: 'Equipe usa esta senha para abrir o painel do garcom.', passwordPlaceholder: 'Deixe em branco para manter', passwordKeepHint: 'Deixe em branco para manter o PIN atual; digite 4 numeros para definir um novo.', saved: 'Configuracoes salvas', save: 'Salvar configuracoes', danger: 'Area de risco', dangerTip: 'As acoes abaixo nao podem ser desfeitas.', openKitchen: 'Abrir tela da cozinha' },
     settingsHub: {
       title: 'Configuracoes',
@@ -1788,7 +1783,7 @@ export const MESSAGES = {
       hintProfile:
         'Nome, morada, localizacao e PINs de cozinha/sala. A localizacao valida a distancia do pedido (~50 m).',
       hintTables:
-        'Numero de mesas e QR; troca e uniao de mesas. QR de acesso da equipa para cozinha e sala.',
+        'Numero de mesas e QR; troca e uniao de mesas. Um QR de login da equipa para cozinha e sala.',
       hintStaff: 'Contas de cozinha, sala e caixa (login_name@mesa.in). Nome de login unico na plataforma.',
       hintMenu:
         'Crie categorias e depois pratos. Estacoes de impressao nas categorias ou pratos — configure em Impressao na barra lateral.',

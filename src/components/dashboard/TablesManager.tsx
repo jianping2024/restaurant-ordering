@@ -21,7 +21,7 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
   const supabase = createClient();
 
   const [qrCodes, setQrCodes] = useState<Record<number, string>>({});
-  const [staffQr, setStaffQr] = useState<{ kitchen: string; waiter: string }>({ kitchen: '', waiter: '' });
+  const [staffLoginQr, setStaffLoginQr] = useState('');
   const [activeSessions, setActiveSessions] = useState<Array<{
     id: string;
     table_number: number;
@@ -68,26 +68,18 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
     generate();
   }, [tableCount, restaurant.slug, baseUrl]);
 
-  // 生成员工入口二维码（厨房 + 服务员观察）
+  // 生成员工登录二维码
   useEffect(() => {
     const generateStaffQr = async () => {
-      const kitchenUrl = `${baseUrl}/${restaurant.slug}/staff/login`;
-      const waiterUrl = `${baseUrl}/${restaurant.slug}/staff/login`;
-      const [kitchen, waiter] = await Promise.all([
-        QRCode.toDataURL(kitchenUrl, {
-          width: 220,
-          margin: 2,
-          color: { dark: '#0f0e0c', light: '#f5f0e8' },
-        }),
-        QRCode.toDataURL(waiterUrl, {
-          width: 220,
-          margin: 2,
-          color: { dark: '#0f0e0c', light: '#f5f0e8' },
-        }),
-      ]);
-      setStaffQr({ kitchen, waiter });
+      const loginUrl = `${baseUrl}/${restaurant.slug}/staff/login`;
+      const dataUrl = await QRCode.toDataURL(loginUrl, {
+        width: 220,
+        margin: 2,
+        color: { dark: '#0f0e0c', light: '#f5f0e8' },
+      });
+      setStaffLoginQr(dataUrl);
     };
-    generateStaffQr();
+    void generateStaffQr();
   }, [restaurant.slug, baseUrl]);
 
   // 下载单个二维码
@@ -98,10 +90,11 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
     link.click();
   };
 
-  const downloadStaffQR = (type: 'kitchen' | 'waiter') => {
+  const downloadStaffLoginQR = () => {
+    if (!staffLoginQr) return;
     const link = document.createElement('a');
-    link.href = staffQr[type];
-    link.download = `${type}-entry-qr.png`;
+    link.href = staffLoginQr;
+    link.download = 'staff-login-qr.png';
     link.click();
   };
 
@@ -293,66 +286,35 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
         )}
       </div>
 
-      {/* 员工入口二维码 */}
+      {/* 员工登录二维码 */}
       <div className="bg-brand-card border border-brand-border rounded-2xl p-6 mb-6">
         <h2 className="font-heading text-2xl text-brand-gold mb-2">{t.staffTitle}</h2>
-        <p className="text-brand-text-muted text-sm mb-5">
-          {t.staffDesc}
-        </p>
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="border border-brand-border rounded-xl p-4 text-center">
-            <p className="text-brand-text text-sm mb-3">{t.kitchenEntry}</p>
-            {staffQr.kitchen ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={staffQr.kitchen} alt={t.kitchenAlt} className="mx-auto rounded-lg mb-3 w-40 h-40" />
-            ) : (
-              <div className="w-40 h-40 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
-            )}
-            <p className="text-brand-text-muted text-[13px] mb-2 truncate">/{restaurant.slug}/staff/login</p>
-            <div className="flex items-center justify-center gap-3">
-              <button
-                onClick={() => downloadStaffQR('kitchen')}
-                disabled={!staffQr.kitchen}
-                className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
-              >
-                {t.downloadKitchen}
-              </button>
-              <a
-                href={`${baseUrl}/${restaurant.slug}/staff/login`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-[13px] text-brand-gold hover:underline"
-              >
-                {t.openKitchen}
-              </a>
-            </div>
-          </div>
-          <div className="border border-brand-border rounded-xl p-4 text-center">
-            <p className="text-brand-text text-sm mb-3">{t.waiterEntry}</p>
-            {staffQr.waiter ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={staffQr.waiter} alt={t.waiterAlt} className="mx-auto rounded-lg mb-3 w-40 h-40" />
-            ) : (
-              <div className="w-40 h-40 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
-            )}
-            <p className="text-brand-text-muted text-[13px] mb-2 truncate">/{restaurant.slug}/staff/login</p>
-            <div className="flex items-center justify-center gap-3">
-              <button
-                onClick={() => downloadStaffQR('waiter')}
-                disabled={!staffQr.waiter}
-                className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
-              >
-                {t.downloadWaiter}
-              </button>
-              <a
-                href={`${baseUrl}/${restaurant.slug}/staff/login`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-[13px] text-brand-gold hover:underline"
-              >
-                {t.openWaiter}
-              </a>
-            </div>
+        <p className="text-brand-text-muted text-sm mb-5">{t.staffDesc}</p>
+        <div className="max-w-sm mx-auto border border-brand-border rounded-xl p-4 text-center">
+          {staffLoginQr ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={staffLoginQr} alt={t.staffAlt} className="mx-auto rounded-lg mb-3 w-44 h-44" />
+          ) : (
+            <div className="w-44 h-44 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
+          )}
+          <p className="text-brand-text-muted text-[13px] mb-3 truncate">/{restaurant.slug}/staff/login</p>
+          <div className="flex items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={downloadStaffLoginQR}
+              disabled={!staffLoginQr}
+              className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
+            >
+              {t.downloadStaff}
+            </button>
+            <a
+              href={`${baseUrl}/${restaurant.slug}/staff/login`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[13px] text-brand-gold hover:underline"
+            >
+              {t.openStaffLogin}
+            </a>
           </div>
         </div>
       </div>

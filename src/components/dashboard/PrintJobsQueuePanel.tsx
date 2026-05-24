@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import type { PrintJobSummary, PrintJobStatus, PrintJobType } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import { printJobErrorHint } from '@/lib/print-job-error-hints';
 
 function isPrintJobType(v: string): v is PrintJobType {
   return v === 'order_receipt' || v === 'station_ticket' || v === 'pre_bill';
@@ -20,6 +21,7 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
   const [jobs, setJobs] = useState<PrintJobSummary[]>(initialJobs);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [retryingId, setRetryingId] = useState<string | null>(null);
 
   const labelType = (type: string) => {
     if (!isPrintJobType(type)) return type;
@@ -62,6 +64,25 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
     }
   }, []);
 
+  const retryJob = useCallback(
+    async (jobId: string) => {
+      setRetryingId(jobId);
+      try {
+        const res = await fetch(`/api/print-agent/print-jobs/${jobId}/retry`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+        await refresh({ silent: true });
+      } finally {
+        setRetryingId(null);
+      }
+    },
+    [refresh],
+  );
+
+  const failedCount = jobs.filter((j) => j.status === 'failed').length;
+
   return (
     <div className="rounded-2xl border border-brand-border bg-brand-card p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -76,6 +97,11 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
         </button>
       </div>
       <p className="text-[12px] text-brand-text-muted mb-3 leading-relaxed">{t.tableHint}</p>
+      {failedCount > 0 ? (
+        <p className="text-[12px] text-amber-900 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2 mb-3 leading-relaxed">
+          {t.failedJobsHint}
+        </p>
+      ) : null}
       {loadError && <p className="text-[13px] text-red-600 mb-2">{t.loadError}</p>}
       {jobs.length === 0 ? (
         <p className="text-sm text-brand-text-muted py-4">{t.empty}</p>
@@ -89,6 +115,7 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
                 <th className="py-2 pr-3 font-medium">{t.colType}</th>
                 <th className="py-2 pr-3 font-medium">{t.colStatus}</th>
                 <th className="py-2 pr-3 font-medium">{t.colError}</th>
+                <th className="py-2 pr-3 font-medium">{t.colActions}</th>
                 <th className="py-2 font-medium">{t.colId}</th>
               </tr>
             </thead>
@@ -127,8 +154,38 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
                       {labelStatus(row.status)}
                     </span>
                   </td>
-                  <td className="py-2 pr-3 text-red-800/90 max-w-[200px] truncate" title={row.error_message || ''}>
-                    {row.error_message || '—'}
+                  <td className="py-2 pr-3 max-w-[240px]">
+                    {row.error_message ? (
+                      <div className="space-y-0.5">
+                        <p
+                          className="text-red-800/90 text-[12px] line-clamp-2"
+                          title={row.error_message}
+                        >
+                          {row.error_message}
+                        </p>
+                        {printJobErrorHint(row.error_message, lang) ? (
+                          <p className="text-[11px] text-brand-text-muted leading-snug">
+                            {printJobErrorHint(row.error_message, lang)}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <span className="text-brand-text-muted">—</span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-3 whitespace-nowrap">
+                    {row.status === 'failed' ? (
+                      <button
+                        type="button"
+                        disabled={retryingId === row.id}
+                        onClick={() => void retryJob(row.id)}
+                        className="text-[11px] px-2 py-1 rounded-md border border-brand-border text-brand-gold hover:bg-brand-gold/10 disabled:opacity-50"
+                      >
+                        {retryingId === row.id ? '…' : t.retryFailed}
+                      </button>
+                    ) : (
+                      <span className="text-brand-text-muted">—</span>
+                    )}
                   </td>
                   <td className="py-2 font-mono text-[11px] text-brand-text-muted">{row.id.slice(0, 8)}…</td>
                 </tr>

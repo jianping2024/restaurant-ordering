@@ -284,7 +284,11 @@ export const MESSAGES = {
       empty: '暂无打印任务。顾客或服务员下单成功后会自动入队；请确认已绑定出品档口且打印代理在线。',
       loadError: '加载失败，请稍后重试',
       tableHint:
-        '「类型」含出品联、订单小票等；失败时可对照任务 ID 与代理日志。需要最新记录时请点「刷新」。',
+        '「类型」含出品联、订单小票等；失败时可对照任务 ID 与代理日志。需要最新记录时请点「刷新」。失败任务修复后可点「重试」。',
+      failedJobsHint:
+        '失败任务不会自动重打。请先按下方提示修复（升级代理 v0.2.3、运行 configure 配置打印机），再点「重试」。',
+      retryFailed: '重试',
+      colActions: '操作',
       colTime: '时间',
       colTable: '桌台',
       colType: '类型',
@@ -771,7 +775,11 @@ export const MESSAGES = {
       empty: 'No print jobs yet. Jobs are queued automatically after an order is submitted; check station bindings and that the print agent is online.',
       loadError: 'Could not load the list. Try again later.',
       tableHint:
-        'Types include station tickets and receipts; on failure, match task ID with agent logs. Tap Refresh for the latest jobs.',
+        'Types include station tickets and receipts; on failure, match task ID with agent logs. Tap Refresh for the latest jobs. After fixing, use Retry.',
+      failedJobsHint:
+        'Failed jobs are not retried automatically. Fix the issue below (upgrade to print-agent v0.2.3, run configure), then tap Retry.',
+      retryFailed: 'Retry',
+      colActions: 'Actions',
       colTime: 'Time',
       colTable: 'Table',
       colType: 'Type',
@@ -1037,7 +1045,11 @@ export const MESSAGES = {
       empty: 'Sem tarefas ainda. As tarefas entram na fila ao confirmar um pedido; confirme estacoes ligadas e agente online.',
       loadError: 'Falha ao carregar. Tente mais tarde.',
       tableHint:
-        'Tipos incluem taloes de estacao e recibos; em falha, cruze o ID da tarefa com os logs do agente. Use Atualizar para ver a lista mais recente.',
+        'Tipos incluem taloes de estacao e recibos; em falha, cruze o ID da tarefa com os logs do agente. Use Atualizar para ver a lista mais recente. Depois de corrigir, use Repetir.',
+      failedJobsHint:
+        'Tarefas falhadas nao reimprimem sozinhas. Corrija (atualize para v0.2.3, execute configure) e toque em Repetir.',
+      retryFailed: 'Repetir',
+      colActions: 'Acoes',
       colTime: 'Hora',
       colTable: 'Mesa',
       colType: 'Tipo',

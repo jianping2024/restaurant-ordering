@@ -1,12 +1,27 @@
 package main
 
 import (
+	"regexp"
 	"strings"
 	"unicode"
 
 	"golang.org/x/text/encoding/charmap"
 	"golang.org/x/text/encoding/simplifiedchinese"
 )
+
+var defaultGuestPayerRe = regexp.MustCompile(`(?i)^(客人|Guest|Pessoa)\s*(\d+)$`)
+
+// formatSplitPayerForReceipt strips UI placeholder names (e.g. "客人 2") so Latin mode shows "Guest:2".
+func formatSplitPayerForReceipt(name string) string {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return ""
+	}
+	if m := defaultGuestPayerRe.FindStringSubmatch(name); len(m) == 3 {
+		return m[2]
+	}
+	return name
+}
 
 func hasHan(s string) bool {
 	for _, r := range s {
@@ -52,8 +67,11 @@ func receiptTicketLabels() ticketLabels {
 	return labelsFor("en")
 }
 
-// receiptTicketNeedsGBK — receipt header is ASCII; GBK only when menu lines contain Han.
+// receiptTicketNeedsGBK — receipt header is ASCII; GBK when payer/menu text contains Han.
 func receiptTicketNeedsGBK(p jobPayload) bool {
+	if hasHan(p.PayerName) || hasHan(p.RestaurantName) {
+		return true
+	}
 	for _, ln := range p.Lines {
 		if hasHan(ln.DisplayName) || hasHan(ln.Note) {
 			return true
@@ -101,9 +119,8 @@ func encodeWindows1252(s string) []byte {
 			t := string(r)
 			if _, err2 := enc.Bytes([]byte(t)); err2 == nil {
 				b.WriteRune(r)
-			} else {
-				b.WriteRune('?')
 			}
+			// Skip unmappable runes (never print "?" placeholders on receipts).
 		}
 		out, _ = enc.Bytes([]byte(b.String()))
 	}
@@ -121,9 +138,8 @@ func encodeGBK(s string) []byte {
 				b.WriteRune(r)
 			} else if r < 128 {
 				b.WriteRune(r)
-			} else {
-				b.WriteRune('?')
 			}
+			// Skip unmappable runes.
 		}
 		out, _ = enc.Bytes([]byte(b.String()))
 	}

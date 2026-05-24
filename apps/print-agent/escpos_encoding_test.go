@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestEncodeWindows1252Portuguese(t *testing.T) {
 	raw := encodeWindows1252("ção")
@@ -22,5 +25,33 @@ func TestPayloadNeedsGBK(t *testing.T) {
 	}
 	if payloadNeedsGBK(jobPayload{Locale: "pt", RestaurantName: "Mesa"}) {
 		t.Fatal("expected Latin for ASCII-only pt payload")
+	}
+}
+
+func TestReceiptTicketNeedsGBKPayer(t *testing.T) {
+	if !receiptTicketNeedsGBK(jobPayload{PayerName: "王小明"}) {
+		t.Fatal("expected GBK for custom Chinese payer name")
+	}
+	if receiptTicketNeedsGBK(jobPayload{PayerName: "2", Lines: []jobLine{{DisplayName: "Soup"}}}) {
+		t.Fatal("expected Latin for numeric placeholder payer")
+	}
+}
+
+func TestFormatSplitPayerForReceipt(t *testing.T) {
+	if got := formatSplitPayerForReceipt("客人 2"); got != "2" {
+		t.Fatalf("客人 2: got %q", got)
+	}
+	if got := formatSplitPayerForReceipt("Guest 3"); got != "3" {
+		t.Fatalf("Guest 3: got %q", got)
+	}
+	if got := formatSplitPayerForReceipt("Maria"); got != "Maria" {
+		t.Fatalf("custom name: got %q", got)
+	}
+}
+
+func TestEncodeWindows1252OmitsUnmappable(t *testing.T) {
+	raw := encodeWindows1252("客人")
+	if strings.Contains(string(raw), "?") {
+		t.Fatalf("must not emit question marks, got %q", raw)
 	}
 }

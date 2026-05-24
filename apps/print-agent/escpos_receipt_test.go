@@ -53,6 +53,25 @@ func TestBuildOrderReceiptEnglishLayout(t *testing.T) {
 	}
 }
 
+func TestBuildOrderReceiptSplitPaymentGuestNumber(t *testing.T) {
+	payload, _ := json.Marshal(jobPayload{
+		TableNumber:    5,
+		ReceiptVariant: "split_payment",
+		PayerName:      "客人 2",
+		AmountDue:      38.62,
+		AmountPaid:     38.62,
+		PaymentMethod:  "Cash",
+	})
+	raw := escposFromJob(printJob{Type: "order_receipt", Payload: payload})
+	s := string(raw)
+	if strings.Contains(s, "??") {
+		t.Fatalf("must not contain ?? placeholders: %q", s)
+	}
+	if !strings.Contains(s, "Guest:2") {
+		t.Fatalf("expected Guest:2, got excerpt around guest: %q", s)
+	}
+}
+
 func TestPreBillOmitsPaymentLines(t *testing.T) {
 	payload, _ := json.Marshal(jobPayload{
 		TableNumber: 2,

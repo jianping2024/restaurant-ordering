@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BillSplit, SplitResult } from '@/types';
 import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
+import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
 
 export function normalizeSplitRows(split: BillSplit): SplitResult[] {
   const rows = (split.result || []) as SplitResult[];
@@ -106,7 +107,7 @@ export async function confirmBillSplitPayment(params: {
       sessionId,
       tableNumber,
       variant: 'split_payment',
-      payerName: row.name,
+      payerName: receiptPayerNameForPrint(row.name, personIndex),
       personAmount: row.amount,
       amountPaid: row.amount,
       paymentMethod: 'Cash',

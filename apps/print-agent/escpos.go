@@ -497,7 +497,7 @@ func buildStationTicket(p jobPayload) []byte {
 func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant string) []byte {
 	w := newEscposForReceiptTicket(p)
 	isSplit := variant == "split_payment"
-	payer := strings.TrimSpace(p.PayerName)
+	payer := formatSplitPayerForReceipt(p.PayerName)
 
 	w.align(0)
 	w.size(false, false)

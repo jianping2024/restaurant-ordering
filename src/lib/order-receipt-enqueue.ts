@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BillSplit, Order, OrderItem, PrintJobType } from '@/types';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
+import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
 import {
   formatStationTicketOrderTime,
   guestCountFromTableOrders,
@@ -191,6 +192,14 @@ export async function enqueueReceiptPrint(
   const subtotal = variant === 'split_payment' ? amountDue : lines.reduce((s, ln) => s + ln.unit_price * ln.qty, 0);
   const due = variant === 'final' && amountPaid != null ? subtotal : amountDue;
 
+  const splitPayerPrinted =
+    variant === 'split_payment'
+      ? receiptPayerNameForPrint(
+          payerName,
+          personIndex != null && personIndex >= 0 ? personIndex : 0,
+        )
+      : undefined;
+
   const payload: OrderReceiptJobPayload = {
     order_id: firstOrder.id,
     locale,
@@ -198,7 +207,7 @@ export async function enqueueReceiptPrint(
     ...(restaurantName?.trim() ? { restaurant_name: restaurantName.trim() } : {}),
     table_number: tableNumber,
     ...(guestCount > 0 && variant !== 'split_payment' ? { guest_count: guestCount } : {}),
-    ...(variant === 'split_payment' && payerName?.trim() ? { payer_name: payerName.trim() } : {}),
+    ...(splitPayerPrinted ? { payer_name: splitPayerPrinted } : {}),
     ...(orderTime ? { order_time: orderTime } : {}),
     print_time: printTime,
     subtotal,

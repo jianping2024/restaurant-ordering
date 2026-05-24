@@ -1,13 +1,15 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
-import type { PrintStation, PrintStationTicketLayout } from '@/types';
+import type { MenuCategory, MenuItem, PrintStation, PrintStationTicketLayout } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
+import { countPrintStationBindings, getPrintStationDisplayName } from '@/lib/print-station-admin';
 
 const SELECT_FIELD =
   'w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50';
@@ -15,6 +17,8 @@ const SELECT_FIELD =
 interface PrintStationsManagerProps {
   restaurantId: string;
   initialStations: PrintStation[];
+  initialCategories?: Pick<MenuCategory, 'id' | 'print_station_id'>[];
+  initialItems?: Pick<MenuItem, 'id' | 'print_station_id'>[];
   /** When true (e.g. under `/dashboard/settings`), hide page title — same pattern as `MenuManager`. */
   embedded?: boolean;
 }
@@ -39,7 +43,13 @@ function layoutEmoji(layout: PrintStationTicketLayout): string {
   return '🖨️';
 }
 
-export function PrintStationsManager({ restaurantId, initialStations, embedded }: PrintStationsManagerProps) {
+export function PrintStationsManager({
+  restaurantId,
+  initialStations,
+  initialCategories = [],
+  initialItems = [],
+  embedded,
+}: PrintStationsManagerProps) {
   const { lang } = useLanguage();
   const t = getMessages(lang).printStations;
   const tm = getMessages(lang).menuManager;
@@ -70,6 +80,17 @@ export function PrintStationsManager({ restaurantId, initialStations, embedded }
 
   const layoutLabel = (layout: PrintStationTicketLayout) =>
     layout === 'kitchen' ? t.layoutKitchen : layout === 'beverage' ? t.layoutBeverage : t.layoutStandard;
+
+  const bindingsForStation = (stationId: string) =>
+    countPrintStationBindings(stationId, initialCategories, initialItems);
+
+  const bindingsLabel = (stationId: string) => {
+    const { categories, dishes } = bindingsForStation(stationId);
+    if (categories === 0 && dishes === 0) return t.bindingsEmpty;
+    return t.bindingsSummary.replace('{categories}', String(categories)).replace('{dishes}', String(dishes));
+  };
+
+  const deleteTargetBindings = deleteTarget ? bindingsForStation(deleteTarget.id) : null;
 
   const openStationCreateModal = () => {
     setEditingStation(null);
@@ -204,19 +225,38 @@ export function PrintStationsManager({ restaurantId, initialStations, embedded }
         <p className="mesa-alert-danger text-sm px-4 py-2 mb-4">{error}</p>
       ) : null}
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <button
-          type="button"
-          onClick={openStationCreateModal}
-          className="text-[13px] font-medium text-brand-gold hover:underline self-start sm:self-auto"
-        >
+      <div
+        className={`mb-4 flex flex-col gap-3 sm:flex-row sm:items-center ${
+          embedded ? 'sm:justify-between' : 'sm:justify-end'
+        }`}
+      >
+        {embedded ? (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
+            <Link href="/dashboard/settings/menu" className="text-brand-text-muted hover:text-brand-gold transition-colors">
+              {t.linkMenu}
+            </Link>
+            <span className="text-brand-border" aria-hidden>
+              ·
+            </span>
+            <Link
+              href="/dashboard/settings/print-assistant"
+              className="text-brand-text-muted hover:text-brand-gold transition-colors"
+            >
+              {t.linkPrintAssistant}
+            </Link>
+          </div>
+        ) : null}
+        <Button type="button" onClick={openStationCreateModal} className="w-full sm:w-auto shrink-0">
           + {t.add}
-        </button>
+        </Button>
       </div>
 
       {stations.length === 0 ? (
         <div className="bg-brand-card border border-brand-border rounded-2xl p-10 sm:p-12 text-center">
-          <p className="text-brand-text-muted text-sm">{t.empty}</p>
+          <p className="text-brand-text-muted text-sm mb-4">{t.empty}</p>
+          <Button type="button" onClick={openStationCreateModal}>
+            {t.emptyCta}
+          </Button>
         </div>
       ) : (
         <>
@@ -224,14 +264,16 @@ export function PrintStationsManager({ restaurantId, initialStations, embedded }
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-brand-border text-left text-brand-text-muted">
-                  <th className="px-4 py-3 font-medium w-12" scope="col" aria-hidden />
                   <th className="px-4 py-3 font-medium" scope="col">
-                    {tm.ptNameReq.replace(' *', '')}
+                    {t.colName}
                   </th>
                   <th className="px-4 py-3 font-medium" scope="col">
                     {t.colLayout}
                   </th>
-                  <th className="px-4 py-3 font-medium text-right" scope="col">
+                  <th className="px-4 py-3 font-medium" scope="col">
+                    {t.colBindings}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-right w-[14rem]" scope="col">
                     {t.colActions}
                   </th>
                 </tr>
@@ -239,48 +281,54 @@ export function PrintStationsManager({ restaurantId, initialStations, embedded }
               <tbody>
                 {stations.map((row, index) => (
                   <tr key={row.id} className="border-b border-brand-border/80 last:border-0">
-                    <td className="px-4 py-3 text-2xl text-center">{layoutEmoji(row.ticket_layout)}</td>
                     <td className="px-4 py-3 min-w-[10rem]">
-                      <p className="text-brand-text font-medium">{row.name_pt}</p>
-                      {row.name_en ? (
-                        <p className="text-[12px] text-brand-text-muted mt-0.5">{row.name_en}</p>
-                      ) : null}
-                      {row.name_zh ? (
-                        <p className="text-[12px] text-brand-text-muted mt-0.5">{row.name_zh}</p>
+                      <p className="text-brand-text font-medium flex items-center gap-2">
+                        <span className="text-lg leading-none" aria-hidden>
+                          {layoutEmoji(row.ticket_layout)}
+                        </span>
+                        {getPrintStationDisplayName(row, lang)}
+                      </p>
+                      {row.name_pt !== getPrintStationDisplayName(row, lang) ? (
+                        <p className="text-[12px] text-brand-text-muted mt-0.5">PT: {row.name_pt}</p>
                       ) : null}
                     </td>
-                    <td className="px-4 py-3 text-brand-text-muted">{layoutLabel(row.ticket_layout)}</td>
+                    <td className="px-4 py-3 text-brand-text-muted whitespace-nowrap">
+                      {layoutLabel(row.ticket_layout)}
+                    </td>
+                    <td className="px-4 py-3 text-[13px] text-brand-text-muted">{bindingsLabel(row.id)}</td>
                     <td className="px-4 py-3">
-                      <div className="flex flex-wrap items-center justify-end gap-2">
-                        <Button
+                      <div className="flex flex-wrap items-center justify-end gap-1.5">
+                        <button
                           type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => moveRow(index, -1)}
+                          aria-label={t.moveUp}
+                          title={t.moveUp}
                           disabled={index === 0}
+                          onClick={() => moveRow(index, -1)}
+                          className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-brand-border/70 text-brand-text-muted hover:text-brand-gold disabled:opacity-35"
                         >
-                          {t.moveUp}
-                        </Button>
-                        <Button
+                          ↑
+                        </button>
+                        <button
                           type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => moveRow(index, 1)}
+                          aria-label={t.moveDown}
+                          title={t.moveDown}
                           disabled={index === stations.length - 1}
+                          onClick={() => moveRow(index, 1)}
+                          className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-brand-border/70 text-brand-text-muted hover:text-brand-gold disabled:opacity-35"
                         >
-                          {t.moveDown}
-                        </Button>
+                          ↓
+                        </button>
                         <button
                           type="button"
                           onClick={() => openStationEditModal(row)}
-                          className="text-brand-text-muted hover:text-brand-gold transition-colors text-sm px-2"
+                          className="text-brand-text-muted hover:text-brand-gold transition-colors text-sm px-2 py-1"
                         >
                           {tm.edit}
                         </button>
                         <button
                           type="button"
                           onClick={() => setDeleteTarget(row)}
-                          className="mesa-text-danger hover:opacity-90 transition-colors text-sm px-2"
+                          className="mesa-text-danger hover:opacity-90 transition-colors text-sm px-2 py-1"
                         >
                           {tm.remove}
                         </button>
@@ -292,36 +340,43 @@ export function PrintStationsManager({ restaurantId, initialStations, embedded }
             </table>
           </div>
 
+          <p className="hidden md:block text-[12px] text-brand-text-muted mt-2">{t.sortOrderHint}</p>
+
           <div className="md:hidden space-y-2">
             {stations.map((row, index) => (
               <div
                 key={row.id}
                 className="bg-brand-card border border-brand-border rounded-xl px-4 py-4 flex flex-col gap-3"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-lg bg-brand-border flex items-center justify-center text-xl shrink-0">
+                <div className="flex items-start gap-3 min-w-0">
+                  <span className="text-xl shrink-0" aria-hidden>
                     {layoutEmoji(row.ticket_layout)}
-                  </div>
+                  </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-brand-text font-medium truncate">{row.name_pt}</p>
-                    <p className="text-[12px] text-brand-text-muted mt-0.5">
-                      {layoutLabel(row.ticket_layout)}
-                    </p>
+                    <p className="text-brand-text font-medium">{getPrintStationDisplayName(row, lang)}</p>
+                    <p className="text-[12px] text-brand-text-muted mt-0.5">{layoutLabel(row.ticket_layout)}</p>
+                    <p className="text-[12px] text-brand-text-muted mt-0.5">{bindingsLabel(row.id)}</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 border-t border-brand-border pt-3">
-                  <Button type="button" variant="outline" size="sm" onClick={() => moveRow(index, -1)} disabled={index === 0}>
-                    {t.moveUp}
-                  </Button>
-                  <Button
+                  <button
                     type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => moveRow(index, 1)}
-                    disabled={index === stations.length - 1}
+                    aria-label={t.moveUp}
+                    disabled={index === 0}
+                    onClick={() => moveRow(index, -1)}
+                    className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-brand-border/70 text-brand-text-muted disabled:opacity-35"
                   >
-                    {t.moveDown}
-                  </Button>
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={t.moveDown}
+                    disabled={index === stations.length - 1}
+                    onClick={() => moveRow(index, 1)}
+                    className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-brand-border/70 text-brand-text-muted disabled:opacity-35"
+                  >
+                    ↓
+                  </button>
                   <button
                     type="button"
                     onClick={() => openStationEditModal(row)}
@@ -339,6 +394,7 @@ export function PrintStationsManager({ restaurantId, initialStations, embedded }
                 </div>
               </div>
             ))}
+            <p className="text-[12px] text-brand-text-muted px-1">{t.sortOrderHint}</p>
           </div>
         </>
       )}
@@ -409,7 +465,14 @@ export function PrintStationsManager({ restaurantId, initialStations, embedded }
         size="md"
       >
         <div className="space-y-4">
-          <p className="text-sm text-brand-text">{t.confirmDeleteBody}</p>
+          <p className="text-sm text-brand-text">
+            {deleteTarget && deleteTargetBindings
+              ? t.confirmDeleteBody
+                  .replace('{categories}', String(deleteTargetBindings.categories))
+                  .replace('{dishes}', String(deleteTargetBindings.dishes))
+                  .replace('{name}', getPrintStationDisplayName(deleteTarget, lang))
+              : t.confirmDeleteBody}
+          </p>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleteLoading}>
               {t.cancel}

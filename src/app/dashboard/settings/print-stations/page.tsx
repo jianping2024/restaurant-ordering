@@ -13,18 +13,26 @@ export default async function SettingsPrintStationsPage() {
     .eq('owner_id', user!.id)
     .single();
 
-  const { data: printStations } = await supabase
-    .from('print_stations')
-    .select('*')
-    .eq('restaurant_id', restaurant!.id)
-    .order('sort_order', { ascending: true })
-    .order('created_at', { ascending: true });
+  const restaurantId = restaurant!.id;
+
+  const [{ data: printStations }, { data: menuCategories }, { data: menuItems }] = await Promise.all([
+    supabase
+      .from('print_stations')
+      .select('*')
+      .eq('restaurant_id', restaurantId)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true }),
+    supabase.from('menu_categories').select('id, print_station_id').eq('restaurant_id', restaurantId),
+    supabase.from('menu_items').select('id, print_station_id').eq('restaurant_id', restaurantId),
+  ]);
 
   return (
     <PrintStationsManager
       embedded
-      restaurantId={restaurant!.id}
+      restaurantId={restaurantId}
       initialStations={printStations ?? []}
+      initialCategories={menuCategories ?? []}
+      initialItems={menuItems ?? []}
     />
   );
 }

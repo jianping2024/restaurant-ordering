@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Tree from 'rc-tree';
 import type { DataNode } from 'rc-tree/lib/interface';
@@ -30,6 +31,7 @@ import {
   siblingCategoryHasDuplicateCode,
 } from '@/lib/menu-code-uniqueness';
 import { getMenuCategoryLabel, getMenuItemDisplayName, itemMatchesSearch } from '@/lib/menu-admin';
+import { getPrintStationDisplayName } from '@/lib/print-station-admin';
 import { categoryCodePathFromLeaf, normalizeMenuItemCode } from '@/lib/menu-print-label';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import { MenuManagementGuide } from '@/components/dashboard/menu/MenuManagementGuide';
@@ -818,11 +820,14 @@ export function MenuManager({
   const renderCategoryNodeTitle = (category: MenuCategory) => {
     const depth = categoryDepthMap.get(category.id) || 1;
     const canAddChild = depth < MAX_CATEGORY_DEPTH;
+    const showActions = selectedCategoryId === category.id;
+    const actionBtn =
+      'h-7 w-7 inline-flex items-center justify-center rounded-md border border-brand-border/70 text-brand-text-muted hover:text-brand-gold hover:border-brand-gold/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 disabled:opacity-35 disabled:cursor-not-allowed shrink-0';
     return (
-      <div className="group flex w-full flex-wrap items-center gap-x-2 gap-y-1 min-h-8 py-0.5 pr-1">
+      <div className="group flex w-full items-center gap-1 min-h-8 py-0.5 pr-0.5 min-w-0">
         <button
           type="button"
-          className={`truncate text-sm leading-5 text-left hover:underline ${
+          className={`flex-1 min-w-0 truncate text-sm leading-5 text-left hover:underline ${
             selectedCategoryId === category.id ? 'text-brand-gold font-medium' : 'text-brand-text'
           }`}
           onClick={(e) => {
@@ -836,13 +841,14 @@ export function MenuManager({
           ) : null}
         </button>
         <div
-          className={`ml-auto flex flex-wrap items-center gap-1 text-[11px] ${
-            selectedCategoryId === category.id ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'
+          className={`flex shrink-0 items-center gap-0.5 transition-opacity ${
+            showActions ? 'opacity-100' : 'opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto'
           }`}
         >
           <button
             type="button"
             disabled={!canAddChild}
+            aria-label={t.addChildAction}
             title={canAddChild ? t.addChild : t.maxDepthTitle.replace('{max}', String(MAX_CATEGORY_DEPTH))}
             onClick={(e) => {
               e.stopPropagation();
@@ -851,30 +857,34 @@ export function MenuManager({
               setCategoryDraft(defaultCategoryDraft);
               setCategoryPanelMode('create-child');
             }}
-            className="px-1.5 py-0.5 rounded border border-brand-border/70 text-brand-text-muted hover:text-brand-gold hover:border-brand-gold/40 disabled:opacity-40 disabled:cursor-not-allowed"
+            className={actionBtn}
           >
-            + {t.addChildAction}
+            +
           </button>
           <button
             type="button"
+            aria-label={t.editAction}
+            title={t.editAction}
             onClick={(e) => {
               e.stopPropagation();
               openCategoryEdit(category);
             }}
-            className="px-1.5 py-0.5 rounded border border-brand-border/70 text-brand-text-muted hover:text-brand-gold hover:border-brand-gold/40"
+            className={actionBtn}
           >
-            {t.editAction}
+            ✎
           </button>
           <button
             type="button"
+            aria-label={t.deleteAction}
+            title={t.deleteAction}
             onClick={(e) => {
               e.stopPropagation();
               setSelectedCategoryId(category.id);
               void deleteCategoryById(category.id);
             }}
-            className="px-1.5 py-0.5 rounded border border-status-danger/35 mesa-text-danger hover:bg-[rgb(var(--color-status-danger-border)/0.12)]"
+            className={`${actionBtn} mesa-text-danger border-status-danger/35 hover:bg-[rgb(var(--color-status-danger-border)/0.12)]`}
           >
-            {t.deleteAction}
+            ×
           </button>
         </div>
       </div>
@@ -961,8 +971,9 @@ export function MenuManager({
       {activeTab === 'categories' ? (
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(260px,360px),1fr] gap-4">
           <div className="bg-brand-card border border-brand-border rounded-2xl p-4">
-            <p className="text-[12px] text-brand-text-muted mb-2">{t.categoryTreeHint}</p>
-            <p className="text-[12px] text-brand-text-muted mb-3">{t.depthHint.replace('{max}', String(MAX_CATEGORY_DEPTH))}</p>
+            <p className="text-[12px] text-brand-text-muted mb-3" title={t.depthHint.replace('{max}', String(MAX_CATEGORY_DEPTH))}>
+              {t.categoryTreeHint}
+            </p>
             {categoryTreeData.length === 0 ? (
               <p className="text-sm text-brand-text-muted">{t.pickNode}</p>
             ) : (
@@ -995,9 +1006,30 @@ export function MenuManager({
             )}
           </div>
 
-          <div className="bg-brand-card border border-brand-border rounded-2xl p-4">
+          <div className="bg-brand-card border border-brand-border rounded-2xl p-4 min-h-[min(320px,50vh)]">
             {categoryPanelMode === 'none' || (categoryPanelMode !== 'create-root' && !selectedCategory) ? (
-              <p className="text-sm text-brand-text-muted">{t.panelEmpty}</p>
+              <div className="flex flex-col items-center justify-center h-full min-h-[min(280px,45vh)] text-center px-2 py-8">
+                <p className="text-sm text-brand-text-muted mb-5 max-w-sm">{t.panelEmpty}</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setCategoryDraft(defaultCategoryDraft);
+                      setCategoryPanelMode('create-root');
+                    }}
+                  >
+                    {t.panelEmptyAddRoot}
+                  </Button>
+                  {embedded ? (
+                    <Link
+                      href="/dashboard/settings/print-stations"
+                      className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-sm border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/35 transition-colors"
+                    >
+                      {t.linkPrintStations}
+                    </Link>
+                  ) : null}
+                </div>
+              </div>
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-2">
@@ -1067,7 +1099,7 @@ export function MenuManager({
                     <option value="">{t.printStationCategoryNone}</option>
                     {printStations.map((ps) => (
                       <option key={ps.id} value={ps.id}>
-                        {lang === 'en' ? ps.name_en || ps.name_pt : lang === 'zh' ? ps.name_zh || ps.name_pt : ps.name_pt}
+                        {getPrintStationDisplayName(ps, lang)}
                       </option>
                     ))}
                   </select>

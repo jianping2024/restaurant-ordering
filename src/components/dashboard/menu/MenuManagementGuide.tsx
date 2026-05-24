@@ -6,7 +6,7 @@ import type { getMessages } from '@/lib/i18n/messages';
 type MenuManagerMessages = ReturnType<typeof getMessages>['menuManager'];
 
 export function MenuManagementGuide({ t }: { t: MenuManagerMessages }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   return (
     <div className="rounded-xl border border-brand-gold/25 bg-brand-gold/5 p-4 mb-6">

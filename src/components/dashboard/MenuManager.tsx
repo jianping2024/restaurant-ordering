@@ -820,36 +820,31 @@ export function MenuManager({
   const renderCategoryNodeTitle = (category: MenuCategory) => {
     const depth = categoryDepthMap.get(category.id) || 1;
     const canAddChild = depth < MAX_CATEGORY_DEPTH;
-    const showActions = selectedCategoryId === category.id;
-    const actionBtn =
-      'h-7 w-7 inline-flex items-center justify-center rounded-md border border-brand-border/70 text-brand-text-muted hover:text-brand-gold hover:border-brand-gold/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 disabled:opacity-35 disabled:cursor-not-allowed shrink-0';
+    const maxDepthTitle = t.maxDepthTitle.replace('{max}', String(MAX_CATEGORY_DEPTH));
+    const iconBtn =
+      'h-5 w-5 inline-flex items-center justify-center rounded-md border border-brand-border/70 bg-brand-card/80 text-brand-text leading-none hover:text-brand-gold hover:border-brand-gold/35 hover:bg-brand-gold/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/45 focus-visible:bg-brand-gold/15 transition-colors disabled:opacity-35 disabled:hover:bg-brand-card/80 disabled:hover:text-brand-text disabled:cursor-not-allowed shrink-0';
     return (
-      <div className="group w-full min-w-0 max-w-full py-0.5">
-        <button
-          type="button"
-          className={`block w-full min-w-0 truncate text-sm leading-5 text-left hover:underline ${
+      <div className="group flex w-full items-center gap-2 min-h-7 pr-1 min-w-0">
+        <span
+          className={`truncate text-sm leading-5 min-w-0 flex-1 ${
             selectedCategoryId === category.id ? 'text-brand-gold font-medium' : 'text-brand-text'
           }`}
-          onClick={(e) => {
-            e.stopPropagation();
-            openCategoryEdit(category);
-          }}
         >
           {getCategoryLabel(category)}
           {category.item_code?.trim() ? (
             <span className="text-brand-text-muted font-normal"> [{category.item_code.trim()}]</span>
           ) : null}
-        </button>
+        </span>
         <div
-          className={`mesa-category-tree-actions mt-1 flex items-center justify-end gap-0.5 ${
-            showActions ? 'is-visible' : ''
+          className={`ml-auto flex h-6 shrink-0 items-center gap-1 rounded-md bg-brand-border/35 px-1 transition-opacity ${
+            selectedCategoryId === category.id ? 'opacity-100' : 'opacity-75 group-hover:opacity-100'
           }`}
         >
           <button
             type="button"
-            disabled={!canAddChild}
+            title={canAddChild ? t.addChild : maxDepthTitle}
             aria-label={t.addChildAction}
-            title={canAddChild ? t.addChild : t.maxDepthTitle.replace('{max}', String(MAX_CATEGORY_DEPTH))}
+            disabled={!canAddChild}
             onClick={(e) => {
               e.stopPropagation();
               if (!canAddChild) return;
@@ -857,34 +852,34 @@ export function MenuManager({
               setCategoryDraft(defaultCategoryDraft);
               setCategoryPanelMode('create-child');
             }}
-            className={`${actionBtn} min-w-[1.75rem] px-1 text-xs font-medium`}
+            className={iconBtn}
           >
             +
           </button>
           <button
             type="button"
+            title={t.edit}
             aria-label={t.editAction}
-            title={t.editAction}
             onClick={(e) => {
               e.stopPropagation();
               openCategoryEdit(category);
             }}
-            className={`${actionBtn} px-1.5 text-[11px]`}
+            className={iconBtn}
           >
-            {t.editAction}
+            ✎
           </button>
           <button
             type="button"
+            title={t.remove}
             aria-label={t.deleteAction}
-            title={t.deleteAction}
             onClick={(e) => {
               e.stopPropagation();
               setSelectedCategoryId(category.id);
               void deleteCategoryById(category.id);
             }}
-            className={`${actionBtn} px-1.5 text-[11px] mesa-text-danger border-status-danger/35 hover:bg-[rgb(var(--color-status-danger-border)/0.12)]`}
+            className={`${iconBtn} border-status-danger/35 bg-[rgb(var(--color-status-danger-border)/0.12)] mesa-text-danger leading-none hover:bg-[rgb(var(--color-status-danger-border)/0.2)] focus-visible:ring-[rgb(var(--color-status-danger-border)/0.45)]`}
           >
-            {t.deleteAction}
+            ×
           </button>
         </div>
       </div>
@@ -969,31 +964,28 @@ export function MenuManager({
       </div>
 
       {activeTab === 'categories' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] gap-4 min-w-0">
-          <div className="bg-brand-card border border-brand-border rounded-2xl p-4 min-w-0 max-w-full overflow-hidden">
-            <p className="text-[12px] text-brand-text-muted mb-3" title={t.depthHint.replace('{max}', String(MAX_CATEGORY_DEPTH))}>
-              {t.categoryTreeHint}
-            </p>
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(260px,360px)_minmax(0,1fr)] gap-4 min-w-0">
+          <div className="bg-brand-card border border-brand-border rounded-2xl p-4 min-w-0">
+            <p className="text-[12px] text-brand-text-muted mb-2">{t.categoryTreeHint}</p>
+            <p className="text-[12px] text-brand-text-muted mb-3">{t.depthHint.replace('{max}', String(MAX_CATEGORY_DEPTH))}</p>
             {categoryTreeData.length === 0 ? (
               <p className="text-sm text-brand-text-muted">{t.pickNode}</p>
             ) : (
               <>
-                <div className="min-w-0 max-w-full overflow-x-auto">
-                  <Tree
-                    treeData={categoryTreeData}
-                    selectedKeys={selectedCategoryId ? [selectedCategoryId] : []}
-                    expandedKeys={expandedCategoryKeys}
-                    onExpand={(keys) => setExpandedCategoryKeys(keys.map(String))}
-                    onSelect={(keys) => {
-                      const selected = keys[0];
-                      if (!selected) return;
-                      const cat = categories.find((c) => c.id === String(selected));
-                      if (cat) openCategoryEdit(cat);
-                    }}
-                    className="mesa-category-tree"
-                    switcherIcon={<span className="text-brand-text-muted">▸</span>}
-                  />
-                </div>
+                <Tree
+                  treeData={categoryTreeData}
+                  selectedKeys={selectedCategoryId ? [selectedCategoryId] : []}
+                  expandedKeys={expandedCategoryKeys}
+                  onExpand={(keys) => setExpandedCategoryKeys(keys.map(String))}
+                  onSelect={(keys) => {
+                    const selected = keys[0];
+                    if (!selected) return;
+                    const cat = categories.find((c) => c.id === String(selected));
+                    if (cat) openCategoryEdit(cat);
+                  }}
+                  className="mesa-category-tree"
+                  switcherIcon={<span className="text-brand-text-muted">▸</span>}
+                />
                 <button
                   type="button"
                   onClick={() => {
@@ -1471,52 +1463,31 @@ export function MenuManager({
       </Modal>
 
       <style jsx global>{`
-        .mesa-category-tree {
-          width: 100%;
-          max-width: 100%;
-        }
         .mesa-category-tree .rc-tree-treenode {
           margin: 2px 0;
-          max-width: 100%;
         }
         .mesa-category-tree .rc-tree-node-content-wrapper {
-          width: 100% !important;
-          max-width: 100%;
+          width: 100%;
           border-radius: 8px;
-          min-height: 2.75rem;
-          padding: 2px 4px;
+          min-height: 30px;
+          padding: 1px 4px;
           display: flex;
-          align-items: flex-start;
+          align-items: center;
           box-sizing: border-box;
-          overflow: visible;
         }
-        .mesa-category-tree .mesa-category-tree-actions {
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity 0.15s ease;
-        }
-        .mesa-category-tree .rc-tree-node-content-wrapper:hover .mesa-category-tree-actions,
-        .mesa-category-tree .mesa-category-tree-actions.is-visible,
-        .mesa-category-tree .rc-tree-treenode-selected .mesa-category-tree-actions {
-          opacity: 1;
-          pointer-events: auto;
-        }
+        .mesa-category-tree .rc-tree-node-selected,
         .mesa-category-tree .rc-tree-node-content-wrapper:hover {
-          background: rgb(var(--color-brand-gold) / 0.1);
-        }
-        .mesa-category-tree .rc-tree-node-selected {
-          background: rgb(var(--color-brand-gold) / 0.16) !important;
-          box-shadow: inset 0 0 0 1px rgb(var(--color-brand-gold) / 0.35);
+          background: rgba(212, 175, 55, 0.08);
         }
         .mesa-category-tree .rc-tree-switcher {
           width: 18px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          color: rgb(var(--color-brand-text-muted));
         }
         .mesa-category-tree .rc-tree-title {
-          width: 100%;
+          flex: 1;
+          min-width: 0;
         }
       `}</style>
 

@@ -14,7 +14,7 @@ go run . discover -json
 go run . discover -timeout-ms 600 -workers 128
 ```
 
-Use the printed addresses in `config.json` (see below). Map each **print station** UUID to one printer; use `default_printer` for receipts / pre-bill / connection test.
+Use the printed addresses in `config.json` (see below). Map each **print station** in `configure` / first-run setup. Mapped stations appear on Mesa checkout/bill pages; staff must pick a printer there (default **do not print**).
 
 ### Run agent (poll + print)
 
@@ -32,7 +32,6 @@ go run . -api http://localhost:3000 -default-printer 192.168.1.50:9100
   "api_base": "http://localhost:3000",
   "agentjwt": "...",
   "device_id": "...",
-  "default_printer": "192.168.1.50:9100",
   "station_printers": {
     "uuid-of-kitchen-station": "192.168.1.51:9100",
     "uuid-of-bar-station": "192.168.1.52:9100"
@@ -57,8 +56,8 @@ go run . -api http://localhost:3000 -default-printer 192.168.1.50:9100
 }
 ```
 
-- **`station_ticket`** jobs → `station_printers[payload.print_station_id]`
-- **`order_receipt` / `pre_bill`** → `default_printer` (legacy field `printer_host` still works)
+- **`station_ticket`** → `station_printers[payload.print_station_id]` only (no fallback)
+- **`order_receipt` / `pre_bill`** → `payload.receipt_printer_id` = `station:{uuid}` when chosen on checkout/bill; if omitted, agent retries up to **20 minutes** and prints when exactly one station is mapped (or when mapping appears)
 
 ### Schedule (optional)
 

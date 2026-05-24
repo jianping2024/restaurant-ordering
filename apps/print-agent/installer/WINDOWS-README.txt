@@ -9,7 +9,7 @@ First-time setup (no command line)
 2. Mesa Dashboard -> Settings -> Print assistant -> Generate pairing code.
 3. Double-click MesaPrintAgent.exe.
 4. Browser: pairing page — enter Mesa URL (https://your-site.vercel.app) and 6-digit code.
-5. Browser: printer setup — choose LAN (network cable) or USB (Windows printer).
+5. Browser: Cashier printer (pre-bill/split/final) + kitchen station maps (station tickets).
 6. Keep the black agent window open for automatic printing.
 
 Re-open setup later: MesaPrintAgent.exe configure   (re-pair + printers, recommended)

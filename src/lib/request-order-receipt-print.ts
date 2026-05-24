@@ -13,6 +13,7 @@ export async function requestOrderReceiptPrint(params: {
   personAmount?: number;
   billSplitId?: string | null;
   personIndex?: number;
+  receiptPrinterId?: string;
 }): Promise<void> {
   const {
     slug,
@@ -26,6 +27,7 @@ export async function requestOrderReceiptPrint(params: {
     personAmount,
     billSplitId,
     personIndex,
+    receiptPrinterId,
   } = params;
 
   const variant =
@@ -46,6 +48,7 @@ export async function requestOrderReceiptPrint(params: {
         ...(personAmount != null ? { person_amount: personAmount } : {}),
         ...(billSplitId ? { bill_split_id: billSplitId } : {}),
         ...(personIndex != null ? { person_index: personIndex } : {}),
+        ...(receiptPrinterId?.trim() ? { receipt_printer_id: receiptPrinterId.trim() } : {}),
       }),
     });
   } catch {

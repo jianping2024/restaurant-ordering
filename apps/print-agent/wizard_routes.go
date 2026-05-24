@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -16,7 +17,6 @@ type printerListEntry struct {
 }
 
 type setupRequestBody struct {
-	DefaultPrinter  string            `json:"default_printer"`
 	StationPrinters map[string]string `json:"station_printers"`
 }
 
@@ -71,23 +71,15 @@ func writeConfigureState(w http.ResponseWriter, cfg *config) {
 		"paired":           strings.TrimSpace(cfg.AgentJWT) != "",
 		"api_base":         cfg.APIBase,
 		"device_id":        cfg.DeviceID,
-		"default_printer":  cfg.defaultPrinterTargetRaw(),
 		"station_printers": cfg.StationPrinters,
 		"station_count":    stationCount,
 	})
 }
 
 func applyPrinterSetup(cfg *config, body setupRequestBody) (map[string]string, error) {
-	target, err := parsePrinterTarget(body.DefaultPrinter)
-	if err != nil {
-		return nil, err
-	}
-	cfg.DefaultPrinter = target.Display
-	if target.Scheme == schemeTCP {
-		cfg.PrinterHost = target.TCPHostPort
-	} else {
-		cfg.PrinterHost = ""
-	}
+	cfg.CashierPrinter = ""
+	cfg.DefaultPrinter = ""
+	cfg.PrinterHost = ""
 	cleaned := map[string]string{}
 	for sid, raw := range body.StationPrinters {
 		sid = strings.TrimSpace(sid)
@@ -162,7 +154,8 @@ func registerPrinterWizardRoutes(mux *http.ServeMux, configPath string, cfg **co
 			return
 		}
 		*cfg = c
-		log.Printf("%s: default_printer=%s station_printers=%d", logPrefix, c.DefaultPrinter, len(cleaned))
+		syncRoutingToCloud(c)
+		log.Printf("%s: station_printers=%d", logPrefix, len(cleaned))
 		writePairJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 }

@@ -13,7 +13,8 @@ type config struct {
 	AgentJWT        string            `json:"agentjwt"`
 	DeviceID        string            `json:"device_id"`
 	PrinterHost     string            `json:"printer_host,omitempty"`
-	DefaultPrinter  string            `json:"default_printer,omitempty"`
+	DefaultPrinter  string            `json:"default_printer,omitempty"` // legacy file field; not used for receipt routing
+	CashierPrinter  string            `json:"cashier_printer,omitempty"` // legacy file field; not used for receipt routing
 	StationPrinters map[string]string `json:"station_printers,omitempty"`
 	Schedule        *scheduleConfig   `json:"schedule,omitempty"`
 	Poll            *pollConfig       `json:"poll,omitempty"`
@@ -61,63 +62,68 @@ func normalizeHostPort(hostPort string, defaultPort string) string {
 	return hostPort + ":" + defaultPort
 }
 
-func (c *config) defaultPrinterTargetRaw() string {
-	if s := strings.TrimSpace(c.DefaultPrinter); s != "" {
-		return s
-	}
-	if s := strings.TrimSpace(c.PrinterHost); s != "" {
-		return s
-	}
-	return ""
+func isReceiptPrintJobType(jobType string) bool {
+	return jobType == "order_receipt" || jobType == "pre_bill"
 }
 
-func (c *config) defaultPrinterAddr() string {
-	raw := c.defaultPrinterTargetRaw()
-	if raw == "" {
-		return "(not set)"
+func (c *config) resolveReceiptPrinterID(id string) (string, error) {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return "", fmt.Errorf("receipt_printer_id required")
 	}
-	t, err := parsePrinterTarget(raw)
-	if err != nil {
-		return raw
+	if id == "cashier" {
+		return "", fmt.Errorf("receipt_printer_id cashier is no longer supported; use station:{id}")
 	}
-	return t.Display
+	const prefix = "station:"
+	if !strings.HasPrefix(id, prefix) {
+		return "", fmt.Errorf("unknown receipt_printer_id %q", id)
+	}
+	sid := strings.TrimSpace(id[len(prefix):])
+	if sid == "" {
+		return "", fmt.Errorf("invalid receipt_printer_id")
+	}
+	if c.StationPrinters != nil {
+		if v := strings.TrimSpace(c.StationPrinters[sid]); v != "" {
+			return v, nil
+		}
+	}
+	return "", fmt.Errorf("no station_printers mapping for print_station_id %s", sid)
 }
 
 func (c *config) printerAddrForJob(job printJob) (string, error) {
-	var p struct {
-		PrintStationID string `json:"print_station_id"`
+	if isReceiptPrintJobType(job.Type) {
+		var p struct {
+			ReceiptPrinterID string `json:"receipt_printer_id"`
+		}
+		_ = json.Unmarshal(job.Payload, &p)
+		return c.resolveReceiptRouting(job, p.ReceiptPrinterID)
 	}
-	_ = json.Unmarshal(job.Payload, &p)
 
-	if job.Type == "station_ticket" && strings.TrimSpace(p.PrintStationID) != "" {
+	if job.Type == "station_ticket" {
+		var p struct {
+			PrintStationID string `json:"print_station_id"`
+		}
+		_ = json.Unmarshal(job.Payload, &p)
 		sid := strings.TrimSpace(p.PrintStationID)
+		if sid == "" {
+			return "", fmt.Errorf("station_ticket missing print_station_id")
+		}
 		if c.StationPrinters != nil {
 			if v := strings.TrimSpace(c.StationPrinters[sid]); v != "" {
 				return v, nil
 			}
 		}
-		if raw := c.defaultPrinterTargetRaw(); raw != "" {
-			return raw, nil
-		}
 		return "", fmt.Errorf("no station_printers mapping for print_station_id %s", sid)
 	}
 
-	raw := c.defaultPrinterTargetRaw()
-	if raw == "" {
-		return "", fmt.Errorf("no default_printer configured")
-	}
-	return raw, nil
+	// Unknown job types: do not route to cashier (keeps roles separate).
+	return "", fmt.Errorf("unsupported print job type %q", job.Type)
 }
 
 // mergePrinterConfig keeps local printer routing when re-pairing with a new code.
 func mergePrinterConfig(prev, next *config) {
 	if prev == nil || next == nil {
 		return
-	}
-	if s := strings.TrimSpace(prev.DefaultPrinter); s != "" {
-		next.DefaultPrinter = s
-	} else if s := strings.TrimSpace(prev.PrinterHost); s != "" {
-		next.PrinterHost = s
 	}
 	if len(prev.StationPrinters) > 0 {
 		next.StationPrinters = prev.StationPrinters

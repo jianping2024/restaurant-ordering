@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -57,10 +58,11 @@ func claim(apiBase, code, deviceID string) (*config, error) {
 }
 
 type printJob struct {
-	ID      string          `json:"id"`
-	Type    string          `json:"type"`
-	Status  string          `json:"status"`
-	Payload json.RawMessage `json:"payload"`
+	ID        string          `json:"id"`
+	Type      string          `json:"type"`
+	Status    string          `json:"status"`
+	CreatedAt string          `json:"created_at"`
+	Payload   json.RawMessage `json:"payload"`
 }
 
 func fetchPending(apiBase, jwt string) ([]printJob, error) {
@@ -201,16 +203,16 @@ func runAgent(args []string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if !cfg.hasPrinterRouting() {
-			log.Fatal("setup did not configure a default printer")
-		}
+	}
+	if !cfg.hasPrinterRouting() {
+		log.Println("no station printer mappings — map stations in configure; receipt/kitchen jobs need explicit routing")
 	}
 
-	def := cfg.defaultPrinterAddr()
 	stationCount := 0
 	if cfg.StationPrinters != nil {
 		stationCount = len(cfg.StationPrinters)
 	}
+	def := fmt.Sprintf("%d station map(s)", stationCount)
 	pc, err := newPollController(cfg.Schedule, cfg.Poll)
 	if err != nil {
 		log.Fatal("schedule:", err)
@@ -275,6 +277,20 @@ func runAgent(args []string) {
 		job := queue[0]
 		target, err := cfg.printerTargetForJob(job)
 		if err != nil {
+			if errors.Is(err, errReceiptPrintDeferred) {
+				if len(queue) > 1 {
+					queue = append(queue[1:], queue[0])
+				} else {
+					queue = nil
+				}
+				if lastLogged != pollPhaseBusy {
+					log.Println("receipt job waiting for printer mapping (up to 20m)")
+					lastLogged = pollPhaseBusy
+				}
+				time.Sleep(pc.sleepFor(pollPhaseBusy))
+				pc.markActivity()
+				continue
+			}
 			_ = patchJob(cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
 				"status":        "failed",
 				"error_message": err.Error(),

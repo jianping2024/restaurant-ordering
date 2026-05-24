@@ -43,8 +43,8 @@ func applyCloudRuntimeConfig(cfg *config, apiBase string) {
 	}
 }
 
-func logAgentStartup(cfg *config, apiBase, defaultPrinter string, stationCount int) {
-	log.Printf("agent %s | default_printer=%s | station_printers=%d", apiBase, defaultPrinter, stationCount)
+func logAgentStartup(cfg *config, apiBase, cashierPrinter string, stationCount int) {
+	log.Printf("agent %s | cashier_printer=%s | station_printers=%d", apiBase, cashierPrinter, stationCount)
 	if cfg.Schedule != nil && cfg.Schedule.enabled() {
 		tz := strings.TrimSpace(cfg.Schedule.Timezone)
 		if tz == "" {

@@ -3,6 +3,10 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { staffAuthFromRequestWithRoles } from '@/lib/staff-api-auth';
 import { confirmBillSplitPayment } from '@/lib/checkout-confirm-payment';
+import {
+  assertReceiptPrinterIdAllowed,
+  loadRestaurantReceiptPrinterSnapshot,
+} from '@/lib/restaurant-receipt-printers-server';
 
 export const runtime = 'nodejs';
 
@@ -65,7 +69,12 @@ export async function POST(
     return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
   }
 
-  let body: { bill_split_id?: unknown; person_index?: unknown; discount_rate?: unknown };
+  let body: {
+    bill_split_id?: unknown;
+    person_index?: unknown;
+    discount_rate?: unknown;
+    receipt_printer_id?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
@@ -87,8 +96,21 @@ export async function POST(
       ? body.discount_rate
       : 0;
 
+  const receiptPrinterIdRaw =
+    typeof body.receipt_printer_id === 'string' ? body.receipt_printer_id.trim() : '';
+
   const auth = await authorizeRestaurant(slug, req);
   if ('error' in auth && auth.error) return auth.error;
+
+  const snapshot = await loadRestaurantReceiptPrinterSnapshot(auth.admin, auth.restaurantId);
+  let receiptPrinterId: string | undefined;
+  if (receiptPrinterIdRaw) {
+    const allowed = assertReceiptPrinterIdAllowed(receiptPrinterIdRaw, snapshot);
+    if (!allowed) {
+      return NextResponse.json({ error: 'invalid_receipt_printer' }, { status: 400 });
+    }
+    receiptPrinterId = allowed;
+  }
 
   const result = await confirmBillSplitPayment({
     admin: auth.admin,
@@ -98,6 +120,7 @@ export async function POST(
     billSplitId,
     personIndex,
     discountRate,
+    receiptPrinterId: receiptPrinterId ?? undefined,
   });
 
   if (!result.ok) {

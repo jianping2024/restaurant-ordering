@@ -12,6 +12,7 @@ import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages } from '@/lib/i18n/messages';
 import { showToast } from '@/components/ui/Toast';
 import { normalizeDecimalInput as normalizeAmountInput } from '@/lib/number-input';
+import { ReceiptPrinterSelect } from '@/components/dashboard/ReceiptPrinterSelect';
 import { requestOrderReceiptPrint } from '@/lib/request-order-receipt-print';
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
 
@@ -85,6 +86,7 @@ export function BillPage({
   const [editingSplitNameValue, setEditingSplitNameValue] = useState('');
   const [editingCustomAmountIndex, setEditingCustomAmountIndex] = useState<number | null>(null);
   const [editingCustomAmountValue, setEditingCustomAmountValue] = useState('');
+  const [selectedReceiptPrinterId, setSelectedReceiptPrinterId] = useState('');
 
   const syncNameAcrossModes = (index: number, name: string) => {
     setSplitPeople((prev) => prev.map((person, idx) => (idx === index ? { ...person, name } : person)));
@@ -284,6 +286,9 @@ export function BillPage({
           tableNumber,
           sessionId,
           receiptVariant: 'pre_bill',
+          ...(selectedReceiptPrinterId
+            ? { receiptPrinterId: selectedReceiptPrinterId }
+            : {}),
         });
       }
     } catch {
@@ -907,8 +912,13 @@ export function BillPage({
         )}
       </div>
 
-      {/* 呼叫结账按钮 */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20">
+      {/* 呼叫结账 */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2">
+        <ReceiptPrinterSelect
+          restaurantSlug={restaurant.slug}
+          value={selectedReceiptPrinterId}
+          onChange={setSelectedReceiptPrinterId}
+        />
         <Button
           className="w-full"
           size="lg"

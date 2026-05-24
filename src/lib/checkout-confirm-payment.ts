@@ -38,6 +38,7 @@ export async function confirmBillSplitPayment(params: {
   billSplitId: string;
   personIndex: number;
   discountRate?: number;
+  receiptPrinterId?: string;
 }): Promise<ConfirmPaymentResult> {
   const {
     admin,
@@ -47,6 +48,7 @@ export async function confirmBillSplitPayment(params: {
     billSplitId,
     personIndex,
     discountRate = 0,
+    receiptPrinterId,
   } = params;
 
   const { data: split, error: loadErr } = await admin
@@ -98,6 +100,8 @@ export async function confirmBillSplitPayment(params: {
   const tableNumber = bill.table_number;
   const sessionId = bill.session_id;
 
+  const printTarget = receiptPrinterId?.trim() || undefined;
+
   if (sessionId && nextResult.length > 1) {
     await enqueueReceiptPrint({
       admin,
@@ -113,6 +117,7 @@ export async function confirmBillSplitPayment(params: {
       paymentMethod: 'Cash',
       billSplitId,
       personIndex,
+      receiptPrinterId: printTarget,
     });
   }
 
@@ -139,6 +144,7 @@ export async function confirmBillSplitPayment(params: {
       variant: 'final',
       amountPaid: finalAmount,
       paymentMethod: 'Cash',
+      receiptPrinterId: printTarget,
     });
   }
 

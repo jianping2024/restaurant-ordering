@@ -56,9 +56,6 @@ func (c *config) printerTargetForJob(job printJob) (printerTarget, error) {
 }
 
 func (c *config) hasPrinterRouting() bool {
-	if strings.TrimSpace(c.DefaultPrinter) != "" || strings.TrimSpace(c.PrinterHost) != "" {
-		return true
-	}
 	for _, v := range c.StationPrinters {
 		if strings.TrimSpace(v) != "" {
 			return true

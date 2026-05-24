@@ -23,7 +23,7 @@
     .hint { font-size: 11px; color: #9aa5b1; margin-top: -8px; margin-bottom: 14px; line-height: 1.45; }
     .hidden { display: none; }
     .stations { border-top: 1px solid #2d3a4a; margin-top: 8px; padding-top: 16px; }
-    .stations h2 { font-size: 13px; color: #d4a853; margin: 0 0 8px; font-weight: 600; }
+    .section-title { font-size: 13px; color: #d4a853; margin: 0 0 8px; font-weight: 600; }
     .station-row { margin-bottom: 12px; }
     .station-row label { margin-bottom: 4px; }
     .station-name { font-size: 14px; color: #e8e6e3; }
@@ -35,17 +35,15 @@
   <div class="card">
     <div id="formWrap">
       <h1>Choose printers</h1>
-      <p class="sub">Mesa is paired. Choose <strong>LAN</strong> or <strong>USB</strong>, then map each print station (one printer? use “Same as default” for all).</p>
+      <p class="sub">Map each <strong>print station</strong> to a printer. Mapped stations appear on checkout/bill pages for receipts (you must pick one — no default).</p>
       <div class="row">
         <label><input type="radio" name="kind" value="tcp" checked /> LAN (:9100)</label>
         <label><input type="radio" name="kind" value="winspool" /> USB (Windows printer)</label>
       </div>
-      <label for="printer">Default printer (receipts / unassigned stations)</label>
-      <select id="printer"></select>
       <p class="hint" id="scanHint">Scanning…</p>
       <button type="button" id="refreshBtn" class="secondary" style="width:auto;margin-bottom:14px">Scan again</button>
       <div class="stations" id="stationsWrap">
-        <h2>Print stations</h2>
+        <p class="section-title">Print stations</p>
         <p class="hint" id="stationsHint">Loading stations from Mesa…</p>
         <p class="warn hidden" id="stationsWarn"></p>
         <div id="stations"></div>
@@ -55,14 +53,13 @@
     </div>
     <div id="ok" class="ok">
       <h2>Saved</h2>
-      <p style="color:#9aa5b1;font-size:13px">Printer and station mapping saved. You can close this tab; keep the agent window running.</p>
+      <p style="color:#9aa5b1;font-size:13px">Station mapping saved. You can close this tab; keep the agent window running.</p>
       <p style="color:#9aa5b1;font-size:12px;margin-top:10px">To re-pair or change mapping later: run <strong>MesaPrintAgent.exe configure</strong></p>
     </div>
   </div>
   <script>
     (function () {
       var kindRadios = document.querySelectorAll('input[name="kind"]');
-      var sel = document.getElementById('printer');
       var err = document.getElementById('err');
       var hint = document.getElementById('scanHint');
       var stationsHint = document.getElementById('stationsHint');
@@ -70,7 +67,7 @@
       var stationsEl = document.getElementById('stations');
       var cache = { tcp: [], winspool: [] };
       var stations = [];
-      var saved = { default_printer: '', station_printers: {} };
+      var saved = { station_printers: {} };
 
       function currentKind() {
         var k = 'tcp';
@@ -86,29 +83,11 @@
       function stationLabel(s) {
         return s.name_en || s.name_pt || s.name_zh || s.id;
       }
-      function fillSelect(selectEl, kind, selected) {
-        var list = cache[kind] || [];
-        selectEl.innerHTML = '';
-        if (!list.length) {
-          var o = document.createElement('option');
-          o.value = '';
-          o.textContent = kind === 'tcp' ? '(No LAN printers found)' : '(No Windows printers found)';
-          selectEl.appendChild(o);
-          return;
-        }
-        list.forEach(function (p) {
-          var o = document.createElement('option');
-          o.value = p.addr;
-          o.textContent = p.label || p.addr;
-          if (selected && selected === p.addr) o.selected = true;
-          selectEl.appendChild(o);
-        });
-      }
       function fillStationSelect(selectEl, selected) {
         selectEl.innerHTML = '';
         var def = document.createElement('option');
         def.value = '';
-        def.textContent = 'Same as default';
+        def.textContent = '(Not mapped)';
         selectEl.appendChild(def);
         allPrinterOptions().forEach(function (p) {
           var o = document.createElement('option');
@@ -121,10 +100,10 @@
       function renderStations() {
         stationsEl.innerHTML = '';
         if (!stations.length) {
-          stationsHint.textContent = 'No print stations yet. Add them in Mesa → Print stations; tickets use the default printer.';
+          stationsHint.textContent = 'No print stations yet. Add them in Mesa → Print stations.';
           return;
         }
-        stationsHint.textContent = 'Pick a printer per station. With one printer, keep “Same as default”.';
+        stationsHint.textContent = 'Map each station. Unmapped stations will not print.';
         stations.forEach(function (s) {
           var row = document.createElement('div');
           row.className = 'station-row';
@@ -156,7 +135,6 @@
           cache.tcp = j.tcp || [];
           cache.winspool = j.winspool || [];
           hint.textContent = 'LAN: ' + cache.tcp.length + ' · USB: ' + cache.winspool.length;
-          fillSelect(sel, currentKind(), saved.default_printer);
           refreshStationSelects();
         }).catch(function () {
           err.textContent = 'Could not load printer list';
@@ -168,7 +146,7 @@
           .then(function (res) {
             if (!res.ok) {
               stationsWarn.classList.remove('hidden');
-              stationsWarn.textContent = 'Could not load stations from Mesa (is the site updated?). Using default printer.';
+              stationsWarn.textContent = 'Could not load stations from Mesa.';
               stations = [];
               renderStations();
               return;
@@ -177,33 +155,25 @@
             renderStations();
           }).catch(function () {
             stationsWarn.classList.remove('hidden');
-            stationsWarn.textContent = 'Could not reach Mesa to load stations. Using default printer.';
+            stationsWarn.textContent = 'Could not reach Mesa to load stations.';
             stations = [];
             renderStations();
           });
       }
       function loadSaved() {
         fetch('/api/setup-state').then(function (r) { return r.json(); }).then(function (j) {
-          saved.default_printer = j.default_printer || '';
           saved.station_printers = j.station_printers || {};
-          if (saved.default_printer.indexOf('winspool:') === 0) {
-            kindRadios.forEach(function (r) { r.checked = r.value === 'winspool'; });
-          } else if (saved.default_printer.indexOf('tcp:') === 0) {
-            kindRadios.forEach(function (r) { r.checked = r.value === 'tcp'; });
-          }
         }).catch(function () {}).finally(function () {
           loadList();
           loadStations();
         });
       }
       kindRadios.forEach(function (r) {
-        r.addEventListener('change', function () { fillSelect(sel, currentKind(), sel.value); });
+        r.addEventListener('change', function () { refreshStationSelects(); });
       });
       document.getElementById('refreshBtn').addEventListener('click', loadList);
       document.getElementById('saveBtn').addEventListener('click', function () {
         err.textContent = '';
-        var target = sel.value;
-        if (!target) { err.textContent = 'Please select a default printer'; return; }
         var station_printers = {};
         document.querySelectorAll('.station-row').forEach(function (row) {
           var sid = row.dataset.stationId;
@@ -213,7 +183,7 @@
         fetch('/api/setup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ default_printer: target, station_printers: station_printers })
+          body: JSON.stringify({ station_printers: station_printers })
         }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
             if (!res.ok) { err.textContent = res.j.error || 'Save failed'; return; }

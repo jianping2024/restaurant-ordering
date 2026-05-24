@@ -13,6 +13,7 @@ import {
   checkoutLinesFromOrders,
   type CheckoutDisplayLine,
 } from '@/lib/checkout-session-lines';
+import { ReceiptPrinterSelect } from '@/components/dashboard/ReceiptPrinterSelect';
 
 interface Props {
   initialRequests: BillSplit[];
@@ -31,6 +32,7 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
   const supabase = useMemo(() => createClient(), []);
   const restaurantId = initialRequests[0]?.restaurant_id;
   const [linesByRequestId, setLinesByRequestId] = useState<Record<string, CheckoutDisplayLine[]>>({});
+  const [selectedReceiptPrinterId, setSelectedReceiptPrinterId] = useState('');
 
   useEffect(() => {
     if (!restaurantId) return;
@@ -149,6 +151,7 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
         billSplitId: request.id,
         personIndex: rowIndex,
         discountRate: getDiscountRate(request.id),
+        ...(selectedReceiptPrinterId ? { receiptPrinterId: selectedReceiptPrinterId } : {}),
       });
       if (!outcome.ok) {
         showToast(
@@ -172,7 +175,17 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
 
   return (
     <div className="mb-8">
-      <h2 className="font-heading text-2xl text-brand-gold mb-4">{t.title}</h2>
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
+        <h2 className="font-heading text-2xl text-brand-gold">{t.title}</h2>
+        {restaurantSlug ? (
+          <ReceiptPrinterSelect
+            restaurantSlug={restaurantSlug}
+            value={selectedReceiptPrinterId}
+            onChange={setSelectedReceiptPrinterId}
+            className="min-w-[200px] sm:max-w-xs w-full sm:w-auto"
+          />
+        ) : null}
+      </div>
       {requests.length === 0 ? (
         <div className="bg-brand-card border border-brand-border rounded-2xl p-6 text-center text-brand-text-muted text-sm">
           {t.empty}

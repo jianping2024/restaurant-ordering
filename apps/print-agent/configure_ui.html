@@ -31,13 +31,14 @@
     .station-row { margin-bottom: 12px; }
     .station-name { font-size: 14px; color: #e8e6e3; margin-bottom: 4px; }
     .station-sub { font-size: 11px; color: #9aa5b1; margin-bottom: 6px; }
+    .section-title { font-size: 13px; color: #d4a853; margin: 0 0 8px; font-weight: 600; }
     .footer { text-align: center; margin-top: 8px; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>Mesa Print Agent — Settings</h1>
-    <p class="sub">Re-pair or change the default printer and per-station mapping. Restart the agent after saving if it is running.</p>
+    <p class="sub">Map each <strong>kitchen station</strong> to a printer for station tickets. Mapped stations also appear on the checkout/bill page for pre-bill and receipts (pick explicitly — no default).</p>
 
     <div class="status" id="status">Loading current settings…</div>
 
@@ -54,18 +55,18 @@
     </div>
 
     <div class="card" id="printerCard">
-      <h2>② Printers and stations</h2>
+      <h2>② Printers</h2>
       <p class="hint" id="printerGate">Pair first, then configure printers.</p>
       <div id="printerForm" class="hidden">
         <div class="row">
           <label><input type="radio" name="kind" value="tcp" checked /> LAN (:9100)</label>
           <label><input type="radio" name="kind" value="winspool" /> USB (Windows printer)</label>
         </div>
-        <label for="printer">Default printer</label>
-        <select id="printer"></select>
         <p class="hint" id="scanHint">Scanning…</p>
         <button type="button" id="refreshBtn" class="secondary" style="width:auto;margin-bottom:14px">Scan again</button>
+
         <div class="stations">
+          <p class="section-title">Print stations</p>
           <p class="hint" id="stationsHint">Loading stations…</p>
           <p class="warn hidden" id="stationsWarn"></p>
           <div id="stations"></div>
@@ -84,10 +85,9 @@
     (function () {
       var params = new URLSearchParams(location.search);
       var kindRadios = document.querySelectorAll('input[name="kind"]');
-      var sel = document.getElementById('printer');
       var cache = { tcp: [], winspool: [] };
       var stations = [];
-      var state = { paired: false, default_printer: '', station_printers: {} };
+      var state = { paired: false, station_printers: {} };
 
       function stationLabel(s) {
         return s.name_en || s.name_pt || s.name_zh || s.id;
@@ -129,7 +129,7 @@
         selectEl.innerHTML = '';
         var def = document.createElement('option');
         def.value = '';
-        def.textContent = 'Same as default';
+        def.textContent = '(Not mapped)';
         selectEl.appendChild(def);
         allPrinterOptions().forEach(function (p) {
           var o = document.createElement('option');
@@ -145,10 +145,10 @@
         var stationsHint = document.getElementById('stationsHint');
         stationsEl.innerHTML = '';
         if (!stations.length) {
-          stationsHint.textContent = 'No print stations in Mesa; station tickets use the default printer.';
+          stationsHint.textContent = 'No print stations in Mesa yet.';
           return;
         }
-        stationsHint.textContent = 'Pick a printer per station (one printer? keep “Same as default”).';
+        stationsHint.textContent = 'Map each station to a printer. Mapped stations also appear on checkout/bill pages for receipts.';
         stations.forEach(function (s) {
           var row = document.createElement('div');
           row.className = 'station-row';
@@ -184,9 +184,8 @@
           document.getElementById('printerForm').classList.add('hidden');
           return;
         }
-        var printer = state.default_printer || '(not set)';
         var n = state.station_count || 0;
-        el.innerHTML = 'Connected: <strong>' + (state.api_base || 'Mesa') + '</strong><br/>Default printer: <strong>' + printer + '</strong> · Station maps: <strong>' + n + '</strong>';
+        el.innerHTML = 'Connected: <strong>' + (state.api_base || 'Mesa') + '</strong><br/>Station maps: <strong>' + n + '</strong>';
         document.getElementById('printerGate').classList.add('hidden');
         document.getElementById('printerForm').classList.remove('hidden');
       }
@@ -199,7 +198,6 @@
             cache.tcp = j.tcp || [];
             cache.winspool = j.winspool || [];
             document.getElementById('scanHint').textContent = 'LAN: ' + cache.tcp.length + ' · USB: ' + cache.winspool.length;
-            fillSelect(sel, currentKind(), state.default_printer);
             refreshStationSelects();
           });
       }
@@ -210,7 +208,7 @@
           .then(function (res) {
             if (!res.ok) {
               document.getElementById('stationsWarn').classList.remove('hidden');
-              document.getElementById('stationsWarn').textContent = 'Could not load stations; station tickets use the default printer.';
+              document.getElementById('stationsWarn').textContent = 'Could not load stations from Mesa.';
               stations = [];
               renderStations();
               return;
@@ -233,9 +231,6 @@
             if (params.get('code')) {
               document.getElementById('code').value = params.get('code').replace(/\D/g, '').slice(0, 6);
             }
-            if (j.default_printer && j.default_printer.indexOf('winspool:') === 0) {
-              kindRadios.forEach(function (r) { r.checked = r.value === 'winspool'; });
-            }
             renderStatus();
             if (state.paired) {
               loadPrinters();
@@ -245,7 +240,7 @@
       }
 
       kindRadios.forEach(function (r) {
-        r.addEventListener('change', function () { fillSelect(sel, currentKind(), sel.value); });
+        r.addEventListener('change', function () { refreshStationSelects(); });
       });
 
       document.getElementById('refreshBtn').addEventListener('click', loadPrinters);
@@ -280,11 +275,6 @@
         var ok = document.getElementById('saveOk');
         err.textContent = '';
         ok.textContent = '';
-        var target = sel.value;
-        if (!target) {
-          err.textContent = 'Please select a default printer';
-          return;
-        }
         var station_printers = {};
         document.querySelectorAll('.station-row').forEach(function (row) {
           var sid = row.dataset.stationId;
@@ -294,7 +284,7 @@
         fetch('/api/setup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ default_printer: target, station_printers: station_printers })
+          body: JSON.stringify({ station_printers: station_printers })
         })
           .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {

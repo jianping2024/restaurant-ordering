@@ -15,6 +15,8 @@ export type ReceiptVariant = 'pre_bill' | 'split_payment' | 'final';
 export type OrderReceiptJobPayload = {
   order_id: string;
   locale: 'zh' | 'en' | 'pt';
+  /** Agent routing id: cashier | station:{print_station_id} */
+  receipt_printer_id?: string;
   receipt_variant: ReceiptVariant;
   restaurant_name?: string;
   table_number: number;
@@ -142,6 +144,8 @@ type EnqueueParams = {
   personIndex?: number;
   amountPaid?: number;
   paymentMethod?: string;
+  /** From checkout picker: `cashier` or `station:{print_station_id}` */
+  receiptPrinterId?: string;
 };
 
 export async function enqueueReceiptPrint(
@@ -164,6 +168,7 @@ export async function enqueueReceiptPrint(
     personIndex,
     amountPaid,
     paymentMethod,
+    receiptPrinterId,
   } = params;
 
   const locale = (printLocale || 'pt') as 'zh' | 'en' | 'pt';
@@ -218,6 +223,8 @@ export async function enqueueReceiptPrint(
     return { ok: false, status: 404, code: 'no_billable_items' };
   }
 
+  const printerId = receiptPrinterId?.trim();
+
   const guestCount = guestCountFromTableOrders(orderRows);
   const firstOrder = orderRows[0]!;
   const allItems = orderRows.flatMap((o) => o.items || []);
@@ -239,6 +246,7 @@ export async function enqueueReceiptPrint(
   const payload: OrderReceiptJobPayload = {
     order_id: firstOrder.id,
     locale,
+    ...(printerId ? { receipt_printer_id: printerId } : {}),
     receipt_variant: variant,
     ...(restaurantName?.trim() ? { restaurant_name: restaurantName.trim() } : {}),
     table_number: tableNumber,

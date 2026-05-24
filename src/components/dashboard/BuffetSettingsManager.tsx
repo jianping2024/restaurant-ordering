@@ -705,6 +705,7 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                   </select>
                 </label>
               )}
+              <p className="text-[12px] text-brand-text-muted">{t.matrixTodayNote}</p>
               <BuffetPriceMatrix
                 buffetId={matrixBuffetId || buffets[0]?.id || ''}
                 buffets={buffets}

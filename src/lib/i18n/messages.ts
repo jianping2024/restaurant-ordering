@@ -29,7 +29,8 @@ export const MESSAGES = {
     },
     buffetAdmin: {
       title: '自助餐 / 人头费',
-      subtitle: '先设时段与价目，再标记特殊日期；楼面按当前时间自动匹配价格。',
+      subtitle:
+        '配置自助产品名称、全店供餐时段与价目；特殊日期用于覆盖「平日/周末」判断。楼面按里斯本当前日期与时间自动匹配价格。',
       tabBuffets: '自助餐',
       tabSlots: '时段',
       tabRules: '价目表',
@@ -51,11 +52,13 @@ export const MESSAGES = {
       calendarKind: '适用日子',
       validFrom: '规则启用日',
       validTo: '规则结束日',
-      ruleValidHint: '表示本条价格从何时用到何时，与「哪一天是节假日」无关。',
+      ruleValidHint:
+        '本条价格记录在系统中的生效区间：仅当匹配日的里斯本日期落在此区间内才会被选用，与是否在「特殊日期」中标记无关。',
       adultPrice: '成人价 €',
       childPrice: '儿童价 €',
       priority: '优先级',
-      priorityHint: '同一自助餐、时段、适用日子且日期重叠时，数字越大越优先。',
+      priorityHint:
+        '仅当同一自助餐、同一时段、同一适用日子有多条启用规则，且「规则有效期」互相重叠时，数字越大越优先。',
       note: '备注',
       addRule: '新增价格',
       calendarDate: '日期',
@@ -87,8 +90,11 @@ export const MESSAGES = {
       ruleEdit: '编辑',
       ruleCopy: '复制',
       ruleSave: '保存',
-      ruleListEmpty: '暂无价格。请先在「自助餐」「时段」中完成基础设置，再添加价目或使用下方矩阵填空。',
-      ruleListHint: '矩阵适合日常维护；列表适合查看全部规则与优先级。',
+      ruleListEmpty:
+        '暂无价格。请先在「自助餐」添加至少一个产品，在「时段」添加至少一个供餐段，再在矩阵中逐项填写价格。',
+      ruleListHint:
+        '矩阵显示「今天」在有效期内的价格，便于按时段与适用日子补全；列表可查看全部规则、优先级与规则起止日期。',
+      matrixTodayNote: '矩阵中的价格为今日在「规则有效期」内生效的条目；改价或排期请点格子编辑。',
       ruleTablePeriod: '规则有效期',
       ruleTablePrices: '成人 / 儿童 €',
       ruleTablePriority: '优先级',
@@ -99,10 +105,18 @@ export const MESSAGES = {
       guideTitle: '价格如何生效？',
       guideHide: '收起说明',
       guideShow: '查看说明',
-      guideStep1: '① 在「自助餐」「时段」定义卖什么、什么时间段（如午市 11:00–15:00）。',
-      guideStep2: '② 在「价目表」为每种适用日子设成人/儿童价（平日、周末、节假日、活动日各一套）。',
-      guideStep3: '③ 在「特殊日期」把具体日期标为节假日或活动日；标了不等于有价，还须在第②步有对应「适用日子」的价格。',
-      guideWeekendNote: '周六、周日自动视为周末（无需在特殊日期里重复添加）。',
+      guideStepBuffet:
+        '「自助餐」：仅填写自助产品名称及是否启用（例如「午市自助」）。不含时间段、星期或价格。',
+      guideStepSlots:
+        '「时段」：为全店定义供餐时间段（名称、每日起止时刻、每周哪几天生效、排序）。时段不绑定某一自助种类；楼面用当前时刻匹配属于哪个时段（如午市 11:00–15:00）。',
+      guideStepPrices:
+        '「价目表」：为「自助餐 × 时段 × 适用日子」填写成人/儿童价，并设置「规则有效期」（该条价格从哪天用到哪天）。适用日子含平日、周末、节假日、活动日；每种组合可单独定价。',
+      guideStepSpecialDates:
+        '「特殊日期」：把具体日历日标记为「节假日」或「活动日」，用于覆盖默认的平日/周末判断。仅标记日期不会写入价格，须在价目表中已有对应适用日子的价格。',
+      guideResolveNote:
+        '楼面匹配顺序：里斯本当前日期 → 确定适用日子 → 当前时刻匹配时段（须在该时段的适用星期内，且该时段已有价目）→ 在有效期内取优先级最高的一条价格。若当前时刻不在任何时段内，会选用时间上最近且已配价的时段。',
+      guideDayKindNote:
+        '适用日子默认识别：周一至周五为平日，周六、周日为周末。若某日在「特殊日期」中标记，则以标记为准（例如周六标为节假日时，按节假日价而非周末价）。',
       previewTitle: '价格试算',
       previewLisbonNote: '按欧洲/里斯本当地时间试算，与楼面看板一致。',
       previewBuffet: '自助餐',
@@ -113,7 +127,8 @@ export const MESSAGES = {
       previewDayKind: '适用日子',
       previewSlot: '匹配时段',
       previewPrices: '价格',
-      previewNoRule: '未匹配到价格。请检查：该时段是否有规则、适用日子是否一致、规则有效期是否覆盖所选日期。',
+      previewNoRule:
+        '未匹配到价格。请检查：自助餐已启用；所选时刻落在某时段的适用星期与起止时间内；价目表中有该「自助餐 + 时段 + 适用日子」的组合；且「规则有效期」覆盖所选日期。',
       previewLoading: '试算中…',
       viewMatrix: '矩阵',
       viewList: '列表',
@@ -129,11 +144,12 @@ export const MESSAGES = {
       filterSlot: '时段',
       filterDayKind: '适用日子',
       filterAll: '全部',
-      kindHelpWeekday: '周一至周五，且该日未标为节假日/活动日。',
-      kindHelpWeekend: '周六、周日，且该日未标为节假日/活动日。',
-      kindHelpHoliday: '须在「特殊日期」中把该日标为「节假日」后才会生效。',
-      kindHelpSpecial: '须在「特殊日期」中把该日标为「活动日」后才会生效（如店庆，与法定假日区分）。',
-      exceptionsIntro: '把某一天标为节假日或活动日后，系统会按价目表中对应的「适用日子」取价。仅标记日期不会自动改价。',
+      kindHelpWeekday: '自动用于周一至周五，且该日未在「特殊日期」中标记。',
+      kindHelpWeekend: '自动用于周六、周日，且该日未在「特殊日期」中标记。',
+      kindHelpHoliday: '仅当该日在「特殊日期」中标记为「节假日」时适用（会覆盖同日的周末判断）。',
+      kindHelpSpecial: '仅当该日在「特殊日期」中标记为「活动日」时适用（如店庆；与「节假日」分开定价）。',
+      exceptionsIntro:
+        '此处只标记日历上的某一天，不填写金额。标记后，当天按对应「适用日子」在价目表中取价；若价目未配置，楼面无法显示自助餐价格。',
       calendarCoverageOk: '已配置 {kind} 价格（规则有效期内）',
       calendarCoverageMissing: '⚠ 尚未配置 {kind} 价格，该日楼面可能无法显示自助餐价',
       calendarAddRule: '去添加价格',
@@ -141,7 +157,8 @@ export const MESSAGES = {
       ruleConflictBody:
         '与以下启用中的规则日期重叠，保存后将按优先级（数字大者优先）生效：{names}',
       ruleConflictSave: '仍要保存',
-      slotsHint: '时段决定「几点算午市/晚市」；适用日子决定「平日价还是节假日价」。',
+      slotsHint:
+        '时段全店共用：起止时刻决定当前属于哪个供餐段，「适用星期」决定每周哪几天启用该时段。成人/儿童价在「价目表」中按自助种类分别设置。',
     },
     authLogin: {
       subtitle: '登录您的餐厅后台',
@@ -756,7 +773,8 @@ export const MESSAGES = {
     nav: { overview: 'Overview', unpaidOrders: 'Active orders', checkout: 'Checkout requests', printAssistant: 'Print assistant', menu: 'Menu', buffet: 'Buffet pricing', orders: 'Paid orders', settings: 'Settings', viewKitchen: 'Open kitchen display', viewWaiter: 'Open waiter board', logout: 'Log out' },
     buffetAdmin: {
       title: 'Buffet / per-person cover',
-      subtitle: 'Set slots and prices first, then mark special dates. The floor board resolves prices from the current time.',
+      subtitle:
+        'Configure buffet product names, restaurant-wide time slots, and prices; special dates override weekday/weekend. The floor board matches prices using Lisbon date and time.',
       tabBuffets: 'Buffets',
       tabSlots: 'Time slots',
       tabRules: 'Price grid',
@@ -778,11 +796,13 @@ export const MESSAGES = {
       calendarKind: 'Day type',
       validFrom: 'Rule starts',
       validTo: 'Rule ends',
-      ruleValidHint: 'When this price row is in effect — not which calendar dates are holidays.',
+      ruleValidHint:
+        'Validity window for this row: the Lisbon date being matched must fall within it. Unrelated to marks under Special dates.',
       adultPrice: 'Adult €',
       childPrice: 'Child €',
       priority: 'Priority',
-      priorityHint: 'If several active rows overlap, the higher number wins.',
+      priorityHint:
+        'Only when several active rows share the same buffet, slot, and day type and their rule validity periods overlap — the higher number wins.',
       note: 'Note',
       addRule: 'Add price',
       calendarDate: 'Date',
@@ -814,8 +834,11 @@ export const MESSAGES = {
       ruleEdit: 'Edit',
       ruleCopy: 'Duplicate',
       ruleSave: 'Save',
-      ruleListEmpty: 'No prices yet. Set up buffets and slots, then fill the grid or click “Add price”.',
-      ruleListHint: 'Use the grid for day-to-day edits; use the list to review priority and validity.',
+      ruleListEmpty:
+        'No prices yet. Add at least one buffet product and one time slot, then fill in the grid cell by cell.',
+      ruleListHint:
+        'The grid shows prices in effect today (within rule validity) so you can fill gaps; the list shows all rows, priority, and validity dates.',
+      matrixTodayNote: 'Grid cells show today’s active price within rule validity; click a cell to edit or schedule.',
       ruleTablePeriod: 'Rule validity',
       ruleTablePrices: 'Adult / child €',
       ruleTablePriority: 'Priority',
@@ -826,10 +849,18 @@ export const MESSAGES = {
       guideTitle: 'How pricing works',
       guideHide: 'Hide guide',
       guideShow: 'Show guide',
-      guideStep1: '① Buffets + time slots define what you sell and when (e.g. lunch 11:00–15:00).',
-      guideStep2: '② Price grid sets adult/child prices per day type (weekday, weekend, holiday, event).',
-      guideStep3: '③ Special dates mark specific days; marking alone does not set a price — you still need a matching row in step ②.',
-      guideWeekendNote: 'Saturdays and Sundays count as weekend automatically (no need to add them here).',
+      guideStepBuffet:
+        'Buffets: product name and active toggle only (e.g. “Lunch buffet”). No hours, weekdays, or prices here.',
+      guideStepSlots:
+        'Time slots: restaurant-wide serving windows (name, daily start/end, which weekdays apply, sort order). Not tied to one buffet; the floor board matches the current clock to a slot (e.g. lunch 11:00–15:00).',
+      guideStepPrices:
+        'Price grid: adult/child price for each buffet × slot × day type, plus rule validity (from/to dates for that row). Day types: weekday, weekend, holiday, event — priced separately.',
+      guideStepSpecialDates:
+        'Special dates: mark a calendar day as holiday or event day to override default weekday/weekend. Marking a day does not set a price — you still need a matching day type in the price grid.',
+      guideResolveNote:
+        'Floor matching: Lisbon date → day type → current time → slot (weekday must match; slot must have a price row) → highest-priority active row within validity. If the clock is outside all windows, the nearest slot that already has a price is used.',
+      guideDayKindNote:
+        'Default day types: Mon–Fri weekday, Sat–Sun weekend. A special-date mark overrides that (e.g. a Saturday marked holiday uses holiday pricing, not weekend).',
       previewTitle: 'Price preview',
       previewLisbonNote: 'Uses Europe/Lisbon local time, same as the waiter board.',
       previewBuffet: 'Buffet',
@@ -840,7 +871,8 @@ export const MESSAGES = {
       previewDayKind: 'Day type',
       previewSlot: 'Time slot',
       previewPrices: 'Prices',
-      previewNoRule: 'No price matched. Check slot rules, day type, and whether the rule validity covers this date.',
+      previewNoRule:
+        'No price matched. Check: buffet is active; time falls in a slot’s hours and weekday; a grid row exists for that buffet + slot + day type; rule validity covers the chosen date.',
       previewLoading: 'Previewing…',
       viewMatrix: 'Grid',
       viewList: 'List',
@@ -856,12 +888,12 @@ export const MESSAGES = {
       filterSlot: 'Slot',
       filterDayKind: 'Day type',
       filterAll: 'All',
-      kindHelpWeekday: 'Mon–Fri when the day is not marked holiday/event.',
-      kindHelpWeekend: 'Sat–Sun when the day is not marked holiday/event.',
-      kindHelpHoliday: 'Only after you mark the date as Holiday under Special dates.',
-      kindHelpSpecial: 'Only after you mark the date as Event day (e.g. store promo, not public holiday).',
+      kindHelpWeekday: 'Used automatically Mon–Fri unless the day is marked under Special dates.',
+      kindHelpWeekend: 'Used automatically Sat–Sun unless the day is marked under Special dates.',
+      kindHelpHoliday: 'Only when that day is marked Holiday under Special dates (overrides weekend on that day).',
+      kindHelpSpecial: 'Only when that day is marked Event day under Special dates (priced separately from holiday).',
       exceptionsIntro:
-        'Marking a date tells the system which day type to use. You must still have a price row for that day type in the grid.',
+        'Marks a calendar day only — no amounts here. After marking, pricing uses the matching day type in the grid; without a row, the floor board cannot show buffet prices.',
       calendarCoverageOk: '{kind} price configured (within rule validity)',
       calendarCoverageMissing: '⚠ No {kind} price yet — the floor board may show no buffet price on this day',
       calendarAddRule: 'Add price',
@@ -869,7 +901,8 @@ export const MESSAGES = {
       ruleConflictBody:
         'These active rows overlap; after save the highest priority wins: {names}',
       ruleConflictSave: 'Save anyway',
-      slotsHint: 'Slots define time-of-day; day type defines weekday vs holiday pricing.',
+      slotsHint:
+        'Slots are shared by the whole restaurant: start/end define the serving window; weekdays define which days the slot runs. Adult/child prices are set per buffet in the price grid.',
     },
     authLogin: { subtitle: 'Sign in to your restaurant dashboard', email: 'Email', password: 'Password', login: 'Sign in', noAccount: "Don't have an account?", register: 'Create account', invalid: 'Invalid email or password', network: 'Network error, please try again later', rateLimited: 'Too many attempts, please try again later', rateLimitedWithMinutes: 'Too many attempts — try again in about {minutes} minutes', serverError: 'Sign-in service error — try again later or contact the owner', staffDisabled: 'This staff account is disabled', staffIncomplete: 'Staff account is incomplete — ask the owner to recreate it in Staff settings' },
     dashboardAccessError: { title: 'Cannot load dashboard', desc: 'You are signed in, but we could not load your restaurant. This is usually not data loss — retry or sign in again.', retry: 'Retry', signOut: 'Sign out and sign in again', backToLogin: 'Back to login' },
@@ -1122,7 +1155,8 @@ export const MESSAGES = {
     nav: { overview: 'Visao geral', unpaidOrders: 'Pedidos ativos', checkout: 'Solicitacoes de fechamento', printAssistant: 'Assistente de impressao', menu: 'Gestao do menu', buffet: 'Precos buffet', orders: 'Pedidos pagos', settings: 'Configuracoes', viewKitchen: 'Abrir tela da cozinha', viewWaiter: 'Abrir painel do garcom', logout: 'Sair' },
     buffetAdmin: {
       title: 'Buffet / taxa por pessoa',
-      subtitle: 'Horarios e precos primeiro; depois datas especiais. O painel do garcom resolve pelo horario atual.',
+      subtitle:
+        'Configure nomes de buffet, horarios da casa e precos; datas especiais substituem dia util/fim de semana. O garcom usa data e hora de Lisboa.',
       tabBuffets: 'Buffets',
       tabSlots: 'Horarios',
       tabRules: 'Grelha de precos',
@@ -1144,11 +1178,13 @@ export const MESSAGES = {
       calendarKind: 'Tipo de dia',
       validFrom: 'Regra comeca',
       validTo: 'Regra termina',
-      ruleValidHint: 'Quando esta linha de preco esta ativa — nao quais dias sao feriado.',
+      ruleValidHint:
+        'Intervalo em que esta linha pode ser usada: a data de Lisboa a combinar tem de cair aqui. Independente de marcas em Datas especiais.',
       adultPrice: 'Adulto €',
       childPrice: 'Crianca €',
       priority: 'Prioridade',
-      priorityHint: 'Se varias linhas ativas se sobrepuserem, ganha o numero maior.',
+      priorityHint:
+        'So quando varias linhas ativas partilham o mesmo buffet, horario e tipo de dia e as validades se sobrepõem — ganha o numero maior.',
       note: 'Nota',
       addRule: 'Novo preco',
       calendarDate: 'Data',
@@ -1180,8 +1216,11 @@ export const MESSAGES = {
       ruleEdit: 'Editar',
       ruleCopy: 'Duplicar',
       ruleSave: 'Guardar',
-      ruleListEmpty: 'Sem precos. Configure buffets e horarios e preencha a grelha ou clique em “Novo preco”.',
-      ruleListHint: 'Grelha para o dia a dia; lista para prioridade e validade.',
+      ruleListEmpty:
+        'Sem precos. Adicione pelo menos um buffet e um horario, depois preencha a grelha celula a celula.',
+      ruleListHint:
+        'A grelha mostra precos validos hoje (dentro da validade da regra); a lista mostra todas as linhas, prioridade e datas.',
+      matrixTodayNote: 'Cada celula mostra o preco ativo hoje; clique para editar ou agendar.',
       ruleTablePeriod: 'Validade da regra',
       ruleTablePrices: 'Adulto / crianca €',
       ruleTablePriority: 'Prioridade',
@@ -1192,10 +1231,18 @@ export const MESSAGES = {
       guideTitle: 'Como funcionam os precos',
       guideHide: 'Ocultar guia',
       guideShow: 'Ver guia',
-      guideStep1: '① Buffets e horarios definem o que vende e quando (ex.: almoco 11:00–15:00).',
-      guideStep2: '② A grelha define precos adulto/crianca por tipo de dia (util, fim de semana, feriado, evento).',
-      guideStep3: '③ Datas especiais marcam o dia; so marcar nao define preco — precisa da linha correspondente no passo ②.',
-      guideWeekendNote: 'Sabado e domingo sao fim de semana automaticamente (nao precisa marcar aqui).',
+      guideStepBuffet:
+        'Buffets: apenas nome do produto e ativo/inativo (ex.: «Buffet de almoco»). Sem horarios, dias da semana nem precos.',
+      guideStepSlots:
+        'Horarios: janelas de servico para toda a casa (nome, inicio/fim diarios, dias da semana em que corre, ordem). Nao ficam ligados a um buffet; o garcom associa a hora atual a um horario (ex.: almoco 11:00–15:00).',
+      guideStepPrices:
+        'Grelha de precos: preco adulto/crianca para cada buffet × horario × tipo de dia, mais validade da regra (de/a ate quando essa linha vale). Tipos: dia util, fim de semana, feriado, evento — cada combinacao com preco proprio.',
+      guideStepSpecialDates:
+        'Datas especiais: marcar um dia no calendario como feriado ou dia de evento, substituindo o dia util/fim de semana por defeito. Marcar nao define preco — e preciso a linha correspondente na grelha.',
+      guideResolveNote:
+        'No garcom: data de Lisboa → tipo de dia → hora atual → horario (dia da semana e janela horaria, com preco na grelha) → linha ativa de maior prioridade dentro da validade. Fora de todas as janelas, usa o horario mais proximo que ja tenha preco.',
+      guideDayKindNote:
+        'Por defeito: seg–sex dia util, sab–dom fim de semana. Uma data especial substitui isso (ex.: sabado marcado feriado usa preco de feriado, nao fim de semana).',
       previewTitle: 'Pre-visualizar preco',
       previewLisbonNote: 'Hora de Lisboa, igual ao painel do garcom.',
       previewBuffet: 'Buffet',
@@ -1206,7 +1253,8 @@ export const MESSAGES = {
       previewDayKind: 'Tipo de dia',
       previewSlot: 'Horario',
       previewPrices: 'Precos',
-      previewNoRule: 'Nenhum preco encontrado. Verifique horario, tipo de dia e validade da regra.',
+      previewNoRule:
+        'Sem preco. Verifique: buffet ativo; hora dentro do horario e dia da semana; linha na grelha para buffet + horario + tipo de dia; validade da regra cobre a data escolhida.',
       previewLoading: 'A calcular…',
       viewMatrix: 'Grelha',
       viewList: 'Lista',
@@ -1222,12 +1270,12 @@ export const MESSAGES = {
       filterSlot: 'Horario',
       filterDayKind: 'Tipo de dia',
       filterAll: 'Todos',
-      kindHelpWeekday: 'Seg–Sex quando o dia nao for feriado/evento.',
-      kindHelpWeekend: 'Sab–Dom quando o dia nao for feriado/evento.',
-      kindHelpHoliday: 'So depois de marcar a data como Feriado em Datas especiais.',
-      kindHelpSpecial: 'So depois de marcar como Dia de evento (ex.: promocao da loja).',
+      kindHelpWeekday: 'Automatico seg–sex, salvo se o dia estiver marcado em Datas especiais.',
+      kindHelpWeekend: 'Automatico sab–dom, salvo se o dia estiver marcado em Datas especiais.',
+      kindHelpHoliday: 'So quando o dia esta marcado Feriado em Datas especiais (substitui fim de semana nesse dia).',
+      kindHelpSpecial: 'So quando o dia esta marcado Dia de evento em Datas especiais (preco separado de feriado).',
       exceptionsIntro:
-        'Marcar a data indica o tipo de dia. Ainda precisa de uma linha de preco para esse tipo na grelha.',
+        'Apenas marca o dia no calendario — sem valores. Depois usa o tipo de dia na grelha; sem linha, o garcom nao mostra preco de buffet.',
       calendarCoverageOk: 'Preco {kind} configurado (dentro da validade)',
       calendarCoverageMissing: '⚠ Sem preco {kind} — o garcom pode nao ver preco de buffet neste dia',
       calendarAddRule: 'Adicionar preco',
@@ -1235,7 +1283,8 @@ export const MESSAGES = {
       ruleConflictBody:
         'Estas linhas ativas sobrepõem-se; apos guardar ganha a prioridade maior: {names}',
       ruleConflictSave: 'Guardar mesmo assim',
-      slotsHint: 'Horarios definem a hora do dia; o tipo de dia define preco util vs feriado.',
+      slotsHint:
+        'Horarios sao da casa inteira: inicio/fim definem a janela; dias da semana definem em que dias corre. Precos adulto/crianca por buffet na grelha de precos.',
     },
     authLogin: { subtitle: 'Entrar no painel do restaurante', email: 'Email', password: 'Senha', login: 'Entrar', noAccount: 'Ainda nao tem conta?', register: 'Criar conta', invalid: 'Email ou senha incorretos', network: 'Erro de rede, tente novamente mais tarde', rateLimited: 'Muitas tentativas, tente mais tarde', rateLimitedWithMinutes: 'Muitas tentativas — tente de novo em cerca de {minutes} minutos', serverError: 'Erro no servico de login — tente mais tarde ou contacte o dono', staffDisabled: 'Conta de funcionario desativada', staffIncomplete: 'Conta incompleta — peca ao dono para recriar em Funcionarios' },
     dashboardAccessError: { title: 'Nao foi possivel carregar o painel', desc: 'Sessao valida, mas nao foi possivel ler o restaurante. Normalmente nao e perda de dados — tente de novo ou faca login novamente.', retry: 'Tentar de novo', signOut: 'Sair e entrar novamente', backToLogin: 'Voltar ao login' },

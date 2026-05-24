@@ -153,7 +153,8 @@ func (p jobPayload) venueName() string {
 }
 
 type escposWriter struct {
-	buf bytes.Buffer
+	buf  bytes.Buffer
+	gbk  bool
 }
 
 func newEscpos() *escposWriter {
@@ -162,7 +163,29 @@ func newEscpos() *escposWriter {
 	return w
 }
 
+func newEscposForPayload(p jobPayload) *escposWriter {
+	w := newEscpos()
+	if payloadNeedsGBK(p) {
+		w.enableGBK()
+	} else {
+		w.enableLatin()
+	}
+	return w
+}
+
 func (w *escposWriter) init() { w.buf.Write([]byte{0x1B, 0x40}) }
+
+// enableLatin selects WPC1252 (covers Portuguese accents on most 80mm printers).
+func (w *escposWriter) enableLatin() {
+	w.gbk = false
+	w.buf.Write([]byte{0x1B, 0x74, 16})
+}
+
+// enableGBK selects simplified Chinese mode (common on POS-80 USB printers).
+func (w *escposWriter) enableGBK() {
+	w.gbk = true
+	w.buf.Write([]byte{0x1C, 0x26}) // FS &
+}
 
 func (w *escposWriter) align(mode byte) {
 	w.buf.Write([]byte{0x1B, 0x61, mode})
@@ -187,7 +210,13 @@ func (w *escposWriter) size(doubleW, doubleH bool) {
 	w.buf.Write([]byte{0x1D, 0x21, n})
 }
 
-func (w *escposWriter) text(s string) { w.buf.WriteString(s) }
+func (w *escposWriter) text(s string) {
+	if w.gbk {
+		w.buf.Write(encodeGBK(s))
+	} else {
+		w.buf.Write(encodeWindows1252(s))
+	}
+}
 
 func (w *escposWriter) lf() { w.buf.WriteByte('\n') }
 
@@ -206,6 +235,9 @@ func (w *escposWriter) separator(ch rune) {
 
 func (w *escposWriter) cut() {
 	w.feed(3)
+	if w.gbk {
+		w.buf.Write([]byte{0x1C, 0x2E}) // FS . — leave Chinese mode before cut
+	}
 	w.buf.Write([]byte{0x1D, 0x56, 0x00})
 }
 
@@ -255,6 +287,9 @@ func nowLocal() string {
 func escposFromJob(job printJob) []byte {
 	p := parseJobPayload(job)
 	lab := labelsFor(p.Locale)
+	if payloadNeedsGBK(p) && p.Locale == "pt" {
+		lab = labelsASCII(lab)
+	}
 
 	switch job.Type {
 	case "station_ticket":
@@ -273,7 +308,7 @@ func escposFromJob(job printJob) []byte {
 
 // buildStationTicket — reference: guest order slip (table, items/qty, footer times).
 func buildStationTicket(p jobPayload, lab ticketLabels) []byte {
-	w := newEscpos()
+	w := newEscposForPayload(p)
 	venue := strings.ToLower(p.venueName())
 
 	w.align(0)
@@ -349,7 +384,7 @@ func buildStationTicket(p jobPayload, lab ticketLabels) []byte {
 
 // buildOrderReceipt — reference: full receipt with items, qty, price, totals.
 func buildOrderReceipt(p jobPayload, lab ticketLabels) []byte {
-	w := newEscpos()
+	w := newEscposForPayload(p)
 	venue := strings.ToLower(p.venueName())
 
 	w.align(0)
@@ -451,7 +486,7 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels) []byte {
 }
 
 func buildConnectionTest(p jobPayload, lab ticketLabels) []byte {
-	w := newEscpos()
+	w := newEscposForPayload(p)
 	w.align(1)
 	w.size(true, true)
 	w.bold(true)

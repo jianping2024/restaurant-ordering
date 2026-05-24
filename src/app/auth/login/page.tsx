@@ -56,6 +56,8 @@ export default function LoginPage() {
           setError(t.staffDisabled);
         } else if (json.error === 'incomplete') {
           setError(t.staffIncomplete);
+        } else if (json.error === 'redirect_failed') {
+          setError(t.serverError);
         } else {
           setError(t.invalid);
         }

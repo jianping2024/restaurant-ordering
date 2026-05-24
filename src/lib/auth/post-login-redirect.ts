@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { staffRolePath } from '@/lib/staff-auth-client';
+import { staffRolePath } from '@/lib/staff-routes';
 import { parseStaffUserMetadata, type StaffRole } from '@/lib/staff-account';
 
 export type PostLoginRedirect =

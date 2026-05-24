@@ -5,17 +5,13 @@ import { buildStaffEmail, parseStaffUserMetadata } from '@/lib/staff-account';
 import type { StaffAccountRole } from '@/types';
 import type { StaffRole } from '@/lib/staff-account';
 
+export { staffRolePath } from '@/lib/staff-routes';
+
 export type StaffSessionState =
   | { status: 'ok'; role: StaffRole; slug: string; asOwner?: boolean }
   | { status: 'needs_password_change' }
   | { status: 'unauthenticated' }
   | { status: 'wrong_context' };
-
-export function staffRolePath(slug: string, role: StaffRole): string {
-  if (role === 'kitchen') return `/${slug}/kitchen`;
-  if (role === 'cashier') return '/dashboard/checkout';
-  return `/${slug}/waiter`;
-}
 
 export async function resolveStaffSession(
   slug: string,

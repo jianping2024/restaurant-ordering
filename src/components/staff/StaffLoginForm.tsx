@@ -60,7 +60,11 @@ export function StaffLoginForm({ mode, slug, restaurantName, expectedRole }: Pro
       }
 
       if (!res.ok || !json.ok) {
-        setError(t.invalid);
+        if (json.error === 'redirect_failed') {
+          setError(t.serverError);
+        } else {
+          setError(t.invalid);
+        }
         setLoading(false);
         submittingRef.current = false;
         return;

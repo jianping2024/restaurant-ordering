@@ -76,15 +76,32 @@ func runSetupWizard(ctx context.Context, configPath string, cfg *config) error {
 		writePairJSON(w, http.StatusOK, map[string]any{"tcp": tcp, "winspool": win})
 	})
 
+	mux.HandleFunc("/api/print-stations", func(w http.ResponseWriter, r *http.Request) {
+		stations, err := fetchPrintStations(cfg.APIBase, cfg.AgentJWT)
+		if err != nil {
+			writePairJSON(w, http.StatusBadGateway, map[string]string{"error": err.Error()})
+			return
+		}
+		writePairJSON(w, http.StatusOK, map[string]any{"stations": stations})
+	})
+
+	mux.HandleFunc("/api/setup-state", func(w http.ResponseWriter, r *http.Request) {
+		writePairJSON(w, http.StatusOK, map[string]any{
+			"default_printer":  cfg.defaultPrinterTargetRaw(),
+			"station_printers": cfg.StationPrinters,
+		})
+	})
+
 	mux.HandleFunc("/api/setup", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 		var body struct {
-			DefaultPrinter string `json:"default_printer"`
+			DefaultPrinter  string            `json:"default_printer"`
+			StationPrinters map[string]string `json:"station_printers"`
 		}
-		if err := json.NewDecoder(io.LimitReader(r.Body, 4096)).Decode(&body); err != nil {
+		if err := json.NewDecoder(io.LimitReader(r.Body, 65536)).Decode(&body); err != nil {
 			writePairJSON(w, http.StatusBadRequest, map[string]string{"error": "无效的请求"})
 			return
 		}
@@ -99,11 +116,30 @@ func runSetupWizard(ctx context.Context, configPath string, cfg *config) error {
 		} else {
 			cfg.PrinterHost = ""
 		}
+		cleaned := map[string]string{}
+		for sid, raw := range body.StationPrinters {
+			sid = strings.TrimSpace(sid)
+			raw = strings.TrimSpace(raw)
+			if sid == "" || raw == "" {
+				continue
+			}
+			st, err := parsePrinterTarget(raw)
+			if err != nil {
+				writePairJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+				return
+			}
+			cleaned[sid] = st.Display
+		}
+		if len(cleaned) > 0 {
+			cfg.StationPrinters = cleaned
+		} else {
+			cfg.StationPrinters = nil
+		}
 		if err := saveConfig(configPath, cfg); err != nil {
 			writePairJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			return
 		}
-		log.Printf("setup wizard: default_printer=%s", cfg.DefaultPrinter)
+		log.Printf("setup wizard: default_printer=%s station_printers=%d", cfg.DefaultPrinter, len(cleaned))
 		writePairJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 

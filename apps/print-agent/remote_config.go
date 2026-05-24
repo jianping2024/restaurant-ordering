@@ -14,6 +14,15 @@ type remoteCloudConfig struct {
 	Poll     *pollConfig     `json:"poll"`
 }
 
+type printStationRow struct {
+	ID           string `json:"id"`
+	NamePt       string `json:"name_pt"`
+	NameEn       string `json:"name_en"`
+	NameZh       string `json:"name_zh"`
+	TicketLayout string `json:"ticket_layout"`
+	SortOrder    int    `json:"sort_order"`
+}
+
 func applyCloudRuntimeConfig(cfg *config, apiBase string) {
 	if strings.TrimSpace(cfg.AgentJWT) == "" {
 		return
@@ -107,4 +116,29 @@ func fetchCloudRuntimeConfig(url, jwt string) (*remoteCloudConfig, error) {
 		return nil, err
 	}
 	return &out, nil
+}
+
+func fetchPrintStations(apiBase, jwt string) ([]printStationRow, error) {
+	url := strings.TrimRight(apiBase, "/") + "/api/print-agent/print-stations"
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+jwt)
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	raw, _ := io.ReadAll(res.Body)
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		return nil, fmt.Errorf("%s: %s", res.Status, string(raw))
+	}
+	var out struct {
+		Stations []printStationRow `json:"stations"`
+	}
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return nil, err
+	}
+	return out.Stations, nil
 }

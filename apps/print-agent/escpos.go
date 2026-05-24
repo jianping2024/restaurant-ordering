@@ -11,12 +11,13 @@ import (
 // 80mm paper ≈ 48 chars (Font A). Layout follows reference thermal receipts.
 const escposWidth = 48
 
-// Max margin before cutter — long tickets or double-height blocks need more clearance.
+// Symmetric pad: 2× the single-height "restaurant" row (two line feeds).
+const escposSymmetricMarginLines = 2
+
+// Minimal feed before blade after bottom pad (not part of visible margin).
 const (
-	escposFeedLinesBeforeCutMax = 8
-	escposFeedDotsBeforeCutMax  = 0x60 // GS V 66 n — feed n units then full cut
-	escposFeedLinesBeforeCutMin = 2
-	escposFeedDotsBeforeCutMin  = 0x28
+	escposCutFeedDotsDefault = 0x18
+	escposCutFeedDotsTall    = 0x38 // tickets with double-height blocks
 )
 
 type ticketLabels struct {
@@ -164,39 +165,20 @@ type escposWriter struct {
 	prefix          []byte
 	content         bytes.Buffer
 	gbk             bool
-	bodyLines       int
 	hadDoubleHeight bool
 }
 
-type ticketMargins struct {
-	blankLF  int
-	escDFeed int
-	cutDots  byte
-}
-
-// marginsForTicket scales symmetric top/bottom feed (cut dots only at the tail).
-func marginsForTicket(bodyLines int, hadDoubleHeight bool) ticketMargins {
-	score := bodyLines
-	if hadDoubleHeight {
-		score += 6
-	}
-	switch {
-	case score <= 14:
-		return ticketMargins{1, escposFeedLinesBeforeCutMin, escposFeedDotsBeforeCutMin}
-	case score <= 22:
-		return ticketMargins{2, 4, 0x38}
-	case score <= 32:
-		return ticketMargins{2, 6, 0x48}
-	default:
-		return ticketMargins{3, escposFeedLinesBeforeCutMax, escposFeedDotsBeforeCutMax}
-	}
-}
-
-func writeMargin(b *bytes.Buffer, m ticketMargins) {
-	for i := 0; i < m.blankLF; i++ {
+func writeSymmetricMargin(b *bytes.Buffer) {
+	for i := 0; i < escposSymmetricMarginLines; i++ {
 		b.WriteByte('\n')
 	}
-	b.Write([]byte{0x1B, 0x64, byte(m.escDFeed)})
+}
+
+func cutFeedDots(hadDoubleHeight bool) byte {
+	if hadDoubleHeight {
+		return escposCutFeedDotsTall
+	}
+	return escposCutFeedDotsDefault
 }
 
 func newEscpos() *escposWriter {
@@ -275,7 +257,6 @@ func (w *escposWriter) text(s string) {
 
 func (w *escposWriter) lf() {
 	w.content.WriteByte('\n')
-	w.bodyLines++
 }
 
 func (w *escposWriter) writeResetPrintMode(out *bytes.Buffer) {
@@ -285,20 +266,19 @@ func (w *escposWriter) writeResetPrintMode(out *bytes.Buffer) {
 	out.Write([]byte{0x1B, 0x32}) // ESC 2 — default line spacing after enlarged text
 }
 
-// finish assembles init + symmetric margins + body (+ cut tail when cut is true).
+// finish assembles init + 2-line symmetric pad + body (+ cut tail when cut is true).
 func (w *escposWriter) finish(cut bool) []byte {
-	m := marginsForTicket(w.bodyLines, w.hadDoubleHeight)
 	var out bytes.Buffer
 	out.Write(w.prefix)
-	writeMargin(&out, m)
+	writeSymmetricMargin(&out)
 	out.Write(w.content.Bytes())
 	if cut {
 		w.writeResetPrintMode(&out)
 		if w.gbk {
 			out.Write([]byte{0x1C, 0x2E}) // FS . — exit Chinese mode before feed/cut
 		}
-		writeMargin(&out, m)
-		out.Write([]byte{0x1D, 0x56, 0x42, m.cutDots})
+		writeSymmetricMargin(&out)
+		out.Write([]byte{0x1D, 0x56, 0x42, cutFeedDots(w.hadDoubleHeight)})
 	}
 	return out.Bytes()
 }

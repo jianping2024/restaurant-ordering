@@ -8,7 +8,7 @@ export default async function CheckoutRequestsPage() {
 
   const { data: restaurant } = await supabase
     .from('restaurants')
-    .select('id')
+    .select('id, slug')
     .eq('owner_id', user!.id)
     .single();
 
@@ -21,5 +21,10 @@ export default async function CheckoutRequestsPage() {
     .order('created_at', { ascending: false })
     .limit(100);
 
-  return <CheckoutRequestsPageClient checkoutRequests={(checkoutRequests || []) as BillSplit[]} />;
+  return (
+    <CheckoutRequestsPageClient
+      restaurantSlug={restaurant!.slug}
+      checkoutRequests={(checkoutRequests || []) as BillSplit[]}
+    />
+  );
 }

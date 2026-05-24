@@ -40,7 +40,7 @@ function WaiterTableDetailInner({
   const { lang } = useLanguage();
   const locale = UI_LOCALE_BY_LANG[lang];
   const t = WAITER_TEXT[lang];
-  const { orders, checkoutRequestedTables, refresh, supabase } = useWaiterOrders(
+  const { orders, refresh, supabase } = useWaiterOrders(
     restaurant.id,
     initialOrders,
     initialCheckoutRequestedTables,
@@ -184,8 +184,6 @@ function WaiterTableDetailInner({
   const menuHref = isDemo
     ? `/demo/menu?table=${tableNumber}&from=waiter&return=${encodeURIComponent(waiterReturnPath)}`
     : `/${restaurant.slug}/menu?table=${tableNumber}&from=waiter&return=${encodeURIComponent(waiterReturnPath)}`;
-  const billHref = `/${restaurant.slug}/bill?table=${tableNumber}&from=waiter&return=${encodeURIComponent(waiterReturnPath)}`;
-
   const openAction = (type: 'transfer' | 'merge', table: number) => {
     setOperationType(type);
     setSourceTable(table);
@@ -729,14 +727,6 @@ function WaiterTableDetailInner({
               >
                 + {t.addDish}
               </Link>
-              {checkoutRequestedTables.includes(selectedCard.table) && (
-                <Link
-                  href={billHref}
-                  className={waiterUi.btnGoldSoft}
-                >
-                  {t.checkout}
-                </Link>
-              )}
               <button
                 type="button"
                 onClick={() => openAction('transfer', selectedCard.table)}

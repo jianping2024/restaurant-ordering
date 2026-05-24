@@ -12,6 +12,8 @@ import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages } from '@/lib/i18n/messages';
 import { showToast } from '@/components/ui/Toast';
 import { normalizeDecimalInput as normalizeAmountInput } from '@/lib/number-input';
+import { requestOrderReceiptPrint } from '@/lib/request-order-receipt-print';
+import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -191,19 +193,19 @@ export function BillPage({
     }
 
     if (splitMode === 'by_item') {
-      const result: Record<string, number> = {};
-      allItems.forEach(item => {
-        const personIds = byItemAssign[item.key] || [];
-        if (personIds.length === 0) return;
-        const share = (item.price * item.qty) / personIds.length;
-        personIds.forEach((personId) => {
-          result[personId] = (result[personId] || 0) + share;
-        });
+      return splitPeople.slice(0, personCount).map((person) => {
+        const assigned = allItems.filter((item) => (byItemAssign[item.key] || []).includes(person.id));
+        const amount = assigned.reduce((sum, item) => sum + item.price * item.qty, 0);
+        return {
+          name: person.name,
+          amount,
+          items: assigned.map((item) => ({
+            name: (item.name || item.name_pt || '').trim(),
+            qty: item.qty,
+            price: item.price * item.qty,
+          })),
+        };
       });
-      return splitPeople.slice(0, personCount).map((person) => ({
-        name: person.name,
-        amount: result[person.id] || 0,
-      }));
     }
 
     // custom 模式
@@ -228,7 +230,16 @@ export function BillPage({
         table_number: tableNumber,
         order_ids: contributingOrderIds,
         split_mode: splitMode ?? 'custom',
-        persons: results.map(r => ({ name: r.name })),
+        persons: splitPeople.slice(0, splitMode === 'by_item' ? personCount : results.length).map((person, idx) => ({
+          name: results[idx]?.name ?? person.name,
+          ...(splitMode === 'by_item'
+            ? {
+                items: allItems
+                  .filter((item) => (byItemAssign[item.key] || []).includes(person.id))
+                  .map((item) => item.key),
+              }
+            : {}),
+        })),
         result: results,
         total_amount: total,
         status: 'requested' as const,
@@ -267,6 +278,14 @@ export function BillPage({
       }
       setPersistedResult(results);
       setSubmitted(true);
+      if (sessionId) {
+        void requestOrderReceiptPrint({
+          slug: restaurant.slug,
+          tableNumber,
+          sessionId,
+          receiptVariant: 'pre_bill',
+        });
+      }
     } catch {
       showToast(t.actionFailed, 'error');
     } finally {
@@ -288,36 +307,26 @@ export function BillPage({
   const byItemPersons = splitPeople.slice(0, personCount);
 
   const handleConfirmPersonPaidFromWaiter = async (rowIndex: number) => {
-    if (!persistedSplitId) return;
+    if (!persistedSplitId) {
+      showToast(t.actionFailed, 'error');
+      return;
+    }
     const row = results[rowIndex];
     if (!row || row.paid) return;
     setPersonPayProcessingIdx(rowIndex);
-    const supabase = createClient();
-    const nextResult = results.map((item, idx) => (idx === rowIndex ? { ...item, paid: true } : item));
-    const allPaid = nextResult.length > 0 && nextResult.every((item) => !!item.paid);
     try {
-      const { error: billError } = await supabase
-        .from('bill_splits')
-        .update({
-          status: allPaid ? 'paid' : 'requested',
-          result: nextResult,
-        })
-        .eq('id', persistedSplitId);
-      if (billError) throw billError;
-
-      if (allPaid && sessionId) {
-        const { error: sessionError } = await supabase
-          .from('table_sessions')
-          .update({
-            status: 'closed',
-            closed_at: new Date().toISOString(),
-          })
-          .eq('id', sessionId);
-        if (sessionError) throw sessionError;
+      const outcome = await requestCheckoutConfirmPayment({
+        slug: restaurant.slug,
+        billSplitId: persistedSplitId,
+        personIndex: rowIndex,
+      });
+      if (!outcome.ok) {
+        showToast(t.actionFailed, 'error');
+        return;
       }
 
-      setPersistedResult(nextResult);
-      if (allPaid) router.refresh();
+      setPersistedResult(outcome.result);
+      if (outcome.all_paid) router.refresh();
     } catch {
       showToast(t.actionFailed, 'error');
     } finally {

@@ -9,6 +9,7 @@ import { OrdersHistoryManager } from '@/components/dashboard/OrdersHistoryManage
 interface Props {
   orders: Order[];
   checkoutRequests: BillSplit[];
+  restaurantSlug?: string;
   headingTitle?: string;
   headingNavKey?: 'orders' | 'unpaidOrders' | 'checkout';
   showCheckoutRequests?: boolean;
@@ -17,6 +18,7 @@ interface Props {
 export function OrdersPageClient({
   orders,
   checkoutRequests,
+  restaurantSlug,
   headingTitle,
   headingNavKey,
   showCheckoutRequests = true,
@@ -34,7 +36,12 @@ export function OrdersPageClient({
         </p>
       </div>
 
-      {showCheckoutRequests && <CheckoutRequestsManager initialRequests={checkoutRequests} />}
+      {showCheckoutRequests && (
+        <CheckoutRequestsManager
+          initialRequests={checkoutRequests}
+          restaurantSlug={restaurantSlug}
+        />
+      )}
 
       <OrdersHistoryManager initialOrders={orders} />
     </div>

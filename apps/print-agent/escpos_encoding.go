@@ -47,6 +47,21 @@ func stationTicketLabels() ticketLabels {
 	return labelsFor("en")
 }
 
+// receiptTicketLabels — fixed English checkout receipt per reference sample.
+func receiptTicketLabels() ticketLabels {
+	return labelsFor("en")
+}
+
+// receiptTicketNeedsGBK — receipt header is ASCII; GBK only when menu lines contain Han.
+func receiptTicketNeedsGBK(p jobPayload) bool {
+	for _, ln := range p.Lines {
+		if hasHan(ln.DisplayName) || hasHan(ln.Note) {
+			return true
+		}
+	}
+	return false
+}
+
 // labelsASCII strips accents for printers in GBK mode with pt/en locale.
 func labelsASCII(lab ticketLabels) ticketLabels {
 	return ticketLabels{
@@ -66,6 +81,8 @@ func labelsASCII(lab ticketLabels) ticketLabels {
 		printedBy:      "Impresso por",
 		printTime:      "Hora impressao",
 		printedByVal:   "Cliente/Estabelecimento",
+		orderedBy:      "Pedido por",
+		amountPaid:     "Valor pago",
 		station:        "Estacao",
 	}
 }

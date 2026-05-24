@@ -41,6 +41,8 @@ type ticketLabels struct {
 	printedBy      string
 	printTime      string
 	printedByVal   string
+	orderedBy      string
+	amountPaid     string
 	station        string
 }
 
@@ -64,6 +66,8 @@ func labelsFor(locale string) ticketLabels {
 			printedBy:      "打印",
 			printTime:      "打印时间",
 			printedByVal:   "系统",
+			orderedBy:      "下单方",
+			amountPaid:     "实付",
 			station:        "档口",
 		}
 	case "en":
@@ -75,7 +79,7 @@ func labelsFor(locale string) ticketLabels {
 			guest:          "Guest",
 			items:          "Items",
 			qty:            "Qty",
-			originalPrice:  "Original Pri",
+			originalPrice:  "Original Price",
 			feeDetails:     "Fee Details",
 			originalTotal:  "Original price",
 			subtotal:       "Subtotal",
@@ -84,6 +88,8 @@ func labelsFor(locale string) ticketLabels {
 			printedBy:      "Printed By",
 			printTime:      "Print Time",
 			printedByVal:   "Customer/Merchant",
+			orderedBy:      "Ordered By",
+			amountPaid:     "Amount Paid",
 			station:        "Station",
 		}
 	default: // pt (pt-PT semantics)
@@ -104,6 +110,8 @@ func labelsFor(locale string) ticketLabels {
 			printedBy:      "Impresso por",
 			printTime:      "Hora impressão",
 			printedByVal:   "Cliente/Estabelecimento",
+			orderedBy:      "Pedido por",
+			amountPaid:     "Valor pago",
 			station:        "Estação",
 		}
 	}
@@ -129,7 +137,14 @@ type jobPayload struct {
 	Lines                []jobLine `json:"lines"`
 	Subtotal             float64   `json:"subtotal"`
 	AmountDue            float64   `json:"amount_due"`
+	AmountPaid           float64   `json:"amount_paid"`
+	PaymentMethod        string    `json:"payment_method"`
+	OrderedBy            string    `json:"ordered_by"`
 	OrderTime            string    `json:"order_time"`
+	PrintTime            string    `json:"print_time"`
+	// pre_bill | split_payment | final (empty → final on order_receipt)
+	ReceiptVariant string `json:"receipt_variant"`
+	PayerName      string `json:"payer_name"`
 }
 
 func parseJobPayload(job printJob) jobPayload {
@@ -194,6 +209,16 @@ func newEscpos() *escposWriter {
 func newEscposForStationTicket(p jobPayload) *escposWriter {
 	w := newEscpos()
 	if stationTicketNeedsGBK(p) {
+		w.enableGBK()
+	} else {
+		w.enableLatin()
+	}
+	return w
+}
+
+func newEscposForReceiptTicket(p jobPayload) *escposWriter {
+	w := newEscpos()
+	if receiptTicketNeedsGBK(p) {
 		w.enableGBK()
 	} else {
 		w.enableLatin()
@@ -295,6 +320,40 @@ func (w *escposWriter) separator(ch rune) {
 	w.lf()
 }
 
+const (
+	escposColItems = 28
+	escposColQty   = 4
+	escposColPrice = escposWidth - escposColItems - escposColQty
+)
+
+func padField(s string, width int, alignRight bool) string {
+	r := []rune(truncateRunes(s, width))
+	gap := width - len(r)
+	if gap < 0 {
+		gap = 0
+	}
+	if alignRight {
+		return strings.Repeat(" ", gap) + string(r)
+	}
+	return string(r) + strings.Repeat(" ", gap)
+}
+
+func escposThreeColLine(left, mid, right string) string {
+	return padField(left, escposColItems, false) +
+		padField(mid, escposColQty, true) +
+		padField(right, escposColPrice, true)
+}
+
+func (w *escposWriter) rightLine(s string, bold bool) {
+	w.align(2)
+	w.size(false, false)
+	w.bold(bold)
+	w.text(s)
+	w.lf()
+	w.bold(false)
+	w.align(0)
+}
+
 func escposPadLine(left, right string, width int) string {
 	left = truncateRunes(left, width-2)
 	right = truncateRunes(right, width-2)
@@ -350,9 +409,15 @@ func escposFromJob(job printJob) []byte {
 		if p.ConnectionTest {
 			return buildConnectionTest(p, lab)
 		}
-		return buildOrderReceipt(p, lab)
+		variant := strings.TrimSpace(p.ReceiptVariant)
+		if variant == "" {
+			variant = "final"
+		}
+		withPayment := variant == "final" || variant == "split_payment"
+		return buildOrderReceipt(p, receiptTicketLabels(), withPayment, variant)
 	case "pre_bill":
-		return buildOrderReceipt(p, lab) // same layout as receipt without payment lines
+		p.ReceiptVariant = "pre_bill"
+		return buildOrderReceipt(p, receiptTicketLabels(), false, "pre_bill")
 	default:
 		return buildStationTicket(p)
 	}
@@ -428,14 +493,16 @@ func buildStationTicket(p jobPayload) []byte {
 	return w.finish(true)
 }
 
-// buildOrderReceipt — reference: full receipt with items, qty, price, totals.
-func buildOrderReceipt(p jobPayload, lab ticketLabels) []byte {
-	w := newEscposForPayload(p)
-	venue := strings.ToLower(p.venueName())
+// buildOrderReceipt — checkout / pre-bill / split-payment / final (English layout per sample).
+func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant string) []byte {
+	w := newEscposForReceiptTicket(p)
+	isSplit := variant == "split_payment"
+	payer := strings.TrimSpace(p.PayerName)
 
 	w.align(0)
 	w.size(false, false)
-	w.text(venue)
+	w.bold(false)
+	w.text("restaurant")
 	w.lf()
 
 	w.align(1)
@@ -446,7 +513,7 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels) []byte {
 
 	w.separator('-')
 
-	w.align(0)
+	w.align(1)
 	w.size(true, true)
 	w.bold(true)
 	if p.TableNumber > 0 {
@@ -455,76 +522,106 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels) []byte {
 	}
 	w.size(false, false)
 	w.bold(false)
-	if p.GuestCount > 0 {
+	w.align(0)
+	if isSplit && payer != "" {
+		w.text(fmt.Sprintf("%s:%s", lab.guest, payer))
+		w.lf()
+	} else if p.GuestCount > 0 {
 		w.text(fmt.Sprintf("%s:%d", lab.guest, p.GuestCount))
 		w.lf()
 	}
 
 	w.separator('-')
 
-	priceHdr := truncateRunes(lab.originalPrice, 10)
-	w.text(escposPadLine(lab.items, lab.qty+"  "+priceHdr, escposWidth))
-	w.lf()
-
 	var sum float64
 	hasPrice := false
-	for _, ln := range p.Lines {
-		qty := ln.Qty
-		if qty <= 0 {
-			qty = 1
-		}
-		label := formatItemLabel(ln.ItemIndex, ln.DisplayName)
-		lineTotal := ln.UnitPrice * float64(qty)
-		if ln.UnitPrice > 0 {
-			hasPrice = true
-			sum += lineTotal
-		}
-		priceCol := ""
-		if ln.UnitPrice > 0 {
-			priceCol = formatMoney(lineTotal)
-		}
-		if priceCol != "" {
-			w.text(escposPadLine(label, fmt.Sprintf("%d  %s", qty, priceCol), escposWidth))
-		} else {
-			w.text(escposPadLine(label, fmt.Sprintf("%d", qty), escposWidth))
-		}
+	if len(p.Lines) > 0 {
+		w.text(escposThreeColLine(lab.items, lab.qty, lab.originalPrice))
 		w.lf()
+		for _, ln := range p.Lines {
+			qty := ln.Qty
+			if qty <= 0 {
+				qty = 1
+			}
+			label := formatItemLabel(ln.ItemIndex, ln.DisplayName)
+			lineTotal := ln.UnitPrice * float64(qty)
+			if ln.UnitPrice > 0 {
+				hasPrice = true
+				sum += lineTotal
+			}
+			priceCol := ""
+			if ln.UnitPrice > 0 {
+				priceCol = formatMoney(lineTotal)
+			}
+			w.text(escposThreeColLine(label, fmt.Sprintf("%d", qty), priceCol))
+			w.lf()
+		}
+		w.separator('-')
 	}
-
-	w.separator('-')
 
 	if p.Subtotal > 0 {
 		sum = p.Subtotal
 		hasPrice = true
 	}
+	if p.AmountDue > 0 {
+		sum = p.AmountDue
+		hasPrice = true
+	}
+	if hasPrice && len(p.Lines) == 0 {
+		w.separator('-')
+	}
 	if hasPrice {
-		w.text(lab.feeDetails)
-		w.lf()
-		w.text(escposPadLine(lab.originalTotal, formatMoney(sum), escposWidth))
-		w.lf()
-		w.text(escposPadLine(lab.subtotal, formatMoney(sum), escposWidth))
-		w.lf()
+		if !isSplit {
+			w.text(lab.feeDetails)
+			w.lf()
+			w.text(escposPadLine(lab.originalTotal, formatMoney(sum), escposWidth))
+			w.lf()
+			w.text(escposPadLine(lab.subtotal, formatMoney(sum), escposWidth))
+			w.lf()
+		}
 		due := sum
 		if p.AmountDue > 0 {
 			due = p.AmountDue
 		}
-		w.bold(true)
-		w.text(escposPadLine(lab.amountDue+":", formatMoney(due), escposWidth))
-		w.lf()
-		w.bold(false)
+		w.rightLine(lab.amountDue+":"+formatMoney(due), true)
+		if withPayment {
+			paid := due
+			if p.AmountPaid > 0 {
+				paid = p.AmountPaid
+			}
+			w.rightLine(lab.amountPaid+":"+formatMoney(paid), true)
+			method := strings.TrimSpace(p.PaymentMethod)
+			if method == "" {
+				method = "Cash"
+			}
+			w.rightLine("-"+method+" Payment:"+formatMoney(paid), false)
+		}
+		if isSplit {
+			w.separator('-')
+		}
 	}
 
 	w.separator('-')
 
+	orderedByVal := strings.TrimSpace(p.OrderedBy)
+	if orderedByVal == "" {
+		orderedByVal = lab.printedByVal
+	}
 	orderAt := strings.TrimSpace(p.OrderTime)
 	if orderAt == "" {
 		orderAt = nowLocal()
 	}
+	printAt := strings.TrimSpace(p.PrintTime)
+	if printAt == "" {
+		printAt = nowLocal()
+	}
+	w.text(fmt.Sprintf("%s:%s", lab.orderedBy, orderedByVal))
+	w.lf()
 	w.text(fmt.Sprintf("%s:%s", lab.orderTime, orderAt))
 	w.lf()
-	w.text(fmt.Sprintf("%s:%s", lab.printedBy, lab.printedByVal))
+	w.text(fmt.Sprintf("%s:%s", lab.printedBy, "restaurant"))
 	w.lf()
-	w.text(fmt.Sprintf("%s:%s", lab.printTime, nowLocal()))
+	w.text(fmt.Sprintf("%s:%s", lab.printTime, printAt))
 	w.lf()
 
 	return w.finish(true)

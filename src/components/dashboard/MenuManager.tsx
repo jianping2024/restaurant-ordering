@@ -259,19 +259,13 @@ export function MenuManager({
   }, [topCategories]);
 
   useEffect(() => {
-    if (selectedCategory) {
-      setCategoryDraft({
-        name_pt: selectedCategory.name_pt || '',
-        name_en: selectedCategory.name_en || '',
-        name_zh: selectedCategory.name_zh || '',
-        item_code: selectedCategory.item_code || '',
-        print_station_id: selectedCategory.print_station_id ?? '',
-      });
+    if (selectedCategory && categoryPanelMode === 'edit') {
+      setCategoryDraft(categoryDraftFromRow(selectedCategory));
       setCategoryError('');
-    } else {
+    } else if (!selectedCategory) {
       setCategoryDraft(defaultCategoryDraft);
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, categoryPanelMode]);
 
   useEffect(() => {
     if (categoryPanelMode === 'none') setCategoryError('');
@@ -291,6 +285,14 @@ export function MenuManager({
       return url;
     });
   }, [pendingImage]);
+
+  const categoryDraftFromRow = (category: MenuCategory): CategoryDraft => ({
+    name_pt: category.name_pt || '',
+    name_en: category.name_en || '',
+    name_zh: category.name_zh || '',
+    item_code: category.item_code ?? '',
+    print_station_id: category.print_station_id ?? '',
+  });
 
   const getCategoryLabel = (c: MenuCategory) => {
     if (lang === 'en') return c.name_en || c.name_pt;
@@ -590,8 +592,10 @@ export function MenuManager({
       .single();
     setCategorySaving(false);
     if (error) return setCategoryError(error.message);
-    setCategories((prev) => prev.map((c) => (c.id === selectedCategory.id ? data : c)));
-    setCategoryPanelMode('none');
+    const row = data as MenuCategory;
+    setCategories((prev) => prev.map((c) => (c.id === selectedCategory.id ? row : c)));
+    setCategoryDraft(categoryDraftFromRow(row));
+    setCategoryPanelMode('edit');
   };
 
   const deleteCategoryById = async (categoryId: string) => {
@@ -703,6 +707,9 @@ export function MenuManager({
     <div className="group flex w-full items-center gap-2 min-h-7 pr-1">
       <span className={`truncate text-sm leading-5 ${selectedCategoryId === category.id ? 'text-brand-gold font-medium' : 'text-brand-text'}`}>
         {getCategoryLabel(category)}
+        {category.item_code?.trim() ? (
+          <span className="text-brand-text-muted font-normal"> [{category.item_code.trim()}]</span>
+        ) : null}
       </span>
       <div className={`ml-auto flex h-6 items-center gap-1 rounded-md bg-brand-border/35 px-1 transition-opacity ${selectedCategoryId === category.id ? 'opacity-100' : 'opacity-75 group-hover:opacity-100'}`}>
         {(() => {
@@ -737,6 +744,8 @@ export function MenuManager({
           onClick={(e) => {
             e.stopPropagation();
             setSelectedCategoryId(category.id);
+            setCategoryDraft(categoryDraftFromRow(category));
+            setCategoryError('');
             setCategoryPanelMode('edit');
           }}
           className="h-5 w-5 inline-flex items-center justify-center rounded-md border border-brand-border/70 bg-brand-card/80 text-brand-text leading-none hover:text-brand-gold hover:border-brand-gold/35 hover:bg-brand-gold/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/45 focus-visible:bg-brand-gold/15 transition-colors"
@@ -891,7 +900,7 @@ export function MenuManager({
                     onChange={(e) =>
                       setCategoryDraft((prev) => ({ ...prev, item_code: e.target.value.slice(0, 10) }))
                     }
-                    placeholder="A01"
+                    placeholder={t.categoryCodePlaceholder}
                   />
                   <p className="text-[12px] text-brand-text-muted mt-1">{t.categoryCodeHint}</p>
                 </div>
@@ -1142,7 +1151,7 @@ export function MenuManager({
             value={itemForm.item_code}
             maxLength={10}
             onChange={(e) => setItemForm((f) => ({ ...f, item_code: e.target.value.slice(0, 10) }))}
-            placeholder="001"
+            placeholder={t.itemCodePlaceholder}
           />
           <p className="text-[12px] text-brand-text-muted -mt-2">{t.itemCodeHint}</p>
           <Input label={t.ptDesc} value={itemForm.description_pt} onChange={(e) => setItemForm((f) => ({ ...f, description_pt: e.target.value }))} placeholder="简短描述..." />

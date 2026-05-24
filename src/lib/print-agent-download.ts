@@ -1,7 +1,37 @@
 import fs from 'fs';
 import path from 'path';
 
-/** GitHub Releases download URLs for the Windows print agent (stable asset names). */
+/**
+ * Stable GitHub Release asset basenames (CI must keep these names).
+ * Dashboard links use /api/downloads/print-agent/* instead — those paths never change.
+ */
+export const PRINT_AGENT_GITHUB_ASSETS = {
+  setupAmd64: 'MesaPrintAgent-Setup-amd64.exe',
+  portableAmd64: 'MesaPrintAgent-windows-amd64.zip',
+  setupArm64: 'MesaPrintAgent-Setup-arm64.exe',
+  portableArm64: 'MesaPrintAgent-windows-arm64.zip',
+} as const;
+
+export type PrintAgentDownloadArtifact =
+  | 'setup-amd64'
+  | 'portable-amd64'
+  | 'setup-arm64'
+  | 'portable-arm64';
+
+const ARTIFACT_TO_FILE: Record<PrintAgentDownloadArtifact, string> = {
+  'setup-amd64': PRINT_AGENT_GITHUB_ASSETS.setupAmd64,
+  'portable-amd64': PRINT_AGENT_GITHUB_ASSETS.portableAmd64,
+  'setup-arm64': PRINT_AGENT_GITHUB_ASSETS.setupArm64,
+  'portable-arm64': PRINT_AGENT_GITHUB_ASSETS.portableArm64,
+};
+
+/** Permanent paths on this site (prepend origin, e.g. NEXT_PUBLIC_BASE_URL). */
+export const PRINT_AGENT_DOWNLOAD_API_PATHS = {
+  setupAmd64: '/api/downloads/print-agent/setup-amd64',
+  portableAmd64: '/api/downloads/print-agent/portable-amd64',
+  setupArm64: '/api/downloads/print-agent/setup-arm64',
+  portableArm64: '/api/downloads/print-agent/portable-arm64',
+} as const;
 
 export type PrintAgentDownloadUrls = {
   setupAmd64: string;
@@ -11,24 +41,14 @@ export type PrintAgentDownloadUrls = {
   releasesPage: string;
 };
 
-export function getPrintAgentDownloadUrls(): PrintAgentDownloadUrls | null {
+export function isPrintAgentDownloadArtifact(s: string): s is PrintAgentDownloadArtifact {
+  return s in ARTIFACT_TO_FILE;
+}
+
+export function getPrintAgentGithubRepo(): string | null {
   const repo = process.env.NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO?.trim();
-  const version = getPrintAgentVersion();
-  if (!repo || repo.includes('..') || repo.startsWith('/') || !version) return null;
-
-  // Binaries: GitHub "latest" release (this repo only publishes print-agent tags).
-  // Avoids 404 when the dashboard is deployed before release assets are uploaded.
-  const latestDl = `https://github.com/${repo}/releases/latest/download`;
-  const tagPage = `https://github.com/${repo}/releases/tag/print-agent-v${version}`;
-
-  return {
-    setupAmd64: `${latestDl}/MesaPrintAgent-Setup-amd64.exe`,
-    zipAmd64: `${latestDl}/MesaPrintAgent-windows-amd64.zip`,
-    // arm64 installer is not in CI yet; tag page lists all assets if published manually.
-    setupArm64: `${latestDl}/MesaPrintAgent-Setup-arm64.exe`,
-    zipArm64: `${latestDl}/MesaPrintAgent-windows-arm64.zip`,
-    releasesPage: tagPage,
-  };
+  if (!repo || repo.includes('..') || repo.startsWith('/')) return null;
+  return repo;
 }
 
 /** Semver baked into CI builds (apps/print-agent/VERSION). Override via NEXT_PUBLIC_PRINT_AGENT_VERSION. */
@@ -41,4 +61,59 @@ export function getPrintAgentVersion(): string {
   } catch {
     return '';
   }
+}
+
+function githubDownloadCandidates(repo: string, version: string, filename: string): string[] {
+  const urls: string[] = [];
+  if (version) {
+    urls.push(
+      `https://github.com/${repo}/releases/download/print-agent-v${version}/${filename}`,
+    );
+  }
+  urls.push(`https://github.com/${repo}/releases/latest/download/${filename}`);
+  return urls;
+}
+
+async function githubAssetExists(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(url, { method: 'HEAD', redirect: 'follow', cache: 'no-store' });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Resolve a working GitHub download URL (pinned tag first, then latest). */
+export async function resolvePrintAgentGitHubDownloadUrl(
+  artifact: PrintAgentDownloadArtifact,
+): Promise<string | null> {
+  const repo = getPrintAgentGithubRepo();
+  if (!repo) return null;
+
+  const filename = ARTIFACT_TO_FILE[artifact];
+  const candidates = githubDownloadCandidates(repo, getPrintAgentVersion(), filename);
+  for (const url of candidates) {
+    if (await githubAssetExists(url)) return url;
+  }
+  return candidates[candidates.length - 1] ?? null;
+}
+
+/** Stable dashboard links on this deployment (origin required). */
+export function getPrintAgentDownloadUrls(siteOrigin: string): PrintAgentDownloadUrls | null {
+  const repo = getPrintAgentGithubRepo();
+  const origin = siteOrigin.replace(/\/$/, '');
+  if (!repo || !origin) return null;
+
+  const version = getPrintAgentVersion();
+  const releasesPage = version
+    ? `https://github.com/${repo}/releases/tag/print-agent-v${version}`
+    : `https://github.com/${repo}/releases`;
+
+  return {
+    setupAmd64: `${origin}${PRINT_AGENT_DOWNLOAD_API_PATHS.setupAmd64}`,
+    zipAmd64: `${origin}${PRINT_AGENT_DOWNLOAD_API_PATHS.portableAmd64}`,
+    setupArm64: `${origin}${PRINT_AGENT_DOWNLOAD_API_PATHS.setupArm64}`,
+    zipArm64: `${origin}${PRINT_AGENT_DOWNLOAD_API_PATHS.portableArm64}`,
+    releasesPage,
+  };
 }

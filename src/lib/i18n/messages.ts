@@ -238,7 +238,7 @@ export const MESSAGES = {
       downloadTitle: '下载 Windows 打印助手',
       downloadVersionBadge: 'v{version}',
       downloadVersionHint:
-        '下载按钮指向 GitHub 最新已发布安装包；徽章为当前后台版本 {version}。安装目录有 VERSION.txt，或运行 MesaPrintAgent.exe -version 核对。',
+        '下载链接固定为本站地址（自动跳转到 GitHub 对应版本安装包）。徽章为当前版本 {version}；安装目录有 VERSION.txt，或运行 MesaPrintAgent.exe -version 核对。',
       downloadSubtitle:
         '在收银电脑安装或解压后，双击 Mesa Print Agent，按浏览器打开的配对页完成连接（无需命令行）。',
       downloadSetupAmd64: '下载安装包（64 位，推荐）',
@@ -729,7 +729,7 @@ export const MESSAGES = {
       downloadTitle: 'Download Windows print agent',
       downloadVersionBadge: 'v{version}',
       downloadVersionHint:
-        'Download buttons use the latest GitHub release; badge shows dashboard build {version}. Check VERSION.txt in the install folder or run MesaPrintAgent.exe -version.',
+        'Download links use permanent URLs on this site (redirect to the matching GitHub release). Badge shows build {version}. Check VERSION.txt or MesaPrintAgent.exe -version.',
       downloadSubtitle:
         'On the POS PC, double-click Mesa Print Agent and complete pairing in the browser (no command line).',
       downloadSetupAmd64: 'Installer (64-bit, recommended)',
@@ -999,7 +999,7 @@ export const MESSAGES = {
       downloadTitle: 'Descarregar agente Windows',
       downloadVersionBadge: 'v{version}',
       downloadVersionHint:
-        'Transferencias usam o ultimo release no GitHub; insignia mostra versao {version} do painel. VERSION.txt na pasta de instalacao ou MesaPrintAgent.exe -version.',
+        'Links permanentes neste site (redirecionam para o release no GitHub). Insignia: versao {version}. VERSION.txt ou MesaPrintAgent.exe -version.',
       downloadSubtitle:
         'No PC da caixa, execute duplo clique no Mesa Print Agent e emparelhe no browser (sem linha de comandos).',
       downloadSetupAmd64: 'Instalador (64 bits, recomendado)',

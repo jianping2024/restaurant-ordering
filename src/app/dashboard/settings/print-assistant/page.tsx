@@ -13,6 +13,7 @@ import {
   getPrintAgentDownloadUrls,
   getPrintAgentVersion,
 } from '@/lib/print-agent-download';
+import { getSiteOrigin } from '@/lib/site-origin';
 import { PrintAgentPairingPanel } from '@/components/dashboard/PrintAgentPairingPanel';
 import { PrintAgentSchedulePanel } from '@/components/dashboard/PrintAgentSchedulePanel';
 
@@ -57,7 +58,8 @@ export default async function PrintAssistantSettingsPage() {
     ? []
     : ((jobRows || []) as PrintJobSummary[]);
 
-  const downloadUrls = getPrintAgentDownloadUrls();
+  const siteOrigin = getSiteOrigin();
+  const downloadUrls = siteOrigin ? getPrintAgentDownloadUrls(siteOrigin) : null;
   const printAgentVersion = getPrintAgentVersion();
 
   return (

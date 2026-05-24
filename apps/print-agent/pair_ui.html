@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mesa Print Agent — 配对</title>
+  <title>Mesa Print Agent — Pairing</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -52,11 +52,7 @@
     }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
     .err { color: #f87171; font-size: 13px; margin-top: 12px; min-height: 1.2em; }
-    .ok {
-      display: none;
-      text-align: center;
-      padding: 8px 0;
-    }
+    .ok { display: none; text-align: center; padding: 8px 0; }
     .ok h2 { color: #4ade80; font-size: 1.1rem; margin: 0 0 12px; }
     .ok p { font-size: 13px; color: #9aa5b1; line-height: 1.55; }
     .form-wrap.hidden { display: none; }
@@ -66,26 +62,26 @@
 <body>
   <div class="card">
     <div id="formWrap" class="form-wrap">
-      <h1>Mesa 打印助手配对</h1>
-      <p class="sub">在 Mesa 后台「打印助手」生成 6 位配对码后，在此填写并连接。无需命令行。</p>
+      <h1>Pair Mesa Print Agent</h1>
+      <p class="sub">Generate a 6-digit code in Mesa → Settings → Print assistant, then connect here. No command line.</p>
       <ol class="steps">
-        <li>登录 Mesa → 设置 → 打印助手 → 生成配对码</li>
-        <li>填写下方 Mesa 网址（已自动填入时可检查）</li>
-        <li>输入 6 位配对码并点击连接</li>
+        <li>Sign in to Mesa → Settings → Print assistant → Generate code</li>
+        <li>Enter your Mesa URL below (check if pre-filled)</li>
+        <li>Enter the 6-digit code and connect</li>
       </ol>
       <form id="pairForm">
-        <label for="api">Mesa 网址</label>
+        <label for="api">Mesa URL</label>
         <input id="api" name="api" type="url" required placeholder="https://your-app.vercel.app" autocomplete="url" />
-        <label for="code">配对码（6 位数字）</label>
+        <label for="code">Pairing code (6 digits)</label>
         <input id="code" name="code" class="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" required placeholder="000000" autocomplete="one-time-code" />
-        <button type="submit" id="submitBtn">连接并保存</button>
+        <button type="submit" id="submitBtn">Connect and save</button>
         <p class="err" id="err"></p>
       </form>
     </div>
     <div id="ok" class="ok">
-      <h2>配对成功</h2>
-      <p>配置已保存。若本程序继续运行，将自动打开 <strong>打印机设置</strong> 页（网线 / USB）。请保持 Mesa Print Agent 窗口不要关闭。</p>
-      <p style="margin-top:12px;font-size:12px">可关闭此浏览器标签页。</p>
+      <h2>Paired</h2>
+      <p>Settings saved. If the agent keeps running, the <strong>printer setup</strong> page (LAN / USB) opens next. Keep the Mesa Print Agent window open.</p>
+      <p style="margin-top:12px;font-size:12px">You can close this browser tab.</p>
     </div>
   </div>
   <script>
@@ -104,15 +100,12 @@
         fetch('/api/pair', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            api_base: apiEl.value.trim(),
-            code: codeEl.value.trim()
-          })
+          body: JSON.stringify({ api_base: apiEl.value.trim(), code: codeEl.value.trim() })
         })
           .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
             if (!res.ok) {
-              err.textContent = res.j.error || '配对失败';
+              err.textContent = res.j.error || 'Pairing failed';
               btn.disabled = false;
               return;
             }
@@ -120,7 +113,7 @@
             document.getElementById('ok').style.display = 'block';
           })
           .catch(function () {
-            err.textContent = '无法连接本机配对服务，请确认 Mesa Print Agent 正在运行。';
+            err.textContent = 'Cannot reach local pairing service — is Mesa Print Agent running?';
             btn.disabled = false;
           });
       });

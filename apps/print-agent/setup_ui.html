@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mesa Print Agent — 打印机</title>
+  <title>Mesa Print Agent — Printers</title>
   <style>
     * { box-sizing: border-box; }
     body { font-family: system-ui, sans-serif; background: #0f1419; color: #e8e6e3; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
@@ -34,31 +34,29 @@
 <body>
   <div class="card">
     <div id="formWrap">
-      <h1>选择打印机</h1>
-      <p class="sub">Mesa 已配对。请选择 <strong>网线</strong> 或 <strong>USB</strong> 连接方式，并为各出品档口指定打印机（仅一台时可全部选「同默认」）。</p>
+      <h1>Choose printers</h1>
+      <p class="sub">Mesa is paired. Choose <strong>LAN</strong> or <strong>USB</strong>, then map each print station (one printer? use “Same as default” for all).</p>
       <div class="row">
-        <label><input type="radio" name="kind" value="tcp" checked /> 网线 (LAN :9100)</label>
-        <label><input type="radio" name="kind" value="winspool" /> USB (Windows 打印机)</label>
+        <label><input type="radio" name="kind" value="tcp" checked /> LAN (:9100)</label>
+        <label><input type="radio" name="kind" value="winspool" /> USB (Windows printer)</label>
       </div>
-      <label for="printer">默认打印机（小票 / 未指定档口）</label>
+      <label for="printer">Default printer (receipts / unassigned stations)</label>
       <select id="printer"></select>
-      <p class="hint" id="scanHint">正在扫描…</p>
-      <button type="button" id="refreshBtn" class="secondary" style="width:auto;margin-bottom:14px">重新扫描</button>
-
+      <p class="hint" id="scanHint">Scanning…</p>
+      <button type="button" id="refreshBtn" class="secondary" style="width:auto;margin-bottom:14px">Scan again</button>
       <div class="stations" id="stationsWrap">
-        <h2>出品档口</h2>
-        <p class="hint" id="stationsHint">正在从 Mesa 加载档口列表…</p>
+        <h2>Print stations</h2>
+        <p class="hint" id="stationsHint">Loading stations from Mesa…</p>
         <p class="warn hidden" id="stationsWarn"></p>
         <div id="stations"></div>
       </div>
-
-      <button type="button" id="saveBtn">保存并开始打印</button>
+      <button type="button" id="saveBtn">Save and start printing</button>
       <p class="err" id="err"></p>
     </div>
     <div id="ok" class="ok">
-      <h2>已保存</h2>
-      <p style="color:#9aa5b1;font-size:13px">打印机与档口映射已写入配置。可关闭本页，代理窗口请保持运行。</p>
-      <p style="color:#9aa5b1;font-size:12px;margin-top:10px">日后重新配对或改档口映射：运行 <strong>MesaPrintAgent.exe configure</strong></p>
+      <h2>Saved</h2>
+      <p style="color:#9aa5b1;font-size:13px">Printer and station mapping saved. You can close this tab; keep the agent window running.</p>
+      <p style="color:#9aa5b1;font-size:12px;margin-top:10px">To re-pair or change mapping later: run <strong>MesaPrintAgent.exe configure</strong></p>
     </div>
   </div>
   <script>
@@ -79,26 +77,22 @@
         kindRadios.forEach(function (r) { if (r.checked) k = r.value; });
         return k;
       }
-
       function allPrinterOptions() {
         var out = [];
         (cache.tcp || []).forEach(function (p) { out.push(p); });
         (cache.winspool || []).forEach(function (p) { out.push(p); });
         return out;
       }
-
       function stationLabel(s) {
-        if (s.name_zh) return s.name_zh + ' · ' + s.name_pt;
-        return s.name_pt || s.name_en || s.id;
+        return s.name_en || s.name_pt || s.name_zh || s.id;
       }
-
       function fillSelect(selectEl, kind, selected) {
         var list = cache[kind] || [];
         selectEl.innerHTML = '';
         if (!list.length) {
           var o = document.createElement('option');
           o.value = '';
-          o.textContent = kind === 'tcp' ? '（未发现网口打印机）' : '（未发现 Windows 打印机）';
+          o.textContent = kind === 'tcp' ? '(No LAN printers found)' : '(No Windows printers found)';
           selectEl.appendChild(o);
           return;
         }
@@ -110,12 +104,11 @@
           selectEl.appendChild(o);
         });
       }
-
       function fillStationSelect(selectEl, selected) {
         selectEl.innerHTML = '';
         var def = document.createElement('option');
         def.value = '';
-        def.textContent = '同默认打印机';
+        def.textContent = 'Same as default';
         selectEl.appendChild(def);
         allPrinterOptions().forEach(function (p) {
           var o = document.createElement('option');
@@ -125,101 +118,84 @@
           selectEl.appendChild(o);
         });
       }
-
       function renderStations() {
         stationsEl.innerHTML = '';
         if (!stations.length) {
-          stationsHint.textContent = '后台暂无出品档口。可在 Mesa「出品档口」页添加；出品联将使用默认打印机。';
+          stationsHint.textContent = 'No print stations yet. Add them in Mesa → Print stations; tickets use the default printer.';
           return;
         }
-        stationsHint.textContent = '为每个档口选择打印机。只有一台时可保持「同默认」。';
+        stationsHint.textContent = 'Pick a printer per station. With one printer, keep “Same as default”.';
         stations.forEach(function (s) {
           var row = document.createElement('div');
           row.className = 'station-row';
           row.dataset.stationId = s.id;
           var sub = document.createElement('div');
           sub.className = 'station-sub';
-          sub.textContent = s.name_en ? s.name_en : '';
+          sub.textContent = s.name_pt && s.name_en !== s.name_pt ? s.name_pt : '';
           var lab = document.createElement('label');
           lab.className = 'station-name';
           lab.textContent = stationLabel(s);
           var stationSel = document.createElement('select');
           stationSel.className = 'station-printer';
-          var mapped = (saved.station_printers && saved.station_printers[s.id]) || '';
-          fillStationSelect(stationSel, mapped);
+          fillStationSelect(stationSel, (saved.station_printers && saved.station_printers[s.id]) || '');
           row.appendChild(lab);
           if (sub.textContent) row.appendChild(sub);
           row.appendChild(stationSel);
           stationsEl.appendChild(row);
         });
       }
-
       function refreshStationSelects() {
         document.querySelectorAll('.station-printer').forEach(function (el) {
-          var prev = el.value;
-          fillStationSelect(el, prev);
+          fillStationSelect(el, el.value);
         });
       }
-
       function loadList() {
         err.textContent = '';
-        hint.textContent = '正在扫描…';
-        fetch('/api/printers')
-          .then(function (r) { return r.json(); })
-          .then(function (j) {
-            cache.tcp = j.tcp || [];
-            cache.winspool = j.winspool || [];
-            hint.textContent = '网线: ' + cache.tcp.length + ' 台 · USB 队列: ' + cache.winspool.length + ' 个';
-            fillSelect(sel, currentKind(), saved.default_printer);
-            refreshStationSelects();
-          })
-          .catch(function () {
-            err.textContent = '无法加载打印机列表';
-            hint.textContent = '';
-          });
+        hint.textContent = 'Scanning…';
+        fetch('/api/printers').then(function (r) { return r.json(); }).then(function (j) {
+          cache.tcp = j.tcp || [];
+          cache.winspool = j.winspool || [];
+          hint.textContent = 'LAN: ' + cache.tcp.length + ' · USB: ' + cache.winspool.length;
+          fillSelect(sel, currentKind(), saved.default_printer);
+          refreshStationSelects();
+        }).catch(function () {
+          err.textContent = 'Could not load printer list';
+          hint.textContent = '';
+        });
       }
-
       function loadStations() {
-        fetch('/api/print-stations')
-          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        fetch('/api/print-stations').then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
             if (!res.ok) {
               stationsWarn.classList.remove('hidden');
-              stationsWarn.textContent = '无法从 Mesa 加载档口（请确认网站已更新）。出品联将使用默认打印机。';
+              stationsWarn.textContent = 'Could not load stations from Mesa (is the site updated?). Using default printer.';
               stations = [];
               renderStations();
               return;
             }
             stations = res.j.stations || [];
             renderStations();
-          })
-          .catch(function () {
+          }).catch(function () {
             stationsWarn.classList.remove('hidden');
-            stationsWarn.textContent = '无法连接 Mesa 加载档口。出品联将使用默认打印机。';
+            stationsWarn.textContent = 'Could not reach Mesa to load stations. Using default printer.';
             stations = [];
             renderStations();
           });
       }
-
       function loadSaved() {
-        fetch('/api/setup-state')
-          .then(function (r) { return r.json(); })
-          .then(function (j) {
-            saved.default_printer = j.default_printer || '';
-            saved.station_printers = j.station_printers || {};
-            if (saved.default_printer.indexOf('winspool:') === 0) {
-              kindRadios.forEach(function (r) { r.checked = r.value === 'winspool'; });
-            } else if (saved.default_printer.indexOf('tcp:') === 0) {
-              kindRadios.forEach(function (r) { r.checked = r.value === 'tcp'; });
-            }
-          })
-          .catch(function () {})
-          .finally(function () {
-            loadList();
-            loadStations();
-          });
+        fetch('/api/setup-state').then(function (r) { return r.json(); }).then(function (j) {
+          saved.default_printer = j.default_printer || '';
+          saved.station_printers = j.station_printers || {};
+          if (saved.default_printer.indexOf('winspool:') === 0) {
+            kindRadios.forEach(function (r) { r.checked = r.value === 'winspool'; });
+          } else if (saved.default_printer.indexOf('tcp:') === 0) {
+            kindRadios.forEach(function (r) { r.checked = r.value === 'tcp'; });
+          }
+        }).catch(function () {}).finally(function () {
+          loadList();
+          loadStations();
+        });
       }
-
       kindRadios.forEach(function (r) {
         r.addEventListener('change', function () { fillSelect(sel, currentKind(), sel.value); });
       });
@@ -227,10 +203,7 @@
       document.getElementById('saveBtn').addEventListener('click', function () {
         err.textContent = '';
         var target = sel.value;
-        if (!target) {
-          err.textContent = '请选择一台默认打印机';
-          return;
-        }
+        if (!target) { err.textContent = 'Please select a default printer'; return; }
         var station_printers = {};
         document.querySelectorAll('.station-row').forEach(function (row) {
           var sid = row.dataset.stationId;
@@ -241,18 +214,13 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ default_printer: target, station_printers: station_printers })
-        })
-          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
-            if (!res.ok) {
-              err.textContent = res.j.error || '保存失败';
-              return;
-            }
+            if (!res.ok) { err.textContent = res.j.error || 'Save failed'; return; }
             document.getElementById('formWrap').classList.add('hidden');
             document.getElementById('ok').style.display = 'block';
             setTimeout(function () { fetch('/api/setup-done', { method: 'POST' }); }, 800);
-          })
-          .catch(function () { err.textContent = '无法连接本机设置服务'; });
+          }).catch(function () { err.textContent = 'Cannot reach local setup service'; });
       });
       loadSaved();
     })();

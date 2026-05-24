@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mesa Print Agent — 重新配置</title>
+  <title>Mesa Print Agent — Settings</title>
   <style>
     * { box-sizing: border-box; }
     body { font-family: system-ui, sans-serif; background: #0f1419; color: #e8e6e3; margin: 0; min-height: 100vh; padding: 24px; }
@@ -36,48 +36,48 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>Mesa 打印助手 — 重新配置</h1>
-    <p class="sub">可在此重新配对，或调整默认打印机与各出品档口的映射。保存后请重启打印助手窗口（若正在运行）。</p>
+    <h1>Mesa Print Agent — Settings</h1>
+    <p class="sub">Re-pair or change the default printer and per-station mapping. Restart the agent after saving if it is running.</p>
 
-    <div class="status" id="status">正在读取当前配置…</div>
+    <div class="status" id="status">Loading current settings…</div>
 
     <div class="card">
-      <h2>① 重新配对</h2>
-      <p class="hint">换电脑、配对码过期，或需连接另一 Mesa 账号时使用。重新配对会保留已有打印机设置。</p>
-      <label for="api">Mesa 网址</label>
+      <h2>① Re-pair</h2>
+      <p class="hint">New PC, expired code, or another Mesa account. Printer settings are kept when re-pairing.</p>
+      <label for="api">Mesa URL</label>
       <input id="api" type="url" placeholder="https://your-app.vercel.app" autocomplete="url" />
-      <label for="code">配对码（6 位，在 Mesa「打印助手」生成）</label>
+      <label for="code">Pairing code (6 digits, from Mesa Print assistant)</label>
       <input id="code" class="code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" />
-      <button type="button" id="pairBtn">重新配对</button>
+      <button type="button" id="pairBtn">Re-pair</button>
       <p class="err" id="pairErr"></p>
       <p class="ok-msg" id="pairOk"></p>
     </div>
 
     <div class="card" id="printerCard">
-      <h2>② 打印机与出品档口</h2>
-      <p class="hint" id="printerGate">请先完成配对后再设置打印机。</p>
+      <h2>② Printers and stations</h2>
+      <p class="hint" id="printerGate">Pair first, then configure printers.</p>
       <div id="printerForm" class="hidden">
         <div class="row">
-          <label><input type="radio" name="kind" value="tcp" checked /> 网线 (LAN :9100)</label>
-          <label><input type="radio" name="kind" value="winspool" /> USB (Windows 打印机)</label>
+          <label><input type="radio" name="kind" value="tcp" checked /> LAN (:9100)</label>
+          <label><input type="radio" name="kind" value="winspool" /> USB (Windows printer)</label>
         </div>
-        <label for="printer">默认打印机</label>
+        <label for="printer">Default printer</label>
         <select id="printer"></select>
-        <p class="hint" id="scanHint">正在扫描…</p>
-        <button type="button" id="refreshBtn" class="secondary" style="width:auto;margin-bottom:14px">重新扫描</button>
+        <p class="hint" id="scanHint">Scanning…</p>
+        <button type="button" id="refreshBtn" class="secondary" style="width:auto;margin-bottom:14px">Scan again</button>
         <div class="stations">
-          <p class="hint" id="stationsHint">正在加载档口…</p>
+          <p class="hint" id="stationsHint">Loading stations…</p>
           <p class="warn hidden" id="stationsWarn"></p>
           <div id="stations"></div>
         </div>
-        <button type="button" id="saveBtn">保存打印机设置</button>
+        <button type="button" id="saveBtn">Save printer settings</button>
         <p class="err" id="saveErr"></p>
         <p class="ok-msg" id="saveOk"></p>
       </div>
     </div>
 
     <div class="footer">
-      <button type="button" id="doneBtn" class="secondary">完成并关闭本页</button>
+      <button type="button" id="doneBtn" class="secondary">Done — close this tab</button>
     </div>
   </div>
   <script>
@@ -90,8 +90,7 @@
       var state = { paired: false, default_printer: '', station_printers: {} };
 
       function stationLabel(s) {
-        if (s.name_zh) return s.name_zh + ' · ' + s.name_pt;
-        return s.name_pt || s.name_en || s.id;
+        return s.name_en || s.name_pt || s.name_zh || s.id;
       }
 
       function allPrinterOptions() {
@@ -113,7 +112,7 @@
         if (!list.length) {
           var o = document.createElement('option');
           o.value = '';
-          o.textContent = kind === 'tcp' ? '（未发现网口打印机）' : '（未发现 Windows 打印机）';
+          o.textContent = kind === 'tcp' ? '(No LAN printers found)' : '(No Windows printers found)';
           selectEl.appendChild(o);
           return;
         }
@@ -130,7 +129,7 @@
         selectEl.innerHTML = '';
         var def = document.createElement('option');
         def.value = '';
-        def.textContent = '同默认打印机';
+        def.textContent = 'Same as default';
         selectEl.appendChild(def);
         allPrinterOptions().forEach(function (p) {
           var o = document.createElement('option');
@@ -146,10 +145,10 @@
         var stationsHint = document.getElementById('stationsHint');
         stationsEl.innerHTML = '';
         if (!stations.length) {
-          stationsHint.textContent = '后台暂无出品档口；出品联将使用默认打印机。';
+          stationsHint.textContent = 'No print stations in Mesa; station tickets use the default printer.';
           return;
         }
-        stationsHint.textContent = '为每个档口选择打印机（仅一台时可保持「同默认」）。';
+        stationsHint.textContent = 'Pick a printer per station (one printer? keep “Same as default”).';
         stations.forEach(function (s) {
           var row = document.createElement('div');
           row.className = 'station-row';
@@ -180,26 +179,26 @@
       function renderStatus() {
         var el = document.getElementById('status');
         if (!state.paired) {
-          el.innerHTML = '当前状态：<strong>未配对</strong>。请先在下方重新配对。';
+          el.innerHTML = 'Status: <strong>not paired</strong>. Re-pair below first.';
           document.getElementById('printerGate').classList.remove('hidden');
           document.getElementById('printerForm').classList.add('hidden');
           return;
         }
-        var printer = state.default_printer || '（未设置）';
+        var printer = state.default_printer || '(not set)';
         var n = state.station_count || 0;
-        el.innerHTML = '已连接：<strong>' + (state.api_base || 'Mesa') + '</strong><br/>默认打印机：<strong>' + printer + '</strong> · 档口映射：<strong>' + n + '</strong> 条';
+        el.innerHTML = 'Connected: <strong>' + (state.api_base || 'Mesa') + '</strong><br/>Default printer: <strong>' + printer + '</strong> · Station maps: <strong>' + n + '</strong>';
         document.getElementById('printerGate').classList.add('hidden');
         document.getElementById('printerForm').classList.remove('hidden');
       }
 
       function loadPrinters() {
-        document.getElementById('scanHint').textContent = '正在扫描…';
+        document.getElementById('scanHint').textContent = 'Scanning…';
         fetch('/api/printers')
           .then(function (r) { return r.json(); })
           .then(function (j) {
             cache.tcp = j.tcp || [];
             cache.winspool = j.winspool || [];
-            document.getElementById('scanHint').textContent = '网线: ' + cache.tcp.length + ' 台 · USB: ' + cache.winspool.length + ' 个';
+            document.getElementById('scanHint').textContent = 'LAN: ' + cache.tcp.length + ' · USB: ' + cache.winspool.length;
             fillSelect(sel, currentKind(), state.default_printer);
             refreshStationSelects();
           });
@@ -211,7 +210,7 @@
           .then(function (res) {
             if (!res.ok) {
               document.getElementById('stationsWarn').classList.remove('hidden');
-              document.getElementById('stationsWarn').textContent = '无法加载档口列表；出品联将使用默认打印机。';
+              document.getElementById('stationsWarn').textContent = 'Could not load stations; station tickets use the default printer.';
               stations = [];
               renderStations();
               return;
@@ -267,13 +266,13 @@
           .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
             if (!res.ok) {
-              err.textContent = res.j.error || '配对失败';
+              err.textContent = res.j.error || 'Pairing failed';
               return;
             }
-            ok.textContent = '配对成功。可继续调整下方打印机设置。';
+            ok.textContent = 'Paired. Adjust printers below if needed.';
             loadState();
           })
-          .catch(function () { err.textContent = '无法连接本机配置服务'; });
+          .catch(function () { err.textContent = 'Cannot reach local configure service'; });
       });
 
       document.getElementById('saveBtn').addEventListener('click', function () {
@@ -283,7 +282,7 @@
         ok.textContent = '';
         var target = sel.value;
         if (!target) {
-          err.textContent = '请选择默认打印机';
+          err.textContent = 'Please select a default printer';
           return;
         }
         var station_printers = {};
@@ -300,13 +299,13 @@
           .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
             if (!res.ok) {
-              err.textContent = res.j.error || '保存失败';
+              err.textContent = res.j.error || 'Save failed';
               return;
             }
-            ok.textContent = '已保存。若打印助手正在运行，请关闭后重新打开以加载新配置。';
+            ok.textContent = 'Saved. If the agent is running, close and reopen it to load the new settings.';
             loadState();
           })
-          .catch(function () { err.textContent = '无法连接本机配置服务'; });
+          .catch(function () { err.textContent = 'Cannot reach local configure service'; });
       });
 
       document.getElementById('doneBtn').addEventListener('click', function () {

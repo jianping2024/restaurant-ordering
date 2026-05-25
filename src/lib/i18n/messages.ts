@@ -105,6 +105,8 @@ export const MESSAGES = {
       guideTitle: '价格如何生效？',
       guideStepBuffet: '自助餐：登记产品及启用；名称写种类或套餐，分时段价格在价目表填写。',
       guideStepSlots: '时段：名称、起止时刻、适用星期与排序。',
+      guideStepFriday:
+        '周五晚上：可设从某时刻起按「周末」价计费（如 18:00）；须已在价目表配置「周末」价格。',
       guideStepPrices: '价目表：按「自助餐 × 时段 × 适用日子」设成人/儿童价与规则有效期。',
       guideStepSpecialDates:
         '特殊日期：标记节假日或活动日；须在价目表中有对应适用日子的价格才生效。',
@@ -135,8 +137,16 @@ export const MESSAGES = {
       filterSlot: '时段',
       filterDayKind: '适用日子',
       filterAll: '全部',
-      kindHelpWeekday: '自动用于周一至周五，且该日未在「特殊日期」中标记。',
-      kindHelpWeekend: '自动用于周六、周日，且该日未在「特殊日期」中标记。',
+      kindHelpWeekday: '自动用于周一至周五（周五起算时刻前），且该日未在「特殊日期」中标记。',
+      kindHelpWeekend:
+        '自动用于周六、周日；若已启用「周五晚上」，则从设定时刻起的周五也适用；未被「特殊日期」覆盖。',
+      fridayWeekendTitle: '周五晚上按周末计价',
+      fridayWeekendHint:
+        '仅影响周五：到达设定时刻后按价目表中的「周末」价格匹配；周六、周日与节假日逻辑不变。关闭后周五全天按「平日」。',
+      fridayWeekendEnable: '启用',
+      fridayWeekendFrom: '周五起算时刻（里斯本）',
+      fridayWeekendTimeInvalid: '请填写有效的时刻（如 18:00）。',
+      fridayWeekendSaved: '已保存周五周末策略',
       kindHelpHoliday: '仅当该日在「特殊日期」中标记为「节假日」时适用（会覆盖同日的周末判断）。',
       kindHelpSpecial: '仅当该日在「特殊日期」中标记为「活动日」时适用（如店庆；与「节假日」分开定价）。',
       exceptionsIntro:
@@ -933,6 +943,8 @@ export const MESSAGES = {
       guideStepBuffet:
         'Buffets: register products and enable them; slot prices are set in the price grid.',
       guideStepSlots: 'Time slots: name, start/end, weekdays, and sort order.',
+      guideStepFriday:
+        'Friday evening: optionally treat Friday from a set time as weekend pricing (e.g. 18:00); weekend rows must exist in the price grid.',
       guideStepPrices: 'Price grid: adult/child price per buffet × slot × day type, plus rule validity.',
       guideStepSpecialDates:
         'Special dates: mark holidays or event days; matching day types must exist in the price grid.',
@@ -963,8 +975,16 @@ export const MESSAGES = {
       filterSlot: 'Slot',
       filterDayKind: 'Day type',
       filterAll: 'All',
-      kindHelpWeekday: 'Used automatically Mon–Fri unless the day is marked under Special dates.',
-      kindHelpWeekend: 'Used automatically Sat–Sun unless the day is marked under Special dates.',
+      kindHelpWeekday: 'Used automatically Mon–Fri (before Friday cutoff) unless marked under Special dates.',
+      kindHelpWeekend:
+        'Used Sat–Sun; also Friday from the configured evening time when enabled; not overridden by default weekend days unless marked Special dates.',
+      fridayWeekendTitle: 'Friday evening as weekend',
+      fridayWeekendHint:
+        'Fridays only: from the set Lisbon time onward, pricing uses Weekend rows in the grid. Sat/Sun and holidays unchanged. When off, all of Friday is Weekday.',
+      fridayWeekendEnable: 'Enable',
+      fridayWeekendFrom: 'Friday cutoff time (Lisbon)',
+      fridayWeekendTimeInvalid: 'Enter a valid time (e.g. 18:00).',
+      fridayWeekendSaved: 'Friday weekend policy saved',
       kindHelpHoliday: 'Only when that day is marked Holiday under Special dates (overrides weekend on that day).',
       kindHelpSpecial: 'Only when that day is marked Event day under Special dates (priced separately from holiday).',
       exceptionsIntro:
@@ -1472,6 +1492,8 @@ export const MESSAGES = {
       guideStepBuffet:
         'Buffets: registe produtos e ativo; precos por horario na grelha.',
       guideStepSlots: 'Horarios: nome, inicio/fim, dias da semana e ordem.',
+      guideStepFriday:
+        'Sexta a noite: opcionalmente a partir de uma hora usar precos de fim de semana (ex. 18:00); e preciso linhas «Fim de semana» na grelha.',
       guideStepPrices: 'Grelha: preco adulto/crianca por buffet × horario × tipo de dia e validade.',
       guideStepSpecialDates:
         'Datas especiais: feriados ou eventos; e preciso o tipo de dia correspondente na grelha.',
@@ -1502,8 +1524,16 @@ export const MESSAGES = {
       filterSlot: 'Horario',
       filterDayKind: 'Tipo de dia',
       filterAll: 'Todos',
-      kindHelpWeekday: 'Automatico seg–sex, salvo se o dia estiver marcado em Datas especiais.',
-      kindHelpWeekend: 'Automatico sab–dom, salvo se o dia estiver marcado em Datas especiais.',
+      kindHelpWeekday: 'Automatico seg–sex (antes do corte de sexta), salvo marcacao em Datas especiais.',
+      kindHelpWeekend:
+        'Automatico sab–dom; sexta a partir da hora configurada se ativo; feriados/eventos mantêm prioridade.',
+      fridayWeekendTitle: 'Sexta a noite como fim de semana',
+      fridayWeekendHint:
+        'So sextas: a partir da hora de Lisboa indicada usa linhas «Fim de semana»; sab/dom e feriados inalterados. Desligado = sexta inteira e dia util.',
+      fridayWeekendEnable: 'Ativar',
+      fridayWeekendFrom: 'Hora de corte (sexta, Lisboa)',
+      fridayWeekendTimeInvalid: 'Indique uma hora valida (ex. 18:00).',
+      fridayWeekendSaved: 'Politica de sexta guardada',
       kindHelpHoliday: 'So quando o dia esta marcado Feriado em Datas especiais (substitui fim de semana nesse dia).',
       kindHelpSpecial: 'So quando o dia esta marcado Dia de evento em Datas especiais (preco separado de feriado).',
       exceptionsIntro:

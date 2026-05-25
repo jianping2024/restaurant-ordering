@@ -72,6 +72,8 @@ export interface Restaurant {
   print_locale?: 'zh' | 'en' | 'pt';
   /** Configured table numbers for QR / waiter board (max 200). */
   table_numbers?: string[];
+  /** Lisbon local time: Friday at/after this → weekend buffet pricing; null = off. */
+  buffet_friday_weekend_from?: string | null;
   created_at: string;
 }
 

@@ -14,6 +14,7 @@ export function BuffetSettingsGuide() {
       <ol className="space-y-3 list-decimal list-outside pl-4 text-brand-text">
         <li>{t.guideStepBuffet}</li>
         <li>{t.guideStepSlots}</li>
+        <li>{t.guideStepFriday}</li>
         <li>{t.guideStepPrices}</li>
         <li>{t.guideStepSpecialDates}</li>
       </ol>

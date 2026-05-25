@@ -6,7 +6,7 @@ import type { Buffet, BuffetTimeSlot } from '@/types';
 import type { UILanguage } from '@/lib/i18n';
 import type { getMessages } from '@/lib/i18n/messages';
 import {
-  getDayKindForDate,
+  getDayKindForDateTime,
   lisbonWallTimeToUtcIso,
   nowTimeHmLocal,
   todayIsoLocal,
@@ -29,6 +29,7 @@ type Props = {
   buffets: Buffet[];
   slots: BuffetTimeSlot[];
   calendarRows: CalendarOverrideRow[];
+  fridayWeekendFrom?: string | null;
   t: BuffetAdminMessages;
   lang: UILanguage;
   dayKindLabel: (kind: string) => string;
@@ -39,6 +40,7 @@ export function BuffetPricePreview({
   buffets,
   slots,
   calendarRows,
+  fridayWeekendFrom,
   t,
   lang,
   dayKindLabel,
@@ -96,7 +98,9 @@ export function BuffetPricePreview({
     void runPreview(now.toISOString());
   };
 
-  const dayKind = date ? getDayKindForDate(date, calendarRows) : null;
+  const dayKind = date
+    ? getDayKindForDateTime(date, time, calendarRows, { fridayWeekendFrom })
+    : null;
   const slotName = resolved?.time_slot_id
     ? slots.find((s) => s.id === resolved.time_slot_id)?.name
     : null;

@@ -1,8 +1,21 @@
 import type { BuffetCalendarKind, BuffetPriceRule } from '@/types';
+import { normalizeHmInput } from '@/lib/number-input';
 
 const LISBON_TZ = 'Europe/Lisbon';
 
 export type CalendarOverrideRow = { on_date: string; kind: 'holiday' | 'special' };
+
+export type DayKindOptions = {
+  /** DB `time` or HH:MM — Friday at/after this uses weekend pricing. */
+  fridayWeekendFrom?: string | null;
+};
+
+function hmToMinutes(hm: string): number | null {
+  const normalized = normalizeHmInput(hm.slice(0, 5));
+  if (!normalized) return null;
+  const [h, m] = normalized.split(':').map((x) => parseInt(x, 10));
+  return h * 60 + m;
+}
 
 /** Mirrors resolve_buffet_prices day-kind logic (Lisbon calendar date). */
 export function getDayKindForDate(
@@ -16,6 +29,39 @@ export function getDayKindForDate(
   const dow = new Date(`${d}T12:00:00`).getDay();
   if (dow === 0 || dow === 6) return 'weekend';
   return 'weekday';
+}
+
+/** Date + Lisbon wall time; mirrors resolve_buffet_prices including Friday evening. */
+export function getDayKindForDateTime(
+  dateIso: string,
+  timeHm: string,
+  overrides: CalendarOverrideRow[],
+  opts?: DayKindOptions,
+): BuffetCalendarKind {
+  const base = getDayKindForDate(dateIso, overrides);
+  if (base !== 'weekday') return base;
+  const from = opts?.fridayWeekendFrom;
+  if (!from) return base;
+  const d = dateIso.slice(0, 10);
+  if (new Date(`${d}T12:00:00`).getDay() !== 5) return base;
+  const fromMin = hmToMinutes(from);
+  const atMin = hmToMinutes(timeHm);
+  if (fromMin == null || atMin == null) return base;
+  if (atMin >= fromMin) return 'weekend';
+  return 'weekday';
+}
+
+/** PostgreSQL `time` → HH:MM for dashboard fields. */
+export function dbTimeToHm(db: string | null | undefined): string {
+  if (!db) return '';
+  return normalizeHmInput(db.slice(0, 5)) ?? db.slice(0, 5);
+}
+
+/** HH:MM → PostgreSQL `time` string, or null if invalid. */
+export function hmToDbTime(hm: string): string | null {
+  const normalized = normalizeHmInput(hm);
+  if (!normalized) return null;
+  return `${normalized}:00`;
 }
 
 export function ruleCoversDate(rule: BuffetPriceRule, dateIso: string): boolean {

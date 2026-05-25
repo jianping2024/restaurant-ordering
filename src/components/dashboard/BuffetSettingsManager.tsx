@@ -13,13 +13,16 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { DecimalInput } from '@/components/ui/DecimalInput';
 import { IntegerInput } from '@/components/ui/IntegerInput';
+import { TimeHmInput } from '@/components/ui/TimeHmInput';
 import { BuffetPricePreview } from '@/components/dashboard/buffet/BuffetPricePreview';
 import { BuffetPriceMatrix } from '@/components/dashboard/buffet/BuffetPriceMatrix';
 import { BuffetCalendarPanel } from '@/components/dashboard/buffet/BuffetCalendarPanel';
 import {
   CALENDAR_KINDS,
+  dbTimeToHm,
   findOverlappingRules,
   getRuleStatus,
+  hmToDbTime,
   todayIsoLocal,
   type RuleStatusFilter,
 } from '@/lib/buffet-pricing-admin';
@@ -133,6 +136,11 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
   const [filterDayKind, setFilterDayKind] = useState<BuffetCalendarKind | ''>('');
   const [filterStatus, setFilterStatus] = useState<RuleStatusFilter | 'all'>('all');
 
+  const [fridayWeekendFrom, setFridayWeekendFrom] = useState<string | null>(null);
+  const [fridayEnabled, setFridayEnabled] = useState(false);
+  const [fridayDraftFrom, setFridayDraftFrom] = useState('18:00');
+  const [fridaySaving, setFridaySaving] = useState(false);
+
   const dayKindLabel = useCallback(
     (k: BuffetCalendarKind | string) => {
       switch (k) {
@@ -166,13 +174,14 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
 
   const reload = useCallback(async () => {
     const client = createClient();
-    const [b, s, r, c] = await Promise.all([
+    const [b, s, r, c, rest] = await Promise.all([
       client.from('buffets').select('*').eq('restaurant_id', restaurantId).order('name'),
       client.from('buffet_time_slots').select('*').eq('restaurant_id', restaurantId).order('sort_order').order('name'),
       client.from('buffet_price_rules').select('*').eq('restaurant_id', restaurantId).order('priority', { ascending: false }),
       client.from('buffet_calendar_overrides').select('on_date, kind').eq('restaurant_id', restaurantId).order('on_date'),
+      client.from('restaurants').select('buffet_friday_weekend_from').eq('id', restaurantId).single(),
     ]);
-    if (b.error || s.error || r.error || c.error) {
+    if (b.error || s.error || r.error || c.error || rest.error) {
       showToast(t.loadError, 'error');
       return;
     }
@@ -180,6 +189,10 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
     setSlots((s.data || []) as BuffetTimeSlot[]);
     setRules((r.data || []) as BuffetPriceRule[]);
     setCalendarRows((c.data || []) as Array<{ on_date: string; kind: 'holiday' | 'special' }>);
+    const from = (rest.data?.buffet_friday_weekend_from as string | null) ?? null;
+    setFridayWeekendFrom(from);
+    setFridayEnabled(!!from);
+    setFridayDraftFrom(dbTimeToHm(from) || '18:00');
   }, [restaurantId, t.loadError]);
 
   useEffect(() => {
@@ -426,6 +439,32 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
     openRuleCreateModal({ calendar_kind: calendarKind });
   };
 
+  const saveFridayPolicy = async () => {
+    let dbValue: string | null = null;
+    if (fridayEnabled) {
+      dbValue = hmToDbTime(fridayDraftFrom);
+      if (!dbValue) {
+        showToast(t.fridayWeekendTimeInvalid, 'error');
+        return;
+      }
+    }
+    setFridaySaving(true);
+    try {
+      const { error } = await supabase
+        .from('restaurants')
+        .update({ buffet_friday_weekend_from: dbValue })
+        .eq('id', restaurantId);
+      if (error) {
+        showToast(t.saveError, 'error');
+        return;
+      }
+      setFridayWeekendFrom(dbValue);
+      showToast(t.fridayWeekendSaved, 'success');
+    } finally {
+      setFridaySaving(false);
+    }
+  };
+
   const overlapNames =
     ruleDraft && ruleModal
       ? findOverlappingRules(rules, {
@@ -510,12 +549,41 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
         </div>
       )}
 
+      <div className="rounded-xl border border-brand-border bg-brand-card p-4 space-y-3">
+        <div>
+          <h2 className="text-sm font-medium text-brand-text">{t.fridayWeekendTitle}</h2>
+          <p className="text-[12px] text-brand-text-muted mt-0.5 max-w-2xl">{t.fridayWeekendHint}</p>
+        </div>
+        <div className="flex flex-wrap items-end gap-4">
+          <label className="flex items-center gap-2 text-sm text-brand-text cursor-pointer">
+            <input
+              type="checkbox"
+              className="rounded border-brand-border"
+              checked={fridayEnabled}
+              onChange={(e) => setFridayEnabled(e.target.checked)}
+            />
+            {t.fridayWeekendEnable}
+          </label>
+          {fridayEnabled && (
+            <TimeHmInput
+              label={t.fridayWeekendFrom}
+              value={fridayDraftFrom}
+              onChange={setFridayDraftFrom}
+            />
+          )}
+          <Button type="button" size="sm" variant="gold" loading={fridaySaving} onClick={() => void saveFridayPolicy()}>
+            {t.save}
+          </Button>
+        </div>
+      </div>
+
       {showPricingTools && buffets.length > 0 && (
         <BuffetPricePreview
           restaurantId={restaurantId}
           buffets={buffets}
           slots={slots}
           calendarRows={calendarRows}
+          fridayWeekendFrom={fridayWeekendFrom}
           t={t}
           lang={lang}
           dayKindLabel={dayKindLabel}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 )
@@ -118,11 +119,13 @@ func labelsFor(locale string) ticketLabels {
 }
 
 type jobLine struct {
-	ItemIndex   int     `json:"item_index"`
-	DisplayName string  `json:"display_name"`
-	Qty         int     `json:"qty"`
-	Note        string  `json:"note"`
-	UnitPrice   float64 `json:"unit_price"`
+	ItemIndex           int     `json:"item_index"`
+	DisplayName         string  `json:"display_name"`
+	Qty                 int     `json:"qty"`
+	Note                string  `json:"note"`
+	UnitPrice           float64 `json:"unit_price"`
+	CategoryGroupSort   int     `json:"category_group_sort"`
+	CategoryGroupHeader string  `json:"category_group_header"`
 }
 
 type jobPayload struct {
@@ -462,7 +465,24 @@ func buildStationTicket(p jobPayload) []byte {
 	w.text(escposPadLine(lab.items, lab.qty, escposWidth))
 	w.lf()
 
-	for _, ln := range p.Lines {
+	lines := append([]jobLine(nil), p.Lines...)
+	sort.SliceStable(lines, func(i, j int) bool {
+		a, b := lines[i], lines[j]
+		if a.CategoryGroupSort != b.CategoryGroupSort {
+			return a.CategoryGroupSort < b.CategoryGroupSort
+		}
+		return a.ItemIndex < b.ItemIndex
+	})
+
+	lastGroupHeader := ""
+	for _, ln := range lines {
+		groupHeader := strings.TrimSpace(ln.CategoryGroupHeader)
+		if groupHeader != "" && groupHeader != lastGroupHeader {
+			w.text(groupHeader)
+			w.lf()
+			lastGroupHeader = groupHeader
+		}
+
 		qty := ln.Qty
 		if qty <= 0 {
 			qty = 1

@@ -28,6 +28,45 @@ export function categoryTicketCodePreview(
   }).replace(/-…$/, '');
 }
 
+/** Category id and all descendant category ids (includes root). */
+export function collectCategorySubtreeIds(
+  rootId: string,
+  categories: MenuCategory[],
+): string[] {
+  const ids: string[] = [rootId];
+  const walk = (parentId: string) => {
+    for (const c of categories) {
+      if (c.parent_id === parentId) {
+        ids.push(c.id);
+        walk(c.id);
+      }
+    }
+  };
+  walk(rootId);
+  return ids;
+}
+
+export function categoryHasDescendants(
+  categoryId: string,
+  categories: MenuCategory[],
+): boolean {
+  return categories.some((c) => c.parent_id === categoryId);
+}
+
+/** Delete children before parents (parent_id FK). */
+export function sortCategoryIdsLeavesFirst(
+  ids: string[],
+  categories: MenuCategory[],
+): string[] {
+  const set = new Set(ids);
+  const depth = (id: string): number => {
+    const row = categories.find((c) => c.id === id);
+    if (!row?.parent_id || !set.has(row.parent_id)) return 0;
+    return 1 + depth(row.parent_id);
+  };
+  return [...ids].sort((a, b) => depth(b) - depth(a));
+}
+
 export function itemMatchesSearch(item: MenuItem, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;

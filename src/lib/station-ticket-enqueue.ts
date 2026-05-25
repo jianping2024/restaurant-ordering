@@ -3,7 +3,13 @@ import type { OrderItem, PrintStationTicketLayout } from '@/types';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
-import { orderItemPrintDisplayName, type MenuItemForPrint } from '@/lib/menu-print-label';
+import {
+  formatTopCategoryTicketHeader,
+  orderItemStationTicketLineLabel,
+  topLevelCategoryId,
+  type MenuCategoryForStationTicket,
+  type MenuItemForPrint,
+} from '@/lib/menu-print-label';
 import {
   formatStationTicketOrderTime,
   guestCountFromTableOrders,
@@ -56,6 +62,8 @@ export type StationTicketJobPayload = {
     note?: string;
     display_name: string;
     emoji: string;
+    category_group_sort: number;
+    category_group_header: string;
   }>;
 };
 
@@ -138,7 +146,7 @@ export async function enqueueStationTicketsForOrder(params: {
       .in('id', menuIds),
     admin
       .from('menu_categories')
-      .select('id, parent_id, print_station_id, item_code')
+      .select('id, parent_id, print_station_id, item_code, name_pt, name_en, name_zh, sort_order')
       .eq('restaurant_id', restaurantId),
   ]);
 
@@ -151,12 +159,9 @@ export async function enqueueStationTicketsForOrder(params: {
     };
   }
 
-  const categoryList = (categoryRows || []) as {
-    id: string;
-    parent_id: string | null;
-    print_station_id: string | null;
-    item_code?: string | null;
-  }[];
+  type CategoryRow = MenuCategoryForStationTicket & { print_station_id: string | null };
+  const categoryList = (categoryRows || []) as CategoryRow[];
+  const categoryById = new Map(categoryList.map((c) => [c.id, c]));
 
   const menuById = new Map<string, MenuItemForPrint>();
   for (const row of menuRows || []) {
@@ -166,6 +171,22 @@ export async function enqueueStationTicketsForOrder(params: {
       category_id: r.category_id,
       item_code: r.item_code ?? null,
     });
+  }
+
+  function categoryGroupForMenuItem(menuItemId: string): {
+    sort: number;
+    header: string;
+  } {
+    const row = menuById.get(menuItemId);
+    const topId = topLevelCategoryId(row?.category_id ?? null, categoryList);
+    const top = topId ? categoryById.get(topId) : null;
+    if (!top) {
+      return { sort: 9999, header: '' };
+    }
+    return {
+      sort: top.sort_order ?? 0,
+      header: formatTopCategoryTicketHeader(top, locale),
+    };
   }
 
   const resolveMap = new Map<string, string | null>();
@@ -313,14 +334,19 @@ export async function enqueueStationTicketsForOrder(params: {
       table_number: order.table_number as number,
       ...(guestCount > 0 ? { guest_count: guestCount } : {}),
       ...(orderTime ? { order_time: orderTime } : {}),
-      lines: stationLines.map((l) => ({
-        item_index: l.idx,
-        menu_item_id: l.item.id,
-        qty: l.item.qty,
-        note: l.item.note,
-        display_name: orderItemPrintDisplayName(l.item, menuById, categoryList),
-        emoji: l.item.emoji || '🍽️',
-      })),
+      lines: stationLines.map((l) => {
+        const group = categoryGroupForMenuItem(l.item.id);
+        return {
+          item_index: l.idx,
+          menu_item_id: l.item.id,
+          qty: l.item.qty,
+          note: l.item.note,
+          display_name: orderItemStationTicketLineLabel(l.item, menuById.get(l.item.id)),
+          emoji: l.item.emoji || '🍽️',
+          category_group_sort: group.sort,
+          category_group_header: group.header,
+        };
+      }),
     };
 
     const { error: insErr } = await admin.from('print_jobs').insert({

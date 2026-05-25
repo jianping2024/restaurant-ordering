@@ -39,10 +39,14 @@ export function ReceiptPrinterSelect({
     };
   }, [restaurantSlug, lang]);
 
-  const selectedLabel = value ? printers.find((p) => p.id === value)?.label : undefined;
+  const printerLabel = (p: ReceiptPrinterOption) =>
+    p.id === 'cashier' ? `${t.receiptPrinterCashier}（${t.receiptPrinter}）` : p.label;
+
+  const selectedLabel = value ? printers.find((p) => p.id === value) : undefined;
+  const selectedLabelText = selectedLabel ? printerLabel(selectedLabel) : undefined;
   const currentStatus = !loading
-    ? value && selectedLabel
-      ? t.receiptPrinterCurrent.replace('{label}', selectedLabel)
+    ? value && selectedLabelText
+      ? t.receiptPrinterCurrent.replace('{label}', selectedLabelText)
       : value
         ? t.receiptPrinterCurrent.replace('{label}', value)
         : t.receiptPrinterCurrentNone
@@ -63,7 +67,7 @@ export function ReceiptPrinterSelect({
             <option value="">{t.receiptPrinterNone}</option>
             {printers.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.label}
+                {printerLabel(p)}
               </option>
             ))}
           </select>

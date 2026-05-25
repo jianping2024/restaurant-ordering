@@ -56,6 +56,18 @@ func (c *config) printerTargetForJob(job printJob) (printerTarget, error) {
 }
 
 func (c *config) hasPrinterRouting() bool {
+	if strings.TrimSpace(c.CashierPrinter) != "" {
+		return true
+	}
+	for _, v := range c.StationPrinters {
+		if strings.TrimSpace(v) != "" {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *config) hasMappedStations() bool {
 	for _, v := range c.StationPrinters {
 		if strings.TrimSpace(v) != "" {
 			return true

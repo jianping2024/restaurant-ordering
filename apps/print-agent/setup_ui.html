@@ -35,7 +35,7 @@
   <div class="card">
     <div id="formWrap">
       <h1>Choose printers</h1>
-      <p class="sub">Map each <strong>print station</strong> to a printer. Mapped stations appear on checkout/bill pages for receipts (you must pick one — no default).</p>
+      <p class="sub">Map each <strong>print station</strong> to a printer. Each mapped station appears on checkout; several stations may share one machine.</p>
       <div class="row">
         <label><input type="radio" name="kind" value="tcp" checked /> LAN (:9100)</label>
         <label><input type="radio" name="kind" value="winspool" /> USB (Windows printer)</label>
@@ -43,7 +43,10 @@
       <p class="hint" id="scanHint">Scanning…</p>
       <button type="button" id="refreshBtn" class="secondary" style="width:auto;margin-bottom:14px">Scan again</button>
       <div class="stations" id="stationsWrap">
-        <p class="section-title">Print stations</p>
+        <p class="section-title">Cashier printer</p>
+        <p class="hint">Optional: dedicated receipt printer. Or map stations below only.</p>
+        <select id="cashierPrinter" class="station-printer"></select>
+        <p class="section-title" style="margin-top:16px">Print stations</p>
         <p class="hint" id="stationsHint">Loading stations from Mesa…</p>
         <p class="warn hidden" id="stationsWarn"></p>
         <div id="stations"></div>
@@ -67,7 +70,7 @@
       var stationsEl = document.getElementById('stations');
       var cache = { tcp: [], winspool: [] };
       var stations = [];
-      var saved = { station_printers: {} };
+      var saved = { cashier_printer: '', station_printers: {} };
 
       function currentKind() {
         var k = 'tcp';
@@ -124,7 +127,9 @@
         });
       }
       function refreshStationSelects() {
-        document.querySelectorAll('.station-printer').forEach(function (el) {
+        var cashierEl = document.getElementById('cashierPrinter');
+        if (cashierEl) fillStationSelect(cashierEl, cashierEl.value);
+        document.querySelectorAll('.station-row .station-printer').forEach(function (el) {
           fillStationSelect(el, el.value);
         });
       }
@@ -162,7 +167,10 @@
       }
       function loadSaved() {
         fetch('/api/setup-state').then(function (r) { return r.json(); }).then(function (j) {
+          saved.cashier_printer = j.cashier_printer || '';
           saved.station_printers = j.station_printers || {};
+          var cashierEl = document.getElementById('cashierPrinter');
+          if (cashierEl) fillStationSelect(cashierEl, saved.cashier_printer);
         }).catch(function () {}).finally(function () {
           loadList();
           loadStations();
@@ -180,10 +188,14 @@
           var addr = row.querySelector('.station-printer').value;
           if (sid && addr) station_printers[sid] = addr;
         });
+        var cashierEl = document.getElementById('cashierPrinter');
         fetch('/api/setup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ station_printers: station_printers })
+          body: JSON.stringify({
+            cashier_printer: cashierEl ? cashierEl.value : '',
+            station_printers: station_printers
+          })
         }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
             if (!res.ok) { err.textContent = res.j.error || 'Save failed'; return; }

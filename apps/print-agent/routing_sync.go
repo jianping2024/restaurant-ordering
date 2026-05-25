@@ -15,6 +15,7 @@ func syncRoutingToCloud(cfg *config) {
 	}
 	body := map[string]any{
 		"station_printers": cfg.StationPrinters,
+		"cashier_printer":  strings.TrimSpace(cfg.CashierPrinter),
 	}
 	raw, err := json.Marshal(body)
 	if err != nil {
@@ -38,5 +39,6 @@ func syncRoutingToCloud(cfg *config) {
 		log.Printf("routing sync: HTTP %d", res.StatusCode)
 		return
 	}
-	log.Printf("routing sync: ok (station maps=%d)", len(cfg.StationPrinters))
+	cashier := strings.TrimSpace(cfg.CashierPrinter) != ""
+	log.Printf("routing sync: ok (cashier=%v station maps=%d)", cashier, len(cfg.StationPrinters))
 }

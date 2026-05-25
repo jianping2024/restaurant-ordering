@@ -6,6 +6,14 @@ export type MenuCategoryForPrint = {
   item_code?: string | null;
 };
 
+/** Category row with names for station ticket group headers. */
+export type MenuCategoryForStationTicket = MenuCategoryForPrint & {
+  name_pt: string;
+  name_en?: string | null;
+  name_zh?: string | null;
+  sort_order?: number;
+};
+
 export type MenuItemForPrint = {
   id: string;
   category_id: string | null;
@@ -72,4 +80,71 @@ export function orderItemPrintDisplayName(
     itemCode: row.item_code ?? null,
     itemName: base,
   });
+}
+
+/** Root (top-level) category id for grouping station tickets. */
+export function topLevelCategoryId(
+  leafCategoryId: string | null | undefined,
+  categories: MenuCategoryForPrint[],
+): string | null {
+  if (!leafCategoryId) return null;
+  const byId = new Map(categories.map((c) => [c.id, c]));
+  let current: string | null = leafCategoryId;
+  const guard = new Set<string>();
+  let topId: string | null = null;
+  while (current && !guard.has(current)) {
+    guard.add(current);
+    topId = current;
+    const row = byId.get(current);
+    if (!row) break;
+    current = row.parent_id ?? null;
+  }
+  return topId;
+}
+
+/** `(Bebidas/ Drinks2)` style; prefixes top-level category code when set. */
+export function formatTopCategoryTicketHeader(
+  cat: Pick<MenuCategoryForStationTicket, 'item_code' | 'name_pt' | 'name_en' | 'name_zh'>,
+  locale: 'zh' | 'en' | 'pt',
+): string {
+  const code = normalizeMenuItemCode(cat.item_code);
+  const pt = (cat.name_pt || '').trim();
+  const en = (cat.name_en || '').trim();
+  const zh = (cat.name_zh || '').trim();
+
+  let primary = pt;
+  let secondary = en || zh;
+  if (locale === 'zh') {
+    primary = zh || en || pt;
+    secondary = en || pt;
+  } else if (locale === 'en') {
+    primary = en || pt || zh;
+    secondary = pt;
+  } else {
+    primary = pt || en || zh;
+    secondary = en || zh;
+  }
+  if (!secondary || secondary === primary) {
+    secondary = '';
+  }
+
+  let inner = primary;
+  if (secondary) {
+    inner = `${primary}/ ${secondary}`;
+  }
+  if (code) {
+    inner = `${code}-${inner}`;
+  }
+  return `(${inner})`;
+}
+
+/** Station slip line: `001-Água 500ml` (item code + name only). */
+export function orderItemStationTicketLineLabel(
+  item: OrderItem,
+  menuRow: MenuItemForPrint | undefined,
+): string {
+  const name = (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
+  const code = normalizeMenuItemCode(menuRow?.item_code ?? null);
+  if (code) return `${code}-${name}`;
+  return name;
 }

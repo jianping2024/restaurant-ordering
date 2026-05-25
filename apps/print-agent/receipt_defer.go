@@ -53,12 +53,36 @@ func (c *config) soleMappedStationAddr() (string, bool) {
 	return "", false
 }
 
+func (c *config) soleReceiptPrinterAddr() (string, bool) {
+	cp := strings.TrimSpace(c.CashierPrinter)
+	stationCount := 0
+	var stationAddr string
+	for _, v := range c.StationPrinters {
+		addr := strings.TrimSpace(v)
+		if addr == "" {
+			continue
+		}
+		stationCount++
+		stationAddr = addr
+		if stationCount > 1 {
+			return "", false
+		}
+	}
+	if cp != "" && stationCount == 0 {
+		return cp, true
+	}
+	if cp == "" && stationCount == 1 {
+		return stationAddr, true
+	}
+	return "", false
+}
+
 func (c *config) resolveReceiptRouting(job printJob, explicitID string) (string, error) {
 	id := strings.TrimSpace(explicitID)
 	if id != "" {
 		return c.resolveReceiptPrinterID(id)
 	}
-	if addr, ok := c.soleMappedStationAddr(); ok {
+	if addr, ok := c.soleReceiptPrinterAddr(); ok {
 		return addr, nil
 	}
 	if jobCreatedWithin(job, receiptPrintDeferWindow) {

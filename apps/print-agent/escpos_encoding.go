@@ -50,7 +50,7 @@ func payloadNeedsGBK(p jobPayload) bool {
 // stationTicketNeedsGBK — internal station slips use a fixed English header ("restaurant").
 func stationTicketNeedsGBK(p jobPayload) bool {
 	for _, ln := range p.Lines {
-		if hasHan(ln.DisplayName) || hasHan(ln.Note) {
+		if hasHan(ln.CategoryGroupHeader) || hasHan(ln.DisplayName) || hasHan(ln.Note) {
 			return true
 		}
 	}

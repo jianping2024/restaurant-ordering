@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { staffAuthFromRequestWithRoles } from '@/lib/staff-api-auth';
-import type { ReceiptPrinterOption } from '@/lib/print-receipt-printer-options';
+import {
+  presentReceiptPrintersForCheckout,
+  type ReceiptPrinterOption,
+} from '@/lib/print-receipt-printer-options';
 import { loadRestaurantReceiptPrinterSnapshot } from '@/lib/restaurant-receipt-printers-server';
 
 export const runtime = 'nodejs';
@@ -10,6 +13,9 @@ export const runtime = 'nodejs';
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const slug = searchParams.get('slug')?.trim();
+  const langRaw = searchParams.get('lang')?.trim();
+  const locale: 'pt' | 'en' | 'zh' =
+    langRaw === 'zh' || langRaw === 'en' || langRaw === 'pt' ? langRaw : 'pt';
 
   if (!slug) {
     return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
@@ -52,7 +58,16 @@ export async function GET(req: Request) {
   }
 
   const snapshot = await loadRestaurantReceiptPrinterSnapshot(admin, restaurantId);
-  const printers: ReceiptPrinterOption[] = snapshot?.receipt_printers ?? [];
+  const { data: stations } = await admin
+    .from('print_stations')
+    .select('id, name_pt, name_en, name_zh, sort_order')
+    .eq('restaurant_id', restaurantId)
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: true });
+
+  const printers: ReceiptPrinterOption[] = snapshot
+    ? presentReceiptPrintersForCheckout(snapshot.receipt_printers, stations || [], locale)
+    : [];
 
   return NextResponse.json({
     printers,

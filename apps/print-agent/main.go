@@ -205,20 +205,20 @@ func runAgent(args []string) {
 		}
 	}
 	if !cfg.hasPrinterRouting() {
-		log.Println("no station printer mappings — map stations in configure; receipt/kitchen jobs need explicit routing")
+		log.Println("no printer mappings — set cashier and/or stations in configure")
 	}
+	syncRoutingToCloud(cfg)
 
 	stationCount := 0
 	if cfg.StationPrinters != nil {
 		stationCount = len(cfg.StationPrinters)
 	}
-	def := fmt.Sprintf("%d station map(s)", stationCount)
 	pc, err := newPollController(cfg.Schedule, cfg.Poll)
 	if err != nil {
 		log.Fatal("schedule:", err)
 	}
 	log.Printf("Mesa Print Agent %s", Version)
-	logAgentStartup(cfg, cfg.APIBase, def, stationCount)
+	logAgentStartup(cfg, cfg.APIBase, strings.TrimSpace(cfg.CashierPrinter), stationCount)
 
 	var lastLogged pollPhase
 	var queue []printJob

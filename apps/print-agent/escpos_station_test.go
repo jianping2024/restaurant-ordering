@@ -15,8 +15,20 @@ func TestBuildStationTicketEnglishLayout(t *testing.T) {
 		GuestCount:     4,
 		OrderTime:      "2026-05-14 20:15",
 		Lines: []jobLine{
-			{ItemIndex: 1, DisplayName: "001-Água 500ml", Qty: 1},
-			{ItemIndex: 7, DisplayName: "007-Coca Cola Zero", Qty: 1},
+			{
+				ItemIndex:           1,
+				DisplayName:         "001-Água 500ml",
+				Qty:                 1,
+				CategoryGroupSort:   0,
+				CategoryGroupHeader: "(Bebidas/ Drinks2)",
+			},
+			{
+				ItemIndex:           7,
+				DisplayName:         "007-Coca Cola Zero",
+				Qty:                 1,
+				CategoryGroupSort:   0,
+				CategoryGroupHeader: "(Bebidas/ Drinks2)",
+			},
 		},
 	})
 	if err != nil {
@@ -36,6 +48,7 @@ func TestBuildStationTicketEnglishLayout(t *testing.T) {
 		"Guest:4",
 		"Items",
 		"Qty",
+		"(Bebidas/ Drinks2)",
 		"001-",
 		"500ml",
 		"007-Coca Cola Zero",

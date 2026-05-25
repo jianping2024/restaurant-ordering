@@ -31,7 +31,12 @@ import {
   menuItemHasDuplicateCode,
   siblingCategoryHasDuplicateCode,
 } from '@/lib/menu-code-uniqueness';
-import { getMenuCategoryLabel, itemMatchesSearch } from '@/lib/menu-admin';
+import {
+  collectCategorySubtreeIds,
+  getMenuCategoryLabel,
+  itemMatchesSearch,
+  sortCategoryIdsLeavesFirst,
+} from '@/lib/menu-admin';
 import { getPrintStationDisplayName } from '@/lib/print-station-admin';
 import { categoryCodePathFromLeaf, normalizeMenuItemCode } from '@/lib/menu-print-label';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
@@ -712,38 +717,42 @@ export function MenuManager({
   const deleteCategoryById = async (categoryId: string) => {
     const category = categories.find((c) => c.id === categoryId);
     if (!category) return;
-    const hasChildren = categories.some((c) => c.parent_id === category.id && c.active);
-    const linkedItemCount = items.filter((item) => item.category_id === category.id).length;
-
-    if (hasChildren) {
-      setConfirmDialog({
-        open: true,
-        intent: 'ack',
-        title: t.deleteCategoryTitle,
-        message: t.hasChildrenBlock,
-      });
-      return;
-    }
+    const subtreeIds = collectCategorySubtreeIds(category.id, categories);
+    const childCategoryCount = subtreeIds.length - 1;
+    const linkedItemCount = items.filter(
+      (item) => item.category_id && subtreeIds.includes(item.category_id),
+    ).length;
 
     const label = getCategoryLabel(category);
+    const migrateCandidates = categories.filter(
+      (c) => c.active && !subtreeIds.includes(c.id),
+    );
     if (linkedItemCount > 0) {
-      const migrateCandidates = categories.filter((c) => c.id !== category.id && c.active);
       setDeleteMigrateTargetId(migrateCandidates[0]?.id ?? '');
       setConfirmDialog({
         open: true,
         intent: 'delete_category',
         title: t.deleteCategoryTitle,
-        message: t.deleteCategoryWithDishes.replace('{name}', label).replace('{count}', String(linkedItemCount)),
+        message: t.deleteCategoryWithDishes
+          .replace('{name}', label)
+          .replace('{count}', String(linkedItemCount))
+          .replace('{childCount}', String(childCategoryCount)),
         categoryId: category.id,
       });
       return;
     }
 
+    const emptyMsg =
+      childCategoryCount > 0
+        ? t.deleteCategoryNoDishesWithChildren
+            .replace('{name}', label)
+            .replace('{childCount}', String(childCategoryCount))
+        : t.deleteCategoryNoDishes.replace('{name}', label);
     setConfirmDialog({
       open: true,
       intent: 'delete_category',
       title: t.deleteCategoryTitle,
-      message: t.deleteCategoryNoDishes.replace('{name}', label),
+      message: emptyMsg,
       categoryId: category.id,
     });
   };
@@ -751,9 +760,17 @@ export function MenuManager({
   const confirmDeleteCategory = async (categoryId: string, mode: 'migrate' | 'delete_all') => {
     const category = categories.find((c) => c.id === categoryId);
     if (!category) return;
-    const linked = items.filter((item) => item.category_id === category.id);
+    const subtreeIds = collectCategorySubtreeIds(category.id, categories);
+    const subtreeSet = new Set(subtreeIds);
+    const linkedInSubtree = items.filter(
+      (item) => item.category_id && subtreeSet.has(item.category_id),
+    );
 
     if (mode === 'migrate' && deleteMigrateTargetId) {
+      if (subtreeSet.has(deleteMigrateTargetId)) {
+        setCategoryError(t.errMigrateTargetInSubtree);
+        return;
+      }
       const target = categories.find((c) => c.id === deleteMigrateTargetId);
       if (!target) return;
       const { error: moveError } = await supabase
@@ -764,14 +781,14 @@ export function MenuManager({
           category_en: target.name_en || target.name_pt,
           category_zh: target.name_zh || target.name_pt,
         })
-        .eq('category_id', category.id);
+        .in('category_id', subtreeIds);
       if (moveError) {
         setCategoryError(moveError.message);
         return;
       }
       setItems((prev) =>
         prev.map((item) =>
-          item.category_id === category.id
+          item.category_id && subtreeSet.has(item.category_id)
             ? {
                 ...item,
                 category_id: target.id,
@@ -782,22 +799,32 @@ export function MenuManager({
             : item,
         ),
       );
-    } else if (linked.length > 0) {
-      for (const item of linked) {
+    } else if (linkedInSubtree.length > 0) {
+      for (const item of linkedInSubtree) {
         await removeMenuImageFromStorage(supabase, item.image_url);
       }
-      const { error: dishDeleteError } = await supabase.from('menu_items').delete().eq('category_id', category.id);
+      const { error: dishDeleteError } = await supabase
+        .from('menu_items')
+        .delete()
+        .in('category_id', subtreeIds);
       if (dishDeleteError) {
         setCategoryError(dishDeleteError.message);
         return;
       }
-      setItems((prev) => prev.filter((item) => item.category_id !== category.id));
+      setItems((prev) =>
+        prev.filter((item) => !item.category_id || !subtreeSet.has(item.category_id)),
+      );
     }
 
-    const { error } = await supabase.from('menu_categories').delete().eq('id', category.id);
-    if (error) return setCategoryError(error.message);
-    setCategories((prev) => prev.filter((c) => c.id !== category.id));
-    setSelectedCategoryId((prev) => (prev === category.id ? '' : prev));
+    for (const cid of sortCategoryIdsLeavesFirst(subtreeIds, categories)) {
+      const { error } = await supabase.from('menu_categories').delete().eq('id', cid);
+      if (error) {
+        setCategoryError(error.message);
+        return;
+      }
+    }
+    setCategories((prev) => prev.filter((c) => !subtreeSet.has(c.id)));
+    setSelectedCategoryId((prev) => (subtreeSet.has(prev) ? '' : prev));
     setCategoryPanelMode('none');
   };
 
@@ -832,14 +859,23 @@ export function MenuManager({
     }
   };
 
-  const deleteCategoryLinkedCount =
+  const deleteCategorySubtreeIds =
     confirmDialog.open && confirmDialog.intent === 'delete_category' && confirmDialog.categoryId
-      ? items.filter((i) => i.category_id === confirmDialog.categoryId).length
+      ? collectCategorySubtreeIds(confirmDialog.categoryId, categories)
+      : [];
+
+  const deleteCategoryLinkedCount =
+    confirmDialog.open && confirmDialog.intent === 'delete_category'
+      ? items.filter(
+          (i) => i.category_id && deleteCategorySubtreeIds.includes(i.category_id),
+        ).length
       : 0;
 
   const deleteCategoryMigrateOptions =
     confirmDialog.open && confirmDialog.intent === 'delete_category' && confirmDialog.categoryId
-      ? categories.filter((c) => c.id !== confirmDialog.categoryId && c.active)
+      ? categories.filter(
+          (c) => c.active && !deleteCategorySubtreeIds.includes(c.id),
+        )
       : [];
 
   const itemModalPreviewSrc = objectPreviewUrl || (!stripImage && editingItem?.image_url ? editingItem.image_url : null);

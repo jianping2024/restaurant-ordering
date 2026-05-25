@@ -14,7 +14,7 @@ const ERROR_HINTS: ErrorHint[] = [
   {
     match: (m) => /receipt printer not ready|will retry within 20 minutes/i.test(m),
     hint: {
-      zh: '账单已入队，等待打印机：在 configure 映射档口打印机，或在结账页选定打印机；20 分钟内配好会继续打印。',
+      zh: '账单已入队，等待打印机：在 configure 设置 Cashier printer 或映射档口，或在结账页选定打印机；20 分钟内配好会继续打印。',
       en: 'Receipt queued: map a station printer in configure or pick one on checkout; prints within 20 minutes once ready.',
       pt: 'Recibo na fila: mapeie impressora no configure ou escolha no checkout; imprime em 20 minutos.',
     },

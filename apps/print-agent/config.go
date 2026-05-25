@@ -14,7 +14,7 @@ type config struct {
 	DeviceID        string            `json:"device_id"`
 	PrinterHost     string            `json:"printer_host,omitempty"`
 	DefaultPrinter  string            `json:"default_printer,omitempty"` // legacy file field; not used for receipt routing
-	CashierPrinter  string            `json:"cashier_printer,omitempty"` // legacy file field; not used for receipt routing
+	CashierPrinter  string            `json:"cashier_printer,omitempty"` // pre-bill / split / final receipts
 	StationPrinters map[string]string `json:"station_printers,omitempty"`
 	Schedule        *scheduleConfig   `json:"schedule,omitempty"`
 	Poll            *pollConfig       `json:"poll,omitempty"`
@@ -72,7 +72,10 @@ func (c *config) resolveReceiptPrinterID(id string) (string, error) {
 		return "", fmt.Errorf("receipt_printer_id required")
 	}
 	if id == "cashier" {
-		return "", fmt.Errorf("receipt_printer_id cashier is no longer supported; use station:{id}")
+		if cp := strings.TrimSpace(c.CashierPrinter); cp != "" {
+			return cp, nil
+		}
+		return "", fmt.Errorf("cashier printer not configured in agent")
 	}
 	const prefix = "station:"
 	if !strings.HasPrefix(id, prefix) {
@@ -127,6 +130,9 @@ func mergePrinterConfig(prev, next *config) {
 	}
 	if len(prev.StationPrinters) > 0 {
 		next.StationPrinters = prev.StationPrinters
+	}
+	if strings.TrimSpace(prev.CashierPrinter) != "" {
+		next.CashierPrinter = prev.CashierPrinter
 	}
 }
 

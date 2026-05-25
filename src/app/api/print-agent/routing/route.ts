@@ -14,6 +14,7 @@ export async function POST(req: Request) {
 
   let body: {
     station_printers?: unknown;
+    cashier_printer?: unknown;
   };
   try {
     body = await req.json();
@@ -37,12 +38,18 @@ export async function POST(req: Request) {
 
   const { data: stations } = await admin
     .from('print_stations')
-    .select('id, name_pt, name_en, name_zh')
-    .eq('restaurant_id', auth.restaurant_id);
+    .select('id, name_pt, name_en, name_zh, sort_order')
+    .eq('restaurant_id', auth.restaurant_id)
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: true });
+
+  const cashierConfigured =
+    typeof body.cashier_printer === 'string' && body.cashier_printer.trim().length > 0;
 
   const snapshot = buildReceiptPrinterSnapshot({
     stationPrinters,
     stations: stations || [],
+    cashierConfigured,
   });
 
   const { error } = await admin

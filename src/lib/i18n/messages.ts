@@ -295,7 +295,10 @@ export const MESSAGES = {
       deleteConfirm: '确定删除',
       deleteCategoryTitle: '删除分类',
       deleteCategoryWithDishes:
-        '分类「{name}」下有 {count} 道菜。可迁移到其他分类后删除，或一并删除菜品。',
+        '分类「{name}」及其 {childCount} 个子分类下共有 {count} 道菜。可迁移到其他分类后删除整棵分类树，或一并删除全部菜品与子分类。',
+      deleteCategoryNoDishesWithChildren:
+        '将删除分类「{name}」及其 {childCount} 个子分类（树下无菜品）。',
+      errMigrateTargetInSubtree: '迁移目标不能选待删除分类或其子分类。',
       migrateDishesTo: '将菜品迁移到',
       deleteCategoryAndDishes: '删除分类及全部菜品',
       deleteCategoryOnly: '迁移后删除分类',
@@ -770,7 +773,7 @@ export const MESSAGES = {
       receiptPrinterCashier: '收银',
       receiptPrinterStationSuffix: '出品档口',
       receiptPrintersEmpty:
-        '本机尚未配置打印机。请打开 Mesa 打印助手 → 配置（configure）→ 保存后刷新此页。',
+        '尚未同步打印机列表。请在收银电脑运行 configure，为每个需要打小票的出品档口选择打印机（多台档口可共用同一台机器），保存后刷新此页。',
       receiptPrintersLoading: '加载打印机…',
       durationMinutes: '{n} 分钟',
       durationJustNow: '刚刚',
@@ -1031,7 +1034,10 @@ export const MESSAGES = {
       deleteConfirm: 'Delete',
       deleteCategoryTitle: 'Delete category',
       deleteCategoryWithDishes:
-        'Category "{name}" has {count} dish(es). Move them to another category, or delete the dishes too.',
+        'Category "{name}" and {childCount} subcategory(ies) contain {count} dish(es). Move them elsewhere, or delete the whole subtree.',
+      deleteCategoryNoDishesWithChildren:
+        'Delete "{name}" and {childCount} subcategory(ies) (no dishes in this tree).',
+      errMigrateTargetInSubtree: 'Pick a target outside the category you are deleting.',
       migrateDishesTo: 'Move dishes to',
       deleteCategoryAndDishes: 'Delete category and dishes',
       deleteCategoryOnly: 'Move dishes, then delete',
@@ -1353,7 +1359,7 @@ export const MESSAGES = {
       receiptPrinterCashier: 'Cashier',
       receiptPrinterStationSuffix: 'station',
       receiptPrintersEmpty:
-        'No printer on this PC. Open Mesa Print Agent → configure → save, then refresh this page.',
+        'No printers synced yet. Run configure on the POS PC, map each print station that should print receipts (stations may share one printer), save, then refresh.',
       receiptPrintersLoading: 'Loading printers…',
       durationMinutes: '{n} min',
       durationJustNow: 'just now',
@@ -1560,7 +1566,10 @@ export const MESSAGES = {
       deleteConfirm: 'Eliminar',
       deleteCategoryTitle: 'Eliminar categoria',
       deleteCategoryWithDishes:
-        'A categoria «{name}» tem {count} prato(s). Mova para outra categoria ou elimine os pratos.',
+        'A categoria «{name}» e {childCount} subcategoria(s) têm {count} prato(s). Mova ou elimine toda a árvore.',
+      deleteCategoryNoDishesWithChildren:
+        'Eliminar «{name}» e {childCount} subcategoria(s) (sem pratos nesta árvore).',
+      errMigrateTargetInSubtree: 'O destino não pode estar dentro da categoria a eliminar.',
       migrateDishesTo: 'Mover pratos para',
       deleteCategoryAndDishes: 'Eliminar categoria e pratos',
       deleteCategoryOnly: 'Mover pratos e eliminar categoria',
@@ -1883,7 +1892,7 @@ export const MESSAGES = {
       receiptPrinterCashier: 'Caixa',
       receiptPrinterStationSuffix: 'estacao',
       receiptPrintersEmpty:
-        'Sem impressora neste PC. Abra Mesa Print Agent → configure → guarde e atualize a pagina.',
+        'Sem impressoras sincronizadas. Execute configure no PC, mapeie cada estacao de impressao (podem partilhar a mesma maquina), guarde e atualize.',
       receiptPrintersLoading: 'A carregar impressoras…',
       durationMinutes: '{n} min',
       durationJustNow: 'agora',

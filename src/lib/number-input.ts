@@ -36,9 +36,16 @@ export function parseNonNegativeInt(
   return n;
 }
 
+/** Map locale-specific decimal separators before stripping (mobile PT/EU comma, zh fullwidth). */
+function unifyDecimalSeparators(raw: string): string {
+  return raw
+    .replace(/[，。．]/g, '.')
+    .replace(/,/g, '.');
+}
+
 /** Decimal text input without leading zeros on the integer part (e.g. "05.5" → "5.5"). */
 export function normalizeDecimalInput(raw: string): string {
-  const cleaned = raw.replace(/[^\d.]/g, '');
+  const cleaned = unifyDecimalSeparators(raw).replace(/[^\d.]/g, '');
   if (!cleaned) return '';
   const hasDot = cleaned.includes('.');
   const [intRaw = '', ...decimalParts] = cleaned.split('.');

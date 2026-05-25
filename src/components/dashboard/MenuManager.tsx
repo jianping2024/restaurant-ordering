@@ -1461,6 +1461,8 @@ export function MenuManager({
               label={t.price}
               type="text"
               inputMode="decimal"
+              lang="en"
+              autoComplete="off"
               value={itemForm.price}
               onChange={(e) => setItemForm((f) => ({ ...f, price: normalizeDecimalInput(e.target.value) }))}
               placeholder="12.50"

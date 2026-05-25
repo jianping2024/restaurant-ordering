@@ -34,21 +34,6 @@ function WaiterBoardInner({
     true,
   );
 
-  const tableCards = useMemo(() => {
-    return Array.from({ length: 30 }, (_, idx) => idx + 1)
-      .map((table) => buildWaiterTableCard(table, orders))
-      .filter(
-        (card) =>
-          card.pending > 0 ||
-          card.cooking > 0 ||
-          card.ready > 0 ||
-          card.buffetLines.length > 0 ||
-          card.voidableItems.length > 0 ||
-          card.voidedItems.length > 0,
-      )
-      .sort((a, b) => a.table - b.table);
-  }, [orders]);
-
   const allTableCards = useMemo(() => {
     return Array.from({ length: 30 }, (_, idx) => idx + 1)
       .map((table) => buildWaiterTableCard(table, orders))
@@ -103,17 +88,7 @@ function WaiterBoardInner({
         <p className="text-brand-text-muted text-sm mt-1">{t.boardTitle}</p>
       </div>
 
-      <div className="bg-brand-card border border-brand-border rounded-2xl p-3 mb-4 text-sm text-brand-text-muted">
-        {t.allTablesHint}
-      </div>
-
-      {tableCards.length === 0 && (
-        <div className="bg-brand-card border border-brand-border rounded-2xl p-4 mb-4 text-center text-brand-text-muted">
-          {t.empty}
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
         {allTableCards.map((card) => {
           const isActive =
             card.pending + card.cooking + card.ready + card.buffetLines.length + card.voidableItems.length + card.voidedItems.length > 0;
@@ -121,10 +96,10 @@ function WaiterBoardInner({
             <Link
               key={card.table}
               href={detailHref(card.table)}
-              className={`rounded-xl border px-3 py-2 text-left transition-colors block ${
+              className={`group rounded-xl border px-3 py-2 text-left block transition-all duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg ${
                 isActive
-                  ? 'border-emerald-500/45 bg-emerald-500/10'
-                  : 'border-brand-border bg-brand-card'
+                  ? 'border-emerald-500/45 bg-emerald-500/10 shadow-sm shadow-emerald-900/5 hover:border-emerald-500/70 hover:shadow-emerald-900/12'
+                  : 'border-brand-border bg-brand-card shadow-sm shadow-black/5 hover:border-brand-gold/50 hover:shadow-black/10'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -141,7 +116,9 @@ function WaiterBoardInner({
                   )}
                 </div>
               </div>
-              <p className="text-[12px] text-brand-text-muted mt-1">{t.clickToView}</p>
+              <p className="text-[12px] text-brand-text-muted mt-1 transition-colors group-hover:text-brand-gold">
+                {t.clickToView}
+              </p>
             </Link>
           );
         })}

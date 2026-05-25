@@ -8,7 +8,8 @@ import {
   getActiveSettingsNavItem,
   isSettingsWideLayout,
 } from '@/lib/settings-nav';
-import { SettingsCollapsibleHint } from '@/components/dashboard/settings/SettingsCollapsibleHint';
+import { MenuSettingsGuide } from '@/components/dashboard/settings/MenuSettingsGuide';
+import { BuffetSettingsGuide } from '@/components/dashboard/settings/BuffetSettingsGuide';
 import { SettingsSubnav } from '@/components/dashboard/settings/SettingsSubnav';
 
 export function DashboardSettingsShell({ children }: { children: React.ReactNode }) {
@@ -17,9 +18,36 @@ export function DashboardSettingsShell({ children }: { children: React.ReactNode
   const hub = getMessages(lang).settingsHub;
   const activeItem = getActiveSettingsNavItem(pathname);
   const pageTitle = activeItem ? hub[activeItem.labelKey] : hub.title;
-  const pageHint =
-    activeItem && !activeItem.skipShellHint ? hub[activeItem.hintKey] : '';
+  const pageSubtitle = activeItem ? hub[activeItem.hintKey] : '';
+  const pageHelpModal =
+    activeItem?.id === 'menu' ? (
+      <MenuSettingsGuide />
+    ) : activeItem?.id === 'buffet' ? (
+      <BuffetSettingsGuide />
+    ) : null;
   const wide = isSettingsWideLayout(pathname);
+  const narrowForm =
+    pathname === '/dashboard/settings' || pathname === '/dashboard/settings/';
+
+  const pageBody = (
+    <>
+      <header className="mb-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <h1 className="font-heading text-2xl sm:text-3xl text-brand-text hidden lg:block">
+            {pageTitle}
+          </h1>
+          {pageHelpModal}
+        </div>
+        {pageSubtitle ? (
+          <p className="mt-1.5 max-w-3xl text-[13px] leading-snug text-brand-text-muted/90">
+            {pageSubtitle}
+          </p>
+        ) : null}
+      </header>
+
+      {children}
+    </>
+  );
 
   return (
     <div className="w-full min-w-0 max-w-full overflow-x-hidden">
@@ -30,29 +58,21 @@ export function DashboardSettingsShell({ children }: { children: React.ReactNode
               {hub.title}
             </Link>
           </li>
-          {activeItem && activeItem.id !== 'profile' ? (
+          {activeItem ? (
             <>
               <li aria-hidden className="opacity-50">
                 /
               </li>
-              <li className="text-brand-text font-medium">{pageTitle}</li>
+              <li>
+                <SettingsSubnav pageTitle={pageTitle} />
+              </li>
             </>
           ) : null}
         </ol>
       </nav>
 
-      <div className="flex flex-col lg:flex-row lg:gap-6 xl:gap-8 lg:items-start min-w-0">
-        <SettingsSubnav />
-
-        <div className={`min-w-0 flex-1 w-full ${wide ? '' : 'max-w-4xl'}`}>
-          <header className="mb-5 hidden lg:block">
-            <h1 className="font-heading text-2xl sm:text-3xl text-brand-text">{pageTitle}</h1>
-          </header>
-
-          {pageHint ? <SettingsCollapsibleHint>{pageHint}</SettingsCollapsibleHint> : null}
-
-          {children}
-        </div>
+      <div className={`min-w-0 w-full ${wide ? '' : 'max-w-4xl'}`}>
+        {narrowForm ? <div className="w-full max-w-2xl">{pageBody}</div> : pageBody}
       </div>
     </div>
   );

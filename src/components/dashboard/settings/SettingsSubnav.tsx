@@ -1,109 +1,94 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import {
-  SETTINGS_NAV_GROUPS,
-  getActiveSettingsNavItem,
-  type SettingsNavItem,
-} from '@/lib/settings-nav';
+import { SETTINGS_NAV_GROUPS, getActiveSettingsNavItem } from '@/lib/settings-nav';
 
-const SELECT_CLASS =
-  'w-full h-11 rounded-lg border border-brand-border bg-brand-card px-4 text-sm text-brand-text appearance-none pr-10 focus:outline-none focus:ring-2 focus:ring-brand-gold/50';
+type Props = {
+  pageTitle: string;
+};
 
-function navLinkClass(active: boolean) {
-  return `block rounded-lg px-3 py-2 text-sm transition-colors border ${
+function itemLinkClass(active: boolean) {
+  return `block rounded-lg px-3 py-2 text-sm transition-colors ${
     active
-      ? 'bg-brand-gold/15 border-brand-gold/40 text-brand-gold font-medium'
-      : 'border-transparent text-brand-text-muted hover:text-brand-text hover:bg-brand-card/80'
+      ? 'bg-brand-gold/15 text-brand-gold font-medium'
+      : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-card/80'
   }`;
 }
 
-function findNavItem(id: string): SettingsNavItem | undefined {
-  for (const group of SETTINGS_NAV_GROUPS) {
-    const item = group.items.find((i) => i.id === id);
-    if (item) return item;
-  }
-  return undefined;
-}
-
-export function SettingsSubnav() {
+export function SettingsSubnav({ pageTitle }: Props) {
   const pathname = usePathname();
-  const router = useRouter();
   const { lang } = useLanguage();
   const hub = getMessages(lang).settingsHub;
   const activeItem = getActiveSettingsNavItem(pathname);
-  const activeId = activeItem?.id ?? 'profile';
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
 
-  const handleJump = (id: string) => {
-    const item = findNavItem(id);
-    if (!item || item.isActive(pathname)) return;
-    router.push(item.href);
-  };
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (rootRef.current?.contains(event.target as Node)) return;
+      setOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [open]);
+
+  if (!activeItem) return null;
 
   return (
-    <>
-      <div className="lg:hidden mb-4 space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <label htmlFor="settings-section-jump" className="text-sm font-medium text-brand-text">
-            {hub.navJumpLabel}
-          </label>
-          <Link
-            href="/dashboard/settings"
-            className="text-[13px] text-brand-text-muted hover:text-brand-gold transition-colors shrink-0"
-          >
-            {hub.title}
-          </Link>
-        </div>
-        <div className="relative">
-          <select
-            id="settings-section-jump"
-            value={activeId}
-            onChange={(e) => handleJump(e.target.value)}
-            className={SELECT_CLASS}
-          >
-            {SETTINGS_NAV_GROUPS.map((group) => (
-              <optgroup key={group.groupId} label={hub[group.groupKey]}>
-                {group.items.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {hub[item.labelKey]}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-          <span
-            className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-brand-text-muted text-sm"
-            aria-hidden
-          >
-            ▾
-          </span>
-        </div>
-      </div>
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="true"
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1 text-brand-text font-medium hover:text-brand-gold transition-colors"
+      >
+        {pageTitle}
+        <span className="text-brand-text-muted/80 text-xs" aria-hidden>
+          {open ? '▴' : '▾'}
+        </span>
+      </button>
 
-      <aside className="hidden lg:block w-48 xl:w-52 shrink-0 sticky top-8 self-start rounded-xl border border-brand-border bg-brand-card/40 p-3">
-        {SETTINGS_NAV_GROUPS.map((group) => (
-          <div key={group.groupId} className="mb-4 last:mb-0">
-            <p className="px-3 mb-1.5 text-[11px] font-medium uppercase tracking-wide text-brand-text-muted/90">
-              {hub[group.groupKey]}
-            </p>
-            <ul className="space-y-0.5">
-              {group.items.map((item) => {
-                const active = item.isActive(pathname);
-                return (
-                  <li key={item.id}>
-                    <Link href={item.href} className={navLinkClass(active)}>
-                      {hub[item.labelKey]}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
-      </aside>
-    </>
+      {open ? (
+        <div
+          role="menu"
+          className="absolute left-0 top-full z-40 mt-1.5 min-w-[min(100vw-2rem,16rem)] max-w-xs rounded-xl border border-brand-border bg-brand-card py-2 shadow-lg"
+        >
+          {SETTINGS_NAV_GROUPS.map((group) => (
+            <div key={group.groupId} className="px-2 py-1">
+              <p className="px-2 py-1 text-[11px] font-medium uppercase tracking-wide text-brand-text-muted/90">
+                {hub[group.groupKey]}
+              </p>
+              <ul>
+                {group.items.map((item) => {
+                  const active = item.isActive(pathname);
+                  return (
+                    <li key={item.id}>
+                      <Link
+                        href={item.href}
+                        role="menuitem"
+                        className={itemLinkClass(active)}
+                        onClick={() => setOpen(false)}
+                      >
+                        {hub[item.labelKey]}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }

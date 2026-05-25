@@ -35,7 +35,6 @@ import { getMenuCategoryLabel, itemMatchesSearch } from '@/lib/menu-admin';
 import { getPrintStationDisplayName } from '@/lib/print-station-admin';
 import { categoryCodePathFromLeaf, normalizeMenuItemCode } from '@/lib/menu-print-label';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
-import { MenuManagementGuide } from '@/components/dashboard/menu/MenuManagementGuide';
 import { PrintStationsManager } from '@/components/dashboard/PrintStationsManager';
 import {
   isMenuManagerTab,
@@ -970,8 +969,6 @@ export function MenuManager({
           </p>
         </div>
       )}
-
-      <MenuManagementGuide t={t} />
 
       <div className="flex flex-wrap gap-2 mb-6">
         <button

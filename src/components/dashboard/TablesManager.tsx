@@ -208,26 +208,32 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
 
   return (
     <div>
-      <div
-        className={`flex flex-col gap-3 sm:flex-row sm:items-center mb-6 ${
-          embedded ? 'sm:justify-end' : 'sm:justify-between'
-        }`}
-      >
-        {!embedded ? (
-          <div>
-            <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
-            <p className="text-brand-text-muted text-sm mt-1">{t.desc}</p>
-          </div>
-        ) : null}
-        <Button onClick={printAll} variant="outline" className="w-full sm:w-auto shrink-0">
-          🖨️ {t.print}
-        </Button>
-      </div>
+      {!embedded ? (
+        <div className="mb-6">
+          <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
+          <p className="text-brand-text-muted text-sm mt-1">{t.desc}</p>
+        </div>
+      ) : null}
 
-      {/* 桌位数量设置 */}
+      {/* 桌位数量与点餐二维码 */}
       <div className="bg-brand-card border border-brand-border rounded-2xl p-6 mb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-5">
+          <div className="min-w-0">
+            <h2 className="font-heading text-2xl text-brand-gold">{t.tableQrTitle}</h2>
+            <p className="text-brand-text-muted text-sm mt-1">{t.tableQrDesc}</p>
+          </div>
+          <Button
+            onClick={printAll}
+            variant="outline"
+            size="sm"
+            className="w-full sm:w-auto shrink-0"
+            disabled={Object.keys(qrCodes).length < tableCount}
+          >
+            {t.print}
+          </Button>
+        </div>
         <label className="text-sm text-brand-text-muted font-medium block mb-3">{t.count}</label>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 mb-6">
           <input
             type="range"
             min={1}
@@ -237,6 +243,46 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
             className="flex-1 accent-brand-gold"
           />
           <span className="text-brand-gold font-heading text-2xl w-10 text-center">{tableCount}</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {Array.from({ length: tableCount }, (_, i) => i + 1).map(tableNum => (
+          <div
+            key={tableNum}
+            className="bg-brand-bg border border-brand-border rounded-xl p-4 text-center"
+          >
+            <p className="text-brand-gold font-heading text-lg mb-3">{t.table} {tableNum}</p>
+            {qrCodes[tableNum] ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={qrCodes[tableNum]}
+                alt={`${t.table} ${tableNum} QR`}
+                className="mx-auto rounded-lg mb-3 w-32 h-32"
+              />
+            ) : (
+              <div className="w-32 h-32 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
+            )}
+            <p className="text-brand-text-muted text-[13px] mb-3 truncate">
+              /{restaurant.slug}/menu?table={tableNum}
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={() => downloadQR(tableNum)}
+                disabled={!qrCodes[tableNum]}
+                className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
+              >
+                {t.download}
+              </button>
+              <a
+                href={`${baseUrl}/${restaurant.slug}/menu?table=${tableNum}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[13px] text-brand-gold hover:underline"
+              >
+                {t.openOrder}
+              </a>
+            </div>
+          </div>
+        ))}
         </div>
       </div>
 
@@ -317,48 +363,6 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
             </a>
           </div>
         </div>
-      </div>
-
-      {/* 二维码网格 */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {Array.from({ length: tableCount }, (_, i) => i + 1).map(tableNum => (
-          <div
-            key={tableNum}
-            className="bg-brand-card border border-brand-border rounded-2xl p-4 text-center"
-          >
-            <p className="text-brand-gold font-heading text-lg mb-3">{t.table} {tableNum}</p>
-            {qrCodes[tableNum] ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={qrCodes[tableNum]}
-                alt={`${t.table} ${tableNum} QR`}
-                className="mx-auto rounded-lg mb-3 w-32 h-32"
-              />
-            ) : (
-              <div className="w-32 h-32 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
-            )}
-            <p className="text-brand-text-muted text-[13px] mb-3 truncate">
-              /{restaurant.slug}/menu?table={tableNum}
-            </p>
-            <div className="flex items-center justify-center gap-3">
-              <button
-                onClick={() => downloadQR(tableNum)}
-                disabled={!qrCodes[tableNum]}
-                className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
-              >
-                {t.download}
-              </button>
-              <a
-                href={`${baseUrl}/${restaurant.slug}/menu?table=${tableNum}`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-[13px] text-brand-gold hover:underline"
-              >
-                {t.openOrder}
-              </a>
-            </div>
-          </div>
-        ))}
       </div>
 
       <Modal

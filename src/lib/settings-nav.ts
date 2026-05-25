@@ -29,8 +29,6 @@ export type SettingsNavItem = {
   href: string;
   labelKey: SettingsHubLabelKey;
   hintKey: SettingsHubHintKey;
-  /** Page renders its own expandable guide; omit shell `SettingsCollapsibleHint`. */
-  skipShellHint?: boolean;
   isActive: (pathname: string) => boolean;
 };
 
@@ -84,7 +82,6 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
         href: '/dashboard/settings/menu',
         labelKey: 'tabMenu',
         hintKey: 'hintMenu',
-        skipShellHint: true,
         isActive: (pathname) => pathname.startsWith('/dashboard/settings/menu'),
       },
       {
@@ -92,7 +89,6 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
         href: '/dashboard/settings/buffet',
         labelKey: 'tabBuffet',
         hintKey: 'hintBuffet',
-        skipShellHint: true,
         isActive: (pathname) => pathname.startsWith('/dashboard/settings/buffet'),
       },
     ],
@@ -116,6 +112,15 @@ export function getActiveSettingsNavItem(pathname: string): SettingsNavItem | nu
   for (const group of SETTINGS_NAV_GROUPS) {
     for (const item of group.items) {
       if (item.isActive(pathname)) return item;
+    }
+  }
+  return null;
+}
+
+export function getActiveSettingsNavGroup(pathname: string): SettingsNavGroup | null {
+  for (const group of SETTINGS_NAV_GROUPS) {
+    for (const item of group.items) {
+      if (item.isActive(pathname)) return group;
     }
   }
   return null;

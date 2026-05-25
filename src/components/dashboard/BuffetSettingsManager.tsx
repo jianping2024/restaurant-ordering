@@ -13,7 +13,6 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { DecimalInput } from '@/components/ui/DecimalInput';
 import { IntegerInput } from '@/components/ui/IntegerInput';
-import { BuffetPricingGuide } from '@/components/dashboard/buffet/BuffetPricingGuide';
 import { BuffetPricePreview } from '@/components/dashboard/buffet/BuffetPricePreview';
 import { BuffetPriceMatrix } from '@/components/dashboard/buffet/BuffetPriceMatrix';
 import { BuffetCalendarPanel } from '@/components/dashboard/buffet/BuffetCalendarPanel';
@@ -498,8 +497,6 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
           <p className="text-brand-text-muted text-sm mt-1">{t.subtitle}</p>
         </div>
       )}
-
-      <BuffetPricingGuide t={t} />
 
       {showPricingTools && buffets.length > 0 && (
         <BuffetPricePreview

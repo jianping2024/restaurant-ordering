@@ -704,7 +704,6 @@ function WaiterTableDetailInner({
               >
                 {t.takeOrder}
               </Link>
-              <p className="text-[11px] text-brand-text-muted mt-2 max-w-md">{t.takeOrderHint}</p>
             </div>
           </div>
         ) : (

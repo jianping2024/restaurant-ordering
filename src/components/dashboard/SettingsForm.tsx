@@ -134,7 +134,7 @@ export function SettingsForm({
         </div>
       )}
 
-      <div className="max-w-lg">
+      <div className="w-full">
         <div className="bg-brand-card border border-brand-border rounded-2xl p-6">
           <form onSubmit={handleSave} className="space-y-5">
             <Input
@@ -164,63 +164,66 @@ export function SettingsForm({
               onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
               placeholder="+351 21 123 4567"
             />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Input
-                label={t.geoLatitude}
-                value={form.geo_latitude}
-                onChange={e => setForm(f => ({ ...f, geo_latitude: e.target.value }))}
-                placeholder="38.7223"
-              />
-              <Input
-                label={t.geoLongitude}
-                value={form.geo_longitude}
-                onChange={e => setForm(f => ({ ...f, geo_longitude: e.target.value }))}
-                placeholder="-9.1393"
-              />
-            </div>
-            <div className="flex items-center justify-between gap-3 -mt-2">
-              <p className="text-[13px] text-brand-text-muted">{t.geoHint}</p>
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!navigator.geolocation) {
-                    setError(t.geoLocateFail);
-                    return;
-                  }
-                  try {
-                    const position = await getCurrentPositionWithFallback();
-                    setForm((prev) => ({
-                      ...prev,
-                      geo_latitude: position.coords.latitude.toFixed(6),
-                      geo_longitude: position.coords.longitude.toFixed(6),
-                    }));
-                    setError('');
-                  } catch {
-                    setError(t.geoLocateFail);
-                  }
-                }}
-                className="text-[13px] text-brand-gold hover:underline whitespace-nowrap"
-              >
-                {t.useCurrentLocation}
-              </button>
-            </div>
 
-            <Input
-              label={t.orderRadiusMeters}
-              type="number"
-              min={MIN_ORDER_RADIUS_METERS}
-              max={MAX_ORDER_RADIUS_METERS}
-              step={1}
-              inputMode="numeric"
-              value={form.order_radius_meters}
-              onChange={(e) => setForm((f) => ({ ...f, order_radius_meters: e.target.value }))}
-              placeholder={String(MIN_ORDER_RADIUS_METERS)}
-            />
-            <p className="text-[13px] text-brand-text-muted -mt-3">
-              {t.orderRadiusHint
-                .replace('{min}', String(MIN_ORDER_RADIUS_METERS))
-                .replace('{max}', String(MAX_ORDER_RADIUS_METERS))}
-            </p>
+            <fieldset className="space-y-3 rounded-xl border border-brand-border/70 bg-brand-bg/40 p-4">
+              <legend className="text-sm font-medium text-brand-text px-1">{t.geoSectionTitle}</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Input
+                  label={t.geoLatitude}
+                  value={form.geo_latitude}
+                  onChange={e => setForm(f => ({ ...f, geo_latitude: e.target.value }))}
+                  placeholder="38.7223"
+                />
+                <Input
+                  label={t.geoLongitude}
+                  value={form.geo_longitude}
+                  onChange={e => setForm(f => ({ ...f, geo_longitude: e.target.value }))}
+                  placeholder="-9.1393"
+                />
+              </div>
+              <p className="text-[13px] text-brand-text-muted leading-relaxed">{t.geoHint}</p>
+              <div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!navigator.geolocation) {
+                      setError(t.geoLocateFail);
+                      return;
+                    }
+                    try {
+                      const position = await getCurrentPositionWithFallback();
+                      setForm((prev) => ({
+                        ...prev,
+                        geo_latitude: position.coords.latitude.toFixed(6),
+                        geo_longitude: position.coords.longitude.toFixed(6),
+                      }));
+                      setError('');
+                    } catch {
+                      setError(t.geoLocateFail);
+                    }
+                  }}
+                  className="text-[13px] font-medium text-brand-gold hover:underline"
+                >
+                  {t.useCurrentLocation}
+                </button>
+              </div>
+              <Input
+                label={t.orderRadiusMeters}
+                type="number"
+                min={MIN_ORDER_RADIUS_METERS}
+                max={MAX_ORDER_RADIUS_METERS}
+                step={1}
+                inputMode="numeric"
+                value={form.order_radius_meters}
+                onChange={(e) => setForm((f) => ({ ...f, order_radius_meters: e.target.value }))}
+                placeholder={String(MIN_ORDER_RADIUS_METERS)}
+              />
+              <p className="text-[13px] text-brand-text-muted">
+                {t.orderRadiusHint
+                  .replace('{min}', String(MIN_ORDER_RADIUS_METERS))
+                  .replace('{max}', String(MAX_ORDER_RADIUS_METERS))}
+              </p>
+            </fieldset>
 
             {error && (
               <p className="mesa-alert-danger text-sm px-4 py-2">

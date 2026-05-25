@@ -21,6 +21,9 @@
     .ok { display: none; text-align: center; }
     .ok h2 { color: #4ade80; font-size: 1.1rem; }
     .hint { font-size: 11px; color: #9aa5b1; margin-top: -8px; margin-bottom: 14px; line-height: 1.45; }
+    .scan-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; padding: 10px 12px; background: #0f1419; border: 1px solid #2d3a4a; border-radius: 8px; }
+    .scan-status { font-size: 13px; color: #e8e6e3; margin: 0; line-height: 1.45; flex: 1; min-width: 200px; }
+    .scan-refresh { width: auto !important; margin: 0 !important; padding: 8px 14px !important; font-size: 13px !important; }
     .hidden { display: none; }
     .stations { border-top: 1px solid #2d3a4a; margin-top: 8px; padding-top: 16px; }
     .section-title { font-size: 13px; color: #d4a853; margin: 0 0 8px; font-weight: 600; }
@@ -36,12 +39,11 @@
     <div id="formWrap">
       <h1>Choose printers</h1>
       <p class="sub">Map each <strong>print station</strong> to a printer. Each mapped station appears on checkout; several stations may share one machine.</p>
-      <div class="row">
-        <label><input type="radio" name="kind" value="tcp" checked /> LAN (:9100)</label>
-        <label><input type="radio" name="kind" value="winspool" /> USB (Windows printer)</label>
+      <p class="hint">Scans <strong>network (TCP&nbsp;9100)</strong> and <strong>USB / Windows</strong> together. Pick one device per station—you can mix LAN and USB.</p>
+      <div class="scan-bar">
+        <p class="scan-status" id="scanHint">Scanning…</p>
+        <button type="button" id="refreshBtn" class="secondary scan-refresh">Scan again</button>
       </div>
-      <p class="hint" id="scanHint">Scanning…</p>
-      <button type="button" id="refreshBtn" class="secondary" style="width:auto;margin-bottom:14px">Scan again</button>
       <div class="stations" id="stationsWrap">
         <p class="section-title">Print stations</p>
         <p class="hint" id="stationsHint">Loading stations from Mesa…</p>
@@ -59,7 +61,6 @@
   </div>
   <script>
     (function () {
-      var kindRadios = document.querySelectorAll('input[name="kind"]');
       var err = document.getElementById('err');
       var hint = document.getElementById('scanHint');
       var stationsHint = document.getElementById('stationsHint');
@@ -69,33 +70,68 @@
       var stations = [];
       var saved = { station_printers: {} };
 
-      function currentKind() {
-        var k = 'tcp';
-        kindRadios.forEach(function (r) { if (r.checked) k = r.value; });
-        return k;
+      function scanSummaryText() {
+        var lan = (cache.tcp || []).length;
+        var usb = (cache.winspool || []).length;
+        if (lan === 0 && usb === 0) {
+          return 'No printers found. Check network/USB drivers, then scan again.';
+        }
+        var parts = [];
+        if (lan) parts.push(lan + ' network (LAN)');
+        if (usb) parts.push(usb + ' USB / Windows');
+        return 'Found ' + parts.join(' · ') + '. Choose per station (groups in each dropdown).';
       }
-      function allPrinterOptions() {
-        var out = [];
-        (cache.tcp || []).forEach(function (p) { out.push(p); });
-        (cache.winspool || []).forEach(function (p) { out.push(p); });
-        return out;
+
+      function optionExists(selectEl, value) {
+        if (!value) return false;
+        for (var i = 0; i < selectEl.options.length; i++) {
+          if (selectEl.options[i].value === value) return true;
+        }
+        return false;
       }
+
       function stationLabel(s) {
         return s.name_en || s.name_pt || s.name_zh || s.id;
       }
+
       function fillStationSelect(selectEl, selected) {
         selectEl.innerHTML = '';
         var def = document.createElement('option');
         def.value = '';
         def.textContent = '(Not mapped)';
         selectEl.appendChild(def);
-        allPrinterOptions().forEach(function (p) {
-          var o = document.createElement('option');
-          o.value = p.addr;
-          o.textContent = p.label || p.addr;
-          if (selected && selected === p.addr) o.selected = true;
-          selectEl.appendChild(o);
-        });
+
+        function addGroup(label, list, emptyText) {
+          var g = document.createElement('optgroup');
+          g.label = label;
+          if (!list.length) {
+            var empty = document.createElement('option');
+            empty.value = '';
+            empty.disabled = true;
+            empty.textContent = emptyText;
+            g.appendChild(empty);
+          } else {
+            list.forEach(function (p) {
+              var o = document.createElement('option');
+              o.value = p.addr;
+              o.textContent = p.label || p.addr;
+              if (selected && selected === p.addr) o.selected = true;
+              g.appendChild(o);
+            });
+          }
+          selectEl.appendChild(g);
+        }
+
+        addGroup('Network (LAN · TCP 9100)', cache.tcp || [], 'None found on this network');
+        addGroup('USB / Windows printer', cache.winspool || [], 'None installed in Windows');
+
+        if (selected && !optionExists(selectEl, selected)) {
+          var orphan = document.createElement('option');
+          orphan.value = selected;
+          orphan.textContent = selected + ' (saved — rescan if device missing)';
+          orphan.selected = true;
+          selectEl.insertBefore(orphan, selectEl.options[1] || null);
+        }
       }
       function renderStations() {
         stationsEl.innerHTML = '';
@@ -134,7 +170,7 @@
         fetch('/api/printers').then(function (r) { return r.json(); }).then(function (j) {
           cache.tcp = j.tcp || [];
           cache.winspool = j.winspool || [];
-          hint.textContent = 'LAN: ' + cache.tcp.length + ' · USB: ' + cache.winspool.length;
+          hint.textContent = scanSummaryText();
           refreshStationSelects();
         }).catch(function () {
           err.textContent = 'Could not load printer list';
@@ -168,9 +204,6 @@
           loadStations();
         });
       }
-      kindRadios.forEach(function (r) {
-        r.addEventListener('change', function () { refreshStationSelects(); });
-      });
       document.getElementById('refreshBtn').addEventListener('click', loadList);
       document.getElementById('saveBtn').addEventListener('click', function () {
         err.textContent = '';

@@ -50,6 +50,18 @@ type RuleDraft = {
   note: string;
 };
 
+/** Fields preset from the price matrix should not be changed in the create modal. */
+type RuleFieldLocks = {
+  buffet?: boolean;
+  slot?: boolean;
+  calendarKind?: boolean;
+};
+
+type RuleModalState =
+  | null
+  | { mode: 'create'; locks?: RuleFieldLocks }
+  | { mode: 'edit'; id: string };
+
 function buildRuleDraft(
   buffets: Buffet[],
   slots: BuffetTimeSlot[],
@@ -109,7 +121,7 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
   const [confirmSubmitting, setConfirmSubmitting] = useState(false);
 
-  const [ruleModal, setRuleModal] = useState<null | { mode: 'create' } | { mode: 'edit'; id: string }>(null);
+  const [ruleModal, setRuleModal] = useState<RuleModalState>(null);
   const [ruleDraft, setRuleDraft] = useState<RuleDraft | null>(null);
   const [ruleSaveSubmitting, setRuleSaveSubmitting] = useState(false);
   const [pendingConflictSave, setPendingConflictSave] = useState(false);
@@ -281,14 +293,14 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
     else await reload();
   };
 
-  const openRuleCreateModal = (overrides?: Partial<RuleDraft>) => {
+  const openRuleCreateModal = (overrides?: Partial<RuleDraft>, locks?: RuleFieldLocks) => {
     const draft = buildRuleDraft(buffets, slots, overrides);
     if (!draft) {
       showToast(t.needSlotAndBuffet, 'error');
       return;
     }
     setRuleDraft(draft);
-    setRuleModal({ mode: 'create' });
+    setRuleModal({ mode: 'create', locks });
     setPendingConflictSave(false);
   };
 
@@ -714,7 +726,12 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                 dayKindLabel={dayKindLabel}
                 onSetPrice={({ buffetId, slotId, calendarKind, existingRule }) => {
                   if (existingRule) openRuleEditModal(existingRule);
-                  else openRuleCreateModal({ buffet_id: buffetId, time_slot_id: slotId, calendar_kind: calendarKind });
+                  else {
+                    openRuleCreateModal(
+                      { buffet_id: buffetId, time_slot_id: slotId, calendar_kind: calendarKind },
+                      { buffet: true, slot: true, calendarKind: true },
+                    );
+                  }
                 }}
               />
             </>
@@ -864,7 +881,14 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
             title={ruleModal?.mode === 'create' ? t.ruleModalAddTitle : t.ruleModalEditTitle}
             size="lg"
           >
-            {ruleDraft && (
+            {ruleDraft && (() => {
+              const createLocks = ruleModal?.mode === 'create' ? ruleModal.locks : undefined;
+              const lockedBuffetName = buffets.find((b) => b.id === ruleDraft.buffet_id)?.name ?? '';
+              const lockedSlot = slots.find((s) => s.id === ruleDraft.time_slot_id);
+              const lockedFieldClass =
+                'mt-0.5 w-full rounded-lg bg-brand-bg/60 border border-brand-border/80 px-2 py-2 text-brand-text';
+
+              return (
               <>
                 {pendingConflictSave && overlapNames && (
                   <div className="mb-4 mesa-alert-warning px-3 py-2 text-[13px] leading-relaxed">
@@ -875,55 +899,78 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                   <label className="text-brand-text-muted text-[12px]">
                     {t.ruleBuffet}
-                    <select
-                      className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-brand-text"
-                      value={ruleDraft.buffet_id}
-                      onChange={(e) =>
-                        setRuleDraft((d) => (d ? { ...d, buffet_id: e.target.value } : d))
-                      }
-                    >
-                      {buffets.map((b) => (
-                        <option key={b.id} value={b.id}>
-                          {b.name}
-                        </option>
-                      ))}
-                    </select>
+                    {createLocks?.buffet ? (
+                      <p className={lockedFieldClass} aria-readonly>
+                        {lockedBuffetName}
+                      </p>
+                    ) : (
+                      <select
+                        className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-brand-text"
+                        value={ruleDraft.buffet_id}
+                        onChange={(e) =>
+                          setRuleDraft((d) => (d ? { ...d, buffet_id: e.target.value } : d))
+                        }
+                      >
+                        {buffets.map((b) => (
+                          <option key={b.id} value={b.id}>
+                            {b.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </label>
                   <label className="text-brand-text-muted text-[12px]">
                     {t.ruleSlot}
-                    <select
-                      className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-brand-text"
-                      value={ruleDraft.time_slot_id}
-                      onChange={(e) =>
-                        setRuleDraft((d) => (d ? { ...d, time_slot_id: e.target.value } : d))
-                      }
-                    >
-                      {slots.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
+                    {createLocks?.slot ? (
+                      <p className={lockedFieldClass} aria-readonly>
+                        {lockedSlot?.name ?? ''}
+                        {lockedSlot ? (
+                          <span className="block text-[11px] text-brand-text-muted font-normal">
+                            {lockedSlot.start_time?.slice(0, 5)}–{lockedSlot.end_time?.slice(0, 5)}
+                          </span>
+                        ) : null}
+                      </p>
+                    ) : (
+                      <select
+                        className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-brand-text"
+                        value={ruleDraft.time_slot_id}
+                        onChange={(e) =>
+                          setRuleDraft((d) => (d ? { ...d, time_slot_id: e.target.value } : d))
+                        }
+                      >
+                        {slots.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </label>
                   <div className="sm:col-span-2">
                     <label className="text-brand-text-muted text-[12px] block">
                       {t.calendarKind}
-                      <select
-                        className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-brand-text"
-                        value={ruleDraft.calendar_kind}
-                        onChange={(e) => {
-                          setPendingConflictSave(false);
-                          setRuleDraft((d) =>
-                            d ? { ...d, calendar_kind: e.target.value as BuffetCalendarKind } : d,
-                          );
-                        }}
-                      >
-                        {CALENDAR_KINDS.map((k) => (
-                          <option key={k} value={k}>
-                            {dayKindLabel(k)}
-                          </option>
-                        ))}
-                      </select>
+                      {createLocks?.calendarKind ? (
+                        <p className={lockedFieldClass} aria-readonly>
+                          {dayKindLabel(ruleDraft.calendar_kind)}
+                        </p>
+                      ) : (
+                        <select
+                          className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-brand-text"
+                          value={ruleDraft.calendar_kind}
+                          onChange={(e) => {
+                            setPendingConflictSave(false);
+                            setRuleDraft((d) =>
+                              d ? { ...d, calendar_kind: e.target.value as BuffetCalendarKind } : d,
+                            );
+                          }}
+                        >
+                          {CALENDAR_KINDS.map((k) => (
+                            <option key={k} value={k}>
+                              {dayKindLabel(k)}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                     </label>
                     <p className="mt-1 text-[11px] text-brand-text-muted">{kindHelp(ruleDraft.calendar_kind)}</p>
                   </div>
@@ -1030,7 +1077,8 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                   </Button>
                 </div>
               </>
-            )}
+              );
+            })()}
           </Modal>
         </div>
       )}

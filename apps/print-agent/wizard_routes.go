@@ -16,7 +16,6 @@ type printerListEntry struct {
 }
 
 type setupRequestBody struct {
-	CashierPrinter  string            `json:"cashier_printer"`
 	StationPrinters map[string]string `json:"station_printers"`
 }
 
@@ -71,7 +70,6 @@ func writeConfigureState(w http.ResponseWriter, cfg *config) {
 		"paired":           strings.TrimSpace(cfg.AgentJWT) != "",
 		"api_base":         cfg.APIBase,
 		"device_id":        cfg.DeviceID,
-		"cashier_printer":  cfg.CashierPrinter,
 		"station_printers": cfg.StationPrinters,
 		"station_count":    stationCount,
 	})
@@ -81,13 +79,6 @@ func applyPrinterSetup(cfg *config, body setupRequestBody) (map[string]string, e
 	cfg.DefaultPrinter = ""
 	cfg.PrinterHost = ""
 	cfg.CashierPrinter = ""
-	if raw := strings.TrimSpace(body.CashierPrinter); raw != "" {
-		st, err := parsePrinterTarget(raw)
-		if err != nil {
-			return nil, err
-		}
-		cfg.CashierPrinter = st.Display
-	}
 	cleaned := map[string]string{}
 	for sid, raw := range body.StationPrinters {
 		sid = strings.TrimSpace(sid)

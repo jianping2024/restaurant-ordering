@@ -38,7 +38,7 @@
 <body>
   <div class="wrap">
     <h1>Mesa Print Agent — Settings</h1>
-    <p class="sub">Set a <strong>cashier printer</strong> for pre-bill, split, and final receipts. Map <strong>kitchen stations</strong> for station tickets; mapped stations can also appear on checkout (pick explicitly).</p>
+    <p class="sub">Map each <strong>print station</strong> to a printer. Mapped stations appear on checkout for pre-bill, split, and final receipts (pick explicitly). Several stations may share one machine.</p>
 
     <div class="status" id="status">Loading current settings…</div>
 
@@ -66,10 +66,7 @@
         <button type="button" id="refreshBtn" class="secondary" style="width:auto;margin-bottom:14px">Scan again</button>
 
         <div class="stations">
-          <p class="section-title">Cashier printer</p>
-          <p class="hint">Pre-bill, split bill, and final receipt (optional if you use stations below).</p>
-          <select id="cashierPrinter" class="station-printer"></select>
-          <p class="section-title" style="margin-top:16px">Print stations</p>
+          <p class="section-title">Print stations</p>
           <p class="hint" id="stationsHint">Loading stations…</p>
           <p class="warn hidden" id="stationsWarn"></p>
           <div id="stations"></div>
@@ -174,8 +171,6 @@
       }
 
       function refreshStationSelects() {
-        var cashierEl = document.getElementById('cashierPrinter');
-        if (cashierEl) fillStationSelect(cashierEl, cashierEl.value);
         document.querySelectorAll('.station-row .station-printer').forEach(function (el) {
           fillStationSelect(el, el.value);
         });
@@ -241,8 +236,6 @@
               loadPrinters();
               loadStations();
             }
-            var cashierEl = document.getElementById('cashierPrinter');
-            if (cashierEl) fillStationSelect(cashierEl, state.cashier_printer || '');
           });
       }
 
@@ -288,14 +281,10 @@
           var addr = row.querySelector('.station-printer').value;
           if (sid && addr) station_printers[sid] = addr;
         });
-        var cashierEl = document.getElementById('cashierPrinter');
         fetch('/api/setup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            cashier_printer: cashierEl ? cashierEl.value : '',
-            station_printers: station_printers
-          })
+          body: JSON.stringify({ station_printers: station_printers })
         })
           .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {

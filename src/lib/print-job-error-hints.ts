@@ -14,7 +14,7 @@ const ERROR_HINTS: ErrorHint[] = [
   {
     match: (m) => /receipt printer not ready|will retry within 20 minutes/i.test(m),
     hint: {
-      zh: '账单已入队，等待打印机：在 configure 设置 Cashier printer 或映射档口，或在结账页选定打印机；20 分钟内配好会继续打印。',
+      zh: '账单已入队，等待打印机：在 configure 映射档口，或在结账页选定档口打印机；20 分钟内配好会继续打印。',
       en: 'Receipt queued: map a station printer in configure or pick one on checkout; prints within 20 minutes once ready.',
       pt: 'Recibo na fila: mapeie impressora no configure ou escolha no checkout; imprime em 20 minutos.',
     },
@@ -30,9 +30,9 @@ const ERROR_HINTS: ErrorHint[] = [
   {
     match: (m) => /no station_printers mapping/i.test(m),
     hint: {
-      zh: '该出品档口未映射打印机：在 configure 的 Kitchen stations 为该档口选打印机（出品联不会打到收银机）。',
-      en: 'Station not mapped: assign a printer under Kitchen stations in configure (not the cashier printer).',
-      pt: 'Estacao sem impressora: mapeie em Kitchen stations no configure.',
+      zh: '该出品档口未映射打印机：在 configure 为该档口选择打印机。',
+      en: 'Station not mapped: assign a printer for this station in configure.',
+      pt: 'Estacao sem impressora: mapeie esta estacao no configure.',
     },
   },
   {

@@ -1,4 +1,4 @@
-export type ReceiptPrinterRole = 'cashier' | 'station';
+export type ReceiptPrinterRole = 'station';
 
 export type ReceiptPrinterOption = {
   id: string;
@@ -25,24 +25,12 @@ export function stationDisplayName(station: StationRow, locale: 'pt' | 'en' | 'z
   return station.name_pt?.trim() || station.id;
 }
 
-/**
- * Receipt picker: optional cashier + one entry per mapped print station.
- * Multiple stations may share the same physical printer address; each mapped station is listed.
- */
+/** Receipt picker: one entry per mapped print station (checkout picks explicitly). */
 export function buildReceiptPrinterSnapshot(params: {
   stationPrinters: Record<string, string>;
   stations: StationRow[];
-  cashierConfigured?: boolean;
 }): ReceiptPrinterRoutingSnapshot {
   const options: ReceiptPrinterOption[] = [];
-  if (params.cashierConfigured) {
-    options.push({
-      id: 'cashier',
-      label: 'Cashier',
-      role: 'cashier',
-    });
-  }
-
   const mapped = params.stationPrinters;
   const listed = new Set<string>();
 
@@ -89,23 +77,21 @@ export function presentReceiptPrintersForCheckout(
   );
   const byId = new Map(stations.map((s) => [s.id, s]));
 
-  const enriched = printers.map((p) => {
-    if (p.id === 'cashier') return p;
-    if (!p.id.startsWith('station:')) return p;
-    const sid = p.id.slice('station:'.length);
-    const station = byId.get(sid);
-    if (!station) return p;
-    return { ...p, label: stationDisplayName(station, locale) };
-  });
+  const enriched = printers
+    .filter((p) => p.id.startsWith('station:'))
+    .map((p) => {
+      const sid = p.id.slice('station:'.length);
+      const station = byId.get(sid);
+      if (!station) return p;
+      return { ...p, label: stationDisplayName(station, locale) };
+    });
 
-  const cashier = enriched.filter((p) => p.id === 'cashier');
-  const stationOpts = enriched.filter((p) => p.id.startsWith('station:'));
-  stationOpts.sort((a, b) => {
+  enriched.sort((a, b) => {
     const ia = order.get(a.id.slice('station:'.length)) ?? 999;
     const ib = order.get(b.id.slice('station:'.length)) ?? 999;
     return ia - ib;
   });
-  return [...cashier, ...stationOpts];
+  return enriched;
 }
 
 export function parseReceiptPrinterRoutingSnapshot(raw: unknown): ReceiptPrinterRoutingSnapshot | null {
@@ -115,13 +101,9 @@ export function parseReceiptPrinterRoutingSnapshot(raw: unknown): ReceiptPrinter
   const receipt_printers: ReceiptPrinterOption[] = [];
   for (const row of o.receipt_printers) {
     if (!row || typeof row !== 'object') continue;
-    const r = row as { id?: unknown; label?: unknown; role?: unknown };
+    const r = row as { id?: unknown; label?: unknown };
     const id = typeof r.id === 'string' ? r.id.trim() : '';
     const label = typeof r.label === 'string' ? r.label.trim() : '';
-    if (id === 'cashier') {
-      receipt_printers.push({ id, label: label || 'Cashier', role: 'cashier' });
-      continue;
-    }
     if (!id.startsWith('station:') || !label) continue;
     receipt_printers.push({ id, label, role: 'station' });
   }

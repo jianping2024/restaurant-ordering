@@ -43,12 +43,12 @@ func TestPrinterAddrForJob_receiptStationPicker(t *testing.T) {
 	}
 }
 
-func TestPrinterAddrForJob_receiptCashierPicker(t *testing.T) {
+func TestPrinterAddrForJob_receiptCashierIdRejected(t *testing.T) {
 	c := &config{CashierPrinter: "tcp:10.0.0.2:9100"}
 	payload := []byte(`{"receipt_printer_id":"cashier"}`)
-	addr, err := c.printerAddrForJob(printJob{Type: "order_receipt", Payload: payload})
-	if err != nil || addr != "tcp:10.0.0.2:9100" {
-		t.Fatalf("got %q err=%v", addr, err)
+	_, err := c.printerAddrForJob(printJob{Type: "order_receipt", Payload: payload})
+	if err == nil {
+		t.Fatal("expected error for legacy cashier id")
 	}
 }
 

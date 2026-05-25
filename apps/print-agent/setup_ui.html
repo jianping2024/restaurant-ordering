@@ -43,10 +43,7 @@
       <p class="hint" id="scanHint">Scanning…</p>
       <button type="button" id="refreshBtn" class="secondary" style="width:auto;margin-bottom:14px">Scan again</button>
       <div class="stations" id="stationsWrap">
-        <p class="section-title">Cashier printer</p>
-        <p class="hint">Optional: dedicated receipt printer. Or map stations below only.</p>
-        <select id="cashierPrinter" class="station-printer"></select>
-        <p class="section-title" style="margin-top:16px">Print stations</p>
+        <p class="section-title">Print stations</p>
         <p class="hint" id="stationsHint">Loading stations from Mesa…</p>
         <p class="warn hidden" id="stationsWarn"></p>
         <div id="stations"></div>
@@ -70,7 +67,7 @@
       var stationsEl = document.getElementById('stations');
       var cache = { tcp: [], winspool: [] };
       var stations = [];
-      var saved = { cashier_printer: '', station_printers: {} };
+      var saved = { station_printers: {} };
 
       function currentKind() {
         var k = 'tcp';
@@ -127,8 +124,6 @@
         });
       }
       function refreshStationSelects() {
-        var cashierEl = document.getElementById('cashierPrinter');
-        if (cashierEl) fillStationSelect(cashierEl, cashierEl.value);
         document.querySelectorAll('.station-row .station-printer').forEach(function (el) {
           fillStationSelect(el, el.value);
         });
@@ -167,10 +162,7 @@
       }
       function loadSaved() {
         fetch('/api/setup-state').then(function (r) { return r.json(); }).then(function (j) {
-          saved.cashier_printer = j.cashier_printer || '';
           saved.station_printers = j.station_printers || {};
-          var cashierEl = document.getElementById('cashierPrinter');
-          if (cashierEl) fillStationSelect(cashierEl, saved.cashier_printer);
         }).catch(function () {}).finally(function () {
           loadList();
           loadStations();
@@ -188,14 +180,10 @@
           var addr = row.querySelector('.station-printer').value;
           if (sid && addr) station_printers[sid] = addr;
         });
-        var cashierEl = document.getElementById('cashierPrinter');
         fetch('/api/setup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            cashier_printer: cashierEl ? cashierEl.value : '',
-            station_printers: station_printers
-          })
+          body: JSON.stringify({ station_printers: station_printers })
         }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
             if (!res.ok) { err.textContent = res.j.error || 'Save failed'; return; }

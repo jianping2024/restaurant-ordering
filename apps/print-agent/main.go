@@ -205,7 +205,7 @@ func runAgent(args []string) {
 		}
 	}
 	if !cfg.hasPrinterRouting() {
-		log.Println("no printer mappings — set cashier and/or stations in configure")
+		log.Println("no station printer mappings — map stations in configure")
 	}
 	syncRoutingToCloud(cfg)
 
@@ -218,7 +218,7 @@ func runAgent(args []string) {
 		log.Fatal("schedule:", err)
 	}
 	log.Printf("Mesa Print Agent %s", Version)
-	logAgentStartup(cfg, cfg.APIBase, strings.TrimSpace(cfg.CashierPrinter), stationCount)
+	logAgentStartup(cfg, cfg.APIBase, stationCount)
 
 	var lastLogged pollPhase
 	var queue []printJob

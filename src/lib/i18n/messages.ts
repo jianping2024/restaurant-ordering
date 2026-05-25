@@ -425,11 +425,11 @@ export const MESSAGES = {
         '重新配对或调整打印机：在收银电脑运行 MesaPrintAgent.exe configure（推荐）。仅改打印机可用 setup；仅重新配对可用 pair。',
       configureTitle: '重新配对 / 调整打印机',
       configureSubtitle:
-        '指定收银打印机（预结/分账/结账）与各出品档口打印机（出品联），二者分开；同一台设备可同时用于收银和档口。',
+        '在 configure 为各出品档口映射打印机；结账/账单页从已映射档口中选择打印（多台档口可共用同一打印机）。',
       configureStep1: '在收银电脑关闭正在运行的打印助手（若已打开）',
       configureStep2: '双击 MesaPrintAgent.exe configure，或在命令行运行该命令',
       configureStep3:
-        'configure 仅为各出品档口映射打印机；结账/账单页再手动选择打印到哪台（默认「不打印」）',
+        '为 Bar、checkout、kitchen 等档口分别选打印机；保存后在结账页下拉选择要用的档口',
       configureOpenWithCode: '打开重新配置页（已填入配对码）',
       configureOpenIdle: '打开重新配置页（需先运行 configure 命令）',
       queueTitle: '最近打印队列',
@@ -1181,11 +1181,11 @@ export const MESSAGES = {
         'Re-pair or change printers: on the POS PC run MesaPrintAgent.exe configure (recommended). Use setup for printers only; pair for pairing only.',
       configureTitle: 'Re-pair / printer setup',
       configureSubtitle:
-        'Assign cashier (receipts) and kitchen station (tickets) printers separately; one device may serve both.',
+        'Map each print station to a printer in configure; on checkout pick which mapped station prints receipts (stations may share one device).',
       configureStep1: 'Close the running print agent on the POS PC (if open)',
       configureStep2: 'Run MesaPrintAgent.exe configure (double-click or from a terminal)',
       configureStep3:
-        'Cashier printer = pre-bill / split / final; Kitchen stations = station tickets only',
+        'Assign a printer per station (bar, checkout, kitchen, etc.); pick the station on checkout when printing',
       configureOpenWithCode: 'Open configure page (code filled in)',
       configureOpenIdle: 'Open configure page (run configure command first)',
       queueTitle: 'Recent print queue',
@@ -1720,11 +1720,11 @@ export const MESSAGES = {
         'Reemparelhar ou mudar impressoras: no PC da caixa execute MesaPrintAgent.exe configure (recomendado). setup so impressoras; pair so emparelhamento.',
       configureTitle: 'Reemparelhar / configurar impressoras',
       configureSubtitle:
-        'Impressora de caixa (recibos) e estacoes de cozinha (tickets) separados; o mesmo equipamento pode servir os dois.',
+        'Mapeie cada estacao de impressao no configure; no checkout escolha qual estacao mapeada imprime (podem partilhar a mesma maquina).',
       configureStep1: 'Feche o agente de impressao no PC da caixa (se estiver aberto)',
       configureStep2: 'Execute MesaPrintAgent.exe configure (duplo clique ou terminal)',
       configureStep3:
-        'Cashier printer = pre-conta / divisao / final; Kitchen stations = apenas tickets de estacao',
+        'Atribua impressora a cada estacao; no checkout escolha a estacao ao imprimir',
       configureOpenWithCode: 'Abrir pagina de configuracao (codigo preenchido)',
       configureOpenIdle: 'Abrir pagina de configuracao (execute configure primeiro)',
       queueTitle: 'Fila recente',

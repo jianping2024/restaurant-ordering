@@ -5,7 +5,7 @@ import { buildReceiptPrinterSnapshot } from '@/lib/print-receipt-printer-options
 
 export const runtime = 'nodejs';
 
-/** Print agent reports cashier + station printer mapping after configure/setup save. */
+/** Print agent reports station printer mapping after configure/setup save. */
 export async function POST(req: Request) {
   const auth = verifyAgentBearer(req);
   if (!auth) {
@@ -14,7 +14,6 @@ export async function POST(req: Request) {
 
   let body: {
     station_printers?: unknown;
-    cashier_printer?: unknown;
   };
   try {
     body = await req.json();
@@ -43,13 +42,9 @@ export async function POST(req: Request) {
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true });
 
-  const cashierConfigured =
-    typeof body.cashier_printer === 'string' && body.cashier_printer.trim().length > 0;
-
   const snapshot = buildReceiptPrinterSnapshot({
     stationPrinters,
     stations: stations || [],
-    cashierConfigured,
   });
 
   const { error } = await admin

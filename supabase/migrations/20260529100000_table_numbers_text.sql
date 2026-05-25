@@ -1,14 +1,67 @@
 -- Table numbers as alphanumeric labels (e.g. A1, B12, VIP-1).
+-- PostgreSQL rejects subqueries in ALTER COLUMN … USING; convert via UPDATE instead.
+
+drop view if exists public.restaurants_public;
 
 alter table public.restaurants
-  alter column table_numbers type text[]
-  using coalesce(
-    array(select x::text from unnest(table_numbers) as x),
-    array['1','2','3','4','5','6','7','8','9','10']::text[]
-  );
+  add column if not exists table_numbers_text text[];
+
+update public.restaurants
+set table_numbers_text = coalesce(
+  (
+    select array_agg(elem::text order by ord)
+    from unnest(table_numbers) with ordinality as t(elem, ord)
+  ),
+  array['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']::text[]
+);
+
+alter table public.restaurants
+  alter column table_numbers drop default;
+
+alter table public.restaurants
+  alter column table_numbers drop not null;
+
+alter table public.restaurants
+  drop constraint if exists restaurants_table_numbers_cardinality_check;
+
+alter table public.restaurants
+  drop column table_numbers;
+
+alter table public.restaurants
+  rename column table_numbers_text to table_numbers;
 
 alter table public.restaurants
   alter column table_numbers set default array['1','2','3','4','5','6','7','8','9','10']::text[];
+
+alter table public.restaurants
+  alter column table_numbers set not null;
+
+alter table public.restaurants
+  add constraint restaurants_table_numbers_cardinality_check
+  check (
+    cardinality(table_numbers) >= 1
+    and cardinality(table_numbers) <= 200
+  );
+
+create view public.restaurants_public
+with (security_invoker = false) as
+  select
+    id,
+    name,
+    slug,
+    logo_url,
+    address,
+    phone,
+    plan,
+    geo_latitude,
+    geo_longitude,
+    print_locale,
+    created_at,
+    order_radius_meters,
+    table_numbers
+  from public.restaurants;
+
+grant select on public.restaurants_public to anon, authenticated;
 
 alter table public.table_sessions
   alter column table_number type text using table_number::text;

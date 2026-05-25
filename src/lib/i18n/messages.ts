@@ -112,6 +112,7 @@ export const MESSAGES = {
       guideStepSpecialDates:
         '特殊日期：标记节假日或活动日；须在价目表中有对应适用日子的价格才生效。',
       previewTitle: '价格试算',
+      previewCollapseHint: '用日期时间验证楼面将命中哪条规则',
       previewLisbonNote: '按欧洲/里斯本当地时间试算，与楼面看板一致。',
       previewBuffet: '自助餐',
       previewDate: '日期',
@@ -960,6 +961,7 @@ export const MESSAGES = {
       guideStepSpecialDates:
         'Special dates: mark holidays or event days; matching day types must exist in the price grid.',
       previewTitle: 'Price preview',
+      previewCollapseHint: 'Check which rule the floor board would match for a date and time',
       previewLisbonNote: 'Uses Europe/Lisbon local time, same as the waiter board.',
       previewBuffet: 'Buffet',
       previewDate: 'Date',
@@ -1519,6 +1521,7 @@ export const MESSAGES = {
       guideStepSpecialDates:
         'Datas especiais: feriados ou eventos; e preciso o tipo de dia correspondente na grelha.',
       previewTitle: 'Pre-visualizar preco',
+      previewCollapseHint: 'Ver qual regra o garcom usaria para uma data e hora',
       previewLisbonNote: 'Hora de Lisboa, igual ao painel do garcom.',
       previewBuffet: 'Buffet',
       previewDate: 'Data',

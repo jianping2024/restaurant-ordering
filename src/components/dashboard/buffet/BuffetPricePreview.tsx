@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Buffet, BuffetTimeSlot } from '@/types';
 import type { UILanguage } from '@/lib/i18n';
@@ -25,6 +25,10 @@ type Resolved = {
   time_slot_id: string | null;
 };
 
+export type BuffetPricePreviewHandle = {
+  scrollIntoView: () => void;
+};
+
 type Props = {
   restaurantId: string;
   buffets: Buffet[];
@@ -34,18 +38,39 @@ type Props = {
   t: BuffetAdminMessages;
   lang: UILanguage;
   dayKindLabel: (kind: string) => string;
+  /** Collapsed by default; use with controlled `open` from toolbar. */
+  collapsible?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
-export function BuffetPricePreview({
-  restaurantId,
-  buffets,
-  slots,
-  calendarRows,
-  fridayWeekendFrom,
-  t,
-  lang,
-  dayKindLabel,
-}: Props) {
+export const BuffetPricePreview = forwardRef<BuffetPricePreviewHandle, Props>(function BuffetPricePreview(
+  {
+    restaurantId,
+    buffets,
+    slots,
+    calendarRows,
+    fridayWeekendFrom,
+    t,
+    lang,
+    dayKindLabel,
+    collapsible = false,
+    open: openProp,
+    onOpenChange,
+  },
+  ref,
+) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+
+  useImperativeHandle(ref, () => ({
+    scrollIntoView: () => {
+      rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+  }));
+
   const supabase = createClient();
   const activeBuffets = buffets.filter((b) => b.is_active);
 
@@ -108,12 +133,8 @@ export function BuffetPricePreview({
 
   if (activeBuffets.length === 0) return null;
 
-  return (
-    <div className="rounded-xl border border-brand-border bg-brand-card p-4 space-y-3">
-      <div>
-        <h2 className="text-sm font-medium text-brand-text">{t.previewTitle}</h2>
-        <p className="text-[12px] text-brand-text-muted mt-0.5">{t.previewLisbonNote}</p>
-      </div>
+  const body = (
+    <div className="space-y-3">
       <div className="flex flex-wrap gap-3 items-end text-sm">
         <label className="text-brand-text-muted text-[12px] min-w-[140px]">
           {t.previewBuffet}
@@ -141,11 +162,7 @@ export function BuffetPricePreview({
         </label>
         <label className="text-brand-text-muted text-[12px]">
           {t.previewTime}
-          <TimeHmInput
-            className="mt-0.5"
-            value={time}
-            onChange={setTime}
-          />
+          <TimeHmInput className="mt-0.5" value={time} onChange={setTime} />
         </label>
         <Button type="button" size="sm" variant="gold" loading={loading} onClick={() => void runPreview()}>
           {t.previewRun}
@@ -162,7 +179,7 @@ export function BuffetPricePreview({
       )}
 
       {ran && !loading && (
-        <div className="rounded-lg border border-brand-border/60 bg-brand-card px-3 py-2 text-sm">
+        <div className="rounded-lg border border-brand-border/60 bg-brand-bg/40 px-3 py-2 text-sm">
           {resolved?.adult_price != null && resolved?.child_price != null ? (
             <div className="space-y-1">
               <p className="text-brand-text font-medium">
@@ -185,4 +202,49 @@ export function BuffetPricePreview({
       {loading && <p className="text-[13px] text-brand-text-muted">{t.previewLoading}</p>}
     </div>
   );
-}
+
+  if (!collapsible) {
+    return (
+      <div ref={rootRef} className="rounded-xl border border-brand-border bg-brand-card p-4 space-y-3">
+        <div>
+          <h2 className="text-sm font-medium text-brand-text">{t.previewTitle}</h2>
+          <p className="text-[12px] text-brand-text-muted mt-0.5">{t.previewLisbonNote}</p>
+        </div>
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={rootRef}
+      className="rounded-2xl border border-brand-border/80 bg-brand-card shadow-sm scroll-mt-6 overflow-hidden"
+    >
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        className="w-full flex items-center gap-3 px-4 sm:px-5 py-3.5 text-left hover:bg-brand-bg/40 transition-colors"
+      >
+        <span
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-brand-border/60 bg-brand-bg/60 text-brand-text-muted text-xs transition-transform ${
+            open ? 'rotate-180' : ''
+          }`}
+          aria-hidden
+        >
+          ▼
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-medium text-brand-text">{t.previewTitle}</span>
+          <span className="block text-[11px] text-brand-text-muted mt-0.5 truncate">{t.previewCollapseHint}</span>
+        </span>
+      </button>
+      {open && (
+        <div className="px-4 sm:px-5 pb-5 pt-0 border-t border-brand-border/60 bg-brand-bg/20">
+          <p className="text-[11px] text-brand-text-muted pt-3 pb-3">{t.previewLisbonNote}</p>
+          {body}
+        </div>
+      )}
+    </div>
+  );
+});

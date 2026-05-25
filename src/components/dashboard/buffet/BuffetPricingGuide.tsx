@@ -22,18 +22,12 @@ export function BuffetPricingGuide({ t }: { t: BuffetAdminMessages }) {
         </span>
       </button>
       {open ? (
-        <>
-          <ol className="mt-3 space-y-2.5 text-[13px] text-brand-text list-decimal list-inside">
-            <li>{t.guideStepBuffet}</li>
-            <li>{t.guideStepSlots}</li>
-            <li>{t.guideStepPrices}</li>
-            <li>{t.guideStepSpecialDates}</li>
-          </ol>
-          <div className="mt-3 space-y-2 text-[12px] text-brand-text-muted border-t border-brand-border/50 pt-3">
-            <p>{t.guideResolveNote}</p>
-            <p>{t.guideDayKindNote}</p>
-          </div>
-        </>
+        <ol className="mt-3 space-y-2.5 text-[13px] text-brand-text list-decimal list-inside">
+          <li>{t.guideStepBuffet}</li>
+          <li>{t.guideStepSlots}</li>
+          <li>{t.guideStepPrices}</li>
+          <li>{t.guideStepSpecialDates}</li>
+        </ol>
       ) : null}
     </div>
   );

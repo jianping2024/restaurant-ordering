@@ -25,8 +25,6 @@ import {
   type RuleStatusFilter,
 } from '@/lib/buffet-pricing-admin';
 
-const DOW_LABELS_ZH = ['日', '一', '二', '三', '四', '五', '六'];
-
 interface Props {
   restaurantId: string;
   embedded?: boolean;
@@ -96,6 +94,7 @@ function ruleToDraft(rule: BuffetPriceRule): RuleDraft {
 export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).buffetAdmin;
+  const weekdayShort = t.weekdayShort;
   const supabase = createClient();
   const today = todayIsoLocal();
 
@@ -586,7 +585,6 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
 
       {tab === 'slots' && (
         <div className="bg-brand-card border border-brand-border rounded-xl p-4 space-y-4">
-          <p className="text-[13px] text-brand-text-muted">{t.slotsHint}</p>
           <button
             type="button"
             onClick={() => setPrompt({ kind: 'slot' })}
@@ -639,21 +637,25 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                   {t.delete}
                 </button>
               </div>
-              <div className="flex flex-wrap gap-1">
-                {DOW_LABELS_ZH.map((label, dow) => (
-                  <button
-                    key={dow}
-                    type="button"
-                    onClick={() => toggleWeekday(slot, dow)}
-                    className={`text-[11px] px-2 py-0.5 rounded-full border ${
-                      (slot.weekdays || []).includes(dow)
-                        ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
-                        : 'border-brand-border text-brand-text-muted'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+              <div>
+                <p className="text-[12px] font-medium text-brand-text-muted mb-1.5">{t.weekdays}</p>
+                <div className="flex flex-wrap gap-1">
+                  {weekdayShort.map((label, dow) => (
+                    <button
+                      key={dow}
+                      type="button"
+                      title={label}
+                      onClick={() => toggleWeekday(slot, dow)}
+                      className={`min-w-[2rem] text-[11px] px-2 py-0.5 rounded-full border ${
+                        (slot.weekdays || []).includes(dow)
+                          ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
+                          : 'border-brand-border text-brand-text-muted'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           ))}

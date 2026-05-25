@@ -391,6 +391,11 @@ export const MESSAGES = {
       downloadSetupAmd64: '下载安装包（64 位，推荐）',
       downloadZipAmd64: '免安装 zip（64 位）',
       downloadAllReleases: '全部版本与 ARM64',
+      downloadFallbackIntro:
+        'GitHub 上最新已发布为 v{version}（与上方徽章版本不同，仅供临时安装）：',
+      downloadFallbackSetup: '安装包 v{version}（64 位）',
+      downloadFallbackZip: '免安装 zip v{version}（64 位）',
+      downloadFallbackRelease: '查看 v{version} 发布页',
       downloadArm64Hint:
         'Surface 等 ARM 电脑请在「全部版本」页下载 MesaPrintAgent-Setup-arm64.exe 或 arm64 zip。',
       downloadSmartScreen:
@@ -1142,6 +1147,11 @@ export const MESSAGES = {
       downloadSetupAmd64: 'Installer (64-bit, recommended)',
       downloadZipAmd64: 'Portable zip (64-bit)',
       downloadAllReleases: 'All releases & ARM64',
+      downloadFallbackIntro:
+        'Latest published on GitHub is v{version} (differs from the badge above — temporary install only):',
+      downloadFallbackSetup: 'Installer v{version} (64-bit)',
+      downloadFallbackZip: 'Portable zip v{version} (64-bit)',
+      downloadFallbackRelease: 'Release page v{version}',
       downloadArm64Hint:
         'For ARM64 Windows PCs, open All releases and download MesaPrintAgent-Setup-arm64.exe or the arm64 zip.',
       downloadSmartScreen:
@@ -1676,6 +1686,11 @@ export const MESSAGES = {
       downloadSetupAmd64: 'Instalador (64 bits, recomendado)',
       downloadZipAmd64: 'Zip portatil (64 bits)',
       downloadAllReleases: 'Todas as versoes e ARM64',
+      downloadFallbackIntro:
+        'Ultima versao publicada no GitHub: v{version} (diferente da insignia acima — apenas instalacao temporaria):',
+      downloadFallbackSetup: 'Instalador v{version} (64 bits)',
+      downloadFallbackZip: 'Zip portatil v{version} (64 bits)',
+      downloadFallbackRelease: 'Pagina do release v{version}',
       downloadArm64Hint:
         'Em PCs Windows ARM64, abra Todas as versoes e descarregue MesaPrintAgent-Setup-arm64.exe ou o zip arm64.',
       downloadSmartScreen:

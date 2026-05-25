@@ -9,6 +9,7 @@ import type { PrintJobSummary } from '@/types';
 import { PrintJobsQueuePanel } from '@/components/dashboard/PrintJobsQueuePanel';
 import { PrintAgentDownloadPanel } from '@/components/dashboard/PrintAgentDownloadPanel';
 import {
+  findLatestPublishedPrintAgentRelease,
   getPrintAgentDownloadUrls,
   getPrintAgentVersion,
   isPinnedPrintAgentReleaseAvailable,
@@ -64,6 +65,9 @@ export default async function PrintAssistantSettingsPage() {
   const downloadReleaseReady = printAgentVersion
     ? await isPinnedPrintAgentReleaseAvailable('setup-amd64')
     : true;
+  const publishedFallback = !downloadReleaseReady
+    ? await findLatestPublishedPrintAgentRelease()
+    : null;
 
   return (
     <div className="space-y-6">
@@ -72,6 +76,7 @@ export default async function PrintAssistantSettingsPage() {
           urls={downloadUrls}
           version={printAgentVersion}
           releaseReady={downloadReleaseReady}
+          publishedFallback={publishedFallback}
         />
       ) : null}
       <PrintAgentSchedulePanel initialForm={initialScheduleForm} />

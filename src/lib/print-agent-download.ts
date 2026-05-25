@@ -41,6 +41,13 @@ export type PrintAgentDownloadUrls = {
   releasesPage: string;
 };
 
+export type PublishedPrintAgentFallback = {
+  version: string;
+  setupAmd64: string;
+  zipAmd64: string;
+  releasesPage: string;
+};
+
 export function isPrintAgentDownloadArtifact(s: string): s is PrintAgentDownloadArtifact {
   return s in ARTIFACT_TO_FILE;
 }
@@ -109,6 +116,38 @@ export async function resolvePrintAgentGitHubDownloadUrl(
 
   const latest = latestReleaseDownloadUrl(repo, filename);
   if (await githubAssetExists(latest)) return latest;
+  return null;
+}
+
+/** Newest print-agent-v* release on GitHub that actually has installer assets. */
+export async function findLatestPublishedPrintAgentRelease(): Promise<PublishedPrintAgentFallback | null> {
+  const repo = getPrintAgentGithubRepo();
+  if (!repo) return null;
+
+  try {
+    const res = await fetch(`https://api.github.com/repos/${repo}/releases?per_page=40`, {
+      headers: { Accept: 'application/vnd.github+json' },
+      next: { revalidate: 120 },
+    });
+    if (!res.ok) return null;
+
+    const releases = (await res.json()) as Array<{ tag_name?: string }>;
+    for (const rel of releases) {
+      const tag = rel.tag_name?.trim() ?? '';
+      if (!tag.startsWith('print-agent-v')) continue;
+      const version = tag.slice('print-agent-v'.length);
+      const setupUrl = pinnedReleaseDownloadUrl(repo, version, PRINT_AGENT_GITHUB_ASSETS.setupAmd64);
+      if (!(await githubAssetExists(setupUrl))) continue;
+      return {
+        version,
+        setupAmd64: setupUrl,
+        zipAmd64: pinnedReleaseDownloadUrl(repo, version, PRINT_AGENT_GITHUB_ASSETS.portableAmd64),
+        releasesPage: `https://github.com/${repo}/releases/tag/${tag}`,
+      };
+    }
+  } catch {
+    return null;
+  }
   return null;
 }
 

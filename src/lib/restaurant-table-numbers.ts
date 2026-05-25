@@ -112,8 +112,15 @@ export function resizeTableNumbersList(current: TableNumber[], targetCount: numb
   return list;
 }
 
+export function tableNumbersEqual(a: unknown, b: unknown): boolean {
+  const left = parseStoredTableNumber(a);
+  const right = parseStoredTableNumber(b);
+  if (!left || !right) return false;
+  return left === right;
+}
+
 export function restaurantHasTableNumber(table: TableNumber, tableNumbers: TableNumber[]): boolean {
-  return tableNumbers.includes(table);
+  return tableNumbers.some((n) => tableNumbersEqual(n, table));
 }
 
 /** Table filter options: configured tables plus any labels seen in orders. */

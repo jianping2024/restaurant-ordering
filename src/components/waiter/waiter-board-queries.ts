@@ -10,7 +10,7 @@ export async function fetchWaiterBoardOrders(
   const [{ data: sessions }, { data: rows }] = await Promise.all([
     supabase
       .from('table_sessions')
-      .select('id')
+      .select('id, table_number')
       .eq('restaurant_id', restaurantId)
       .in('status', ['open', 'billing']),
     supabase
@@ -22,8 +22,18 @@ export async function fetchWaiterBoardOrders(
       .limit(200),
   ]);
   const activeIds = new Set((sessions || []).map((s) => s.id as string));
+  const activeSessionTableNumbers = Array.from(
+    new Set(
+      (sessions || [])
+        .map((s) => parseStoredTableNumber(s.table_number))
+        .filter((n): n is string => !!n),
+    ),
+  );
   const orders = (rows || []) as Order[];
-  return orders.filter((o) => !o.session_id || activeIds.has(o.session_id));
+  return {
+    orders: orders.filter((o) => !o.session_id || activeIds.has(o.session_id)),
+    activeSessionTableNumbers,
+  };
 }
 
 export async function fetchCheckoutRequestedTables(

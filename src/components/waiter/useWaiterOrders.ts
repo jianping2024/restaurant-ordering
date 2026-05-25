@@ -16,11 +16,13 @@ export function useWaiterOrders(
   const [checkoutRequestedTables, setCheckoutRequestedTables] = useState<string[]>(
     initialCheckoutRequestedTables,
   );
+  const [activeSessionTableNumbers, setActiveSessionTableNumbers] = useState<string[]>([]);
   const supabase = useMemo(() => createClient(), []);
 
   const refresh = useCallback(async () => {
     const board = await fetchWaiterBoardClient(restaurantId);
     setOrders(board.orders);
+    setActiveSessionTableNumbers(board.activeSessionTableNumbers);
     setCheckoutRequestedTables(board.checkoutRequestedTables);
   }, [restaurantId]);
 
@@ -33,5 +35,12 @@ export function useWaiterOrders(
     1200,
   );
 
-  return { orders, setOrders, checkoutRequestedTables, refresh, supabase };
+  return {
+    orders,
+    setOrders,
+    checkoutRequestedTables,
+    activeSessionTableNumbers,
+    refresh,
+    supabase,
+  };
 }

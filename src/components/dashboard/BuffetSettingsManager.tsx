@@ -882,7 +882,12 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
             size="lg"
           >
             {ruleDraft && (() => {
-              const createLocks = ruleModal?.mode === 'create' ? ruleModal.locks : undefined;
+              const fieldLocks: RuleFieldLocks | undefined =
+                ruleModal?.mode === 'edit'
+                  ? { buffet: true, slot: true, calendarKind: true }
+                  : ruleModal?.mode === 'create'
+                    ? ruleModal.locks
+                    : undefined;
               const lockedBuffetName = buffets.find((b) => b.id === ruleDraft.buffet_id)?.name ?? '';
               const lockedSlot = slots.find((s) => s.id === ruleDraft.time_slot_id);
               const lockedFieldClass =
@@ -899,7 +904,7 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                   <label className="text-brand-text-muted text-[12px]">
                     {t.ruleBuffet}
-                    {createLocks?.buffet ? (
+                    {fieldLocks?.buffet ? (
                       <p className={lockedFieldClass} aria-readonly>
                         {lockedBuffetName}
                       </p>
@@ -921,7 +926,7 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                   </label>
                   <label className="text-brand-text-muted text-[12px]">
                     {t.ruleSlot}
-                    {createLocks?.slot ? (
+                    {fieldLocks?.slot ? (
                       <p className={lockedFieldClass} aria-readonly>
                         {lockedSlot?.name ?? ''}
                         {lockedSlot ? (
@@ -949,7 +954,7 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                   <div className="sm:col-span-2">
                     <label className="text-brand-text-muted text-[12px] block">
                       {t.calendarKind}
-                      {createLocks?.calendarKind ? (
+                      {fieldLocks?.calendarKind ? (
                         <p className={lockedFieldClass} aria-readonly>
                           {dayKindLabel(ruleDraft.calendar_kind)}
                         </p>

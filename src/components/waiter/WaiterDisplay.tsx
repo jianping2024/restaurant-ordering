@@ -9,7 +9,11 @@ import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticate
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
-import { compareTableNumbers, normalizeRestaurantTableNumbers } from '@/lib/restaurant-table-numbers';
+import {
+  compareTableNumbers,
+  normalizeRestaurantTableNumbers,
+  tableNumbersEqual,
+} from '@/lib/restaurant-table-numbers';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string; table_numbers?: string[] | null };
@@ -30,7 +34,7 @@ function WaiterBoardInner({
 }: Props & { handleSignOut: () => void; exitLabel: string }) {
   const { lang } = useLanguage();
   const t = WAITER_TEXT[lang];
-  const { orders } = useWaiterOrders(
+  const { orders, checkoutRequestedTables, activeSessionTableNumbers } = useWaiterOrders(
     restaurant.id,
     initialOrders,
     initialCheckoutRequestedTables,
@@ -99,8 +103,12 @@ function WaiterBoardInner({
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
         {allTableCards.map((card) => {
-          const isActive =
-            card.pending + card.cooking + card.ready + card.buffetLines.length + card.voidableItems.length + card.voidedItems.length > 0;
+          const hasOrderActivity =
+            card.pending + card.cooking + card.ready + card.buffetLines.length + card.voidableItems.length
+            + card.voidedItems.length > 0;
+          const hasOpenSession = activeSessionTableNumbers.some((t) => tableNumbersEqual(t, card.table));
+          const hasCheckoutRequest = checkoutRequestedTables.some((t) => tableNumbersEqual(t, card.table));
+          const isActive = hasOrderActivity || hasOpenSession || hasCheckoutRequest;
           return (
             <Link
               key={card.table}

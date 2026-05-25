@@ -11,11 +11,15 @@ import {
 /** Waiter board via Supabase + RLS (no Next.js board API). */
 export async function fetchWaiterBoardClient(restaurantId: string) {
   const supabase = createClient();
-  const [orders, checkoutRequestedTables] = await Promise.all([
+  const [board, checkoutRequestedTables] = await Promise.all([
     fetchWaiterBoardOrders(supabase, restaurantId),
     fetchCheckoutRequestedTables(supabase, restaurantId),
   ]);
-  return { orders, checkoutRequestedTables };
+  return {
+    orders: board.orders,
+    activeSessionTableNumbers: board.activeSessionTableNumbers,
+    checkoutRequestedTables,
+  };
 }
 
 /** Kitchen active board via Supabase + RLS (no Next.js board API). */

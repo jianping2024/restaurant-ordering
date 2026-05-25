@@ -1,6 +1,7 @@
 import type { Order } from '@/types';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
+import { tableNumbersEqual } from '@/lib/restaurant-table-numbers';
 
 export interface WaiterTableCardData {
   table: string;
@@ -34,7 +35,7 @@ export function buildWaiterTableCard(tableNumber: string, orders: Order[]): Wait
   };
 
   orders
-    .filter((o) => o.table_number === tableNumber)
+    .filter((o) => tableNumbersEqual(o.table_number, tableNumber))
     .forEach((order) => {
       const ts = order.updated_at || order.created_at;
       if (ts && (!current.updatedAt || ts > current.updatedAt)) {

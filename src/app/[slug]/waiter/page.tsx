@@ -12,7 +12,7 @@ export default async function WaiterPage({ params }: Props) {
 
   const { data: restaurant } = await supabase
     .from('restaurants_public')
-    .select('id, name, slug')
+    .select('id, name, slug, table_numbers')
     .eq('slug', slug)
     .single();
 

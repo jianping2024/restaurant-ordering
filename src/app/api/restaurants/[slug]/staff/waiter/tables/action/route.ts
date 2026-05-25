@@ -36,9 +36,9 @@ export async function POST(
     !Number.isInteger(fromTable) ||
     !Number.isInteger(toTable) ||
     fromTable < 1 ||
-    fromTable > 30 ||
+    fromTable > 9999 ||
     toTable < 1 ||
-    toTable > 30 ||
+    toTable > 9999 ||
     fromTable === toTable
   ) {
     return NextResponse.json({ error: 'invalid_tables' }, { status: 400 });

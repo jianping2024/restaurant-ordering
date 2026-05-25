@@ -18,8 +18,11 @@ import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
+import { normalizeRestaurantTableNumbers } from '@/lib/restaurant-table-numbers';
+
 interface Props {
-  restaurant: { id: string; name: string; slug: string };
+  restaurant: { id: string; name: string; slug: string; table_numbers?: number[] | null };
+  tableNumbers?: number[];
   initialOrders?: Order[];
   initialCheckoutRequestedTables?: number[];
   initialBuffets?: Buffet[];
@@ -29,6 +32,7 @@ interface Props {
 
 function WaiterTableDetailInner({
   restaurant,
+  tableNumbers: tableNumbersProp,
   initialOrders = [],
   initialCheckoutRequestedTables = [],
   initialBuffets = [],
@@ -159,8 +163,13 @@ function WaiterTableDetailInner({
 
   const selectedCard = useMemo(() => buildWaiterTableCard(tableNumber, orders), [orders, tableNumber]);
 
+  const configuredTables = useMemo(
+    () => tableNumbersProp ?? normalizeRestaurantTableNumbers(restaurant.table_numbers),
+    [tableNumbersProp, restaurant.table_numbers],
+  );
+
   const activeTableNumbers = useMemo(() => {
-    return Array.from({ length: 30 }, (_, idx) => idx + 1).filter((table) => {
+    return configuredTables.filter((table) => {
       const c = buildWaiterTableCard(table, orders);
       return (
         c.pending > 0 ||
@@ -171,10 +180,10 @@ function WaiterTableDetailInner({
         c.voidedItems.length > 0
       );
     });
-  }, [orders]);
+  }, [configuredTables, orders]);
 
   const targetCandidates = operationType === 'transfer'
-    ? Array.from({ length: 30 }, (_, idx) => idx + 1).filter((table) => !activeTableNumbers.includes(table) || table === sourceTable)
+    ? configuredTables.filter((table) => !activeTableNumbers.includes(table) || table === sourceTable)
     : activeTableNumbers.filter((table) => table !== sourceTable);
 
   const canCloseTableCard = selectedCard.cooking === 0 && selectedCard.ready === 0;

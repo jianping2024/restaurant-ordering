@@ -1,24 +1,41 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { IntegerInput } from '@/components/ui/IntegerInput';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { showToast } from '@/components/ui/Toast';
+import {
+  RESTAURANT_TABLE_LIST_MAX,
+  RESTAURANT_TABLE_VALUE_MAX,
+  RESTAURANT_TABLE_VALUE_MIN,
+  isValidTableNumberValue,
+  normalizeRestaurantTableNumbers,
+  resizeTableNumbersList,
+} from '@/lib/restaurant-table-numbers';
 
 interface TablesManagerProps {
   restaurant: { id: string; slug: string; name: string };
+  initialTableNumbers?: number[] | null;
   embedded?: boolean;
 }
 
-export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
+export function TablesManager({ restaurant, initialTableNumbers, embedded }: TablesManagerProps) {
   const { lang } = useLanguage();
-  const [tableCount, setTableCount] = useState(10);
   const t = getMessages(lang).tables;
   const supabase = createClient();
+
+  const [tableNumbers, setTableNumbers] = useState<number[]>(() =>
+    normalizeRestaurantTableNumbers(initialTableNumbers),
+  );
+  const [savedTableNumbers, setSavedTableNumbers] = useState<number[]>(() =>
+    normalizeRestaurantTableNumbers(initialTableNumbers),
+  );
+  const [saving, setSaving] = useState(false);
 
   const [qrCodes, setQrCodes] = useState<Record<number, string>>({});
   const [staffLoginQr, setStaffLoginQr] = useState('');
@@ -34,6 +51,10 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
   const [targetTable, setTargetTable] = useState<number | null>(null);
   const [operating, setOperating] = useState(false);
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+  const dirty =
+    tableNumbers.length !== savedTableNumbers.length
+    || tableNumbers.some((n, i) => n !== savedTableNumbers[i]);
 
   const loadActiveSessions = async () => {
     const { data } = await supabase
@@ -51,13 +72,12 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurant.id]);
 
-  // 生成所有二维码
   useEffect(() => {
     const generate = async () => {
       const codes: Record<number, string> = {};
-      for (let i = 1; i <= tableCount; i++) {
-        const url = `${baseUrl}/${restaurant.slug}/menu?table=${i}`;
-        codes[i] = await QRCode.toDataURL(url, {
+      for (const tableNum of tableNumbers) {
+        const url = `${baseUrl}/${restaurant.slug}/menu?table=${tableNum}`;
+        codes[tableNum] = await QRCode.toDataURL(url, {
           width: 200,
           margin: 2,
           color: { dark: '#0f0e0c', light: '#f5f0e8' },
@@ -65,10 +85,9 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
       }
       setQrCodes(codes);
     };
-    generate();
-  }, [tableCount, restaurant.slug, baseUrl]);
+    void generate();
+  }, [tableNumbers, restaurant.slug, baseUrl]);
 
-  // 生成员工登录二维码
   useEffect(() => {
     const generateStaffQr = async () => {
       const loginUrl = `${baseUrl}/${restaurant.slug}/staff/login`;
@@ -82,7 +101,6 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
     void generateStaffQr();
   }, [restaurant.slug, baseUrl]);
 
-  // 下载单个二维码
   const downloadQR = (tableNum: number) => {
     const link = document.createElement('a');
     link.href = qrCodes[tableNum];
@@ -98,12 +116,10 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
     link.click();
   };
 
-  // 打印全部二维码
   const printAll = () => {
     const win = window.open('', '_blank');
     if (!win) return;
 
-    const items = Array.from({ length: tableCount }, (_, i) => i + 1);
     win.document.write(`
       <html>
         <head>
@@ -121,7 +137,7 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
         <body>
           <button class="no-print" onclick="window.print()" style="margin-bottom:20px;padding:8px 16px;">${t.print}</button>
           <div class="grid">
-            ${items.map(n => `
+            ${tableNumbers.map(n => `
               <div class="item">
                 <img src="${qrCodes[n] || ''}" alt="${t.table} ${n}" />
                 <h2>${restaurant.name}</h2>
@@ -134,6 +150,88 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
     `);
     win.document.close();
   };
+
+  const handleCountChange = (count: number) => {
+    setTableNumbers((prev) => resizeTableNumbersList(prev, count));
+  };
+
+  const handleTableNumberAtIndex = (index: number, next: number) => {
+    if (!isValidTableNumberValue(next)) {
+      showToast(t.invalidTableNumber, 'error');
+      return;
+    }
+    setTableNumbers((prev) => {
+      if (prev.some((n, i) => i !== index && n === next)) {
+        showToast(t.duplicateTableNumber, 'error');
+        return prev;
+      }
+      const copy = [...prev];
+      copy[index] = next;
+      return copy;
+    });
+  };
+
+  const saveTableNumbers = useCallback(async () => {
+    const occupied = new Set(activeSessions.map((s) => s.table_number));
+    const removed = savedTableNumbers.filter((n) => !tableNumbers.includes(n));
+    if (removed.some((n) => occupied.has(n))) {
+      showToast(t.cannotRemoveWithSession, 'error');
+      return;
+    }
+
+    const renames: Array<{ from: number; to: number }> = [];
+    const overlap = Math.min(savedTableNumbers.length, tableNumbers.length);
+    for (let i = 0; i < overlap; i += 1) {
+      const from = savedTableNumbers[i];
+      const to = tableNumbers[i];
+      if (from !== to) renames.push({ from, to });
+    }
+
+    setSaving(true);
+    try {
+      for (const { from, to } of renames) {
+        const { error } = await supabase.rpc('rename_restaurant_table_number', {
+          p_restaurant_id: restaurant.id,
+          p_from_table: from,
+          p_to_table: to,
+        });
+        if (error) {
+          const msg = (error.message || '').toLowerCase();
+          if (msg.includes('active_session') || msg.includes('target_table')) {
+            showToast(t.sessionConflict, 'error');
+          } else {
+            showToast(t.saveFailed, 'error');
+          }
+          return;
+        }
+      }
+
+      const { error } = await supabase
+        .from('restaurants')
+        .update({ table_numbers: tableNumbers })
+        .eq('id', restaurant.id);
+
+      if (error) {
+        showToast(t.saveFailed, 'error');
+        return;
+      }
+
+      setSavedTableNumbers([...tableNumbers]);
+      await loadActiveSessions();
+      showToast(t.savedTables, 'success');
+    } catch {
+      showToast(t.saveFailed, 'error');
+    } finally {
+      setSaving(false);
+    }
+  }, [
+    activeSessions,
+    restaurant.id,
+    savedTableNumbers,
+    supabase,
+    t,
+    tableNumbers,
+  ]);
 
   const openOperation = (type: 'transfer' | 'merge', tableNum: number) => {
     setOperationType(type);
@@ -198,13 +296,15 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
   };
 
   const occupiedTables = new Set(activeSessions.map(s => s.table_number));
-  const transferTargets = Array.from({ length: tableCount }, (_, idx) => idx + 1)
+  const transferTargets = tableNumbers
     .filter(tableNum => tableNum !== sourceTable && !occupiedTables.has(tableNum));
   const mergeTargets = activeSessions
     .map(s => s.table_number)
     .filter(tableNum => !mergeSourceTables.includes(tableNum))
     .sort((a, b) => a - b);
   const currentTargets = operationType === 'transfer' ? transferTargets : mergeTargets;
+
+  const qrReady = tableNumbers.length > 0 && tableNumbers.every((n) => qrCodes[n]);
 
   return (
     <div>
@@ -215,42 +315,59 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
         </div>
       ) : null}
 
-      {/* 桌位数量与点餐二维码 */}
       <div className="bg-brand-card border border-brand-border rounded-2xl p-6 mb-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-5">
           <div className="min-w-0">
             <h2 className="font-heading text-2xl text-brand-gold">{t.tableQrTitle}</h2>
             <p className="text-brand-text-muted text-sm mt-1">{t.tableQrDesc}</p>
           </div>
-          <Button
-            onClick={printAll}
-            variant="outline"
-            size="sm"
-            className="w-full sm:w-auto shrink-0"
-            disabled={Object.keys(qrCodes).length < tableCount}
-          >
-            {t.print}
-          </Button>
+          <div className="flex flex-col gap-2 w-full sm:w-auto shrink-0">
+            <Button
+              onClick={saveTableNumbers}
+              size="sm"
+              className="w-full sm:w-auto"
+              loading={saving}
+              disabled={!dirty || saving}
+            >
+              {saving ? t.savingTables : t.saveTables}
+            </Button>
+            <Button
+              onClick={printAll}
+              variant="outline"
+              size="sm"
+              className="w-full sm:w-auto"
+              disabled={!qrReady}
+            >
+              {t.print}
+            </Button>
+          </div>
         </div>
-        <label className="text-sm text-brand-text-muted font-medium block mb-3">{t.count}</label>
-        <div className="flex items-center gap-4 mb-6">
-          <input
-            type="range"
+        <label className="text-sm text-brand-text-muted font-medium block mb-2">{t.count}</label>
+        <div className="flex items-center gap-3 mb-6 max-w-[12rem]">
+          <IntegerInput
+            value={tableNumbers.length}
+            onChange={handleCountChange}
             min={1}
-            max={30}
-            value={tableCount}
-            onChange={e => setTableCount(Number(e.target.value))}
-            className="flex-1 accent-brand-gold"
+            max={RESTAURANT_TABLE_LIST_MAX}
+            className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
+            aria-label={t.count}
           />
-          <span className="text-brand-gold font-heading text-2xl w-10 text-center">{tableCount}</span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {Array.from({ length: tableCount }, (_, i) => i + 1).map(tableNum => (
+        {tableNumbers.map((tableNum, index) => (
           <div
-            key={tableNum}
+            key={`${index}-${tableNum}`}
             className="bg-brand-bg border border-brand-border rounded-xl p-4 text-center"
           >
-            <p className="text-brand-gold font-heading text-lg mb-3">{t.table} {tableNum}</p>
+            <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.tableNumberLabel}</label>
+            <IntegerInput
+              value={tableNum}
+              onChange={(next) => handleTableNumberAtIndex(index, next)}
+              min={RESTAURANT_TABLE_VALUE_MIN}
+              max={RESTAURANT_TABLE_VALUE_MAX}
+              className="w-full max-w-[5.5rem] mx-auto rounded-lg bg-brand-card border border-brand-border px-2 py-1.5 text-center text-brand-gold font-heading text-lg focus:outline-none focus:border-brand-gold/40 mb-3"
+              aria-label={`${t.tableNumberLabel} ${tableNum}`}
+            />
             {qrCodes[tableNum] ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -286,7 +403,6 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
         </div>
       </div>
 
-      {/* 活跃餐次操作 */}
       <div className="bg-brand-card border border-brand-border rounded-2xl p-6 mb-6">
         <div className="flex items-center justify-between gap-3 mb-4">
           <div>
@@ -332,7 +448,6 @@ export function TablesManager({ restaurant, embedded }: TablesManagerProps) {
         )}
       </div>
 
-      {/* 员工登录二维码 */}
       <div className="bg-brand-card border border-brand-border rounded-2xl p-6 mb-6">
         <h2 className="font-heading text-2xl text-brand-gold mb-2">{t.staffTitle}</h2>
         <p className="text-brand-text-muted text-sm mb-5">{t.staffDesc}</p>

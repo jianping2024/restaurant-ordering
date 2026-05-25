@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import type { BillSplit, Order } from '@/types';
 import { OrdersPageClient } from '@/components/dashboard/OrdersPageClient';
+import { normalizeRestaurantTableNumbers } from '@/lib/restaurant-table-numbers';
 
 // 订单历史页（数据在服务端获取，文案在客户端与 LanguageProvider 同步）
 export default async function OrdersPage() {
@@ -9,7 +10,7 @@ export default async function OrdersPage() {
 
   const { data: restaurant } = await supabase
     .from('restaurants')
-    .select('id')
+    .select('id, table_numbers')
     .eq('owner_id', user!.id)
     .single();
 
@@ -35,6 +36,7 @@ export default async function OrdersPage() {
     <OrdersPageClient
       orders={historicalOrders as Order[]}
       checkoutRequests={[] as BillSplit[]}
+      tableNumbers={normalizeRestaurantTableNumbers(restaurant!.table_numbers)}
       headingNavKey="orders"
       showCheckoutRequests={false}
     />

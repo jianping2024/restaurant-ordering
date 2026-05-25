@@ -1,6 +1,10 @@
 import { notFound } from 'next/navigation';
 import { WaiterTableDetail } from '@/components/waiter/WaiterTableDetail';
-import { DEMO_ORDERS, DEMO_RESTAURANT } from '@/lib/demo-data';
+import { DEMO_ORDERS, DEMO_RESTAURANT, DEMO_TABLE_NUMBERS } from '@/lib/demo-data';
+import {
+  isValidTableNumberValue,
+  restaurantHasTableNumber,
+} from '@/lib/restaurant-table-numbers';
 
 interface Props {
   params: Promise<{ table: string }>;
@@ -13,7 +17,9 @@ export const metadata = {
 export default async function DemoWaiterTablePage({ params }: Props) {
   const { table } = await params;
   const tableNum = Number(table);
-  if (!Number.isInteger(tableNum) || tableNum < 1 || tableNum > 30) notFound();
+  if (!isValidTableNumberValue(tableNum) || !restaurantHasTableNumber(tableNum, DEMO_TABLE_NUMBERS)) {
+    notFound();
+  }
 
   return (
     <WaiterTableDetail
@@ -22,6 +28,7 @@ export default async function DemoWaiterTablePage({ params }: Props) {
         name: DEMO_RESTAURANT.name,
         slug: DEMO_RESTAURANT.slug,
       }}
+      tableNumbers={DEMO_TABLE_NUMBERS}
       initialOrders={DEMO_ORDERS}
       tableNumber={tableNum}
       isDemo

@@ -7,9 +7,15 @@ export default async function SettingsTablesPage() {
 
   const { data: restaurant } = await supabase
     .from('restaurants')
-    .select('id, slug, name')
+    .select('id, slug, name, table_numbers')
     .eq('owner_id', user!.id)
     .single();
 
-  return <TablesManager embedded restaurant={restaurant!} />;
+  return (
+    <TablesManager
+      embedded
+      restaurant={restaurant!}
+      initialTableNumbers={restaurant!.table_numbers}
+    />
+  );
 }

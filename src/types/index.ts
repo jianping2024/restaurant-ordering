@@ -70,6 +70,8 @@ export interface Restaurant {
   waiter_password?: string;
   /** Ticket / station_ticket payload locale (pt = pt-PT semantics); default pt */
   print_locale?: 'zh' | 'en' | 'pt';
+  /** Configured table numbers for QR / waiter board (max 200). */
+  table_numbers?: number[];
   created_at: string;
 }
 

@@ -9,9 +9,11 @@ import { endOfMonth, format, startOfMonth, startOfToday, subDays } from 'date-fn
 import Select from 'react-select';
 import type { MultiValue, StylesConfig } from 'react-select';
 import 'react-day-picker/dist/style.css';
+import { mergeTableNumbersWithOrderHistory } from '@/lib/restaurant-table-numbers';
 
 interface Props {
   initialOrders: Order[];
+  tableNumbers?: number[];
 }
 
 interface TableOption {
@@ -19,7 +21,7 @@ interface TableOption {
   label: string;
 }
 
-export function OrdersHistoryManager({ initialOrders }: Props) {
+export function OrdersHistoryManager({ initialOrders, tableNumbers = [] }: Props) {
   const { lang } = useLanguage();
   const i18n = getMessages(lang).orderHistory;
   const locale = UI_LOCALE_BY_LANG[lang];
@@ -42,11 +44,11 @@ export function OrdersHistoryManager({ initialOrders }: Props) {
 
   const tableOptions = useMemo<TableOption[]>(
     () =>
-      Array.from({ length: 30 }, (_, idx) => idx + 1).map((tableNo) => ({
+      mergeTableNumbersWithOrderHistory(tableNumbers, initialOrders).map((tableNo) => ({
         value: tableNo,
         label: `${i18n.table} ${tableNo}`,
       })),
-    [i18n.table],
+    [i18n.table, initialOrders, tableNumbers],
   );
 
   const selectStyles = useMemo<StylesConfig<TableOption, true>>(

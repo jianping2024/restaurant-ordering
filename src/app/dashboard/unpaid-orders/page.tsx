@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import type { BillSplit, Order } from '@/types';
 import { OrdersPageClient } from '@/components/dashboard/OrdersPageClient';
+import { normalizeRestaurantTableNumbers } from '@/lib/restaurant-table-numbers';
 
 export default async function UnpaidOrdersPage() {
   const supabase = await createClient();
@@ -8,7 +9,7 @@ export default async function UnpaidOrdersPage() {
 
   const { data: restaurant } = await supabase
     .from('restaurants')
-    .select('id')
+    .select('id, table_numbers')
     .eq('owner_id', user!.id)
     .single();
 
@@ -33,6 +34,7 @@ export default async function UnpaidOrdersPage() {
     <OrdersPageClient
       orders={openOrders as Order[]}
       checkoutRequests={[] as BillSplit[]}
+      tableNumbers={normalizeRestaurantTableNumbers(restaurant!.table_numbers)}
       headingNavKey="unpaidOrders"
       showCheckoutRequests={false}
     />

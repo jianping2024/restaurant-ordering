@@ -10,6 +10,7 @@ interface Props {
   orders: Order[];
   checkoutRequests: BillSplit[];
   restaurantSlug?: string;
+  tableNumbers?: number[];
   headingTitle?: string;
   headingNavKey?: 'orders' | 'unpaidOrders' | 'checkout';
   showCheckoutRequests?: boolean;
@@ -19,6 +20,7 @@ export function OrdersPageClient({
   orders,
   checkoutRequests,
   restaurantSlug,
+  tableNumbers,
   headingTitle,
   headingNavKey,
   showCheckoutRequests = true,
@@ -43,7 +45,7 @@ export function OrdersPageClient({
         />
       )}
 
-      <OrdersHistoryManager initialOrders={orders} />
+      <OrdersHistoryManager initialOrders={orders} tableNumbers={tableNumbers} />
     </div>
   );
 }

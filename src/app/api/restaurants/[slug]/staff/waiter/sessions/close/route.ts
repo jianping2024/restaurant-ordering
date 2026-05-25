@@ -26,7 +26,7 @@ export async function POST(
   }
 
   const tableNum = Number(body.table_number);
-  if (!Number.isInteger(tableNum) || tableNum < 1 || tableNum > 30) {
+  if (!Number.isInteger(tableNum) || tableNum < 1 || tableNum > 9999) {
     return NextResponse.json({ error: 'invalid_table_number' }, { status: 400 });
   }
 

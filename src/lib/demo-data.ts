@@ -6,6 +6,8 @@ export const DEMO_RESTAURANT = {
   slug: 'demo',
 } as const;
 
+export const DEMO_TABLE_NUMBERS = Array.from({ length: 12 }, (_, i) => i + 1);
+
 const now = Date.now();
 
 export const DEMO_ORDERS: Order[] = [

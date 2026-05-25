@@ -2,6 +2,11 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { WaiterTableDetail } from '@/components/waiter/WaiterTableDetail';
 import type { Buffet } from '@/types';
+import {
+  isValidTableNumberValue,
+  normalizeRestaurantTableNumbers,
+  restaurantHasTableNumber,
+} from '@/lib/restaurant-table-numbers';
 
 interface Props {
   params: Promise<{ slug: string; table: string }>;
@@ -10,17 +15,20 @@ interface Props {
 export default async function WaiterTablePage({ params }: Props) {
   const { slug, table } = await params;
   const tableNum = Number(table);
-  if (!Number.isInteger(tableNum) || tableNum < 1 || tableNum > 30) notFound();
+  if (!isValidTableNumberValue(tableNum)) notFound();
 
   const supabase = await createClient();
 
   const { data: restaurant } = await supabase
     .from('restaurants_public')
-    .select('id, name, slug')
+    .select('id, name, slug, table_numbers')
     .eq('slug', slug)
     .single();
 
   if (!restaurant) notFound();
+
+  const tableNumbers = normalizeRestaurantTableNumbers(restaurant.table_numbers);
+  if (!restaurantHasTableNumber(tableNum, tableNumbers)) notFound();
 
   const { data: buffetRows } = await supabase
     .from('buffets')
@@ -31,6 +39,7 @@ export default async function WaiterTablePage({ params }: Props) {
   return (
     <WaiterTableDetail
       restaurant={restaurant}
+      tableNumbers={tableNumbers}
       initialBuffets={(buffetRows || []) as Buffet[]}
       tableNumber={tableNum}
     />

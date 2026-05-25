@@ -9,9 +9,11 @@ import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticate
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
+import { normalizeRestaurantTableNumbers } from '@/lib/restaurant-table-numbers';
 
 interface Props {
-  restaurant: { id: string; name: string; slug: string };
+  restaurant: { id: string; name: string; slug: string; table_numbers?: number[] | null };
+  tableNumbers?: number[];
   initialOrders?: Order[];
   initialCheckoutRequestedTables?: number[];
   isDemo?: boolean;
@@ -19,6 +21,7 @@ interface Props {
 
 function WaiterBoardInner({
   restaurant,
+  tableNumbers: tableNumbersProp,
   initialOrders = [],
   initialCheckoutRequestedTables = [],
   isDemo = false,
@@ -34,8 +37,13 @@ function WaiterBoardInner({
     true,
   );
 
+  const configuredTables = useMemo(
+    () => tableNumbersProp ?? normalizeRestaurantTableNumbers(restaurant.table_numbers),
+    [tableNumbersProp, restaurant.table_numbers],
+  );
+
   const allTableCards = useMemo(() => {
-    return Array.from({ length: 30 }, (_, idx) => idx + 1)
+    return configuredTables
       .map((table) => buildWaiterTableCard(table, orders))
       .sort((a, b) => {
         const aActive =
@@ -49,7 +57,7 @@ function WaiterBoardInner({
         if (aActive !== bActive) return bActive - aActive;
         return a.table - b.table;
       });
-  }, [orders]);
+  }, [configuredTables, orders]);
 
   const detailHref = (table: number) => (isDemo ? `/demo/waiter/${table}` : `/${restaurant.slug}/waiter/${table}`);
 

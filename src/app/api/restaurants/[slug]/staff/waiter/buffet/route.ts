@@ -39,7 +39,7 @@ export async function POST(
   const adultCount = Math.max(0, Math.floor(Number(body.adult_count) || 0));
   const childCount = Math.max(0, Math.floor(Number(body.child_count) || 0));
 
-  if (!Number.isInteger(tableNumber) || tableNumber < 1 || tableNumber > 30 || !buffetId) {
+  if (!Number.isInteger(tableNumber) || tableNumber < 1 || tableNumber > 9999 || !buffetId) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
   }
 

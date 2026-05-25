@@ -106,11 +106,11 @@ export const MESSAGES = {
       guideHide: '收起说明',
       guideShow: '查看说明',
       guideStepBuffet:
-        '「自助餐」：仅填写自助产品名称及是否启用（例如「午市自助」）。不含时间段、星期或价格。',
+        '「自助餐」：登记可供售卖的自助产品（如「海鲜自助」「基础自助」）及是否启用。名称写种类或套餐即可，勿用早/午/晚——同一产品在不同时段的价格在「价目表」里按「自助餐 × 时段」分别填写。',
       guideStepSlots:
-        '「时段」：为全店定义供餐时间段（名称、每日起止时刻、每周哪几天生效、排序）。时段不绑定某一自助种类；楼面用当前时刻匹配属于哪个时段（如午市 11:00–15:00）。',
+        '「时段」：定义全店供餐时间窗（名称、每日起止、每周生效日、排序）。时段名可用「午市」「晚市」等表示钟表区间，与自助产品名无关；楼面按当前时刻匹配时段。',
       guideStepPrices:
-        '「价目表」：为「自助餐 × 时段 × 适用日子」填写成人/儿童价，并设置「规则有效期」（该条价格从哪天用到哪天）。适用日子含平日、周末、节假日、活动日；每种组合可单独定价。',
+        '「价目表」：为「自助餐 × 时段 × 适用日子」设成人/儿童价与规则有效期。同一自助产品在午市、晚市等不同时段可有不同价格；适用日子含平日、周末、节假日、活动日。',
       guideStepSpecialDates:
         '「特殊日期」：把具体日历日标记为「节假日」或「活动日」，用于覆盖默认的平日/周末判断。仅标记日期不会写入价格，须在价目表中已有对应适用日子的价格。',
       guideResolveNote:
@@ -924,11 +924,11 @@ export const MESSAGES = {
       guideHide: 'Hide guide',
       guideShow: 'Show guide',
       guideStepBuffet:
-        'Buffets: product name and active toggle only (e.g. “Lunch buffet”). No hours, weekdays, or prices here.',
+        'Buffets: register sellable products (e.g. “Seafood buffet”, “Basic buffet”) and active toggle. Use a product or package name — not breakfast/lunch/dinner — prices per time slot are set in the price grid.',
       guideStepSlots:
-        'Time slots: restaurant-wide serving windows (name, daily start/end, which weekdays apply, sort order). Not tied to one buffet; the floor board matches the current clock to a slot (e.g. lunch 11:00–15:00).',
+        'Time slots: serving windows for the venue (name, daily start/end, weekdays, sort order). Slot names may say “Lunch” or “Dinner” for the clock window only; not the buffet product name. The floor board matches the current time.',
       guideStepPrices:
-        'Price grid: adult/child price for each buffet × slot × day type, plus rule validity (from/to dates for that row). Day types: weekday, weekend, holiday, event — priced separately.',
+        'Price grid: adult/child price for each buffet × slot × day type, plus rule validity. The same buffet can have different prices in different slots (e.g. lunch vs dinner). Day types: weekday, weekend, holiday, event.',
       guideStepSpecialDates:
         'Special dates: mark a calendar day as holiday or event day to override default weekday/weekend. Marking a day does not set a price — you still need a matching day type in the price grid.',
       guideResolveNote:
@@ -1466,11 +1466,11 @@ export const MESSAGES = {
       guideHide: 'Ocultar guia',
       guideShow: 'Ver guia',
       guideStepBuffet:
-        'Buffets: apenas nome do produto e ativo/inativo (ex.: «Buffet de almoco»). Sem horarios, dias da semana nem precos.',
+        'Buffets: registe produtos vendaveis (ex.: «Buffet de marisco», «Buffet basico») e ativo/inativo. Nome de produto ou pacote — nao almoco/jantar — precos por horario na grelha.',
       guideStepSlots:
-        'Horarios: janelas de servico para toda a casa (nome, inicio/fim diarios, dias da semana em que corre, ordem). Nao ficam ligados a um buffet; o garcom associa a hora atual a um horario (ex.: almoco 11:00–15:00).',
+        'Horarios: janelas de servico (nome, inicio/fim, dias da semana, ordem). O nome do horario pode ser «Almoco» ou «Jantar» (relogio); nao e o nome do buffet. O garcom associa a hora atual.',
       guideStepPrices:
-        'Grelha de precos: preco adulto/crianca para cada buffet × horario × tipo de dia, mais validade da regra (de/a ate quando essa linha vale). Tipos: dia util, fim de semana, feriado, evento — cada combinacao com preco proprio.',
+        'Grelha: preco adulto/crianca por buffet × horario × tipo de dia e validade. O mesmo buffet pode ter precos diferentes em horarios distintos. Tipos: dia util, fim de semana, feriado, evento.',
       guideStepSpecialDates:
         'Datas especiais: marcar um dia no calendario como feriado ou dia de evento, substituindo o dia util/fim de semana por defeito. Marcar nao define preco — e preciso a linha correspondente na grelha.',
       guideResolveNote:

@@ -7,9 +7,11 @@ import type { PrintAgentDownloadUrls } from '@/lib/print-agent-download';
 type Props = {
   urls: PrintAgentDownloadUrls;
   version: string;
+  /** False when GitHub has no assets for print-agent-v{version} (avoid /latest downgrade). */
+  releaseReady?: boolean;
 };
 
-export function PrintAgentDownloadPanel({ urls, version }: Props) {
+export function PrintAgentDownloadPanel({ urls, version, releaseReady = true }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).printAssistant;
 
@@ -30,11 +32,21 @@ export function PrintAgentDownloadPanel({ urls, version }: Props) {
             {t.downloadVersionHint.replace('{version}', version)}
           </p>
         ) : null}
+        {version && !releaseReady ? (
+          <p className="text-[13px] leading-relaxed mesa-alert-warning px-3 py-2 mt-2">
+            {t.downloadReleasePending.replace('{version}', version)}
+          </p>
+        ) : null}
       </div>
       <div className="flex flex-wrap gap-2">
         <a
           href={urls.setupAmd64}
-          className="inline-flex items-center justify-center rounded-lg bg-brand-gold text-brand-on-gold px-4 py-2 text-sm font-semibold hover:bg-brand-gold-light transition-colors"
+          aria-disabled={!releaseReady}
+          className={`inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+            releaseReady
+              ? 'bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light'
+              : 'pointer-events-none bg-brand-border text-brand-text-muted opacity-60'
+          }`}
           rel="noopener noreferrer"
           target="_blank"
         >
@@ -42,7 +54,12 @@ export function PrintAgentDownloadPanel({ urls, version }: Props) {
         </a>
         <a
           href={urls.zipAmd64}
-          className="inline-flex items-center justify-center rounded-lg border border-brand-border text-brand-text px-4 py-2 text-sm hover:border-brand-gold/50 transition-colors"
+          aria-disabled={!releaseReady}
+          className={`inline-flex items-center justify-center rounded-lg border px-4 py-2 text-sm transition-colors ${
+            releaseReady
+              ? 'border-brand-border text-brand-text hover:border-brand-gold/50'
+              : 'pointer-events-none border-brand-border text-brand-text-muted opacity-60'
+          }`}
           rel="noopener noreferrer"
           target="_blank"
         >

@@ -63,15 +63,13 @@ export function getPrintAgentVersion(): string {
   }
 }
 
-function githubDownloadCandidates(repo: string, version: string, filename: string): string[] {
-  const urls: string[] = [];
-  if (version) {
-    urls.push(
-      `https://github.com/${repo}/releases/download/print-agent-v${version}/${filename}`,
-    );
-  }
-  urls.push(`https://github.com/${repo}/releases/latest/download/${filename}`);
-  return urls;
+function pinnedReleaseDownloadUrl(repo: string, version: string, filename: string): string {
+  return `https://github.com/${repo}/releases/download/print-agent-v${version}/${filename}`;
+}
+
+/** Latest GitHub “release” pointer — only when VERSION is unset (avoid silent downgrade). */
+function latestReleaseDownloadUrl(repo: string, filename: string): string {
+  return `https://github.com/${repo}/releases/latest/download/${filename}`;
 }
 
 async function githubAssetExists(url: string): Promise<boolean> {
@@ -83,7 +81,18 @@ async function githubAssetExists(url: string): Promise<boolean> {
   }
 }
 
-/** Resolve a working GitHub download URL (pinned tag first, then latest). */
+/** Whether the pinned print-agent-v{version} asset exists on GitHub (not /latest). */
+export async function isPinnedPrintAgentReleaseAvailable(
+  artifact: PrintAgentDownloadArtifact = 'setup-amd64',
+): Promise<boolean> {
+  const repo = getPrintAgentGithubRepo();
+  const version = getPrintAgentVersion();
+  if (!repo || !version) return false;
+  const url = pinnedReleaseDownloadUrl(repo, version, ARTIFACT_TO_FILE[artifact]);
+  return githubAssetExists(url);
+}
+
+/** Resolve download URL for the version in apps/print-agent/VERSION only — never silently use /latest. */
 export async function resolvePrintAgentGitHubDownloadUrl(
   artifact: PrintAgentDownloadArtifact,
 ): Promise<string | null> {
@@ -91,11 +100,16 @@ export async function resolvePrintAgentGitHubDownloadUrl(
   if (!repo) return null;
 
   const filename = ARTIFACT_TO_FILE[artifact];
-  const candidates = githubDownloadCandidates(repo, getPrintAgentVersion(), filename);
-  for (const url of candidates) {
-    if (await githubAssetExists(url)) return url;
+  const version = getPrintAgentVersion();
+  if (version) {
+    const pinned = pinnedReleaseDownloadUrl(repo, version, filename);
+    if (await githubAssetExists(pinned)) return pinned;
+    return null;
   }
-  return candidates[candidates.length - 1] ?? null;
+
+  const latest = latestReleaseDownloadUrl(repo, filename);
+  if (await githubAssetExists(latest)) return latest;
+  return null;
 }
 
 /** Stable dashboard links on this deployment (origin required). */

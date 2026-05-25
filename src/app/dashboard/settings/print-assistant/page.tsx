@@ -11,6 +11,7 @@ import { PrintAgentDownloadPanel } from '@/components/dashboard/PrintAgentDownlo
 import {
   getPrintAgentDownloadUrls,
   getPrintAgentVersion,
+  isPinnedPrintAgentReleaseAvailable,
 } from '@/lib/print-agent-download';
 import { getSiteOrigin } from '@/lib/site-origin';
 import { PrintAgentPairingPanel } from '@/components/dashboard/PrintAgentPairingPanel';
@@ -60,11 +61,18 @@ export default async function PrintAssistantSettingsPage() {
   const siteOrigin = getSiteOrigin();
   const downloadUrls = siteOrigin ? getPrintAgentDownloadUrls(siteOrigin) : null;
   const printAgentVersion = getPrintAgentVersion();
+  const downloadReleaseReady = printAgentVersion
+    ? await isPinnedPrintAgentReleaseAvailable('setup-amd64')
+    : true;
 
   return (
     <div className="space-y-6">
       {downloadUrls ? (
-        <PrintAgentDownloadPanel urls={downloadUrls} version={printAgentVersion} />
+        <PrintAgentDownloadPanel
+          urls={downloadUrls}
+          version={printAgentVersion}
+          releaseReady={downloadReleaseReady}
+        />
       ) : null}
       <PrintAgentSchedulePanel initialForm={initialScheduleForm} />
       <PrintAgentPairingPanel />

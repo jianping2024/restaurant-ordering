@@ -384,6 +384,8 @@ export const MESSAGES = {
       downloadVersionBadge: 'v{version}',
       downloadVersionHint:
         '下载链接固定为本站地址（自动跳转到 GitHub 对应版本安装包）。徽章为当前版本 {version}；安装目录有 VERSION.txt，或运行 MesaPrintAgent.exe -version 核对。',
+      downloadReleasePending:
+        'v{version} 的安装包尚未在 GitHub 发布（不会悄悄降级到旧版）。请打开下方「全部版本」查看是否已有 print-agent-v{version}，或等待 CI 发布完成后再下载。',
       downloadSubtitle:
         '安装包向导默认勾选「当前用户登录 Windows 时自动运行 Mesa Print Agent」（可取消）；免安装 zip 不含开机自启。安装或解压后双击程序，按浏览器配对页完成连接。',
       downloadSetupAmd64: '下载安装包（64 位，推荐）',
@@ -1133,6 +1135,8 @@ export const MESSAGES = {
       downloadVersionBadge: 'v{version}',
       downloadVersionHint:
         'Download links use permanent URLs on this site (redirect to the matching GitHub release). Badge shows build {version}. Check VERSION.txt or MesaPrintAgent.exe -version.',
+      downloadReleasePending:
+        'v{version} is not published on GitHub yet (we do not redirect to an older /latest build). Open All releases for print-agent-v{version}, or retry after CI finishes.',
       downloadSubtitle:
         'The installer checks “run at Windows sign-in” by default (you can uncheck). Portable zip has no autostart. Double-click the agent and complete pairing in the browser.',
       downloadSetupAmd64: 'Installer (64-bit, recommended)',
@@ -1665,6 +1669,8 @@ export const MESSAGES = {
       downloadVersionBadge: 'v{version}',
       downloadVersionHint:
         'Links permanentes neste site (redirecionam para o release no GitHub). Insignia: versao {version}. VERSION.txt ou MesaPrintAgent.exe -version.',
+      downloadReleasePending:
+        'v{version} ainda nao esta publicado no GitHub (sem redirecionar para /latest). Abra Todas as versoes ou aguarde o CI.',
       downloadSubtitle:
         'O instalador marca por defeito «executar ao iniciar sessao no Windows» (pode desmarcar). O zip portatil nao configura arranque automatico. Duplo clique no agente e emparelhe no browser.',
       downloadSetupAmd64: 'Instalador (64 bits, recomendado)',

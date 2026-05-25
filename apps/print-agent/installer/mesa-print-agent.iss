@@ -36,9 +36,7 @@ Source: "..\dist\amd64\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\dist\amd64\VERSION.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "WINDOWS-README.txt"; DestDir: "{app}"; Flags: ignoreversion
 
-[Registry]
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "{#MyAppName}"; ValueData: """{app}\{#MyAppExe}"""; Flags: uninsdeletevalue; Tasks: autostart
-
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"
 Name: "{group}\Read me"; Filename: "{app}\WINDOWS-README.txt"
+Name: "{autostartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: autostart

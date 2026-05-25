@@ -14,7 +14,8 @@ import { Button } from '@/components/ui/Button';
 import { DecimalInput } from '@/components/ui/DecimalInput';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { BuffetFridayWeekendPanel } from '@/components/dashboard/buffet/BuffetFridayWeekendPanel';
-import { SlotTimeHmField } from '@/components/dashboard/buffet/SlotTimeHmField';
+import { BuffetTimeSlotsPanel } from '@/components/dashboard/buffet/BuffetTimeSlotsPanel';
+import { buffetFieldClass } from '@/components/dashboard/buffet/buffet-field-styles';
 import { BuffetPricePreview } from '@/components/dashboard/buffet/BuffetPricePreview';
 import { BuffetPriceMatrix } from '@/components/dashboard/buffet/BuffetPriceMatrix';
 import { BuffetCalendarPanel } from '@/components/dashboard/buffet/BuffetCalendarPanel';
@@ -631,7 +632,7 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialFridayWee
                   >
                     <input
                       key={`${b.id}-${b.name}`}
-                      className="w-full max-w-[16rem] rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text font-medium"
+                      className={`w-full max-w-[16rem] ${buffetFieldClass}`}
                       defaultValue={b.name}
                       title={t.name}
                       onBlur={(e) => {
@@ -664,77 +665,19 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialFridayWee
       )}
 
       {tab === 'slots' && (
-        <div className="bg-brand-card border border-brand-border rounded-xl p-4 space-y-4">
-          <button
-            type="button"
-            onClick={() => setPrompt({ kind: 'slot' })}
-            className="text-sm px-3 py-1.5 rounded-lg bg-brand-gold/20 text-brand-gold border border-brand-gold/35"
-          >
-            {t.addSlot}
-          </button>
-          {slots.map((slot) => (
-            <div key={slot.id} className="border border-brand-border/60 rounded-lg p-3 space-y-2">
-              <div className="flex flex-wrap gap-x-3 gap-y-2 items-end">
-                <input
-                  className="rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text min-w-[7rem] max-w-[10rem]"
-                  defaultValue={slot.name}
-                  title={t.slotName}
-                  onBlur={(e) => {
-                    const v = e.target.value.trim();
-                    if (v && v !== slot.name) void updateSlotField(slot.id, { name: v });
-                  }}
-                />
-                <SlotTimeHmField
-                  label={t.start}
-                  dbTime={slot.start_time || '11:00:00'}
-                  onCommit={(hm) => void updateSlotField(slot.id, { start_time: `${hm}:00` })}
-                />
-                <span className="pb-2.5 text-brand-text-muted text-[13px]">—</span>
-                <SlotTimeHmField
-                  label={t.end}
-                  dbTime={slot.end_time || '15:00:00'}
-                  onCommit={(hm) => void updateSlotField(slot.id, { end_time: `${hm}:00` })}
-                />
-                <label className="text-[12px] text-brand-text-muted flex flex-col gap-1">
-                  {t.sortOrder}
-                  <IntegerInput
-                    className="w-20 rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text"
-                    value={slot.sort_order ?? 0}
-                    min={0}
-                    onChange={(n) => void updateSlotField(slot.id, { sort_order: n })}
-                  />
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setConfirm({ kind: 'slot', id: slot.id })}
-                  className="text-[12px] mesa-text-danger border border-status-danger/35 px-2 py-0.5 rounded-md mb-0.5"
-                >
-                  {t.delete}
-                </button>
-              </div>
-              <div>
-                <p className="text-[12px] font-medium text-brand-text-muted mb-1.5">{t.weekdays}</p>
-                <div className="flex flex-wrap gap-1">
-                  {weekdayShort.map((label, dow) => (
-                    <button
-                      key={dow}
-                      type="button"
-                      title={label}
-                      onClick={() => toggleWeekday(slot, dow)}
-                      className={`min-w-[2rem] text-[11px] px-2 py-0.5 rounded-full border ${
-                        (slot.weekdays || []).includes(dow)
-                          ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
-                          : 'border-brand-border text-brand-text-muted'
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <BuffetTimeSlotsPanel
+          slots={slots}
+          weekdayShort={weekdayShort}
+          t={t}
+          onAdd={() => setPrompt({ kind: 'slot' })}
+          onUpdateName={(id, name) => void updateSlotField(id, { name })}
+          onUpdateStart={(id, hm) => void updateSlotField(id, { start_time: `${hm}:00` })}
+          onUpdateEnd={(id, hm) => void updateSlotField(id, { end_time: `${hm}:00` })}
+          onUpdateSort={(id, n) => void updateSlotField(id, { sort_order: n })}
+          onToggleWeekday={toggleWeekday}
+          onDelete={(id) => setConfirm({ kind: 'slot', id })}
+          onNameInvalid={() => showToast(t.slotNameRequired, 'error')}
+        />
       )}
 
       {tab === 'rules' && (

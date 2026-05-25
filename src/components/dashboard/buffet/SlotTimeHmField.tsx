@@ -10,10 +10,11 @@ type Props = {
   onCommit: (hm: string) => void;
   label?: string;
   className?: string;
+  compact?: boolean;
 };
 
 /** 24h HH:MM field; commits normalized value on blur when changed. */
-export function SlotTimeHmField({ dbTime, onCommit, label, className }: Props) {
+export function SlotTimeHmField({ dbTime, onCommit, label, className, compact }: Props) {
   const stored = dbTime?.slice(0, 5) || '12:00';
   const [draft, setDraft] = useState(stored);
 
@@ -23,6 +24,7 @@ export function SlotTimeHmField({ dbTime, onCommit, label, className }: Props) {
 
   return (
     <TimeHmInput
+      compact={compact}
       label={label}
       className={className}
       value={draft}

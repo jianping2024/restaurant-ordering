@@ -13,7 +13,8 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { DecimalInput } from '@/components/ui/DecimalInput';
 import { IntegerInput } from '@/components/ui/IntegerInput';
-import { TimeHmInput } from '@/components/ui/TimeHmInput';
+import { BuffetFridayWeekendPanel } from '@/components/dashboard/buffet/BuffetFridayWeekendPanel';
+import { SlotTimeHmField } from '@/components/dashboard/buffet/SlotTimeHmField';
 import { BuffetPricePreview } from '@/components/dashboard/buffet/BuffetPricePreview';
 import { BuffetPriceMatrix } from '@/components/dashboard/buffet/BuffetPriceMatrix';
 import { BuffetCalendarPanel } from '@/components/dashboard/buffet/BuffetCalendarPanel';
@@ -30,6 +31,7 @@ import {
 interface Props {
   restaurantId: string;
   embedded?: boolean;
+  initialFridayWeekendFrom?: string | null;
 }
 
 type PromptState = { kind: 'buffet' } | { kind: 'slot' };
@@ -105,7 +107,7 @@ function ruleToDraft(rule: BuffetPriceRule): RuleDraft {
   };
 }
 
-export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
+export function BuffetSettingsManager({ restaurantId, embedded, initialFridayWeekendFrom = null }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).buffetAdmin;
   const weekdayShort = t.weekdayShort;
@@ -136,9 +138,9 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
   const [filterDayKind, setFilterDayKind] = useState<BuffetCalendarKind | ''>('');
   const [filterStatus, setFilterStatus] = useState<RuleStatusFilter | 'all'>('all');
 
-  const [fridayWeekendFrom, setFridayWeekendFrom] = useState<string | null>(null);
-  const [fridayEnabled, setFridayEnabled] = useState(false);
-  const [fridayDraftFrom, setFridayDraftFrom] = useState('18:00');
+  const [fridayWeekendFrom, setFridayWeekendFrom] = useState<string | null>(initialFridayWeekendFrom);
+  const [fridayEnabled, setFridayEnabled] = useState(!!initialFridayWeekendFrom);
+  const [fridayDraftFrom, setFridayDraftFrom] = useState(dbTimeToHm(initialFridayWeekendFrom) || '18:00');
   const [fridaySaving, setFridaySaving] = useState(false);
 
   const dayKindLabel = useCallback(
@@ -174,14 +176,13 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
 
   const reload = useCallback(async () => {
     const client = createClient();
-    const [b, s, r, c, rest] = await Promise.all([
+    const [b, s, r, c] = await Promise.all([
       client.from('buffets').select('*').eq('restaurant_id', restaurantId).order('name'),
       client.from('buffet_time_slots').select('*').eq('restaurant_id', restaurantId).order('sort_order').order('name'),
       client.from('buffet_price_rules').select('*').eq('restaurant_id', restaurantId).order('priority', { ascending: false }),
       client.from('buffet_calendar_overrides').select('on_date, kind').eq('restaurant_id', restaurantId).order('on_date'),
-      client.from('restaurants').select('buffet_friday_weekend_from').eq('id', restaurantId).single(),
     ]);
-    if (b.error || s.error || r.error || c.error || rest.error) {
+    if (b.error || s.error || r.error || c.error) {
       showToast(t.loadError, 'error');
       return;
     }
@@ -189,10 +190,18 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
     setSlots((s.data || []) as BuffetTimeSlot[]);
     setRules((r.data || []) as BuffetPriceRule[]);
     setCalendarRows((c.data || []) as Array<{ on_date: string; kind: 'holiday' | 'special' }>);
-    const from = (rest.data?.buffet_friday_weekend_from as string | null) ?? null;
-    setFridayWeekendFrom(from);
-    setFridayEnabled(!!from);
-    setFridayDraftFrom(dbTimeToHm(from) || '18:00');
+
+    const rest = await client
+      .from('restaurants')
+      .select('buffet_friday_weekend_from')
+      .eq('id', restaurantId)
+      .maybeSingle();
+    if (!rest.error) {
+      const from = (rest.data?.buffet_friday_weekend_from as string | null) ?? null;
+      setFridayWeekendFrom(from);
+      setFridayEnabled(!!from);
+      setFridayDraftFrom(dbTimeToHm(from) || '18:00');
+    }
   }, [restaurantId, t.loadError]);
 
   useEffect(() => {
@@ -495,6 +504,33 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
 
   const showPricingTools = tab === 'rules' || tab === 'calendar';
 
+  const pricingToolsBlock = showPricingTools && (
+    <>
+      <BuffetFridayWeekendPanel
+        t={t}
+        enabled={fridayEnabled}
+        draftFrom={fridayDraftFrom}
+        savedFrom={fridayWeekendFrom}
+        saving={fridaySaving}
+        onEnabledChange={setFridayEnabled}
+        onDraftFromChange={setFridayDraftFrom}
+        onSave={() => void saveFridayPolicy()}
+      />
+      {buffets.length > 0 && (
+        <BuffetPricePreview
+          restaurantId={restaurantId}
+          buffets={buffets}
+          slots={slots}
+          calendarRows={calendarRows}
+          fridayWeekendFrom={fridayWeekendFrom}
+          t={t}
+          lang={lang}
+          dayKindLabel={dayKindLabel}
+        />
+      )}
+    </>
+  );
+
   if (loading) {
     return <p className="text-brand-text-muted text-sm">…</p>;
   }
@@ -549,47 +585,6 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
         </div>
       )}
 
-      <div className="rounded-xl border border-brand-border bg-brand-card p-4 space-y-3">
-        <div>
-          <h2 className="text-sm font-medium text-brand-text">{t.fridayWeekendTitle}</h2>
-          <p className="text-[12px] text-brand-text-muted mt-0.5 max-w-2xl">{t.fridayWeekendHint}</p>
-        </div>
-        <div className="flex flex-wrap items-end gap-4">
-          <label className="flex items-center gap-2 text-sm text-brand-text cursor-pointer">
-            <input
-              type="checkbox"
-              className="rounded border-brand-border"
-              checked={fridayEnabled}
-              onChange={(e) => setFridayEnabled(e.target.checked)}
-            />
-            {t.fridayWeekendEnable}
-          </label>
-          {fridayEnabled && (
-            <TimeHmInput
-              label={t.fridayWeekendFrom}
-              value={fridayDraftFrom}
-              onChange={setFridayDraftFrom}
-            />
-          )}
-          <Button type="button" size="sm" variant="gold" loading={fridaySaving} onClick={() => void saveFridayPolicy()}>
-            {t.save}
-          </Button>
-        </div>
-      </div>
-
-      {showPricingTools && buffets.length > 0 && (
-        <BuffetPricePreview
-          restaurantId={restaurantId}
-          buffets={buffets}
-          slots={slots}
-          calendarRows={calendarRows}
-          fridayWeekendFrom={fridayWeekendFrom}
-          t={t}
-          lang={lang}
-          dayKindLabel={dayKindLabel}
-        />
-      )}
-
       <div className="flex flex-wrap gap-2">
         {tabs.map((x) => (
           <button
@@ -608,54 +603,62 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
       </div>
 
       {tab === 'buffets' && (
-        <div className="bg-brand-card border border-brand-border rounded-xl p-4 space-y-3">
-          <button
-            type="button"
-            onClick={() => setPrompt({ kind: 'buffet' })}
-            className="text-sm px-3 py-1.5 rounded-lg bg-brand-gold/20 text-brand-gold border border-brand-gold/35"
-          >
-            {t.addBuffet}
-          </button>
+        <div className="bg-brand-card border border-brand-border rounded-xl p-4 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[13px] text-brand-text-muted max-w-xl">{t.guideStepBuffet}</p>
+            <button
+              type="button"
+              onClick={() => setPrompt({ kind: 'buffet' })}
+              className="text-sm px-3 py-1.5 rounded-lg bg-brand-gold/20 text-brand-gold border border-brand-gold/35 shrink-0"
+            >
+              {t.addBuffet}
+            </button>
+          </div>
           {buffets.length === 0 ? (
-            <p className="text-brand-text-muted text-sm">{t.addBuffet}</p>
+            <p className="text-brand-text-muted text-sm py-2">{t.addBuffet}</p>
           ) : (
-            <ul className="space-y-2">
-              {buffets.map((b) => (
-                <li
-                  key={b.id}
-                  className="flex flex-wrap items-center gap-2 justify-between border border-brand-border/60 rounded-lg px-3 py-2"
-                >
-                  <input
-                    key={`${b.id}-${b.name}`}
-                    className="rounded-lg bg-brand-bg border border-brand-border px-2 py-1 text-sm text-brand-text font-medium flex-1 min-w-[120px] max-w-md"
-                    defaultValue={b.name}
-                    title={t.name}
-                    onBlur={(e) => {
-                      const v = e.target.value.trim();
-                      if (!v) {
-                        showToast(t.buffetNameRequired, 'error');
-                        e.target.value = b.name;
-                        return;
-                      }
-                      if (v !== b.name) void updateBuffetField(b.id, { name: v });
-                    }}
-                  />
-                  <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-1 text-[13px] text-brand-text-muted">
+            <>
+              <div className="hidden sm:grid grid-cols-[minmax(0,16rem)_5rem_4.5rem] gap-x-3 px-3 text-[11px] font-medium text-brand-text-muted">
+                <span>{t.name}</span>
+                <span>{t.active}</span>
+                <span className="sr-only">{t.delete}</span>
+              </div>
+              <ul className="space-y-1.5">
+                {buffets.map((b) => (
+                  <li
+                    key={b.id}
+                    className="grid grid-cols-1 sm:grid-cols-[minmax(0,16rem)_5rem_4.5rem] gap-2 sm:gap-3 sm:items-center border border-brand-border/60 rounded-lg px-3 py-2"
+                  >
+                    <input
+                      key={`${b.id}-${b.name}`}
+                      className="w-full max-w-[16rem] rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text font-medium"
+                      defaultValue={b.name}
+                      title={t.name}
+                      onBlur={(e) => {
+                        const v = e.target.value.trim();
+                        if (!v) {
+                          showToast(t.buffetNameRequired, 'error');
+                          e.target.value = b.name;
+                          return;
+                        }
+                        if (v !== b.name) void updateBuffetField(b.id, { name: v });
+                      }}
+                    />
+                    <label className="flex items-center gap-1.5 text-[13px] text-brand-text-muted sm:justify-center">
                       <input type="checkbox" checked={b.is_active} onChange={() => void toggleBuffet(b)} />
                       {t.active}
                     </label>
                     <button
                       type="button"
                       onClick={() => setConfirm({ kind: 'buffet', row: b })}
-                      className="text-[12px] mesa-text-danger border border-status-danger/35 px-2 py-0.5 rounded-md"
+                      className="text-[12px] mesa-text-danger border border-status-danger/35 px-2 py-0.5 rounded-md w-fit"
                     >
                       {t.delete}
                     </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </div>
       )}
@@ -671,45 +674,40 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
           </button>
           {slots.map((slot) => (
             <div key={slot.id} className="border border-brand-border/60 rounded-lg p-3 space-y-2">
-              <div className="flex flex-wrap gap-2 items-center">
+              <div className="flex flex-wrap gap-x-3 gap-y-2 items-end">
                 <input
-                  className="rounded-lg bg-brand-bg border border-brand-border px-2 py-1 text-sm text-brand-text flex-1 min-w-[120px]"
+                  className="rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text min-w-[7rem] max-w-[10rem]"
                   defaultValue={slot.name}
+                  title={t.slotName}
                   onBlur={(e) => {
                     const v = e.target.value.trim();
                     if (v && v !== slot.name) void updateSlotField(slot.id, { name: v });
                   }}
                 />
-                <input
-                  type="time"
-                  className="rounded-lg bg-brand-bg border border-brand-border px-2 py-1 text-sm text-brand-text"
-                  defaultValue={slot.start_time?.slice(0, 5) || '11:00'}
-                  onBlur={(e) => {
-                    const v = e.target.value;
-                    if (v) void updateSlotField(slot.id, { start_time: `${v}:00` });
-                  }}
+                <SlotTimeHmField
+                  label={t.start}
+                  dbTime={slot.start_time || '11:00:00'}
+                  onCommit={(hm) => void updateSlotField(slot.id, { start_time: `${hm}:00` })}
                 />
-                <span className="text-brand-text-muted">—</span>
-                <input
-                  type="time"
-                  className="rounded-lg bg-brand-bg border border-brand-border px-2 py-1 text-sm text-brand-text"
-                  defaultValue={slot.end_time?.slice(0, 5) || '15:00'}
-                  onBlur={(e) => {
-                    const v = e.target.value;
-                    if (v) void updateSlotField(slot.id, { end_time: `${v}:00` });
-                  }}
+                <span className="pb-2.5 text-brand-text-muted text-[13px]">—</span>
+                <SlotTimeHmField
+                  label={t.end}
+                  dbTime={slot.end_time || '15:00:00'}
+                  onCommit={(hm) => void updateSlotField(slot.id, { end_time: `${hm}:00` })}
                 />
-                <IntegerInput
-                  className="w-20 rounded-lg bg-brand-bg border border-brand-border px-2 py-1 text-sm text-brand-text"
-                  value={slot.sort_order ?? 0}
-                  min={0}
-                  onChange={(n) => void updateSlotField(slot.id, { sort_order: n })}
-                  title={t.sortOrder}
-                />
+                <label className="text-[12px] text-brand-text-muted flex flex-col gap-1">
+                  {t.sortOrder}
+                  <IntegerInput
+                    className="w-20 rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text"
+                    value={slot.sort_order ?? 0}
+                    min={0}
+                    onChange={(n) => void updateSlotField(slot.id, { sort_order: n })}
+                  />
+                </label>
                 <button
                   type="button"
                   onClick={() => setConfirm({ kind: 'slot', id: slot.id })}
-                  className="text-[12px] mesa-text-danger border border-status-danger/35 px-2 py-0.5 rounded-md"
+                  className="text-[12px] mesa-text-danger border border-status-danger/35 px-2 py-0.5 rounded-md mb-0.5"
                 >
                   {t.delete}
                 </button>
@@ -740,7 +738,9 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
       )}
 
       {tab === 'rules' && (
-        <div className="bg-brand-card border border-brand-border rounded-xl p-4 space-y-4">
+        <div className="space-y-4">
+          {pricingToolsBlock}
+          <div className="bg-brand-card border border-brand-border rounded-xl p-4 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-[13px] text-brand-text-muted max-w-xl">{t.ruleListHint}</p>
             <div className="flex flex-wrap gap-2">
@@ -995,10 +995,11 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
                   <label className="text-brand-text-muted text-[12px]">
                     {t.ruleSlot}
                     {fieldLocks?.slot ? (
-                      <p className={lockedFieldClass} aria-readonly>
+                      <p className={`${lockedFieldClass} whitespace-nowrap`} aria-readonly>
                         {lockedSlot?.name ?? ''}
                         {lockedSlot ? (
-                          <span className="block text-[11px] text-brand-text-muted font-normal">
+                          <span className="text-brand-text-muted font-normal">
+                            {' · '}
                             {lockedSlot.start_time?.slice(0, 5)}–{lockedSlot.end_time?.slice(0, 5)}
                           </span>
                         ) : null}
@@ -1153,12 +1154,15 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
               );
             })()}
           </Modal>
+          </div>
         </div>
       )}
 
       {tab === 'calendar' && (
-        <div className="bg-brand-card border border-brand-border rounded-xl p-4">
-          <BuffetCalendarPanel
+        <div className="space-y-4">
+          {pricingToolsBlock}
+          <div className="bg-brand-card border border-brand-border rounded-xl p-4">
+            <BuffetCalendarPanel
             calendarRows={calendarRows}
             rules={rules}
             buffets={buffets}
@@ -1169,6 +1173,7 @@ export function BuffetSettingsManager({ restaurantId, embedded }: Props) {
             onRemove={(onDate) => setConfirm({ kind: 'calendar', onDate })}
             onAddRuleForKind={goAddRuleForKind}
           />
+          </div>
         </div>
       )}
     </div>

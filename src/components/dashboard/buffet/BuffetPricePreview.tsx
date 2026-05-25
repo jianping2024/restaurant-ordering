@@ -12,6 +12,7 @@ import {
   todayIsoLocal,
   type CalendarOverrideRow,
 } from '@/lib/buffet-pricing-admin';
+import { TimeHmInput } from '@/components/ui/TimeHmInput';
 import { DashboardDatePicker } from '@/components/dashboard/DashboardDatePicker';
 import { Button } from '@/components/ui/Button';
 
@@ -140,11 +141,10 @@ export function BuffetPricePreview({
         </label>
         <label className="text-brand-text-muted text-[12px]">
           {t.previewTime}
-          <input
-            type="time"
-            className="mt-0.5 block rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-brand-text"
+          <TimeHmInput
+            className="mt-0.5"
             value={time}
-            onChange={(e) => setTime(e.target.value)}
+            onChange={setTime}
           />
         </label>
         <Button type="button" size="sm" variant="gold" loading={loading} onClick={() => void runPreview()}>

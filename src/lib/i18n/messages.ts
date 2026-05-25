@@ -143,10 +143,19 @@ export const MESSAGES = {
       fridayWeekendTitle: '周五晚上按周末计价',
       fridayWeekendHint:
         '仅影响周五：到达设定时刻后按价目表中的「周末」价格匹配；周六、周日与节假日逻辑不变。关闭后周五全天按「平日」。',
+      fridayWeekendHintShort: '全店自助餐共用；周五起算时刻后匹配价目表「周末」列，须先保存。',
       fridayWeekendEnable: '启用',
-      fridayWeekendFrom: '周五起算时刻（里斯本）',
+      fridayWeekendFrom: '起算',
       fridayWeekendTimeInvalid: '请填写有效的时刻（如 18:00）。',
       fridayWeekendSaved: '已保存周五周末策略',
+      fridayWeekendStatusActive: '当前已生效：周五 {time} 起按「周末」价匹配（含海鲜等全部自助餐）',
+      fridayWeekendStatusActiveShort: '周五 {time} 起 → 周末价',
+      fridayWeekendStatusOff: '当前未启用：周五全天按「平日」价',
+      fridayWeekendStatusOffShort: '未启用',
+      fridayWeekendStatusPending: '待保存 · 周五 {time} 起',
+      fridayWeekendStatusPendingOff: '待保存 · 关闭',
+      fridayWeekendRulesHint:
+        '请在下方价目矩阵中为「周末」列填写晚市价格；周五晚上达到起算时刻后会自动使用这些价格。',
       kindHelpHoliday: '仅当该日在「特殊日期」中标记为「节假日」时适用（会覆盖同日的周末判断）。',
       kindHelpSpecial: '仅当该日在「特殊日期」中标记为「活动日」时适用（如店庆；与「节假日」分开定价）。',
       exceptionsIntro:
@@ -981,10 +990,19 @@ export const MESSAGES = {
       fridayWeekendTitle: 'Friday evening as weekend',
       fridayWeekendHint:
         'Fridays only: from the set Lisbon time onward, pricing uses Weekend rows in the grid. Sat/Sun and holidays unchanged. When off, all of Friday is Weekday.',
+      fridayWeekendHintShort: 'Applies to all buffets; after save, Friday evening uses Weekend grid rows.',
       fridayWeekendEnable: 'Enable',
-      fridayWeekendFrom: 'Friday cutoff time (Lisbon)',
+      fridayWeekendFrom: 'From',
       fridayWeekendTimeInvalid: 'Enter a valid time (e.g. 18:00).',
       fridayWeekendSaved: 'Friday weekend policy saved',
+      fridayWeekendStatusActive: 'Active: Friday from {time} uses Weekend prices (all buffets)',
+      fridayWeekendStatusActiveShort: 'Fri {time}+ → Weekend',
+      fridayWeekendStatusOff: 'Off: all of Friday uses Weekday prices',
+      fridayWeekendStatusOffShort: 'Off',
+      fridayWeekendStatusPending: 'Unsaved · Fri {time}+',
+      fridayWeekendStatusPendingOff: 'Unsaved · off',
+      fridayWeekendRulesHint:
+        'Set Weekend column prices in the grid below; Friday evening uses them after the cutoff time.',
       kindHelpHoliday: 'Only when that day is marked Holiday under Special dates (overrides weekend on that day).',
       kindHelpSpecial: 'Only when that day is marked Event day under Special dates (priced separately from holiday).',
       exceptionsIntro:
@@ -1530,10 +1548,19 @@ export const MESSAGES = {
       fridayWeekendTitle: 'Sexta a noite como fim de semana',
       fridayWeekendHint:
         'So sextas: a partir da hora de Lisboa indicada usa linhas «Fim de semana»; sab/dom e feriados inalterados. Desligado = sexta inteira e dia util.',
+      fridayWeekendHintShort: 'Todos os buffets; apos guardar, sexta a noite usa a coluna Fim de semana.',
       fridayWeekendEnable: 'Ativar',
-      fridayWeekendFrom: 'Hora de corte (sexta, Lisboa)',
+      fridayWeekendFrom: 'Desde',
       fridayWeekendTimeInvalid: 'Indique uma hora valida (ex. 18:00).',
       fridayWeekendSaved: 'Politica de sexta guardada',
+      fridayWeekendStatusActive: 'Ativo: sexta a partir de {time} usa precos de fim de semana (todos os buffets)',
+      fridayWeekendStatusActiveShort: 'Sex {time}+ → fim de semana',
+      fridayWeekendStatusOff: 'Desligado: sexta inteira usa dia util',
+      fridayWeekendStatusOffShort: 'Desligado',
+      fridayWeekendStatusPending: 'Por guardar · sex {time}+',
+      fridayWeekendStatusPendingOff: 'Por guardar · desligado',
+      fridayWeekendRulesHint:
+        'Preencha a coluna Fim de semana na grelha; a sexta a noite usa esses precos apos a hora indicada.',
       kindHelpHoliday: 'So quando o dia esta marcado Feriado em Datas especiais (substitui fim de semana nesse dia).',
       kindHelpSpecial: 'So quando o dia esta marcado Dia de evento em Datas especiais (preco separado de feriado).',
       exceptionsIntro:

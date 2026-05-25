@@ -6,11 +6,17 @@ export default async function SettingsBuffetPage() {
   const { data: { user } } = await supabase.auth.getUser();
   const { data: restaurant } = await supabase
     .from('restaurants')
-    .select('id')
+    .select('id, buffet_friday_weekend_from')
     .eq('owner_id', user!.id)
     .single();
 
   if (!restaurant) return null;
 
-  return <BuffetSettingsManager embedded restaurantId={restaurant.id} />;
+  return (
+    <BuffetSettingsManager
+      embedded
+      restaurantId={restaurant.id}
+      initialFridayWeekendFrom={restaurant.buffet_friday_weekend_from ?? null}
+    />
+  );
 }

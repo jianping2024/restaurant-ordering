@@ -21,12 +21,12 @@ import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime
 import { normalizeRestaurantTableNumbers } from '@/lib/restaurant-table-numbers';
 
 interface Props {
-  restaurant: { id: string; name: string; slug: string; table_numbers?: number[] | null };
-  tableNumbers?: number[];
+  restaurant: { id: string; name: string; slug: string; table_numbers?: string[] | null };
+  tableNumbers?: string[];
   initialOrders?: Order[];
-  initialCheckoutRequestedTables?: number[];
+  initialCheckoutRequestedTables?: string[];
   initialBuffets?: Buffet[];
-  tableNumber: number;
+  tableNumber: string;
   isDemo?: boolean;
 }
 
@@ -52,10 +52,10 @@ function WaiterTableDetailInner({
   );
 
   const [operationType, setOperationType] = useState<'transfer' | 'merge' | null>(null);
-  const [sourceTable, setSourceTable] = useState<number | null>(null);
-  const [targetTable, setTargetTable] = useState<number | null>(null);
+  const [sourceTable, setSourceTable] = useState<string | null>(null);
+  const [targetTable, setTargetTable] = useState<string | null>(null);
   const [operating, setOperating] = useState(false);
-  const [closingTable, setClosingTable] = useState<number | null>(null);
+  const [closingTable, setClosingTable] = useState<string | null>(null);
   const activeBuffets = useMemo(() => initialBuffets.filter((b) => b.is_active), [initialBuffets]);
   const [buffetId, setBuffetId] = useState<string>(() => activeBuffets[0]?.id || '');
   const [buffetAdults, setBuffetAdults] = useState(2);
@@ -189,11 +189,13 @@ function WaiterTableDetailInner({
   const canCloseTableCard = selectedCard.cooking === 0 && selectedCard.ready === 0;
 
   const boardHref = isDemo ? '/demo/waiter' : `/${restaurant.slug}/waiter`;
-  const waiterReturnPath = isDemo ? `/demo/waiter/${tableNumber}` : `/${restaurant.slug}/waiter/${tableNumber}`;
+  const waiterReturnPath = isDemo
+    ? `/demo/waiter/${encodeURIComponent(tableNumber)}`
+    : `/${restaurant.slug}/waiter/${encodeURIComponent(tableNumber)}`;
   const menuHref = isDemo
     ? `/demo/menu?table=${tableNumber}&from=waiter&return=${encodeURIComponent(waiterReturnPath)}`
     : `/${restaurant.slug}/menu?table=${tableNumber}&from=waiter&return=${encodeURIComponent(waiterReturnPath)}`;
-  const openAction = (type: 'transfer' | 'merge', table: number) => {
+  const openAction = (type: 'transfer' | 'merge', table: string) => {
     setOperationType(type);
     setSourceTable(table);
     setTargetTable(null);
@@ -285,7 +287,7 @@ function WaiterTableDetailInner({
     }
   };
 
-  const closeTableFromWaiter = async (tableNum: number) => {
+  const closeTableFromWaiter = async (tableNum: string) => {
     setClosingTable(tableNum);
     try {
       if (!isDemo) {
@@ -819,7 +821,7 @@ function WaiterTableDetailInner({
             <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.targetTable}</label>
             <select
               value={targetTable ?? ''}
-              onChange={(e) => setTargetTable(Number(e.target.value) || null)}
+              onChange={(e) => setTargetTable(e.target.value || null)}
               className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
             >
               <option value="">--</option>

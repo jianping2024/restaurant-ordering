@@ -3,7 +3,7 @@ import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
 
 export interface WaiterTableCardData {
-  table: number;
+  table: string;
   pending: number;
   cooking: number;
   ready: number;
@@ -20,7 +20,7 @@ export interface WaiterTableCardData {
   updatedAt: string;
 }
 
-export function buildWaiterTableCard(tableNumber: number, orders: Order[]): WaiterTableCardData {
+export function buildWaiterTableCard(tableNumber: string, orders: Order[]): WaiterTableCardData {
   const current: WaiterTableCardData = {
     table: tableNumber,
     pending: 0,

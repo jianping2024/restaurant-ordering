@@ -13,11 +13,11 @@ import { mergeTableNumbersWithOrderHistory } from '@/lib/restaurant-table-number
 
 interface Props {
   initialOrders: Order[];
-  tableNumbers?: number[];
+  tableNumbers?: string[];
 }
 
 interface TableOption {
-  value: number;
+  value: string;
   label: string;
 }
 

@@ -7,6 +7,7 @@ import {
   assertReceiptPrinterIdAllowed,
   loadRestaurantReceiptPrinterSnapshot,
 } from '@/lib/restaurant-receipt-printers-server';
+import { parseTableNumberParamOrNull } from '@/lib/restaurant-table-numbers';
 
 export const runtime = 'nodejs';
 
@@ -45,8 +46,8 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const tableNumber = Number(body.table_number);
-  if (!Number.isInteger(tableNumber) || tableNumber < 1 || tableNumber > 9999) {
+  const tableNumber = parseTableNumberParamOrNull(body.table_number);
+  if (!tableNumber) {
     return NextResponse.json({ error: 'invalid_table_number' }, { status: 400 });
   }
 

@@ -13,12 +13,13 @@ import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
 import { fetchKitchenBoardClient } from '@/lib/staff-board-client';
 import { useRestaurantRealtimeRefresh } from '@/lib/use-restaurant-realtime-refresh';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
+import { compareTableNumbers } from '@/lib/restaurant-table-numbers';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
   initialOrders?: Order[];
   /** 开台 / 结账中（table_sessions open|billing）的桌号，用于无待备餐单时在厨房占位 */
-  initialActiveTables?: number[];
+  initialActiveTables?: string[];
   isDemo?: boolean;
 }
 
@@ -80,7 +81,7 @@ function KitchenDisplayInner({
   const demoText = KITCHEN_DEMO_TEXT[lang];
   const locale = UI_LOCALE_BY_LANG[lang];
   const [orders, setOrders] = useState<Order[]>(initialOrders);
-  const [activeTables, setActiveTables] = useState<number[]>(initialActiveTables);
+  const [activeTables, setActiveTables] = useState<string[]>(initialActiveTables);
   const [updateConflict, setUpdateConflict] = useState(false);
   const prevOrderIds = useRef<Set<string>>(new Set(initialOrders.map((o) => o.id)));
   const supabase = createClient(); // demo realtime only
@@ -97,7 +98,7 @@ function KitchenDisplayInner({
   }, [boardOrders, activeTables]);
 
   const kitchenColumns = useMemo(() => {
-    const byTable = new Map<number, Order[]>();
+    const byTable = new Map<string, Order[]>();
     boardOrders.forEach((o) => {
       const list = byTable.get(o.table_number) || [];
       list.push(o);
@@ -108,9 +109,9 @@ function KitchenDisplayInner({
         (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
       );
     });
-    const tableNums = new Set<number>([...activeTables, ...Array.from(byTable.keys())]);
-    const sortedTables = Array.from(tableNums).sort((a, b) => a - b);
-    type Col = { kind: 'order'; order: Order } | { kind: 'placeholder'; table: number };
+    const tableNums = new Set<string>([...activeTables, ...Array.from(byTable.keys())]);
+    const sortedTables = Array.from(tableNums).sort(compareTableNumbers);
+    type Col = { kind: 'order'; order: Order } | { kind: 'placeholder'; table: string };
     const cols: Col[] = [];
     for (const tableNum of sortedTables) {
       const list = byTable.get(tableNum);
@@ -289,7 +290,7 @@ function OpenTablePlaceholder({
   table,
   labels,
 }: {
-  table: number;
+  table: string;
   labels: { table: string; openTableBadge: string; openTableIdle: string };
 }) {
   return (

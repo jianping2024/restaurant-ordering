@@ -38,7 +38,7 @@ export interface PrintJobSummary {
   created_at: string;
   error_message: string | null;
   /** From `payload.table_number` when present (e.g. station_ticket); otherwise null. */
-  table_number?: number | null;
+  table_number?: string | null;
 }
 
 export interface PrintStation {
@@ -71,7 +71,7 @@ export interface Restaurant {
   /** Ticket / station_ticket payload locale (pt = pt-PT semantics); default pt */
   print_locale?: 'zh' | 'en' | 'pt';
   /** Configured table numbers for QR / waiter board (max 200). */
-  table_numbers?: number[];
+  table_numbers?: string[];
   created_at: string;
 }
 
@@ -206,7 +206,7 @@ export interface Order {
   id: string;
   restaurant_id: string;
   session_id?: string | null;
-  table_number: number;
+  table_number: string;
   status: OrderStatus;
   items: OrderItem[];
   total_amount: number;
@@ -231,7 +231,7 @@ export interface BillSplit {
   id: string;
   restaurant_id: string;
   session_id?: string | null;
-  table_number: number;
+  table_number: string;
   order_ids: string[];
   split_mode: SplitMode;
   persons: SplitPerson[];
@@ -268,7 +268,7 @@ export interface DishFeedback {
 export interface TableSession {
   id: string;
   restaurant_id: string;
-  table_number: number;
+  table_number: string;
   status: SessionStatus;
   opened_at: string;
   closed_at?: string | null;

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { MenuPage } from '@/components/menu/MenuPage';
+import { parseTableNumberParam } from '@/lib/restaurant-table-numbers';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -10,7 +11,7 @@ interface Props {
 export default async function CustomerMenuPage({ params, searchParams }: Props) {
   const { slug } = await params;
   const { table, from, return: returnPath } = await searchParams;
-  const requestedTableNumber = parseInt(table || '1', 10) || 1;
+  const requestedTableNumber = parseTableNumberParam(table, '1');
 
   const supabase = await createClient();
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { parseTableNumberParamOrNull } from '@/lib/restaurant-table-numbers';
 
 export const runtime = 'nodejs';
 
@@ -26,21 +27,13 @@ export async function POST(
   }
 
   const action = body.action;
-  const fromTable = Number(body.from_table);
-  const toTable = Number(body.to_table);
+  const fromTable = parseTableNumberParamOrNull(body.from_table);
+  const toTable = parseTableNumberParamOrNull(body.to_table);
 
   if (action !== 'transfer' && action !== 'merge') {
     return NextResponse.json({ error: 'invalid_action' }, { status: 400 });
   }
-  if (
-    !Number.isInteger(fromTable) ||
-    !Number.isInteger(toTable) ||
-    fromTable < 1 ||
-    fromTable > 9999 ||
-    toTable < 1 ||
-    toTable > 9999 ||
-    fromTable === toTable
-  ) {
+  if (!fromTable || !toTable || fromTable === toTable) {
     return NextResponse.json({ error: 'invalid_tables' }, { status: 400 });
   }
 

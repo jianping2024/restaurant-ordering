@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -11,16 +11,17 @@ import { getMessages } from '@/lib/i18n/messages';
 import { showToast } from '@/components/ui/Toast';
 import {
   RESTAURANT_TABLE_LIST_MAX,
-  RESTAURANT_TABLE_VALUE_MAX,
-  RESTAURANT_TABLE_VALUE_MIN,
+  type TableNumber,
+  compareTableNumbers,
   isValidTableNumberValue,
   normalizeRestaurantTableNumbers,
+  normalizeTableNumberInput,
   resizeTableNumbersList,
 } from '@/lib/restaurant-table-numbers';
 
 interface TablesManagerProps {
   restaurant: { id: string; slug: string; name: string };
-  initialTableNumbers?: number[] | null;
+  initialTableNumbers?: string[] | null;
   embedded?: boolean;
 }
 
@@ -29,32 +30,40 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
   const t = getMessages(lang).tables;
   const supabase = createClient();
 
-  const [tableNumbers, setTableNumbers] = useState<number[]>(() =>
+  const [tableNumbers, setTableNumbers] = useState<TableNumber[]>(() =>
     normalizeRestaurantTableNumbers(initialTableNumbers),
   );
-  const [savedTableNumbers, setSavedTableNumbers] = useState<number[]>(() =>
+  const [savedTableNumbers, setSavedTableNumbers] = useState<TableNumber[]>(() =>
     normalizeRestaurantTableNumbers(initialTableNumbers),
   );
   const [saving, setSaving] = useState(false);
+  /** In-progress table labels; validated only on blur (not while typing). */
+  const [labelDrafts, setLabelDrafts] = useState<Record<number, string>>({});
 
-  const [qrCodes, setQrCodes] = useState<Record<number, string>>({});
+  const [qrCodes, setQrCodes] = useState<Record<string, string>>({});
   const [staffLoginQr, setStaffLoginQr] = useState('');
   const [activeSessions, setActiveSessions] = useState<Array<{
     id: string;
-    table_number: number;
+    table_number: string;
     status: 'open' | 'billing' | 'closed';
     opened_at: string;
   }>>([]);
   const [operationType, setOperationType] = useState<'transfer' | 'merge' | null>(null);
-  const [sourceTable, setSourceTable] = useState<number | null>(null);
-  const [mergeSourceTables, setMergeSourceTables] = useState<number[]>([]);
-  const [targetTable, setTargetTable] = useState<number | null>(null);
+  const [sourceTable, setSourceTable] = useState<TableNumber | null>(null);
+  const [mergeSourceTables, setMergeSourceTables] = useState<TableNumber[]>([]);
+  const [targetTable, setTargetTable] = useState<TableNumber | null>(null);
   const [operating, setOperating] = useState(false);
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-  const dirty =
-    tableNumbers.length !== savedTableNumbers.length
-    || tableNumbers.some((n, i) => n !== savedTableNumbers[i]);
+  const dirty = useMemo(() => {
+    if (tableNumbers.length !== savedTableNumbers.length) return true;
+    if (tableNumbers.some((n, i) => n !== savedTableNumbers[i])) return true;
+    return Object.entries(labelDrafts).some(([idx, draft]) => {
+      const i = Number(idx);
+      const committed = tableNumbers[i];
+      return committed !== undefined && normalizeTableNumberInput(draft) !== committed;
+    });
+  }, [labelDrafts, savedTableNumbers, tableNumbers]);
 
   const loadActiveSessions = async () => {
     const { data } = await supabase
@@ -74,9 +83,9 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
 
   useEffect(() => {
     const generate = async () => {
-      const codes: Record<number, string> = {};
+      const codes: Record<string, string> = {};
       for (const tableNum of tableNumbers) {
-        const url = `${baseUrl}/${restaurant.slug}/menu?table=${tableNum}`;
+        const url = `${baseUrl}/${restaurant.slug}/menu?table=${encodeURIComponent(tableNum)}`;
         codes[tableNum] = await QRCode.toDataURL(url, {
           width: 200,
           margin: 2,
@@ -101,7 +110,7 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
     void generateStaffQr();
   }, [restaurant.slug, baseUrl]);
 
-  const downloadQR = (tableNum: number) => {
+  const downloadQR = (tableNum: TableNumber) => {
     const link = document.createElement('a');
     link.href = qrCodes[tableNum];
     link.download = `table-${tableNum}-qr.png`;
@@ -152,38 +161,91 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
   };
 
   const handleCountChange = (count: number) => {
+    setLabelDrafts({});
     setTableNumbers((prev) => resizeTableNumbersList(prev, count));
   };
 
-  const handleTableNumberAtIndex = (index: number, next: number) => {
+  const tableLabelForInput = (index: number) =>
+    labelDrafts[index] ?? tableNumbers[index] ?? '';
+
+  const commitTableLabelAtIndex = (index: number, raw: string): boolean => {
+    const next = normalizeTableNumberInput(raw);
+    const revert = tableNumbers[index] ?? savedTableNumbers[index] ?? '';
+
     if (!isValidTableNumberValue(next)) {
       showToast(t.invalidTableNumber, 'error');
-      return;
+      setTableNumbers((prev) => {
+        const copy = [...prev];
+        if (index < copy.length) copy[index] = revert;
+        return copy;
+      });
+      return false;
+    }
+    if (tableNumbers.some((n, i) => i !== index && n === next)) {
+      showToast(t.duplicateTableNumber, 'error');
+      setTableNumbers((prev) => {
+        const copy = [...prev];
+        if (index < copy.length) copy[index] = revert;
+        return copy;
+      });
+      return false;
     }
     setTableNumbers((prev) => {
-      if (prev.some((n, i) => i !== index && n === next)) {
-        showToast(t.duplicateTableNumber, 'error');
-        return prev;
-      }
       const copy = [...prev];
-      copy[index] = next;
+      if (index < copy.length) copy[index] = next;
       return copy;
+    });
+    return true;
+  };
+
+  const blurTableLabelAtIndex = (index: number) => {
+    const raw = labelDrafts[index] ?? tableNumbers[index] ?? '';
+    commitTableLabelAtIndex(index, raw);
+    setLabelDrafts((prev) => {
+      if (!(index in prev)) return prev;
+      const next = { ...prev };
+      delete next[index];
+      return next;
     });
   };
 
+  const resolveTableNumbersForSave = (): TableNumber[] | null => {
+    const entries = Object.entries(labelDrafts);
+    const merged = [...tableNumbers];
+    for (const [idxStr, raw] of entries) {
+      const index = Number(idxStr);
+      const next = normalizeTableNumberInput(raw);
+      if (!isValidTableNumberValue(next)) {
+        showToast(t.invalidTableNumber, 'error');
+        return null;
+      }
+      if (merged.some((n, i) => i !== index && n === next)) {
+        showToast(t.duplicateTableNumber, 'error');
+        return null;
+      }
+      if (index < merged.length) merged[index] = next;
+    }
+    return merged;
+  };
+
   const saveTableNumbers = useCallback(async () => {
+    const resolvedNumbers = resolveTableNumbersForSave();
+    if (!resolvedNumbers) return;
+    setTableNumbers(resolvedNumbers);
+    setLabelDrafts({});
+
     const occupied = new Set(activeSessions.map((s) => s.table_number));
-    const removed = savedTableNumbers.filter((n) => !tableNumbers.includes(n));
+    const removed = savedTableNumbers.filter((n) => !resolvedNumbers.includes(n));
     if (removed.some((n) => occupied.has(n))) {
       showToast(t.cannotRemoveWithSession, 'error');
       return;
     }
 
-    const renames: Array<{ from: number; to: number }> = [];
-    const overlap = Math.min(savedTableNumbers.length, tableNumbers.length);
+    const renames: Array<{ from: TableNumber; to: TableNumber }> = [];
+    const overlap = Math.min(savedTableNumbers.length, resolvedNumbers.length);
     for (let i = 0; i < overlap; i += 1) {
       const from = savedTableNumbers[i];
-      const to = tableNumbers[i];
+      const to = resolvedNumbers[i];
       if (from !== to) renames.push({ from, to });
     }
 
@@ -208,7 +270,7 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
 
       const { error } = await supabase
         .from('restaurants')
-        .update({ table_numbers: tableNumbers })
+        .update({ table_numbers: resolvedNumbers })
         .eq('id', restaurant.id);
 
       if (error) {
@@ -216,7 +278,7 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
         return;
       }
 
-      setSavedTableNumbers([...tableNumbers]);
+      setSavedTableNumbers([...resolvedNumbers]);
       await loadActiveSessions();
       showToast(t.savedTables, 'success');
     } catch {
@@ -226,6 +288,7 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
     }
   }, [
     activeSessions,
+    labelDrafts,
     restaurant.id,
     savedTableNumbers,
     supabase,
@@ -233,7 +296,7 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
     tableNumbers,
   ]);
 
-  const openOperation = (type: 'transfer' | 'merge', tableNum: number) => {
+  const openOperation = (type: 'transfer' | 'merge', tableNum: TableNumber) => {
     setOperationType(type);
     setSourceTable(tableNum);
     setMergeSourceTables(type === 'merge' ? [tableNum] : []);
@@ -301,7 +364,7 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
   const mergeTargets = activeSessions
     .map(s => s.table_number)
     .filter(tableNum => !mergeSourceTables.includes(tableNum))
-    .sort((a, b) => a - b);
+    .sort(compareTableNumbers);
   const currentTargets = operationType === 'transfer' ? transferTargets : mergeTargets;
 
   const qrReady = tableNumbers.length > 0 && tableNumbers.every((n) => qrCodes[n]);
@@ -316,55 +379,78 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
       ) : null}
 
       <div className="bg-brand-card border border-brand-border rounded-2xl p-6 mb-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-5">
+        <div className="flex flex-col gap-4">
           <div className="min-w-0">
             <h2 className="font-heading text-2xl text-brand-gold">{t.tableQrTitle}</h2>
-            <p className="text-brand-text-muted text-sm mt-1">{t.tableQrDesc}</p>
+            <p className="text-brand-text-muted text-sm mt-1 max-w-2xl">{t.tableQrDesc}</p>
           </div>
-          <div className="flex flex-col gap-2 w-full sm:w-auto shrink-0">
-            <Button
-              onClick={saveTableNumbers}
-              size="sm"
-              className="w-full sm:w-auto"
-              loading={saving}
-              disabled={!dirty || saving}
-            >
-              {saving ? t.savingTables : t.saveTables}
-            </Button>
-            <Button
-              onClick={printAll}
-              variant="outline"
-              size="sm"
-              className="w-full sm:w-auto"
-              disabled={!qrReady}
-            >
-              {t.print}
-            </Button>
+
+          <div className="flex flex-col gap-3 border-t border-brand-border/60 pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <label className="inline-flex items-center gap-2 text-[13px] text-brand-text-muted">
+                <span className="whitespace-nowrap">{t.count}</span>
+                <IntegerInput
+                  value={tableNumbers.length}
+                  onChange={handleCountChange}
+                  min={1}
+                  max={RESTAURANT_TABLE_LIST_MAX}
+                  className="w-[4.25rem] rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-center text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
+                  aria-label={t.count}
+                />
+              </label>
+              <span className="text-[12px] text-brand-text-muted">
+                {t.tableCountSummary.replace('{count}', String(tableNumbers.length))}
+                {dirty ? (
+                  <span className="text-brand-gold"> · {t.unsavedChanges}</span>
+                ) : null}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={saveTableNumbers}
+                size="sm"
+                loading={saving}
+                disabled={!dirty || saving}
+              >
+                {saving ? t.savingTables : t.saveTables}
+              </Button>
+              <Button
+                onClick={printAll}
+                variant="outline"
+                size="sm"
+                disabled={!qrReady}
+              >
+                {t.print}
+              </Button>
+            </div>
           </div>
         </div>
-        <label className="text-sm text-brand-text-muted font-medium block mb-2">{t.count}</label>
-        <div className="flex items-center gap-3 mb-6 max-w-[12rem]">
-          <IntegerInput
-            value={tableNumbers.length}
-            onChange={handleCountChange}
-            min={1}
-            max={RESTAURANT_TABLE_LIST_MAX}
-            className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
-            aria-label={t.count}
-          />
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+
+        <div className="mt-5 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {tableNumbers.map((tableNum, index) => (
           <div
-            key={`${index}-${tableNum}`}
+            key={`table-slot-${index}`}
             className="bg-brand-bg border border-brand-border rounded-xl p-4 text-center"
           >
             <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.tableNumberLabel}</label>
-            <IntegerInput
-              value={tableNum}
-              onChange={(next) => handleTableNumberAtIndex(index, next)}
-              min={RESTAURANT_TABLE_VALUE_MIN}
-              max={RESTAURANT_TABLE_VALUE_MAX}
+            <input
+              type="text"
+              inputMode="text"
+              autoComplete="off"
+              spellCheck={false}
+              value={tableLabelForInput(index)}
+              onFocus={() => {
+                setLabelDrafts((prev) =>
+                  index in prev ? prev : { ...prev, [index]: tableNumbers[index] ?? '' },
+                );
+              }}
+              onChange={(e) => {
+                setLabelDrafts((prev) => ({
+                  ...prev,
+                  [index]: e.target.value,
+                }));
+              }}
+              onBlur={() => blurTableLabelAtIndex(index)}
               className="w-full max-w-[5.5rem] mx-auto rounded-lg bg-brand-card border border-brand-border px-2 py-1.5 text-center text-brand-gold font-heading text-lg focus:outline-none focus:border-brand-gold/40 mb-3"
               aria-label={`${t.tableNumberLabel} ${tableNum}`}
             />
@@ -390,7 +476,7 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
                 {t.download}
               </button>
               <a
-                href={`${baseUrl}/${restaurant.slug}/menu?table=${tableNum}`}
+                href={`${baseUrl}/${restaurant.slug}/menu?table=${encodeURIComponent(tableNum)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="text-[13px] text-brand-gold hover:underline"
@@ -505,7 +591,7 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
                         checked={checked}
                         onChange={(e) => {
                           setMergeSourceTables(prev => e.target.checked
-                            ? [...prev, session.table_number].sort((a, b) => a - b)
+                            ? [...prev, session.table_number].sort(compareTableNumbers)
                             : prev.filter(table => table !== session.table_number));
                         }}
                         className="accent-brand-gold"
@@ -518,7 +604,7 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
             ) : (
               <select
                 value={sourceTable ?? ''}
-                onChange={(e) => setSourceTable(Number(e.target.value) || null)}
+                onChange={(e) => setSourceTable(e.target.value || null)}
                 className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
               >
                 <option value="">--</option>
@@ -539,7 +625,7 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
             <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.targetTable}</label>
             <select
               value={targetTable ?? ''}
-              onChange={(e) => setTargetTable(Number(e.target.value) || null)}
+              onChange={(e) => setTargetTable(e.target.value || null)}
               className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
             >
               <option value="">--</option>

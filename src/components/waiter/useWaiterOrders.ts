@@ -9,11 +9,11 @@ import { useRestaurantRealtimeRefresh } from '@/lib/use-restaurant-realtime-refr
 export function useWaiterOrders(
   restaurantId: string,
   initialOrders: Order[],
-  initialCheckoutRequestedTables: number[],
+  initialCheckoutRequestedTables: string[],
   enabled: boolean,
 ) {
   const [orders, setOrders] = useState<Order[]>(initialOrders);
-  const [checkoutRequestedTables, setCheckoutRequestedTables] = useState<number[]>(
+  const [checkoutRequestedTables, setCheckoutRequestedTables] = useState<string[]>(
     initialCheckoutRequestedTables,
   );
   const supabase = useMemo(() => createClient(), []);

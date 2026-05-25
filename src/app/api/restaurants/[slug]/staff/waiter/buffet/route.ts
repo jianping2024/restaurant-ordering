@@ -5,6 +5,7 @@ import { deriveOrderStatusFromItems } from '@/lib/order-status';
 import { sumLineTotals } from '@/lib/cart-totals';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { OrderItem } from '@/types';
+import { parseTableNumberParamOrNull } from '@/lib/restaurant-table-numbers';
 
 export const runtime = 'nodejs';
 
@@ -34,12 +35,12 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const tableNumber = Number(body.table_number);
+  const tableNumber = parseTableNumberParamOrNull(body.table_number);
   const buffetId = typeof body.buffet_id === 'string' ? body.buffet_id : '';
   const adultCount = Math.max(0, Math.floor(Number(body.adult_count) || 0));
   const childCount = Math.max(0, Math.floor(Number(body.child_count) || 0));
 
-  if (!Number.isInteger(tableNumber) || tableNumber < 1 || tableNumber > 9999 || !buffetId) {
+  if (!tableNumber || !buffetId) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
   }
 

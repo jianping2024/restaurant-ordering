@@ -19,7 +19,7 @@ export type OrderReceiptJobPayload = {
   receipt_printer_id?: string;
   receipt_variant: ReceiptVariant;
   restaurant_name?: string;
-  table_number: number;
+  table_number: string;
   guest_count?: number;
   payer_name?: string;
   order_time?: string;
@@ -136,7 +136,7 @@ type EnqueueParams = {
   restaurantName?: string | null;
   printLocale: string | null;
   sessionId: string;
-  tableNumber: number;
+  tableNumber: string;
   variant: ReceiptVariant;
   payerName?: string;
   personAmount?: number;

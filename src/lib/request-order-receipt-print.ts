@@ -3,7 +3,7 @@ import type { ReceiptVariant } from '@/lib/order-receipt-enqueue';
 /** Fire-and-forget receipt print via print agent queue. */
 export async function requestOrderReceiptPrint(params: {
   slug: string;
-  tableNumber: number;
+  tableNumber: string;
   sessionId?: string | null;
   receiptVariant?: ReceiptVariant;
   jobType?: 'order_receipt' | 'pre_bill';

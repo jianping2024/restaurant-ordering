@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client';
 import type { Order } from '@/types';
+import { compareTableNumbers, parseStoredTableNumber } from '@/lib/restaurant-table-numbers';
 import {
   fetchCheckoutRequestedTables,
   fetchWaiterBoardOrders,
@@ -38,7 +39,11 @@ export async function fetchKitchenBoardClient(restaurantId: string) {
     (o) => !o.session_id || activeIds.has(o.session_id as string),
   );
   const activeTables = Array.from(
-    new Set((sessions || []).map((s) => s.table_number as number)),
-  ).sort((a, b) => a - b);
+    new Set(
+      (sessions || [])
+        .map((s) => parseStoredTableNumber(s.table_number))
+        .filter((n): n is string => !!n),
+    ),
+  ).sort(compareTableNumbers);
   return { orders, activeTables };
 }

@@ -10,7 +10,7 @@ interface Props {
   orders: Order[];
   checkoutRequests: BillSplit[];
   restaurantSlug?: string;
-  tableNumbers?: number[];
+  tableNumbers?: string[];
   headingTitle?: string;
   headingNavKey?: 'orders' | 'unpaidOrders' | 'checkout';
   showCheckoutRequests?: boolean;

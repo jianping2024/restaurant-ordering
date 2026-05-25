@@ -9,13 +9,13 @@ import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticate
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
-import { normalizeRestaurantTableNumbers } from '@/lib/restaurant-table-numbers';
+import { compareTableNumbers, normalizeRestaurantTableNumbers } from '@/lib/restaurant-table-numbers';
 
 interface Props {
-  restaurant: { id: string; name: string; slug: string; table_numbers?: number[] | null };
-  tableNumbers?: number[];
+  restaurant: { id: string; name: string; slug: string; table_numbers?: string[] | null };
+  tableNumbers?: string[];
   initialOrders?: Order[];
-  initialCheckoutRequestedTables?: number[];
+  initialCheckoutRequestedTables?: string[];
   isDemo?: boolean;
 }
 
@@ -55,11 +55,12 @@ function WaiterBoardInner({
             ? 1
             : 0;
         if (aActive !== bActive) return bActive - aActive;
-        return a.table - b.table;
+        return compareTableNumbers(a.table, b.table);
       });
   }, [configuredTables, orders]);
 
-  const detailHref = (table: number) => (isDemo ? `/demo/waiter/${table}` : `/${restaurant.slug}/waiter/${table}`);
+  const detailHref = (table: string) =>
+    (isDemo ? `/demo/waiter/${encodeURIComponent(table)}` : `/${restaurant.slug}/waiter/${encodeURIComponent(table)}`);
 
   return (
     <div className="min-h-screen bg-brand-bg p-4">

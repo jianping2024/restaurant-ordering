@@ -3,8 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { WaiterTableDetail } from '@/components/waiter/WaiterTableDetail';
 import type { Buffet } from '@/types';
 import {
-  isValidTableNumberValue,
   normalizeRestaurantTableNumbers,
+  parseTableNumberParamOrNull,
   restaurantHasTableNumber,
 } from '@/lib/restaurant-table-numbers';
 
@@ -14,8 +14,8 @@ interface Props {
 
 export default async function WaiterTablePage({ params }: Props) {
   const { slug, table } = await params;
-  const tableNum = Number(table);
-  if (!isValidTableNumberValue(tableNum)) notFound();
+  const tableNum = parseTableNumberParamOrNull(table);
+  if (!tableNum) notFound();
 
   const supabase = await createClient();
 

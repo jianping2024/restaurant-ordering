@@ -1,5 +1,6 @@
 import type { Order } from '@/types';
 import { createClient } from '@/lib/supabase/client';
+import { parseStoredTableNumber } from '@/lib/restaurant-table-numbers';
 
 /** 只展示仍挂在 open/billing 餐次上的订单；关台后同批订单不再出现在看板。 */
 export async function fetchWaiterBoardOrders(
@@ -34,5 +35,11 @@ export async function fetchCheckoutRequestedTables(
     .select('table_number')
     .eq('restaurant_id', restaurantId)
     .eq('status', 'requested');
-  return Array.from(new Set((data || []).map((row) => Number(row.table_number)).filter((n) => Number.isFinite(n))));
+  return Array.from(
+    new Set(
+      (data || [])
+        .map((row) => parseStoredTableNumber(row.table_number))
+        .filter((n): n is string => !!n),
+    ),
+  );
 }

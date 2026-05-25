@@ -18,7 +18,7 @@ import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-pa
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
-  tableNumber: number;
+  tableNumber: string;
   orders: Order[];
   sessionId: string | null;
   existingSplit: BillSplit | null;

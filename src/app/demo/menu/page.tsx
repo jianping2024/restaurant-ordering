@@ -1,5 +1,6 @@
 import { MenuPage } from '@/components/menu/MenuPage';
 import { DEMO_RESTAURANT } from '@/lib/demo-data';
+import { parseTableNumberParam } from '@/lib/restaurant-table-numbers';
 import type { MenuCategory, MenuItem } from '@/types';
 
 interface Props {
@@ -41,7 +42,7 @@ export const metadata = {
 
 export default async function DemoMenuPage({ searchParams }: Props) {
   const { table, from, return: returnPath } = await searchParams;
-  const tableNumber = parseInt(table || '5', 10) || 5;
+  const tableNumber = parseTableNumberParam(table, '5');
   const defaultWaiterPath = '/demo/waiter';
   const returnToWaiterHref =
     from === 'waiter'

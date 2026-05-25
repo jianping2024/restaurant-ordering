@@ -32,7 +32,7 @@ interface Props {
   };
   menuItems: MenuItem[];
   menuCategories: MenuCategory[];
-  tableNumber: number;
+  tableNumber: string;
   isDemo?: boolean;
   returnToWaiterHref?: string | null;
 }
@@ -689,7 +689,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
           )}
           <div className="mt-4 pt-3 border-t border-brand-border">
             <Link
-              href={`/${restaurant.slug}/bill?table=${tableNumber}`}
+              href={`/${restaurant.slug}/bill?table=${encodeURIComponent(tableNumber)}`}
               aria-disabled={!canGoBill}
               className={`w-full block text-center rounded-xl py-2.5 text-sm font-semibold transition-colors ${
                 canGoBill

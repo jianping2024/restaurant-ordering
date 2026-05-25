@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { BillPage } from '@/components/menu/BillPage';
 import type { BillSplit } from '@/types';
+import { parseTableNumberParam } from '@/lib/restaurant-table-numbers';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -11,7 +12,7 @@ interface Props {
 export default async function BillRoute({ params, searchParams }: Props) {
   const { slug } = await params;
   const { table, from, return: returnPath } = await searchParams;
-  const requestedTableNumber = parseInt(table || '1', 10) || 1;
+  const requestedTableNumber = parseTableNumberParam(table, '1');
 
   const supabase = await createClient();
 

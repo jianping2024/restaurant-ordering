@@ -52,7 +52,7 @@ export type StationTicketJobPayload = {
   station_display_name_pt: string;
   station_display_name_en: string | null;
   station_display_name_zh: string | null;
-  table_number: number;
+  table_number: string;
   guest_count?: number;
   order_time?: string;
   lines: Array<{
@@ -246,7 +246,7 @@ export async function enqueueStationTicketsForOrder(params: {
       .from('table_sessions')
       .select('id')
       .eq('restaurant_id', restaurantId)
-      .eq('table_number', order.table_number as number)
+      .eq('table_number', order.table_number)
       .in('status', ['open', 'billing'])
       .maybeSingle();
     if (activeSession?.id) {
@@ -331,7 +331,7 @@ export async function enqueueStationTicketsForOrder(params: {
       station_display_name_pt: stMeta.name_pt,
       station_display_name_en: stMeta.name_en,
       station_display_name_zh: stMeta.name_zh,
-      table_number: order.table_number as number,
+      table_number: order.table_number,
       ...(guestCount > 0 ? { guest_count: guestCount } : {}),
       ...(orderTime ? { order_time: orderTime } : {}),
       lines: stationLines.map((l) => {

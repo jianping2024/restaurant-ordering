@@ -6,7 +6,7 @@ export const DEMO_RESTAURANT = {
   slug: 'demo',
 } as const;
 
-export const DEMO_TABLE_NUMBERS = Array.from({ length: 12 }, (_, i) => i + 1);
+export const DEMO_TABLE_NUMBERS = Array.from({ length: 12 }, (_, i) => String(i + 1));
 
 const now = Date.now();
 
@@ -15,7 +15,7 @@ export const DEMO_ORDERS: Order[] = [
     id: 'demo-order-1',
     restaurant_id: 'demo',
     session_id: 'demo-session-1',
-    table_number: 5,
+    table_number: '5',
     status: 'pending',
     items: [
       {
@@ -50,7 +50,7 @@ export const DEMO_ORDERS: Order[] = [
     id: 'demo-order-2',
     restaurant_id: 'demo',
     session_id: 'demo-session-2',
-    table_number: 2,
+    table_number: '2',
     status: 'cooking',
     items: [
       {
@@ -88,7 +88,7 @@ export const DEMO_ORDERS: Order[] = [
     id: 'demo-order-3',
     restaurant_id: 'demo',
     session_id: 'demo-session-3',
-    table_number: 8,
+    table_number: '8',
     status: 'done',
     items: [
       {

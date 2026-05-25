@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { parseTableNumberParamOrNull } from '@/lib/restaurant-table-numbers';
 
 export const runtime = 'nodejs';
 
@@ -25,8 +26,8 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const tableNum = Number(body.table_number);
-  if (!Number.isInteger(tableNum) || tableNum < 1 || tableNum > 9999) {
+  const tableNum = parseTableNumberParamOrNull(body.table_number);
+  if (!tableNum) {
     return NextResponse.json({ error: 'invalid_table_number' }, { status: 400 });
   }
 

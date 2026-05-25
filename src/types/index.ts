@@ -62,6 +62,8 @@ export interface Restaurant {
   phone?: string;
   geo_latitude?: number | null;
   geo_longitude?: number | null;
+  /** Max distance (m) from restaurant coords for customer orders; default 50. */
+  order_radius_meters?: number;
   plan: Plan;
   /** bcrypt hash; never send to browser */
   kitchen_password?: string;
@@ -74,7 +76,14 @@ export interface Restaurant {
 /** Owner settings form (password hashes excluded). */
 export type RestaurantSettingsProfile = Pick<
   Restaurant,
-  'id' | 'name' | 'slug' | 'address' | 'phone' | 'geo_latitude' | 'geo_longitude'
+  | 'id'
+  | 'name'
+  | 'slug'
+  | 'address'
+  | 'phone'
+  | 'geo_latitude'
+  | 'geo_longitude'
+  | 'order_radius_meters'
 >;
 
 export interface MenuItem {

@@ -11,4 +11,5 @@ export function distanceMeters(lat1: number, lon1: number, lat2: number, lon2: n
   return earthRadius * c;
 }
 
+/** @deprecated Use per-restaurant `order_radius_meters`; kept for tests/fallback only. */
 export const GEO_FENCE_MAX_METERS = 50;

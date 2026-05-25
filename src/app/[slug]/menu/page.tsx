@@ -17,7 +17,7 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
   // 查询餐厅
   const { data: restaurant } = await supabase
     .from('restaurants_public')
-    .select('id, name, slug, logo_url, geo_latitude, geo_longitude')
+    .select('id, name, slug, logo_url, geo_latitude, geo_longitude, order_radius_meters')
     .eq('slug', slug)
     .single();
 

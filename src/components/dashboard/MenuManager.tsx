@@ -1181,93 +1181,83 @@ export function MenuManager({
         </div>
       ) : (
         <>
-          <div className="mb-4 flex flex-col gap-3">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 shrink-0">
-                {visibleItems.length > 0 && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => openBatchConfirm(true)}
-                      className="text-[13px] mesa-text-success hover:underline"
-                    >
-                      {t.allOn}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => openBatchConfirm(false)}
-                      className="text-[13px] mesa-text-danger hover:underline"
-                    >
-                      {t.allOff}
-                    </button>
-                    <span className="hidden sm:block h-3 w-px bg-brand-border shrink-0" aria-hidden />
-                  </>
-                )}
-                <button
-                  type="button"
-                  onClick={openItemCreateModal}
-                  className="text-[13px] font-medium text-brand-gold hover:underline"
-                >
-                  + {t.addItem}
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full min-w-0">
-                <div className="flex flex-col gap-1.5 min-w-0">
-                  <label htmlFor="menu-dish-search" className="text-sm text-brand-text-muted font-medium">
-                    {t.searchDishes}
-                  </label>
-                  <input
-                    id="menu-dish-search"
-                    type="search"
-                    value={dishSearch}
-                    onChange={(e) => setDishSearch(e.target.value)}
-                    placeholder={t.searchPlaceholder}
-                    className={MENU_TOOLBAR_CONTROL}
-                  />
-                </div>
-                {topCategories.length > 0 ? (
-                  <div className="flex flex-col gap-1.5 min-w-0">
-                    <label htmlFor="menu-item-list-filter" className="text-sm text-brand-text-muted font-medium">
-                      {t.filterDishList}
-                    </label>
-                    <div className="relative">
-                      <select
-                        id="menu-item-list-filter"
-                        value={itemListFilterValue}
-                        onChange={handleItemListFilterChange}
-                        className={`${MENU_TOOLBAR_CONTROL} appearance-none pr-10`}
-                      >
-                        <option value="all:menu">{t.filterAllTypes}</option>
-                        <option value="uncategorized">{t.filterUncategorized}</option>
-                        {groupedCategoryOptions.map(({ top, children }) => (
-                          <optgroup key={top.id} label={getCategoryLabel(top)}>
-                            <option value={`top:${top.id}`}>
-                              {t.allInTopCategory.replace('{name}', getCategoryLabel(top))}
-                            </option>
-                            {children.map((c) => (
-                              <option key={c.id} value={`cat:${c.id}`}>
-                                {`${'\u00A0\u00A0'.repeat(Math.max(0, c.depth - 1))}${c.depth > 1 ? '▸ ' : ''}${getCategoryLabel(c)}`}
-                              </option>
-                            ))}
-                          </optgroup>
-                        ))}
-                      </select>
-                      <span
-                        className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-brand-text-muted text-sm"
-                        aria-hidden
-                      >
-                        ▾
-                      </span>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
+          <div className="mb-4 flex flex-col gap-2.5">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <Button type="button" size="sm" onClick={openItemCreateModal}>
+                + {t.addItem}
+              </Button>
+              {visibleItems.length > 0 ? (
+                <>
+                  <span className="h-4 w-px bg-brand-border shrink-0" aria-hidden />
+                  <button
+                    type="button"
+                    onClick={() => openBatchConfirm(true)}
+                    className="text-[13px] mesa-text-success hover:underline"
+                  >
+                    {t.allOn}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openBatchConfirm(false)}
+                    className="text-[13px] mesa-text-danger hover:underline"
+                  >
+                    {t.allOff}
+                  </button>
+                </>
+              ) : null}
             </div>
-            {visibleItems.length > 0 && (
+            <div
+              className={`grid gap-3 min-w-0 ${
+                topCategories.length > 0 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'
+              }`}
+            >
+              <input
+                id="menu-dish-search"
+                type="search"
+                value={dishSearch}
+                onChange={(e) => setDishSearch(e.target.value)}
+                placeholder={t.searchPlaceholder}
+                aria-label={t.searchDishes}
+                className={MENU_TOOLBAR_CONTROL}
+              />
+              {topCategories.length > 0 ? (
+                <div className="relative min-w-0">
+                  <select
+                    id="menu-item-list-filter"
+                    value={itemListFilterValue}
+                    onChange={handleItemListFilterChange}
+                    aria-label={t.filterDishList}
+                    className={`${MENU_TOOLBAR_CONTROL} appearance-none pr-10`}
+                  >
+                    <option value="all:menu">{t.filterAllTypes}</option>
+                    <option value="uncategorized">{t.filterUncategorized}</option>
+                    {groupedCategoryOptions.map(({ top, children }) => (
+                      <optgroup key={top.id} label={getCategoryLabel(top)}>
+                        <option value={`top:${top.id}`}>
+                          {t.allInTopCategory.replace('{name}', getCategoryLabel(top))}
+                        </option>
+                        {children.map((c) => (
+                          <option key={c.id} value={`cat:${c.id}`}>
+                            {`${'\u00A0\u00A0'.repeat(Math.max(0, c.depth - 1))}${c.depth > 1 ? '▸ ' : ''}${getCategoryLabel(c)}`}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                  <span
+                    className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-brand-text-muted text-sm"
+                    aria-hidden
+                  >
+                    ▾
+                  </span>
+                </div>
+              ) : null}
+            </div>
+            {visibleItems.length > 0 ? (
               <p className="text-[12px] text-brand-text-muted">
                 {t.batchScopeHint.replace('{count}', String(visibleItems.length))}
               </p>
-            )}
+            ) : null}
           </div>
 
           {visibleItems.length === 0 ? (

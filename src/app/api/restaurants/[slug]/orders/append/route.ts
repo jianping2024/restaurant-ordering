@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
-import { distanceMeters, GEO_FENCE_MAX_METERS } from '@/lib/geo-distance';
+import { distanceMeters } from '@/lib/geo-distance';
+import { normalizeOrderRadiusMeters } from '@/lib/order-radius';
 import { orderEnqueueSecret, signOrderEnqueueToken } from '@/lib/order-enqueue-token';
 import { orderAppendRateLimitCheck } from '@/lib/order-append-rate-limit';
 import { deriveOrderStatusFromItems } from '@/lib/order-status';
@@ -102,7 +103,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
 
   const { data: restaurant, error: rErr } = await admin
     .from('restaurants')
-    .select('id, geo_latitude, geo_longitude')
+    .select('id, geo_latitude, geo_longitude, order_radius_meters')
     .eq('slug', slug)
     .maybeSingle();
 
@@ -134,7 +135,8 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
       Number(restaurant.geo_latitude),
       Number(restaurant.geo_longitude),
     );
-    if (dist > GEO_FENCE_MAX_METERS && !devBypass) {
+    const maxMeters = normalizeOrderRadiusMeters(restaurant.order_radius_meters);
+    if (dist > maxMeters && !devBypass) {
       return NextResponse.json({ error: 'location_too_far' }, { status: 403 });
     }
   }

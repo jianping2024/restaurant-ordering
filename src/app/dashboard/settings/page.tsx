@@ -7,7 +7,7 @@ export default async function SettingsPage() {
 
   const { data: restaurant } = await supabase
     .from('restaurants')
-    .select('id, name, slug, address, phone, geo_latitude, geo_longitude')
+    .select('id, name, slug, address, phone, geo_latitude, geo_longitude, order_radius_meters')
     .eq('owner_id', user!.id)
     .single();
 

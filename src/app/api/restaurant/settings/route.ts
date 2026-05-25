@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { parseOrderRadiusInput } from '@/lib/order-radius';
 import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
 
 export const runtime = 'nodejs';
@@ -38,6 +39,17 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'geo_invalid' }, { status: 400 });
   }
 
+  const radiusRaw =
+    typeof body.order_radius_meters === 'string'
+      ? body.order_radius_meters
+      : typeof body.order_radius_meters === 'number'
+        ? String(body.order_radius_meters)
+        : '';
+  const orderRadiusMeters = parseOrderRadiusInput(radiusRaw);
+  if (orderRadiusMeters == null) {
+    return NextResponse.json({ error: 'order_radius_invalid' }, { status: 400 });
+  }
+
   let admin;
   try {
     admin = createAdminClient();
@@ -51,6 +63,7 @@ export async function PATCH(req: Request) {
     phone: typeof body.phone === 'string' ? body.phone.trim() || null : null,
     geo_latitude: latitude,
     geo_longitude: longitude,
+    order_radius_meters: orderRadiusMeters,
   };
 
   const { error } = await admin.from('restaurants').update(update).eq('id', auth.restaurantId);
@@ -58,6 +71,12 @@ export async function PATCH(req: Request) {
   if (error) {
     if (isDbMigrationRequiredError(error)) {
       return NextResponse.json({ error: 'migration_required' }, { status: 503 });
+    }
+    if (
+      error.code === '23514' &&
+      (error.message?.includes('restaurants_order_radius_meters_check') ?? false)
+    ) {
+      return NextResponse.json({ error: 'order_radius_invalid' }, { status: 400 });
     }
     return NextResponse.json({ error: 'update_failed', message: error.message }, { status: 500 });
   }

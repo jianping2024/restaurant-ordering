@@ -6,6 +6,12 @@ import { Input } from '@/components/ui/Input';
 import type { RestaurantSettingsProfile } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
+import {
+  MAX_ORDER_RADIUS_METERS,
+  MIN_ORDER_RADIUS_METERS,
+  normalizeOrderRadiusMeters,
+  parseOrderRadiusInput,
+} from '@/lib/order-radius';
 
 export function SettingsForm({
   restaurant,
@@ -22,6 +28,7 @@ export function SettingsForm({
     phone: restaurant.phone || '',
     geo_latitude: restaurant.geo_latitude != null ? String(restaurant.geo_latitude) : '',
     geo_longitude: restaurant.geo_longitude != null ? String(restaurant.geo_longitude) : '',
+    order_radius_meters: String(normalizeOrderRadiusMeters(restaurant.order_radius_meters)),
   });
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -68,6 +75,16 @@ export function SettingsForm({
       return;
     }
 
+    const orderRadiusMeters = parseOrderRadiusInput(form.order_radius_meters);
+    if (orderRadiusMeters == null) {
+      setError(
+        t.orderRadiusInvalid
+          .replace('{min}', String(MIN_ORDER_RADIUS_METERS))
+          .replace('{max}', String(MAX_ORDER_RADIUS_METERS)),
+      );
+      return;
+    }
+
     setSaving(true);
     try {
       const payload: Record<string, string> = {
@@ -76,6 +93,7 @@ export function SettingsForm({
         phone: form.phone.trim(),
         geo_latitude: form.geo_latitude.trim(),
         geo_longitude: form.geo_longitude.trim(),
+        order_radius_meters: String(orderRadiusMeters),
       };
       const res = await fetch('/api/restaurant/settings', {
         method: 'PATCH',
@@ -88,7 +106,13 @@ export function SettingsForm({
         const json = (await res.json().catch(() => ({}))) as { error?: string };
         if (json.error === 'migration_required') setError(t.migrationRequired);
         else if (json.error === 'geo_invalid') setError(t.geoInvalid);
-        else setError(t.saveFail);
+        else if (json.error === 'order_radius_invalid') {
+          setError(
+            t.orderRadiusInvalid
+              .replace('{min}', String(MIN_ORDER_RADIUS_METERS))
+              .replace('{max}', String(MAX_ORDER_RADIUS_METERS)),
+          );
+        } else setError(t.saveFail);
         return;
       }
 
@@ -180,6 +204,23 @@ export function SettingsForm({
                 {t.useCurrentLocation}
               </button>
             </div>
+
+            <Input
+              label={t.orderRadiusMeters}
+              type="number"
+              min={MIN_ORDER_RADIUS_METERS}
+              max={MAX_ORDER_RADIUS_METERS}
+              step={1}
+              inputMode="numeric"
+              value={form.order_radius_meters}
+              onChange={(e) => setForm((f) => ({ ...f, order_radius_meters: e.target.value }))}
+              placeholder={String(MIN_ORDER_RADIUS_METERS)}
+            />
+            <p className="text-[13px] text-brand-text-muted -mt-3">
+              {t.orderRadiusHint
+                .replace('{min}', String(MIN_ORDER_RADIUS_METERS))
+                .replace('{max}', String(MAX_ORDER_RADIUS_METERS))}
+            </p>
 
             {error && (
               <p className="mesa-alert-danger text-sm px-4 py-2">

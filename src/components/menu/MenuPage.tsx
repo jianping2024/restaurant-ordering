@@ -15,12 +15,21 @@ import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
 import { showToast } from '@/components/ui/Toast';
 import { autoEnqueueStationTicketsAfterSubmit } from '@/lib/auto-enqueue-station-tickets';
+import { normalizeOrderRadiusMeters } from '@/lib/order-radius';
 
 const LANG_FLAGS: Record<Language, string> = { pt: '🇵🇹', en: '🇬🇧', zh: '🇨🇳' };
 const LANG_LABELS: Record<Language, string> = { pt: 'PT', en: 'EN', zh: '中' };
 
 interface Props {
-  restaurant: { id: string; name: string; slug: string; logo_url?: string | null; geo_latitude?: number | null; geo_longitude?: number | null };
+  restaurant: {
+    id: string;
+    name: string;
+    slug: string;
+    logo_url?: string | null;
+    geo_latitude?: number | null;
+    geo_longitude?: number | null;
+    order_radius_meters?: number | null;
+  };
   menuItems: MenuItem[];
   menuCategories: MenuCategory[];
   tableNumber: number;
@@ -343,17 +352,18 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
         latitude = position.coords.latitude;
         longitude = position.coords.longitude;
 
+        const maxMeters = normalizeOrderRadiusMeters(restaurant.order_radius_meters);
         const dist = calculateDistanceMeters(
           latitude,
           longitude,
           restaurant.geo_latitude,
           restaurant.geo_longitude,
         );
-        if (dist > 50) {
+        if (dist > maxMeters) {
           if (isLocalDevHost) {
             showToast(t.locationBypassedLocal, 'info');
           } else {
-            showToast(t.locationTooFar, 'error');
+            showToast(t.locationTooFar.replace('{meters}', String(maxMeters)), 'error');
             return;
           }
         }
@@ -401,7 +411,10 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
 
       if (!appendRes.ok) {
         const code = appendData.error || '';
-        if (code === 'location_too_far') showToast(t.locationTooFar, 'error');
+        if (code === 'location_too_far') {
+          const maxMeters = normalizeOrderRadiusMeters(restaurant.order_radius_meters);
+          showToast(t.locationTooFar.replace('{meters}', String(maxMeters)), 'error');
+        }
         else if (code === 'location_required') showToast(t.locationPermissionDenied, 'error');
         else if (code === 'session_billing') showToast(t.billDisabledHint, 'info');
         else if (code === 'rate_limited') showToast(t.printEnqueueRateLimited, 'error');

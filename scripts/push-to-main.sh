@@ -3,19 +3,20 @@
 # With open-pr.yml + automerge.yml on GitHub, merge happens automatically after `web` is green.
 #
 # Usage (from repo root, after commit):
-#   ./scripts/ship-to-main.sh
-#   ./scripts/ship-to-main.sh my-feature-branch
+#   ./scripts/push-to-main.sh
+#   ./scripts/push-to-main.sh my-feature-branch
+#   pnpm push
 #
 # Env:
-#   GH_TOKEN or GITHUB_TOKEN — optional; only needed for --wait or manual PR API calls
+#   GH_TOKEN or GITHUB_TOKEN — optional; only needed for PUSH_WAIT=1
 #   GITHUB_REPOSITORY — default jianping2024/restaurant-ordering
-#   SHIP_BASE_BRANCH — default main
+#   PUSH_BASE_BRANCH — default main
 
 set -euo pipefail
 
 REPO="${GITHUB_REPOSITORY:-jianping2024/restaurant-ordering}"
-BASE="${SHIP_BASE_BRANCH:-main}"
-WAIT="${SHIP_WAIT:-0}"
+BASE="${PUSH_BASE_BRANCH:-main}"
+WAIT="${PUSH_WAIT:-0}"
 BRANCH_ARG="${1:-}"
 
 current=$(git rev-parse --abbrev-ref HEAD)
@@ -48,7 +49,7 @@ echo "After CI (\`web\`) passes, automerge.yml will squash-merge if **Allow auto
 
 TOKEN="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
 if [[ -n "$TOKEN" && "$WAIT" == "1" ]]; then
-  echo "Waiting for PR and green checks (SHIP_WAIT=1)..."
+  echo "Waiting for PR and green checks (PUSH_WAIT=1)..."
   owner="${REPO%%/*}"
   for ((i = 1; i <= 60; i++)); do
     pr_json=$(curl -sS -H "Authorization: Bearer $TOKEN" \

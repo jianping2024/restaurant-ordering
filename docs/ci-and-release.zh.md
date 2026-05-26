@@ -41,12 +41,12 @@
 
 `main` 启用了 ruleset，**不能直接 `git push origin main`**，必须先过 **`web`** CI。
 
-### 推荐：一条命令 ship
+### 推荐：一条命令 push
 
 ```bash
 git add -A && git commit -m "your message"
-pnpm ship                    # 或 ./scripts/ship-to-main.sh
-# 可选指定分支名：pnpm ship feat/my-change
+pnpm push                    # 或 ./scripts/push-to-main.sh
+# 可选指定分支名：pnpm push feat/my-change
 ```
 
 脚本会把当前 commit 推到 `ship/…` 或当前分支；配合下面两个 workflow：
@@ -57,7 +57,7 @@ pnpm ship                    # 或 ./scripts/ship-to-main.sh
 | [`.github/workflows/automerge.yml`](../.github/workflows/automerge.yml) | PR 创建/更新后 → **开启 squash 自动合并**（CI 绿后合并） |
 
 **一次性设置**（GitHub 仓库）：`Settings → General → Pull Requests` → 勾选 **Allow auto-merge**。  
-之后 Agent / 本地只需 `commit` + `pnpm ship`，无需手工点 Merge。
+之后 Agent / 本地只需 `commit` + `pnpm push`，无需手工点 Merge。
 
 ### 保证 Web 部署可靠
 

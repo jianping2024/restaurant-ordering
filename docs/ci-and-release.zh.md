@@ -4,7 +4,8 @@
 
 | 事件 | 工作流 | 作用 |
 |------|--------|------|
-| **push 任意分支 / PR → `main`** | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `npm ci` → `lint` → `build`；job 名 **`web`**（与 ruleset 一致） |
+| **push / PR → `main`** | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `npm ci` → `lint` → `build`；job 名 **`web`** |
+| **`pnpm push`** | [scripts/push-to-main.sh](../scripts/push-to-main.sh) | 推分支 + **自动开 PR**（需 `.env.local` 里 `GH_TOKEN`）+ automerge |
 | **改 `apps/print-agent/**`** | [`.github/workflows/print-agent-ci.yml`](../.github/workflows/print-agent-ci.yml) | `go test` + Windows 交叉编译冒烟 |
 | **push tag `print-agent-v*`** | [`.github/workflows/print-agent-release.yml`](../.github/workflows/print-agent-release.yml) | 校验 VERSION=tag → test → Windows 打包 → GitHub Release → **verify-release** 断言附件存在 |
 
@@ -41,15 +42,40 @@
 
 `main` 启用了 ruleset，**不能直接 `git push origin main`**，必须先过 **`web`** CI。
 
-### 推荐：一条命令 ship
+### 一条命令 push
 
 ```bash
-git add -A && git commit -m "your message"
-pnpm ship                    # 或 ./scripts/ship-to-main.sh
-# 可选指定分支名：pnpm ship feat/my-change
+pnpm push
 ```
 
-脚本会把当前 commit 推到 `ship/…` 或当前分支；配合下面两个 workflow：
+会自动：`git add -A` → 提交 → 推到 **`ship/wip`**（固定一个分支、一个 PR）→（有 `GH_TOKEN` 时）开/更新 PR + automerge。
+
+可选：
+
+```bash
+PUSH_MESSAGE="fix table count input" pnpm push
+PUSH_BRANCH=ship/other pnpm push    # 默认 ship/wip
+pnpm push feat/my-branch            # 显式指定远程分支
+```
+
+在 `.env.local` 加一行（不要提交 git）：
+
+```
+GH_TOKEN=ghp_xxxx
+```
+
+**Token 类型（二选一）：**
+
+| 类型 | 权限 |
+|------|------|
+| **Classic（推荐）** | 勾选 **`repo`** |
+| Fine-grained | 仓库选 `restaurant-ordering` → **Pull requests: Read and write** + **Contents: Read and write** |
+
+只开 Pull requests **Read** 会导致开 PR 时 API 返回 **404**。
+
+有 token 时脚本会 **自动开 PR + 开 automerge**；没有 token 则需在 GitHub 点黄色条 **Compare & pull request**。
+
+脚本会把 commit 推到 **`ship/wip`**（或 `PUSH_BRANCH` / 命令行指定的分支）；配合下面两个 workflow：
 
 | 工作流 | 作用 |
 |--------|------|
@@ -57,7 +83,7 @@ pnpm ship                    # 或 ./scripts/ship-to-main.sh
 | [`.github/workflows/automerge.yml`](../.github/workflows/automerge.yml) | PR 创建/更新后 → **开启 squash 自动合并**（CI 绿后合并） |
 
 **一次性设置**（GitHub 仓库）：`Settings → General → Pull Requests` → 勾选 **Allow auto-merge**。  
-之后 Agent / 本地只需 `commit` + `pnpm ship`，无需手工点 Merge。
+之后 Agent / 本地只需 **`pnpm push`**，无需手工 add / commit / 开 PR。
 
 ### 保证 Web 部署可靠
 

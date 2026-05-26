@@ -12,7 +12,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "ship": "bash scripts/ship-to-main.sh"
+    "push": "bash scripts/push-to-main.sh"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",

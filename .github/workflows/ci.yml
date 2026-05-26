@@ -4,11 +4,8 @@ name: CI
 
 on:
   push:
-    branches:
-      - '**'
   pull_request:
     branches: [main]
-  # Uses workflow from main; helps when pull_request does not fire.
   pull_request_target:
     branches: [main]
   workflow_dispatch:

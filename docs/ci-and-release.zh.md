@@ -4,7 +4,8 @@
 
 | 事件 | 工作流 | 作用 |
 |------|--------|------|
-| **push 任意分支 / PR → `main`** | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `npm ci` → `lint` → `build`；job 名 **`web`**（与 ruleset 一致） |
+| **push / PR → `main`** | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `npm ci` → `lint` → `build`；job 名 **`web`** |
+| **`pnpm push`** | [scripts/push-to-main.sh](../scripts/push-to-main.sh) | 推分支 + **自动开 PR**（需 `.env.local` 里 `GH_TOKEN`）+ automerge |
 | **改 `apps/print-agent/**`** | [`.github/workflows/print-agent-ci.yml`](../.github/workflows/print-agent-ci.yml) | `go test` + Windows 交叉编译冒烟 |
 | **push tag `print-agent-v*`** | [`.github/workflows/print-agent-release.yml`](../.github/workflows/print-agent-release.yml) | 校验 VERSION=tag → test → Windows 打包 → GitHub Release → **verify-release** 断言附件存在 |
 
@@ -45,9 +46,16 @@
 
 ```bash
 git add -A && git commit -m "your message"
-pnpm push                    # 或 ./scripts/push-to-main.sh
-# 可选指定分支名：pnpm push feat/my-change
+pnpm push
 ```
+
+在 `.env.local` 加一行（不要提交 git）：
+
+```
+GH_TOKEN=ghp_xxxx   # GitHub → Settings → Developer settings → PAT，勾选 repo 权限
+```
+
+有 token 时脚本会 **自动开 PR + 开 automerge**；没有 token 则需在 GitHub 点黄色条 **Compare & pull request**。
 
 脚本会把当前 commit 推到 `ship/…` 或当前分支；配合下面两个 workflow：
 

@@ -4,6 +4,11 @@ name: Open PR
 on:
   push:
     branches-ignore: [main]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch to open PR for
+        required: true
 
 permissions:
   contents: read

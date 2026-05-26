@@ -505,6 +505,10 @@ export function MenuManager({
     if (!selectedCategoryRow) return setItemError(t.categoryRequired);
 
     const normalizedItemCode = normalizeMenuItemCode(itemForm.item_code);
+    if (!normalizedItemCode) {
+      setItemError(t.errItemCodeRequired);
+      return;
+    }
     if (menuItemHasDuplicateCode(items, normalizedItemCode, editingItem?.id)) {
       setItemError(t.errItemCodeDuplicate);
       return;
@@ -634,6 +638,10 @@ export function MenuManager({
       }
     }
     const normalizedCode = normalizeMenuItemCode(categoryDraft.item_code);
+    if (!normalizedCode) {
+      setCategoryError(t.errCategoryCodeRequired);
+      return;
+    }
     if (siblingCategoryHasDuplicateCode(categories, parentId, normalizedCode)) {
       setCategoryError(t.errCategoryCodeDuplicate);
       return;
@@ -682,6 +690,10 @@ export function MenuManager({
       return;
     }
     const normalizedCode = normalizeMenuItemCode(categoryDraft.item_code);
+    if (!normalizedCode) {
+      setCategoryError(t.errCategoryCodeRequired);
+      return;
+    }
     const parentId = selectedCategory.parent_id ?? null;
     if (siblingCategoryHasDuplicateCode(categories, parentId, normalizedCode, selectedCategory.id)) {
       setCategoryError(t.errCategoryCodeDuplicate);

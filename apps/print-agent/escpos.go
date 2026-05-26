@@ -184,14 +184,14 @@ func (p jobPayload) tableNoLabel(lab ticketLabels) string {
 	return formatTableNoLabel(lab, p.TableDisplayName)
 }
 
-// receiptHeaderTitle — pre_bill uses locale-specific title; paid receipts stay "Receipt".
-func receiptHeaderTitle(p jobPayload, variant string) string {
+// receiptHeaderTitle — receipts use English labels (lab); dish lines keep menu display names.
+func receiptHeaderTitle(variant string, lab ticketLabels) string {
 	if variant == "pre_bill" {
-		if t := strings.TrimSpace(labelsFor(p.Locale).preBill); t != "" {
+		if t := strings.TrimSpace(lab.preBill); t != "" {
 			return t
 		}
 	}
-	return receiptTicketLabels().receipt
+	return lab.receipt
 }
 
 func (p jobPayload) stationName() string {
@@ -564,7 +564,7 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 	w.align(1)
 	w.size(true, true)
 	w.bold(true)
-	w.text(receiptHeaderTitle(p, variant))
+	w.text(receiptHeaderTitle(variant, lab))
 	w.lf()
 
 	w.separator('-')

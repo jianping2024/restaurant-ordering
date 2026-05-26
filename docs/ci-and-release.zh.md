@@ -7,8 +7,8 @@
 | **PR → `main`（必过）** | **Vercel** Preview 部署 | ruleset 必过检查名：**`Vercel`** |
 | **`pnpm push`** | [scripts/push-to-main.sh](../scripts/push-to-main.sh) | 自动提交并推 `main`（Vercel Production 部署） |
 | **push / PR → `main`（可选）** | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `lint` + `build`；不参与 merge 门禁 |
-| **改 `apps/print-agent/**`** | [`.github/workflows/print-agent-ci.yml`](../.github/workflows/print-agent-ci.yml) | Go vet + 交叉编译 |
-| **push tag `print-agent-v*`** | [`.github/workflows/print-agent-release.yml`](../.github/workflows/print-agent-release.yml) | Windows 安装包 + GitHub Release |
+| **改 `apps/print-agent/**` 推 main** | [`.github/workflows/print-agent-ci.yml`](../.github/workflows/print-agent-ci.yml) | **`go test` + vet + 交叉编译**（发 tag 前应先绿） |
+| **push tag `print-agent-v*`** | [`.github/workflows/print-agent-release.yml`](../.github/workflows/print-agent-release.yml) | 先 **test-linux**，再 Windows 安装包 + GitHub Release |
 
 **Production 部署**：Vercel 在 merge `main` 后自动部署。
 
@@ -36,17 +36,52 @@ pnpm push
 
 会自动：`git add -A` → 提交 → **`git push origin main`**。
 
+若本次提交改动了 **`apps/print-agent/`**（相对上一个 `print-agent-v*` tag），且 **`VERSION` 已递增**、远程尚无对应 tag，会再自动：
+
+1. `go test` + `go vet`（同 CI）
+2. `git tag print-agent-v{VERSION}` && `git push origin` 该 tag → 触发 Windows 安装包构建
+
+跳过自动打 tag：`PUSH_SKIP_PRINT_AGENT_TAG=1 pnpm push`
+
+若改了 agent 代码但 **没 bump `VERSION`**，脚本会报错并提示先改 `apps/print-agent/VERSION`。
+
 若 GitHub ruleset 禁止直推 `main`，需暂时关闭 ruleset，或改用手动 PR。
 
 ---
 
 ## 发 Print Agent 版本
 
-1. 改 **`apps/print-agent/VERSION`**
-2. `pnpm push` 或 merge 到 `main`
-3. `git tag print-agent-v0.2.28 && git push origin print-agent-v0.2.28`
-4. 等 **Print agent release** 完成（含 verify-release）
-5. 可选：`./scripts/wait-for-github-release.sh print-agent-v0.2.28`
+**原则**：改 `escpos.go` / 路由等业务逻辑 ≠ 改打包脚本；打包路径固定（Inno + `dist/`）。失败多半是 **没跑测试就 tag**，或 **workflow YAML 写坏**（曾把 `go test` 和 `choco install` 写在同一 step 的两个 `run:` 里，导致测试被跳过）。
+
+### 发版前（本地，推荐）
+
+```bash
+./scripts/check-print-agent.sh
+# 或一步：改 VERSION 后
+./scripts/tag-print-agent.sh 0.2.31
+git push origin main   # 若 VERSION 有新提交
+git push origin print-agent-v0.2.31
+```
+
+### 发版步骤
+
+1. 改 **`apps/print-agent/VERSION`**（与将要打的 tag 一致）
+2. **`pnpm push`**（或 merge）— 确认 **Print agent CI** 在 main 上为绿
+3. **`./scripts/check-print-agent.sh`**（与 CI 相同：`go test` + `go vet`）
+4. `git tag print-agent-vX.Y.Z && git push origin print-agent-vX.Y.Z`
+5. 等 **Print agent release** 全绿（`test-linux` → Windows 打包 → `verify-release`）
+6. 在 [Releases](https://github.com/jianping2024/restaurant-ordering/releases) 确认有 **`MesaPrintAgent-Setup-amd64.exe`**（仅有 Source zip = 打包失败）
+7. 可选：`./scripts/wait-for-github-release.sh print-agent-vX.Y.Z`
+
+### 以后如何避免「业务改了却打包挂」
+
+| 层级 | 做什么 |
+|------|--------|
+| **推 main** | 改 `apps/print-agent/**` 会跑 **print-agent-ci**（含 `go test`） |
+| **打 tag** | **print-agent-release** 先跑 **test-linux**，失败则 **不会** 打 Windows 包 |
+| **本地** | tag 前跑 `./scripts/check-print-agent.sh` |
+| **不要改** | `print-agent-release.yml` 里 Inno/路径除非真要改安装方式；业务只改 `apps/print-agent/*.go` |
+| **测试写法** | 小票标题/标签用 **ASCII 英文**（`receiptTicketLabels`）；不要用 `Pré-conta` 等重音字测热敏输出 |
 
 ---
 

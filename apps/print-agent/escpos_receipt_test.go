@@ -99,8 +99,8 @@ func TestPreBillOmitsPaymentLines(t *testing.T) {
 	})
 	raw := escposFromJob(printJob{Type: "pre_bill", Payload: payload})
 	s := string(raw)
-	if !strings.Contains(s, "Pré-conta") && !strings.Contains(s, "Pr\xe9-conta") {
-		t.Fatalf("pre_bill title must be Pré-conta (default locale pt), got: %q", s)
+	if !strings.Contains(s, "Pre-Bill") {
+		t.Fatalf("pre_bill title must be English Pre-Bill (header/footer labels), got: %q", s)
 	}
 	if strings.Contains(s, "Amount Paid:") || strings.Contains(s, "Payment:") {
 		t.Fatal("pre_bill must not include payment confirmation lines")

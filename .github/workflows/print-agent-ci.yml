@@ -29,8 +29,9 @@ jobs:
           go-version: '1.22'
           cache-dependency-path: apps/print-agent/go.sum
 
-      - name: Vet and cross-compile (Linux)
+      - name: Test, vet, and cross-compile (Linux)
         run: |
+          go test ./...
           go vet ./...
           GOOS=windows GOARCH=amd64 go build -o /dev/null .
-        # Full `go test` runs on windows-latest in print-agent-release.yml (ESC/POS tests are OS/locale sensitive).
+        # Gate before tagging: print-agent-release.yml runs the same tests again, then Windows Inno build.

@@ -8,9 +8,10 @@ alwaysApply: true
 
 When you **ship web changes**, **push to `main`**, **create a tag**, or tell the user deployment/download is ready:
 
-1. **Push web changes to `main`**: Run **`pnpm push`** (auto-commit + `git push origin main`). Confirm **Vercel Production** is Ready after push — do not claim deployed until Vercel shows success.
-2. **Tag `print-agent-v*`**: Ensure `apps/print-agent/VERSION` matches tag. Push tag, wait for **Print agent release** including **verify-release**. Optionally run `scripts/wait-for-github-release.sh <tag>`.
-3. **Never** say print agent is downloadable based only on merge to `main` without the tag.
-4. If Vercel or release fails, report the failure URL before retrying.
+1. **Push web changes to `main`**: Run **`pnpm push`** (auto-commit + `git push origin main`). If `apps/print-agent/` changed vs last `print-agent-v*` tag and `VERSION` was bumped, push also auto-tags `print-agent-v{VERSION}` (unless `PUSH_SKIP_PRINT_AGENT_TAG=1`). Confirm **Vercel Production** is Ready after push — do not claim deployed until Vercel shows success.
+2. **Tag `print-agent-v*`**: Run `scripts/check-print-agent.sh` first (or `scripts/tag-print-agent.sh`). Ensure `apps/print-agent/VERSION` matches tag. Push tag; wait for **Print agent release** (`test-linux` + Windows + **verify-release**). Release must list `MesaPrintAgent-Setup-amd64.exe` — not tag-only Source zip. Optionally `scripts/wait-for-github-release.sh <tag>`.
+3. **Print-agent code changes**: Do not edit `print-agent-release.yml` unless changing the installer pipeline. Business logic stays in `apps/print-agent/*.go`; rely on print-agent-ci + test-linux for tests.
+4. **Never** say print agent is downloadable based only on merge to `main` without the tag.
+5. If Vercel or release fails, report the failure URL before retrying.
 
 See `docs/ci-and-release.zh.md`.

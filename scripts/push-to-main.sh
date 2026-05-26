@@ -9,9 +9,11 @@
 # Env:
 #   PUSH_MESSAGE — override auto-generated commit message
 #   PUSH_BASE_BRANCH — default main
+#   PUSH_SKIP_PRINT_AGENT_TAG=1 — do not auto-tag/push print-agent-v* after main push
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BASE="${PUSH_BASE_BRANCH:-main}"
 BRANCH_ARG="${1:-}"
 
@@ -135,4 +137,5 @@ echo ""
 echo "Pushed to origin/${remote_branch}."
 if [[ "$remote_branch" == "$BASE" ]]; then
   echo "Vercel will deploy Production after this push to ${BASE}."
+  "$SCRIPT_DIR/maybe-tag-print-agent.sh"
 fi

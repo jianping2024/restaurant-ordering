@@ -1,0 +1,16 @@
+---
+description: After git push or print-agent tag, verify CI and GitHub Release before claiming success.
+globs:
+alwaysApply: true
+---
+
+# Release and CI verification
+
+When you **push to `main`**, **create a tag**, or tell the user deployment/download is ready:
+
+1. **Push to `main`**: Confirm GitHub Actions workflow **CI** (`ci.yml`) completed successfully (build + lint). Do not claim "deployed" until CI is green or Vercel deployment is verified.
+2. **Tag `print-agent-v*`**: Before tagging, ensure `apps/print-agent/VERSION` matches the tag suffix (e.g. tag `print-agent-v0.2.28` ↔ VERSION `0.2.28`). Push the tag, then wait for workflow **Print agent release** including job **verify-release**. Optionally run `scripts/wait-for-github-release.sh <tag>`.
+3. **Never** say the print agent is packaged/downloadable based only on `git push` of code without pushing the `print-agent-v*` tag.
+4. If CI or release fails, report the failed job URL and fix before retrying.
+
+See `docs/ci-and-release.zh.md`.

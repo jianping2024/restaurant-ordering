@@ -1,0 +1,36 @@
+# Print agent: unit tests on Linux (fast gate before Windows release build).
+name: Print agent CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/print-agent/**'
+      - '.github/workflows/print-agent*.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/print-agent/**'
+      - '.github/workflows/print-agent*.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: apps/print-agent
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: apps/print-agent/go.sum
+
+      - name: Go test
+        run: go test ./...
+
+      - name: Cross-compile smoke (windows amd64)
+        run: GOOS=windows GOARCH=amd64 go build -o /dev/null .

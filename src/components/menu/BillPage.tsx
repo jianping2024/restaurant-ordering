@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { calcByItemSplitResults } from '@/lib/bill-split-by-item';
+import { validateBillSplit } from '@/lib/bill-split-validate';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import type { BillSplit, DishFeedbackVote, Order, SplitMode, SplitResult } from '@/types';
@@ -221,8 +222,32 @@ export function BillPage({
 
   const results = persistedResult || calcResult();
 
+  const splitValidation = useMemo(
+    () =>
+      validateBillSplit({
+        splitMode,
+        total,
+        results,
+        itemKeys: allItems.map((item) => item.key),
+        byItemAssign,
+        customAmounts,
+      }),
+    [splitMode, total, results, allItems, byItemAssign, customAmounts],
+  );
+
+  const splitValidationMessage =
+    splitValidation.ok
+      ? null
+      : splitValidation.issue === 'unassigned_items'
+        ? t.splitUnassignedItems
+        : t.splitAmountMismatch;
+
   // 呼叫结账
   const handleCallBill = async () => {
+    if (!splitValidation.ok) {
+      showToast(splitValidationMessage ?? t.splitAmountMismatch, 'error');
+      return;
+    }
     setSubmitting(true);
     try {
       const supabase = createClient();
@@ -913,6 +938,10 @@ export function BillPage({
         )}
       </div>
 
+      {splitValidationMessage ? (
+        <p className="px-4 pb-2 text-[13px] text-red-500">{splitValidationMessage}</p>
+      ) : null}
+
       {/* 呼叫结账 */}
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2">
         {isWaiterFlow ? (
@@ -927,7 +956,7 @@ export function BillPage({
           size="lg"
           onClick={handleCallBill}
           loading={submitting}
-          disabled={allItems.length === 0 || !sessionId}
+          disabled={allItems.length === 0 || !sessionId || (!!splitMode && !splitValidation.ok)}
         >
           🔔 {t.callBill} — €{total.toFixed(2)}
         </Button>

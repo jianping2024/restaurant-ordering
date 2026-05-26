@@ -11,7 +11,8 @@
     "print:dev": "bash apps/print-agent/dev/print-dev.sh",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "ship": "bash scripts/ship-to-main.sh"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",

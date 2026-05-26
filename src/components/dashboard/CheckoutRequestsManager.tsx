@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { IntegerInput } from '@/components/ui/IntegerInput';
@@ -27,6 +28,9 @@ import {
   mergeBillSplitsFromRefresh,
 } from '@/lib/checkout-request-state';
 
+/** Fallback when Realtime is delayed; only runs while the tab is visible. */
+const CHECKOUT_REQUESTS_POLL_MS = 30_000;
+
 function formatWaitDuration(
   createdAt: string,
   t: ReturnType<typeof getMessages>['checkout'],
@@ -39,11 +43,13 @@ function formatWaitDuration(
 
 interface Props {
   initialRequests: BillSplit[];
+  /** From server after loadDashboardAccess — used for Realtime filter (RLS enforces access). */
+  restaurantId: string;
   /** When set, fully paid checkout enqueues a thermal order_receipt print job. */
   restaurantSlug?: string;
 }
 
-export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Props) {
+export function CheckoutRequestsManager({ initialRequests, restaurantId, restaurantSlug }: Props) {
   const [requests, setRequests] = useState<BillSplit[]>(initialRequests);
   const [processingKeys, setProcessingKeys] = useState<Set<string>>(() => new Set());
   const [discountRateById, setDiscountRateById] = useState<Record<string, number>>({});
@@ -52,7 +58,6 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
   const billT = getMessages(lang).bill;
   const locale = UI_LOCALE_BY_LANG[lang];
   const supabase = useMemo(() => createClient(), []);
-  const restaurantId = initialRequests[0]?.restaurant_id;
   const [linesByRequestId, setLinesByRequestId] = useState<Record<string, CheckoutDisplayLine[]>>({});
   const [selectedReceiptPrinterId, setSelectedReceiptPrinterId] = useState('');
   const [printSettingsOpen, setPrintSettingsOpen] = useState(false);
@@ -87,37 +92,72 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
     }
   }, [requests.length, soundEnabled]);
 
-  useEffect(() => {
-    if (!restaurantId) return;
+  const refreshCheckoutRequests = useCallback(async () => {
+    const seq = ++refreshSeqRef.current;
+    const { data } = await supabase
+      .from('bill_splits')
+      .select('*')
+      .eq('restaurant_id', restaurantId)
+      .eq('status', 'requested')
+      .not('session_id', 'is', null)
+      .order('created_at', { ascending: true })
+      .limit(100);
+    if (seq !== refreshSeqRef.current) return;
+    const incoming = (data || []) as BillSplit[];
+    setRequests((prev) => mergeBillSplitsFromRefresh(prev, incoming));
+  }, [supabase, restaurantId]);
 
-    const refresh = async () => {
-      const seq = ++refreshSeqRef.current;
-      const { data } = await supabase
-        .from('bill_splits')
-        .select('*')
-        .eq('restaurant_id', restaurantId)
-        .eq('status', 'requested')
-        .not('session_id', 'is', null)
-        .order('created_at', { ascending: true })
-        .limit(100);
-      if (seq !== refreshSeqRef.current) return;
-      const incoming = (data || []) as BillSplit[];
-      setRequests((prev) => mergeBillSplitsFromRefresh(prev, incoming));
+  useEffect(() => {
+    let channel: RealtimeChannel | null = null;
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+
+    const subscribe = () => {
+      if (channel) return;
+      void refreshCheckoutRequests();
+      channel = supabase
+        .channel(`checkout-requests-${restaurantId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'bill_splits',
+            filter: `restaurant_id=eq.${restaurantId}`,
+          },
+          () => void refreshCheckoutRequests(),
+        )
+        .subscribe();
+      pollTimer = window.setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          void refreshCheckoutRequests();
+        }
+      }, CHECKOUT_REQUESTS_POLL_MS);
     };
 
-    const channel = supabase
-      .channel(`checkout-requests-${restaurantId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'bill_splits', filter: `restaurant_id=eq.${restaurantId}` },
-        () => void refresh(),
-      )
-      .subscribe();
+    const unsubscribe = () => {
+      if (pollTimer !== null) {
+        window.clearInterval(pollTimer);
+        pollTimer = null;
+      }
+      if (channel) {
+        supabase.removeChannel(channel);
+        channel = null;
+      }
+    };
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') subscribe();
+      else unsubscribe();
+    };
+
+    if (document.visibilityState === 'visible') subscribe();
+    document.addEventListener('visibilitychange', onVisible);
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubscribe();
+      document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [supabase, restaurantId]);
+  }, [supabase, restaurantId, refreshCheckoutRequests]);
 
   useEffect(() => {
     if (!restaurantId || requests.length === 0) {

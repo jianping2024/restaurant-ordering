@@ -43,9 +43,10 @@ export function OrdersPageClient({
         </p>
       </div>
 
-      {showCheckoutRequests && (
+      {showCheckoutRequests && restaurantId && (
         <CheckoutRequestsManager
           initialRequests={checkoutRequests}
+          restaurantId={restaurantId}
           restaurantSlug={restaurantSlug}
         />
       )}

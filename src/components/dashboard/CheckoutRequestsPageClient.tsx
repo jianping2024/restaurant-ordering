@@ -5,13 +5,19 @@ import { CheckoutRequestsManager } from '@/components/dashboard/CheckoutRequests
 
 interface Props {
   checkoutRequests: BillSplit[];
+  restaurantId: string;
   restaurantSlug: string;
 }
 
-export function CheckoutRequestsPageClient({ checkoutRequests, restaurantSlug }: Props) {
+export function CheckoutRequestsPageClient({
+  checkoutRequests,
+  restaurantId,
+  restaurantSlug,
+}: Props) {
   return (
     <CheckoutRequestsManager
       initialRequests={checkoutRequests}
+      restaurantId={restaurantId}
       restaurantSlug={restaurantSlug}
     />
   );

@@ -23,6 +23,7 @@ export default async function CheckoutRequestsPage() {
 
   return (
     <CheckoutRequestsPageClient
+      restaurantId={restaurant.id}
       restaurantSlug={restaurant.slug}
       checkoutRequests={(checkoutRequests || []) as BillSplit[]}
     />

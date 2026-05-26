@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Order, OrderStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
@@ -9,11 +10,17 @@ import { endOfMonth, format, startOfMonth, startOfToday, subDays } from 'date-fn
 import Select from 'react-select';
 import type { MultiValue, StylesConfig } from 'react-select';
 import 'react-day-picker/dist/style.css';
-import { mergeTableNumbersWithOrderHistory } from '@/lib/restaurant-table-numbers';
+import { mergeTableNumbersWithOrderHistory, compareTableNumbers, tableNumbersEqual } from '@/lib/restaurant-table-numbers';
+import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
+import { closeActiveTableSession } from '@/lib/close-table-session';
+import { createClient } from '@/lib/supabase/client';
+import { showToast } from '@/components/ui/Toast';
 
 interface Props {
   initialOrders: Order[];
   tableNumbers?: string[];
+  showCloseTable?: boolean;
+  restaurantId?: string;
 }
 
 interface TableOption {
@@ -21,15 +28,27 @@ interface TableOption {
   label: string;
 }
 
-export function OrdersHistoryManager({ initialOrders, tableNumbers = [] }: Props) {
+export function OrdersHistoryManager({
+  initialOrders,
+  tableNumbers = [],
+  showCloseTable = false,
+  restaurantId,
+}: Props) {
+  const router = useRouter();
   const { lang } = useLanguage();
   const i18n = getMessages(lang).orderHistory;
   const locale = UI_LOCALE_BY_LANG[lang];
+  const [orders, setOrders] = useState(initialOrders);
+  const [closingTable, setClosingTable] = useState<string | null>(null);
   const [selectedTables, setSelectedTables] = useState<TableOption[]>([]);
   const [statusFilter, setStatusFilter] = useState<'all' | OrderStatus>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [pickerOpen, setPickerOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setOrders(initialOrders);
+  }, [initialOrders]);
 
   const statusLabel: Record<OrderStatus, string> = {
     pending: i18n.pending,
@@ -44,11 +63,11 @@ export function OrdersHistoryManager({ initialOrders, tableNumbers = [] }: Props
 
   const tableOptions = useMemo<TableOption[]>(
     () =>
-      mergeTableNumbersWithOrderHistory(tableNumbers, initialOrders).map((tableNo) => ({
+      mergeTableNumbersWithOrderHistory(tableNumbers, orders).map((tableNo) => ({
         value: tableNo,
         label: `${i18n.table} ${tableNo}`,
       })),
-    [i18n.table, initialOrders, tableNumbers],
+    [i18n.table, orders, tableNumbers],
   );
 
   const selectStyles = useMemo<StylesConfig<TableOption, true>>(
@@ -102,7 +121,7 @@ export function OrdersHistoryManager({ initialOrders, tableNumbers = [] }: Props
 
   const filteredOrders = useMemo(() => {
     const selectedTableNumbers = new Set(selectedTables.map((item) => item.value));
-    return initialOrders.filter(order => {
+    return orders.filter(order => {
       if (selectedTableNumbers.size > 0 && !selectedTableNumbers.has(order.table_number)) return false;
       if (statusFilter !== 'all' && order.status !== statusFilter) return false;
 
@@ -122,7 +141,19 @@ export function OrdersHistoryManager({ initialOrders, tableNumbers = [] }: Props
       }
       return true;
     });
-  }, [initialOrders, selectedTables, statusFilter, dateRange]);
+  }, [orders, selectedTables, statusFilter, dateRange]);
+
+  const tableGroups = useMemo(() => {
+    if (!showCloseTable) return null;
+    const map = new Map<string, Order[]>();
+    for (const order of filteredOrders) {
+      const key = order.table_number;
+      const list = map.get(key);
+      if (list) list.push(order);
+      else map.set(key, [order]);
+    }
+    return Array.from(map.entries()).sort(([a], [b]) => compareTableNumbers(a, b));
+  }, [filteredOrders, showCloseTable]);
 
   const rangeLabel = useMemo(() => {
     if (!dateRange?.from && !dateRange?.to) return i18n.filterDateRange;
@@ -205,6 +236,82 @@ export function OrdersHistoryManager({ initialOrders, tableNumbers = [] }: Props
     printWindow.document.close();
   };
 
+  const handleCloseTable = async (tableNumber: string) => {
+    if (!restaurantId) return;
+    const card = buildWaiterTableCard(tableNumber, orders);
+    if (card.cooking > 0 || card.ready > 0) {
+      showToast(i18n.closeTableBlocked, 'error');
+      return;
+    }
+    setClosingTable(tableNumber);
+    try {
+      const supabase = createClient();
+      const result = await closeActiveTableSession(supabase, restaurantId, tableNumber, 'owner_closed');
+      if (!result.ok) {
+        showToast(
+          result.code === 'no_session' ? i18n.closeTableNoSession : i18n.closeTableFailed,
+          'error',
+        );
+        return;
+      }
+      setOrders((prev) => prev.filter((o) => !tableNumbersEqual(o.table_number, tableNumber)));
+      showToast(i18n.closeTableSuccess, 'success');
+      router.refresh();
+    } catch {
+      showToast(i18n.closeTableFailed, 'error');
+    } finally {
+      setClosingTable(null);
+    }
+  };
+
+  const renderOrderCard = (order: Order) => (
+    <div
+      key={order.id}
+      className="bg-brand-card border border-brand-border rounded-xl px-6 py-4"
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              {!showCloseTable ? (
+                <p className="text-brand-text font-medium">{i18n.table} {order.table_number}</p>
+              ) : null}
+              <span className={`text-[13px] px-2 py-0.5 rounded-full ${statusColor[order.status]}`}>
+                {statusLabel[order.status]}
+              </span>
+            </div>
+            <p className="text-brand-text-muted text-[13px] mt-1">
+              {new Date(order.created_at).toLocaleString(locale)}
+            </p>
+          </div>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <p className="text-brand-gold font-medium">€{order.total_amount.toFixed(2)}</p>
+          <p className="text-brand-text-muted text-[13px] mt-1">{order.items.length} {i18n.items}</p>
+          <button
+            type="button"
+            onClick={() => handlePrintOrder(order)}
+            className="mt-2 text-[13px] text-brand-gold hover:underline"
+          >
+            {i18n.print}
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-3 pt-3 border-t border-brand-border flex flex-wrap gap-3">
+        {order.items.map((item, idx) => (
+          <span
+            key={idx}
+            className="text-[13px] bg-brand-border px-3 py-1 rounded-full text-brand-text-muted"
+          >
+            {item.emoji} {item.name_pt} x {item.qty}
+            {item.note && <span className="text-brand-text ml-1">({item.note})</span>}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div>
       <div className="bg-brand-card border border-brand-border rounded-xl p-4 mb-4 grid gap-3 md:grid-cols-3">
@@ -275,53 +382,35 @@ export function OrdersHistoryManager({ initialOrders, tableNumbers = [] }: Props
         <div className="bg-brand-card border border-brand-border rounded-2xl p-12 text-center">
           <p className="text-brand-text-muted">{i18n.empty}</p>
         </div>
-      ) : (
-        <div className="space-y-3">
-          {filteredOrders.map(order => (
-            <div
-              key={order.id}
-              className="bg-brand-card border border-brand-border rounded-xl px-6 py-4"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-brand-text font-medium">{i18n.table} {order.table_number}</p>
-                      <span className={`text-[13px] px-2 py-0.5 rounded-full ${statusColor[order.status]}`}>
-                        {statusLabel[order.status]}
-                      </span>
-                    </div>
-                    <p className="text-brand-text-muted text-[13px] mt-1">
-                      {new Date(order.created_at).toLocaleString(locale)}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-brand-gold font-medium">€{order.total_amount.toFixed(2)}</p>
-                  <p className="text-brand-text-muted text-[13px] mt-1">{order.items.length} {i18n.items}</p>
+      ) : showCloseTable && tableGroups ? (
+        <div className="space-y-6">
+          {tableGroups.map(([tableNumber, tableOrders]) => {
+            const card = buildWaiterTableCard(tableNumber, orders);
+            const canClose = card.cooking === 0 && card.ready === 0;
+            return (
+              <section key={tableNumber}>
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                  <h2 className="font-heading text-lg text-brand-text">
+                    {i18n.table} {tableNumber}
+                  </h2>
                   <button
                     type="button"
-                    onClick={() => handlePrintOrder(order)}
-                    className="mt-2 text-[13px] text-brand-gold hover:underline"
+                    disabled={!canClose || closingTable === tableNumber}
+                    onClick={() => void handleCloseTable(tableNumber)}
+                    className="text-sm px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:border-brand-gold/50 hover:text-brand-gold disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    title={!canClose ? i18n.closeTableBlocked : undefined}
                   >
-                    {i18n.print}
+                    {closingTable === tableNumber ? i18n.closeTableOperating : i18n.closeTable}
                   </button>
                 </div>
-              </div>
-
-              <div className="mt-3 pt-3 border-t border-brand-border flex flex-wrap gap-3">
-                {order.items.map((item, idx) => (
-                  <span
-                    key={idx}
-                    className="text-[13px] bg-brand-border px-3 py-1 rounded-full text-brand-text-muted"
-                  >
-                    {item.emoji} {item.name_pt} x {item.qty}
-                    {item.note && <span className="text-brand-text ml-1">({item.note})</span>}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
+                <div className="space-y-3">{tableOrders.map(renderOrderCard)}</div>
+              </section>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filteredOrders.map(renderOrderCard)}
         </div>
       )}
     </div>

@@ -10,20 +10,24 @@ interface Props {
   orders: Order[];
   checkoutRequests: BillSplit[];
   restaurantSlug?: string;
+  restaurantId?: string;
   tableNumbers?: string[];
   headingTitle?: string;
   headingNavKey?: 'orders' | 'unpaidOrders' | 'checkout';
   showCheckoutRequests?: boolean;
+  showCloseTable?: boolean;
 }
 
 export function OrdersPageClient({
   orders,
   checkoutRequests,
   restaurantSlug,
+  restaurantId,
   tableNumbers,
   headingTitle,
   headingNavKey,
   showCheckoutRequests = true,
+  showCloseTable = false,
 }: Props) {
   const { lang } = useLanguage();
   const nav = getMessages(lang).nav;
@@ -45,7 +49,12 @@ export function OrdersPageClient({
         />
       )}
 
-      <OrdersHistoryManager initialOrders={orders} tableNumbers={tableNumbers} />
+      <OrdersHistoryManager
+        initialOrders={orders}
+        tableNumbers={tableNumbers}
+        showCloseTable={showCloseTable}
+        restaurantId={restaurantId}
+      />
     </div>
   );
 }

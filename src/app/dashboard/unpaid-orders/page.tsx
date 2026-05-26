@@ -34,9 +34,11 @@ export default async function UnpaidOrdersPage() {
     <OrdersPageClient
       orders={openOrders as Order[]}
       checkoutRequests={[] as BillSplit[]}
+      restaurantId={restaurant!.id}
       tableNumbers={normalizeRestaurantTableNumbers(restaurant!.table_numbers)}
       headingNavKey="unpaidOrders"
       showCheckoutRequests={false}
+      showCloseTable
     />
   );
 }

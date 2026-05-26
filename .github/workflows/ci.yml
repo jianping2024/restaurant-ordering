@@ -1,4 +1,4 @@
-# Optional lint/build on push & PR. Merge gate uses Vercel (ruleset check name: Vercel).
+
 name: CI
 
 on:

@@ -11,7 +11,7 @@ func TestBuildStationTicketEnglishLayout(t *testing.T) {
 	payload, err := json.Marshal(jobPayload{
 		Locale:         "pt",
 		RestaurantName: "川味餐厅",
-		TableNumber:    32,
+		TableNumber:    "32",
 		GuestCount:     4,
 		OrderTime:      "2026-05-14 20:15",
 		Lines: []jobLine{

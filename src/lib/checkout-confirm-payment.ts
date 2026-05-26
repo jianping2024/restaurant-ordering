@@ -145,6 +145,8 @@ export async function confirmBillSplitPayment(params: {
       amountPaid: finalAmount,
       paymentMethod: 'Cash',
       receiptPrinterId: printTarget,
+      billSplitId,
+      orderIds: bill.order_ids?.length ? bill.order_ids : undefined,
     });
   }
 

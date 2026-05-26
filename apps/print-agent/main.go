@@ -119,8 +119,8 @@ func summarizeJobPayload(job printJob) string {
 	if station != "" {
 		parts = append(parts, "station="+station)
 	}
-	if p.TableNumber > 0 {
-		parts = append(parts, fmt.Sprintf("table=%d", p.TableNumber))
+	if t := strings.TrimSpace(p.TableNumber); t != "" {
+		parts = append(parts, "table="+t)
 	}
 	for _, ln := range p.Lines {
 		q := ln.Qty

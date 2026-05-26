@@ -86,6 +86,7 @@ func labelsASCII(lab ticketLabels) ticketLabels {
 		connectionTest: "TESTE IMPRESSAO",
 		guestOrder:     "Pedido",
 		receipt:        "Recibo",
+		preBill:        "Pre-Conta",
 		tableNo:        "Mesa n.",
 		guest:          "Conv.",
 		items:          "Artigos",

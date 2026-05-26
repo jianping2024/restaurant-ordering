@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -30,6 +31,7 @@ type ticketLabels struct {
 	connectionTest string
 	guestOrder     string
 	receipt        string
+	preBill        string
 	tableNo        string
 	guest          string
 	items          string
@@ -55,6 +57,7 @@ func labelsFor(locale string) ticketLabels {
 			connectionTest: "打印测试",
 			guestOrder:     "出菜单",
 			receipt:        "收据",
+			preBill:        "预结单",
 			tableNo:        "桌号",
 			guest:          "人数",
 			items:          "菜品",
@@ -77,6 +80,7 @@ func labelsFor(locale string) ticketLabels {
 			connectionTest: "PRINT TEST",
 			guestOrder:     "Guest Order",
 			receipt:        "Receipt",
+			preBill:        "Pre-Bill",
 			tableNo:        "Table No.",
 			guest:          "Guest",
 			items:          "Items",
@@ -99,6 +103,7 @@ func labelsFor(locale string) ticketLabels {
 			connectionTest: "TESTE IMPRESSÃO",
 			guestOrder:     "Pedido",
 			receipt:        "Recibo",
+			preBill:        "Pré-conta",
 			tableNo:        "Mesa n.º",
 			guest:          "Conv.",
 			items:          "Artigos",
@@ -133,7 +138,7 @@ type jobPayload struct {
 	Locale               string    `json:"locale"`
 	ConnectionTest       bool      `json:"connection_test"`
 	RestaurantName       string    `json:"restaurant_name"`
-	TableNumber          int       `json:"table_number"`
+	TableNumber          string    `json:"table_number"`
 	GuestCount           int       `json:"guest_count"`
 	StationDisplayNamePt string    `json:"station_display_name_pt"`
 	StationDisplayNameEn string    `json:"station_display_name_en"`
@@ -158,6 +163,34 @@ func parseJobPayload(job printJob) jobPayload {
 		p.Locale = "pt"
 	}
 	return p
+}
+
+// formatTableNoLabel prints table labels from JSON (string or legacy numeric).
+func formatTableNoLabel(lab ticketLabels, tableNo string) string {
+	t := strings.TrimSpace(tableNo)
+	if t == "" {
+		return ""
+	}
+	if len(t) <= 2 {
+		if n, err := strconv.Atoi(t); err == nil && strconv.Itoa(n) == t {
+			return fmt.Sprintf("%s:%02d", lab.tableNo, n)
+		}
+	}
+	return fmt.Sprintf("%s:%s", lab.tableNo, t)
+}
+
+func (p jobPayload) tableNoLabel(lab ticketLabels) string {
+	return formatTableNoLabel(lab, p.TableNumber)
+}
+
+// receiptHeaderTitle — pre_bill uses locale-specific title; paid receipts stay "Receipt".
+func receiptHeaderTitle(p jobPayload, variant string) string {
+	if variant == "pre_bill" {
+		if t := strings.TrimSpace(labelsFor(p.Locale).preBill); t != "" {
+			return t
+		}
+	}
+	return receiptTicketLabels().receipt
 }
 
 func (p jobPayload) stationName() string {
@@ -449,8 +482,8 @@ func buildStationTicket(p jobPayload) []byte {
 	w.align(0)
 	w.size(true, true)
 	w.bold(true)
-	if p.TableNumber > 0 {
-		w.text(fmt.Sprintf("%s:%d", lab.tableNo, p.TableNumber))
+	if line := p.tableNoLabel(lab); line != "" {
+		w.text(line)
 	}
 	w.lf()
 
@@ -530,7 +563,7 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 	w.align(1)
 	w.size(true, true)
 	w.bold(true)
-	w.text(lab.receipt)
+	w.text(receiptHeaderTitle(p, variant))
 	w.lf()
 
 	w.separator('-')
@@ -538,8 +571,8 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 	w.align(1)
 	w.size(true, true)
 	w.bold(true)
-	if p.TableNumber > 0 {
-		w.text(fmt.Sprintf("%s:%02d", lab.tableNo, p.TableNumber))
+	if line := p.tableNoLabel(lab); line != "" {
+		w.text(line)
 		w.lf()
 	}
 	w.size(false, false)

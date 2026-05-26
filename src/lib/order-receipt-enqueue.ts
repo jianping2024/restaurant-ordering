@@ -146,7 +146,33 @@ type EnqueueParams = {
   paymentMethod?: string;
   /** From checkout picker: `cashier` or `station:{print_station_id}` */
   receiptPrinterId?: string;
+  /** Bill snapshot order ids; falls back to bill_splits.order_ids when billSplitId is set */
+  orderIds?: string[];
 };
+
+/** Load session orders for receipt printing (no table_number filter — avoids missing merged/transferred orders). */
+export async function loadOrdersForReceiptPrint(
+  admin: SupabaseClient,
+  restaurantId: string,
+  sessionId: string,
+  orderIds?: string[],
+): Promise<{ orders: Order[] | null; error: string | null }> {
+  let query = admin
+    .from('orders')
+    .select('id, status, items, created_at, updated_at')
+    .eq('restaurant_id', restaurantId);
+
+  const ids = orderIds?.filter(Boolean);
+  if (ids?.length) {
+    query = query.in('id', ids);
+  } else {
+    query = query.eq('session_id', sessionId);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: true });
+  if (error) return { orders: null, error: error.message };
+  return { orders: (data || []) as Order[], error: null };
+}
 
 export async function enqueueReceiptPrint(
   params: EnqueueParams,
@@ -169,21 +195,38 @@ export async function enqueueReceiptPrint(
     amountPaid,
     paymentMethod,
     receiptPrinterId,
+    orderIds: orderIdsParam,
   } = params;
 
   const locale = (printLocale || 'pt') as 'zh' | 'en' | 'pt';
   const jobType: PrintJobType = variant === 'pre_bill' ? 'pre_bill' : 'order_receipt';
 
-  const { data: orders, error: oErr } = await admin
-    .from('orders')
-    .select('id, status, items, created_at, updated_at')
-    .eq('restaurant_id', restaurantId)
-    .eq('session_id', sessionId)
-    .eq('table_number', tableNumber)
-    .order('created_at', { ascending: true });
+  let billSplit: BillSplit | null = null;
+  if (billSplitId) {
+    const { data: split, error: splitErr } = await admin
+      .from('bill_splits')
+      .select('*')
+      .eq('id', billSplitId)
+      .eq('restaurant_id', restaurantId)
+      .maybeSingle();
+    if (splitErr || !split) {
+      return { ok: false, status: 404, code: 'bill_split_not_found' };
+    }
+    billSplit = split as BillSplit;
+  }
+
+  const orderIds =
+    orderIdsParam?.length ? orderIdsParam : billSplit?.order_ids?.length ? billSplit.order_ids : undefined;
+
+  const { orders, error: oErr } = await loadOrdersForReceiptPrint(
+    admin,
+    restaurantId,
+    sessionId,
+    orderIds,
+  );
 
   if (oErr) {
-    return { ok: false, status: 500, code: 'orders_load_failed', message: oErr.message };
+    return { ok: false, status: 500, code: 'orders_load_failed', message: oErr };
   }
   if (!orders?.length) {
     return { ok: false, status: 404, code: 'no_orders' };
@@ -205,17 +248,11 @@ export async function enqueueReceiptPrint(
     if (billSplitId == null || personIndex == null || personIndex < 0) {
       return { ok: false, status: 400, code: 'missing_split_target' };
     }
-    const { data: split, error: splitErr } = await admin
-      .from('bill_splits')
-      .select('*')
-      .eq('id', billSplitId)
-      .eq('restaurant_id', restaurantId)
-      .maybeSingle();
-    if (splitErr || !split) {
+    if (!billSplit) {
       return { ok: false, status: 404, code: 'bill_split_not_found' };
     }
-    lines = buildSplitPersonReceiptLines(split as BillSplit, personIndex, orderRows, printCtx);
-    const rowAmount = Number((split as BillSplit).result?.[personIndex]?.amount ?? personAmount ?? 0);
+    lines = buildSplitPersonReceiptLines(billSplit, personIndex, orderRows, printCtx);
+    const rowAmount = Number(billSplit.result?.[personIndex]?.amount ?? personAmount ?? 0);
     amountDue = rowAmount;
   }
 

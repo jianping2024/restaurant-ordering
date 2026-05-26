@@ -10,7 +10,7 @@ func TestBuildOrderReceiptEnglishLayout(t *testing.T) {
 	payloadMap := jobPayload{
 		Locale:         "pt",
 		RestaurantName: "川味餐厅",
-		TableNumber:    1,
+		TableNumber:    "1",
 		GuestCount:     4,
 		OrderTime:      "2026-05-14 20:05",
 		PrintTime:      "2026-05-14 21:01",
@@ -54,13 +54,13 @@ func TestBuildOrderReceiptEnglishLayout(t *testing.T) {
 }
 
 func TestBuildOrderReceiptSplitPaymentGuestNumber(t *testing.T) {
-	payload, _ := json.Marshal(jobPayload{
-		TableNumber:    5,
-		ReceiptVariant: "split_payment",
-		PayerName:      "客人 2",
-		AmountDue:      38.62,
-		AmountPaid:     38.62,
-		PaymentMethod:  "Cash",
+	payload, _ := json.Marshal(map[string]any{
+		"table_number":    "5",
+		"receipt_variant": "split_payment",
+		"payer_name":      "客人 2",
+		"amount_due":      38.62,
+		"amount_paid":     38.62,
+		"payment_method":  "Cash",
 	})
 	raw := escposFromJob(printJob{Type: "order_receipt", Payload: payload})
 	s := string(raw)
@@ -70,18 +70,54 @@ func TestBuildOrderReceiptSplitPaymentGuestNumber(t *testing.T) {
 	if !strings.Contains(s, "Guest:2") {
 		t.Fatalf("expected Guest:2, got excerpt around guest: %q", s)
 	}
+	if !strings.Contains(s, "Table No.:05") {
+		t.Fatalf("split receipt must show table number, got: %q", s)
+	}
+}
+
+func TestParseJobPayloadTableNumberFromJSONString(t *testing.T) {
+	raw, _ := json.Marshal(map[string]any{"table_number": "A1"})
+	p := parseJobPayload(printJob{Payload: raw})
+	if p.TableNumber != "A1" {
+		t.Fatalf("expected A1, got %q", p.TableNumber)
+	}
+}
+
+func TestParseJobPayloadTableNumberFromJSONNumber(t *testing.T) {
+	p := parseJobPayload(printJob{Payload: []byte(`{"table_number":32}`)})
+	if p.TableNumber != "32" {
+		t.Fatalf("expected 32, got %q", p.TableNumber)
+	}
 }
 
 func TestPreBillOmitsPaymentLines(t *testing.T) {
-	payload, _ := json.Marshal(jobPayload{
-		TableNumber: 2,
-		Subtotal:    10,
-		AmountDue:   10,
-		Lines:       []jobLine{{ItemIndex: 1, DisplayName: "Soup", Qty: 1, UnitPrice: 10}},
+	payload, _ := json.Marshal(map[string]any{
+		"table_number": "2",
+		"subtotal":     10,
+		"amount_due":   10,
+		"lines":        []jobLine{{ItemIndex: 1, DisplayName: "Soup", Qty: 1, UnitPrice: 10}},
 	})
 	raw := escposFromJob(printJob{Type: "pre_bill", Payload: payload})
 	s := string(raw)
+	if !strings.Contains(s, "Pré-conta") {
+		t.Fatalf("pre_bill title must be Pré-conta (default locale pt), got: %q", s)
+	}
 	if strings.Contains(s, "Amount Paid:") || strings.Contains(s, "Payment:") {
 		t.Fatal("pre_bill must not include payment confirmation lines")
+	}
+}
+
+func TestPreBillTitleEnglishLocale(t *testing.T) {
+	payload, _ := json.Marshal(map[string]any{
+		"locale":       "en",
+		"table_number": "3",
+		"subtotal":     5,
+		"amount_due":   5,
+		"lines":        []jobLine{{ItemIndex: 1, DisplayName: "Tea", Qty: 1, UnitPrice: 5}},
+	})
+	raw := escposFromJob(printJob{Type: "pre_bill", Payload: payload})
+	s := string(raw)
+	if !strings.Contains(s, "Pre-Bill") {
+		t.Fatalf("pre_bill en locale must show Pre-Bill, got: %q", s)
 	}
 }

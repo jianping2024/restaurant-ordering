@@ -53,6 +53,7 @@ export async function POST(
 
   const jobTypeRaw = typeof body.job_type === 'string' ? body.job_type.trim() : 'order_receipt';
   const variant = parseVariant(body.receipt_variant, jobTypeRaw);
+  const sessionIdRaw = typeof body.session_id === 'string' ? body.session_id.trim() : '';
 
   let admin;
   try {
@@ -80,24 +81,48 @@ export async function POST(
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) {
+    if (user) {
+      const { data: rest } = await admin
+        .from('restaurants')
+        .select('id, name, print_locale')
+        .eq('slug', slug)
+        .eq('owner_id', user.id)
+        .maybeSingle();
+      if (!rest) {
+        return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+      }
+      restaurantId = rest.id;
+      restaurantName = rest.name;
+      printLocale = rest.print_locale;
+    } else if (variant === 'pre_bill' && sessionIdRaw) {
+      const { data: rest } = await admin
+        .from('restaurants')
+        .select('id, name, print_locale')
+        .eq('slug', slug)
+        .maybeSingle();
+      if (!rest?.id) {
+        return NextResponse.json({ error: 'restaurant_not_found' }, { status: 404 });
+      }
+      const { data: session } = await admin
+        .from('table_sessions')
+        .select('id')
+        .eq('id', sessionIdRaw)
+        .eq('restaurant_id', rest.id)
+        .eq('table_number', tableNumber)
+        .in('status', ['open', 'billing'])
+        .maybeSingle();
+      if (!session?.id) {
+        return NextResponse.json({ error: 'invalid_session' }, { status: 403 });
+      }
+      restaurantId = rest.id;
+      restaurantName = rest.name;
+      printLocale = rest.print_locale;
+    } else {
       return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     }
-    const { data: rest } = await admin
-      .from('restaurants')
-      .select('id, name, print_locale')
-      .eq('slug', slug)
-      .eq('owner_id', user.id)
-      .maybeSingle();
-    if (!rest) {
-      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-    }
-    restaurantId = rest.id;
-    restaurantName = rest.name;
-    printLocale = rest.print_locale;
   }
 
-  let sessionId = typeof body.session_id === 'string' ? body.session_id.trim() : '';
+  let sessionId = sessionIdRaw;
   if (!sessionId) {
     const { data: session } = await admin
       .from('table_sessions')

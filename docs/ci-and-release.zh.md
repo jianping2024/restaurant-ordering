@@ -2,107 +2,64 @@
 
 ## 现状（2026-05-26 起）
 
-| 事件 | 工作流 | 作用 |
-|------|--------|------|
-| **push / PR → `main`** | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `npm ci` → `lint` → `build`；job 名 **`web`** |
-| **`pnpm push`** | [scripts/push-to-main.sh](../scripts/push-to-main.sh) | 推分支 + **自动开 PR**（需 `.env.local` 里 `GH_TOKEN`）+ automerge |
-| **改 `apps/print-agent/**`** | [`.github/workflows/print-agent-ci.yml`](../.github/workflows/print-agent-ci.yml) | `go test` + Windows 交叉编译冒烟 |
-| **push tag `print-agent-v*`** | [`.github/workflows/print-agent-release.yml`](../.github/workflows/print-agent-release.yml) | 校验 VERSION=tag → test → Windows 打包 → GitHub Release → **verify-release** 断言附件存在 |
+| 事件 | 工作流 / 工具 | 作用 |
+|------|----------------|------|
+| **PR → `main`（必过）** | **Vercel** Preview 部署 | ruleset 必过检查名：**`Vercel`** |
+| **`pnpm push`** | [scripts/push-to-main.sh](../scripts/push-to-main.sh) | 推 `ship-wip` + 开 PR + automerge（等 Vercel 绿） |
+| **push / PR → `main`（可选）** | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `lint` + `build`；不参与 merge 门禁 |
+| **改 `apps/print-agent/**`** | [`.github/workflows/print-agent-ci.yml`](../.github/workflows/print-agent-ci.yml) | Go vet + 交叉编译 |
+| **push tag `print-agent-v*`** | [`.github/workflows/print-agent-release.yml`](../.github/workflows/print-agent-release.yml) | Windows 安装包 + GitHub Release |
 
-**Vercel**：仍由 GitHub 连仓库后在 push `main` 时自动部署；`ci.yml` 失败会先在 GitHub 标红，便于在 Vercel 红之前发现。
-
----
-
-## 发 Print Agent 版本（必做清单）
-
-1. 改代码并更新 **`apps/print-agent/VERSION`**（如 `0.2.28`）
-2. 提交并 push **`main`**，等 **CI** 与 **Print agent CI** 绿
-3. 打 tag（**必须与 VERSION 一致**）：
-   ```bash
-   git tag print-agent-v0.2.28
-   git push origin print-agent-v0.2.28
-   ```
-4. 等 **Print agent release** 工作流完成（含 **verify-release**  job）
-5. 本地可选验证：
-   ```bash
-   chmod +x scripts/wait-for-github-release.sh
-   ./scripts/wait-for-github-release.sh print-agent-v0.2.28
-   ```
-6. 打开 [GitHub Releases](https://github.com/jianping2024/restaurant-ordering/releases) 确认三个附件
-
-**常见失败原因**
-
-- tag 与 `VERSION` 不一致 → release 第一步即失败
-- Go 测试失败 → 不会进入 Inno 打包
-- 未 push tag 只 push 代码 → **不会**触发 Windows 安装包构建
+**Production 部署**：Vercel 在 merge `main` 后自动部署。
 
 ---
 
-## 推送到 main（分支保护 + 免手工 PR）
+## Ruleset（merge 前必过 Vercel）
 
-`main` 启用了 ruleset，**不能直接 `git push origin main`**，必须先过 **`web`** CI。
+1. **Settings → Rules → Rulesets → statusCheckBeforeMerge → Edit**
+2. **Enforcement status**：Active
+3. **Target**：`main`
+4. **Required status checks**：只加 **`Vercel`**（与 PR Checks 里绿色项名称一致；不要加 `web`）
+5. Save
 
-### 一条命令 push
+PR 上 Vercel Preview 变绿 → automerge 可合进 `main` → Vercel Production 部署。
+
+---
+
+## 推送到 main（`pnpm push`）
+
+`main` 不能直接 `git push`；用：
 
 ```bash
 pnpm push
 ```
 
-会自动：`git add -A` → 提交 → 推到 **`ship/wip`**（固定一个分支、一个 PR）→（有 `GH_TOKEN` 时）开/更新 PR + automerge。
+会自动：`git add -A` → 提交 → 推 **`ship-wip`** →（有 `GH_TOKEN` 时）开/更新 PR + automerge。
 
-可选：
-
-```bash
-PUSH_MESSAGE="fix table count input" pnpm push
-PUSH_BRANCH=ship/other pnpm push    # 默认 ship/wip
-pnpm push feat/my-branch            # 显式指定远程分支
-```
-
-在 `.env.local` 加一行（不要提交 git）：
+`.env.local`（勿提交）：
 
 ```
 GH_TOKEN=ghp_xxxx
 ```
 
-**Token 类型（二选一）：**
+Classic token 勾选 **`repo`**；Fine-grained 需 **Pull requests + Contents: Read and write**。
 
-| 类型 | 权限 |
-|------|------|
-| **Classic（推荐）** | 勾选 **`repo`** |
-| Fine-grained | 仓库选 `restaurant-ordering` → **Pull requests: Read and write** + **Contents: Read and write** |
-
-只开 Pull requests **Read** 会导致开 PR 时 API 返回 **404**。
-
-有 token 时脚本会 **自动开 PR + 开 automerge**；没有 token 则需在 GitHub 点黄色条 **Compare & pull request**。
-
-脚本会把 commit 推到 **`ship/wip`**（或 `PUSH_BRANCH` / 命令行指定的分支）；配合下面两个 workflow：
-
-| 工作流 | 作用 |
-|--------|------|
-| [`.github/workflows/open-pr.yml`](../.github/workflows/open-pr.yml) | push 非 main 分支 → **自动开 PR** |
-| [`.github/workflows/automerge.yml`](../.github/workflows/automerge.yml) | PR 创建/更新后 → **开启 squash 自动合并**（CI 绿后合并） |
-
-**一次性设置**（GitHub 仓库）：`Settings → General → Pull Requests` → 勾选 **Allow auto-merge**。  
-之后 Agent / 本地只需 **`pnpm push`**，无需手工 add / commit / 开 PR。
-
-### 保证 Web 部署可靠
-
-1. **不要跳过 CI**：等 [Actions → CI](https://github.com/jianping2024/restaurant-ordering/actions/workflows/ci.yml) 的 **`web`** job 变绿
-2. **分支保护**：ruleset 要求 **`web`** status check（与 CI job 名一致）
-3. **Vercel**：Production Branch = `main`；合并 PR 后自动部署
+**Settings → General → Pull Requests** → 勾选 **Allow auto-merge**。
 
 ---
 
-## 给 Agent / 协作者的约定
+## 发 Print Agent 版本
 
-完成 **tag + push** 或 **push main** 后：
-
-1. 用 GitHub API 或 `scripts/wait-for-github-release.sh` **确认** release / CI 成功，再告诉用户「已可下载 / 已部署」
-2. 发 agent 版时：**先改 VERSION，再 tag，再 push tag**；tag 名 `print-agent-v{VERSION}`
-3. 仅 push `main` **不会**打 agent 安装包；需要另 push `print-agent-v*` tag
+1. 改 **`apps/print-agent/VERSION`**
+2. `pnpm push` 或 merge 到 `main`
+3. `git tag print-agent-v0.2.28 && git push origin print-agent-v0.2.28`
+4. 等 **Print agent release** 完成（含 verify-release）
+5. 可选：`./scripts/wait-for-github-release.sh print-agent-v0.2.28`
 
 ---
 
-## 手动重跑
+## 给 Agent / 协作者
 
-- Actions → 选工作流 → **Run workflow**（release 支持 `workflow_dispatch`，不上传 Release，只产 artifact）
+- **Web 部署**：merge 前看 PR 上 **Vercel** 是否绿；merge 后在 Vercel 看 Production。
+- **不要**再依赖 GitHub Actions **`web`** 作为 merge 门禁。
+- **Print agent**：必须 push `print-agent-v*` tag 才会打安装包。

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Stage all changes, auto-commit, push to a branch, and open a PR to main.
-# Automerge runs after CI `web` is green when Allow auto-merge is enabled.
+# Automerge runs after Vercel Preview deployment is green (ruleset check: Vercel).
 #
 # Usage (from repo root):
 #   pnpm push
@@ -10,7 +10,7 @@
 # Env:
 #   GH_TOKEN or GITHUB_TOKEN — recommended; auto-opens PR and enables automerge
 #   PUSH_MESSAGE — override auto-generated commit message
-#   PUSH_BRANCH — remote branch when on main (default: ship/wip)
+#   PUSH_BRANCH — remote branch when on main (default: ship-wip)
 #   GITHUB_REPOSITORY — default jianping2024/restaurant-ordering
 #   PUSH_BASE_BRANCH — default main
 #   PUSH_WAIT=1 — poll until merged (requires token)
@@ -19,7 +19,7 @@ set -euo pipefail
 
 REPO="${GITHUB_REPOSITORY:-jianping2024/restaurant-ordering}"
 BASE="${PUSH_BASE_BRANCH:-main}"
-DEFAULT_PUSH_BRANCH="${PUSH_BRANCH:-ship/wip}"
+DEFAULT_PUSH_BRANCH="${PUSH_BRANCH:-ship-wip}"
 WAIT="${PUSH_WAIT:-0}"
 BRANCH_ARG="${1:-}"
 OWNER="${REPO%%/*}"
@@ -170,7 +170,7 @@ payload = json.dumps({
     "title": title.split("\n")[0][:256],
     "head": head,
     "base": base,
-    "body": "Opened by `pnpm push`.\n\nCI (`web`) must pass before automerge.",
+    "body": "Opened by `pnpm push`.\n\nMerge after **Vercel** preview deployment succeeds.",
 }).encode()
 req = urllib.request.Request(
     f"https://api.github.com/repos/{repo}/pulls",
@@ -278,9 +278,9 @@ if [[ -n "$TOKEN" ]]; then
   if [[ -n "$node_id" ]]; then
     enable_automerge "$node_id" "$TOKEN"
     if [[ "$created" == "True" ]]; then
-      echo "Auto-merge enabled (squash); waiting for CI \`web\` to pass."
+      echo "Auto-merge enabled (squash); waiting for **Vercel** preview to pass."
     else
-      echo "PR updated; auto-merge (re)enabled if not already on."
+      echo "PR updated; auto-merge (re)enabled — waiting for **Vercel**."
     fi
   fi
 else

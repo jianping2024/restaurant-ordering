@@ -17,6 +17,7 @@ import { normalizeDecimalInput as normalizeAmountInput } from '@/lib/number-inpu
 import { ReceiptPrinterSelect } from '@/components/dashboard/ReceiptPrinterSelect';
 import { requestOrderReceiptPrint } from '@/lib/request-order-receipt-print';
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
+import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -180,7 +181,6 @@ export function BillPage({
       order_id: o.id,
       key: `${o.id}-${idx}`,
     })));
-  const contributingOrderIds = Array.from(new Set(allItems.map(item => item.order_id)));
   const total = allItems.reduce((sum, item) => sum + item.price * item.qty, 0);
 
   // 计算分单结果
@@ -250,61 +250,31 @@ export function BillPage({
     }
     setSubmitting(true);
     try {
-      const supabase = createClient();
-      const payload = {
-        restaurant_id: restaurant.id,
-        session_id: sessionId,
-        table_id: tableId,
-        display_name: displayName,
-        order_ids: contributingOrderIds,
-        split_mode: splitMode ?? 'custom',
-        persons: splitPeople.slice(0, splitMode === 'by_item' ? personCount : results.length).map((person, idx) => ({
-          name: results[idx]?.name ?? person.name,
-          ...(splitMode === 'by_item'
-            ? {
-                items: allItems
-                  .filter((item) => (byItemAssign[item.key] || []).includes(person.id))
-                  .map((item) => item.key),
-              }
-            : {}),
-        })),
+      const persons = splitPeople.slice(0, splitMode === 'by_item' ? personCount : results.length).map((person, idx) => ({
+        name: results[idx]?.name ?? person.name,
+        ...(splitMode === 'by_item'
+          ? {
+              items: allItems
+                .filter((item) => (byItemAssign[item.key] || []).includes(person.id))
+                .map((item) => item.key),
+            }
+          : {}),
+      }));
+
+      const requestResult = await requestCheckoutRequest({
+        slug: restaurant.slug,
+        tableId,
+        splitMode,
+        persons,
         result: results,
-        total_amount: total,
-        status: 'requested' as const,
-      };
-
-      if (sessionId) {
-        // 同一餐次重复呼叫结账时，复用并更新未完成请求，避免重复记录。
-        const { data: existingRequest } = await supabase
-          .from('bill_splits')
-          .select('id')
-          .eq('session_id', sessionId)
-          .in('status', ['pending', 'confirmed', 'requested'])
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (existingRequest) {
-          await supabase
-            .from('bill_splits')
-            .update(payload)
-            .eq('id', existingRequest.id);
-          setPersistedSplitId(existingRequest.id);
-        } else {
-          const { data: inserted } = await supabase.from('bill_splits').insert(payload).select('id').single();
-          setPersistedSplitId(inserted?.id || null);
-        }
-      } else {
-        const { data: inserted } = await supabase.from('bill_splits').insert(payload).select('id').single();
-        setPersistedSplitId(inserted?.id || null);
+      });
+      if (!requestResult.ok) {
+        showToast(t.actionFailed, 'error');
+        return;
       }
-      if (sessionId) {
-        await supabase
-          .from('table_sessions')
-          .update({ status: 'billing' })
-          .eq('id', sessionId);
-      }
-      setPersistedResult(results);
+
+      setPersistedSplitId(requestResult.bill_split_id);
+      setPersistedResult(requestResult.result);
       setSubmitted(true);
       if (sessionId) {
         void requestOrderReceiptPrint({

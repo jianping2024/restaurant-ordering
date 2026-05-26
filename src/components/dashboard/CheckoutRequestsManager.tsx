@@ -109,7 +109,7 @@ export function CheckoutRequestsManager({ initialRequests, restaurantId, restaur
 
   useEffect(() => {
     let channel: RealtimeChannel | null = null;
-    let pollTimer: ReturnType<typeof setInterval> | null = null;
+    let pollTimer: number | null = null;
 
     const subscribe = () => {
       if (channel) return;

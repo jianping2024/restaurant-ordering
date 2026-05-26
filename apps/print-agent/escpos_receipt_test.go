@@ -34,7 +34,7 @@ func TestBuildOrderReceiptEnglishLayout(t *testing.T) {
 		"Table No.:01",
 		"Guest:4",
 		"Original Price",
-		"001-Agua 500ml",
+		"Agua 500ml",
 		"Fee Details",
 		"Original price",
 		"Amount Due:13.75",

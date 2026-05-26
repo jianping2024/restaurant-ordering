@@ -609,7 +609,7 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 			if qty <= 0 {
 				qty = 1
 			}
-			label := formatItemLabel(ln.ItemIndex, ln.DisplayName)
+			label := strings.TrimSpace(ln.DisplayName)
 			lineTotal := ln.UnitPrice * float64(qty)
 			if ln.UnitPrice > 0 {
 				hasPrice = true

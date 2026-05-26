@@ -459,18 +459,30 @@ export function BillPage({
   };
 
   const handleSkipFeedback = async () => {
-    if (!sessionId) return;
-    setFeedbackSkipped(true);
-    const supabase = createClient();
-    await supabase
-      .from('feedback_sessions')
-      .upsert({
-        restaurant_id: restaurant.id,
-        session_id: sessionId,
-        source: 'bill_success',
-        shown_at: new Date().toISOString(),
-        skipped_at: new Date().toISOString(),
-      }, { onConflict: 'session_id' });
+    if (!sessionId || feedbackSkipped || feedbackSubmitting) return;
+    setFeedbackSubmitting(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('feedback_sessions')
+        .upsert(
+          {
+            restaurant_id: restaurant.id,
+            session_id: sessionId,
+            source: 'bill_success',
+            shown_at: new Date().toISOString(),
+            skipped_at: new Date().toISOString(),
+          },
+          { onConflict: 'session_id' },
+        );
+      if (error) {
+        showToast(t.actionFailed);
+        return;
+      }
+      setFeedbackSkipped(true);
+    } finally {
+      setFeedbackSubmitting(false);
+    }
   };
 
   const handleSubmitFeedback = async () => {
@@ -569,7 +581,7 @@ export function BillPage({
               </Link>
             </div>
           )}
-          {!returnPath && (
+          {!returnPath && !feedbackSkipped && (
             <div className="mt-6 bg-brand-card border border-brand-border rounded-xl p-4 text-left">
               <h3 className="text-brand-text font-medium">{t.feedbackTitle}</h3>
               <p className="text-brand-text-muted text-[13px] mt-1">{t.feedbackHint}</p>
@@ -639,10 +651,19 @@ export function BillPage({
 
               {!feedbackHydrating && !feedbackSubmitted && reviewableItems.length > 0 && (
                 <div className="mt-4 flex items-center gap-2">
-                  <Button variant="outline" onClick={handleSkipFeedback} disabled={feedbackSubmitting || feedbackSkipped}>
+                  <Button
+                    variant="outline"
+                    onClick={() => void handleSkipFeedback()}
+                    loading={feedbackSubmitting}
+                    disabled={feedbackSubmitting}
+                  >
                     {t.feedbackSkip}
                   </Button>
-                  <Button onClick={handleSubmitFeedback} loading={feedbackSubmitting} disabled={selectedFeedbackCount === 0}>
+                  <Button
+                    onClick={() => void handleSubmitFeedback()}
+                    loading={feedbackSubmitting}
+                    disabled={feedbackSubmitting || selectedFeedbackCount === 0}
+                  >
                     {t.feedbackSubmit}
                   </Button>
                 </div>

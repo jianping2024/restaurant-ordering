@@ -26,16 +26,25 @@ load_token() {
   if [[ -n "${GH_TOKEN:-}" || -n "${GITHUB_TOKEN:-}" ]]; then
     return 0
   fi
-  if [[ -f .env.local ]]; then
-    local line
-    line=$(grep -E '^(GH_TOKEN|GITHUB_TOKEN)=' .env.local 2>/dev/null | head -1 || true)
-    if [[ -n "$line" ]]; then
-      local val="${line#*=}"
-      val="${val%\"}"; val="${val#\"}"; val="${val%\'}"; val="${val#\'}"
-      export GH_TOKEN="$val"
-    fi
-  fi
+  local env_file=".env.local"
+  [[ -f "$env_file" ]] || return 0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line%$'\r'}"
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%"${line##*[![:space:]]}"}"
+    [[ -z "$line" || "$line" == \#* ]] && continue
+    case "$line" in
+      GH_TOKEN=*|GITHUB_TOKEN=*)
+        local val="${line#*=}"
+        val="${val%\"}"; val="${val#\"}"; val="${val%\'}"; val="${val#\'}"
+        export GH_TOKEN="$val"
+        return 0
+        ;;
+    esac
+  done < "$env_file"
 }
+
+load_token
 
 slugify() {
   echo "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-|-$//g' | cut -c1-48
@@ -231,13 +240,12 @@ else
 fi
 
 echo "Pushing HEAD -> origin/${remote_branch} (base: ${BASE})"
-git push -u origin "HEAD:${remote_branch}" 2>&1 | grep -v 'could not write config file' || true
+git push origin "HEAD:${remote_branch}" 2>&1 | grep -v 'could not write config file' || true
 
 pr_url="https://github.com/${REPO}/compare/${BASE}...${remote_branch}?expand=1"
 echo ""
 echo "Branch pushed: ${remote_branch}"
 
-load_token
 TOKEN="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
 
 if [[ -n "$TOKEN" ]]; then

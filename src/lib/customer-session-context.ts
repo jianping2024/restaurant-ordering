@@ -49,11 +49,17 @@ export async function resolveCustomerTableContext(params: {
 
   const tables = (activeTables || []) as RestaurantTableRow[];
   const defaultTableId = tables[0]?.id;
-  const requestedTableId = parseTableIdParam(tableIdParam || '') ?? defaultTableId;
+  const rawTableId = tableIdParam?.trim() || '';
+  const parsedTableId = rawTableId ? parseTableIdParam(rawTableId) : null;
+  if (rawTableId && !parsedTableId) return null;
+  const requestedTableId = parsedTableId ?? defaultTableId;
   if (!requestedTableId) return null;
 
+  const requestedTable = tables.find((t) => t.id === requestedTableId);
+  if (!requestedTable) return null;
+
   let tableId = requestedTableId;
-  let displayName = tables.find((t) => t.id === requestedTableId)?.display_name ?? requestedTableId.slice(0, 8);
+  let displayName = requestedTable.display_name;
 
   let { data: activeSession } = await admin
     .from('table_sessions')

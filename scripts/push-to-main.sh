@@ -10,6 +10,7 @@
 # Env:
 #   GH_TOKEN or GITHUB_TOKEN — recommended; auto-opens PR and enables automerge
 #   PUSH_MESSAGE — override auto-generated commit message
+#   PUSH_BRANCH — remote branch when on main (default: ship/wip)
 #   GITHUB_REPOSITORY — default jianping2024/restaurant-ordering
 #   PUSH_BASE_BRANCH — default main
 #   PUSH_WAIT=1 — poll until merged (requires token)
@@ -18,6 +19,7 @@ set -euo pipefail
 
 REPO="${GITHUB_REPOSITORY:-jianping2024/restaurant-ordering}"
 BASE="${PUSH_BASE_BRANCH:-main}"
+DEFAULT_PUSH_BRANCH="${PUSH_BRANCH:-ship/wip}"
 WAIT="${PUSH_WAIT:-0}"
 BRANCH_ARG="${1:-}"
 OWNER="${REPO%%/*}"
@@ -155,7 +157,13 @@ req = urllib.request.Request(api, headers={"Authorization": f"Bearer {token}", "
 with urllib.request.urlopen(req) as resp:
     existing = json.load(resp)
 if existing:
-    print(json.dumps({"number": existing[0]["number"], "html_url": existing[0]["html_url"], "created": False}))
+    e = existing[0]
+    print(json.dumps({
+        "number": e["number"],
+        "html_url": e["html_url"],
+        "node_id": e["node_id"],
+        "created": False,
+    }))
     raise SystemExit(0)
 
 payload = json.dumps({
@@ -241,10 +249,7 @@ fi
 if [[ -n "$BRANCH_ARG" ]]; then
   remote_branch="$BRANCH_ARG"
 elif [[ "$current" == "$BASE" ]]; then
-  subject=$(git log -1 --pretty=%s)
-  slug=$(slugify "$subject")
-  short=$(git rev-parse --short HEAD)
-  remote_branch="ship/${slug:-update}-${short}"
+  remote_branch="$DEFAULT_PUSH_BRANCH"
 else
   remote_branch="$current"
 fi
@@ -272,7 +277,11 @@ if [[ -n "$TOKEN" ]]; then
   fi
   if [[ -n "$node_id" ]]; then
     enable_automerge "$node_id" "$TOKEN"
-    echo "Auto-merge enabled (squash); waiting for CI \`web\` to pass."
+    if [[ "$created" == "True" ]]; then
+      echo "Auto-merge enabled (squash); waiting for CI \`web\` to pass."
+    else
+      echo "PR updated; auto-merge (re)enabled if not already on."
+    fi
   fi
 else
   echo ""

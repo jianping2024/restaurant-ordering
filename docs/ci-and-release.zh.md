@@ -48,13 +48,14 @@
 pnpm push
 ```
 
-会自动：`git add -A` → **生成 commit 信息并提交** → 推分支 →（有 `GH_TOKEN` 时）开 PR + automerge。
+会自动：`git add -A` → 提交 → 推到 **`ship/wip`**（固定一个分支、一个 PR）→（有 `GH_TOKEN` 时）开/更新 PR + automerge。
 
 可选：
 
 ```bash
 PUSH_MESSAGE="fix table count input" pnpm push
-pnpm push feat/my-branch
+PUSH_BRANCH=ship/other pnpm push    # 默认 ship/wip
+pnpm push feat/my-branch            # 显式指定远程分支
 ```
 
 在 `.env.local` 加一行（不要提交 git）：
@@ -74,7 +75,7 @@ GH_TOKEN=ghp_xxxx
 
 有 token 时脚本会 **自动开 PR + 开 automerge**；没有 token 则需在 GitHub 点黄色条 **Compare & pull request**。
 
-脚本会把当前 commit 推到 `ship/…` 或当前分支；配合下面两个 workflow：
+脚本会把 commit 推到 **`ship/wip`**（或 `PUSH_BRANCH` / 命令行指定的分支）；配合下面两个 workflow：
 
 | 工作流 | 作用 |
 |--------|------|

@@ -1,12 +1,12 @@
-# Web app: build + lint on push (all branches) and PRs to main.
-# Job id `web` is the required ruleset check name on merge.
 name: CI
 
 on:
   push:
+    branches:
+      - main
+      - ship-wip
+      - 'ship/**'
   pull_request:
-    branches: [main]
-  pull_request_target:
     branches: [main]
   workflow_dispatch:
 
@@ -18,8 +18,6 @@ jobs:
   web:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # pull_request_target runs in base-repo context; safe for same-repo PRs only.
-    if: github.event_name != 'pull_request_target' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@v4
 
@@ -37,7 +35,6 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # Placeholders so Next build does not require real Supabase in CI.
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
           NEXT_PUBLIC_BASE_URL: https://placeholder.example.com

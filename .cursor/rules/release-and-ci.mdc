@@ -8,7 +8,7 @@ alwaysApply: true
 
 When you **ship web changes**, **push to `main`**, **create a tag**, or tell the user deployment/download is ready:
 
-1. **Push web changes to `main`**: Do **not** `git push origin main` (ruleset blocks it). Run **`pnpm push`** — automerge waits for **Vercel** (ruleset check `Vercel`), not GitHub Actions `web`. Confirm Vercel Preview is green before claiming merge will complete; confirm Vercel Production after merge.
+1. **Push web changes to `main`**: Run **`pnpm push`** (auto-commit + `git push origin main`). Confirm **Vercel Production** is Ready after push — do not claim deployed until Vercel shows success.
 2. **Tag `print-agent-v*`**: Ensure `apps/print-agent/VERSION` matches tag. Push tag, wait for **Print agent release** including **verify-release**. Optionally run `scripts/wait-for-github-release.sh <tag>`.
 3. **Never** say print agent is downloadable based only on merge to `main` without the tag.
 4. If Vercel or release fails, report the failure URL before retrying.

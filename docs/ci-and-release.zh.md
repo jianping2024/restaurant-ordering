@@ -5,7 +5,7 @@
 | 事件 | 工作流 / 工具 | 作用 |
 |------|----------------|------|
 | **PR → `main`（必过）** | **Vercel** Preview 部署 | ruleset 必过检查名：**`Vercel`** |
-| **`pnpm push`** | [scripts/push-to-main.sh](../scripts/push-to-main.sh) | 推 `ship-wip` + 开 PR + automerge（等 Vercel 绿） |
+| **`pnpm push`** | [scripts/push-to-main.sh](../scripts/push-to-main.sh) | 自动提交并推 `main`（Vercel Production 部署） |
 | **push / PR → `main`（可选）** | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `lint` + `build`；不参与 merge 门禁 |
 | **改 `apps/print-agent/**`** | [`.github/workflows/print-agent-ci.yml`](../.github/workflows/print-agent-ci.yml) | Go vet + 交叉编译 |
 | **push tag `print-agent-v*`** | [`.github/workflows/print-agent-release.yml`](../.github/workflows/print-agent-release.yml) | Windows 安装包 + GitHub Release |
@@ -34,17 +34,9 @@ PR 上 Vercel Preview 变绿 → automerge 可合进 `main` → Vercel Productio
 pnpm push
 ```
 
-会自动：`git add -A` → 提交 → 推 **`ship-wip`** →（有 `GH_TOKEN` 时）开/更新 PR + automerge。
+会自动：`git add -A` → 提交 → **`git push origin main`**。
 
-`.env.local`（勿提交）：
-
-```
-GH_TOKEN=ghp_xxxx
-```
-
-Classic token 勾选 **`repo`**；Fine-grained 需 **Pull requests + Contents: Read and write**。
-
-**Settings → General → Pull Requests** → 勾选 **Allow auto-merge**。
+若 GitHub ruleset 禁止直推 `main`，需暂时关闭 ruleset，或改用手动 PR。
 
 ---
 

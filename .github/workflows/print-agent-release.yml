@@ -44,6 +44,8 @@ jobs:
       - name: Go test
         working-directory: apps/print-agent
         run: go test ./...
+
+      - name: Install Inno Setup
         run: choco install innosetup -y --no-progress
 
       - name: Locate ISCC

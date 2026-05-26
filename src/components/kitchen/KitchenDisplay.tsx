@@ -93,17 +93,17 @@ function KitchenDisplayInner({
     [orders],
   );
 
-  const tableLabel = (tableId: string, fallback?: string) =>
-    fallback?.trim()
-    || tableMetaById.get(tableId)?.display_name
-    || tableId.slice(0, 8);
-
   const idleTableCount = useMemo(() => {
     const busy = new Set(boardOrders.map((o) => o.table_id));
     return activeTableIds.filter((id) => !busy.has(id)).length;
   }, [boardOrders, activeTableIds]);
 
   const kitchenColumns = useMemo(() => {
+    const tableLabel = (tableId: string, fallback?: string) =>
+      fallback?.trim()
+      || tableMetaById.get(tableId)?.display_name
+      || tableId.slice(0, 8);
+
     const byTable = new Map<string, Order[]>();
     boardOrders.forEach((o) => {
       const list = byTable.get(o.table_id) || [];

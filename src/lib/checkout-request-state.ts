@@ -44,8 +44,9 @@ export function checkoutPersonKey(billSplitId: string, rowIndex: number): string
 
 export function isCheckoutRequestBusy(processingKeys: ReadonlySet<string>, billSplitId: string): boolean {
   const prefix = `${billSplitId}-`;
-  for (const key of processingKeys) {
-    if (key.startsWith(prefix)) return true;
-  }
-  return false;
+  let busy = false;
+  processingKeys.forEach((key) => {
+    if (key.startsWith(prefix)) busy = true;
+  });
+  return busy;
 }

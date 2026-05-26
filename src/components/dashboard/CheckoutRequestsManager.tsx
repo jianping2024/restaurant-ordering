@@ -21,6 +21,11 @@ import {
   saveCheckoutSoundEnabled,
   saveReceiptPrinterId,
 } from '@/lib/receipt-printer-preference';
+import {
+  checkoutPersonKey,
+  isCheckoutRequestBusy,
+  mergeBillSplitsFromRefresh,
+} from '@/lib/checkout-request-state';
 
 function formatWaitDuration(
   createdAt: string,
@@ -40,7 +45,7 @@ interface Props {
 
 export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Props) {
   const [requests, setRequests] = useState<BillSplit[]>(initialRequests);
-  const [processingKey, setProcessingKey] = useState<string | null>(null);
+  const [processingKeys, setProcessingKeys] = useState<Set<string>>(() => new Set());
   const [discountRateById, setDiscountRateById] = useState<Record<string, number>>({});
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
@@ -53,6 +58,7 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
   const [printSettingsOpen, setPrintSettingsOpen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const prevRequestCountRef = useRef<number | null>(null);
+  const refreshSeqRef = useRef(0);
 
   useEffect(() => {
     if (!restaurantSlug) return;
@@ -85,6 +91,7 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
     if (!restaurantId) return;
 
     const refresh = async () => {
+      const seq = ++refreshSeqRef.current;
       const { data } = await supabase
         .from('bill_splits')
         .select('*')
@@ -93,7 +100,9 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
         .not('session_id', 'is', null)
         .order('created_at', { ascending: true })
         .limit(100);
-      setRequests((data || []) as BillSplit[]);
+      if (seq !== refreshSeqRef.current) return;
+      const incoming = (data || []) as BillSplit[];
+      setRequests((prev) => mergeBillSplitsFromRefresh(prev, incoming));
     };
 
     const channel = supabase
@@ -191,7 +200,8 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
       return;
     }
 
-    setProcessingKey(`${request.id}-${rowIndex}`);
+    const personKey = checkoutPersonKey(request.id, rowIndex);
+    setProcessingKeys((prev) => new Set(prev).add(personKey));
     try {
       const outcome = await requestCheckoutConfirmPayment({
         slug: restaurantSlug,
@@ -216,7 +226,11 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
     } catch {
       showToast('操作失败，请重试', 'error');
     } finally {
-      setProcessingKey(null);
+      setProcessingKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(personKey);
+        return next;
+      });
     }
   };
 
@@ -403,11 +417,16 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
                           <span className="text-brand-gold">€{Number(row.amount).toFixed(2)}</span>
                           <button
                             type="button"
-                            onClick={() => handleConfirmPersonPaid(request, idx)}
-                            disabled={!!row.paid || processingKey === `${request.id}-${idx}`}
+                            onClick={() => void handleConfirmPersonPaid(request, idx)}
+                            disabled={
+                              !!row.paid ||
+                              isCheckoutRequestBusy(processingKeys, request.id)
+                            }
                             className="text-sm font-semibold px-4 py-2 rounded-lg mesa-badge-success hover:opacity-90 disabled:opacity-50 transition-opacity"
                           >
-                            {processingKey === `${request.id}-${idx}` ? t.processing : t.confirmOnePaid}
+                            {processingKeys.has(checkoutPersonKey(request.id, idx))
+                              ? t.processing
+                              : t.confirmOnePaid}
                           </button>
                         </div>
                       </div>

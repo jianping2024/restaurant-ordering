@@ -53,7 +53,7 @@ jobs:
               body: [
                 'Auto-opened when this branch was pushed.',
                 '',
-                'CI must pass (`web` check) before merge. Enable **Allow auto-merge** in repo settings for hands-free merge.',
+                'Merge after **Vercel** preview deployment succeeds. Enable **Allow auto-merge** in repo settings.',
               ].join('\n'),
             });
             core.info(`Created PR #${pr.number}: ${pr.html_url}`);

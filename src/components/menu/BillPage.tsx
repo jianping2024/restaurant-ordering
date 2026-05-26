@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { calcByItemSplitResults } from '@/lib/bill-split-by-item';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import type { BillSplit, DishFeedbackVote, Order, SplitMode, SplitResult } from '@/types';
@@ -195,18 +196,16 @@ export function BillPage({
     }
 
     if (splitMode === 'by_item') {
-      return splitPeople.slice(0, personCount).map((person) => {
-        const assigned = allItems.filter((item) => (byItemAssign[item.key] || []).includes(person.id));
-        const amount = assigned.reduce((sum, item) => sum + item.price * item.qty, 0);
-        return {
-          name: person.name,
-          amount,
-          items: assigned.map((item) => ({
-            name: (item.name || item.name_pt || '').trim(),
-            qty: item.qty,
-            price: item.price * item.qty,
-          })),
-        };
+      const people = splitPeople.slice(0, personCount);
+      return calcByItemSplitResults({
+        people,
+        lines: allItems.map((item) => ({
+          key: item.key,
+          name: (item.name || item.name_pt || '').trim(),
+          qty: item.qty,
+          unitPrice: item.price,
+        })),
+        assign: byItemAssign,
       });
     }
 

@@ -11,6 +11,7 @@ import (
 
 // 80mm paper ≈ 48 chars (Font A). Layout follows reference thermal receipts.
 const escposWidth = 48
+const escposTabWidth = 4 // one tab stop for category group headers on station slips
 
 // Top: no extra LF — most printers already feed after ESC @ init.
 // Bottom: 2× single-height "restaurant" row before cut (visible pad only).
@@ -478,7 +479,8 @@ func buildStationTicket(p jobPayload) []byte {
 	for _, ln := range lines {
 		groupHeader := strings.TrimSpace(ln.CategoryGroupHeader)
 		if groupHeader != "" && groupHeader != lastGroupHeader {
-			w.text(groupHeader)
+			indent := strings.Repeat(" ", escposTabWidth)
+			w.text(indent + truncateRunes(groupHeader, escposWidth-escposTabWidth))
 			w.lf()
 			lastGroupHeader = groupHeader
 		}

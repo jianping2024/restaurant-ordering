@@ -48,7 +48,7 @@ func TestBuildStationTicketEnglishLayout(t *testing.T) {
 		"Guest:4",
 		"Items",
 		"Qty",
-		"(Bebidas/ Drinks2)",
+		"    (Bebidas/ Drinks2)",
 		"001-",
 		"500ml",
 		"007-Coca Cola Zero",

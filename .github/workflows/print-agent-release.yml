@@ -41,9 +41,11 @@ jobs:
           fi
           echo "Version OK: $TAG_VER"
 
-      - name: Go test
+      - name: Go vet and build (tests run on Linux in print-agent-ci.yml)
         working-directory: apps/print-agent
-        run: go test ./...
+        run: |
+          go vet ./...
+          go build -ldflags "-s -w -X main.Version=${{ steps.ver.outputs.version }}" -o MesaPrintAgent.exe .
 
       - name: Install Inno Setup
         run: choco install innosetup -y --no-progress

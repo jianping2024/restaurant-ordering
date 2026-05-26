@@ -60,8 +60,17 @@ pnpm push feat/my-branch
 在 `.env.local` 加一行（不要提交 git）：
 
 ```
-GH_TOKEN=ghp_xxxx   # GitHub → Settings → Developer settings → PAT，勾选 repo 权限
+GH_TOKEN=ghp_xxxx
 ```
+
+**Token 类型（二选一）：**
+
+| 类型 | 权限 |
+|------|------|
+| **Classic（推荐）** | 勾选 **`repo`** |
+| Fine-grained | 仓库选 `restaurant-ordering` → **Pull requests: Read and write** + **Contents: Read and write** |
+
+只开 Pull requests **Read** 会导致开 PR 时 API 返回 **404**。
 
 有 token 时脚本会 **自动开 PR + 开 automerge**；没有 token 则需在 GitHub 点黄色条 **Compare & pull request**。
 

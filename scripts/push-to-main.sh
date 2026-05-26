@@ -178,7 +178,17 @@ try:
     with urllib.request.urlopen(req) as resp:
         pr = json.load(resp)
 except urllib.error.HTTPError as e:
-    print(e.read().decode(), file=sys.stderr)
+    body = e.read().decode()
+    if e.code in (403, 404):
+        print(
+            "GitHub API refused to create PR (HTTP %d).\n"
+            "If using a fine-grained token: Repository → Pull requests → Read and write.\n"
+            "Or use a classic token with the `repo` scope.\n%s"
+            % (e.code, body),
+            file=sys.stderr,
+        )
+    else:
+        print(body, file=sys.stderr)
     raise SystemExit(1)
 print(json.dumps({"number": pr["number"], "html_url": pr["html_url"], "node_id": pr["node_id"], "created": True}))
 PY

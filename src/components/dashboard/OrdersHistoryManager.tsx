@@ -10,7 +10,7 @@ import { endOfMonth, format, startOfMonth, startOfToday, subDays } from 'date-fn
 import Select from 'react-select';
 import type { MultiValue, StylesConfig } from 'react-select';
 import 'react-day-picker/dist/style.css';
-import { mergeTableNumbersWithOrderHistory, compareTableNumbers, tableNumbersEqual } from '@/lib/restaurant-table-numbers';
+import { mergeTablesWithOrderHistory, compareRestaurantTables, tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { closeActiveTableSession } from '@/lib/close-table-session';
 import { createClient } from '@/lib/supabase/client';
@@ -18,7 +18,7 @@ import { showToast } from '@/components/ui/Toast';
 
 interface Props {
   initialOrders: Order[];
-  tableNumbers?: string[];
+  tables?: RestaurantTableRow[];
   showCloseTable?: boolean;
   restaurantId?: string;
 }
@@ -30,7 +30,7 @@ interface TableOption {
 
 export function OrdersHistoryManager({
   initialOrders,
-  tableNumbers = [],
+  tables = [],
   showCloseTable = false,
   restaurantId,
 }: Props) {
@@ -63,11 +63,11 @@ export function OrdersHistoryManager({
 
   const tableOptions = useMemo<TableOption[]>(
     () =>
-      mergeTableNumbersWithOrderHistory(tableNumbers, orders).map((tableNo) => ({
-        value: tableNo,
-        label: `${i18n.table} ${tableNo}`,
+      mergeTablesWithOrderHistory(tables, orders).map((row) => ({
+        value: row.id,
+        label: `${i18n.table} ${row.display_name}`,
       })),
-    [i18n.table, orders, tableNumbers],
+    [i18n.table, orders, tables],
   );
 
   const selectStyles = useMemo<StylesConfig<TableOption, true>>(
@@ -120,9 +120,9 @@ export function OrdersHistoryManager({
   );
 
   const filteredOrders = useMemo(() => {
-    const selectedTableNumbers = new Set(selectedTables.map((item) => item.value));
+    const selectedTableIds = new Set(selectedTables.map((item) => item.value));
     return orders.filter(order => {
-      if (selectedTableNumbers.size > 0 && !selectedTableNumbers.has(order.table_number)) return false;
+      if (selectedTableIds.size > 0 && !selectedTableIds.has(order.table_id)) return false;
       if (statusFilter !== 'all' && order.status !== statusFilter) return false;
 
       if (dateRange?.from) {
@@ -145,14 +145,19 @@ export function OrdersHistoryManager({
 
   const tableGroups = useMemo(() => {
     if (!showCloseTable) return null;
-    const map = new Map<string, Order[]>();
+    const map = new Map<string, { displayName: string; orders: Order[] }>();
     for (const order of filteredOrders) {
-      const key = order.table_number;
-      const list = map.get(key);
-      if (list) list.push(order);
-      else map.set(key, [order]);
+      const key = order.table_id;
+      const entry = map.get(key);
+      if (entry) entry.orders.push(order);
+      else map.set(key, { displayName: order.display_name, orders: [order] });
     }
-    return Array.from(map.entries()).sort(([a], [b]) => compareTableNumbers(a, b));
+    return Array.from(map.entries()).sort(([, a], [, b]) =>
+      compareRestaurantTables(
+        { sort_order: 0, display_name: a.displayName },
+        { sort_order: 0, display_name: b.displayName },
+      ),
+    );
   }, [filteredOrders, showCloseTable]);
 
   const rangeLabel = useMemo(() => {
@@ -214,7 +219,7 @@ export function OrdersHistoryManager({
         <body style="font-family: Arial, sans-serif; padding: 20px; color: #111;">
           <h2 style="margin-bottom: 8px;">${i18n.printTitle}</h2>
           <div style="font-size: 14px; margin-bottom: 14px;">
-            <div>${i18n.table} ${order.table_number}</div>
+            <div>${i18n.table} ${order.display_name}</div>
             <div>${createdAt}</div>
             <div>${statusLabel[order.status]}</div>
           </div>
@@ -236,17 +241,17 @@ export function OrdersHistoryManager({
     printWindow.document.close();
   };
 
-  const handleCloseTable = async (tableNumber: string) => {
+  const handleCloseTable = async (closeTableId: string, displayName: string) => {
     if (!restaurantId) return;
-    const card = buildWaiterTableCard(tableNumber, orders);
+    const card = buildWaiterTableCard(closeTableId, displayName, orders);
     if (card.cooking > 0 || card.ready > 0) {
       showToast(i18n.closeTableBlocked, 'error');
       return;
     }
-    setClosingTable(tableNumber);
+    setClosingTable(closeTableId);
     try {
       const supabase = createClient();
-      const result = await closeActiveTableSession(supabase, restaurantId, tableNumber, 'owner_closed');
+      const result = await closeActiveTableSession(supabase, restaurantId, closeTableId, 'owner_closed');
       if (!result.ok) {
         showToast(
           result.code === 'no_session' ? i18n.closeTableNoSession : i18n.closeTableFailed,
@@ -254,7 +259,7 @@ export function OrdersHistoryManager({
         );
         return;
       }
-      setOrders((prev) => prev.filter((o) => !tableNumbersEqual(o.table_number, tableNumber)));
+      setOrders((prev) => prev.filter((o) => !tableIdsEqual(o.table_id, closeTableId)));
       showToast(i18n.closeTableSuccess, 'success');
       router.refresh();
     } catch {
@@ -274,7 +279,7 @@ export function OrdersHistoryManager({
           <div>
             <div className="flex items-center gap-2">
               {!showCloseTable ? (
-                <p className="text-brand-text font-medium">{i18n.table} {order.table_number}</p>
+                <p className="text-brand-text font-medium">{i18n.table} {order.display_name}</p>
               ) : null}
               <span className={`text-[13px] px-2 py-0.5 rounded-full ${statusColor[order.status]}`}>
                 {statusLabel[order.status]}
@@ -384,26 +389,26 @@ export function OrdersHistoryManager({
         </div>
       ) : showCloseTable && tableGroups ? (
         <div className="space-y-6">
-          {tableGroups.map(([tableNumber, tableOrders]) => {
-            const card = buildWaiterTableCard(tableNumber, orders);
+          {tableGroups.map(([tableId, group]) => {
+            const card = buildWaiterTableCard(tableId, group.displayName, orders);
             const canClose = card.cooking === 0 && card.ready === 0;
             return (
-              <section key={tableNumber}>
+              <section key={tableId}>
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                   <h2 className="font-heading text-lg text-brand-text">
-                    {i18n.table} {tableNumber}
+                    {i18n.table} {group.displayName}
                   </h2>
                   <button
                     type="button"
-                    disabled={!canClose || closingTable === tableNumber}
-                    onClick={() => void handleCloseTable(tableNumber)}
+                    disabled={!canClose || closingTable === tableId}
+                    onClick={() => void handleCloseTable(tableId, group.displayName)}
                     className="text-sm px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:border-brand-gold/50 hover:text-brand-gold disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     title={!canClose ? i18n.closeTableBlocked : undefined}
                   >
-                    {closingTable === tableNumber ? i18n.closeTableOperating : i18n.closeTable}
+                    {closingTable === tableId ? i18n.closeTableOperating : i18n.closeTable}
                   </button>
                 </div>
-                <div className="space-y-3">{tableOrders.map(renderOrderCard)}</div>
+                <div className="space-y-3">{group.orders.map(renderOrderCard)}</div>
               </section>
             );
           })}

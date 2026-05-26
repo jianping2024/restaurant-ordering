@@ -30,6 +30,6 @@ export async function GET(
 
   return NextResponse.json({
     orders: board.orders,
-    activeTables: board.activeTables,
+    activeTableIds: board.activeTableIds,
   });
 }

@@ -9,21 +9,21 @@ import { useRestaurantRealtimeRefresh } from '@/lib/use-restaurant-realtime-refr
 export function useWaiterOrders(
   restaurantId: string,
   initialOrders: Order[],
-  initialCheckoutRequestedTables: string[],
+  initialCheckoutRequestedTableIds: string[],
   enabled: boolean,
 ) {
   const [orders, setOrders] = useState<Order[]>(initialOrders);
-  const [checkoutRequestedTables, setCheckoutRequestedTables] = useState<string[]>(
-    initialCheckoutRequestedTables,
+  const [checkoutRequestedTableIds, setCheckoutRequestedTableIds] = useState<string[]>(
+    initialCheckoutRequestedTableIds,
   );
-  const [activeSessionTableNumbers, setActiveSessionTableNumbers] = useState<string[]>([]);
+  const [activeSessionTableIds, setActiveSessionTableIds] = useState<string[]>([]);
   const supabase = useMemo(() => createClient(), []);
 
   const refresh = useCallback(async () => {
     const board = await fetchWaiterBoardClient(restaurantId);
     setOrders(board.orders);
-    setActiveSessionTableNumbers(board.activeSessionTableNumbers);
-    setCheckoutRequestedTables(board.checkoutRequestedTables);
+    setActiveSessionTableIds(board.activeSessionTableIds);
+    setCheckoutRequestedTableIds(board.checkoutRequestedTableIds);
   }, [restaurantId]);
 
   useRestaurantRealtimeRefresh(
@@ -38,8 +38,8 @@ export function useWaiterOrders(
   return {
     orders,
     setOrders,
-    checkoutRequestedTables,
-    activeSessionTableNumbers,
+    checkoutRequestedTableIds,
+    activeSessionTableIds,
     refresh,
     supabase,
   };

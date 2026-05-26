@@ -52,7 +52,8 @@ export type StationTicketJobPayload = {
   station_display_name_pt: string;
   station_display_name_en: string | null;
   station_display_name_zh: string | null;
-  table_number: string;
+  table_id: string;
+  display_name: string;
   guest_count?: number;
   order_time?: string;
   lines: Array<{
@@ -108,7 +109,7 @@ export async function enqueueStationTicketsForOrder(params: {
 
   const { data: order, error: oErr } = await admin
     .from('orders')
-    .select('id, restaurant_id, table_number, status, items, session_id, created_at, updated_at')
+    .select('id, restaurant_id, table_id, display_name, status, items, session_id, created_at, updated_at')
     .eq('id', orderId)
     .maybeSingle();
 
@@ -246,7 +247,7 @@ export async function enqueueStationTicketsForOrder(params: {
       .from('table_sessions')
       .select('id')
       .eq('restaurant_id', restaurantId)
-      .eq('table_number', order.table_number)
+      .eq('table_id', order.table_id)
       .in('status', ['open', 'billing'])
       .maybeSingle();
     if (activeSession?.id) {
@@ -331,7 +332,8 @@ export async function enqueueStationTicketsForOrder(params: {
       station_display_name_pt: stMeta.name_pt,
       station_display_name_en: stMeta.name_en,
       station_display_name_zh: stMeta.name_zh,
-      table_number: order.table_number,
+      table_id: order.table_id as string,
+      display_name: (order.display_name as string) || '',
       ...(guestCount > 0 ? { guest_count: guestCount } : {}),
       ...(orderTime ? { order_time: orderTime } : {}),
       lines: stationLines.map((l) => {

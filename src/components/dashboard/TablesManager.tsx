@@ -4,89 +4,103 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { IntegerInput } from '@/components/ui/IntegerInput';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { showToast } from '@/components/ui/Toast';
 import {
   RESTAURANT_TABLE_LIST_MAX,
-  type TableNumber,
-  compareTableNumbers,
-  isValidTableNumberValue,
-  normalizeRestaurantTableNumbers,
-  normalizeTableNumberInput,
-  resizeTableNumbersList,
-} from '@/lib/restaurant-table-numbers';
+  compareRestaurantTables,
+  isValidTableDisplayName,
+  nextDefaultTableDisplayName,
+  normalizeTableDisplayName,
+  sortRestaurantTables,
+  tableIdsEqual,
+  type RestaurantTableRow,
+} from '@/lib/restaurant-tables';
 
 interface TablesManagerProps {
   restaurant: { id: string; slug: string; name: string };
-  initialTableNumbers?: string[] | null;
+  initialTables: RestaurantTableRow[];
   embedded?: boolean;
 }
 
-export function TablesManager({ restaurant, initialTableNumbers, embedded }: TablesManagerProps) {
+type ActiveSessionRow = {
+  id: string;
+  table_id: string;
+  display_name: string;
+  status: 'open' | 'billing' | 'closed';
+  opened_at: string;
+};
+
+export function TablesManager({ restaurant, initialTables, embedded }: TablesManagerProps) {
   const { lang } = useLanguage();
   const t = getMessages(lang).tables;
+  const tPrint = getMessages(lang).printStations;
   const supabase = createClient();
 
-  const [tableNumbers, setTableNumbers] = useState<TableNumber[]>(() =>
-    normalizeRestaurantTableNumbers(initialTableNumbers),
-  );
-  const [savedTableNumbers, setSavedTableNumbers] = useState<TableNumber[]>(() =>
-    normalizeRestaurantTableNumbers(initialTableNumbers),
-  );
+  const [tables, setTables] = useState<RestaurantTableRow[]>(() => sortRestaurantTables(initialTables));
+  const [savedTables, setSavedTables] = useState<RestaurantTableRow[]>(() => sortRestaurantTables(initialTables));
   const [saving, setSaving] = useState(false);
-  /** In-progress table labels; validated only on blur (not while typing). */
-  const [labelDrafts, setLabelDrafts] = useState<Record<number, string>>({});
+  const [adding, setAdding] = useState(false);
+  const [labelDrafts, setLabelDrafts] = useState<Record<string, string>>({});
 
   const [qrCodes, setQrCodes] = useState<Record<string, string>>({});
   const [staffLoginQr, setStaffLoginQr] = useState('');
-  const [activeSessions, setActiveSessions] = useState<Array<{
-    id: string;
-    table_number: string;
-    status: 'open' | 'billing' | 'closed';
-    opened_at: string;
-  }>>([]);
+  const [activeSessions, setActiveSessions] = useState<ActiveSessionRow[]>([]);
   const [operationType, setOperationType] = useState<'transfer' | 'merge' | null>(null);
-  const [sourceTable, setSourceTable] = useState<TableNumber | null>(null);
-  const [mergeSourceTables, setMergeSourceTables] = useState<TableNumber[]>([]);
-  const [targetTable, setTargetTable] = useState<TableNumber | null>(null);
+  const [sourceTableId, setSourceTableId] = useState<string | null>(null);
+  const [mergeSourceTableIds, setMergeSourceTableIds] = useState<string[]>([]);
+  const [targetTableId, setTargetTableId] = useState<string | null>(null);
   const [operating, setOperating] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<RestaurantTableRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
+  const tableById = useMemo(
+    () => new Map(tables.map((row) => [row.id, row])),
+    [tables],
+  );
+
   const dirty = useMemo(() => {
-    if (tableNumbers.length !== savedTableNumbers.length) return true;
-    if (tableNumbers.some((n, i) => n !== savedTableNumbers[i])) return true;
-    return Object.entries(labelDrafts).some(([idx, draft]) => {
-      const i = Number(idx);
-      const committed = tableNumbers[i];
-      return committed !== undefined && normalizeTableNumberInput(draft) !== committed;
-    });
-  }, [labelDrafts, savedTableNumbers, tableNumbers]);
+    if (tables.length !== savedTables.length) return true;
+    const savedById = new Map(savedTables.map((row) => [row.id, row.display_name]));
+    for (const row of tables) {
+      const draft = labelDrafts[row.id];
+      const committed = draft !== undefined ? normalizeTableDisplayName(draft) : row.display_name;
+      if (committed !== savedById.get(row.id)) return true;
+    }
+    return false;
+  }, [labelDrafts, savedTables, tables]);
 
   const loadActiveSessions = async () => {
-    const { data } = await supabase
+    const { data: sessions } = await supabase
       .from('table_sessions')
-      .select('id, table_number, status, opened_at')
+      .select('id, table_id, status, opened_at')
       .eq('restaurant_id', restaurant.id)
       .in('status', ['open', 'billing'])
-      .order('table_number', { ascending: true });
+      .order('opened_at', { ascending: true });
 
-    setActiveSessions((data as typeof activeSessions) || []);
+    const rows = (sessions || []) as Omit<ActiveSessionRow, 'display_name'>[];
+    setActiveSessions(
+      rows.map((session) => ({
+        ...session,
+        display_name: tableById.get(session.table_id)?.display_name ?? session.table_id.slice(0, 8),
+      })),
+    );
   };
 
   useEffect(() => {
-    loadActiveSessions();
+    void loadActiveSessions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [restaurant.id]);
+  }, [restaurant.id, tableById]);
 
   useEffect(() => {
     const generate = async () => {
       const codes: Record<string, string> = {};
-      for (const tableNum of tableNumbers) {
-        const url = `${baseUrl}/${restaurant.slug}/menu?table=${encodeURIComponent(tableNum)}`;
-        codes[tableNum] = await QRCode.toDataURL(url, {
+      for (const table of tables) {
+        const url = `${baseUrl}/${restaurant.slug}/menu?table_id=${encodeURIComponent(table.id)}`;
+        codes[table.id] = await QRCode.toDataURL(url, {
           width: 200,
           margin: 2,
           color: { dark: '#0f0e0c', light: '#f5f0e8' },
@@ -95,7 +109,7 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
       setQrCodes(codes);
     };
     void generate();
-  }, [tableNumbers, restaurant.slug, baseUrl]);
+  }, [tables, restaurant.slug, baseUrl]);
 
   useEffect(() => {
     const generateStaffQr = async () => {
@@ -110,10 +124,10 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
     void generateStaffQr();
   }, [restaurant.slug, baseUrl]);
 
-  const downloadQR = (tableNum: TableNumber) => {
+  const downloadQR = (tableId: string, displayName: string) => {
     const link = document.createElement('a');
-    link.href = qrCodes[tableNum];
-    link.download = `table-${tableNum}-qr.png`;
+    link.href = qrCodes[tableId];
+    link.download = `table-${displayName}-qr.png`;
     link.click();
   };
 
@@ -146,11 +160,11 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
         <body>
           <button class="no-print" onclick="window.print()" style="margin-bottom:20px;padding:8px 16px;">${t.print}</button>
           <div class="grid">
-            ${tableNumbers.map(n => `
+            ${tables.map((row) => `
               <div class="item">
-                <img src="${qrCodes[n] || ''}" alt="${t.table} ${n}" />
+                <img src="${qrCodes[row.id] || ''}" alt="${t.table} ${row.display_name}" />
                 <h2>${restaurant.name}</h2>
-                <p>${t.table} ${n}</p>
+                <p>${t.table} ${row.display_name}</p>
               </div>
             `).join('')}
           </div>
@@ -160,125 +174,87 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
     win.document.close();
   };
 
-  const handleCountChange = (count: number) => {
-    setLabelDrafts({});
-    setTableNumbers((prev) => resizeTableNumbersList(prev, count));
-  };
+  const tableLabelForInput = (table: RestaurantTableRow) =>
+    labelDrafts[table.id] ?? table.display_name;
 
-  const tableLabelForInput = (index: number) =>
-    labelDrafts[index] ?? tableNumbers[index] ?? '';
+  const commitTableLabel = (tableId: string, raw: string): boolean => {
+    const next = normalizeTableDisplayName(raw);
+    const revert = savedTables.find((row) => row.id === tableId)?.display_name ?? '';
 
-  const commitTableLabelAtIndex = (index: number, raw: string): boolean => {
-    const next = normalizeTableNumberInput(raw);
-    const revert = tableNumbers[index] ?? savedTableNumbers[index] ?? '';
-
-    if (!isValidTableNumberValue(next)) {
+    if (!isValidTableDisplayName(next)) {
       showToast(t.invalidTableNumber, 'error');
-      setTableNumbers((prev) => {
-        const copy = [...prev];
-        if (index < copy.length) copy[index] = revert;
-        return copy;
-      });
+      setTables((prev) =>
+        prev.map((row) => (row.id === tableId ? { ...row, display_name: revert } : row)),
+      );
       return false;
     }
-    if (tableNumbers.some((n, i) => i !== index && n === next)) {
+    if (tables.some((row) => row.id !== tableId && row.display_name === next)) {
       showToast(t.duplicateTableNumber, 'error');
-      setTableNumbers((prev) => {
-        const copy = [...prev];
-        if (index < copy.length) copy[index] = revert;
-        return copy;
-      });
+      setTables((prev) =>
+        prev.map((row) => (row.id === tableId ? { ...row, display_name: revert } : row)),
+      );
       return false;
     }
-    setTableNumbers((prev) => {
-      const copy = [...prev];
-      if (index < copy.length) copy[index] = next;
-      return copy;
-    });
+    setTables((prev) =>
+      prev.map((row) => (row.id === tableId ? { ...row, display_name: next } : row)),
+    );
     return true;
   };
 
-  const blurTableLabelAtIndex = (index: number) => {
-    const raw = labelDrafts[index] ?? tableNumbers[index] ?? '';
-    commitTableLabelAtIndex(index, raw);
+  const blurTableLabel = (table: RestaurantTableRow) => {
+    const raw = labelDrafts[table.id] ?? table.display_name;
+    commitTableLabel(table.id, raw);
     setLabelDrafts((prev) => {
-      if (!(index in prev)) return prev;
+      if (!(table.id in prev)) return prev;
       const next = { ...prev };
-      delete next[index];
+      delete next[table.id];
       return next;
     });
   };
 
-  const resolveTableNumbersForSave = (): TableNumber[] | null => {
-    const entries = Object.entries(labelDrafts);
-    const merged = [...tableNumbers];
-    for (const [idxStr, raw] of entries) {
-      const index = Number(idxStr);
-      const next = normalizeTableNumberInput(raw);
-      if (!isValidTableNumberValue(next)) {
+  const resolveTablesForSave = (): RestaurantTableRow[] | null => {
+    const merged = tables.map((row) => {
+      const raw = labelDrafts[row.id];
+      if (raw === undefined) return row;
+      const next = normalizeTableDisplayName(raw);
+      if (!isValidTableDisplayName(next)) {
         showToast(t.invalidTableNumber, 'error');
-        return null;
+        return null as unknown as RestaurantTableRow;
       }
-      if (merged.some((n, i) => i !== index && n === next)) {
-        showToast(t.duplicateTableNumber, 'error');
-        return null;
-      }
-      if (index < merged.length) merged[index] = next;
+      return { ...row, display_name: next };
+    });
+    if (merged.some((row) => !row)) return null;
+    const names = merged.map((row) => row.display_name);
+    if (new Set(names).size !== names.length) {
+      showToast(t.duplicateTableNumber, 'error');
+      return null;
     }
     return merged;
   };
 
-  const saveTableNumbers = useCallback(async () => {
-    const resolvedNumbers = resolveTableNumbersForSave();
-    if (!resolvedNumbers) return;
-    setTableNumbers(resolvedNumbers);
+  const saveTables = useCallback(async () => {
+    const resolved = resolveTablesForSave();
+    if (!resolved) return;
+    setTables(resolved);
     setLabelDrafts({});
-
-    const occupied = new Set(activeSessions.map((s) => s.table_number));
-    const removed = savedTableNumbers.filter((n) => !resolvedNumbers.includes(n));
-    if (removed.some((n) => occupied.has(n))) {
-      showToast(t.cannotRemoveWithSession, 'error');
-      return;
-    }
-
-    const renames: Array<{ from: TableNumber; to: TableNumber }> = [];
-    const overlap = Math.min(savedTableNumbers.length, resolvedNumbers.length);
-    for (let i = 0; i < overlap; i += 1) {
-      const from = savedTableNumbers[i];
-      const to = resolvedNumbers[i];
-      if (from !== to) renames.push({ from, to });
-    }
 
     setSaving(true);
     try {
-      for (const { from, to } of renames) {
-        const { error } = await supabase.rpc('rename_restaurant_table_number', {
-          p_restaurant_id: restaurant.id,
-          p_from_table: from,
-          p_to_table: to,
-        });
+      for (const row of resolved) {
+        const saved = savedTables.find((s) => s.id === row.id);
+        if (saved && saved.display_name === row.display_name) continue;
+        const { error } = await supabase
+          .from('restaurant_tables')
+          .update({ display_name: row.display_name })
+          .eq('id', row.id)
+          .eq('restaurant_id', restaurant.id);
         if (error) {
-          const msg = (error.message || '').toLowerCase();
-          if (msg.includes('active_session') || msg.includes('target_table')) {
-            showToast(t.sessionConflict, 'error');
-          } else {
-            showToast(t.saveFailed, 'error');
-          }
+          showToast(t.saveFailed, 'error');
           return;
         }
       }
 
-      const { error } = await supabase
-        .from('restaurants')
-        .update({ table_numbers: resolvedNumbers })
-        .eq('id', restaurant.id);
-
-      if (error) {
-        showToast(t.saveFailed, 'error');
-        return;
-      }
-
-      setSavedTableNumbers([...resolvedNumbers]);
+      setSavedTables([...resolved]);
       await loadActiveSessions();
       showToast(t.savedTables, 'success');
     } catch {
@@ -286,58 +262,116 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
     } finally {
       setSaving(false);
     }
-  }, [
-    activeSessions,
-    labelDrafts,
-    restaurant.id,
-    savedTableNumbers,
-    supabase,
-    t,
-    tableNumbers,
-  ]);
+  }, [restaurant.id, savedTables, supabase, t]);
 
-  const openOperation = (type: 'transfer' | 'merge', tableNum: TableNumber) => {
+  const addTable = async () => {
+    if (tables.length >= RESTAURANT_TABLE_LIST_MAX) return;
+    setAdding(true);
+    try {
+      const display_name = nextDefaultTableDisplayName(tables.map((row) => row.display_name));
+      const sort_order = Math.max(0, ...tables.map((row) => row.sort_order)) + 1;
+      const { data, error } = await supabase
+        .from('restaurant_tables')
+        .insert({
+          restaurant_id: restaurant.id,
+          display_name,
+          sort_order,
+        })
+        .select('id, display_name, sort_order')
+        .single();
+      if (error || !data) {
+        showToast(t.saveFailed, 'error');
+        return;
+      }
+      const next = sortRestaurantTables([...tables, data as RestaurantTableRow]);
+      setTables(next);
+      setSavedTables(next);
+      showToast(t.savedTables, 'success');
+    } catch {
+      showToast(t.saveFailed, 'error');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const confirmDeleteTable = async () => {
+    if (!deleteTarget) return;
+    const occupied = activeSessions.some((s) => tableIdsEqual(s.table_id, deleteTarget.id));
+    if (occupied) {
+      showToast(t.cannotRemoveWithSession, 'error');
+      return;
+    }
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('restaurant_tables')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', deleteTarget.id)
+        .eq('restaurant_id', restaurant.id);
+      if (error) {
+        showToast(t.saveFailed, 'error');
+        return;
+      }
+      const next = tables.filter((row) => row.id !== deleteTarget.id);
+      setTables(next);
+      setSavedTables(next);
+      setDeleteTarget(null);
+      showToast(t.savedTables, 'success');
+    } catch {
+      showToast(t.saveFailed, 'error');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const openOperation = (type: 'transfer' | 'merge', tableId: string) => {
     setOperationType(type);
-    setSourceTable(tableNum);
-    setMergeSourceTables(type === 'merge' ? [tableNum] : []);
-    setTargetTable(null);
+    setSourceTableId(tableId);
+    setMergeSourceTableIds(type === 'merge' ? [tableId] : []);
+    setTargetTableId(null);
   };
 
   const closeOperation = () => {
     setOperationType(null);
-    setSourceTable(null);
-    setMergeSourceTables([]);
-    setTargetTable(null);
+    setSourceTableId(null);
+    setMergeSourceTableIds([]);
+    setTargetTableId(null);
     setOperating(false);
   };
 
   const handleSubmitOperation = async () => {
-    if (!operationType || !targetTable) return;
+    if (!operationType || !targetTableId) return;
 
-    const selectedSources = operationType === 'merge' ? mergeSourceTables : (sourceTable ? [sourceTable] : []);
+    const selectedSources =
+      operationType === 'merge'
+        ? mergeSourceTableIds
+        : sourceTableId
+          ? [sourceTableId]
+          : [];
     if (selectedSources.length === 0) {
       showToast(operationType === 'merge' ? t.mergeAtLeastTwo : t.sameTableError, 'error');
       return;
     }
 
-    if (selectedSources.includes(targetTable)) {
+    if (selectedSources.some((id) => tableIdsEqual(id, targetTableId))) {
       showToast(t.sameTableError, 'error');
       return;
     }
 
     setOperating(true);
     try {
-      const { error } = operationType === 'transfer'
-        ? await supabase.rpc('transfer_table_session', {
-          p_restaurant_id: restaurant.id,
-          p_from_table: selectedSources[0],
-          p_to_table: targetTable,
-        })
-        : await supabase.rpc('merge_multiple_table_sessions', {
-          p_restaurant_id: restaurant.id,
-          p_source_tables: selectedSources,
-          p_target_table: targetTable,
-        });
+      const { error } =
+        operationType === 'transfer'
+          ? await supabase.rpc('transfer_table_session', {
+              p_restaurant_id: restaurant.id,
+              p_from_table_id: selectedSources[0],
+              p_to_table_id: targetTableId,
+            })
+          : await supabase.rpc('merge_multiple_table_sessions', {
+              p_restaurant_id: restaurant.id,
+              p_source_table_ids: selectedSources,
+              p_target_table_id: targetTableId,
+            });
 
       if (error) {
         if ((error.message || '').toLowerCase().includes('active session')) {
@@ -358,16 +392,19 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
     }
   };
 
-  const occupiedTables = new Set(activeSessions.map(s => s.table_number));
-  const transferTargets = tableNumbers
-    .filter(tableNum => tableNum !== sourceTable && !occupiedTables.has(tableNum));
+  const occupiedTableIds = new Set(activeSessions.map((s) => s.table_id));
+  const transferTargets = tables
+    .filter((row) => row.id !== sourceTableId && !occupiedTableIds.has(row.id))
+    .sort(compareRestaurantTables);
   const mergeTargets = activeSessions
-    .map(s => s.table_number)
-    .filter(tableNum => !mergeSourceTables.includes(tableNum))
-    .sort(compareTableNumbers);
+    .map((s) => s.table_id)
+    .filter((id) => !mergeSourceTableIds.includes(id))
+    .map((id) => tableById.get(id))
+    .filter((row): row is RestaurantTableRow => !!row)
+    .sort(compareRestaurantTables);
   const currentTargets = operationType === 'transfer' ? transferTargets : mergeTargets;
 
-  const qrReady = tableNumbers.length > 0 && tableNumbers.every((n) => qrCodes[n]);
+  const qrReady = tables.length > 0 && tables.every((row) => qrCodes[row.id]);
 
   return (
     <div>
@@ -387,19 +424,8 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
 
           <div className="flex flex-col gap-3 border-t border-brand-border/60 pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <label className="inline-flex items-center gap-2 text-[13px] text-brand-text-muted">
-                <span className="whitespace-nowrap">{t.count}</span>
-                <IntegerInput
-                  value={tableNumbers.length}
-                  onChange={handleCountChange}
-                  min={1}
-                  max={RESTAURANT_TABLE_LIST_MAX}
-                  className="w-[4.25rem] rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-center text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
-                  aria-label={t.count}
-                />
-              </label>
               <span className="text-[12px] text-brand-text-muted">
-                {t.tableCountSummary.replace('{count}', String(tableNumbers.length))}
+                {t.tableCountSummary.replace('{count}', String(tables.length))}
                 {dirty ? (
                   <span className="text-brand-gold"> · {t.unsavedChanges}</span>
                 ) : null}
@@ -407,7 +433,16 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
-                onClick={saveTableNumbers}
+                onClick={() => void addTable()}
+                size="sm"
+                variant="outline"
+                loading={adding}
+                disabled={adding || tables.length >= RESTAURANT_TABLE_LIST_MAX}
+              >
+                + {t.count}
+              </Button>
+              <Button
+                onClick={saveTables}
                 size="sm"
                 loading={saving}
                 disabled={!dirty || saving}
@@ -427,65 +462,76 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
         </div>
 
         <div className="mt-5 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {tableNumbers.map((tableNum, index) => (
-          <div
-            key={`table-slot-${index}`}
-            className="bg-brand-bg border border-brand-border rounded-xl p-4 text-center"
-          >
-            <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.tableNumberLabel}</label>
-            <input
-              type="text"
-              inputMode="text"
-              autoComplete="off"
-              spellCheck={false}
-              value={tableLabelForInput(index)}
-              onFocus={() => {
-                setLabelDrafts((prev) =>
-                  index in prev ? prev : { ...prev, [index]: tableNumbers[index] ?? '' },
-                );
-              }}
-              onChange={(e) => {
-                setLabelDrafts((prev) => ({
-                  ...prev,
-                  [index]: e.target.value,
-                }));
-              }}
-              onBlur={() => blurTableLabelAtIndex(index)}
-              className="w-full max-w-[5.5rem] mx-auto rounded-lg bg-brand-card border border-brand-border px-2 py-1.5 text-center text-brand-gold font-heading text-lg focus:outline-none focus:border-brand-gold/40 mb-3"
-              aria-label={`${t.tableNumberLabel} ${tableNum}`}
-            />
-            {qrCodes[tableNum] ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={qrCodes[tableNum]}
-                alt={`${t.table} ${tableNum} QR`}
-                className="mx-auto rounded-lg mb-3 w-32 h-32"
+          {tables.map((table) => (
+            <div
+              key={table.id}
+              className="bg-brand-bg border border-brand-border rounded-xl p-4 text-center"
+            >
+              <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.tableNumberLabel}</label>
+              <input
+                type="text"
+                inputMode="text"
+                autoComplete="off"
+                spellCheck={false}
+                value={tableLabelForInput(table)}
+                onFocus={() => {
+                  setLabelDrafts((prev) =>
+                    table.id in prev ? prev : { ...prev, [table.id]: table.display_name },
+                  );
+                }}
+                onChange={(e) => {
+                  setLabelDrafts((prev) => ({
+                    ...prev,
+                    [table.id]: e.target.value,
+                  }));
+                }}
+                onBlur={() => blurTableLabel(table)}
+                className="w-full max-w-[5.5rem] mx-auto rounded-lg bg-brand-card border border-brand-border px-2 py-1.5 text-center text-brand-gold font-heading text-lg focus:outline-none focus:border-brand-gold/40 mb-3"
+                aria-label={`${t.tableNumberLabel} ${table.display_name}`}
               />
-            ) : (
-              <div className="w-32 h-32 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
-            )}
-            <p className="text-brand-text-muted text-[13px] mb-3 truncate">
-              /{restaurant.slug}/menu?table={tableNum}
-            </p>
-            <div className="flex items-center justify-center gap-3">
-              <button
-                onClick={() => downloadQR(tableNum)}
-                disabled={!qrCodes[tableNum]}
-                className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
-              >
-                {t.download}
-              </button>
-              <a
-                href={`${baseUrl}/${restaurant.slug}/menu?table=${encodeURIComponent(tableNum)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-[13px] text-brand-gold hover:underline"
-              >
-                {t.openOrder}
-              </a>
+              {qrCodes[table.id] ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={qrCodes[table.id]}
+                  alt={`${t.table} ${table.display_name} QR`}
+                  className="mx-auto rounded-lg mb-3 w-32 h-32"
+                />
+              ) : (
+                <div className="w-32 h-32 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
+              )}
+              <p className="text-brand-text-muted text-[13px] mb-3 truncate">
+                /{restaurant.slug}/menu?table_id=…
+              </p>
+              <div className="flex flex-col items-center justify-center gap-2">
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    onClick={() => downloadQR(table.id, table.display_name)}
+                    disabled={!qrCodes[table.id]}
+                    className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
+                  >
+                    {t.download}
+                  </button>
+                  <a
+                    href={`${baseUrl}/${restaurant.slug}/menu?table_id=${encodeURIComponent(table.id)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[13px] text-brand-gold hover:underline"
+                  >
+                    {t.openOrder}
+                  </a>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(table)}
+                  disabled={occupiedTableIds.has(table.id)}
+                  className="text-[13px] text-red-400/90 hover:underline disabled:opacity-40"
+                  title={occupiedTableIds.has(table.id) ? t.cannotRemoveWithSession : undefined}
+                >
+                  {tPrint.delete}
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
         </div>
       </div>
 
@@ -495,7 +541,7 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
             <h2 className="font-heading text-2xl text-brand-gold">{t.activeSessionsTitle}</h2>
             <p className="text-brand-text-muted text-sm mt-1">{t.activeSessionsDesc}</p>
           </div>
-          <Button variant="outline" size="sm" onClick={loadActiveSessions}>{t.refreshSessions}</Button>
+          <Button variant="outline" size="sm" onClick={() => void loadActiveSessions()}>{t.refreshSessions}</Button>
         </div>
         {activeSessions.length === 0 ? (
           <p className="text-brand-text-muted text-sm">{t.noActiveSessions}</p>
@@ -507,7 +553,7 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
                 className="rounded-xl border border-brand-border px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
               >
                 <div>
-                  <p className="text-brand-text font-medium">{t.table} {session.table_number}</p>
+                  <p className="text-brand-text font-medium">{t.table} {session.display_name}</p>
                   <p className="text-brand-text-muted text-[13px]">
                     {new Date(session.opened_at).toLocaleString()}
                   </p>
@@ -515,14 +561,14 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => openOperation('transfer', session.table_number)}
+                    onClick={() => openOperation('transfer', session.table_id)}
                     className="text-[13px] px-3 py-1.5 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
                   >
                     {t.transferAction}
                   </button>
                   <button
                     type="button"
-                    onClick={() => openOperation('merge', session.table_number)}
+                    onClick={() => openOperation('merge', session.table_id)}
                     className="text-[13px] px-3 py-1.5 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
                   >
                     {t.mergeAction}
@@ -583,55 +629,62 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
             {operationType === 'merge' ? (
               <div className="modal-scroll rounded-lg border border-brand-border bg-brand-bg p-2 max-h-40 overflow-y-auto space-y-1.5">
                 {activeSessions.map((session) => {
-                  const checked = mergeSourceTables.includes(session.table_number);
+                  const checked = mergeSourceTableIds.includes(session.table_id);
                   return (
                     <label key={session.id} className="flex items-center gap-2 text-sm text-brand-text">
                       <input
                         type="checkbox"
                         checked={checked}
                         onChange={(e) => {
-                          setMergeSourceTables(prev => e.target.checked
-                            ? [...prev, session.table_number].sort(compareTableNumbers)
-                            : prev.filter(table => table !== session.table_number));
+                          setMergeSourceTableIds((prev) =>
+                            e.target.checked
+                              ? [...prev, session.table_id].sort((a, b) => {
+                                  const ta = tableById.get(a);
+                                  const tb = tableById.get(b);
+                                  if (ta && tb) return compareRestaurantTables(ta, tb);
+                                  return a.localeCompare(b);
+                                })
+                              : prev.filter((id) => id !== session.table_id),
+                          );
                         }}
                         className="accent-brand-gold"
                       />
-                      {t.table} {session.table_number}
+                      {t.table} {session.display_name}
                     </label>
                   );
                 })}
               </div>
             ) : (
               <select
-                value={sourceTable ?? ''}
-                onChange={(e) => setSourceTable(e.target.value || null)}
+                value={sourceTableId ?? ''}
+                onChange={(e) => setSourceTableId(e.target.value || null)}
                 className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
               >
                 <option value="">--</option>
                 {activeSessions.map((session) => (
-                  <option key={session.id} value={session.table_number}>
-                    {t.table} {session.table_number}
+                  <option key={session.id} value={session.table_id}>
+                    {t.table} {session.display_name}
                   </option>
                 ))}
               </select>
             )}
             {operationType === 'merge' && (
               <p className="mt-1.5 text-[13px] text-brand-text-muted">
-                {t.selectedCount}: {mergeSourceTables.length}
+                {t.selectedCount}: {mergeSourceTableIds.length}
               </p>
             )}
           </div>
           <div>
             <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.targetTable}</label>
             <select
-              value={targetTable ?? ''}
-              onChange={(e) => setTargetTable(e.target.value || null)}
+              value={targetTableId ?? ''}
+              onChange={(e) => setTargetTableId(e.target.value || null)}
               className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
             >
               <option value="">--</option>
-              {currentTargets.map((tableNum) => (
-                <option key={tableNum} value={tableNum}>
-                  {t.table} {tableNum}
+              {currentTargets.map((row) => (
+                <option key={row.id} value={row.id}>
+                  {t.table} {row.display_name}
                 </option>
               ))}
             </select>
@@ -642,13 +695,36 @@ export function TablesManager({ restaurant, initialTableNumbers, embedded }: Tab
           <Button
             onClick={handleSubmitOperation}
             loading={operating}
-            disabled={operationType === 'merge'
-              ? mergeSourceTables.length === 0 || !targetTable
-              : !sourceTable || !targetTable}
+            disabled={
+              operationType === 'merge'
+                ? mergeSourceTableIds.length === 0 || !targetTableId
+                : !sourceTableId || !targetTableId
+            }
           >
             {operationType === 'transfer'
               ? (operating ? t.transferring : t.confirmTransfer)
               : (operating ? t.merging : t.confirmMerge)}
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title={tPrint.confirmDeleteTitle}
+        size="sm"
+      >
+        <p className="text-[13px] text-brand-text-muted mb-4">
+          {deleteTarget
+            ? `${t.table} ${deleteTarget.display_name}: QR will stop working. This cannot be undone.`
+            : ''}
+        </p>
+        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+            {getMessages(lang).menuManager.cancel}
+          </Button>
+          <Button variant="danger" loading={deleting} onClick={() => void confirmDeleteTable()}>
+            {tPrint.delete}
           </Button>
         </div>
       </Modal>

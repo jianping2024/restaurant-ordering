@@ -2,6 +2,17 @@
 
 Pulls `print_jobs` from Mesa and prints via **LAN TCP :9100** or **Windows USB** (WinSpool RAW, UNYKA UK56009). ESC/POS.
 
+## Job payload — table fields
+
+All job types that reference a table (`station_ticket`, `order_receipt`, `pre_bill`) include **both**:
+
+| Field | On paper | Purpose |
+|-------|----------|---------|
+| `display_name` | **Yes** — printed label (e.g. `A-05`) | Snapshot at enqueue time; stable on reprint even if table renamed |
+| `table_id` | **No** — never print UUID | Logs, queue filtering, correlation with orders/sessions |
+
+See [`docs/restaurant-tables-design.zh.md`](../../docs/restaurant-tables-design.zh.md) §8 and [`docs/print-agent-plan.md`](../../docs/print-agent-plan.md). Legacy `table_number` in payload is **not** supported after the table migration.
+
 ## Commands
 
 ### Discover printers (LAN scan)

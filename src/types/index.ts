@@ -2,6 +2,8 @@
 // 全局类型定义
 // ============================================================
 
+export type { RestaurantTable, RestaurantTableRow } from '@/lib/restaurant-tables';
+
 export type Plan = 'free' | 'pro';
 export type OrderStatus = 'pending' | 'cooking' | 'done';
 export type OrderItemStatus = 'pending' | 'cooking' | 'done' | 'voided';
@@ -37,8 +39,9 @@ export interface PrintJobSummary {
   status: PrintJobStatus;
   created_at: string;
   error_message: string | null;
-  /** From `payload.table_number` when present (e.g. station_ticket); otherwise null. */
-  table_number?: string | null;
+  /** From generated column `table_display` when present. */
+  table_display?: string | null;
+  table_id?: string | null;
 }
 
 export interface PrintStation {
@@ -70,8 +73,6 @@ export interface Restaurant {
   waiter_password?: string;
   /** Ticket / station_ticket payload locale (pt = pt-PT semantics); default pt */
   print_locale?: 'zh' | 'en' | 'pt';
-  /** Configured table numbers for QR / waiter board (max 200). */
-  table_numbers?: string[];
   /** Lisbon local time: Friday at/after this → weekend buffet pricing; null = off. */
   buffet_friday_weekend_from?: string | null;
   created_at: string;
@@ -208,7 +209,8 @@ export interface Order {
   id: string;
   restaurant_id: string;
   session_id?: string | null;
-  table_number: string;
+  table_id: string;
+  display_name: string;
   status: OrderStatus;
   items: OrderItem[];
   total_amount: number;
@@ -233,7 +235,8 @@ export interface BillSplit {
   id: string;
   restaurant_id: string;
   session_id?: string | null;
-  table_number: string;
+  table_id: string;
+  display_name: string;
   order_ids: string[];
   split_mode: SplitMode;
   persons: SplitPerson[];
@@ -270,7 +273,7 @@ export interface DishFeedback {
 export interface TableSession {
   id: string;
   restaurant_id: string;
-  table_number: string;
+  table_id: string;
   status: SessionStatus;
   opened_at: string;
   closed_at?: string | null;

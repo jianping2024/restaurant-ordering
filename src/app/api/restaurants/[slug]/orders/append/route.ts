@@ -9,7 +9,7 @@ import { deriveOrderStatusFromItems } from '@/lib/order-status';
 import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
 import { clientIpFromRequest } from '@/lib/request-client-ip';
 import type { OrderItem } from '@/types';
-import { parseTableNumberParamOrNull } from '@/lib/restaurant-table-numbers';
+import { parseTableIdParam } from '@/lib/restaurant-tables';
 
 export const runtime = 'nodejs';
 
@@ -71,7 +71,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   }
 
   let body: {
-    table_number?: unknown;
+    table_id?: unknown;
     items?: unknown;
     latitude?: unknown;
     longitude?: unknown;
@@ -83,9 +83,9 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const tableNumber = parseTableNumberParamOrNull(body.table_number);
-  if (!tableNumber) {
-    return NextResponse.json({ error: 'invalid_table_number' }, { status: 400 });
+  const tableId = parseTableIdParam(body.table_id);
+  if (!tableId) {
+    return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
   }
 
   const newItems = parseItems(body.items);
@@ -115,6 +115,20 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   const rid = restaurant.id as string;
   const waiterFlow = body.waiter_flow === true;
   const staffWaiter = waiterFlow ? await staffAuthFromRequest(req, slug, 'waiter') : null;
+
+  const { data: tableRow, error: tableErr } = await admin
+    .from('restaurant_tables')
+    .select('id, display_name')
+    .eq('restaurant_id', rid)
+    .eq('id', tableId)
+    .is('deleted_at', null)
+    .maybeSingle();
+
+  if (tableErr || !tableRow) {
+    return NextResponse.json({ error: 'table_not_available' }, { status: 400 });
+  }
+
+  const displayName = tableRow.display_name as string;
 
   if (
     restaurant.geo_latitude != null &&
@@ -146,7 +160,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     .from('table_sessions')
     .select('id, status')
     .eq('restaurant_id', rid)
-    .eq('table_number', tableNumber)
+    .eq('table_id', tableId)
     .in('status', ['open', 'billing'])
     .order('opened_at', { ascending: false })
     .limit(1)
@@ -157,7 +171,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
       .from('table_sessions')
       .insert({
         restaurant_id: rid,
-        table_number: tableNumber,
+        table_id: tableId,
         status: 'open',
       })
       .select('id, status')
@@ -211,7 +225,8 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
       .insert({
         restaurant_id: rid,
         session_id: sessionId,
-        table_number: tableNumber,
+        table_id: tableId,
+        display_name: displayName,
         status: 'pending',
         items: newItems,
         total_amount: batchTotal,

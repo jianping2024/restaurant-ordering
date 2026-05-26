@@ -5,7 +5,7 @@ import { deriveOrderStatusFromItems } from '@/lib/order-status';
 import { sumLineTotals } from '@/lib/cart-totals';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { OrderItem } from '@/types';
-import { parseTableNumberParamOrNull } from '@/lib/restaurant-table-numbers';
+import { parseTableIdParam } from '@/lib/restaurant-tables';
 
 export const runtime = 'nodejs';
 
@@ -24,7 +24,7 @@ export async function POST(
   }
 
   let body: {
-    table_number?: unknown;
+    table_id?: unknown;
     buffet_id?: unknown;
     adult_count?: unknown;
     child_count?: unknown;
@@ -35,12 +35,12 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const tableNumber = parseTableNumberParamOrNull(body.table_number);
+  const tableId = parseTableIdParam(body.table_id);
   const buffetId = typeof body.buffet_id === 'string' ? body.buffet_id : '';
   const adultCount = Math.max(0, Math.floor(Number(body.adult_count) || 0));
   const childCount = Math.max(0, Math.floor(Number(body.child_count) || 0));
 
-  if (!tableNumber || !buffetId) {
+  if (!tableId || !buffetId) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
   }
 
@@ -50,6 +50,20 @@ export async function POST(
   } catch {
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
+
+  const { data: tableRow } = await admin
+    .from('restaurant_tables')
+    .select('id, display_name')
+    .eq('restaurant_id', ctx.restaurant_id)
+    .eq('id', tableId)
+    .is('deleted_at', null)
+    .maybeSingle();
+
+  if (!tableRow) {
+    return NextResponse.json({ error: 'table_not_available' }, { status: 400 });
+  }
+
+  const displayName = tableRow.display_name as string;
 
   const { data: buffet, error: bErr } = await admin
     .from('buffets')
@@ -96,7 +110,7 @@ export async function POST(
     .from('table_sessions')
     .select('id, status')
     .eq('restaurant_id', ctx.restaurant_id)
-    .eq('table_number', tableNumber)
+    .eq('table_id', tableId)
     .in('status', ['open', 'billing'])
     .order('opened_at', { ascending: false })
     .limit(1)
@@ -107,7 +121,7 @@ export async function POST(
       .from('table_sessions')
       .insert({
         restaurant_id: ctx.restaurant_id,
-        table_number: tableNumber,
+        table_id: tableId,
         status: 'open',
       })
       .select('id, status')
@@ -157,7 +171,8 @@ export async function POST(
     const { error: insErr } = await admin.from('orders').insert({
       restaurant_id: ctx.restaurant_id,
       session_id: sessionId,
-      table_number: tableNumber,
+      table_id: tableId,
+      display_name: displayName,
       status: nextStatus,
       items: mergedItems,
       total_amount: total,

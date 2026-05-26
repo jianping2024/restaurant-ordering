@@ -7,7 +7,7 @@ import {
   assertReceiptPrinterIdAllowed,
   loadRestaurantReceiptPrinterSnapshot,
 } from '@/lib/restaurant-receipt-printers-server';
-import { parseTableNumberParamOrNull } from '@/lib/restaurant-table-numbers';
+import { parseTableIdParam } from '@/lib/restaurant-tables';
 
 export const runtime = 'nodejs';
 
@@ -28,7 +28,7 @@ export async function POST(
   }
 
   let body: {
-    table_number?: unknown;
+    table_id?: unknown;
     session_id?: unknown;
     job_type?: unknown;
     receipt_variant?: unknown;
@@ -46,9 +46,9 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const tableNumber = parseTableNumberParamOrNull(body.table_number);
-  if (!tableNumber) {
-    return NextResponse.json({ error: 'invalid_table_number' }, { status: 400 });
+  const tableId = parseTableIdParam(body.table_id);
+  if (!tableId) {
+    return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
   }
 
   const jobTypeRaw = typeof body.job_type === 'string' ? body.job_type.trim() : 'order_receipt';
@@ -108,7 +108,7 @@ export async function POST(
         .select('id')
         .eq('id', sessionIdRaw)
         .eq('restaurant_id', rest.id)
-        .eq('table_number', tableNumber)
+        .eq('table_id', tableId)
         .in('status', ['open', 'billing'])
         .maybeSingle();
       if (!session?.id) {
@@ -122,13 +122,27 @@ export async function POST(
     }
   }
 
+  const { data: tableRow } = await admin
+    .from('restaurant_tables')
+    .select('id, display_name')
+    .eq('restaurant_id', restaurantId)
+    .eq('id', tableId)
+    .is('deleted_at', null)
+    .maybeSingle();
+
+  if (!tableRow) {
+    return NextResponse.json({ error: 'table_not_available' }, { status: 400 });
+  }
+
+  const tableDisplayName = tableRow.display_name as string;
+
   let sessionId = sessionIdRaw;
   if (!sessionId) {
     const { data: session } = await admin
       .from('table_sessions')
       .select('id')
       .eq('restaurant_id', restaurantId)
-      .eq('table_number', tableNumber)
+      .eq('table_id', tableId)
       .in('status', ['open', 'billing'])
       .order('opened_at', { ascending: false })
       .limit(1)
@@ -175,7 +189,8 @@ export async function POST(
     restaurantName,
     printLocale,
     sessionId,
-    tableNumber,
+    tableId,
+    tableDisplayName,
     variant,
     payerName,
     personAmount,

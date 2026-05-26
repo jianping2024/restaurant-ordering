@@ -300,7 +300,7 @@ export function CheckoutRequestsManager({ initialRequests, restaurantSlug }: Pro
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="font-heading text-3xl text-brand-text leading-none">
-                    {t.table} {request.table_number}
+                    {t.table} {request.display_name}
                   </p>
                   <p className="text-brand-text-muted text-[13px] mt-2">
                     {new Date(request.created_at).toLocaleString(locale)}

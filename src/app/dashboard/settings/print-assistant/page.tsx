@@ -50,7 +50,7 @@ export default async function PrintAssistantSettingsPage() {
 
   const { data: jobRows, error: jobsError } = await supabase
     .from('print_jobs')
-    .select('id, type, status, created_at, error_message, table_number')
+    .select('id, type, status, created_at, error_message, table_display, table_id')
     .eq('restaurant_id', rid)
     .order('created_at', { ascending: false })
     .limit(25);

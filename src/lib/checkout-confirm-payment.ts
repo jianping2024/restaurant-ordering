@@ -97,7 +97,8 @@ export async function confirmBillSplitPayment(params: {
     return { ok: false, status: 500, code: 'bill_update_failed', message: billErr.message };
   }
 
-  const tableNumber = bill.table_number;
+  const tableId = bill.table_id;
+  const tableDisplayName = bill.display_name;
   const sessionId = bill.session_id;
 
   const printTarget = receiptPrinterId?.trim() || undefined;
@@ -109,7 +110,8 @@ export async function confirmBillSplitPayment(params: {
       restaurantName,
       printLocale,
       sessionId,
-      tableNumber,
+      tableId,
+      tableDisplayName,
       variant: 'split_payment',
       payerName: receiptPayerNameForPrint(row.name, personIndex),
       personAmount: row.amount,
@@ -140,7 +142,8 @@ export async function confirmBillSplitPayment(params: {
       restaurantName,
       printLocale,
       sessionId,
-      tableNumber,
+      tableId,
+      tableDisplayName,
       variant: 'final',
       amountPaid: finalAmount,
       paymentMethod: 'Cash',

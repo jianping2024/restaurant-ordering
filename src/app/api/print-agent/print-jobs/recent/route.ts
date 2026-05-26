@@ -36,7 +36,7 @@ export async function GET(req: Request) {
   const supabase = await createClient();
   const { data: rows, error } = await supabase
     .from('print_jobs')
-    .select('id, type, status, created_at, error_message, table_number')
+    .select('id, type, status, created_at, error_message, table_display, table_id')
     .eq('restaurant_id', auth.restaurantId)
     .order('created_at', { ascending: false })
     .limit(limit);

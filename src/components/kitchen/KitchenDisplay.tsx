@@ -13,13 +13,13 @@ import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
 import { fetchKitchenBoardClient } from '@/lib/staff-board-client';
 import { useRestaurantRealtimeRefresh } from '@/lib/use-restaurant-realtime-refresh';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
-import { compareTableNumbers } from '@/lib/restaurant-table-numbers';
+import { compareRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
   initialOrders?: Order[];
-  /** 开台 / 结账中（table_sessions open|billing）的桌号，用于无待备餐单时在厨房占位 */
-  initialActiveTables?: string[];
+  /** 开台 / 结账中（table_sessions open|billing）的 table_id，用于无待备餐单时在厨房占位 */
+  initialActiveTableIds?: string[];
   isDemo?: boolean;
 }
 
@@ -71,7 +71,7 @@ export function KitchenDisplay(props: Props) {
 function KitchenDisplayInner({
   restaurant,
   initialOrders = [],
-  initialActiveTables = [],
+  initialActiveTableIds = [],
   isDemo = false,
   handleSignOut,
   exitLabel,
@@ -81,7 +81,8 @@ function KitchenDisplayInner({
   const demoText = KITCHEN_DEMO_TEXT[lang];
   const locale = UI_LOCALE_BY_LANG[lang];
   const [orders, setOrders] = useState<Order[]>(initialOrders);
-  const [activeTables, setActiveTables] = useState<string[]>(initialActiveTables);
+  const [activeTableIds, setActiveTableIds] = useState<string[]>(initialActiveTableIds);
+  const [tableMetaById, setTableMetaById] = useState<Map<string, RestaurantTableRow>>(new Map());
   const [updateConflict, setUpdateConflict] = useState(false);
   const prevOrderIds = useRef<Set<string>>(new Set(initialOrders.map((o) => o.id)));
   const supabase = createClient(); // demo realtime only
@@ -92,37 +93,50 @@ function KitchenDisplayInner({
     [orders],
   );
 
+  const tableLabel = (tableId: string, fallback?: string) =>
+    fallback?.trim()
+    || tableMetaById.get(tableId)?.display_name
+    || tableId.slice(0, 8);
+
   const idleTableCount = useMemo(() => {
-    const busy = new Set(boardOrders.map((o) => o.table_number));
-    return activeTables.filter((t) => !busy.has(t)).length;
-  }, [boardOrders, activeTables]);
+    const busy = new Set(boardOrders.map((o) => o.table_id));
+    return activeTableIds.filter((id) => !busy.has(id)).length;
+  }, [boardOrders, activeTableIds]);
 
   const kitchenColumns = useMemo(() => {
     const byTable = new Map<string, Order[]>();
     boardOrders.forEach((o) => {
-      const list = byTable.get(o.table_number) || [];
+      const list = byTable.get(o.table_id) || [];
       list.push(o);
-      byTable.set(o.table_number, list);
+      byTable.set(o.table_id, list);
     });
     byTable.forEach((list) => {
       list.sort(
         (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
       );
     });
-    const tableNums = new Set<string>([...activeTables, ...Array.from(byTable.keys())]);
-    const sortedTables = Array.from(tableNums).sort(compareTableNumbers);
-    type Col = { kind: 'order'; order: Order } | { kind: 'placeholder'; table: string };
+    const tableIds = new Set<string>([...activeTableIds, ...Array.from(byTable.keys())]);
+    const sortedTables = Array.from(tableIds).sort((a, b) => {
+      const ta = tableMetaById.get(a) ?? { sort_order: 9999, display_name: tableLabel(a) };
+      const tb = tableMetaById.get(b) ?? { sort_order: 9999, display_name: tableLabel(b) };
+      return compareRestaurantTables(ta, tb);
+    });
+    type Col = { kind: 'order'; order: Order } | { kind: 'placeholder'; tableId: string; displayName: string };
     const cols: Col[] = [];
-    for (const tableNum of sortedTables) {
-      const list = byTable.get(tableNum);
+    for (const tableId of sortedTables) {
+      const list = byTable.get(tableId);
       if (list?.length) {
         list.forEach((order) => cols.push({ kind: 'order', order }));
-      } else if (activeTables.includes(tableNum)) {
-        cols.push({ kind: 'placeholder', table: tableNum });
+      } else if (activeTableIds.includes(tableId)) {
+        cols.push({
+          kind: 'placeholder',
+          tableId,
+          displayName: tableLabel(tableId),
+        });
       }
     }
     return cols;
-  }, [boardOrders, activeTables]);
+  }, [boardOrders, activeTableIds, tableMetaById]);
 
   const refreshKitchenBoard = useCallback(async () => {
     const board = await fetchKitchenBoardClient(restaurant.id);
@@ -133,7 +147,8 @@ function KitchenDisplayInner({
       }
     });
     setOrders(board.orders);
-    setActiveTables(board.activeTables);
+    setActiveTableIds(board.activeTableIds);
+    setTableMetaById(board.tableById);
   }, [restaurant.id]);
 
   // 更新菜品级状态，并同步订单总状态（pending/cooking/done）
@@ -276,7 +291,7 @@ function KitchenDisplayInner({
                 locale={locale}
               />
             ) : (
-              <OpenTablePlaceholder key={`open-${col.table}`} table={col.table} labels={t} />
+              <OpenTablePlaceholder key={`open-${col.tableId}`} table={col.displayName} labels={t} />
             ),
           )}
         </div>
@@ -371,7 +386,7 @@ function OrderCard({
       {/* 卡片头部 */}
       <div className="flex items-center justify-between mb-3">
         <div>
-          <span className="font-heading text-2xl text-brand-text">{labels.table} {order.table_number}</span>
+          <span className="font-heading text-2xl text-brand-text">{labels.table} {order.display_name}</span>
           <p className="text-brand-text-muted text-[13px]">{timeStr}</p>
         </div>
         <span

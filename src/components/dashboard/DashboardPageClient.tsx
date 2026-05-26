@@ -128,7 +128,7 @@ export function DashboardPageClient({
                 >
                   <div>
                     <p className="text-sm text-brand-text">
-                      {i18n.table} {order.table_number}
+                      {i18n.table} {order.display_name}
                     </p>
                     <p className="text-[13px] text-brand-text-muted">{order.createdAtLabel}</p>
                   </div>

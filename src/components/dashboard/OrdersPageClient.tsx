@@ -5,13 +5,14 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { CheckoutRequestsManager } from '@/components/dashboard/CheckoutRequestsManager';
 import { OrdersHistoryManager } from '@/components/dashboard/OrdersHistoryManager';
+import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 
 interface Props {
   orders: Order[];
   checkoutRequests: BillSplit[];
   restaurantSlug?: string;
   restaurantId?: string;
-  tableNumbers?: string[];
+  tables?: RestaurantTableRow[];
   headingTitle?: string;
   headingNavKey?: 'orders' | 'unpaidOrders' | 'checkout';
   showCheckoutRequests?: boolean;
@@ -23,7 +24,7 @@ export function OrdersPageClient({
   checkoutRequests,
   restaurantSlug,
   restaurantId,
-  tableNumbers,
+  tables,
   headingTitle,
   headingNavKey,
   showCheckoutRequests = true,
@@ -51,7 +52,7 @@ export function OrdersPageClient({
 
       <OrdersHistoryManager
         initialOrders={orders}
-        tableNumbers={tableNumbers}
+        tables={tables}
         showCloseTable={showCloseTable}
         restaurantId={restaurantId}
       />

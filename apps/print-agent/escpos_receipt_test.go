@@ -8,17 +8,17 @@ import (
 
 func TestBuildOrderReceiptEnglishLayout(t *testing.T) {
 	payloadMap := jobPayload{
-		Locale:         "pt",
-		RestaurantName: "川味餐厅",
-		TableNumber:    "1",
-		GuestCount:     4,
-		OrderTime:      "2026-05-14 20:05",
-		PrintTime:      "2026-05-14 21:01",
-		Subtotal:       13.75,
-		AmountDue:      13.75,
-		AmountPaid:     13.75,
-		PaymentMethod:  "Cash",
-		ReceiptVariant: "final",
+		Locale:           "pt",
+		RestaurantName:   "川味餐厅",
+		TableDisplayName: "1",
+		GuestCount:       4,
+		OrderTime:        "2026-05-14 20:05",
+		PrintTime:        "2026-05-14 21:01",
+		Subtotal:         13.75,
+		AmountDue:        13.75,
+		AmountPaid:       13.75,
+		PaymentMethod:    "Cash",
+		ReceiptVariant:   "final",
 		Lines: []jobLine{
 			{ItemIndex: 1, DisplayName: "Agua 500ml", Qty: 1, UnitPrice: 1.85},
 			{ItemIndex: 9, DisplayName: "Ice Tea Limão", Qty: 1, UnitPrice: 2.2},
@@ -55,7 +55,8 @@ func TestBuildOrderReceiptEnglishLayout(t *testing.T) {
 
 func TestBuildOrderReceiptSplitPaymentGuestNumber(t *testing.T) {
 	payload, _ := json.Marshal(map[string]any{
-		"table_number":    "5",
+		"display_name":    "A-05",
+		"table_id":        "550e8400-e29b-41d4-a716-446655440000",
 		"receipt_variant": "split_payment",
 		"payer_name":      "客人 2",
 		"amount_due":      38.62,
@@ -67,32 +68,31 @@ func TestBuildOrderReceiptSplitPaymentGuestNumber(t *testing.T) {
 	if strings.Contains(s, "??") {
 		t.Fatalf("must not contain ?? placeholders: %q", s)
 	}
+	if strings.Contains(s, "550e8400") {
+		t.Fatalf("must not print table_id UUID on receipt: %q", s)
+	}
 	if !strings.Contains(s, "Guest:2") {
 		t.Fatalf("expected Guest:2, got excerpt around guest: %q", s)
 	}
-	if !strings.Contains(s, "Table No.:05") {
-		t.Fatalf("split receipt must show table number, got: %q", s)
+	if !strings.Contains(s, "Table No.:A-05") {
+		t.Fatalf("split receipt must show display_name, got: %q", s)
 	}
 }
 
-func TestParseJobPayloadTableNumberFromJSONString(t *testing.T) {
-	raw, _ := json.Marshal(map[string]any{"table_number": "A1"})
+func TestParseJobPayloadDisplayNameFromJSON(t *testing.T) {
+	raw, _ := json.Marshal(map[string]any{"display_name": "A-01", "table_id": "550e8400-e29b-41d4-a716-446655440000"})
 	p := parseJobPayload(printJob{Payload: raw})
-	if p.TableNumber != "A1" {
-		t.Fatalf("expected A1, got %q", p.TableNumber)
+	if p.TableDisplayName != "A-01" {
+		t.Fatalf("expected A-01, got %q", p.TableDisplayName)
 	}
-}
-
-func TestParseJobPayloadTableNumberFromJSONNumber(t *testing.T) {
-	p := parseJobPayload(printJob{Payload: []byte(`{"table_number":32}`)})
-	if p.TableNumber != "32" {
-		t.Fatalf("expected 32, got %q", p.TableNumber)
+	if p.TableID != "550e8400-e29b-41d4-a716-446655440000" {
+		t.Fatalf("expected table_id, got %q", p.TableID)
 	}
 }
 
 func TestPreBillOmitsPaymentLines(t *testing.T) {
 	payload, _ := json.Marshal(map[string]any{
-		"table_number": "2",
+		"display_name": "A-02",
 		"subtotal":     10,
 		"amount_due":   10,
 		"lines":        []jobLine{{ItemIndex: 1, DisplayName: "Soup", Qty: 1, UnitPrice: 10}},
@@ -110,7 +110,7 @@ func TestPreBillOmitsPaymentLines(t *testing.T) {
 func TestPreBillTitleEnglishLocale(t *testing.T) {
 	payload, _ := json.Marshal(map[string]any{
 		"locale":       "en",
-		"table_number": "3",
+		"display_name": "A-03",
 		"subtotal":     5,
 		"amount_due":   5,
 		"lines":        []jobLine{{ItemIndex: 1, DisplayName: "Tea", Qty: 1, UnitPrice: 5}},

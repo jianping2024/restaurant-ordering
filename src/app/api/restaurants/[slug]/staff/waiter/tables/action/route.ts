@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { parseTableNumberParamOrNull } from '@/lib/restaurant-table-numbers';
+import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
 
 export const runtime = 'nodejs';
 
@@ -19,7 +19,7 @@ export async function POST(
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
-  let body: { action?: unknown; from_table?: unknown; to_table?: unknown };
+  let body: { action?: unknown; from_table_id?: unknown; to_table_id?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -27,13 +27,13 @@ export async function POST(
   }
 
   const action = body.action;
-  const fromTable = parseTableNumberParamOrNull(body.from_table);
-  const toTable = parseTableNumberParamOrNull(body.to_table);
+  const fromTableId = parseTableIdParam(body.from_table_id);
+  const toTableId = parseTableIdParam(body.to_table_id);
 
   if (action !== 'transfer' && action !== 'merge') {
     return NextResponse.json({ error: 'invalid_action' }, { status: 400 });
   }
-  if (!fromTable || !toTable || fromTable === toTable) {
+  if (!fromTableId || !toTableId || tableIdsEqual(fromTableId, toTableId)) {
     return NextResponse.json({ error: 'invalid_tables' }, { status: 400 });
   }
 
@@ -48,13 +48,13 @@ export async function POST(
     action === 'transfer'
       ? await admin.rpc('transfer_table_session', {
           p_restaurant_id: ctx.restaurant_id,
-          p_from_table: fromTable,
-          p_to_table: toTable,
+          p_from_table_id: fromTableId,
+          p_to_table_id: toTableId,
         })
       : await admin.rpc('merge_table_sessions', {
           p_restaurant_id: ctx.restaurant_id,
-          p_source_table: fromTable,
-          p_target_table: toTable,
+          p_source_table_id: fromTableId,
+          p_target_table_id: toTableId,
         });
 
   if (error) {

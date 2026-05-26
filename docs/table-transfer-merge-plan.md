@@ -1,136 +1,206 @@
 # Table Transfer & Merge Plan
 
+> **Identity model:** Stable `table_id` (UUID) + mutable `display_name` (e.g. `A-01`).  
+> See [restaurant-tables-design.zh.md](./restaurant-tables-design.zh.md) for the full table model. This doc covers transfer / merge / close-table behaviour under **`table_id`** and required RPC changes. Implement after the table migration.
+
+---
+
 ## Scope
 
-This document defines the implementation plan for table transfer and table merge in a simplified operational model:
+This document defines the implementation plan for table transfer and table merge:
 
 - Current-state correctness first
 - Automatic single bill flow after merge
-- Minimal schema changes
+- Minimal schema changes (RPC params and FK fields only, on top of `table_id` model)
 - Atomic backend operations to avoid partial updates
 
 ## Business Rules
 
 ### Transfer table
 
-- Move one active session from source table to target table.
-- Target table must not already have an active session.
-- Update session, related orders, and active bill request together.
+- Move one active session from **source table** (`from_table_id`) to **target table** (`to_table_id`).
+- Target must not already have an active session (`uniq_active_table_session` on `(restaurant_id, table_id)`).
+- Update session, related orders, and active bill splits with **`table_id`**; refresh **`display_name` snapshot** on active rows to the target table’s current display name.
 
 ### Merge tables
 
 - Merge source active session into target active session.
-- Source and target must both have active sessions.
-- Source orders are reassigned to target session and target table number.
-- Source session is closed with merge metadata.
-- Billing flow becomes one active bill flow on target session.
+- Both tables must have active sessions; **`table_id` must differ**.
+- Source orders move to target **`session_id`** with target **`table_id` + `display_name` snapshot**.
+- Source session closes with merge metadata.
+- Billing converges to one active bill flow on the target session.
 
-## Data Model Changes
+### Close table (waiter / owner)
 
-### Existing tables reused
+- Resolve active `table_sessions` by **`table_id`**; behaviour unchanged aside from identity field.
 
-- `table_sessions`
-- `orders`
-- `bill_splits`
+---
 
-### Added fields
+## Data Model
+
+### Tables
+
+- `restaurant_tables` — validate `table_id` belongs to restaurant and **`deleted_at IS NULL`**
+- `table_sessions` — **`table_id` FK** (no `table_number`)
+- `orders` — **`table_id` + `display_name` snapshot**
+- `bill_splits` — **`table_id` + `display_name` snapshot**
+
+### Session fields (existing)
 
 - `table_sessions.merge_into_session_id` (nullable UUID)
 - `table_sessions.closed_reason` (nullable text)
 
 ### Typical `closed_reason` values
 
-- `merged`: source-table session closed during **table merge**.
-- `waiter_closed`: session closed from the **waiter board** via **Close table**.
-- Owner dashboard “confirm paid” may set `status = closed` without relying on `closed_reason` for behaviour.
+- `merged`: source session closed during merge.
+- `waiter_closed`: closed from waiter board **Close table**.
+- Owner confirm-paid may set `status = closed` without relying on `closed_reason`.
+
+### Constraints (after table migration)
+
+- Active session uniqueness: `UNIQUE (restaurant_id, table_id) WHERE status IN ('open', 'billing')`
+- RPC must reject soft-deleted tables (`deleted_at IS NOT NULL`)
+
+---
 
 ## Backend Operation Design
 
-Two RPC functions are used as atomic write boundaries:
+Three RPC functions as atomic boundaries (**parameters change from text table labels to UUID `table_id`**):
 
-- `transfer_table_session(p_restaurant_id, p_from_table, p_to_table)`
-- `merge_table_sessions(p_restaurant_id, p_source_table, p_target_table)`
+| RPC | Signature (target) |
+|-----|-------------------|
+| Transfer | `transfer_table_session(p_restaurant_id uuid, p_from_table_id uuid, p_to_table_id uuid) returns uuid` |
+| Merge | `merge_table_sessions(p_restaurant_id uuid, p_source_table_id uuid, p_target_table_id uuid) returns uuid` |
+| Multi-source merge | `merge_multiple_table_sessions(p_restaurant_id uuid, p_source_table_ids uuid[], p_target_table_id uuid) returns uuid` |
+
+**Grants:** `authenticated` only (staff / owner); **not** `anon`.
 
 ### Transfer flow
 
-1. Lock source active session.
-2. Check target table active-session conflict.
-3. Update source session table number.
-4. Update related orders table number.
-5. Update active bill_splits table number.
+1. Validate both `table_id`s belong to restaurant and are not soft-deleted; ids differ.
+2. Load target `display_name` (`v_target_display`).
+3. Lock source active session (`table_id = p_from_table_id`) `FOR UPDATE`.
+4. Ensure target has **no** active session.
+5. Update session: `table_id = p_to_table_id`.
+6. Update active orders: `table_id`, `display_name = v_target_display` (same session / table filters as today).
+7. Update active `bill_splits` similarly.
+8. Return session id (same session row, now on target table).
 
 ### Merge flow
 
-1. Lock source and target active sessions.
-2. Move source orders to target session/table.
-3. Consolidate active billing records into target flow.
-4. Close source session with:
-   - `status = closed`
-   - `closed_reason = merged`
-   - `merge_into_session_id = target_session_id`
+1. Validate table ids; load target `display_name`.
+2. Lock source and target active sessions `FOR UPDATE`.
+3. Attach orphan bill splits to sessions (unchanged logic).
+4. Move source active orders to target session with target `table_id` + `display_name` snapshot.
+5. Merge active bill splits; consolidate splits onto target session.
+6. Close source session: `closed`, `closed_reason = merged`, `merge_into_session_id = target session id`.
+7. Return **target session** id.
+
+### Multi-source merge
+
+- Loop `p_source_table_ids`, call `merge_table_sessions` for each into `p_target_table_id` (same ordering as current impl).
+- Any failure rolls back the transaction.
+
+---
+
+## Customer URL after merge
+
+If a guest stays on the **source** QR (`?table_id=source_uuid`) after merge:
+
+- **Bill page** detects merged source session with `merge_into_session_id` and **redirects** to `/{slug}/menu?table_id={target_table_id}` (or bill equivalent).
+- No string table-number redirects.
+
+---
 
 ## Frontend Plan
 
-Primary entry lives in:
+### Entry points
 
-- `src/components/dashboard/TablesManager.tsx`
+| Role | File |
+|------|------|
+| Owner table manager | `src/components/dashboard/TablesManager.tsx` |
+| Waiter table detail | `src/components/waiter/WaiterTableDetail.tsx` |
+| Waiter API | `src/app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts` |
 
-UI interactions:
+### UI
 
-- Active session list
-- `Transfer` action button
-- `Merge` action button
-- Confirmation modal with source/target selectors
-- Clear warnings for irreversible merge semantics
+- Active session list: show **`display_name`**, carry **`table_id`** internally.
+- Transfer / merge selectors: display names; RPC args use **`table_id`**.
+- Confirm modals: project-standard **Modal**; merge must warn irreversibility.
+- Waiter links: `/{slug}/waiter/[tableId]` (UUID segment).
+
+### Data loading
+
+- Table list from **`restaurant_tables`** (`deleted_at IS NULL`), not `restaurants.table_numbers`.
+- Board grouping key: **`table_id`**; labels: **`display_name`**.
+
+---
 
 ## Consistency Strategy
 
-- Use RPC to avoid front-end multi-step write orchestration.
-- Use optimistic failure message when session state changes:
-  - "Table status changed, please refresh and retry."
+- RPC-only writes; no multi-step client orchestration.
+- On conflict: “Table status changed, please refresh and retry.”
 - Refresh active sessions after success.
+- Drop reliance on `orders.session_id IS NULL` legacy path after table migration wipe.
+
+---
 
 ## Waiter “close table” and board visibility
 
-### Which orders appear on kitchen / waiter boards
+### Kitchen / waiter boards
 
-- After staff authenticate, both pages subscribe to Supabase Realtime (`orders`, `table_sessions`) and fetch fresh data on entry.
-- **Only orders tied to an active session** are shown: sessions with `status` in `open` | `billing` define the allowed `orders.session_id` set. Rows with a null `session_id` are still shown for legacy compatibility.
-- When a session closes (checkout, merge source table, waiter close table, etc.), those orders **drop off** the kitchen and waiter boards without requiring a full page reload (Realtime refresh or next fetch).
+- After staff auth, subscribe to Realtime and fetch on entry.
+- Show orders only when tied to active sessions (`open` | `billing`).
+- Closed sessions (checkout, merge source, waiter close) drop orders from boards automatically.
 
 ### Waiter “Close table”
 
-- Entry: **Close table** on each table card on `/[slug]/waiter` (next to transfer / merge).
-- **Shown when** the table summary has **no items cooking** and **nothing ready to serve** (kitchen has not advanced any dish to a servable state). In that state, the card may be pending-only, voided-only, or a mix.
-- **Hidden when** anything is cooking or ready to serve; finish the kitchen flow or void items first.
-- **Effect**: sets the table’s active `table_sessions` row to `closed`, sets `closed_at` and `closed_reason = waiter_closed`. Orders are not moved; the session simply ends. Boards update per the rules above.
+- Same visibility rules as before (no cooking / no ready-to-serve).
+- Closes active session for **`table_id`** with `closed_reason = waiter_closed`.
+
+---
 
 ## Validation Checklist
 
-Functional checks:
+Functional:
 
-- Transfer updates table number consistently in session/orders/bill request.
-- Merge results in one active session and one active bill flow.
-- Source session is properly closed and linked to target session.
+- Transfer: consistent **`table_id`** and target **`display_name` snapshot** on session / orders / bill splits.
+- Merge: one active session + one bill flow; source `closed_reason = merged`.
+- Customer bill on source URL redirects to target **`table_id`**.
+- Boards group by **`table_id`**, label by **display_name**.
 
-Concurrency checks:
+Concurrency:
 
-- Parallel operations on same source table do not create duplicate active states.
-- Second conflicting operation fails gracefully with refresh hint.
+- No duplicate active sessions per table; second op fails gracefully.
 
-Cross-page checks:
+Cross-page:
 
-- Customer menu/bill, kitchen board, and waiter board reflect post-operation table/session state.
-- After waiter **Close table**, that table’s orders disappear from waiter and kitchen boards; customers can start a new session and order again.
+- Menu / bill / kitchen / waiter reflect post-op state.
+- After waiter close, same QR (`table_id`) allows a **new** session.
+
+Edge cases:
+
+- Soft-deleted table ids rejected by RPC.
+- Merged orders show **target display_name** on UI and new prints.
+- **Print payload** after transfer/merge: new jobs carry target **`table_id` + `display_name` snapshot**; agent prints **display_name only** (see [restaurant-tables-design.zh.md](./restaurant-tables-design.zh.md) §8). Already-enqueued jobs keep original snapshot.
+
+See [table-transfer-merge-acceptance.md](./table-transfer-merge-acceptance.md) for manual test steps.
+
+---
 
 ## Rollout Notes
 
-- Run DB migration before enabling UI operations.
-- Keep existing pages unchanged except table manager operation panel.
-- If needed, gate operations with feature flag in future phase.
+- Ship with [restaurant-tables-design.zh.md](./restaurant-tables-design.zh.md) migration; drop text-table RPC params and `?table=` URLs.
+- Optional feature flag later.
+
+---
 
 ## Future Enhancements (Optional)
 
-- Merge preview (item count + amount delta before confirm)
-- Short window undo for latest operation
-- Structured operation audit log table
+- Merge preview (item count + amount delta)
+- Short undo window
+- Audit log with `from_table_id` / `to_table_id` / actor
+
+---
+
+**Version:** 2026-05-26 (aligned with `table_id` + `display_name` table model v2)

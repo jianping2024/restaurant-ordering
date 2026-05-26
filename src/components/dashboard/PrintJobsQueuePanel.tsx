@@ -132,8 +132,8 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
                     })}
                   </td>
                   <td className="py-2 pr-3 text-brand-text whitespace-nowrap tabular-nums">
-                    {row.table_number != null ? (
-                      <span>{row.table_number}</span>
+                    {row.table_display != null ? (
+                      <span>{row.table_display}</span>
                     ) : (
                       <span className="text-brand-text-muted">—</span>
                     )}

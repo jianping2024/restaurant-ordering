@@ -1,13 +1,10 @@
 import { notFound } from 'next/navigation';
 import { WaiterTableDetail } from '@/components/waiter/WaiterTableDetail';
-import { DEMO_ORDERS, DEMO_RESTAURANT, DEMO_TABLE_NUMBERS } from '@/lib/demo-data';
-import {
-  parseTableNumberParamOrNull,
-  restaurantHasTableNumber,
-} from '@/lib/restaurant-table-numbers';
+import { DEMO_ORDERS, DEMO_RESTAURANT, DEMO_TABLES } from '@/lib/demo-data';
+import { parseTableIdParam } from '@/lib/restaurant-tables';
 
 interface Props {
-  params: Promise<{ table: string }>;
+  params: Promise<{ tableId: string }>;
 }
 
 export const metadata = {
@@ -15,9 +12,10 @@ export const metadata = {
 };
 
 export default async function DemoWaiterTablePage({ params }: Props) {
-  const { table } = await params;
-  const tableNum = parseTableNumberParamOrNull(table);
-  if (!tableNum || !restaurantHasTableNumber(tableNum, DEMO_TABLE_NUMBERS)) {
+  const { tableId: tableIdParam } = await params;
+  const tableId = parseTableIdParam(tableIdParam);
+  const table = DEMO_TABLES.find((t) => t.id === tableId);
+  if (!tableId || !table) {
     notFound();
   }
 
@@ -28,9 +26,10 @@ export default async function DemoWaiterTablePage({ params }: Props) {
         name: DEMO_RESTAURANT.name,
         slug: DEMO_RESTAURANT.slug,
       }}
-      tableNumbers={DEMO_TABLE_NUMBERS}
+      tables={DEMO_TABLES}
       initialOrders={DEMO_ORDERS}
-      tableNumber={tableNum}
+      tableId={table.id}
+      displayName={table.display_name}
       isDemo
     />
   );

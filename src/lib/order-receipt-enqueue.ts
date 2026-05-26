@@ -19,7 +19,8 @@ export type OrderReceiptJobPayload = {
   receipt_printer_id?: string;
   receipt_variant: ReceiptVariant;
   restaurant_name?: string;
-  table_number: string;
+  table_id: string;
+  display_name: string;
   guest_count?: number;
   payer_name?: string;
   order_time?: string;
@@ -136,7 +137,8 @@ type EnqueueParams = {
   restaurantName?: string | null;
   printLocale: string | null;
   sessionId: string;
-  tableNumber: string;
+  tableId: string;
+  tableDisplayName: string;
   variant: ReceiptVariant;
   payerName?: string;
   personAmount?: number;
@@ -186,7 +188,8 @@ export async function enqueueReceiptPrint(
     restaurantName,
     printLocale,
     sessionId,
-    tableNumber,
+    tableId,
+    tableDisplayName,
     variant,
     payerName,
     personAmount,
@@ -286,7 +289,8 @@ export async function enqueueReceiptPrint(
     ...(printerId ? { receipt_printer_id: printerId } : {}),
     receipt_variant: variant,
     ...(restaurantName?.trim() ? { restaurant_name: restaurantName.trim() } : {}),
-    table_number: tableNumber,
+    table_id: tableId,
+    display_name: tableDisplayName,
     ...(guestCount > 0 && variant !== 'split_payment' ? { guest_count: guestCount } : {}),
     ...(splitPayerPrinted ? { payer_name: splitPayerPrinted } : {}),
     ...(orderTime ? { order_time: orderTime } : {}),

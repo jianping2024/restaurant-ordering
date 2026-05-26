@@ -3,7 +3,7 @@ import type { ReceiptVariant } from '@/lib/order-receipt-enqueue';
 /** Fire-and-forget receipt print via print agent queue. */
 export async function requestOrderReceiptPrint(params: {
   slug: string;
-  tableNumber: string;
+  tableId: string;
   sessionId?: string | null;
   receiptVariant?: ReceiptVariant;
   jobType?: 'order_receipt' | 'pre_bill';
@@ -17,7 +17,7 @@ export async function requestOrderReceiptPrint(params: {
 }): Promise<void> {
   const {
     slug,
-    tableNumber,
+    tableId,
     sessionId,
     receiptVariant,
     jobType,
@@ -39,7 +39,7 @@ export async function requestOrderReceiptPrint(params: {
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        table_number: tableNumber,
+        table_id: tableId,
         ...(sessionId ? { session_id: sessionId } : {}),
         receipt_variant: variant,
         ...(amountPaid != null ? { amount_paid: amountPaid } : {}),

@@ -1,10 +1,11 @@
 import type { Order } from '@/types';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
-import { tableNumbersEqual } from '@/lib/restaurant-table-numbers';
+import { tableIdsEqual } from '@/lib/restaurant-tables';
 
 export interface WaiterTableCardData {
-  table: string;
+  tableId: string;
+  displayName: string;
   pending: number;
   cooking: number;
   ready: number;
@@ -21,9 +22,14 @@ export interface WaiterTableCardData {
   updatedAt: string;
 }
 
-export function buildWaiterTableCard(tableNumber: string, orders: Order[]): WaiterTableCardData {
+export function buildWaiterTableCard(
+  tableId: string,
+  displayName: string,
+  orders: Order[],
+): WaiterTableCardData {
   const current: WaiterTableCardData = {
-    table: tableNumber,
+    tableId,
+    displayName,
     pending: 0,
     cooking: 0,
     ready: 0,
@@ -35,7 +41,7 @@ export function buildWaiterTableCard(tableNumber: string, orders: Order[]): Wait
   };
 
   orders
-    .filter((o) => tableNumbersEqual(o.table_number, tableNumber))
+    .filter((o) => tableIdsEqual(o.table_id, tableId))
     .forEach((order) => {
       const ts = order.updated_at || order.created_at;
       if (ts && (!current.updatedAt || ts > current.updatedAt)) {

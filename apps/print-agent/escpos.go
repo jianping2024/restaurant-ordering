@@ -138,7 +138,8 @@ type jobPayload struct {
 	Locale               string    `json:"locale"`
 	ConnectionTest       bool      `json:"connection_test"`
 	RestaurantName       string    `json:"restaurant_name"`
-	TableNumber          string    `json:"table_number"`
+	TableDisplayName     string    `json:"display_name"`
+	TableID              string    `json:"table_id"`
 	GuestCount           int       `json:"guest_count"`
 	StationDisplayNamePt string    `json:"station_display_name_pt"`
 	StationDisplayNameEn string    `json:"station_display_name_en"`
@@ -180,7 +181,7 @@ func formatTableNoLabel(lab ticketLabels, tableNo string) string {
 }
 
 func (p jobPayload) tableNoLabel(lab ticketLabels) string {
-	return formatTableNoLabel(lab, p.TableNumber)
+	return formatTableNoLabel(lab, p.TableDisplayName)
 }
 
 // receiptHeaderTitle — pre_bill uses locale-specific title; paid receipts stay "Receipt".

@@ -18,25 +18,27 @@ import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
-import { normalizeRestaurantTableNumbers } from '@/lib/restaurant-table-numbers';
+import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 
 interface Props {
-  restaurant: { id: string; name: string; slug: string; table_numbers?: string[] | null };
-  tableNumbers?: string[];
+  restaurant: { id: string; name: string; slug: string };
+  tables?: RestaurantTableRow[];
   initialOrders?: Order[];
-  initialCheckoutRequestedTables?: string[];
+  initialCheckoutRequestedTableIds?: string[];
   initialBuffets?: Buffet[];
-  tableNumber: string;
+  tableId: string;
+  displayName: string;
   isDemo?: boolean;
 }
 
 function WaiterTableDetailInner({
   restaurant,
-  tableNumbers: tableNumbersProp,
+  tables: tablesProp = [],
   initialOrders = [],
-  initialCheckoutRequestedTables = [],
+  initialCheckoutRequestedTableIds = [],
   initialBuffets = [],
-  tableNumber,
+  tableId,
+  displayName,
   isDemo = false,
   handleSignOut,
   exitLabel,
@@ -47,7 +49,7 @@ function WaiterTableDetailInner({
   const { orders, refresh, supabase } = useWaiterOrders(
     restaurant.id,
     initialOrders,
-    initialCheckoutRequestedTables,
+    initialCheckoutRequestedTableIds,
     true,
   );
 
@@ -161,43 +163,48 @@ function WaiterTableDetailInner({
     }
   }, [activeBuffets, buffetId]);
 
-  const selectedCard = useMemo(() => buildWaiterTableCard(tableNumber, orders), [orders, tableNumber]);
-
-  const configuredTables = useMemo(
-    () => tableNumbersProp ?? normalizeRestaurantTableNumbers(restaurant.table_numbers),
-    [tableNumbersProp, restaurant.table_numbers],
+  const selectedCard = useMemo(
+    () => buildWaiterTableCard(tableId, displayName, orders),
+    [orders, tableId, displayName],
   );
 
-  const activeTableNumbers = useMemo(() => {
-    return configuredTables.filter((table) => {
-      const c = buildWaiterTableCard(table, orders);
-      return (
-        c.pending > 0 ||
-        c.cooking > 0 ||
-        c.ready > 0 ||
-        c.buffetLines.length > 0 ||
-        c.voidableItems.length > 0 ||
-        c.voidedItems.length > 0
-      );
-    });
+  const configuredTables = useMemo(() => tablesProp, [tablesProp]);
+
+  const activeTableIds = useMemo(() => {
+    return configuredTables
+      .filter((table) => {
+        const c = buildWaiterTableCard(table.id, table.display_name, orders);
+        return (
+          c.pending > 0 ||
+          c.cooking > 0 ||
+          c.ready > 0 ||
+          c.buffetLines.length > 0 ||
+          c.voidableItems.length > 0 ||
+          c.voidedItems.length > 0
+        );
+      })
+      .map((t) => t.id);
   }, [configuredTables, orders]);
 
   const targetCandidates = operationType === 'transfer'
-    ? configuredTables.filter((table) => !activeTableNumbers.includes(table) || table === sourceTable)
-    : activeTableNumbers.filter((table) => table !== sourceTable);
+    ? configuredTables.filter((table) => !activeTableIds.includes(table.id) || table.id === sourceTable)
+    : configuredTables.filter((table) => activeTableIds.includes(table.id) && table.id !== sourceTable);
+
+  const sourceTableLabel =
+    configuredTables.find((row) => row.id === sourceTable)?.display_name ?? sourceTable ?? '';
 
   const canCloseTableCard = selectedCard.cooking === 0 && selectedCard.ready === 0;
 
   const boardHref = isDemo ? '/demo/waiter' : `/${restaurant.slug}/waiter`;
   const waiterReturnPath = isDemo
-    ? `/demo/waiter/${encodeURIComponent(tableNumber)}`
-    : `/${restaurant.slug}/waiter/${encodeURIComponent(tableNumber)}`;
+    ? `/demo/waiter/${encodeURIComponent(tableId)}`
+    : `/${restaurant.slug}/waiter/${encodeURIComponent(tableId)}`;
   const menuHref = isDemo
-    ? `/demo/menu?table=${tableNumber}&from=waiter&return=${encodeURIComponent(waiterReturnPath)}`
-    : `/${restaurant.slug}/menu?table=${tableNumber}&from=waiter&return=${encodeURIComponent(waiterReturnPath)}`;
-  const openAction = (type: 'transfer' | 'merge', table: string) => {
+    ? `/demo/menu?table_id=${encodeURIComponent(tableId)}&from=waiter&return=${encodeURIComponent(waiterReturnPath)}`
+    : `/${restaurant.slug}/menu?table_id=${encodeURIComponent(tableId)}&from=waiter&return=${encodeURIComponent(waiterReturnPath)}`;
+  const openAction = (type: 'transfer' | 'merge', sourceId: string) => {
     setOperationType(type);
-    setSourceTable(table);
+    setSourceTable(sourceId);
     setTargetTable(null);
   };
 
@@ -229,8 +236,8 @@ function WaiterTableDetailInner({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               action: currentOperation,
-              from_table: fromTable,
-              to_table: toTable,
+              from_table_id: fromTable,
+              to_table_id: toTable,
             }),
           },
         );
@@ -247,13 +254,13 @@ function WaiterTableDetailInner({
       const { data: rpcResult, error } = currentOperation === 'transfer'
         ? await supabase.rpc('transfer_table_session', {
           p_restaurant_id: restaurant.id,
-          p_from_table: fromTable,
-          p_to_table: toTable,
+          p_from_table_id: fromTable,
+          p_to_table_id: toTable,
         })
         : await supabase.rpc('merge_table_sessions', {
           p_restaurant_id: restaurant.id,
-          p_source_table: fromTable,
-          p_target_table: toTable,
+          p_source_table_id: fromTable,
+          p_target_table_id: toTable,
         });
 
       if (error) {
@@ -267,12 +274,12 @@ function WaiterTableDetailInner({
 
       const sessionCheck = await supabase
         .from('table_sessions')
-        .select('id, table_number, status')
+        .select('id, table_id, status')
         .eq('id', rpcResult as string)
         .in('status', ['open', 'billing'])
         .maybeSingle();
 
-      if (sessionCheck.error || !sessionCheck.data || sessionCheck.data.table_number !== toTable) {
+      if (sessionCheck.error || !sessionCheck.data || !tableIdsEqual(sessionCheck.data.table_id, toTable)) {
         showToast(t.refreshHint, 'error');
         return;
       }
@@ -287,8 +294,8 @@ function WaiterTableDetailInner({
     }
   };
 
-  const closeTableFromWaiter = async (tableNum: string) => {
-    setClosingTable(tableNum);
+  const closeTableFromWaiter = async (closeTableId: string) => {
+    setClosingTable(closeTableId);
     try {
       if (!isDemo) {
         const res = await fetch(
@@ -297,7 +304,7 @@ function WaiterTableDetailInner({
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ table_number: tableNum }),
+            body: JSON.stringify({ table_id: closeTableId }),
           },
         );
         if (res.status === 404) {
@@ -317,7 +324,7 @@ function WaiterTableDetailInner({
         .from('table_sessions')
         .select('id')
         .eq('restaurant_id', restaurant.id)
-        .eq('table_number', tableNum)
+        .eq('table_id', closeTableId)
         .in('status', ['open', 'billing'])
         .order('opened_at', { ascending: false })
         .limit(1)
@@ -366,7 +373,7 @@ function WaiterTableDetailInner({
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              table_number: tableNumber,
+              table_id: tableId,
               buffet_id: buffetId,
               adult_count: buffetAdults,
               child_count: buffetChildren,
@@ -420,7 +427,7 @@ function WaiterTableDetailInner({
         .from('table_sessions')
         .select('id, status')
         .eq('restaurant_id', restaurant.id)
-        .eq('table_number', tableNumber)
+        .eq('table_id', tableId)
         .in('status', ['open', 'billing'])
         .order('opened_at', { ascending: false })
         .limit(1)
@@ -431,7 +438,7 @@ function WaiterTableDetailInner({
           .from('table_sessions')
           .insert({
             restaurant_id: restaurant.id,
-            table_number: tableNumber,
+            table_id: tableId,
             status: 'open',
           })
           .select('id, status')
@@ -483,7 +490,8 @@ function WaiterTableDetailInner({
         const { error: insErr } = await supabase.from('orders').insert({
           restaurant_id: restaurant.id,
           session_id: sessionId,
-          table_number: tableNumber,
+          table_id: tableId,
+          display_name: displayName,
           status: nextStatus,
           items: mergedItems,
           total_amount: total,
@@ -608,7 +616,7 @@ function WaiterTableDetailInner({
 
       <div className="rounded-2xl p-4 border border-brand-border/50 bg-brand-card shadow-sm shadow-black/5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-heading text-2xl text-brand-text">{t.detailsTitle} - {t.table} {selectedCard.table}</h2>
+          <h2 className="font-heading text-2xl text-brand-text">{t.detailsTitle} - {t.table} {selectedCard.displayName}</h2>
           <span className="text-[13px] text-brand-text-muted">
             {selectedCard.updatedAt
               ? new Date(selectedCard.updatedAt).toLocaleString(locale, {
@@ -730,14 +738,14 @@ function WaiterTableDetailInner({
               </Link>
               <button
                 type="button"
-                onClick={() => openAction('transfer', selectedCard.table)}
+                onClick={() => openAction('transfer', selectedCard.tableId)}
                 className={`${waiterUi.btnSecondary} ${waiterUi.btnWarm}`}
               >
                 {t.transfer}
               </button>
               <button
                 type="button"
-                onClick={() => openAction('merge', selectedCard.table)}
+                onClick={() => openAction('merge', selectedCard.tableId)}
                 className={`${waiterUi.btnSecondary} ${waiterUi.btnGhost}`}
               >
                 {t.merge}
@@ -745,11 +753,11 @@ function WaiterTableDetailInner({
               {canCloseTableCard && (
                 <button
                   type="button"
-                  onClick={() => closeTableFromWaiter(selectedCard.table)}
-                  disabled={closingTable === selectedCard.table}
+                  onClick={() => closeTableFromWaiter(selectedCard.tableId)}
+                  disabled={closingTable === selectedCard.tableId}
                   className={`${waiterUi.btnSecondary} ${waiterUi.btnDanger} disabled:opacity-50`}
                 >
-                  {closingTable === selectedCard.table ? t.closeTableOperating : t.closeTable}
+                  {closingTable === selectedCard.tableId ? t.closeTableOperating : t.closeTable}
                 </button>
               )}
             </div>
@@ -812,7 +820,7 @@ function WaiterTableDetailInner({
           <div>
             <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.sourceTable}</label>
             <input
-              value={sourceTable ?? ''}
+              value={sourceTableLabel}
               disabled
               className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text"
             />
@@ -826,8 +834,8 @@ function WaiterTableDetailInner({
             >
               <option value="">--</option>
               {targetCandidates.map((table) => (
-                <option key={table} value={table}>
-                  {t.table} {table}
+                <option key={table.id} value={table.id}>
+                  {t.table} {table.display_name}
                 </option>
               ))}
             </select>

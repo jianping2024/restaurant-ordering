@@ -122,13 +122,23 @@ Supabase **内置邮件**不是给公开注册用的：在未配置 **自定义 
 | `/dashboard/orders` | 订单历史 |
 | `/dashboard/settings` | 餐厅设置 **Hub**（基本资料、员工管理、桌位、菜单等 Tab） |
 | `/dashboard/settings/staff` | 员工账号（创建、停用、删除、重置密码等） |
-| `/[slug]/menu?table=N` | 顾客点餐页（手机端） |
+| `/[slug]/menu?table_id={uuid}` | 顾客点餐页（手机端；QR 绑稳定 `table_id`，界面显示 `display_name` 如 A-01） |
 | `/[slug]/staff/login` | 员工登录（店内入口；登录名或完整 `{login}@mesa.in`） |
 | `/auth/staff/login` | 员工登录（全局入口；不选店） |
 | `/auth/staff/change-password` | 员工首次登录 / 重置密码后的强制改密 |
 | `/[slug]/kitchen` | 厨房显示页（需 **已登录** 的厨房角色员工） |
 | `/[slug]/waiter` | 服务员观察页（需 **已登录** 的服务员角色员工） |
-| `/[slug]/bill?table=N` | 账单分单页 |
+| `/[slug]/bill?table_id={uuid}` | 账单分单页 |
+| `/[slug]/waiter/[tableId]` | 服务员单桌详情（路径为桌位 UUID） |
+
+---
+
+## 桌位模型（定稿）
+
+- 桌位身份 **`table_id`（UUID）** 与展示名 **`display_name`（如 A-01）** 分离；改显示名 **不重打 QR**。
+- 设置页：默认 A-01 递增、店内名称唯一、停用桌须确认（软删，不硬删）。
+- 打印入队：`print_jobs.payload` **成对写入** `table_id` + `display_name` 快照；热敏纸 **只印 display_name**，UUID 仅用于日志/队列/重打。
+- 完整设计见 [`docs/restaurant-tables-design.zh.md`](docs/restaurant-tables-design.zh.md)；转台/并台见 [`docs/table-transfer-merge-plan.zh.md`](docs/table-transfer-merge-plan.zh.md)。
 
 ---
 

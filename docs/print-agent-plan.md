@@ -19,6 +19,7 @@
 | **门店国家 `country_code`** | **`restaurants.country_code`**（**ISO 3166-1 alpha-2**）在 **注册 / 开建新门店时必填**（店主 onboarding / 公开注册、平台管理员代建）；**dashboard 餐厅设置** 可改。用途：**门店所在地 / 合规与分区等**；**不**用于推导票面语言（见 **`print_locale`**）。第一期 migration；**既有门店** 回填默认（如 `PT`）再 `NOT NULL`，或分步迁移。 |
 | **默认打印语言 `print_locale`** | **`restaurants.print_locale`**，取值 **`zh` | `en` | `pt`**（`check` + **`not null`**，默认 **`pt`**）。**语义**：**`pt` = 欧洲葡萄牙语**（与 BCP 47 **`pt-PT`** 对齐，**非** 巴西葡语 **`pt-BR`**）；票面文案、热敏模板用词均按 **欧洲葡** 维护，与 Mesa **`pt` → `pt-PT`**（如 `src/lib/i18n/messages.ts`）一致。**唯一**决定小票 / **档口出品联** / 预结的 **`payload.locale`**：`payload.locale = print_locale`（入队时复制进快照）。**不与** `country_code` 做映射表。注册 / onboarding **三选一**，未选时默认 **`pt`（欧洲葡）**；**dashboard 餐厅设置** 随时修改，无需改国家。 |
 | **票面语言（多语言小票）** | **第一期：整张票单一语言**（`payload` 须含 **`locale`（或 `lang`）** 一种，与 `print_locale` 一致）。**同一票面中英葡并列 / 双语对照** **不做**（列 **P2**）。**不**用操作员 Mesa 界面语言、**不**用浏览器语言、**不**用 GPS/IP。 |
+| **桌位字段（`table_id` + `display_name`）** | **已定**（见 [`restaurant-tables-design.zh.md`](./restaurant-tables-design.zh.md) §8）：凡 payload 涉及桌位（**`station_ticket` / `order_receipt` / `pre_bill`**），入队时 **须成对写入** **`table_id`（UUID）** 与 **`display_name`（入队瞬间快照）**。**热敏纸只印 `display_name`**；**`table_id`** 用于 agent 日志、后台 `print_jobs` 筛选、历史重打关联。**禁止**纸面印 UUID。**不**兼容旧字段 **`payload.table_number`**（与桌位 migration 同步发版）。**`print_jobs` 展示列** 取自 **`display_name`**；可选持久化 **`table_id`** 列便于排障。 |
 | **入队幂等（`print_jobs`）** | **第一期**：**`order_receipt` / `pre_bill`**：**每次点击「打印」新建一条** `print_jobs`。**`station_ticket`**：**下单/加单自动入队**时 **同一 `batch_id` 请求内 `insert` 多条**（每档口一条）；**pending/processing** 重复则跳过。**「仅重打单一 `print_station`」**：列 **P2**。**不**要求 `client_request_id`；**`station-tickets/auto`** 有 **按 IP/单批** 限流。**若日后**需更强去重，再引入 **`Idempotency-Key`**（**P2**）。 |
 | **无代理时打印（兜底）** | **已确认**：本店 **尚未配对打印助手 / 无可用代理**（或代理离线、队列失败等，具体触发条件产品可收窄）时 **保留现有 `window.print()` HTML 出纸**，**避免**完全无法打印；**有代理且链路可用** 时 **仍以 `print_jobs` → 代理热敏为主路径**。**Mesa** 可提示：「未连接打印助手，已使用浏览器打印」。**不**把「无兜底」列为第一期选项。 |
 
@@ -123,7 +124,7 @@
    - 索引：`code` + `expires_at` 用于核销；`restaurant_id`。
 
 2. **新建表 `print_jobs`**  
-   - `id`（uuid）、`restaurant_id`、`type`（**`order_receipt` | `station_ticket` | `pre_bill`**，第一期三值）、`payload`（jsonb：**创建任务时写入的冻结快照**——须含 **`order_id`**（**试打**见 P0-3：**占位 UUID**，不指向真实订单）、**`locale`（或 `lang`）** = 入队时 **`restaurants.print_locale`**，以限定 **全票单一语言**（见 **已确认产品与场景**）；**`type=station_ticket`** 时还须含 **`print_station_id`**、**`batch_id`**（见 **已确认 · 出品与加单批次**）、**`ticket_layout` / 档口展示名** 等 **快照字段**；可选 **`connection_test: true`** 表示连接试打；行项目、价、合计等按类型与纸面一致，**不可变**）、`status`（`pending` | `processing` | `done` | `failed`）、`claimed_by`（代理设备 id，可选）、`attempts`、`error_message`、`created_at`、`updated_at`。  
+   - `id`（uuid）、`restaurant_id`、`type`（**`order_receipt` | `station_ticket` | `pre_bill`**，第一期三值）、`payload`（jsonb：**创建任务时写入的冻结快照**——须含 **`order_id`**（**试打**见 P0-3：**占位 UUID**，不指向真实订单）、**`locale`（或 `lang`）** = 入队时 **`restaurants.print_locale`**，以限定 **全票单一语言**（见 **已确认产品与场景**）；**凡涉及桌位**须含 **`table_id` + `display_name`（快照，成对必填）**（见 **已确认 · 桌位字段**）；**`type=station_ticket`** 时还须含 **`print_station_id`**、**`batch_id`**（见 **已确认 · 出品与加单批次**）、**`ticket_layout` / 档口展示名** 等 **快照字段**；可选 **`connection_test: true`** 表示连接试打；行项目、价、合计等按类型与纸面一致，**不可变**）、`status`（`pending` | `processing` | `done` | `failed`）、`claimed_by`（代理设备 id，可选）、`attempts`、`error_message`、`created_at`、`updated_at`。  
    - 索引：`restaurant_id` + `status` + `created_at` 供代理拉取。
 
 3. **RLS**  
@@ -180,7 +181,7 @@
 ### P1-E：业务接入
 
 1. **`OrdersHistoryManager`、账单（预结）** 等（**`station_ticket` 已由下单自动入队**，**无**厨房/服务员手动打印入口）  
-   - **三类 `print_jobs` 同一套路径**（**有代理时**）：**`station_ticket`** → **`station-tickets/auto`**（订单提交后）；**`order_receipt` / `pre_bill`** → 点击「打印」→ **`insert print_jobs`**，**`locale`** = **`print_locale`**，**payload** 冻结快照。代理 **RAW 热敏**出纸；**无代理** 时 **`window.print()` 兜底**（见 **无代理时打印**）。  
+   - **三类 `print_jobs` 同一套路径**（**有代理时**）：**`station_ticket`** → **`station-tickets/auto`**（订单提交后）；**`order_receipt` / `pre_bill`** → 点击「打印」→ **`insert print_jobs`**，**`locale`** = **`print_locale`**，**payload** 冻结快照（**含 `table_id` + `display_name`**，见 **已确认 · 桌位字段**）。代理 **RAW 热敏**出纸；**无代理** 时 **`window.print()` 兜底**（见 **无代理时打印**）。  
    - **档口出品联**：按 **`batch_id` + `effective_station_id`** 分组（见 **出品与加单批次**）；版式 **`payload.ticket_layout`**。
 
 2. **幂等与重复打印**（见 **已确认产品与场景 · 入队幂等**）  
@@ -211,7 +212,7 @@
 3. **主循环（Realtime 为主 + 兜底）**  
    - **主路径**：Realtime 订阅本店 `print_jobs` 的 `INSERT`（必要时含 `UPDATE`）；事件入本地 **单线程打印队列**，避免并发抢 USB/网口。  
    - **兜底**：重连后 `select` 一次 `pending`；可选每 60s 低频轮询。  
-   - 处理单条：`update` → `processing`；组 ESC/POS；`TCP` 写 `PRINTER_HOST:9100`；`update` → `done`/`failed`。
+   - 处理单条：`update` → `processing`；组 ESC/POS（**桌位行只读 `payload.display_name`，日志可记 `payload.table_id`**）；`TCP` 写 `PRINTER_HOST:9100`；`update` → `done`/`failed`。
 
 4. **配置项（有默认值，小白可不改）**  
    - `printer_host` + `printer_port`（默认 **9100**）：若 claim 未带，由 **向导输入**（即该店打印机在局域网中的地址，见 **已确认网络与打印机**）。后台「打印助手」说明里附带 **DHCP 保留** 图文链接。  
@@ -335,7 +336,7 @@
 
 ### 5.4 `print_jobs` 与 `payload`
 
-**原则**：各 `type` 均以 **入队瞬间的冻结快照** 为主（行项目、价、合计等与将来印在纸上的范围一致），并 **始终带 `order_id`**（`pre_bill` 等若用 `bill_split_id` 须在 `payload` 内一并写入可关联 id，实现期定）便于关联与排障；**不**采用「仅 `order_id`、打印时再拉整单」作为默认——否则订单事后被改，纸面可能与点打印时不一致（对账/纠纷不利）。**`station_ticket`**：**还须带 `batch_id`（或等价行集锚点）**，**`lines` 仅含该批、该档口**（见 **已确认 · 出品与加单批次**），以支持 **加单多次、每批各档口出联**。**语言**：**第一期全票单一 `locale`**（见 **已确认产品与场景**），由 **`restaurants.print_locale`** 在**服务端入队时**写入 `payload`；模板按该 `locale` 选文案，**不**在同一张票上中英葡并列。
+**原则**：各 `type` 均以 **入队瞬间的冻结快照** 为主（行项目、价、合计等与将来印在纸上的范围一致），并 **始终带 `order_id`**（`pre_bill` 等若用 `bill_split_id` 须在 `payload` 内一并写入可关联 id，实现期定）便于关联与排障；**不**采用「仅 `order_id`、打印时再拉整单」作为默认——否则订单事后被改，纸面可能与点打印时不一致（对账/纠纷不利）。**`station_ticket`**：**还须带 `batch_id`（或等价行集锚点）**，**`lines` 仅含该批、该档口**（见 **已确认 · 出品与加单批次**），以支持 **加单多次、每批各档口出联**。**桌位**：**须成对带 `table_id` + `display_name` 快照**（见 **已确认 · 桌位字段**）；agent **只把 `display_name` 渲染到纸面**。**语言**：**第一期全票单一 `locale`**（见 **已确认产品与场景**），由 **`restaurants.print_locale`** 在**服务端入队时**写入 `payload`；模板按该 `locale` 选文案，**不**在同一张票上中英葡并列。
 
 | 风险 | 说明 | 缓解 |
 |------|------|------|
@@ -343,7 +344,7 @@
 | **恶意内容打印** | 控制字符、无限长 ESC | 代理内 **长度上限**、**禁止 NUL/异常控制序列**（按 ESC/POS 白名单或模板渲染） |
 | **伪造任务来源** | 匿名 insert | **仅已登录 owner**（或 Server Action + session）创建；RLS **禁止** anon insert |
 | **敏感数据落库** | payload 复制整份用户档案、明文手机号等 | **只收录纸上会出现的字段**；电话等若必须上纸，在 **服务端入队时** 写入 **脱敏片段**（如后四位），**不**把完整 PII 或无关档案塞进 `print_jobs` |
-| **快照与主库不一致** | 订单后续编辑 | 以 **`print_jobs.payload` 为准** 出纸；业务上改单依赖 **新任务 / 补打**，而非静默改写旧 `payload` |
+| **快照与主库不一致** | 订单后续编辑；桌位改名 | 以 **`print_jobs.payload` 为准** 出纸（含 **`display_name` 快照**）；业务上改单依赖 **新任务 / 补打**，而非静默改写旧 `payload`；**不**在打印时用 live join 补桌名 |
 
 ### 5.5 传输与 Realtime
 

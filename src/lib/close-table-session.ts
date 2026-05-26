@@ -8,14 +8,14 @@ export type CloseTableSessionResult =
 export async function closeActiveTableSession(
   supabase: SupabaseClient,
   restaurantId: string,
-  tableNumber: string,
+  tableId: string,
   closedReason: 'waiter_closed' | 'owner_closed' = 'owner_closed',
 ): Promise<CloseTableSessionResult> {
   const { data: session, error: findError } = await supabase
     .from('table_sessions')
     .select('id')
     .eq('restaurant_id', restaurantId)
-    .eq('table_number', tableNumber)
+    .eq('table_id', tableId)
     .in('status', ['open', 'billing'])
     .order('opened_at', { ascending: false })
     .limit(1)

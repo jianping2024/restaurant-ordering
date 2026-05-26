@@ -39,7 +39,7 @@ npm run printagent
 
 Startup should log `schedule enabled` or `outside schedule — sleeping` when closed.
 
-Then place an order (guest menu or waiter **加菜**); station tickets enqueue automatically. Watch terminal 2 (`npm run printlog`) for decoded ticket text.
+Then place an order (guest menu `?table_id=` or waiter **加菜**); station tickets enqueue automatically. Watch terminal 2 (`npm run printlog`) for decoded ticket text — table line should show **`display_name`**, not UUID.
 
 ---
 

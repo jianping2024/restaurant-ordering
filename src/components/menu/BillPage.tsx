@@ -19,7 +19,8 @@ import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-pa
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
-  tableNumber: string;
+  tableId: string;
+  displayName: string;
   orders: Order[];
   sessionId: string | null;
   existingSplit: BillSplit | null;
@@ -43,7 +44,8 @@ type FeedbackReasonKey = (typeof FEEDBACK_REASON_KEYS)[number];
 
 export function BillPage({
   restaurant,
-  tableNumber,
+  tableId,
+  displayName,
   orders,
   sessionId,
   existingSplit,
@@ -142,7 +144,6 @@ export function BillPage({
         .from('orders')
         .select('*')
         .eq('restaurant_id', restaurant.id)
-        .eq('table_number', tableNumber)
         .eq('session_id', sessionId)
         .order('created_at', { ascending: true });
       setLiveOrders((data || []) as Order[]);
@@ -169,7 +170,7 @@ export function BillPage({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [restaurant.id, tableNumber, sessionId]);
+  }, [restaurant.id, sessionId]);
 
   // 结账金额按本餐次“实际已下单菜品”计算，不限制菜品状态。
   const allItems = liveOrders.flatMap(o => o.items
@@ -228,7 +229,8 @@ export function BillPage({
       const payload = {
         restaurant_id: restaurant.id,
         session_id: sessionId,
-        table_number: tableNumber,
+        table_id: tableId,
+        display_name: displayName,
         order_ids: contributingOrderIds,
         split_mode: splitMode ?? 'custom',
         persons: splitPeople.slice(0, splitMode === 'by_item' ? personCount : results.length).map((person, idx) => ({
@@ -282,7 +284,7 @@ export function BillPage({
       if (sessionId) {
         void requestOrderReceiptPrint({
           slug: restaurant.slug,
-          tableNumber,
+          tableId,
           sessionId,
           receiptVariant: 'pre_bill',
           ...(selectedReceiptPrinterId
@@ -645,7 +647,7 @@ export function BillPage({
             </Link>
           </div>
         )}
-        <p className="text-brand-text-muted text-sm">{t.table} {tableNumber} — {t.settlement}</p>
+        <p className="text-brand-text-muted text-sm">{t.table} {displayName} — {t.settlement}</p>
       </header>
 
       {/* 账单明细 */}

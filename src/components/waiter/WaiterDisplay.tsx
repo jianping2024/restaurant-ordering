@@ -10,45 +10,42 @@ import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import {
-  compareTableNumbers,
-  normalizeRestaurantTableNumbers,
-  tableNumbersEqual,
-} from '@/lib/restaurant-table-numbers';
+  compareRestaurantTables,
+  tableIdsEqual,
+  type RestaurantTableRow,
+} from '@/lib/restaurant-tables';
 
 interface Props {
-  restaurant: { id: string; name: string; slug: string; table_numbers?: string[] | null };
-  tableNumbers?: string[];
+  restaurant: { id: string; name: string; slug: string };
+  tables?: RestaurantTableRow[];
   initialOrders?: Order[];
-  initialCheckoutRequestedTables?: string[];
+  initialCheckoutRequestedTableIds?: string[];
   isDemo?: boolean;
 }
 
 function WaiterBoardInner({
   restaurant,
-  tableNumbers: tableNumbersProp,
+  tables: tablesProp = [],
   initialOrders = [],
-  initialCheckoutRequestedTables = [],
+  initialCheckoutRequestedTableIds = [],
   isDemo = false,
   handleSignOut,
   exitLabel,
 }: Props & { handleSignOut: () => void; exitLabel: string }) {
   const { lang } = useLanguage();
   const t = WAITER_TEXT[lang];
-  const { orders, checkoutRequestedTables, activeSessionTableNumbers } = useWaiterOrders(
+  const { orders, checkoutRequestedTableIds, activeSessionTableIds } = useWaiterOrders(
     restaurant.id,
     initialOrders,
-    initialCheckoutRequestedTables,
+    initialCheckoutRequestedTableIds,
     true,
   );
 
-  const configuredTables = useMemo(
-    () => tableNumbersProp ?? normalizeRestaurantTableNumbers(restaurant.table_numbers),
-    [tableNumbersProp, restaurant.table_numbers],
-  );
+  const configuredTables = useMemo(() => tablesProp, [tablesProp]);
 
   const allTableCards = useMemo(() => {
     return configuredTables
-      .map((table) => buildWaiterTableCard(table, orders))
+      .map((table) => buildWaiterTableCard(table.id, table.display_name, orders))
       .sort((a, b) => {
         const aActive =
           a.pending + a.cooking + a.ready + a.buffetLines.length + a.voidableItems.length + a.voidedItems.length > 0
@@ -59,12 +56,15 @@ function WaiterBoardInner({
             ? 1
             : 0;
         if (aActive !== bActive) return bActive - aActive;
-        return compareTableNumbers(a.table, b.table);
+        const ta = configuredTables.find((row) => row.id === a.tableId);
+        const tb = configuredTables.find((row) => row.id === b.tableId);
+        if (ta && tb) return compareRestaurantTables(ta, tb);
+        return a.displayName.localeCompare(b.displayName, undefined, { numeric: true });
       });
   }, [configuredTables, orders]);
 
-  const detailHref = (table: string) =>
-    (isDemo ? `/demo/waiter/${encodeURIComponent(table)}` : `/${restaurant.slug}/waiter/${encodeURIComponent(table)}`);
+  const detailHref = (tableId: string) =>
+    (isDemo ? `/demo/waiter/${encodeURIComponent(tableId)}` : `/${restaurant.slug}/waiter/${encodeURIComponent(tableId)}`);
 
   return (
     <div className="min-h-screen bg-brand-bg p-4">
@@ -106,13 +106,13 @@ function WaiterBoardInner({
           const hasOrderActivity =
             card.pending + card.cooking + card.ready + card.buffetLines.length + card.voidableItems.length
             + card.voidedItems.length > 0;
-          const hasOpenSession = activeSessionTableNumbers.some((t) => tableNumbersEqual(t, card.table));
-          const hasCheckoutRequest = checkoutRequestedTables.some((t) => tableNumbersEqual(t, card.table));
+          const hasOpenSession = activeSessionTableIds.some((id) => tableIdsEqual(id, card.tableId));
+          const hasCheckoutRequest = checkoutRequestedTableIds.some((id) => tableIdsEqual(id, card.tableId));
           const isActive = hasOrderActivity || hasOpenSession || hasCheckoutRequest;
           return (
             <Link
-              key={card.table}
-              href={detailHref(card.table)}
+              key={card.tableId}
+              href={detailHref(card.tableId)}
               className={`group rounded-xl border px-3 py-2 text-left block transition-all duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg ${
                 isActive
                   ? 'border-emerald-500/45 bg-emerald-500/10 shadow-sm shadow-emerald-900/5 hover:border-emerald-500/70 hover:shadow-emerald-900/12'
@@ -120,7 +120,7 @@ function WaiterBoardInner({
               }`}
             >
               <div className="flex items-center justify-between">
-                <p className="font-medium text-brand-text">{t.table} {card.table}</p>
+                <p className="font-medium text-brand-text">{t.table} {card.displayName}</p>
                 <div className="flex items-center gap-1.5">
                   <span
                     title={t.tableLight}

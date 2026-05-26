@@ -4,7 +4,7 @@
 
 ## 1. 系统角色与入口
 
-- **顾客端**：`/[slug]/menu?table=N`（扫码进入）
+- **顾客端**：`/[slug]/menu?table_id={uuid}`（扫码进入；QR 绑 **`table_id`**，界面与小票展示 **`display_name`**，如 `A-01`）
 - **厨房端**：`/[slug]/kitchen` — **店主**（同一会话已登录 `/dashboard`）或 **厨房员工**（`/{slug}/staff/login` 等）可进入；未满足则跳转员工登录。Realtime 见下。
 - **服务员观察端**：`/[slug]/waiter` — **店主**或 **`waiter` 角色员工**，规则同上。
 - **员工登录**（已实现）：
@@ -36,14 +36,26 @@
 - **数据库**：历史迁移中可能仍存在 `kitchen_password` / `waiter_password` 等列；**可选后续**在迁移中正式 `drop` 列并清理遗留 helper（见 [`docs/staff-accounts-plan.md`](docs/staff-accounts-plan.md) 迁移清单）。
 - **员工账号**：表 **`restaurant_staff_accounts`** + Supabase **`auth.users`**；店主在 **`/dashboard/settings/staff`** 维护；登录邮箱格式 **`{login_name}@mesa.in`**（见实施计划）。
 
-## 4. 桌台会话（Table Session）模型
+## 4. 桌位与餐次（Table + Session）模型
 
-- 新增 `table_sessions` 表，用于管理“一桌一餐次”的生命周期。
+> **定稿（待代码落地）**：详见 [`docs/restaurant-tables-design.zh.md`](docs/restaurant-tables-design.zh.md)。
+
+### 4.1 桌位 `restaurant_tables`
+
+- **`id`（`table_id`）**：永久稳定；QR、API、FK 均指向此 UUID。
+- **`display_name`**：展示用名称（新店默认 **A-01、A-02…** 递增）；**店内唯一**（活跃行）；可随时修改，**不影响 QR**。
+- **停用**：软删（`deleted_at`），设置页须 **Modal 确认**；不硬删有历史的行。
+- **废弃**：`restaurants.table_numbers` 数组、`rename_restaurant_table_number` RPC、`?table=字符串` URL。
+
+### 4.2 餐次 `table_sessions`
+
+- 用于管理「一桌一餐次」生命周期；关联 **`table_id`**（非字符串桌号）。
 - 会话状态：
   - `open`：就餐进行中
   - `billing`：已呼叫结账，待服务员处理
   - `closed`：已收款关台
-- 一桌同一时刻只能有一个活跃会话（`open/billing`）。
+- 一桌同一时刻只能有一个活跃会话（`open/billing`）；唯一约束 **`(restaurant_id, table_id)`**。
+- 转台 / 并台 / 关台：见 [`docs/table-transfer-merge-plan.zh.md`](docs/table-transfer-merge-plan.zh.md)（RPC 参数为 **`table_id`**）。
 
 ## 5. 下单与加单逻辑（顾客端）
 
@@ -90,15 +102,16 @@
 - 服务员/店主确认收款后：
   - `bill_splits.status -> paid`
   - `table_sessions.status -> closed`
-- 关台后，顾客若刷新账单页会被服务端强制跳转回点单页（`/menu?table=N`）。
+- 关台后，顾客若刷新账单页会被服务端强制跳转回点单页（`/menu?table_id={uuid}`）。
 
 ## 10. 员工入口与桌位二维码（后台桌位页）
 
-- 桌位二维码：`/[slug]/menu?table=N`
+- 桌位二维码：`/[slug]/menu?table_id={uuid}`；打印卡片标题为 **`display_name`**（客人不看到 UUID）。
 - **员工统一登录入口（二维码打印）**：`/[slug]/staff/login`（与 `src/components/dashboard/TablesManager.tsx` 中链接一致）。
 - 厨房 / 服务员 **业务页** `/[slug]/kitchen`、`/[slug]/waiter`：**需已由上述入口完成员工登录**，未登录会跳转回 `staff/login`。
 - 支持下载二维码，已接入三语文案。
-- **打印队列（出品联）**：顾客或服务员提交订单后，经 **`POST /api/restaurants/[slug]/orders/append`**（地理围栏 + **`enqueue_token`**）再 **`POST .../station-tickets/auto`**（校验 token）**自动入队** **`print_jobs`**（按本批 `batch_id`、各出品档口分组）。**无**厨房/服务员页「手动打印出品」按钮。店主在 **餐厅设置 → 打印助手** 排障；本地 **print-agent** 拉取打印。档口：**`COALESCE(菜品档口, 分类档口)`**，分类沿 **`parent_id` 继承**；无档口不入队（代点时会提示）。见 [`docs/print-agent-plan.md`](docs/print-agent-plan.md)。
+- **打印队列（出品联 / 小票 / 预结）**：顾客或服务员提交订单后，经 **`POST /api/restaurants/[slug]/orders/append`**（地理围栏 + **`enqueue_token`**）再 **`POST .../station-tickets/auto`**（校验 token）**自动入队** **`print_jobs`**（按本批 `batch_id`、各出品档口分组）。**无**厨房/服务员页「手动打印出品」按钮。店主在 **餐厅设置 → 打印助手** 排障；本地 **print-agent** 拉取打印。档口：**`COALESCE(菜品档口, 分类档口)`**，分类沿 **`parent_id` 继承**；无档口不入队（代点时会提示）。见 [`docs/print-agent-plan.md`](docs/print-agent-plan.md)。
+- **打印 payload 桌位字段（已定）**：凡涉及桌位的任务（**`station_ticket` / `order_receipt` / `pre_bill`**），入队时 **成对写入** **`table_id`（UUID）** + **`display_name`（快照）**；**热敏纸只印 `display_name`**，`table_id` 用于日志、后台队列筛选与历史重打关联；**禁止**把 UUID 印到纸面。与 [`docs/restaurant-tables-design.zh.md`](docs/restaurant-tables-design.zh.md) §8 一致。
 
 ## 11. 已知设计取向（当前版本）
 
@@ -111,4 +124,4 @@
 
 - **数据库**：在确认无依赖后 **删除** `restaurants.kitchen_password` / `waiter_password`（及版本列等）并收缩 `staff-password` 类 helper；见 [`docs/staff-accounts-plan.md`](docs/staff-accounts-plan.md)。
 - **安全**：按需进一步 **收紧 anon RLS**（计划中同上）。
-- 其它产品文档（如 `README.md`、本文件）需随版本迭代核对，避免按过时口径验收。
+- 其它产品文档（如 `README.md`、本文件、`print-agent-plan.md`）已与 [`docs/restaurant-tables-design.zh.md`](docs/restaurant-tables-design.zh.md) 桌位与打印 payload 定稿对齐；实施代码时以定稿为准。

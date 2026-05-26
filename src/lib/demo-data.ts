@@ -1,4 +1,5 @@
 import type { Order } from '@/types';
+import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 
 export const DEMO_RESTAURANT = {
   id: 'demo',
@@ -6,7 +7,19 @@ export const DEMO_RESTAURANT = {
   slug: 'demo',
 } as const;
 
-export const DEMO_TABLE_NUMBERS = Array.from({ length: 12 }, (_, i) => String(i + 1));
+function demoTableId(n: number): string {
+  return `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+}
+
+export const DEMO_TABLES: RestaurantTableRow[] = Array.from({ length: 12 }, (_, i) => ({
+  id: demoTableId(i + 1),
+  display_name: String(i + 1),
+  sort_order: i + 1,
+}));
+
+export function demoTableByDisplayName(name: string): RestaurantTableRow | undefined {
+  return DEMO_TABLES.find((t) => t.display_name === name);
+}
 
 const now = Date.now();
 
@@ -15,7 +28,8 @@ export const DEMO_ORDERS: Order[] = [
     id: 'demo-order-1',
     restaurant_id: 'demo',
     session_id: 'demo-session-1',
-    table_number: '5',
+    table_id: demoTableId(5),
+    display_name: '5',
     status: 'pending',
     items: [
       {
@@ -50,7 +64,8 @@ export const DEMO_ORDERS: Order[] = [
     id: 'demo-order-2',
     restaurant_id: 'demo',
     session_id: 'demo-session-2',
-    table_number: '2',
+    table_id: demoTableId(2),
+    display_name: '2',
     status: 'cooking',
     items: [
       {
@@ -88,7 +103,8 @@ export const DEMO_ORDERS: Order[] = [
     id: 'demo-order-3',
     restaurant_id: 'demo',
     session_id: 'demo-session-3',
-    table_number: '8',
+    table_id: demoTableId(8),
+    display_name: '8',
     status: 'done',
     items: [
       {

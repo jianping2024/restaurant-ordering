@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { parseTableNumberParamOrNull } from '@/lib/restaurant-table-numbers';
+import { parseTableIdParam } from '@/lib/restaurant-tables';
 
 export const runtime = 'nodejs';
 
@@ -19,16 +19,16 @@ export async function POST(
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
-  let body: { table_number?: unknown };
+  let body: { table_id?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const tableNum = parseTableNumberParamOrNull(body.table_number);
-  if (!tableNum) {
-    return NextResponse.json({ error: 'invalid_table_number' }, { status: 400 });
+  const tableId = parseTableIdParam(body.table_id);
+  if (!tableId) {
+    return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
   }
 
   let admin;
@@ -42,7 +42,7 @@ export async function POST(
     .from('table_sessions')
     .select('id')
     .eq('restaurant_id', ctx.restaurant_id)
-    .eq('table_number', tableNum)
+    .eq('table_id', tableId)
     .in('status', ['open', 'billing'])
     .order('opened_at', { ascending: false })
     .limit(1)

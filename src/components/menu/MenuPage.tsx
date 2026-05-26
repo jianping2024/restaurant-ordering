@@ -32,7 +32,8 @@ interface Props {
   };
   menuItems: MenuItem[];
   menuCategories: MenuCategory[];
-  tableNumber: string;
+  tableId: string;
+  displayName: string;
   isDemo?: boolean;
   returnToWaiterHref?: string | null;
 }
@@ -82,7 +83,7 @@ async function getBrowserLocation() {
 
 const WAITER_RETURN_REDIRECT_MS = 1200;
 
-export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, isDemo, returnToWaiterHref }: Props) {
+export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displayName, isDemo, returnToWaiterHref }: Props) {
   const router = useRouter();
   const [lang, setLang] = useState<Language>(() => getClientLanguage() as Language);
   const [activeTopCategory, setActiveTopCategory] = useState<string>('Pratos');
@@ -123,7 +124,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
         .from('table_sessions')
         .select('*')
         .eq('restaurant_id', restaurant.id)
-        .eq('table_number', tableNumber)
+        .eq('table_id', tableId)
         .in('status', ['open', 'billing'])
         .order('opened_at', { ascending: false })
         .limit(1)
@@ -148,7 +149,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
     void loadSessionAndOrders();
 
     const channel = supabase
-      .channel(`menu-${restaurant.id}-t${tableNumber}`)
+      .channel(`menu-${restaurant.id}-t${tableId}`)
       .on(
         'postgres_changes',
         {
@@ -178,7 +179,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [isDemo, restaurant.id, tableNumber]);
+  }, [isDemo, restaurant.id, tableId]);
 
   // 当前分类菜品
   const topCategories = menuCategories.filter((c) => !c.parent_id && c.active).sort((a, b) => a.sort_order - b.sort_order);
@@ -391,7 +392,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          table_number: tableNumber,
+          table_id: tableId,
           items,
           latitude,
           longitude,
@@ -538,7 +539,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
         <div className="flex items-center justify-between px-4 py-3">
           <div>
             <h1 className="font-heading text-xl text-brand-gold">{restaurant.name}</h1>
-            <p className="text-brand-text-muted text-[13px]">{t.table} {tableNumber}</p>
+            <p className="text-brand-text-muted text-[13px]">{t.table} {displayName}</p>
           </div>
           {/* 语言切换 */}
           <div className="flex items-center gap-1 bg-brand-card border border-brand-border rounded-full p-1">
@@ -689,7 +690,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableNumber, i
           )}
           <div className="mt-4 pt-3 border-t border-brand-border">
             <Link
-              href={`/${restaurant.slug}/bill?table=${encodeURIComponent(tableNumber)}`}
+              href={`/${restaurant.slug}/bill?table_id=${encodeURIComponent(tableId)}`}
               aria-disabled={!canGoBill}
               className={`w-full block text-center rounded-xl py-2.5 text-sm font-semibold transition-colors ${
                 canGoBill

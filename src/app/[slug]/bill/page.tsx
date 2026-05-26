@@ -2,17 +2,16 @@ import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { BillPage } from '@/components/menu/BillPage';
 import type { BillSplit } from '@/types';
-import { parseTableNumberParam } from '@/lib/restaurant-table-numbers';
+import { parseTableIdParam } from '@/lib/restaurant-tables';
 
 interface Props {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ table?: string; from?: string; return?: string }>;
+  searchParams: Promise<{ table_id?: string; from?: string; return?: string }>;
 }
 
 export default async function BillRoute({ params, searchParams }: Props) {
   const { slug } = await params;
-  const { table, from, return: returnPath } = await searchParams;
-  const requestedTableNumber = parseTableNumberParam(table, '1');
+  const { table_id: tableIdParam, from, return: returnPath } = await searchParams;
 
   const supabase = await createClient();
 
@@ -24,13 +23,26 @@ export default async function BillRoute({ params, searchParams }: Props) {
 
   if (!restaurant) notFound();
 
-  let tableNumber = requestedTableNumber;
+  const { data: activeTables } = await supabase
+    .from('restaurant_tables')
+    .select('id, display_name, sort_order')
+    .eq('restaurant_id', restaurant.id)
+    .is('deleted_at', null)
+    .order('sort_order');
+
+  const defaultTableId = activeTables?.[0]?.id;
+  const requestedTableId = parseTableIdParam(tableIdParam) ?? defaultTableId;
+  if (!requestedTableId) notFound();
+
+  let tableId = requestedTableId;
+  let displayName =
+    activeTables?.find((t) => t.id === requestedTableId)?.display_name ?? requestedTableId.slice(0, 8);
 
   let { data: activeSession } = await supabase
     .from('table_sessions')
     .select('id, status')
     .eq('restaurant_id', restaurant.id)
-    .eq('table_number', requestedTableNumber)
+    .eq('table_id', requestedTableId)
     .in('status', ['open', 'billing'])
     .order('opened_at', { ascending: false })
     .limit(1)
@@ -41,7 +53,7 @@ export default async function BillRoute({ params, searchParams }: Props) {
       .from('table_sessions')
       .select('merge_into_session_id')
       .eq('restaurant_id', restaurant.id)
-      .eq('table_number', requestedTableNumber)
+      .eq('table_id', requestedTableId)
       .eq('status', 'closed')
       .eq('closed_reason', 'merged')
       .not('merge_into_session_id', 'is', null)
@@ -52,32 +64,31 @@ export default async function BillRoute({ params, searchParams }: Props) {
     if (mergedFromSession?.merge_into_session_id) {
       const { data: targetSession } = await supabase
         .from('table_sessions')
-        .select('id, status, table_number')
+        .select('id, status, table_id')
         .eq('id', mergedFromSession.merge_into_session_id)
         .in('status', ['open', 'billing'])
         .maybeSingle();
 
       if (targetSession) {
         activeSession = { id: targetSession.id, status: targetSession.status };
-        tableNumber = targetSession.table_number;
+        tableId = targetSession.table_id;
+        displayName =
+          activeTables?.find((t) => t.id === tableId)?.display_name ?? displayName;
       }
     }
   }
 
-  // 关台后（无 open/billing 餐次）按来源回退：服务员入口回服务员页，顾客入口回点餐页。
   if (!activeSession) {
     if (from === 'waiter') {
       redirect(returnPath || `/${slug}/waiter`);
     }
-    redirect(`/${slug}/menu?table=${tableNumber}`);
+    redirect(`/${slug}/menu?table_id=${encodeURIComponent(tableId)}`);
   }
 
-  // 查询当前餐次订单。账单页会按“菜品级 done 状态”过滤可结算菜品。
   const { data: orders } = await supabase
     .from('orders')
     .select('*')
     .eq('restaurant_id', restaurant.id)
-    .eq('table_number', tableNumber)
     .eq('session_id', activeSession.id)
     .order('created_at', { ascending: true });
 
@@ -107,7 +118,8 @@ export default async function BillRoute({ params, searchParams }: Props) {
   return (
     <BillPage
       restaurant={restaurant}
-      tableNumber={tableNumber}
+      tableId={tableId}
+      displayName={displayName}
       orders={orders || []}
       sessionId={activeSession.id}
       existingSplit={existingSplit}

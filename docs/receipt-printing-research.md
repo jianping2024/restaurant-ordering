@@ -1,7 +1,9 @@
 # 热敏小票打印（调研摘要）
 
 **应用形态**：Next.js + Supabase 云端；浏览器无法直连店内 `ESC/POS` 或 `IP:9100`。  
-**当前实现**：`OrdersHistoryManager` 使用 HTML + `window.print()`（系统打印队列）。
+**当前实现**：`OrdersHistoryManager` 使用 HTML + `window.print()`（系统打印队列）；有 print-agent 时 **`print_jobs` 热敏为主路径**。
+
+**桌位与 payload（已定）**：与 [`restaurant-tables-design.zh.md`](./restaurant-tables-design.zh.md) 一致——`station_ticket` / `order_receipt` / `pre_bill` 入队时 **成对写入** `table_id` + `display_name` 快照；**纸面只印 display_name**；`table_id` 供日志、队列筛选与重打关联。
 
 ---
 

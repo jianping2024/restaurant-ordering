@@ -71,7 +71,7 @@ export async function PATCH(
     })
     .eq('id', orderId)
     .eq('updated_at', body.updated_at)
-    .select('id, items, status, updated_at, table_number, session_id, created_at, restaurant_id, total_amount')
+    .select('id, items, status, updated_at, table_id, display_name, session_id, created_at, restaurant_id, total_amount')
     .maybeSingle();
 
   if (updErr || !updated) {

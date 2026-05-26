@@ -29,8 +29,8 @@ jobs:
           go-version: '1.22'
           cache-dependency-path: apps/print-agent/go.sum
 
-      - name: Go test
-        run: go test ./...
-
-      - name: Cross-compile smoke (windows amd64)
-        run: GOOS=windows GOARCH=amd64 go build -o /dev/null .
+      - name: Vet and cross-compile (Linux)
+        run: |
+          go vet ./...
+          GOOS=windows GOARCH=amd64 go build -o /dev/null .
+        # Full `go test` runs on windows-latest in print-agent-release.yml (ESC/POS tests are OS/locale sensitive).

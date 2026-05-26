@@ -1,24 +1,26 @@
 package main
 
 import (
-	"errors"
 	"testing"
 	"time"
 )
 
-func TestPrinterAddrForJob_receiptDeferredWithoutId(t *testing.T) {
+func TestPrinterAddrForJob_receiptFirstMappedWithoutId(t *testing.T) {
 	c := &config{
 		StationPrinters: map[string]string{
 			"kitchen": "tcp:10.0.0.1:9100",
 			"bar":     "tcp:10.0.0.2:9100",
 		},
 	}
-	_, err := c.printerAddrForJob(printJob{
+	addr, err := c.printerAddrForJob(printJob{
 		Type:      "pre_bill",
 		CreatedAt: time.Now().UTC().Format(time.RFC3339),
 	})
-	if !errors.Is(err, errReceiptPrintDeferred) {
-		t.Fatalf("expected deferred, got %v", err)
+	if err != nil {
+		t.Fatalf("expected route, got err=%v", err)
+	}
+	if addr != "tcp:10.0.0.2:9100" {
+		t.Fatalf("expected first sorted station (bar), got %q", addr)
 	}
 }
 

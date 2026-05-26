@@ -4,8 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { enqueueReceiptPrint, type ReceiptVariant } from '@/lib/order-receipt-enqueue';
 import {
-  assertReceiptPrinterIdAllowed,
-  loadRestaurantReceiptPrinterSnapshot,
+  resolveReceiptPrinterId,
 } from '@/lib/restaurant-receipt-printers-server';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 
@@ -173,14 +172,14 @@ export async function POST(
 
   const receiptPrinterIdRaw =
     typeof body.receipt_printer_id === 'string' ? body.receipt_printer_id.trim() : '';
-  const snapshot = await loadRestaurantReceiptPrinterSnapshot(admin, restaurantId);
-  let receiptPrinterId: string | undefined;
-  if (receiptPrinterIdRaw) {
-    const allowed = assertReceiptPrinterIdAllowed(receiptPrinterIdRaw, snapshot);
-    if (!allowed) {
-      return NextResponse.json({ error: 'invalid_receipt_printer' }, { status: 400 });
-    }
-    receiptPrinterId = allowed;
+  const receiptPrinterId = await resolveReceiptPrinterId(
+    admin,
+    restaurantId,
+    receiptPrinterIdRaw || undefined,
+    printLocale,
+  );
+  if (receiptPrinterIdRaw && !receiptPrinterId) {
+    return NextResponse.json({ error: 'invalid_receipt_printer' }, { status: 400 });
   }
 
   const result = await enqueueReceiptPrint({

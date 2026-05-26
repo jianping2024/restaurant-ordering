@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 )
@@ -29,28 +30,27 @@ func jobCreatedWithin(job printJob, within time.Duration) bool {
 	return true
 }
 
-// soleMappedStationAddr returns the printer address when exactly one station is mapped.
-func (c *config) soleMappedStationAddr() (string, bool) {
+func (c *config) firstMappedStationAddr() (string, bool) {
 	if c.StationPrinters == nil {
 		return "", false
 	}
-	var found string
-	n := 0
-	for _, v := range c.StationPrinters {
-		addr := strings.TrimSpace(v)
-		if addr == "" {
+	ids := c.mappedStationIDsSorted()
+	if len(ids) == 0 {
+		return "", false
+	}
+	return strings.TrimSpace(c.StationPrinters[ids[0]]), true
+}
+
+func (c *config) mappedStationIDsSorted() []string {
+	var ids []string
+	for id, addr := range c.StationPrinters {
+		if strings.TrimSpace(id) == "" || strings.TrimSpace(addr) == "" {
 			continue
 		}
-		n++
-		found = addr
-		if n > 1 {
-			return "", false
-		}
+		ids = append(ids, id)
 	}
-	if n == 1 {
-		return found, true
-	}
-	return "", false
+	sort.Strings(ids)
+	return ids
 }
 
 func (c *config) resolveReceiptRouting(job printJob, explicitID string) (string, error) {
@@ -58,14 +58,11 @@ func (c *config) resolveReceiptRouting(job printJob, explicitID string) (string,
 	if id != "" {
 		return c.resolveReceiptPrinterID(id)
 	}
-	if addr, ok := c.soleMappedStationAddr(); ok {
+	if addr, ok := c.firstMappedStationAddr(); ok {
 		return addr, nil
 	}
 	if jobCreatedWithin(job, receiptPrintDeferWindow) {
 		return "", errReceiptPrintDeferred
-	}
-	if c.hasMappedStations() {
-		return "", fmt.Errorf("receipt_printer_id required (multiple stations mapped; picker not set)")
 	}
 	return "", fmt.Errorf("receipt_printer_id required (no station printers configured within 20 minutes)")
 }

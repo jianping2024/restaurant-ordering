@@ -68,7 +68,7 @@ go run . -api http://localhost:3000 -default-printer 192.168.1.50:9100
 ```
 
 - **`station_ticket`** → `station_printers[payload.print_station_id]` only (no fallback)
-- **`order_receipt` / `pre_bill`** → `payload.receipt_printer_id` = `station:{uuid}` when chosen on checkout/bill; if omitted, agent retries up to **20 minutes** and prints when exactly one station is mapped (or when mapping appears)
+- **`order_receipt` / `pre_bill`** → `payload.receipt_printer_id` = `station:{uuid}` when chosen on checkout/bill; if omitted, Mesa defaults to the first mapped station by `print_stations.sort_order`, and the agent falls back to its first mapped station
 
 ### Schedule (optional)
 

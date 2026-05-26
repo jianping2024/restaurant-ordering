@@ -62,6 +62,27 @@ export function nextDefaultTableDisplayName(existing: string[]): string {
   return formatDefaultTableDisplayName(existing.length + 1);
 }
 
+/** Sequential default names for batch add (each name unique within batch). */
+export function nextDefaultTableDisplayNames(existing: string[], count: number): string[] {
+  const n = Math.max(0, Math.floor(count));
+  const pool = [...existing];
+  const out: string[] = [];
+  for (let i = 0; i < n; i++) {
+    const next = nextDefaultTableDisplayName(pool);
+    out.push(next);
+    pool.push(next);
+  }
+  return out;
+}
+
+export function isValidTableAddCount(count: number, currentCount: number): boolean {
+  return (
+    Number.isInteger(count)
+    && count >= 1
+    && currentCount + count <= RESTAURANT_TABLE_LIST_MAX
+  );
+}
+
 export function compareRestaurantTables(
   a: Pick<RestaurantTable, 'sort_order' | 'display_name'>,
   b: Pick<RestaurantTable, 'sort_order' | 'display_name'>,

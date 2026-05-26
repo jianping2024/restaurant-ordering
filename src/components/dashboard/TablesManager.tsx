@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { IntegerInput } from '@/components/ui/IntegerInput';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
@@ -12,10 +13,11 @@ import {
   RESTAURANT_TABLE_LIST_MAX,
   compareRestaurantTables,
   isValidTableDisplayName,
-  nextDefaultTableDisplayName,
+  nextDefaultTableDisplayNames,
   normalizeTableDisplayName,
   sortRestaurantTables,
   tableIdsEqual,
+  isValidTableAddCount,
   type RestaurantTableRow,
 } from '@/lib/restaurant-tables';
 
@@ -43,6 +45,7 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
   const [savedTables, setSavedTables] = useState<RestaurantTableRow[]>(() => sortRestaurantTables(initialTables));
   const [saving, setSaving] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [addCount, setAddCount] = useState(1);
   const [labelDrafts, setLabelDrafts] = useState<Record<string, string>>({});
 
   const [qrCodes, setQrCodes] = useState<Record<string, string>>({});
@@ -264,29 +267,35 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
     }
   }, [restaurant.id, savedTables, supabase, t]);
 
-  const addTable = async () => {
-    if (tables.length >= RESTAURANT_TABLE_LIST_MAX) return;
+  const maxAddCount = Math.max(1, RESTAURANT_TABLE_LIST_MAX - tables.length);
+
+  const addTables = async (count: number) => {
+    if (!isValidTableAddCount(count, tables.length)) {
+      showToast(t.saveFailed, 'error');
+      return;
+    }
     setAdding(true);
     try {
-      const display_name = nextDefaultTableDisplayName(tables.map((row) => row.display_name));
-      const sort_order = Math.max(0, ...tables.map((row) => row.sort_order)) + 1;
+      const existingNames = tables.map((row) => row.display_name);
+      const displayNames = nextDefaultTableDisplayNames(existingNames, count);
+      const startOrder = Math.max(0, ...tables.map((row) => row.sort_order)) + 1;
+      const rows = displayNames.map((display_name, index) => ({
+        restaurant_id: restaurant.id,
+        display_name,
+        sort_order: startOrder + index,
+      }));
       const { data, error } = await supabase
         .from('restaurant_tables')
-        .insert({
-          restaurant_id: restaurant.id,
-          display_name,
-          sort_order,
-        })
-        .select('id, display_name, sort_order')
-        .single();
-      if (error || !data) {
+        .insert(rows)
+        .select('id, display_name, sort_order');
+      if (error || !data?.length) {
         showToast(t.saveFailed, 'error');
         return;
       }
-      const next = sortRestaurantTables([...tables, data as RestaurantTableRow]);
+      const next = sortRestaurantTables([...tables, ...(data as RestaurantTableRow[])]);
       setTables(next);
       setSavedTables(next);
-      showToast(t.savedTables, 'success');
+      showToast(t.tablesAdded.replace('{count}', String(data.length)), 'success');
     } catch {
       showToast(t.saveFailed, 'error');
     } finally {
@@ -431,15 +440,29 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
                 ) : null}
               </span>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-end gap-2">
+              <div className="flex items-center gap-2">
+                <label className="text-[12px] text-brand-text-muted whitespace-nowrap">
+                  {t.addTableCountLabel}
+                </label>
+                <IntegerInput
+                  value={Math.min(addCount, maxAddCount)}
+                  min={1}
+                  max={maxAddCount}
+                  disabled={adding || tables.length >= RESTAURANT_TABLE_LIST_MAX}
+                  onChange={(n) => setAddCount(Math.max(1, Math.min(n, maxAddCount)))}
+                  className="w-16 rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-center text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
+                  aria-label={t.addTableCountLabel}
+                />
+              </div>
               <Button
-                onClick={() => void addTable()}
+                onClick={() => void addTables(Math.min(addCount, maxAddCount))}
                 size="sm"
                 variant="outline"
                 loading={adding}
                 disabled={adding || tables.length >= RESTAURANT_TABLE_LIST_MAX}
               >
-                + {t.count}
+                {t.addTables}
               </Button>
               <Button
                 onClick={saveTables}

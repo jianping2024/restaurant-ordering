@@ -4,7 +4,7 @@
 
 | 事件 | 工作流 | 作用 |
 |------|--------|------|
-| **push / PR → `main`** | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `npm ci` → `lint` → `build`（与 Vercel 相同 build 命令） |
+| **push 任意分支 / PR → `main`** | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `npm ci` → `lint` → `build`；job 名 **`web`**（与 ruleset 一致） |
 | **改 `apps/print-agent/**`** | [`.github/workflows/print-agent-ci.yml`](../.github/workflows/print-agent-ci.yml) | `go test` + Windows 交叉编译冒烟 |
 | **push tag `print-agent-v*`** | [`.github/workflows/print-agent-release.yml`](../.github/workflows/print-agent-release.yml) | 校验 VERSION=tag → test → Windows 打包 → GitHub Release → **verify-release** 断言附件存在 |
 
@@ -37,13 +37,33 @@
 
 ---
 
-## 保证 Web 部署可靠
+## 推送到 main（分支保护 + 免手工 PR）
 
-1. **不要跳过 CI**：merge / push 前看 [Actions → CI](https://github.com/jianping2024/restaurant-ordering/actions/workflows/ci.yml) 是否绿
-2. **（推荐）GitHub 分支保护**：`Settings → Branches → main`  
-   - Require status checks: **CI**  
-   - 可选：Require PR（避免直接 push 坏代码到 main）
-3. **Vercel**：Project → Settings → Git → 确认 Production Branch = `main`；Deployments 页查看失败日志（多为 env 缺失或 build 错误，CI 会复现同类问题）
+`main` 启用了 ruleset，**不能直接 `git push origin main`**，必须先过 **`web`** CI。
+
+### 推荐：一条命令 ship
+
+```bash
+git add -A && git commit -m "your message"
+pnpm ship                    # 或 ./scripts/ship-to-main.sh
+# 可选指定分支名：pnpm ship feat/my-change
+```
+
+脚本会把当前 commit 推到 `ship/…` 或当前分支；配合下面两个 workflow：
+
+| 工作流 | 作用 |
+|--------|------|
+| [`.github/workflows/open-pr.yml`](../.github/workflows/open-pr.yml) | push 非 main 分支 → **自动开 PR** |
+| [`.github/workflows/automerge.yml`](../.github/workflows/automerge.yml) | PR 创建/更新后 → **开启 squash 自动合并**（CI 绿后合并） |
+
+**一次性设置**（GitHub 仓库）：`Settings → General → Pull Requests` → 勾选 **Allow auto-merge**。  
+之后 Agent / 本地只需 `commit` + `pnpm ship`，无需手工点 Merge。
+
+### 保证 Web 部署可靠
+
+1. **不要跳过 CI**：等 [Actions → CI](https://github.com/jianping2024/restaurant-ordering/actions/workflows/ci.yml) 的 **`web`** job 变绿
+2. **分支保护**：ruleset 要求 **`web`** status check（与 CI job 名一致）
+3. **Vercel**：Production Branch = `main`；合并 PR 后自动部署
 
 ---
 

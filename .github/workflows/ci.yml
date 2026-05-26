@@ -1,11 +1,17 @@
-# Web app: build + lint on every push/PR to main (catches Vercel deploy failures early).
+# Web app: build + lint on push (all branches) and PRs to main.
+# Job id `web` is the required ruleset check name on merge.
 name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - '**'
   pull_request:
     branches: [main]
+  # Uses workflow from main; helps when pull_request does not fire.
+  pull_request_target:
+    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -15,6 +21,8 @@ jobs:
   web:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # pull_request_target runs in base-repo context; safe for same-repo PRs only.
+    if: github.event_name != 'pull_request_target' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@v4
 

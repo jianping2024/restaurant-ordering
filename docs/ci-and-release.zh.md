@@ -4,7 +4,7 @@
 
 | 事件 | 工作流 | 作用 |
 |------|--------|------|
-| **push / PR → `main`** | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `npm ci` → `lint` → `build`（与 Vercel 相同 build 命令） |
+| **push 任意分支 / PR → `main`** | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `npm ci` → `lint` → `build`；job 名 **`web`**（与 ruleset 一致） |
 | **改 `apps/print-agent/**`** | [`.github/workflows/print-agent-ci.yml`](../.github/workflows/print-agent-ci.yml) | `go test` + Windows 交叉编译冒烟 |
 | **push tag `print-agent-v*`** | [`.github/workflows/print-agent-release.yml`](../.github/workflows/print-agent-release.yml) | 校验 VERSION=tag → test → Windows 打包 → GitHub Release → **verify-release** 断言附件存在 |
 

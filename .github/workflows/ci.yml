@@ -1,9 +1,11 @@
-# Web app: build + lint on every push/PR to main (catches Vercel deploy failures early).
+# Web app: build + lint on push (all branches) and PRs to main.
+# Job id `web` is the required ruleset check name on merge.
 name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - '**'
   pull_request:
     branches: [main]
 

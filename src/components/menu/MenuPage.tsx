@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import type { MenuItem, Language, CartItem, Order, TableSession, MenuCategory } from '@/types';
 import { MenuItemCard } from './MenuItemCard';
 import { CartDrawer } from './CartDrawer';
-import { createClient } from '@/lib/supabase/client';
 import { CATEGORY_LABELS } from '@/lib/i18n/messages';
 import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
@@ -16,6 +15,7 @@ import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals
 import { showToast } from '@/components/ui/Toast';
 import { autoEnqueueStationTicketsAfterSubmit } from '@/lib/auto-enqueue-station-tickets';
 import { normalizeOrderRadiusMeters } from '@/lib/order-radius';
+import { requestCustomerSessionContext } from '@/lib/request-customer-context';
 
 const LANG_FLAGS: Record<Language, string> = { pt: '🇵🇹', en: '🇬🇧', zh: '🇨🇳' };
 const LANG_LABELS: Record<Language, string> = { pt: 'PT', en: 'EN', zh: '中' };
@@ -117,69 +117,27 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
   // 加载本桌当前餐次及订单；订阅后厨/服务员对订单、会话的更新，同步菜品状态
   useEffect(() => {
     if (isDemo) return;
-    const supabase = createClient();
+    let cancelled = false;
 
     const loadSessionAndOrders = async () => {
-      const { data: session } = await supabase
-        .from('table_sessions')
-        .select('*')
-        .eq('restaurant_id', restaurant.id)
-        .eq('table_id', tableId)
-        .in('status', ['open', 'billing'])
-        .order('opened_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      setActiveSession((session as TableSession | null) || null);
-
-      if (!session) {
+      const data = await requestCustomerSessionContext(restaurant.slug, tableId);
+      if (cancelled || !data) return;
+      setActiveSession((data.active_session as TableSession | null) || null);
+      if (!data.active_session) {
         setRecentOrders([]);
         return;
       }
-
-      const { data } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('session_id', session.id)
-        .order('created_at', { ascending: false })
-        .limit(8);
-      setRecentOrders((data || []) as Order[]);
+      setRecentOrders((data.recent_orders || []) as Order[]);
     };
 
     void loadSessionAndOrders();
-
-    const channel = supabase
-      .channel(`menu-${restaurant.id}-t${tableId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders',
-          filter: `restaurant_id=eq.${restaurant.id}`,
-        },
-        () => {
-          void loadSessionAndOrders();
-        },
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'table_sessions',
-          filter: `restaurant_id=eq.${restaurant.id}`,
-        },
-        () => {
-          void loadSessionAndOrders();
-        },
-      )
-      .subscribe();
+    const interval = window.setInterval(() => void loadSessionAndOrders(), 5000);
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      window.clearInterval(interval);
     };
-  }, [isDemo, restaurant.id, tableId]);
+  }, [isDemo, restaurant.slug, tableId]);
 
   // 当前分类菜品
   const topCategories = menuCategories.filter((c) => !c.parent_id && c.active).sort((a, b) => a.sort_order - b.sort_order);
@@ -443,15 +401,9 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
         lang,
       });
 
-      const supabase = createClient();
       if (sessionId) {
-        const { data: latestOrders } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('session_id', sessionId)
-          .order('created_at', { ascending: false })
-          .limit(8);
-        setRecentOrders((latestOrders || []) as Order[]);
+        const latest = await requestCustomerSessionContext(restaurant.slug, tableId);
+        setRecentOrders((latest?.recent_orders || []) as Order[]);
       }
       setLatestBatchId(batchId);
       setTimeout(() => setLatestBatchId(null), 15000);

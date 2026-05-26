@@ -18,6 +18,7 @@ import { ReceiptPrinterSelect } from '@/components/dashboard/ReceiptPrinterSelec
 import { requestOrderReceiptPrint } from '@/lib/request-order-receipt-print';
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
+import { requestCustomerBillContext } from '@/lib/request-customer-context';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -140,39 +141,21 @@ export function BillPage({
 
   useEffect(() => {
     if (!sessionId) return;
-    const supabase = createClient();
+    let cancelled = false;
     const fetchSessionOrders = async () => {
-      const { data } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('restaurant_id', restaurant.id)
-        .eq('session_id', sessionId)
-        .order('created_at', { ascending: true });
-      setLiveOrders((data || []) as Order[]);
+      const data = await requestCustomerBillContext(restaurant.slug, tableId);
+      if (cancelled || !data) return;
+      setLiveOrders((data.orders || []) as Order[]);
     };
 
     void fetchSessionOrders();
-
-    const channel = supabase
-      .channel(`bill-orders-${restaurant.id}-${sessionId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders',
-          filter: `restaurant_id=eq.${restaurant.id}`,
-        },
-        () => {
-          void fetchSessionOrders();
-        },
-      )
-      .subscribe();
+    const interval = window.setInterval(() => void fetchSessionOrders(), 5000);
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      window.clearInterval(interval);
     };
-  }, [restaurant.id, sessionId]);
+  }, [restaurant.slug, tableId, sessionId]);
 
   // 结账金额按本餐次“实际已下单菜品”计算，不限制菜品状态。
   const allItems = liveOrders.flatMap(o => o.items

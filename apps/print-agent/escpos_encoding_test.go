@@ -35,6 +35,27 @@ func TestReceiptTicketNeedsGBKPayer(t *testing.T) {
 	if receiptTicketNeedsGBK(jobPayload{PayerName: "2", Lines: []jobLine{{DisplayName: "Soup"}}}) {
 		t.Fatal("expected Latin for numeric placeholder payer")
 	}
+	if receiptTicketNeedsGBK(jobPayload{PayerName: "客人 2", Lines: []jobLine{{DisplayName: "Soup"}}}) {
+		t.Fatal("split placeholder payer should use Latin after formatting")
+	}
+}
+
+func TestReceiptTicketNeedsGBKIgnoresRestaurantName(t *testing.T) {
+	if receiptTicketNeedsGBK(jobPayload{
+		RestaurantName: "川味餐厅",
+		Lines:          []jobLine{{DisplayName: "Chá camomila"}},
+	}) {
+		t.Fatal("Portuguese menu with Chinese restaurant_name in payload must stay Latin")
+	}
+}
+
+func TestConnectionTestNeedsGBK(t *testing.T) {
+	if !connectionTestNeedsGBK(jobPayload{RestaurantName: "川味"}) {
+		t.Fatal("connection test should use GBK when venue name has Han")
+	}
+	if connectionTestNeedsGBK(jobPayload{RestaurantName: "Mesa Lisboa"}) {
+		t.Fatal("ASCII venue should use Latin on connection test")
+	}
 }
 
 func TestFormatSplitPayerForReceipt(t *testing.T) {

@@ -67,9 +67,10 @@ func receiptTicketLabels() ticketLabels {
 	return labelsFor("en")
 }
 
-// receiptTicketNeedsGBK — receipt header is ASCII; GBK when payer/menu text contains Han.
+// receiptTicketNeedsGBK — receipt/pre-bill paper uses English headers and does not print
+// restaurant_name; do not switch the whole ticket to GBK because of a Chinese venue name in payload.
 func receiptTicketNeedsGBK(p jobPayload) bool {
-	if hasHan(p.PayerName) || hasHan(p.RestaurantName) {
+	if hasHan(formatSplitPayerForReceipt(p.PayerName)) {
 		return true
 	}
 	for _, ln := range p.Lines {
@@ -78,6 +79,11 @@ func receiptTicketNeedsGBK(p jobPayload) bool {
 		}
 	}
 	return false
+}
+
+// connectionTestNeedsGBK — test slip prints venue name only (plus ASCII labels).
+func connectionTestNeedsGBK(p jobPayload) bool {
+	return hasHan(p.venueName())
 }
 
 // labelsASCII strips accents for printers in GBK mode with pt/en locale.

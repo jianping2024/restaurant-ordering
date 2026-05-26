@@ -47,8 +47,6 @@ export type StationTicketJobPayload = {
   print_station_id: string;
   ticket_layout: PrintStationTicketLayout;
   locale: 'zh' | 'en' | 'pt';
-  /** Header on ticket (lowercase style per reference slip) */
-  restaurant_name?: string;
   station_display_name_pt: string;
   station_display_name_en: string | null;
   station_display_name_zh: string | null;
@@ -328,7 +326,6 @@ export async function enqueueStationTicketsForOrder(params: {
       print_station_id: sid,
       ticket_layout: stMeta.ticket_layout,
       locale,
-      restaurant_name: restaurant.name?.trim() || undefined,
       station_display_name_pt: stMeta.name_pt,
       station_display_name_en: stMeta.name_en,
       station_display_name_zh: stMeta.name_zh,

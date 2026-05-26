@@ -274,6 +274,16 @@ func newEscposForPayload(p jobPayload) *escposWriter {
 	return w
 }
 
+func newEscposForConnectionTest(p jobPayload) *escposWriter {
+	w := newEscpos()
+	if connectionTestNeedsGBK(p) {
+		w.enableGBK()
+	} else {
+		w.enableLatin()
+	}
+	return w
+}
+
 func (w *escposWriter) init() { w.prefix = append(w.prefix, 0x1B, 0x40) }
 
 // enableLatin selects WPC1252 (covers Portuguese accents on most 80mm printers).
@@ -684,7 +694,7 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 }
 
 func buildConnectionTest(p jobPayload, lab ticketLabels) []byte {
-	w := newEscposForPayload(p)
+	w := newEscposForConnectionTest(p)
 	w.align(1)
 	w.size(true, true)
 	w.bold(true)

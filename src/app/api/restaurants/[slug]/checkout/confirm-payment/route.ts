@@ -21,13 +21,12 @@ async function authorizeRestaurant(slug: string, req: Request) {
   if (staffCtx) {
     const { data: rest } = await admin
       .from('restaurants')
-      .select('name, print_locale')
+      .select('print_locale')
       .eq('id', staffCtx.restaurant_id)
       .single();
     return {
       admin,
       restaurantId: staffCtx.restaurant_id,
-      restaurantName: rest?.name ?? null,
       printLocale: rest?.print_locale ?? null,
     };
   }
@@ -42,7 +41,7 @@ async function authorizeRestaurant(slug: string, req: Request) {
 
   const { data: rest } = await admin
     .from('restaurants')
-    .select('id, name, print_locale')
+    .select('id, print_locale')
     .eq('slug', slug)
     .eq('owner_id', user.id)
     .maybeSingle();
@@ -54,7 +53,6 @@ async function authorizeRestaurant(slug: string, req: Request) {
   return {
     admin,
     restaurantId: rest.id as string,
-    restaurantName: rest.name as string | null,
     printLocale: rest.print_locale as string | null,
   };
 }
@@ -114,7 +112,6 @@ export async function POST(
   const result = await confirmBillSplitPayment({
     admin: auth.admin,
     restaurantId: auth.restaurantId,
-    restaurantName: auth.restaurantName,
     printLocale: auth.printLocale,
     billSplitId,
     personIndex,

@@ -63,17 +63,15 @@ export async function POST(
 
   const waiterCtx = await staffAuthFromRequest(req, slug, 'waiter');
   let restaurantId: string;
-  let restaurantName: string | null = null;
   let printLocale: string | null = null;
 
   if (waiterCtx) {
     restaurantId = waiterCtx.restaurant_id;
     const { data: rest } = await admin
       .from('restaurants')
-      .select('name, print_locale')
+      .select('print_locale')
       .eq('id', restaurantId)
       .single();
-    restaurantName = rest?.name ?? null;
     printLocale = rest?.print_locale ?? null;
   } else {
     const supabase = await createClient();
@@ -83,7 +81,7 @@ export async function POST(
     if (user) {
       const { data: rest } = await admin
         .from('restaurants')
-        .select('id, name, print_locale')
+        .select('id, print_locale')
         .eq('slug', slug)
         .eq('owner_id', user.id)
         .maybeSingle();
@@ -91,12 +89,11 @@ export async function POST(
         return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
       }
       restaurantId = rest.id;
-      restaurantName = rest.name;
       printLocale = rest.print_locale;
     } else if (variant === 'pre_bill' && sessionIdRaw) {
       const { data: rest } = await admin
         .from('restaurants')
-        .select('id, name, print_locale')
+        .select('id, print_locale')
         .eq('slug', slug)
         .maybeSingle();
       if (!rest?.id) {
@@ -114,7 +111,6 @@ export async function POST(
         return NextResponse.json({ error: 'invalid_session' }, { status: 403 });
       }
       restaurantId = rest.id;
-      restaurantName = rest.name;
       printLocale = rest.print_locale;
     } else {
       return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
@@ -185,7 +181,6 @@ export async function POST(
   const result = await enqueueReceiptPrint({
     admin,
     restaurantId,
-    restaurantName,
     printLocale,
     sessionId,
     tableId,

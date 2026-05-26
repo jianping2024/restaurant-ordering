@@ -33,7 +33,6 @@ export type ConfirmPaymentResult =
 export async function confirmBillSplitPayment(params: {
   admin: SupabaseClient;
   restaurantId: string;
-  restaurantName?: string | null;
   printLocale: string | null;
   billSplitId: string;
   personIndex: number;
@@ -43,7 +42,6 @@ export async function confirmBillSplitPayment(params: {
   const {
     admin,
     restaurantId,
-    restaurantName,
     printLocale,
     billSplitId,
     personIndex,
@@ -107,7 +105,6 @@ export async function confirmBillSplitPayment(params: {
     await enqueueReceiptPrint({
       admin,
       restaurantId,
-      restaurantName,
       printLocale,
       sessionId,
       tableId,
@@ -139,7 +136,6 @@ export async function confirmBillSplitPayment(params: {
     await enqueueReceiptPrint({
       admin,
       restaurantId,
-      restaurantName,
       printLocale,
       sessionId,
       tableId,

@@ -18,7 +18,6 @@ export type OrderReceiptJobPayload = {
   /** Agent routing id: cashier | station:{print_station_id} */
   receipt_printer_id?: string;
   receipt_variant: ReceiptVariant;
-  restaurant_name?: string;
   table_id: string;
   display_name: string;
   guest_count?: number;
@@ -134,7 +133,6 @@ export function buildSplitPersonReceiptLines(
 type EnqueueParams = {
   admin: SupabaseClient;
   restaurantId: string;
-  restaurantName?: string | null;
   printLocale: string | null;
   sessionId: string;
   tableId: string;
@@ -185,7 +183,6 @@ export async function enqueueReceiptPrint(
   const {
     admin,
     restaurantId,
-    restaurantName,
     printLocale,
     sessionId,
     tableId,
@@ -288,7 +285,6 @@ export async function enqueueReceiptPrint(
     locale,
     ...(printerId ? { receipt_printer_id: printerId } : {}),
     receipt_variant: variant,
-    ...(restaurantName?.trim() ? { restaurant_name: restaurantName.trim() } : {}),
     table_id: tableId,
     display_name: tableDisplayName,
     ...(guestCount > 0 && variant !== 'split_payment' ? { guest_count: guestCount } : {}),

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -104,6 +105,31 @@ func TestPreBillOmitsPaymentLines(t *testing.T) {
 	}
 	if strings.Contains(s, "Amount Paid:") || strings.Contains(s, "Payment:") {
 		t.Fatal("pre_bill must not include payment confirmation lines")
+	}
+}
+
+func TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant(t *testing.T) {
+	payload, _ := json.Marshal(jobPayload{
+		Locale:           "pt",
+		RestaurantName:   "川味餐厅",
+		TableDisplayName: "A-01",
+		Lines: []jobLine{
+			{ItemIndex: 7, DisplayName: "Chá camomila", Qty: 1, UnitPrice: 2.5},
+			{ItemIndex: 13, DisplayName: "Chaminé", Qty: 1, UnitPrice: 3},
+		},
+		Subtotal:   5.5,
+		AmountDue:  5.5,
+	})
+	for _, jobType := range []string{"pre_bill", "order_receipt"} {
+		t.Run(jobType, func(t *testing.T) {
+			raw := escposFromJob(printJob{Type: jobType, Payload: payload})
+			if !bytes.Contains(raw, []byte{0xe1}) {
+				t.Fatalf("%s: expected Windows-1252 á (0xE1) in output", jobType)
+			}
+			if bytes.Contains(raw, []byte{0xc3, 0xa1}) {
+				t.Fatalf("%s: must not emit raw UTF-8 for á", jobType)
+			}
+		})
 	}
 }
 

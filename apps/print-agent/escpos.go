@@ -723,32 +723,20 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 	return w.finish(true)
 }
 
-func (w *escposWriter) writeConnectionTestHeadline(s string) {
-	switch w.enc {
-	case paperEncGBK:
-		w.gbkEnter()
-		w.content.Write([]byte{0x1C, 0x21, 0x0F})
-		w.content.Write(encodeGBK(s))
-		w.content.Write([]byte{0x1C, 0x21, 0x00})
-		w.gbkExit()
-	case paperEncUTF8:
-		w.size(true, true)
-		w.content.Write([]byte(s))
-		w.size(false, false)
-	default:
-		w.size(true, true)
-		w.text(s)
-		w.size(false, false)
-	}
-}
-
 func buildConnectionTest(p jobPayload, lab ticketLabels) []byte {
 	w := newEscposForConnectionTest(p)
 	w.align(1)
-	w.bold(true)
-	w.writeConnectionTestHeadline(lab.connectionTest)
+	// GBK / UNYKA USB: plain FS & + GBK bytes — FS ! / GS ! / ESC E often garble Han on clone firmware.
+	if w.enc == paperEncGBK {
+		w.text(lab.connectionTest)
+	} else {
+		w.bold(true)
+		w.size(true, true)
+		w.text(lab.connectionTest)
+		w.size(false, false)
+		w.bold(false)
+	}
 	w.lf()
-	w.bold(false)
 	w.separator('-')
 	w.align(0)
 	w.text(p.venueName())

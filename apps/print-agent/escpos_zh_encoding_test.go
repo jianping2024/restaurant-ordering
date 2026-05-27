@@ -35,6 +35,12 @@ func TestBuildConnectionTestZHUsesGBKByDefault(t *testing.T) {
 	if bytes.Contains(raw, []byte{0x1B, 0x39, 0x01}) {
 		t.Fatal("auto mode should not use ESC 9 UTF-8 on connection test")
 	}
+	if bytes.Contains(raw, []byte{0x1C, 0x21, 0x0F}) {
+		t.Fatal("GBK connection test should not use FS ! enlarge (UNYKA USB)")
+	}
+	if bytes.Contains(raw, []byte{0x1D, 0x21, 0x11}) {
+		t.Fatal("GBK connection test should not use GS ! double-size")
+	}
 }
 
 func TestBuildConnectionTestZHUsesUTF8WhenConfigured(t *testing.T) {

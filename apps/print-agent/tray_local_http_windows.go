@@ -73,8 +73,28 @@ func shutdownTrayLocalHTTP() {
 	_ = srv.Shutdown(ctx)
 }
 
+func setTrayLocalCORS(w http.ResponseWriter, r *http.Request) {
+	origin := strings.TrimSpace(r.Header.Get("Origin"))
+	if origin == "" {
+		return
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
+	w.Header().Set("Vary", "Origin")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	if strings.EqualFold(r.Header.Get("Access-Control-Request-Private-Network"), "true") {
+		w.Header().Set("Access-Control-Allow-Private-Network", "true")
+	}
+}
+
 func (t *trayLocalHTTP) serveHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		setTrayLocalCORS(w, r)
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
 	if r.Method == http.MethodGet && r.URL.Path == "/api/health" {
+		setTrayLocalCORS(w, r)
 		writePairJSON(w, http.StatusOK, map[string]any{
 			"ok":      true,
 			"version": Version,
@@ -97,6 +117,7 @@ func (t *trayLocalHTTP) serveHTTP(w http.ResponseWriter, r *http.Request) {
 		if rt != nil {
 			rt.startTrayConfigureWizard(r.URL.RawQuery)
 		}
+		setTrayLocalCORS(w, r)
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		refresh := htmlEscape(r.URL.RequestURI())
 		_, _ = fmt.Fprintf(w, `<!DOCTYPE html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="1;url=%s"></head><body><p>正在打开打印设置…</p></body></html>`, refresh)

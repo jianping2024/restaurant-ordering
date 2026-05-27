@@ -42,7 +42,7 @@ func (rt *trayRuntime) startTrayConfigureWizard(launchQuery string) {
 		}
 		wctx, cancel := context.WithTimeout(rt.ctx, 60*time.Minute)
 		defer cancel()
-		if err := trayLocal.runConfigureSession(wctx, path, prefill, ""); err != nil {
+		if err := trayLocal.runConfigureSession(wctx, path, prefill, launchQuery); err != nil {
 			if errors.Is(err, context.Canceled) {
 				log.Println("tray: configure wizard stopped")
 				return

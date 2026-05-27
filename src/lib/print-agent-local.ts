@@ -42,15 +42,29 @@ export async function probeLocalPrintAgent(timeoutMs = PROBE_TIMEOUT_MS): Promis
   }
 }
 
+/**
+ * Open local configure UI. Opens a blank tab synchronously (user gesture) so popup
+ * blockers do not swallow the window after the async health probe.
+ */
 export async function openPrintAgentConfigure(
   siteOrigin: string,
   code?: string,
 ): Promise<'opened' | 'unreachable'> {
-  const ok = await probeLocalPrintAgent();
-  if (!ok) {
+  if (typeof window === 'undefined') {
     return 'unreachable';
   }
   const url = buildPrintAgentConfigureUrl(siteOrigin, code);
-  window.open(url, '_blank', 'noopener,noreferrer');
+  const popup = window.open('about:blank', '_blank', 'noopener,noreferrer');
+  const ok = await probeLocalPrintAgent();
+  if (!ok) {
+    popup?.close();
+    return 'unreachable';
+  }
+  if (popup) {
+    popup.location.replace(url);
+    return 'opened';
+  }
+  // Popup blocked: same-tab navigation still reaches the local agent.
+  window.location.assign(url);
   return 'opened';
 }

@@ -32,6 +32,7 @@ func runConfigureWizard(ctx context.Context, configPath string, prefillAPI strin
 
 	registerPairWizardRoute(mux, configPath, cfgPtr, "configure wizard", nil)
 	registerPrinterWizardRoutes(mux, configPath, cfgPtr, "configure wizard")
+	registerUILocaleRoute(mux, configPath, cfgPtr)
 
 	mux.HandleFunc("/api/configure-state", func(w http.ResponseWriter, r *http.Request) {
 		*cfgPtr = reloadConfig(configPath, *cfgPtr)

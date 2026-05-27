@@ -49,25 +49,37 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>Mesa Print Agent — Settings</h1>
-    <p class="sub">Map each <strong>print station</strong> to a printer. Mapped stations appear on checkout for pre-bill, split, and final receipts (pick explicitly). Several stations may share one machine.</p>
-
-    <div class="status" id="status">Loading current settings…</div>
+    <h1 id="pageTitle">Mesa Print Agent — Settings</h1>
+    <p class="sub" id="pageSub">…</p>
 
     <div class="card">
-      <h2>① Re-pair</h2>
+      <h2 id="langSectionTitle">界面语言</h2>
+      <p class="hint" id="langHint">…</p>
+      <label for="uiLocale" id="langLabel">Language</label>
+      <select id="uiLocale">
+        <option value="zh">中文</option>
+        <option value="en">English</option>
+        <option value="pt">Português</option>
+      </select>
+    </div>
+
+    <div class="status" id="status">…</div>
+
+    <div class="card">
+      <h2 id="pairSectionTitle">① Re-pair</h2>
       <p class="hint">New PC, expired code, or another Mesa account. Printer settings are kept when re-pairing.</p>
       <label for="api">Mesa URL</label>
       <input id="api" type="url" placeholder="https://your-app.vercel.app" autocomplete="url" />
       <label for="code">Pairing code (6 digits, from Mesa Print assistant)</label>
       <input id="code" class="code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" />
       <button type="button" id="pairBtn">Re-pair</button>
+      <!-- pair labels stay English for Mesa URL field clarity -->
       <p class="err" id="pairErr"></p>
       <p class="ok-msg" id="pairOk"></p>
     </div>
 
     <div class="card" id="printerCard">
-      <h2>② Printers</h2>
+      <h2 id="printerSectionTitle">② Printers</h2>
       <p class="hint" id="printerGate">Pair first, then configure printers.</p>
       <div id="printerForm" class="hidden">
         <p class="hint">Scans <strong>network (TCP&nbsp;9100)</strong> and <strong>USB / Windows</strong> printers together. Pick one device per station below—you can mix LAN and USB on different stations.</p>
@@ -89,35 +101,35 @@
     </div>
 
     <div class="card test-card hidden" id="testCard">
-      <h2>③ 试打确认</h2>
-      <p class="hint">保存映射后，请对<strong>至少一个档口</strong>试打。代理已把数据送到打印机，但您仍需目视确认纸上出现「打印测试」。</p>
-      <label for="testStation">试打档口</label>
+      <h2 id="testSectionTitle">③ Test</h2>
+      <p class="hint" id="testHint">…</p>
+      <label for="testStation" id="testStationLabel">Station</label>
       <select id="testStation"></select>
-      <button type="button" id="testPrintBtn">打印测试条</button>
+      <button type="button" id="testPrintBtn">Print test</button>
       <p class="err" id="testErr"></p>
       <p class="ok-msg" id="testSent"></p>
       <div id="testConfirmBlock" class="hidden">
-        <p class="confirm-q">纸上是否已出现「打印测试」字样？</p>
+        <p class="confirm-q" id="testConfirmQ">…</p>
         <div class="btn-row">
-          <button type="button" id="paperYes" class="yes">是，已出纸</button>
-          <button type="button" id="paperNo" class="no">否，没有出纸</button>
+          <button type="button" id="paperYes" class="yes">Yes</button>
+          <button type="button" id="paperNo" class="no">No</button>
         </div>
         <div id="testTroubleshoot" class="troubleshoot hidden">
-          <strong style="color:#fbbf24">排障建议</strong>
+          <strong style="color:#fbbf24" id="tsTitle">…</strong>
           <ol>
-            <li><strong>USB</strong>：线是否接在这台收银电脑；驱动是否已装；Windows「设置 → 打印机」里是否能看到设备。</li>
-            <li><strong>队列名</strong>：所选打印机是否与实体机一致（勿选 PDF / 传真 / 旧队列）。</li>
-            <li><strong>走纸</strong>：按打印机 <strong>FEED</strong> 键看是否进纸。</li>
-            <li><strong>脱机/暂停</strong>：Windows 打印队列中是否显示暂停、脱机或错误。</li>
+            <li id="ts1"></li>
+            <li id="ts2"></li>
+            <li id="ts3"></li>
+            <li id="ts4"></li>
           </ol>
-          <p style="margin-top:10px">修正后请重新「打印测试条」，确认出纸后再关闭本页。</p>
+          <p style="margin-top:10px" id="tsFooter"></p>
         </div>
       </div>
-      <p class="ok-msg hidden" id="testDone">已确认出纸，可以关闭本页。</p>
+      <p class="ok-msg hidden" id="testDone">…</p>
     </div>
 
     <div class="footer">
-      <button type="button" id="doneBtn" class="secondary">完成 — 关闭此页</button>
+      <button type="button" id="doneBtn" class="secondary">Done</button>
     </div>
   </div>
   <script>
@@ -126,7 +138,64 @@
       var cache = { tcp: [], winspool: [] };
       var stations = [];
       var state = { paired: false, station_printers: {} };
+      var ui = {};
       var testConfirmed = false;
+
+      function t(key) {
+        return (ui && ui[key]) ? ui[key] : key;
+      }
+
+      function testPhrase() {
+        return ui.test_print_phrase || '打印测试';
+      }
+
+      function applyI18n() {
+        document.getElementById('pageTitle').textContent = t('configure_page_title');
+        document.getElementById('pageSub').textContent = t('configure_page_sub');
+        document.getElementById('langSectionTitle').textContent = t('section_lang');
+        document.getElementById('langHint').textContent = t('section_lang_hint');
+        document.getElementById('langLabel').textContent = t('section_lang');
+        document.getElementById('pairSectionTitle').textContent = t('section_pair');
+        document.getElementById('printerSectionTitle').textContent = t('section_printers');
+        document.getElementById('printerGate').textContent = t('printer_gate');
+        document.getElementById('testSectionTitle').textContent = t('section_test');
+        document.getElementById('testHint').textContent = t('test_section_hint').replace('%s', testPhrase());
+        document.getElementById('testStationLabel').textContent = t('test_station_label');
+        document.getElementById('testPrintBtn').textContent = t('test_print_btn');
+        document.getElementById('testConfirmQ').textContent = t('test_confirm_q').replace('%s', testPhrase());
+        document.getElementById('paperYes').textContent = t('test_yes');
+        document.getElementById('paperNo').textContent = t('test_no');
+        document.getElementById('testDone').textContent = t('test_done');
+        document.getElementById('tsTitle').textContent = t('test_troubleshoot_title');
+        document.getElementById('ts1').textContent = t('ts_usb');
+        document.getElementById('ts2').textContent = t('ts_queue');
+        document.getElementById('ts3').textContent = t('ts_feed');
+        document.getElementById('ts4').textContent = t('ts_spool');
+        document.getElementById('tsFooter').textContent = t('test_troubleshoot_body');
+        document.getElementById('pairBtn').textContent = t('pair_btn');
+        document.getElementById('saveBtn').textContent = t('save_printers_btn');
+        document.getElementById('doneBtn').textContent = t('done_btn');
+        document.title = t('configure_page_title');
+        renderStatus();
+      }
+
+      function saveUILocale(loc) {
+        return fetch('/api/ui-locale', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ui_locale: loc })
+        }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); });
+      }
+
+      document.getElementById('uiLocale').addEventListener('change', function () {
+        var loc = document.getElementById('uiLocale').value;
+        saveUILocale(loc).then(function (res) {
+          if (res.ok && res.j.ui) {
+            ui = res.j.ui;
+            applyI18n();
+          }
+        });
+      });
 
       function stationLabel(s) {
         return s.name_en || s.name_pt || s.name_zh || s.id;
@@ -279,13 +348,14 @@
       function renderStatus() {
         var el = document.getElementById('status');
         if (!state.paired) {
-          el.innerHTML = 'Status: <strong>not paired</strong>. Re-pair below first.';
+          el.innerHTML = t('status_not_paired');
           document.getElementById('printerGate').classList.remove('hidden');
           document.getElementById('printerForm').classList.add('hidden');
           return;
         }
         var n = state.station_count || 0;
-        el.innerHTML = 'Connected: <strong>' + (state.api_base || 'Mesa') + '</strong><br/>Station maps: <strong>' + n + '</strong>';
+        var tpl = t('status_paired');
+        el.innerHTML = tpl.replace('%s', state.api_base || 'Mesa').replace('%d', String(n));
         document.getElementById('printerGate').classList.add('hidden');
         document.getElementById('printerForm').classList.remove('hidden');
       }
@@ -323,6 +393,9 @@
           .then(function (r) { return r.json(); })
           .then(function (j) {
             state = j;
+            ui = j.ui || {};
+            if (j.ui_locale) document.getElementById('uiLocale').value = j.ui_locale;
+            applyI18n();
             if (params.get('api') && !document.getElementById('api').value) {
               document.getElementById('api').value = params.get('api');
             } else if (j.api_base) {
@@ -374,7 +447,7 @@
         ok.textContent = '';
         var station_printers = collectStationPrinters();
         if (!Object.keys(station_printers).length) {
-          err.textContent = '请至少为一个出品档口选择打印机';
+          err.textContent = t('save_need_mapping');
           return;
         }
         fetch('/api/setup', {
@@ -388,7 +461,7 @@
               err.textContent = res.j.error || 'Save failed';
               return;
             }
-            ok.textContent = '已保存。托盘代理会自动使用新映射。';
+            ok.textContent = t('save_ok');
             testConfirmed = false;
             showTestCard();
             loadState();
@@ -405,7 +478,7 @@
         document.getElementById('testTroubleshoot').classList.add('hidden');
         var sid = document.getElementById('testStation').value;
         if (!sid) {
-          testErr.textContent = '请先映射并保存至少一个档口';
+          testErr.textContent = t('save_need_mapping');
           return;
         }
         var maps = collectStationPrinters();
@@ -421,7 +494,8 @@
               testErr.textContent = res.j.error || '试打失败';
               return;
             }
-            testSent.textContent = '已发送测试条，请查看打印机出纸。';
+            testSent.textContent = t('test_sent');
+            document.getElementById('testConfirmQ').textContent = t('test_confirm_q').replace('%s', testPhrase());
             document.getElementById('testConfirmBlock').classList.remove('hidden');
           })
           .catch(function () { testErr.textContent = '无法连接本机配置服务'; });
@@ -440,7 +514,7 @@
 
       document.getElementById('doneBtn').addEventListener('click', function () {
         if (!testConfirmed) {
-          if (!confirm('尚未确认测试条已出纸。仍要关闭此页吗？')) return;
+          if (!confirm(t('close_unconfirmed'))) return;
         }
         fetch('/api/configure-done', { method: 'POST' }).finally(function () { window.close(); });
       });

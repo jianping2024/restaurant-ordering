@@ -20,11 +20,14 @@ func TestTrayLevelForSummary(t *testing.T) {
 	}
 }
 
-func TestTrayUserSummaryChinese(t *testing.T) {
-	if got := trayUserSummary("Ready"); got != "运行正常" {
-		t.Fatalf("got %q", got)
+func TestTrayUserSummaryLocalized(t *testing.T) {
+	if got := trayUserSummary("Ready", "zh"); got != "运行正常" {
+		t.Fatalf("zh got %q", got)
 	}
-	if got := trayUserSummary("Outside business hours"); got != "非营业时间" {
-		t.Fatalf("got %q", got)
+	if got := trayUserSummary("Ready", "en"); got != "Running OK" {
+		t.Fatalf("en got %q", got)
+	}
+	if got := testPrintPhrase("en"); got != "PRINT TEST" {
+		t.Fatalf("en test phrase got %q", got)
 	}
 }

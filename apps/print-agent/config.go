@@ -18,6 +18,8 @@ type config struct {
 	StationPrinters map[string]string `json:"station_printers,omitempty"`
 	Schedule        *scheduleConfig   `json:"schedule,omitempty"`
 	Poll            *pollConfig       `json:"poll,omitempty"`
+	// UILocale: zh | en | pt — tray, wizards, and local test print only (not order tickets).
+	UILocale string `json:"ui_locale,omitempty"`
 }
 
 func defaultConfigPath() string {
@@ -127,6 +129,9 @@ func mergePrinterConfig(prev, next *config) {
 	}
 	if len(prev.StationPrinters) > 0 {
 		next.StationPrinters = prev.StationPrinters
+	}
+	if strings.TrimSpace(prev.UILocale) != "" {
+		next.UILocale = prev.UILocale
 	}
 }
 

@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 )
 
@@ -13,8 +12,9 @@ type testPrintRequest struct {
 
 func runTestPrintForStation(cfg *config, stationID, printerOverride string) error {
 	if cfg == nil {
-		return fmt.Errorf("未加载配置")
+		return uiError("zh", "err_not_loaded")
 	}
+	loc := cfg.uiLocale()
 	stationID = strings.TrimSpace(stationID)
 	printerOverride = strings.TrimSpace(printerOverride)
 
@@ -34,7 +34,7 @@ func runTestPrintForStation(cfg *config, stationID, printerOverride string) erro
 		}
 	}
 	if rawAddr == "" {
-		return fmt.Errorf("请先为至少一个出品档口选择打印机并保存")
+		return uiError(loc, "err_save_mapping_first")
 	}
 
 	target, err := parsePrinterTarget(rawAddr)
@@ -55,7 +55,7 @@ func runTestPrintForStation(cfg *config, stationID, printerOverride string) erro
 
 	payload := jobPayload{
 		ConnectionTest: true,
-		Locale:         "zh",
+		Locale:         loc,
 		RestaurantName: venue,
 	}
 	raw, err := json.Marshal(payload)
@@ -65,7 +65,7 @@ func runTestPrintForStation(cfg *config, stationID, printerOverride string) erro
 	job := printJob{Type: "order_receipt", Payload: raw}
 	data := escposFromJob(job)
 	if err := printToTarget(target, data); err != nil {
-		return fmt.Errorf("打印失败（%s）：%w", target.Display, err)
+		return uiError(loc, "err_print_failed", target.Display, err)
 	}
 	return nil
 }

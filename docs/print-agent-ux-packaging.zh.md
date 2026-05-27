@@ -12,7 +12,8 @@
 | P0-1 绿/黄/红图标 + 中文菜单 + 日志目录 | **已落地** | v0.2.40+ |
 | P0-1 单实例 / 启动可见（弹窗+日志）/ 托盘退出杀进程 | **已落地** | v0.2.38–0.2.41 |
 | P0-2 向导试打 + 出纸确认 + 排障 | **已落地** | v0.2.42+ |
-| P0-3 运行期人话（日志/托盘） | **进行中** | 托盘 tooltip 已中文化；轮询日志映射未做 |
+| **界面语言 `ui_locale`**（zh/en/pt，仅 UI+试打条） | **已落地** | v0.2.43+ |
+| P0-3 运行期人话（日志/托盘） | **进行中** | 托盘/configure 随 `ui_locale`；业务小票仍用 Mesa `payload.locale` |
 | P1 心跳 / configure 全量本地化 / 安装收尾 | **未做** | — |
 
 ---
@@ -35,6 +36,7 @@
 ## 已落地（与体验相关）
 
 - **托盘与常驻（P0-1，v0.2.35–0.2.41）**：`windowsgui` 无默认黑窗；托盘先于配对/初始化；`Global\MesaPrintAgent-SingleInstance` 单实例；`ShellExecute` 打开浏览器 + 首装/配对 URL 弹窗；日志 `%LOCALAPPDATA%\Mesa Print Agent\agent.log`；**v0.2.40+** 绿/黄/红图标、中文菜单（打印机设置 / 测试打印 / 打开日志 / 调试控制台 / 关于 / 退出）、只读状态行、退出确认；**v0.2.41+** 退出时取消向导 HTTP 并 `os.Exit` 结束进程。
+- **界面语言（v0.2.43+）**：`config.json` 字段 `ui_locale`（默认 `zh`，可选 `en`/`pt`）；configure 顶栏可改；托盘菜单/tooltip/弹窗与试打条标题随此设置；**订单/厨房真实打印仍用 Mesa 下发的 `payload.locale`，与 `ui_locale` 无关**。
 - **首装试打确认（P0-2，v0.2.42+）**：`configure` / `setup` 页「③ 试打确认」；`POST /api/test-print`；出纸「是/否」、否时排障卡片；未完成确认关闭会二次提示；保存须至少映射一个出品档口（与 §6 校验一致）。
 - **任务最大年龄 20 分钟**：`GET /api/print-agent/pending-jobs` 拉取前将超时 `pending`/`processing` 标为 `failed`；仅返回 `created_at` 在窗口内的 `pending`；Go 代理处理前再次跳过。实现：`src/lib/print-job-max-age.ts`、`src/lib/expire-stale-print-jobs.ts`、`apps/print-agent/job_max_age.go`。
 - **Dashboard**：打印助手配对码、最近任务、`print-job-error-hints` 中文/英/葡 hint；`buildPrintAgentConfigureUrl` 深链本机 `http://127.0.0.1:17892/configure`。

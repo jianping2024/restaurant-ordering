@@ -29,6 +29,14 @@ func (rt *trayRuntime) snapshot() (*agentSession, error, bool) {
 	return rt.sess, rt.initErr, rt.initDone
 }
 
+func (rt *trayRuntime) uiLocale() string {
+	sess, _, done := rt.snapshot()
+	if done && sess != nil && sess.cfg != nil {
+		return sess.cfg.uiLocale()
+	}
+	return loadTrayUILocale()
+}
+
 func runAgent(args []string) {
 	if agentArgsWantConsole(args) {
 		sess, _, err := initAgentSession(context.Background(), args)
@@ -43,7 +51,6 @@ func runAgent(args []string) {
 	runAgentTrayFirst(args)
 }
 
-// runAgentTrayFirst shows the tray icon immediately, then runs pairing/setup/poll in the background.
 func runAgentTrayFirst(args []string) {
 	initWindowsAgentLog()
 	hideConsoleWindow()
@@ -69,7 +76,8 @@ func runAgentTrayFirst(args []string) {
 				return
 			}
 			rt.status.set("Error", err.Error())
-			messageBoxOK("Mesa 打印代理", err.Error())
+			loc := loadTrayUILocale()
+			messageBoxOK(uiT(loc, "about_title"), err.Error())
 			stopTrayAgent(rt)
 			return
 		}
@@ -104,29 +112,37 @@ func onTrayReady(rt *trayRuntime) {
 	}
 	applyTrayIcon()
 
-	systray.SetTitle("Mesa 打印")
-	systray.SetTooltip(rt.status.tooltip(Version))
+	loc := rt.uiLocale()
+	systray.SetTitle(uiT(loc, "tray_title"))
+	systray.SetTooltip(rt.status.tooltip(Version, loc))
 	go maybeNotifyTrayReady()
 
-	mStatus := systray.AddMenuItem(rt.status.menuStatusLine(), "")
+	mStatus := systray.AddMenuItem(rt.status.menuStatusLine(loc), "")
 	mStatus.Disable()
 	systray.AddSeparator()
-	mSettings := systray.AddMenuItem("打印机设置…", "配对与档口映射")
-	mTestPrint := systray.AddMenuItem("测试打印", "向第一台已映射打印机发送测试条")
+	mSettings := systray.AddMenuItem(uiT(loc, "menu_settings"), uiT(loc, "menu_settings_tip"))
+	mTestPrint := systray.AddMenuItem(uiT(loc, "menu_test_print"), uiT(loc, "menu_test_print_tip"))
 	mTestPrint.Disable()
-	mOpenLog := systray.AddMenuItem("打开日志文件夹", "查看 agent.log")
+	mOpenLog := systray.AddMenuItem(uiT(loc, "menu_open_log"), uiT(loc, "menu_open_log_tip"))
 	systray.AddSeparator()
-	mShowConsole := systray.AddMenuItem("显示调试控制台", "排障用日志窗口")
+	mShowConsole := systray.AddMenuItem(uiT(loc, "menu_console"), uiT(loc, "menu_console_tip"))
 	systray.AddSeparator()
-	mAbout := systray.AddMenuItem("关于", "版本与配置路径")
-	mQuit := systray.AddMenuItem("退出", "停止 Mesa 打印代理")
+	mAbout := systray.AddMenuItem(uiT(loc, "menu_about"), uiT(loc, "menu_about_tip"))
+	mQuit := systray.AddMenuItem(uiT(loc, "menu_quit"), uiT(loc, "menu_quit_tip"))
 
 	go func() {
 		tick := time.NewTicker(2 * time.Second)
 		defer tick.Stop()
+		var lastLoc string
 		for range tick.C {
-			mStatus.SetTitle(rt.status.menuStatusLine())
-			systray.SetTooltip(rt.status.tooltip(Version))
+			loc = rt.uiLocale()
+			if loc != lastLoc {
+				lastLoc = loc
+				systray.SetTitle(uiT(loc, "tray_title"))
+				applyTrayMenuLabels(mStatus, mSettings, mTestPrint, mOpenLog, mShowConsole, mAbout, mQuit, loc)
+			}
+			mStatus.SetTitle(rt.status.menuStatusLine(loc))
+			systray.SetTooltip(rt.status.tooltip(Version, loc))
 			applyTrayIcon()
 			sess, _, done := rt.snapshot()
 			if done && sess != nil && sess.cfg.hasPrinterRouting() {
@@ -146,17 +162,19 @@ func onTrayReady(rt *trayRuntime) {
 				}
 			case <-mTestPrint.ClickedCh:
 				go func() {
+					loc := rt.uiLocale()
 					sess, _, done := rt.snapshot()
 					if !done || sess == nil {
-						showTestPrintResult(fmt.Errorf("代理尚未就绪，请稍候再试"))
+						showTestPrintResult(uiError(loc, "tray_not_ready"), loc)
 						return
 					}
-					showTestPrintResult(runTrayTestPrint(sess.cfg))
+					showTestPrintResult(runTrayTestPrint(sess.cfg), loc)
 				}()
 			case <-mOpenLog.ClickedCh:
 				if err := openAgentLogFolder(); err != nil {
 					log.Println("tray:", err)
-					messageBoxOK("Mesa 打印代理", "无法打开日志文件夹："+err.Error())
+					loc := rt.uiLocale()
+					messageBoxOK(uiT(loc, "about_title"), fmt.Sprintf(uiT(loc, "open_log_fail"), err.Error()))
 				}
 			case <-mShowConsole.ClickedCh:
 				showConsoleWindow()
@@ -165,13 +183,13 @@ func onTrayReady(rt *trayRuntime) {
 					log.Println(err)
 				}
 			case <-mAbout.ClickedCh:
-				messageBoxOK("Mesa 打印代理", trayAboutText(rt))
+				messageBoxOK(uiT(rt.uiLocale(), "about_title"), trayAboutText(rt, rt.uiLocale()))
 			case <-mQuit.ClickedCh:
-				if !confirmTrayExit() {
+				loc := rt.uiLocale()
+				if !confirmTrayExit(loc) {
 					continue
 				}
 				stopTrayAgent(rt)
-				// systray.Quit from a menu goroutine may not unwind Run on Windows; force exit if stuck.
 				go func() {
 					time.Sleep(800 * time.Millisecond)
 					exitTrayAgent()

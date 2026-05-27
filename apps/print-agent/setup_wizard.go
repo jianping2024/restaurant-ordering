@@ -27,6 +27,7 @@ func runSetupWizard(ctx context.Context, configPath string, cfg *config) error {
 	})
 
 	registerPrinterWizardRoutes(mux, configPath, &cfg, "setup wizard")
+	registerUILocaleRoute(mux, configPath, &cfg)
 
 	mux.HandleFunc("/api/setup-done", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {

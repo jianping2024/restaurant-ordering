@@ -3,6 +3,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,26 +17,49 @@ func openAgentLogFolder() error {
 	return exec.Command("explorer", dir).Start()
 }
 
-func confirmTrayExit() bool {
+func confirmTrayExit(locale string) bool {
 	return messageBoxYesNo(
-		"Mesa 打印代理",
-		"退出后将无法自动打印厨房单和小票。\n\n确定要退出吗？",
+		uiT(locale, "exit_confirm_title"),
+		uiT(locale, "exit_confirm_body"),
 	)
 }
 
-func showTestPrintResult(err error) {
+func showTestPrintResult(err error, locale string) {
+	phrase := testPrintPhrase(locale)
 	if err == nil {
-		messageBoxOK("测试打印", "已发送测试条到打印机。\n\n请检查纸上是否出现「打印测试」字样。")
+		messageBoxOK(
+			uiT(locale, "test_print_ok_title"),
+			fmt.Sprintf(uiT(locale, "test_print_ok_body"), phrase),
+		)
 		return
 	}
-	messageBoxOK("测试打印", err.Error())
+	messageBoxOK(uiT(locale, "test_print_fail_title"), err.Error())
 }
 
-func trayAboutText(rt *trayRuntime) string {
-	text := "Mesa 打印代理 " + Version + "\n\n配置：\n" + defaultConfigPath()
-	text += "\n\n日志：\n" + filepath.Join(agentDataDir(), "agent.log")
+func trayAboutText(rt *trayRuntime, locale string) string {
+	text := uiT(locale, "about_title") + " " + Version + "\n\n" + uiT(locale, "about_config") + "\n" + defaultConfigPath()
+	text += "\n\n" + uiT(locale, "about_log") + "\n" + filepath.Join(agentDataDir(), "agent.log")
 	if sess, _, done := rt.snapshot(); done && sess != nil && sess.cfg.APIBase != "" {
-		text += "\n\nMesa：" + sess.cfg.APIBase
+		text += "\n\n" + uiT(locale, "about_mesa") + " " + sess.cfg.APIBase
 	}
 	return text
+}
+
+func applyTrayMenuLabels(mStatus, mSettings, mTestPrint, mOpenLog, mShowConsole, mAbout, mQuit interface {
+	SetTitle(string)
+	SetTooltip(string)
+}, locale string) {
+	mStatus.SetTitle(uiT(locale, "menu_status_prefix") + "…")
+	mSettings.SetTitle(uiT(locale, "menu_settings"))
+	mSettings.SetTooltip(uiT(locale, "menu_settings_tip"))
+	mTestPrint.SetTitle(uiT(locale, "menu_test_print"))
+	mTestPrint.SetTooltip(uiT(locale, "menu_test_print_tip"))
+	mOpenLog.SetTitle(uiT(locale, "menu_open_log"))
+	mOpenLog.SetTooltip(uiT(locale, "menu_open_log_tip"))
+	mShowConsole.SetTitle(uiT(locale, "menu_console"))
+	mShowConsole.SetTooltip(uiT(locale, "menu_console_tip"))
+	mAbout.SetTitle(uiT(locale, "menu_about"))
+	mAbout.SetTooltip(uiT(locale, "menu_about_tip"))
+	mQuit.SetTitle(uiT(locale, "menu_quit"))
+	mQuit.SetTooltip(uiT(locale, "menu_quit_tip"))
 }

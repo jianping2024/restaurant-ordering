@@ -8,9 +8,10 @@ import (
 )
 
 func notifyLocalWizardURL(title, url string) {
+	loc := loadTrayUILocale()
 	messageBoxOK(title,
-		"请在浏览器中完成设置：\n\n"+url+
-			"\n\n若浏览器未自动打开，请复制上述地址到 Chrome/Edge。\n托盘图标在任务栏右下角「^」隐藏图标里（Mesa Print）。")
+		uiT(loc, "wizard_open_body")+"\n\n"+url+
+			"\n\n"+uiT(loc, "wizard_open_footer"))
 }
 
 func maybeNotifyTrayReady() {

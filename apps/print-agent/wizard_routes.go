@@ -66,12 +66,44 @@ func writeConfigureState(w http.ResponseWriter, cfg *config) {
 	if cfg.StationPrinters != nil {
 		stationCount = len(cfg.StationPrinters)
 	}
+	loc := cfg.uiLocale()
 	writePairJSON(w, http.StatusOK, map[string]any{
 		"paired":           strings.TrimSpace(cfg.AgentJWT) != "",
 		"api_base":         cfg.APIBase,
 		"device_id":        cfg.DeviceID,
 		"station_printers": cfg.StationPrinters,
 		"station_count":    stationCount,
+		"ui_locale":        loc,
+		"ui":               uiBundleMap(loc),
+	})
+}
+
+func registerUILocaleRoute(mux *http.ServeMux, configPath string, cfg **config) {
+	mux.HandleFunc("/api/ui-locale", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		var body struct {
+			Locale string `json:"ui_locale"`
+		}
+		if err := json.NewDecoder(io.LimitReader(r.Body, 256)).Decode(&body); err != nil {
+			writePairJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request"})
+			return
+		}
+		c := reloadConfig(configPath, *cfg)
+		c.UILocale = normalizeUILocale(body.Locale)
+		if err := saveConfig(configPath, c); err != nil {
+			writePairJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return
+		}
+		*cfg = c
+		loc := c.uiLocale()
+		writePairJSON(w, http.StatusOK, map[string]any{
+			"status":    "ok",
+			"ui_locale": loc,
+			"ui":        uiBundleMap(loc),
+		})
 	})
 }
 

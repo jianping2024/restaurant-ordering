@@ -47,107 +47,110 @@ func trayLevelForSummary(summary string) trayLevel {
 	}
 }
 
-func (s *agentStatus) userSummary() string {
+func (s *agentStatus) userSummary(locale string) string {
 	s.mu.RLock()
 	sum := s.summary
 	s.mu.RUnlock()
-	return trayUserSummary(sum)
+	return trayUserSummary(sum, locale)
 }
 
-func (s *agentStatus) userDetail() string {
+func (s *agentStatus) userDetail(locale string) string {
 	s.mu.RLock()
 	sum := s.summary
 	det := s.detail
 	s.mu.RUnlock()
-	return trayUserDetail(sum, det)
+	return trayUserDetail(sum, det, locale)
 }
 
-func trayUserSummary(summary string) string {
+func trayUserSummary(summary, locale string) string {
+	key := ""
 	switch summary {
 	case "Starting":
-		return "正在启动…"
+		key = "status_starting"
 	case "Setting up":
-		return "正在配置…"
+		key = "status_setting_up"
 	case "Ready":
-		return "运行正常"
+		key = "status_ready"
 	case "Outside business hours":
-		return "非营业时间"
+		key = "status_outside_hours"
 	case "Waiting for receipt printer":
-		return "等待结账打印机"
+		key = "status_wait_receipt"
 	case "Printing":
-		return "正在打印"
+		key = "status_printing"
 	case "Printing queue":
-		return "打印队列处理中"
+		key = "status_print_queue"
 	case "Connection problem":
-		return "无法连接 Mesa"
+		key = "status_conn_problem"
 	case "Print failed":
-		return "打印失败"
+		key = "status_print_failed"
 	case "Schedule error":
-		return "营业时间异常"
+		key = "status_schedule_error"
 	case "Stopped":
-		return "已停止"
+		key = "status_stopped"
 	case "Error":
-		return "出错"
-	default:
-		if summary == "" {
-			return "正在启动…"
-		}
-		return summary
+		key = "status_error"
 	}
+	if key != "" {
+		return uiT(locale, key)
+	}
+	if summary == "" {
+		return uiT(locale, "status_starting")
+	}
+	return summary
 }
 
-func trayUserDetail(summary, detail string) string {
+func trayUserDetail(summary, detail, locale string) string {
 	switch summary {
 	case "Ready":
 		switch detail {
 		case "Watching for new tickets":
-			return "正在监听新单"
+			return uiT(locale, "detail_watching")
 		case "Idle — waiting for orders":
-			return "空闲，等待订单"
+			return uiT(locale, "detail_idle")
 		case "Polling":
-			return "轮询中"
+			return uiT(locale, "detail_polling")
 		case "Last print OK":
-			return "上一单打印成功"
+			return uiT(locale, "detail_last_ok")
 		default:
 			if detail != "" {
 				return detail
 			}
-			return "已连接 Mesa"
+			return uiT(locale, "detail_connected")
 		}
 	case "Outside business hours":
 		if detail == "Not polling until next window" {
-			return "暂停拉单，等待下一营业时段"
+			return uiT(locale, "detail_outside_next")
 		}
 		if detail == "Not polling" {
-			return "暂停拉单"
+			return uiT(locale, "detail_outside")
 		}
 	case "Waiting for receipt printer":
-		return "请在「打印机设置」中映射档口（最多等待 20 分钟）"
+		return uiT(locale, "detail_map_station")
 	case "Printing queue":
 		if strings.Contains(detail, "job") {
-			return "队列中有待打印任务"
+			return uiT(locale, "detail_queue")
 		}
 	case "Connection problem", "Print failed", "Schedule error", "Error":
 		return detail
 	case "Setting up":
-		return "请在浏览器中完成配对或打印机映射"
+		return uiT(locale, "detail_setting_up")
 	}
 	return detail
 }
 
-func (s *agentStatus) tooltip(version string) string {
-	sum := s.userSummary()
-	det := s.userDetail()
-	tip := fmt.Sprintf("Mesa 打印代理 %s\n%s", version, sum)
+func (s *agentStatus) tooltip(version, locale string) string {
+	sum := s.userSummary(locale)
+	det := s.userDetail(locale)
+	tip := fmt.Sprintf("%s %s\n%s", uiT(locale, "tray_tooltip_prefix"), version, sum)
 	if det != "" {
 		tip += "\n" + det
 	}
 	return tip
 }
 
-func (s *agentStatus) menuStatusLine() string {
-	line := "状态：" + s.userSummary()
-	if det := s.userDetail(); det != "" && len(det) < 80 {
+func (s *agentStatus) menuStatusLine(locale string) string {
+	line := uiT(locale, "menu_status_prefix") + s.userSummary(locale)
+	if det := s.userDetail(locale); det != "" && len(det) < 80 {
 		line += " — " + det
 	}
 	return line

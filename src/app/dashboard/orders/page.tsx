@@ -1,35 +1,26 @@
+import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import type { BillSplit, Order } from '@/types';
 import { OrdersPageClient } from '@/components/dashboard/OrdersPageClient';
-import { sortRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
+import { loadOwnerDashboardTables } from '@/lib/dashboard-tables';
 
 export default async function OrdersPage() {
+  const loaded = await loadOwnerDashboardTables();
+  if ('error' in loaded) notFound();
+
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const { data: restaurant } = await supabase
-    .from('restaurants')
-    .select('id')
-    .eq('owner_id', user!.id)
-    .single();
-
-  const { data: tableRows } = await supabase
-    .from('restaurant_tables')
-    .select('id, display_name, sort_order')
-    .eq('restaurant_id', restaurant!.id)
-    .is('deleted_at', null);
 
   const { data: orders } = await supabase
     .from('orders')
     .select('*')
-    .eq('restaurant_id', restaurant!.id)
+    .eq('restaurant_id', loaded.restaurant.id)
     .order('created_at', { ascending: false })
     .limit(100);
 
   const { data: closedSessions } = await supabase
     .from('table_sessions')
     .select('id')
-    .eq('restaurant_id', restaurant!.id)
+    .eq('restaurant_id', loaded.restaurant.id)
     .eq('status', 'closed');
 
   const closedSessionIds = new Set((closedSessions || []).map((row) => row.id));
@@ -41,7 +32,7 @@ export default async function OrdersPage() {
     <OrdersPageClient
       orders={historicalOrders as Order[]}
       checkoutRequests={[] as BillSplit[]}
-      tables={sortRestaurantTables((tableRows || []) as RestaurantTableRow[])}
+      tables={loaded.tables}
       headingNavKey="orders"
       showCheckoutRequests={false}
     />

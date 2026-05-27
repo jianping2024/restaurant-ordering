@@ -21,7 +21,7 @@ export async function loadOwnerRestaurantWithSlug() {
 
   const { data: restaurant, error } = await admin
     .from('restaurants')
-    .select('id, slug, owner_id')
+    .select('id, name, slug, owner_id')
     .eq('id', auth.restaurantId)
     .maybeSingle();
 
@@ -29,7 +29,7 @@ export async function loadOwnerRestaurantWithSlug() {
     return { error: 'restaurant_not_found' as const, status: 404 };
   }
 
-  return { admin, restaurant: restaurant as { id: string; slug: string; owner_id: string } };
+  return { admin, restaurant: restaurant as { id: string; name: string; slug: string; owner_id: string } };
 }
 
 export function mapStaffRow(row: Record<string, unknown>): RestaurantStaffAccount {

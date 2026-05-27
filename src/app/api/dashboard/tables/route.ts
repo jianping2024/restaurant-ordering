@@ -1,45 +1,24 @@
 import { NextResponse } from 'next/server';
-import { loadOwnerRestaurantWithSlug } from '@/lib/staff-dashboard-api';
+import { loadOwnerDashboardTables } from '@/lib/dashboard-tables';
 import {
   isValidTableAddCount,
   isValidTableDisplayName,
   nextDefaultTableDisplayNames,
   normalizeTableDisplayName,
   parseTableIdParam,
-  sortRestaurantTables,
-  type RestaurantTable,
   type RestaurantTableRow,
 } from '@/lib/restaurant-tables';
 
 export const runtime = 'nodejs';
-
-async function loadActiveTables(loaded: Awaited<ReturnType<typeof loadOwnerRestaurantWithSlug>>) {
-  if ('error' in loaded) return { error: loaded.error, status: loaded.status } as const;
-
-  const { data, error } = await loaded.admin
-    .from('restaurant_tables')
-    .select('id, restaurant_id, display_name, sort_order, deleted_at, created_at')
-    .eq('restaurant_id', loaded.restaurant.id)
-    .is('deleted_at', null);
-
-  if (error) {
-    return { error: 'tables_query_failed', status: 500, message: error.message } as const;
-  }
-
-  const tables = sortRestaurantTables((data || []) as RestaurantTable[]);
-  return {
-    tables: tables.map(({ id, display_name, sort_order }) => ({ id, display_name, sort_order })),
-  };
-}
 
 function jsonTables(tables: RestaurantTableRow[]) {
   return NextResponse.json({ tables });
 }
 
 export async function POST(req: Request) {
-  const loaded = await loadOwnerRestaurantWithSlug();
+  const loaded = await loadOwnerDashboardTables();
   if ('error' in loaded) {
-    return NextResponse.json({ error: loaded.error }, { status: loaded.status });
+    return NextResponse.json({ error: loaded.error, message: loaded.message }, { status: loaded.status });
   }
 
   let body: { count?: unknown };
@@ -50,19 +29,15 @@ export async function POST(req: Request) {
   }
 
   const count = typeof body.count === 'number' ? Math.floor(body.count) : NaN;
-  const current = await loadActiveTables(loaded);
-  if ('error' in current) {
-    return NextResponse.json({ error: current.error, message: current.message }, { status: current.status });
-  }
-  if (!isValidTableAddCount(count, current.tables.length)) {
+  if (!isValidTableAddCount(count, loaded.tables.length)) {
     return NextResponse.json({ error: 'invalid_add_count' }, { status: 400 });
   }
 
   const displayNames = nextDefaultTableDisplayNames(
-    current.tables.map((row) => row.display_name),
+    loaded.tables.map((row) => row.display_name),
     count,
   );
-  const startOrder = Math.max(0, ...current.tables.map((row) => row.sort_order)) + 1;
+  const startOrder = Math.max(0, ...loaded.tables.map((row) => row.sort_order)) + 1;
   const rows = displayNames.map((display_name, index) => ({
     restaurant_id: loaded.restaurant.id,
     display_name,
@@ -74,7 +49,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'insert_failed', message: error.message }, { status: 500 });
   }
 
-  const next = await loadActiveTables(loaded);
+  const next = await loadOwnerDashboardTables();
   if ('error' in next) {
     return NextResponse.json({ error: next.error, message: next.message }, { status: next.status });
   }
@@ -82,9 +57,9 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const loaded = await loadOwnerRestaurantWithSlug();
+  const loaded = await loadOwnerDashboardTables();
   if ('error' in loaded) {
-    return NextResponse.json({ error: loaded.error }, { status: loaded.status });
+    return NextResponse.json({ error: loaded.error, message: loaded.message }, { status: loaded.status });
   }
 
   let body: { tables?: unknown };
@@ -98,11 +73,7 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'invalid_tables' }, { status: 400 });
   }
 
-  const current = await loadActiveTables(loaded);
-  if ('error' in current) {
-    return NextResponse.json({ error: current.error, message: current.message }, { status: current.status });
-  }
-  const currentById = new Map(current.tables.map((row) => [row.id, row]));
+  const currentById = new Map(loaded.tables.map((row) => [row.id, row]));
   const updates: RestaurantTableRow[] = [];
 
   for (const row of body.tables) {
@@ -122,7 +93,7 @@ export async function PATCH(req: Request) {
     });
   }
 
-  if (updates.length !== current.tables.length) {
+  if (updates.length !== loaded.tables.length) {
     return NextResponse.json({ error: 'table_set_mismatch' }, { status: 400 });
   }
   const names = updates.map((row) => row.display_name);
@@ -144,7 +115,7 @@ export async function PATCH(req: Request) {
     }
   }
 
-  const next = await loadActiveTables(loaded);
+  const next = await loadOwnerDashboardTables();
   if ('error' in next) {
     return NextResponse.json({ error: next.error, message: next.message }, { status: next.status });
   }
@@ -152,9 +123,9 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const loaded = await loadOwnerRestaurantWithSlug();
+  const loaded = await loadOwnerDashboardTables();
   if ('error' in loaded) {
-    return NextResponse.json({ error: loaded.error }, { status: loaded.status });
+    return NextResponse.json({ error: loaded.error, message: loaded.message }, { status: loaded.status });
   }
 
   let body: { table_id?: unknown };
@@ -202,7 +173,7 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: 'delete_failed', message: error.message }, { status: 500 });
   }
 
-  const next = await loadActiveTables(loaded);
+  const next = await loadOwnerDashboardTables();
   if ('error' in next) {
     return NextResponse.json({ error: next.error, message: next.message }, { status: next.status });
   }

@@ -155,7 +155,7 @@ Dashboard **打印助手** 增补：
 
 ### 阶段 P2-USB-3：运维与边缘（可选）
 
-- [ ] 开机自启（恢复 Inno `[Tasks]` autostart，与 v0.1.8 精简安装包对齐）  
+- [x] 开机自启（Inno `[Tasks]` autostart → `{userstartup}` 快捷方式，默认勾选）  
 - [ ] 打印机更名检测（队列名变了提示重配）  
 - [ ] RDP / 多用户会话下 spooler 行为说明  
 - [ ] macOS USB（**另立项**；CUPS RAW，非本期）

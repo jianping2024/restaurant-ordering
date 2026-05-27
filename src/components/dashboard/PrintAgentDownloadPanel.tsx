@@ -51,6 +51,9 @@ export function PrintAgentDownloadPanel({
             {withVersion(t.downloadReleasePending, version)}
           </p>
         ) : null}
+        {version ? (
+          <p className="text-brand-text-muted text-[12px] mt-2 leading-relaxed">{t.downloadUpgradeSteps}</p>
+        ) : null}
       </div>
 
       <div className="flex flex-wrap gap-2">

@@ -411,6 +411,8 @@ export const MESSAGES = {
         'v{version} 的安装包尚未在 GitHub 发布（不会悄悄降级到旧版）。请打开下方「全部版本」查看是否已有 print-agent-v{version}，或等待 CI 发布完成后再下载。',
       downloadSubtitle:
         '安装包向导默认勾选「当前用户登录 Windows 时自动运行 Mesa Print Agent」（可取消）；免安装 zip 不含开机自启。安装或解压后双击程序，按浏览器配对页完成连接。',
+      downloadUpgradeSteps:
+        '升级：托盘右键退出 → 运行下方新版本安装包 → 配置保留。已配对收银机列表会对比推荐版本（与仓库 VERSION 一致）。',
       downloadSetupAmd64: '下载安装包（64 位，推荐）',
       downloadZipAmd64: '免安装 zip（64 位）',
       downloadAllReleases: '全部版本与 ARM64',
@@ -1228,6 +1230,8 @@ export const MESSAGES = {
         'v{version} is not published on GitHub yet (we do not redirect to an older /latest build). Open All releases for print-agent-v{version}, or retry after CI finishes.',
       downloadSubtitle:
         'The installer checks “run at Windows sign-in” by default (you can uncheck). Portable zip has no autostart. Double-click the agent and complete pairing in the browser.',
+      downloadUpgradeSteps:
+        'To upgrade: exit from the tray menu → run the new installer below → config is kept. Paired devices compare agent version to the recommended build (repo VERSION).',
       downloadSetupAmd64: 'Installer (64-bit, recommended)',
       downloadZipAmd64: 'Portable zip (64-bit)',
       downloadAllReleases: 'All releases & ARM64',
@@ -1818,6 +1822,8 @@ export const MESSAGES = {
         'v{version} ainda nao esta publicado no GitHub (sem redirecionar para /latest). Abra Todas as versoes ou aguarde o CI.',
       downloadSubtitle:
         'O instalador marca por defeito «executar ao iniciar sessao no Windows» (pode desmarcar). O zip portatil nao configura arranque automatico. Duplo clique no agente e emparelhe no browser.',
+      downloadUpgradeSteps:
+        'Atualizar: sair pelo menu da bandeja → executar o novo instalador abaixo → a configuracao mantem-se. Os dispositivos emparelhados mostram se a versao esta atrasada.',
       downloadSetupAmd64: 'Instalador (64 bits, recomendado)',
       downloadZipAmd64: 'Zip portatil (64 bits)',
       downloadAllReleases: 'Todas as versoes e ARM64',

@@ -12,12 +12,12 @@ Portable zip does not configure autostart.
 
 First-time setup (no command line)
 ----------------------------------
-1. Install UNYKA UK56009 driver if using USB (Unyka website).
-2. Mesa Dashboard -> Settings -> Print assistant -> Generate pairing code.
-3. Double-click MesaPrintAgent.exe (or sign in to Windows if autostart was enabled).
-4. Browser: pairing page — enter Mesa URL (https://your-site.vercel.app) and 6-digit code.
-5. Browser: map each print station to a printer (network LAN or USB/Windows—pick per station in the grouped list).
-6. After setup, the agent runs in the Windows system tray (near the clock, click ^ if hidden).
+1. Install UNYKA UK56009 driver if using USB (Start menu -> UNYKA driver (web), or https://unykach.com/).
+2. Mesa Dashboard -> Print assistant -> Generate pairing code (6 digits).
+3. Run Mesa Print Agent (installer finish page "Launch now", or sign in if autostart was enabled).
+4. Browser: complete pairing (code may be pre-filled from Dashboard) and map each print station.
+5. Test print: confirm paper in the settings page (section 3) or tray -> Printer settings.
+6. The agent stays in the Windows system tray (near the clock, click ^ if hidden).
    Icon color: green = OK, yellow = outside hours or setup, red = error.
    Right-click: printer settings (includes test print), open log folder, exit.
    No need to keep a black console window open.

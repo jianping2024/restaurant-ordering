@@ -1,0 +1,11 @@
+Next steps
+==========
+
+1. Mesa Dashboard → Print assistant → Generate pairing code (6 digits).
+2. Keep "Launch Mesa Print Agent now" checked — the agent runs in the system tray (^ near the clock).
+3. Complete pairing and map printers in the browser (opens automatically when possible).
+4. In the settings page, run a test print and confirm paper came out.
+
+Later: tray icon → Printer settings…, or Start menu → Printer settings.
+
+No black console window is required during service.

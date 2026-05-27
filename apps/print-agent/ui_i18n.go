@@ -137,6 +137,8 @@ func uiStringsZH() map[string]string {
 		"credential_status_suffix":    "约 %d 天后需重新配对",
 		"credential_toast_title":      "Mesa 打印代理",
 		"credential_toast_body":       "打印凭证将于 %s 到期（约 %d 天后）。\n\n请在 Mesa「打印助手」生成配对码并重新连接。",
+		"version_toast_title":         "Mesa 打印代理 — 可升级",
+		"version_toast_body":          "当前版本 %s，Mesa 推荐 %s。\n\n请从 Mesa「打印助手」下载新安装包；先托盘右键退出，再运行安装程序（配置会保留）。",
 	}
 }
 
@@ -238,6 +240,8 @@ func uiStringsEN() map[string]string {
 		"credential_status_suffix":    "Re-pair in ~%d days",
 		"credential_toast_title":      "Mesa Print Agent",
 		"credential_toast_body":       "Print credential expires %s (about %d days).\n\nGenerate a pairing code in Mesa Print assistant and reconnect.",
+		"version_toast_title":         "Mesa Print Agent — update available",
+		"version_toast_body":          "This PC is on %s; Mesa recommends %s.\n\nDownload the new installer from Mesa Print assistant. Exit from the tray menu first, then run Setup (your config is kept).",
 	}
 }
 
@@ -339,5 +343,7 @@ func uiStringsPT() map[string]string {
 		"credential_status_suffix":    "Reemparelhar em ~%d dias",
 		"credential_toast_title":      "Agente Mesa",
 		"credential_toast_body":       "A credencial expira em %s (~%d dias).\n\nGere um código no assistente Mesa e volte a ligar.",
+		"version_toast_title":         "Agente Mesa — atualização",
+		"version_toast_body":          "Versão neste PC: %s; recomendada: %s.\n\nDescarregue o instalador no assistente Mesa. Saia pelo menu da bandeja, depois execute o Setup (a configuração mantém-se).",
 	}
 }

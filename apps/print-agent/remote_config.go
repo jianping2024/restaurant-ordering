@@ -9,8 +9,9 @@ import (
 )
 
 type remoteCloudConfig struct {
-	Schedule *scheduleConfig `json:"schedule"`
-	Poll     *pollConfig     `json:"poll"`
+	Schedule                *scheduleConfig `json:"schedule"`
+	Poll                    *pollConfig     `json:"poll"`
+	RecommendedAgentVersion string          `json:"recommended_agent_version"`
 }
 
 type printStationRow struct {
@@ -39,6 +40,9 @@ func applyCloudRuntimeConfig(cfg *config, apiBase string) {
 	}
 	if remote.Poll != nil {
 		cfg.Poll = remote.Poll
+	}
+	if v := strings.TrimSpace(remote.RecommendedAgentVersion); v != "" {
+		maybeNotifyVersionUpgrade(v)
 	}
 }
 

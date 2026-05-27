@@ -31,12 +31,23 @@ Use the printed addresses in `config.json` (see below). Map each **print station
 
 ### Run agent (poll + print)
 
+**Windows (release installer / zip)** — normal use:
+
+1. Install from Dashboard download; sign-in autostart is **on by default** in the Setup wizard (portable zip does not).
+2. **Double-click `MesaPrintAgent`** (or let it start at logon). The agent runs in the **system tray** (taskbar **^** → **Mesa Print**). **No black console window** — you do **not** need to keep a command prompt open while printing.
+3. **First pairing:** generate a 6-digit code in Mesa **打印助手**, then complete pairing in the browser (often opens automatically). Tray → **Printer settings…** maps stations and runs the **test print** there (not from the tray menu).
+4. **Troubleshooting only:** `MesaPrintAgent.exe -console`, or tray → **Show debug console**; log file under `%LOCALAPPDATA%\Mesa Print Agent\agent.log`. Optional advanced: `MesaPrintAgent.exe -api URL -code 123456` or `MesaPrintAgent pair`.
+
+Local HTTP: pairing `http://127.0.0.1:17890/pair`, settings `http://127.0.0.1:17892/configure` (also opened from the tray while the agent is running).
+
+**Development** (`go run` from this directory):
+
 ```bash
 go run . -api http://localhost:3000 -code 123456
 go run . -api http://localhost:3000 -default-printer 192.168.1.50:9100
 ```
 
-**First run:** double-click `MesaPrintAgent` (or run without args) — a browser opens the **local pairing page** at `http://127.0.0.1:17890/pair` (no command line). Saves `~/.config/mesa-print-agent/config.json`. **Windows:** release builds use the **GUI subsystem** (no black console on start); the agent runs in the **system tray**. Use **`MesaPrintAgent.exe -console`** for a debug log window, or tray → **Show debug console**. CLI tools (`configure`, `pair`, `discover`, …) allocate a console when needed. Advanced: `-api URL -code 123456` or `MesaPrintAgent pair` to re-open the wizard.
+Config path: `~/.config/mesa-print-agent/config.json` (Windows: `%USERPROFILE%\.config\mesa-print-agent\config.json`).
 
 ## Config (`config.json`)
 
@@ -135,13 +146,7 @@ cd apps/print-agent
 .\scripts\build-release.ps1
 ```
 
-First run on a POS PC (after pairing code from Dashboard):
-
-```text
-MesaPrintAgent.exe -api https://your-mesa.example.com -code 123456
-```
-
-Config: `%USERPROFILE%\.config\mesa-print-agent\config.json`
+**POS first run:** install → start agent (tray icon) → Mesa Dashboard **打印助手** pairing code → browser wizard → tray **Printer settings…** (map + test print). See **Run agent** above; end-user steps also in **[installer/WINDOWS-README.txt](./installer/WINDOWS-README.txt)**.
 
 Mesa Dashboard reads `NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO` (see `.env.local.example`) for download buttons.
 

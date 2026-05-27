@@ -1,37 +1,4 @@
--- On table merge: void prior buffet_base lines, add one merged line on target session (current prices).
-
-create or replace function public.recalc_order_total_from_items(p_items jsonb)
-returns numeric
-language sql
-immutable
-as $$
-  select coalesce(sum(
-    (elem->>'price')::numeric * coalesce(nullif(elem->>'qty', '')::numeric, 1::numeric)
-  ), 0::numeric)
-  from jsonb_array_elements(coalesce(p_items, '[]'::jsonb)) elem
-  where coalesce(elem->>'item_status', 'pending') <> 'voided';
-$$;
-
-create or replace function public.void_active_buffet_lines_in_items(p_items jsonb)
-returns jsonb
-language plpgsql
-as $$
-declare
-  v_now text := to_char(timezone('utc', now()), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"');
-begin
-  return coalesce((
-    select jsonb_agg(
-      case
-        when elem->>'kind' = 'buffet_base'
-             and coalesce(elem->>'item_status', 'pending') <> 'voided'
-        then elem || jsonb_build_object('item_status', 'voided', 'voided_at', v_now)
-        else elem
-      end
-    )
-    from jsonb_array_elements(coalesce(p_items, '[]'::jsonb)) elem
-  ), '[]'::jsonb);
-end;
-$$;
+-- PostgreSQL has no min(uuid); cast via text when picking buffet_id after merge.
 
 create or replace function public.merge_table_sessions(
   p_restaurant_id uuid,
@@ -127,7 +94,6 @@ begin
     and status in ('pending', 'cooking', 'done')
     and (session_id is null or session_id = v_source_session.id);
 
-  -- Buffet: sum headcounts, void old lines, one merged line at current prices.
   select
     count(distinct bl.buffet_id),
     (min(bl.buffet_id::text))::uuid,

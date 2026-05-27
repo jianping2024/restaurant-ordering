@@ -9,6 +9,7 @@ import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticate
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
+import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import {
   compareRestaurantTables,
   tableIdsEqual,
@@ -34,7 +35,12 @@ function WaiterBoardInner({
 }: Props & { handleSignOut: () => void; exitLabel: string }) {
   const { lang } = useLanguage();
   const t = WAITER_TEXT[lang];
-  const { orders, checkoutRequestedTableIds, activeSessionTableIds, tables } = useWaiterOrders(
+  const {
+    orders,
+    checkoutRequestedTableIds,
+    activeSessionByTableId,
+    tables,
+  } = useWaiterOrders(
     restaurant,
     initialOrders,
     initialCheckoutRequestedTableIds,
@@ -46,14 +52,17 @@ function WaiterBoardInner({
 
   const allTableCards = useMemo(() => {
     return configuredTables
-      .map((table) => buildWaiterTableCard(table.id, table.display_name, orders))
+      .map((table) => {
+        const view = ordersForWaiterTableView(table.id, orders, activeSessionByTableId);
+        return buildWaiterTableCard(table.id, table.display_name, view);
+      })
       .sort((a, b) => {
         const aActive =
-          a.pending + a.cooking + a.ready + a.buffetLines.length + a.voidableItems.length + a.voidedItems.length > 0
+          a.pending + a.cooking + a.ready + (a.hasBuffet ? 1 : 0) + a.voidableItems.length + a.voidedItems.length > 0
             ? 1
             : 0;
         const bActive =
-          b.pending + b.cooking + b.ready + b.buffetLines.length + b.voidableItems.length + b.voidedItems.length > 0
+          b.pending + b.cooking + b.ready + (b.hasBuffet ? 1 : 0) + b.voidableItems.length + b.voidedItems.length > 0
             ? 1
             : 0;
         if (aActive !== bActive) return bActive - aActive;
@@ -62,7 +71,7 @@ function WaiterBoardInner({
         if (ta && tb) return compareRestaurantTables(ta, tb);
         return a.displayName.localeCompare(b.displayName, undefined, { numeric: true });
       });
-  }, [configuredTables, orders]);
+  }, [configuredTables, orders, activeSessionByTableId]);
 
   const detailHref = (tableId: string) =>
     (isDemo ? `/demo/waiter/${encodeURIComponent(tableId)}` : `/${restaurant.slug}/waiter/${encodeURIComponent(tableId)}`);
@@ -105,11 +114,11 @@ function WaiterBoardInner({
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
         {allTableCards.map((card) => {
           const hasOrderActivity =
-            card.pending + card.cooking + card.ready + card.buffetLines.length + card.voidableItems.length
+            card.pending + card.cooking + card.ready + (card.hasBuffet ? 1 : 0) + card.voidableItems.length
             + card.voidedItems.length > 0;
-          const hasOpenSession = activeSessionTableIds.some((id) => tableIdsEqual(id, card.tableId));
           const hasCheckoutRequest = checkoutRequestedTableIds.some((id) => tableIdsEqual(id, card.tableId));
-          const isActive = hasOrderActivity || hasOpenSession || hasCheckoutRequest;
+          // Empty open/billing session (e.g. after merge) must not light the table green.
+          const isActive = hasOrderActivity || hasCheckoutRequest;
           return (
             <Link
               key={card.tableId}

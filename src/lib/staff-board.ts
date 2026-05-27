@@ -73,13 +73,12 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
   const orders = ((rows || []) as Order[]).filter(
     (o) => !o.session_id || activeIds.has(o.session_id as string),
   );
-  const activeSessionTableIds = Array.from(
-    new Set(
-      (sessions || [])
-        .map((s) => s.table_id as string)
-        .filter(Boolean),
-    ),
-  );
+  const activeSessionByTableId: Record<string, string> = {};
+  for (const s of sessions || []) {
+    const tid = s.table_id as string | undefined;
+    const sid = s.id as string | undefined;
+    if (tid && sid) activeSessionByTableId[tid] = sid;
+  }
   const checkoutRequestedTableIds = Array.from(
     new Set(
       (checkoutTables.data || [])
@@ -90,7 +89,7 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
 
   return {
     orders,
-    activeSessionTableIds,
+    activeSessionByTableId,
     checkoutRequestedTableIds,
     tables: (tableRows || []) as RestaurantTableRow[],
   };

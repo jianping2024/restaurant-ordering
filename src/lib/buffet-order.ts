@@ -1,11 +1,6 @@
 import type { Buffet, Order, OrderItem } from '@/types';
 import { isBuffetBaseItem } from '@/lib/order-items';
-import { tableIdsEqual } from '@/lib/restaurant-tables';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
-
-export function stripBuffetBaseLines(items: OrderItem[]): OrderItem[] {
-  return items.filter((i) => !isBuffetBaseItem(i));
-}
 
 /** Mark active buffet_base lines void (keeps history for merge/audit). */
 export function voidActiveBuffetBaseLines(items: OrderItem[]): OrderItem[] {
@@ -17,11 +12,9 @@ export function voidActiveBuffetBaseLines(items: OrderItem[]): OrderItem[] {
   });
 }
 
-/** Active (non-voided) buffet_base lines on a table's orders. */
-export function activeBuffetBaseLinesForTable(orders: Order[], tableId: string): OrderItem[] {
+function activeBuffetBaseLines(orders: Order[]): OrderItem[] {
   const lines: OrderItem[] = [];
   for (const order of orders) {
-    if (!tableIdsEqual(order.table_id, tableId)) continue;
     for (const item of order.items) {
       if (!isBuffetBaseItem(item)) continue;
       if (normalizeOrderItemStatus(item, order.status) === 'voided') continue;
@@ -31,12 +24,10 @@ export function activeBuffetBaseLinesForTable(orders: Order[], tableId: string):
   return lines;
 }
 
-/** One display row: sum headcounts; amount from active lines (post-merge usually one line). */
-export function aggregateBuffetForTable(
+export function aggregateBuffetForOrders(
   orders: Order[],
-  tableId: string,
 ): { buffetId: string; name: string; adults: number; children: number; amount: number } | null {
-  const active = activeBuffetBaseLinesForTable(orders, tableId);
+  const active = activeBuffetBaseLines(orders);
   if (active.length === 0) return null;
 
   const buffetIds = new Set(active.map((l) => l.buffet_id).filter(Boolean) as string[]);
@@ -55,6 +46,12 @@ export function aggregateBuffetForTable(
   }
 
   return { buffetId, name, adults, children, amount };
+}
+
+export function formatBuffetSummaryLine(
+  summary: { name: string; adults: number; children: number; amount: number },
+): string {
+  return `🍽️ ${summary.name} · A${summary.adults} C${summary.children} · €${summary.amount.toFixed(2)}`;
 }
 
 export interface ResolvedBuffetPriceRow {

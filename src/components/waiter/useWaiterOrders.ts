@@ -18,7 +18,7 @@ export function useWaiterOrders(
   const [checkoutRequestedTableIds, setCheckoutRequestedTableIds] = useState<string[]>(
     initialCheckoutRequestedTableIds,
   );
-  const [activeSessionTableIds, setActiveSessionTableIds] = useState<string[]>([]);
+  const [activeSessionByTableId, setActiveSessionByTableId] = useState<Record<string, string>>({});
   const [tables, setTables] = useState<RestaurantTableRow[]>(initialTables);
   const [tablesLoaded, setTablesLoaded] = useState(initialTables.length > 0);
   const supabase = useMemo(() => createClient(), []);
@@ -27,7 +27,7 @@ export function useWaiterOrders(
     if (!enabled) return null;
     const board = await fetchWaiterBoardClient(restaurant.slug);
     setOrders(board.orders);
-    setActiveSessionTableIds(board.activeSessionTableIds);
+    setActiveSessionByTableId(board.activeSessionByTableId ?? {});
     setCheckoutRequestedTableIds(board.checkoutRequestedTableIds);
     setTables(board.tables);
     setTablesLoaded(true);
@@ -47,7 +47,7 @@ export function useWaiterOrders(
     orders,
     setOrders,
     checkoutRequestedTableIds,
-    activeSessionTableIds,
+    activeSessionByTableId,
     tables,
     tablesLoaded,
     refresh,

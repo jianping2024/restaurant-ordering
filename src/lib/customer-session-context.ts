@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BillSplit, Order, TableSession } from '@/types';
+import { filterOrdersForCustomerDisplay } from '@/lib/customer-orders-display';
 import { parseTableIdParam, type RestaurantTableRow } from '@/lib/restaurant-tables';
 
 type AdminClient = SupabaseClient;
@@ -124,7 +125,7 @@ export async function loadCustomerSessionOrders(params: {
     .order('created_at', { ascending });
   if (limit) query = query.limit(limit);
   const { data } = await query;
-  return (data || []) as Order[];
+  return filterOrdersForCustomerDisplay((data || []) as Order[]);
 }
 
 export async function loadCustomerExistingSplit(params: {

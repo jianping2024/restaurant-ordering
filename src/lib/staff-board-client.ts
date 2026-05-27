@@ -5,7 +5,7 @@ import { compareRestaurantTables, sortRestaurantTables, type RestaurantTableRow 
 
 type WaiterBoardResponse = {
   orders?: Order[];
-  activeSessionTableIds?: string[];
+  activeSessionByTableId?: Record<string, string>;
   checkoutRequestedTableIds?: string[];
   tables?: RestaurantTableRow[];
 };
@@ -29,7 +29,7 @@ export async function fetchWaiterBoardClient(slug: string) {
   );
   return {
     orders: board.orders || [],
-    activeSessionTableIds: board.activeSessionTableIds || [],
+    activeSessionByTableId: board.activeSessionByTableId ?? {},
     checkoutRequestedTableIds: board.checkoutRequestedTableIds || [],
     tables: sortRestaurantTables(board.tables || []),
   };

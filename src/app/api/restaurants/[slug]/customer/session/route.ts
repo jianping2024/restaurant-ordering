@@ -42,7 +42,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
         restaurantId: restaurant.id,
         sessionId: ctx.activeSession.id,
         ascending: false,
-        limit: 8,
+        limit: 20,
       })
     : [];
 

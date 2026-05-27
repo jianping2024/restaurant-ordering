@@ -16,15 +16,21 @@ func TestBuildConnectionTestZHUsesGBKByDefault(t *testing.T) {
 	})
 	raw := escposFromJob(printJob{Type: "order_receipt", Payload: payload})
 
-	if !bytes.Contains(raw, []byte{0x1C, 0x26}) {
-		t.Fatal("expected FS & in connection test output")
-	}
-	if !bytes.Contains(raw, []byte{0x1C, 0x43, 0x00}) {
-		t.Fatal("expected FS C 0 simplified Chinese, not BIG5 (FS C 1)")
-	}
 	want := encodeGBK("打印测试")
-	if !bytes.Contains(raw, want) {
+	headIdx := bytes.Index(raw, want)
+	if headIdx < 0 {
 		t.Fatalf("expected GBK headline % x in output", want)
+	}
+	if !bytes.Contains(raw[:headIdx], []byte{0x1C, 0x26}) {
+		t.Fatal("expected FS & before Chinese headline")
+	}
+	venue := []byte("mesa.example.com")
+	venueIdx := bytes.Index(raw, venue)
+	if venueIdx < 0 {
+		t.Fatal("expected venue line")
+	}
+	if !bytes.Contains(raw[headIdx:venueIdx], []byte{0x1C, 0x2E}) {
+		t.Fatal("expected FS . before ASCII venue line after Chinese")
 	}
 	if bytes.Contains(raw, []byte{0x1B, 0x39, 0x01}) {
 		t.Fatal("auto mode should not use ESC 9 UTF-8 on connection test")

@@ -220,6 +220,7 @@ type escposWriter struct {
 	prefix          []byte
 	content         bytes.Buffer
 	enc             paperEncoding
+	gbkActive       bool // true while FS & Chinese mode is on (per-line enter/exit for ASCII)
 	hadDoubleHeight bool
 }
 
@@ -285,11 +286,26 @@ func (w *escposWriter) enableLatin() {
 	w.prefix = append(w.prefix, 0x1B, 0x74, 16)
 }
 
-// enableGBK — FS & + FS C 0 (simplified GB2312/GBK). Do not use FS C 1 (BIG5) for「打印测试」.
+// enableGBK — per-line FS & / FS . in text(); do not leave FS & on for whole ticket (UNYKA ASCII needs FS .).
 func (w *escposWriter) enableGBK() {
 	w.enc = paperEncGBK
-	w.prefix = append(w.prefix, 0x1C, 0x26)       // FS & — double-byte mode
-	w.prefix = append(w.prefix, 0x1C, 0x43, 0x00) // FS C 0 — simplified Chinese
+	w.gbkActive = false
+}
+
+func (w *escposWriter) gbkEnter() {
+	if w.gbkActive {
+		return
+	}
+	w.content.Write([]byte{0x1C, 0x26}) // FS &
+	w.gbkActive = true
+}
+
+func (w *escposWriter) gbkExit() {
+	if !w.gbkActive {
+		return
+	}
+	w.content.Write([]byte{0x1C, 0x2E}) // FS .
+	w.gbkActive = false
 }
 
 // enableUTF8 — ESC 9 (common on Xprinter / many 80mm; works when GBK mode is ignored).
@@ -327,7 +343,13 @@ func (w *escposWriter) size(doubleW, doubleH bool) {
 func (w *escposWriter) text(s string) {
 	switch w.enc {
 	case paperEncGBK:
-		w.content.Write(encodeGBK(s))
+		if hasHan(s) {
+			w.gbkEnter()
+			w.content.Write(encodeGBK(s))
+		} else {
+			w.gbkExit()
+			w.content.Write([]byte(s))
+		}
 	case paperEncUTF8:
 		w.content.Write([]byte(s))
 	default:
@@ -343,7 +365,12 @@ func (w *escposWriter) writeResetPrintMode(out *bytes.Buffer) {
 	out.Write([]byte{0x1B, 0x61, 0})
 	out.Write([]byte{0x1D, 0x21, 0})
 	out.Write([]byte{0x1B, 0x45, 0})
-	out.Write([]byte{0x1B, 0x32}) // ESC 2 — default line spacing after enlarged text
+	out.Write([]byte{0x1C, 0x21, 0x00}) // FS ! — reset Chinese print modes (GS ! does not affect Han)
+	out.Write([]byte{0x1B, 0x32})       // ESC 2 — default line spacing after enlarged text
+	if w.enc == paperEncGBK && w.gbkActive {
+		out.Write([]byte{0x1C, 0x2E})
+		w.gbkActive = false
+	}
 }
 
 // finish assembles init + top pad + body + bottom pad (+ cut feed when cut is true).
@@ -354,9 +381,6 @@ func (w *escposWriter) finish(cut bool) []byte {
 	out.Write(w.content.Bytes())
 	if cut {
 		w.writeResetPrintMode(&out)
-		if w.enc == paperEncGBK {
-			out.Write([]byte{0x1C, 0x2E}) // FS . — exit Chinese mode before feed/cut
-		}
 		writeMarginLines(&out, escposBottomMarginLines)
 		out.Write([]byte{0x1D, 0x56, 0x42, cutFeedDots(w.hadDoubleHeight)})
 	}
@@ -699,14 +723,31 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 	return w.finish(true)
 }
 
+func (w *escposWriter) writeConnectionTestHeadline(s string) {
+	switch w.enc {
+	case paperEncGBK:
+		w.gbkEnter()
+		w.content.Write([]byte{0x1C, 0x21, 0x0F})
+		w.content.Write(encodeGBK(s))
+		w.content.Write([]byte{0x1C, 0x21, 0x00})
+		w.gbkExit()
+	case paperEncUTF8:
+		w.size(true, true)
+		w.content.Write([]byte(s))
+		w.size(false, false)
+	default:
+		w.size(true, true)
+		w.text(s)
+		w.size(false, false)
+	}
+}
+
 func buildConnectionTest(p jobPayload, lab ticketLabels) []byte {
 	w := newEscposForConnectionTest(p)
 	w.align(1)
-	w.size(true, true)
 	w.bold(true)
-	w.text(lab.connectionTest)
+	w.writeConnectionTestHeadline(lab.connectionTest)
 	w.lf()
-	w.size(false, false)
 	w.bold(false)
 	w.separator('-')
 	w.align(0)

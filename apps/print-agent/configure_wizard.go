@@ -59,6 +59,9 @@ func runConfigureWizard(ctx context.Context, configPath string, prefillAPI strin
 		baseURL = "http://" + listenAddr + "/configure?api=" + url.QueryEscape(api)
 	}
 	agentLogLocale(localeFromConfigPath(configPath), "log_wizard_open", baseURL)
+	if onConfigureWizardReady != nil {
+		onConfigureWizardReady(baseURL)
+	}
 	announceWizardURL("Mesa 打印机设置", baseURL)
 
 	return waitLocalWizard(ctx, srv, done)

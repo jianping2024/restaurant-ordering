@@ -3,6 +3,7 @@
 package main
 
 import (
+	"log"
 	"os/exec"
 	"sync"
 )
@@ -32,7 +33,7 @@ func registerSpawnedProcess(cmd *exec.Cmd) {
 	}()
 }
 
-// terminateSpawnedChildren ends configure/pair/setup helper processes (separate exe invocations).
+// terminateSpawnedChildren ends helper processes started via spawnAgentSubcommand (legacy / CLI).
 func terminateSpawnedChildren() {
 	spawnedProcsMu.Lock()
 	list := append([]*exec.Cmd(nil), spawnedProcs...)
@@ -41,6 +42,10 @@ func terminateSpawnedChildren() {
 		if cmd == nil || cmd.Process == nil {
 			continue
 		}
-		_ = cmd.Process.Kill()
+		pid := cmd.Process.Pid
+		if err := cmd.Process.Kill(); err != nil {
+			log.Printf("tray: kill spawned pid=%d: %v", pid, err)
+		}
+		killWindowsPID(pid)
 	}
 }

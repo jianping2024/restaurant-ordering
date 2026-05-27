@@ -16,11 +16,16 @@ import (
 
 type trayRuntime struct {
 	mu       sync.Mutex
+	ctx      context.Context
 	sess     *agentSession
 	initErr  error
 	initDone bool
 	status   *agentStatus
 	cancel   context.CancelFunc
+
+	configureMu      sync.Mutex
+	configureActive    bool
+	configureURL       string
 }
 
 func (rt *trayRuntime) snapshot() (*agentSession, error, bool) {
@@ -57,9 +62,12 @@ func runAgentTrayFirst(args []string) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	rt := &trayRuntime{
+		ctx:    ctx,
 		status: &agentStatus{},
 		cancel: cancel,
 	}
+	onConfigureWizardReady = rt.rememberConfigureWizardURL
+	defer func() { onConfigureWizardReady = nil }()
 	rt.status.set("Starting", "Mesa Print Agent")
 
 	go func() {
@@ -154,9 +162,7 @@ func onTrayReady(rt *trayRuntime) {
 		for {
 			select {
 			case <-mSettings.ClickedCh:
-				if err := spawnAgentSubcommand("configure"); err != nil {
-					log.Println("tray:", err)
-				}
+				rt.startTrayConfigureWizard()
 			case <-mTestPrint.ClickedCh:
 				go func() {
 					loc := rt.uiLocale()

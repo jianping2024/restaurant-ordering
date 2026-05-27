@@ -106,6 +106,7 @@ func (t *trayLocalHTTP) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	cmux := t.cmux
 	active := t.active
 	rt := t.rt
+	addr := t.addr
 	t.mu.Unlock()
 
 	if active && cmux != nil {
@@ -119,8 +120,8 @@ func (t *trayLocalHTTP) serveHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		setTrayLocalCORS(w, r)
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		refresh := htmlEscape(r.URL.RequestURI())
-		_, _ = fmt.Fprintf(w, `<!DOCTYPE html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="1;url=%s"></head><body><p>正在打开打印设置…</p></body></html>`, refresh)
+		refreshTarget := htmlEscape("http://" + addr + r.URL.RequestURI())
+		_, _ = fmt.Fprintf(w, `<!DOCTYPE html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=%s"></head><body><p>正在打开打印设置…</p><p><a href="%s">若未跳转请点这里</a></p></body></html>`, refreshTarget, refreshTarget)
 		return
 	}
 

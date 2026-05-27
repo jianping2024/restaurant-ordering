@@ -42,9 +42,24 @@ export async function probeLocalPrintAgent(timeoutMs = PROBE_TIMEOUT_MS): Promis
   }
 }
 
+function navigatePopup(popup: Window, url: string): boolean {
+  try {
+    popup.location.href = url;
+    return true;
+  } catch {
+    try {
+      popup.location.assign(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
 /**
  * Open local configure UI. Opens a blank tab synchronously (user gesture) so popup
  * blockers do not swallow the window after the async health probe.
+ * Do not pass noopener — it prevents navigating the new tab from the opener.
  */
 export async function openPrintAgentConfigure(
   siteOrigin: string,
@@ -54,17 +69,16 @@ export async function openPrintAgentConfigure(
     return 'unreachable';
   }
   const url = buildPrintAgentConfigureUrl(siteOrigin, code);
-  const popup = window.open('about:blank', '_blank', 'noopener,noreferrer');
+  // Must not use noopener/noreferrer: Chrome then returns null or a tab we cannot assign.
+  const popup = window.open('', '_blank');
   const ok = await probeLocalPrintAgent();
   if (!ok) {
     popup?.close();
     return 'unreachable';
   }
-  if (popup) {
-    popup.location.replace(url);
+  if (popup && navigatePopup(popup, url)) {
     return 'opened';
   }
-  // Popup blocked: same-tab navigation still reaches the local agent.
   window.location.assign(url);
   return 'opened';
 }

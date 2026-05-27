@@ -426,13 +426,8 @@ export const MESSAGES = {
       pairingTitle: '配对 Windows 打印助手',
       pairingSubtitle:
         '在收银电脑安装并启动 Mesa 打印助手（托盘图标）后，在此生成配对码；生成后会尝试在本机自动打开设置页（已填入配对码）。码约 10 分钟有效；每店最多 3 条未过期记录。',
-      pairingWizardStep1: '在收银电脑双击 Mesa Print Agent（或免安装 zip 里的 exe）',
-      pairingWizardStep2: '保持程序窗口不要关，浏览器会打开配对页',
-      pairingWizardStep3: '点击下方按钮，在本机配置页填入配对码并完成连接',
-      pairingOpenLocalWizard: '在本机打开配置页（已填入配对码）',
-      pairingOpenLocalWizardIdle: '在本机打开配置页（需先运行 configure）',
       pairingWizardNote:
-        '若按钮打不开页面，请确认收银电脑上 Mesa Print Agent 已运行；网址须为 https 开头的 Mesa 根地址（不要带 /dashboard 路径）。',
+        '若未自动打开设置页，请点上方金色按钮；须在本机浏览器操作，且托盘 Mesa 图标已启动。',
       pairingGenerate: '生成配对码',
       pairingRefreshList: '刷新列表',
       pairingListTitle: '当前未过期的配对',
@@ -450,7 +445,7 @@ export const MESSAGES = {
       pairingSlotFull: '未过期记录已满 3 条，请等待过期后再生成。',
       pairingErrorPrefix: '操作失败：',
       pairingAgentHint:
-        '重新配对或调整打印机：在收银电脑运行 MesaPrintAgent.exe configure（推荐）。仅改打印机可用 setup；仅重新配对可用 pair。',
+        '已配对后调整打印机：收银电脑托盘右键「打印机设置…」。无需新配对码时可用下方「在本机打开设置」。',
       configureTitle: '重新配对 / 调整打印机',
       configureSubtitle:
         '在 configure 为各出品档口映射打印机；结账/账单页从已映射档口中选择打印（多台档口可共用同一打印机）。',
@@ -1247,13 +1242,8 @@ export const MESSAGES = {
       pairingTitle: 'Pair Windows print agent',
       pairingSubtitle:
         'Install and start Mesa Print Agent on the POS PC (tray icon), then generate a code here—we try to open local settings with the code filled in. Codes expire in ~10 minutes; at most 3 non-expired rows per restaurant.',
-      pairingWizardStep1: 'On the POS PC, double-click Mesa Print Agent (or the exe from the portable zip)',
-      pairingWizardStep2: 'Keep the agent window open — your browser will open the pairing page',
-      pairingWizardStep3: 'Click the button below to open the page with this code filled in',
-      pairingOpenLocalWizard: 'Open local pairing page (code filled in)',
-      pairingOpenLocalWizardIdle: 'Open local pairing page (start the agent first)',
       pairingWizardNote:
-        'If the link fails, make sure Mesa Print Agent is running on this PC. Use the https site root only (not /dashboard/...).',
+        'If settings did not open automatically, use the gold button above. Use this PC’s browser with the Mesa tray icon running.',
       pairingGenerate: 'Generate pairing code',
       pairingRefreshList: 'Refresh list',
       pairingListTitle: 'Non-expired pairings',
@@ -1271,7 +1261,7 @@ export const MESSAGES = {
       pairingSlotFull: 'You already have 3 non-expired pairing rows; wait for expiry before creating another.',
       pairingErrorPrefix: 'Something went wrong: ',
       pairingAgentHint:
-        'Re-pair or change printers: on the POS PC run MesaPrintAgent.exe configure (recommended). Use setup for printers only; pair for pairing only.',
+        'After pairing, change printers from the tray menu → Printer settings. Use Open settings below when you do not need a new code.',
       configureTitle: 'Re-pair / printer setup',
       configureSubtitle:
         'Map each print station to a printer in configure; on checkout pick which mapped station prints receipts (stations may share one device).',
@@ -1840,13 +1830,8 @@ export const MESSAGES = {
       pairingTitle: 'Emparelhar agente Windows',
       pairingSubtitle:
         'Instale e inicie o Mesa Print Agent no PC da caixa (icone na bandeja), depois gere o codigo aqui — tentamos abrir as definicoes locais com o codigo. Validade ~10 minutos; maximo 3 linhas nao expiradas.',
-      pairingWizardStep1: 'No PC da caixa, duplo clique em Mesa Print Agent (ou o exe do zip portatil)',
-      pairingWizardStep2: 'Mantenha a janela do agente aberta — o browser abre a pagina de emparelhamento',
-      pairingWizardStep3: 'Clique no botao abaixo para abrir a pagina com o codigo preenchido',
-      pairingOpenLocalWizard: 'Abrir pagina local (codigo preenchido)',
-      pairingOpenLocalWizardIdle: 'Abrir pagina local (inicie o agente primeiro)',
       pairingWizardNote:
-        'Se o link falhar, confirme que o Mesa Print Agent esta a correr neste PC. Use apenas o URL https raiz (sem /dashboard/...).',
+        'Se as definicoes nao abriram sozinhas, use o botao dourado acima. Use o browser deste PC com o icone Mesa na bandeja.',
       pairingGenerate: 'Gerar codigo',
       pairingRefreshList: 'Atualizar lista',
       pairingListTitle: 'Emparelhamentos nao expirados',
@@ -1864,7 +1849,7 @@ export const MESSAGES = {
       pairingSlotFull: 'Ja existem 3 linhas nao expiradas; aguarde expirar antes de criar outra.',
       pairingErrorPrefix: 'Erro: ',
       pairingAgentHint:
-        'Reemparelhar ou mudar impressoras: no PC da caixa execute MesaPrintAgent.exe configure (recomendado). setup so impressoras; pair so emparelhamento.',
+        'Depois de emparelhar, mude impressoras no menu da bandeja → Definicoes de impressora. Use Abrir definicoes abaixo sem codigo novo.',
       configureTitle: 'Reemparelhar / configurar impressoras',
       configureSubtitle:
         'Mapeie cada estacao de impressao no configure; no checkout escolha qual estacao mapeada imprime (podem partilhar a mesma maquina).',

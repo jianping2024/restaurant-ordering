@@ -42,20 +42,6 @@ export async function probeLocalPrintAgent(timeoutMs = PROBE_TIMEOUT_MS): Promis
   }
 }
 
-function navigatePopup(popup: Window, url: string): boolean {
-  try {
-    popup.location.href = url;
-    return true;
-  } catch {
-    try {
-      popup.location.assign(url);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-}
-
 /**
  * Open local configure UI. Opens a blank tab synchronously (user gesture) so popup
  * blockers do not swallow the window after the async health probe.
@@ -76,8 +62,13 @@ export async function openPrintAgentConfigure(
     popup?.close();
     return 'unreachable';
   }
-  if (popup && navigatePopup(popup, url)) {
-    return 'opened';
+  if (popup) {
+    try {
+      popup.location.href = url;
+      return 'opened';
+    } catch {
+      popup.close();
+    }
   }
   window.location.assign(url);
   return 'opened';

@@ -38,15 +38,25 @@ func jobCreatedWithin(job printJob, within time.Duration) bool {
 	return time.Since(t) <= within
 }
 
-func (c *config) firstMappedStationAddr() (string, bool) {
-	if c.StationPrinters == nil {
-		return "", false
+func (c *config) firstMappedStation() (stationID, rawAddr string) {
+	if c == nil || c.StationPrinters == nil {
+		return "", ""
 	}
 	ids := c.mappedStationIDsSorted()
 	if len(ids) == 0 {
-		return "", false
+		return "", ""
 	}
-	return strings.TrimSpace(c.StationPrinters[ids[0]]), true
+	sid := ids[0]
+	return sid, strings.TrimSpace(c.StationPrinters[sid])
+}
+
+func (c *config) firstMappedStationAddr() (string, bool) {
+	addr := ""
+	if c != nil {
+		_, addr = c.firstMappedStation()
+	}
+	addr = strings.TrimSpace(addr)
+	return addr, addr != ""
 }
 
 func (c *config) mappedStationIDsSorted() []string {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
-import { buildBuffetBaseLine, stripBuffetBaseLines } from '@/lib/buffet-order';
+import { buildBuffetBaseLine, voidActiveBuffetBaseLines } from '@/lib/buffet-order';
+import { tableIdsEqual } from '@/lib/restaurant-tables';
 import { deriveOrderStatusFromItems } from '@/lib/order-status';
 import { sumLineTotals } from '@/lib/cart-totals';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -138,18 +139,41 @@ export async function POST(
 
   const sessionId = session.id as string;
 
-  const { data: openOrder } = await admin
+  const { data: sessionOrders, error: sessionOrdersErr } = await admin
     .from('orders')
-    .select('id, items, updated_at')
+    .select('id, items, updated_at, table_id, created_at')
     .eq('session_id', sessionId)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .in('status', ['pending', 'cooking', 'done']);
 
-  const mergedItems: OrderItem[] = [
-    ...stripBuffetBaseLines((openOrder?.items || []) as OrderItem[]),
-    line,
-  ];
+  if (sessionOrdersErr) {
+    return NextResponse.json(
+      { error: 'orders_lookup_failed', message: sessionOrdersErr.message },
+      { status: 500 },
+    );
+  }
+
+  for (const order of sessionOrders || []) {
+    const prevItems = (order.items || []) as OrderItem[];
+    const voidedItems = voidActiveBuffetBaseLines(prevItems);
+    const changed = JSON.stringify(voidedItems) !== JSON.stringify(prevItems);
+    if (!changed) continue;
+    const voidedTotal = sumLineTotals(voidedItems);
+    const { error: voidErr } = await admin
+      .from('orders')
+      .update({ items: voidedItems, total_amount: voidedTotal })
+      .eq('id', order.id);
+    if (voidErr) {
+      return NextResponse.json({ error: 'void_buffet_failed', message: voidErr.message }, { status: 500 });
+    }
+  }
+
+  const tableOrders = (sessionOrders || [])
+    .filter((o) => tableIdsEqual(o.table_id as string, tableId))
+    .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+  const openOrder = tableOrders[0] ?? null;
+
+  const carrierItems = voidActiveBuffetBaseLines((openOrder?.items || []) as OrderItem[]);
+  const mergedItems: OrderItem[] = [...carrierItems, line];
   const total = sumLineTotals(mergedItems);
   const nextStatus = deriveOrderStatusFromItems(mergedItems);
 

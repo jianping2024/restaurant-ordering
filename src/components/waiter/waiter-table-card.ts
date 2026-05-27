@@ -1,6 +1,7 @@
 import type { Order } from '@/types';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
+import { aggregateBuffetForTable } from '@/lib/buffet-order';
 import { tableIdsEqual } from '@/lib/restaurant-tables';
 
 export interface WaiterTableCardData {
@@ -40,6 +41,13 @@ export function buildWaiterTableCard(
     updatedAt: '',
   };
 
+  const buffetSummary = aggregateBuffetForTable(orders, tableId);
+  if (buffetSummary) {
+    current.buffetLines.push(
+      `🍽️ ${buffetSummary.name} · A${buffetSummary.adults} C${buffetSummary.children} · €${buffetSummary.amount.toFixed(2)}`,
+    );
+  }
+
   orders
     .filter((o) => tableIdsEqual(o.table_id, tableId))
     .forEach((order) => {
@@ -51,13 +59,6 @@ export function buildWaiterTableCard(
       order.items.forEach((item) => {
         const status = normalizeOrderItemStatus(item, order.status) as 'pending' | 'cooking' | 'done' | 'voided';
         if (isBuffetBaseItem(item)) {
-          if (status !== 'voided') {
-            const adults = item.adult_count ?? 0;
-            const children = item.child_count ?? 0;
-            current.buffetLines.push(
-              `🍽️ ${item.name || item.name_pt} · A${adults} C${children} · €${(item.price * item.qty).toFixed(2)}`,
-            );
-          }
           return;
         }
         if (status === 'pending') current.pending += item.qty;

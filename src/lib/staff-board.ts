@@ -40,11 +40,11 @@ export async function fetchKitchenBoard(admin: SupabaseClient, restaurantId: str
     return a.localeCompare(b);
   });
 
-  return { orders, activeTableIds, tableById };
+  return { orders, activeTableIds, tableById, tables: (tableRows || []) as RestaurantTableRow[] };
 }
 
 export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: string) {
-  const [{ data: sessions }, { data: rows }, checkoutTables] = await Promise.all([
+  const [{ data: sessions }, { data: rows }, checkoutTables, { data: tableRows }] = await Promise.all([
     admin
       .from('table_sessions')
       .select('id, table_id')
@@ -62,6 +62,11 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
       .select('table_id')
       .eq('restaurant_id', restaurantId)
       .eq('status', 'requested'),
+    admin
+      .from('restaurant_tables')
+      .select('id, display_name, sort_order')
+      .eq('restaurant_id', restaurantId)
+      .is('deleted_at', null),
   ]);
 
   const activeIds = new Set((sessions || []).map((s) => s.id as string));
@@ -83,5 +88,10 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
     ),
   );
 
-  return { orders, activeSessionTableIds, checkoutRequestedTableIds };
+  return {
+    orders,
+    activeSessionTableIds,
+    checkoutRequestedTableIds,
+    tables: (tableRows || []) as RestaurantTableRow[],
+  };
 }

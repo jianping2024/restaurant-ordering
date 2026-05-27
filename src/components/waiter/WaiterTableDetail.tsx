@@ -1,10 +1,17 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { Buffet, Order, OrderItem } from '@/types';
 import { sumLineTotals } from '@/lib/cart-totals';
-import { buildBuffetBaseLine, stripBuffetBaseLines, type ResolvedBuffetPriceRow } from '@/lib/buffet-order';
+import {
+  activeBuffetBaseLinesForTable,
+  aggregateBuffetForTable,
+  buildBuffetBaseLine,
+  voidActiveBuffetBaseLines,
+  type ResolvedBuffetPriceRow,
+} from '@/lib/buffet-order';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
 import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
@@ -27,7 +34,7 @@ interface Props {
   initialCheckoutRequestedTableIds?: string[];
   initialBuffets?: Buffet[];
   tableId: string;
-  displayName: string;
+  displayName?: string;
   isDemo?: boolean;
 }
 
@@ -38,19 +45,21 @@ function WaiterTableDetailInner({
   initialCheckoutRequestedTableIds = [],
   initialBuffets = [],
   tableId,
-  displayName,
+  displayName = '',
   isDemo = false,
   handleSignOut,
   exitLabel,
 }: Props & { handleSignOut: () => void; exitLabel: string }) {
+  const router = useRouter();
   const { lang } = useLanguage();
   const locale = UI_LOCALE_BY_LANG[lang];
   const t = WAITER_TEXT[lang];
-  const { orders, refresh, supabase } = useWaiterOrders(
-    restaurant.id,
+  const { orders, refresh, supabase, tables, tablesLoaded } = useWaiterOrders(
+    restaurant,
     initialOrders,
     initialCheckoutRequestedTableIds,
-    true,
+    tablesProp,
+    !isDemo,
   );
 
   const [operationType, setOperationType] = useState<'transfer' | 'merge' | null>(null);
@@ -65,6 +74,7 @@ function WaiterTableDetailInner({
   const [buffetSubmitting, setBuffetSubmitting] = useState(false);
   const [buffetResolved, setBuffetResolved] = useState<ResolvedBuffetPriceRow | null>(null);
   const [buffetPriceLoading, setBuffetPriceLoading] = useState(false);
+  const buffetConsolidateAttemptedRef = useRef(false);
 
   const refreshBuffetPrices = useCallback(
     async (silent: boolean) => {
@@ -163,12 +173,66 @@ function WaiterTableDetailInner({
     }
   }, [activeBuffets, buffetId]);
 
+  const configuredTables = useMemo(() => tables, [tables]);
+  const selectedTable = useMemo(
+    () => configuredTables.find((row) => tableIdsEqual(row.id, tableId)) || null,
+    [configuredTables, tableId],
+  );
+  const selectedDisplayName = selectedTable?.display_name || displayName;
+
   const selectedCard = useMemo(
-    () => buildWaiterTableCard(tableId, displayName, orders),
-    [orders, tableId, displayName],
+    () => buildWaiterTableCard(tableId, selectedDisplayName, orders),
+    [orders, tableId, selectedDisplayName],
   );
 
-  const configuredTables = useMemo(() => tablesProp, [tablesProp]);
+  const tableBuffetAggregate = useMemo(
+    () => aggregateBuffetForTable(orders, tableId),
+    [orders, tableId],
+  );
+
+  const consolidateBuffetOnTable = useCallback(
+    async (targetTableId: string, boardOrders: Order[]) => {
+      const agg = aggregateBuffetForTable(boardOrders, targetTableId);
+      if (!agg || isDemo) return;
+      const res = await fetch(
+        `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/waiter/buffet`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            table_id: targetTableId,
+            buffet_id: agg.buffetId,
+            adult_count: agg.adults,
+            child_count: agg.children,
+          }),
+        },
+      );
+      if (!res.ok) return;
+      await refresh();
+    },
+    [isDemo, restaurant.slug, refresh],
+  );
+
+  useEffect(() => {
+    buffetConsolidateAttemptedRef.current = false;
+  }, [tableId]);
+
+  useEffect(() => {
+    if (!tableBuffetAggregate) return;
+    setBuffetId(tableBuffetAggregate.buffetId);
+    setBuffetAdults(tableBuffetAggregate.adults);
+    setBuffetChildren(tableBuffetAggregate.children);
+  }, [tableBuffetAggregate]);
+
+  /** Legacy merges left multiple active buffet_base lines — consolidate once on load. */
+  useEffect(() => {
+    if (isDemo || !tableBuffetAggregate || buffetConsolidateAttemptedRef.current) return;
+    const active = activeBuffetBaseLinesForTable(orders, tableId);
+    if (active.length <= 1) return;
+    buffetConsolidateAttemptedRef.current = true;
+    void consolidateBuffetOnTable(tableId, orders);
+  }, [isDemo, tableBuffetAggregate, orders, tableId, consolidateBuffetOnTable]);
 
   const activeTableIds = useMemo(() => {
     return configuredTables
@@ -202,6 +266,7 @@ function WaiterTableDetailInner({
   const menuHref = isDemo
     ? `/demo/menu?table_id=${encodeURIComponent(tableId)}&from=waiter&return=${encodeURIComponent(waiterReturnPath)}`
     : `/${restaurant.slug}/menu?table_id=${encodeURIComponent(tableId)}&from=waiter&return=${encodeURIComponent(waiterReturnPath)}`;
+
   const openAction = (type: 'transfer' | 'merge', sourceId: string) => {
     setOperationType(type);
     setSourceTable(sourceId);
@@ -214,6 +279,54 @@ function WaiterTableDetailInner({
     setTargetTable(null);
     setOperating(false);
   };
+
+  const tableDisplayName = useCallback(
+    (id: string) => {
+      const row =
+        configuredTables.find((r) => tableIdsEqual(r.id, id)) ??
+        tables.find((r) => tableIdsEqual(r.id, id));
+      return row?.display_name ?? id;
+    },
+    [configuredTables, tables],
+  );
+
+  const goToTableDetail = useCallback(
+    (targetTableId: string) => {
+      const href = isDemo
+        ? `/demo/waiter/${encodeURIComponent(targetTableId)}`
+        : `/${restaurant.slug}/waiter/${encodeURIComponent(targetTableId)}`;
+      router.replace(href);
+    },
+    [isDemo, restaurant.slug, router],
+  );
+
+  const finishTransferOrMerge = useCallback(
+    async (targetTableId: string, operation: 'transfer' | 'merge') => {
+      let board = await refresh();
+      if (operation === 'merge' && board?.orders) {
+        await consolidateBuffetOnTable(targetTableId, board.orders);
+        board = await refresh();
+      }
+      const label =
+        board?.tables.find((row) => tableIdsEqual(row.id, targetTableId))?.display_name
+        ?? tableDisplayName(targetTableId);
+      const toastText =
+        operation === 'transfer'
+          ? t.transferDone.replace('{table}', label)
+          : t.mergeDone.replace('{table}', label);
+      closeAction();
+      showToast(toastText, 'success');
+      goToTableDetail(targetTableId);
+    },
+    [
+      refresh,
+      consolidateBuffetOnTable,
+      tableDisplayName,
+      t.transferDone,
+      t.mergeDone,
+      goToTableDetail,
+    ],
+  );
 
   const handleActionSubmit = async () => {
     if (!operationType || !sourceTable || !targetTable) return;
@@ -245,9 +358,7 @@ function WaiterTableDetailInner({
           showToast(t.actionFailed, 'error');
           return;
         }
-        await refresh();
-        closeAction();
-        showToast(t.actionSuccess, 'success');
+        await finishTransferOrMerge(toTable, currentOperation);
         return;
       }
 
@@ -284,15 +395,30 @@ function WaiterTableDetailInner({
         return;
       }
 
-      await refresh();
-      closeAction();
-      showToast(t.actionSuccess, 'success');
+      await finishTransferOrMerge(toTable, currentOperation);
     } catch {
       showToast(t.actionFailed, 'error');
     } finally {
       setOperating(false);
     }
   };
+
+  if (!isDemo && tablesLoaded && !selectedTable) {
+    return (
+      <div className="min-h-screen bg-brand-bg p-4">
+        <StaffRoleToolbar exitLabel={exitLabel} onSignOut={handleSignOut} />
+        <div className="mt-6 rounded-xl border border-brand-border bg-brand-card p-4 text-sm text-brand-text-muted">
+          {t.noOrdersOnTable}
+        </div>
+        <Link
+          href={boardHref}
+          className="mt-4 inline-flex text-sm text-brand-gold hover:text-brand-gold-light"
+        >
+          {t.backToBoard}
+        </Link>
+      </div>
+    );
+  }
 
   const closeTableFromWaiter = async (closeTableId: string) => {
     setClosingTable(closeTableId);
@@ -457,16 +583,30 @@ function WaiterTableDetailInner({
 
       const sessionId = session.id as string;
 
-      const { data: openOrder } = await supabase
+      const { data: sessionOrders } = await supabase
         .from('orders')
-        .select('id, items, updated_at')
+        .select('id, items, updated_at, table_id, created_at')
         .eq('session_id', sessionId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .in('status', ['pending', 'cooking', 'done']);
+
+      for (const order of sessionOrders || []) {
+        const prevItems = (order.items || []) as OrderItem[];
+        const voidedItems = voidActiveBuffetBaseLines(prevItems);
+        if (JSON.stringify(voidedItems) === JSON.stringify(prevItems)) continue;
+        const voidedTotal = sumLineTotals(voidedItems);
+        await supabase
+          .from('orders')
+          .update({ items: voidedItems, total_amount: voidedTotal })
+          .eq('id', order.id);
+      }
+
+      const tableOrders = (sessionOrders || [])
+        .filter((o) => tableIdsEqual(o.table_id as string, tableId))
+        .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+      const openOrder = tableOrders[0] ?? null;
 
       const mergedItems: OrderItem[] = [
-        ...stripBuffetBaseLines((openOrder?.items || []) as OrderItem[]),
+        ...voidActiveBuffetBaseLines((openOrder?.items || []) as OrderItem[]),
         line,
       ];
       const total = sumLineTotals(mergedItems);
@@ -632,12 +772,11 @@ function WaiterTableDetailInner({
         {activeBuffets.length > 0 && !isDemo && (
           <div className="mb-4 rounded-xl border border-brand-gold/30 bg-brand-gold/8 p-3 space-y-2">
             <p className="text-[12px] font-medium text-brand-gold">{t.buffetBlock}</p>
-            {selectedCard.buffetLines.length > 0 && (
-              <ul className="text-[13px] text-brand-text space-y-1">
-                {selectedCard.buffetLines.map((line, i) => (
-                  <li key={i}>{line}</li>
-                ))}
-              </ul>
+            {tableBuffetAggregate && (
+              <p className="text-[13px] text-brand-text">
+                🍽️ {tableBuffetAggregate.name} · A{tableBuffetAggregate.adults} C
+                {tableBuffetAggregate.children} · €{tableBuffetAggregate.amount.toFixed(2)}
+              </p>
             )}
             <div className="rounded-lg border border-brand-border/50 bg-brand-bg/60 px-2.5 py-2 space-y-1">
               <p className="text-[11px] font-medium text-brand-text-muted">{t.buffetPreview}</p>

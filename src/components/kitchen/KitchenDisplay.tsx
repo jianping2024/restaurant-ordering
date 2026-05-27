@@ -139,7 +139,7 @@ function KitchenDisplayInner({
   }, [boardOrders, activeTableIds, tableMetaById]);
 
   const refreshKitchenBoard = useCallback(async () => {
-    const board = await fetchKitchenBoardClient(restaurant.id);
+    const board = await fetchKitchenBoardClient(restaurant.slug);
     board.orders.forEach((o) => {
       if (!prevOrderIds.current.has(o.id)) {
         playCheckoutRequestChime();
@@ -149,7 +149,7 @@ function KitchenDisplayInner({
     setOrders(board.orders);
     setActiveTableIds(board.activeTableIds);
     setTableMetaById(board.tableById);
-  }, [restaurant.id]);
+  }, [restaurant.slug]);
 
   // 更新菜品级状态，并同步订单总状态（pending/cooking/done）
   const updateItemStatus = async (order: Order, itemIdx: number, nextStatus: OrderItemStatus) => {

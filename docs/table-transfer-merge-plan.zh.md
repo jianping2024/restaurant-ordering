@@ -1,7 +1,8 @@
 # 转台与并台实施方案
 
 > **标识模型：** 桌位身份为 `table_id`（UUID），界面展示为 `display_name`（如 `A-01`）。  
-> 总设计见 [餐厅桌位模型设计](./restaurant-tables-design.zh.md)。本文描述转台 / 并台 / 关台在 **`table_id` 模型下** 的行为与 RPC 改造；实施前需先完成桌位 migration。
+> 总设计见 [餐厅桌位模型设计](./restaurant-tables-design.zh.md)。本文描述转台 / 并台 / 关台在 **`table_id` 模型下** 的行为与 RPC 改造；实施前需先完成桌位 migration。  
+> **并台产品规则已定稿，见 [并台产品规则](./table-merge-product.zh.md)**（本文 §并台 为旧实现说明；新并台以该文档为准）。
 
 ---
 

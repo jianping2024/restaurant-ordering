@@ -34,14 +34,15 @@ function WaiterBoardInner({
 }: Props & { handleSignOut: () => void; exitLabel: string }) {
   const { lang } = useLanguage();
   const t = WAITER_TEXT[lang];
-  const { orders, checkoutRequestedTableIds, activeSessionTableIds } = useWaiterOrders(
-    restaurant.id,
+  const { orders, checkoutRequestedTableIds, activeSessionTableIds, tables } = useWaiterOrders(
+    restaurant,
     initialOrders,
     initialCheckoutRequestedTableIds,
-    true,
+    tablesProp,
+    !isDemo,
   );
 
-  const configuredTables = useMemo(() => tablesProp, [tablesProp]);
+  const configuredTables = useMemo(() => tables, [tables]);
 
   const allTableCards = useMemo(() => {
     return configuredTables

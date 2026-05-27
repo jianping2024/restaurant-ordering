@@ -5,11 +5,13 @@ import { createClient } from '@/lib/supabase/client';
 import type { Order } from '@/types';
 import { fetchWaiterBoardClient } from '@/lib/staff-board-client';
 import { useRestaurantRealtimeRefresh } from '@/lib/use-restaurant-realtime-refresh';
+import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 
 export function useWaiterOrders(
-  restaurantId: string,
+  restaurant: { id: string; slug: string },
   initialOrders: Order[],
   initialCheckoutRequestedTableIds: string[],
+  initialTables: RestaurantTableRow[],
   enabled: boolean,
 ) {
   const [orders, setOrders] = useState<Order[]>(initialOrders);
@@ -17,19 +19,25 @@ export function useWaiterOrders(
     initialCheckoutRequestedTableIds,
   );
   const [activeSessionTableIds, setActiveSessionTableIds] = useState<string[]>([]);
+  const [tables, setTables] = useState<RestaurantTableRow[]>(initialTables);
+  const [tablesLoaded, setTablesLoaded] = useState(initialTables.length > 0);
   const supabase = useMemo(() => createClient(), []);
 
   const refresh = useCallback(async () => {
-    const board = await fetchWaiterBoardClient(restaurantId);
+    if (!enabled) return null;
+    const board = await fetchWaiterBoardClient(restaurant.slug);
     setOrders(board.orders);
     setActiveSessionTableIds(board.activeSessionTableIds);
     setCheckoutRequestedTableIds(board.checkoutRequestedTableIds);
-  }, [restaurantId]);
+    setTables(board.tables);
+    setTablesLoaded(true);
+    return board;
+  }, [enabled, restaurant.slug]);
 
   useRestaurantRealtimeRefresh(
     supabase,
-    restaurantId,
-    `waiter-${restaurantId}`,
+    restaurant.id,
+    `waiter-${restaurant.id}`,
     enabled,
     refresh,
     1200,
@@ -40,6 +48,8 @@ export function useWaiterOrders(
     setOrders,
     checkoutRequestedTableIds,
     activeSessionTableIds,
+    tables,
+    tablesLoaded,
     refresh,
     supabase,
   };

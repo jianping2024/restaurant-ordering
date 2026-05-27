@@ -31,5 +31,6 @@ export async function GET(
   return NextResponse.json({
     orders: board.orders,
     activeTableIds: board.activeTableIds,
+    tables: board.tables,
   });
 }

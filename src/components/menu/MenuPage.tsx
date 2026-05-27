@@ -15,7 +15,6 @@ import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals
 import { showToast } from '@/components/ui/Toast';
 import { autoEnqueueStationTicketsAfterSubmit } from '@/lib/auto-enqueue-station-tickets';
 import { normalizeOrderRadiusMeters } from '@/lib/order-radius';
-import { filterOrdersForCustomerDisplay } from '@/lib/customer-orders-display';
 import { requestCustomerSessionContext } from '@/lib/request-customer-context';
 
 const LANG_FLAGS: Record<Language, string> = { pt: '🇵🇹', en: '🇬🇧', zh: '🇨🇳' };
@@ -128,7 +127,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
         setRecentOrders([]);
         return;
       }
-      setRecentOrders(filterOrdersForCustomerDisplay((data.recent_orders || []) as Order[]));
+      setRecentOrders((data.recent_orders || []) as Order[]);
     };
 
     void loadSessionAndOrders();

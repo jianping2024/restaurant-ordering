@@ -4,6 +4,21 @@ const AMOUNT_EPS = 0.009;
 
 export type BillSplitValidationIssue = 'unassigned_items' | 'amount_mismatch';
 
+function amountsMatch(
+  splitMode: SplitMode,
+  splitSum: number,
+  total: number,
+  results: Array<{ amount: number }>,
+): boolean {
+  if (!Number.isFinite(splitSum) || !Number.isFinite(total)) return false;
+  if (splitMode === 'even') {
+    if (results.length === 0) return false;
+    const ints = results.map((row) => Math.floor(Number(row.amount || 0)));
+    return ints.every((n) => n === ints[0]);
+  }
+  return Math.abs(splitSum - total) <= AMOUNT_EPS;
+}
+
 export function validateBillSplit(params: {
   splitMode: SplitMode | null;
   total: number;
@@ -35,7 +50,7 @@ export function validateBillSplit(params: {
   }
 
   const splitSum = results.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-  if (Math.abs(splitSum - total) > AMOUNT_EPS) {
+  if (!amountsMatch(splitMode, splitSum, total, results)) {
     return { ok: false, issue: 'amount_mismatch' };
   }
 

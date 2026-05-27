@@ -3,6 +3,15 @@ import { aggregateBuffetForOrders } from '@/lib/buffet-order';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
 
+type WaiterVoidableItem = {
+  orderId: string;
+  itemIdx: number;
+  label: string;
+  status: 'pending' | 'cooking';
+};
+
+type SortableWaiterVoidableItem = WaiterVoidableItem & { sortAt: string };
+
 export interface WaiterTableCardData {
   tableId: string;
   displayName: string;
@@ -12,13 +21,7 @@ export interface WaiterTableCardData {
   readyItems: string[];
   hasBuffet: boolean;
   voidedItems: string[];
-  voidableItems: Array<{
-    orderId: string;
-    itemIdx: number;
-    label: string;
-    status: 'pending' | 'cooking';
-    sortAt: string;
-  }>;
+  voidableItems: WaiterVoidableItem[];
   updatedAt: string;
 }
 
@@ -28,7 +31,9 @@ export function buildWaiterTableCard(
   displayName: string,
   orders: Order[],
 ): WaiterTableCardData {
-  const current: WaiterTableCardData = {
+  const current: Omit<WaiterTableCardData, 'voidableItems'> & {
+    voidableItems: SortableWaiterVoidableItem[];
+  } = {
     tableId,
     displayName,
     pending: 0,

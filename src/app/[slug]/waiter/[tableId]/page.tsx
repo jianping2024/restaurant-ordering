@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { WaiterTableDetail } from '@/components/waiter/WaiterTableDetail';
 import type { Buffet } from '@/types';
-import { parseTableIdParam, type RestaurantTableRow } from '@/lib/restaurant-tables';
+import { parseTableIdParam } from '@/lib/restaurant-tables';
 
 interface Props {
   params: Promise<{ slug: string; tableId: string }>;
@@ -23,16 +23,6 @@ export default async function WaiterTablePage({ params }: Props) {
 
   if (!restaurant) notFound();
 
-  const { data: tableRow } = await supabase
-    .from('restaurant_tables')
-    .select('id, display_name, sort_order')
-    .eq('restaurant_id', restaurant.id)
-    .eq('id', tableId)
-    .is('deleted_at', null)
-    .maybeSingle();
-
-  if (!tableRow) notFound();
-
   const { data: buffetRows } = await supabase
     .from('buffets')
     .select('*')
@@ -44,8 +34,6 @@ export default async function WaiterTablePage({ params }: Props) {
       restaurant={restaurant}
       initialBuffets={(buffetRows || []) as Buffet[]}
       tableId={tableId}
-      displayName={tableRow.display_name}
-      tables={[tableRow as RestaurantTableRow]}
     />
   );
 }

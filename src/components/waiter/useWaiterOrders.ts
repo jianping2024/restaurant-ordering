@@ -27,7 +27,7 @@ export function useWaiterOrders(
     if (!enabled) return null;
     const board = await fetchWaiterBoardClient(restaurant.slug);
     setOrders(board.orders);
-    setActiveSessionByTableId(board.activeSessionByTableId ?? {});
+    setActiveSessionByTableId(board.activeSessionByTableId);
     setCheckoutRequestedTableIds(board.checkoutRequestedTableIds);
     setTables(board.tables);
     setTablesLoaded(true);

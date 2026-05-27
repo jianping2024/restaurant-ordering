@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
 import { validateBillSplit } from '@/lib/bill-split-validate';
 import { sumLineTotals } from '@/lib/cart-totals';
 import { mergeSplitResultPaid } from '@/lib/checkout-request-state';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
-import type { Order, SplitMode, SplitPerson, SplitResult } from '@/types';
+import type { SplitMode, SplitPerson, SplitResult } from '@/types';
 
 export const runtime = 'nodejs';
-
-const AMOUNT_EPS = 0.009;
 
 function parseSplitMode(raw: unknown): SplitMode | null {
   if (raw === 'even' || raw === 'by_item' || raw === 'custom') return raw;
@@ -143,17 +142,12 @@ export async function POST(
   }
 
   const sessionId = session.id as string;
-  const { data: orderRows, error: ordersErr } = await admin
-    .from('orders')
-    .select('*')
-    .eq('restaurant_id', restaurantId)
-    .eq('session_id', sessionId)
-    .order('created_at', { ascending: true });
-  if (ordersErr) {
-    return NextResponse.json({ error: 'orders_lookup_failed', message: ordersErr.message }, { status: 500 });
-  }
-
-  const orders = (orderRows || []) as Order[];
+  const orders = await loadCustomerSessionOrders({
+    admin,
+    restaurantId,
+    sessionId,
+    ascending: true,
+  });
   const allItems = orders.flatMap((order) =>
     order.items.map((item, idx) => ({
       ...item,
@@ -174,11 +168,6 @@ export async function POST(
   });
   if (!validation.ok) {
     return NextResponse.json({ error: validation.issue }, { status: 400 });
-  }
-
-  const resultTotal = result.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-  if (Math.abs(resultTotal - total) > AMOUNT_EPS) {
-    return NextResponse.json({ error: 'amount_mismatch' }, { status: 400 });
   }
 
   const { data: existingRequest, error: existingErr } = await admin

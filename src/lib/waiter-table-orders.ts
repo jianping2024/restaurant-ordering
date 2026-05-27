@@ -5,20 +5,12 @@ export function sessionIdForActiveTable(
   tableId: string,
   activeSessionByTableId: Record<string, string> = {},
 ): string | null {
-  const map = activeSessionByTableId ?? {};
-  const direct = map[tableId];
+  const direct = activeSessionByTableId[tableId];
   if (direct) return direct;
-  for (const [tid, sid] of Object.entries(map)) {
+  for (const [tid, sid] of Object.entries(activeSessionByTableId)) {
     if (tableIdsEqual(tid, tableId)) return sid;
   }
   return null;
-}
-
-export function tableHasOpenSession(
-  tableId: string,
-  activeSessionByTableId: Record<string, string> = {},
-): boolean {
-  return sessionIdForActiveTable(tableId, activeSessionByTableId) != null;
 }
 
 /** Session-wide orders when table has open/billing session; else this table's orders only. */
@@ -31,5 +23,5 @@ export function ordersForWaiterTableView(
   if (sessionId) {
     return orders.filter((o) => o.session_id === sessionId);
   }
-  return orders.filter((o) => tableIdsEqual(o.table_id, tableId));
+  return orders.filter((o) => !o.session_id && tableIdsEqual(o.table_id, tableId));
 }

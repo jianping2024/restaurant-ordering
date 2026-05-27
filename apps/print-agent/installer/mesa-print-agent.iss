@@ -28,22 +28,11 @@ WizardStyle=modern
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
-[Tasks]
-Name: "autostart"; Description: "Start Mesa Print Agent when the current user logs on to Windows"; GroupDescription: "Additional tasks:"; Flags: checked
-
 [Files]
 Source: "..\dist\amd64\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\dist\amd64\VERSION.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "WINDOWS-README.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "wizard-before.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "wizard-after.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"
-Name: "{group}\Printer settings"; Filename: "{app}\{#MyAppExe}"; Parameters: "configure"
-Name: "{group}\Setup guide"; Filename: "{app}\WINDOWS-README.txt"
-Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: autostart
-
-[Run]
-Filename: "{app}\{#MyAppExe}"; Description: "Launch Mesa Print Agent now (system tray)"; Flags: nowait postinstall skipifsilent checked
-Filename: "{app}\WINDOWS-README.txt"; Description: "Open setup guide (Read me)"; Flags: postinstall shellexec skipifsilent unchecked
+Name: "{group}\Read me"; Filename: "{app}\WINDOWS-README.txt"

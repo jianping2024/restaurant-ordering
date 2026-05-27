@@ -15,7 +15,10 @@ func spawnAgentSubcommand(subcmd string) error {
 		return err
 	}
 	cmd := exec.Command(exe, subcmd)
-	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: false}
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		HideWindow:    true,
+		CreationFlags: 0x08000000, // CREATE_NO_WINDOW
+	}
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("start %s: %w", subcmd, err)
 	}

@@ -59,9 +59,7 @@ func runConfigureWizard(ctx context.Context, configPath string, prefillAPI strin
 		baseURL = "http://" + listenAddr + "/configure?api=" + url.QueryEscape(api)
 	}
 	log.Printf("configure wizard: open %s", baseURL)
-	if err := openBrowser(baseURL); err != nil {
-		log.Printf("configure wizard: open browser: %v — manual URL: %s", err, baseURL)
-	}
+	announceWizardURL("Mesa 打印机设置", baseURL)
 
 	return waitLocalWizard(ctx, srv, done)
 }

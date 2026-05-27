@@ -46,9 +46,7 @@ func runSetupWizard(ctx context.Context, configPath string, cfg *config) error {
 
 	baseURL := "http://" + listenAddr + "/setup"
 	log.Printf("setup wizard: open %s", baseURL)
-	if err := openBrowser(baseURL); err != nil {
-		log.Printf("setup wizard: open browser: %v — manual URL: %s", err, baseURL)
-	}
+	announceWizardURL("Mesa 打印机映射", baseURL)
 
 	return waitLocalWizard(ctx, srv, done)
 }

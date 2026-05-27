@@ -11,6 +11,7 @@ grep -q 'guardMainAgentSingleInstance' "$ROOT/main.go" || {
 grep -q 'func guardMainAgentSingleInstance' "$ROOT/single_instance_common.go" || exit 1
 grep -q 'Global\\\\MesaPrintAgent-SingleInstance' "$ROOT/single_instance_windows.go" || exit 1
 grep -q 'errorAlreadyExists' "$ROOT/single_instance_windows.go" || exit 1
+grep -q 'OpenMutexW' "$ROOT/single_instance_windows.go" || exit 1
 grep -q 'exitAlreadyRunning' "$ROOT/single_instance_windows.go" || exit 1
 
 python3 <<PY

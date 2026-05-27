@@ -87,10 +87,7 @@ func runPairingWizard(ctx context.Context, configPath, prefillAPI string) error 
 	}
 
 	log.Printf("pairing wizard: open %s in your browser", baseURL)
-	if err := openBrowser(baseURL); err != nil {
-		log.Printf("pairing wizard: could not open browser automatically: %v", err)
-		log.Printf("pairing wizard: open this URL manually: %s", baseURL)
-	}
+	announceWizardURL("Mesa 配对", baseURL)
 
 	return waitLocalWizard(ctx, srv, done)
 }

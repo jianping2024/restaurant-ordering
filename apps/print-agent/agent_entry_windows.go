@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"log"
+	"runtime"
 	"sync"
 	"time"
 
@@ -44,6 +45,7 @@ func runAgent(args []string) {
 // Evidence: systray.Run was previously called only after initAgentSession returned, so users saw
 // Task Manager processes (~4MB) with no tray while the local pairing HTTP wizard blocked (up to 20m).
 func runAgentTrayFirst(args []string) {
+	initWindowsAgentLog()
 	hideConsoleWindow()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -71,6 +73,7 @@ func runAgentTrayFirst(args []string) {
 		go runPollLoop(ctx, sess, rt.status)
 	}()
 
+	runtime.LockOSThread()
 	systray.Run(func() {
 		onTrayReady(rt)
 	}, func() {
@@ -78,12 +81,15 @@ func runAgentTrayFirst(args []string) {
 	})
 }
 
+
 func onTrayReady(rt *trayRuntime) {
+	log.Println("tray: ready")
 	if len(trayIconICO) > 0 {
 		systray.SetIcon(trayIconICO)
 	}
 	systray.SetTitle("Mesa Print")
 	systray.SetTooltip(rt.status.tooltip(Version))
+	go maybeNotifyTrayReady()
 
 	mSettings := systray.AddMenuItem("Printer settings…", "Open configure wizard (pair + map stations)")
 	mShowConsole := systray.AddMenuItem("Show debug console", "Show log window for troubleshooting")

@@ -9,6 +9,7 @@
 #define MyAppExe "MesaPrintAgent.exe"
 #define MyAppPublisher "Mesa"
 #define MyAppURL "https://github.com/jianping2024/restaurant-ordering"
+
 [Setup]
 AppId={{A3B8F2E1-9C4D-4A2B-8E1F-0D5C6B7A8E9F}}
 AppName={#MyAppName}
@@ -34,7 +35,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [CustomMessages]
 english.AutostartTask=Start %1 when the current user logs on to Windows
 english.AutostartTaskDesc=Adds a shortcut to your Windows Startup folder (removed on uninstall). Uncheck if you start the agent manually.
-english.LaunchAgent=Launch %1 now (system tray; browser setup if needed)
+english.LaunchAgent=Launch %1 now (system tray, browser setup if needed)
 english.OpenReadme=Open setup guide (Read me)
 
 [Tasks]

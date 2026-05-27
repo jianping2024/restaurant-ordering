@@ -39,7 +39,7 @@ english.LaunchAgent=Launch %1 now (system tray, browser setup if needed)
 english.OpenReadme=Open setup guide (Read me)
 
 [Tasks]
-Name: "autostart"; Description: "{cm:AutostartTask|{#MyAppName}}"; GroupDescription: "Startup:"; Flags: checked
+Name: "autostart"; Description: "{cm:AutostartTask,{#MyAppName}}"; GroupDescription: "Startup:"; Flags: checked
 
 [Files]
 Source: "..\dist\amd64\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
@@ -55,5 +55,5 @@ Name: "{group}\Setup guide"; Filename: "{app}\WINDOWS-README.txt"
 Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: autostart
 
 [Run]
-Filename: "{app}\{#MyAppExe}"; Description: "{cm:LaunchAgent|{#MyAppName}}"; Flags: nowait postinstall skipifsilent checked
+Filename: "{app}\{#MyAppExe}"; Description: "{cm:LaunchAgent,{#MyAppName}}"; Flags: nowait postinstall skipifsilent checked
 Filename: "{app}\WINDOWS-README.txt"; Description: "{cm:OpenReadme}"; Flags: postinstall shellexec skipifsilent unchecked

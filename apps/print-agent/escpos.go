@@ -219,7 +219,7 @@ func (p jobPayload) venueName() string {
 type escposWriter struct {
 	prefix          []byte
 	content         bytes.Buffer
-	gbk             bool
+	enc             paperEncoding
 	hadDoubleHeight bool
 }
 
@@ -244,59 +244,58 @@ func newEscpos() *escposWriter {
 
 func newEscposForStationTicket(p jobPayload) *escposWriter {
 	w := newEscpos()
-	if stationTicketNeedsGBK(p) {
-		w.enableGBK()
-	} else {
-		w.enableLatin()
-	}
+	w.applyEncoding(loadPaperEncodingForPayload(stationTicketNeedsGBK(p)))
 	return w
 }
 
 func newEscposForReceiptTicket(p jobPayload) *escposWriter {
 	w := newEscpos()
-	if receiptTicketNeedsGBK(p) {
-		w.enableGBK()
-	} else {
-		w.enableLatin()
-	}
+	w.applyEncoding(loadPaperEncodingForPayload(receiptTicketNeedsGBK(p)))
 	return w
 }
 
 func newEscposForPayload(p jobPayload) *escposWriter {
 	w := newEscpos()
-	if payloadNeedsGBK(p) {
-		w.enableGBK()
-	} else {
-		w.enableLatin()
-	}
+	w.applyEncoding(loadPaperEncodingForPayload(payloadNeedsGBK(p)))
 	return w
 }
 
 func newEscposForConnectionTest(p jobPayload) *escposWriter {
 	w := newEscpos()
-	if connectionTestNeedsGBK(p) {
+	w.applyEncoding(loadPaperEncodingForPayload(connectionTestNeedsGBK(p)))
+	return w
+}
+
+func (w *escposWriter) applyEncoding(enc paperEncoding) {
+	switch enc {
+	case paperEncGBK:
 		w.enableGBK()
-	} else {
+	case paperEncUTF8:
+		w.enableUTF8()
+	default:
 		w.enableLatin()
 	}
-	return w
 }
 
 func (w *escposWriter) init() { w.prefix = append(w.prefix, 0x1B, 0x40) }
 
 // enableLatin selects WPC1252 (covers Portuguese accents on most 80mm printers).
 func (w *escposWriter) enableLatin() {
-	w.gbk = false
+	w.enc = paperEncLatin
 	w.prefix = append(w.prefix, 0x1B, 0x74, 16)
 }
 
-// enableGBK selects simplified Chinese mode (GBK/GB2312 on Epson-compatible 80mm printers).
+// enableGBK — FS & + FS C 0 (simplified GB2312/GBK). Do not use FS C 1 (BIG5) for「打印测试」.
 func (w *escposWriter) enableGBK() {
-	w.gbk = true
-	w.prefix = append(w.prefix,
-		0x1C, 0x26, // FS & — enter Chinese mode
-		0x1C, 0x43, 0x01, // FS C 1 — GBK code table (common on UNYKA / clone firmware)
-	)
+	w.enc = paperEncGBK
+	w.prefix = append(w.prefix, 0x1C, 0x26)       // FS & — double-byte mode
+	w.prefix = append(w.prefix, 0x1C, 0x43, 0x00) // FS C 0 — simplified Chinese
+}
+
+// enableUTF8 — ESC 9 (common on Xprinter / many 80mm; works when GBK mode is ignored).
+func (w *escposWriter) enableUTF8() {
+	w.enc = paperEncUTF8
+	w.prefix = append(w.prefix, 0x1B, 0x39, 0x01)
 }
 
 func (w *escposWriter) align(mode byte) {
@@ -326,9 +325,12 @@ func (w *escposWriter) size(doubleW, doubleH bool) {
 }
 
 func (w *escposWriter) text(s string) {
-	if w.gbk {
+	switch w.enc {
+	case paperEncGBK:
 		w.content.Write(encodeGBK(s))
-	} else {
+	case paperEncUTF8:
+		w.content.Write([]byte(s))
+	default:
 		w.content.Write(encodeWindows1252(s))
 	}
 }
@@ -352,7 +354,7 @@ func (w *escposWriter) finish(cut bool) []byte {
 	out.Write(w.content.Bytes())
 	if cut {
 		w.writeResetPrintMode(&out)
-		if w.gbk {
+		if w.enc == paperEncGBK {
 			out.Write([]byte{0x1C, 0x2E}) // FS . — exit Chinese mode before feed/cut
 		}
 		writeMarginLines(&out, escposBottomMarginLines)

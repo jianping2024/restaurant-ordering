@@ -22,9 +22,17 @@ type config struct {
 	UILocale string `json:"ui_locale,omitempty"`
 	// ValidUntil: RFC3339 from claim; used for tray renewal hints (half-year credential).
 	ValidUntil string `json:"valid_until,omitempty"`
+	// TextEncoding: auto | utf8 | gbk | latin — Chinese/non-Latin bytes on thermal paper (UI/test + zh jobs).
+	TextEncoding string `json:"text_encoding,omitempty"`
 }
 
+// configPathOverride is set by tests only.
+var configPathOverride string
+
 func defaultConfigPath() string {
+	if configPathOverride != "" {
+		return configPathOverride
+	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "mesa-print-agent.json"
@@ -137,6 +145,9 @@ func mergePrinterConfig(prev, next *config) {
 	}
 	if strings.TrimSpace(prev.ValidUntil) != "" && strings.TrimSpace(next.ValidUntil) == "" {
 		next.ValidUntil = prev.ValidUntil
+	}
+	if strings.TrimSpace(prev.TextEncoding) != "" && strings.TrimSpace(next.TextEncoding) == "" {
+		next.TextEncoding = prev.TextEncoding
 	}
 }
 

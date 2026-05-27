@@ -17,6 +17,7 @@ type printerListEntry struct {
 type setupRequestBody struct {
 	StationPrinters map[string]string `json:"station_printers"`
 	UILocale        string            `json:"ui_locale,omitempty"`
+	TextEncoding    string            `json:"text_encoding,omitempty"`
 }
 
 func discoverAllPrinters(timeout time.Duration, workers int) (tcp []printerListEntry, winspool []printerListEntry, err error) {
@@ -74,6 +75,7 @@ func writeConfigureState(w http.ResponseWriter, cfg *config) {
 		"station_printers": cfg.StationPrinters,
 		"station_count":    stationCount,
 		"ui_locale":        loc,
+		"text_encoding":    normalizeTextEncoding(cfg.TextEncoding),
 		"ui":               uiBundleMap(loc),
 	})
 }
@@ -85,14 +87,20 @@ func registerUILocaleRoute(mux *http.ServeMux, configPath string, cfg **config) 
 			return
 		}
 		var body struct {
-			Locale string `json:"ui_locale"`
+			Locale       string `json:"ui_locale"`
+			TextEncoding string `json:"text_encoding"`
 		}
-		if err := json.NewDecoder(io.LimitReader(r.Body, 256)).Decode(&body); err != nil {
+		if err := json.NewDecoder(io.LimitReader(r.Body, 512)).Decode(&body); err != nil {
 			writePairJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request"})
 			return
 		}
 		c := reloadConfig(configPath, *cfg)
-		c.UILocale = normalizeUILocale(body.Locale)
+		if strings.TrimSpace(body.Locale) != "" {
+			c.UILocale = normalizeUILocale(body.Locale)
+		}
+		if strings.TrimSpace(body.TextEncoding) != "" {
+			c.TextEncoding = normalizeTextEncoding(body.TextEncoding)
+		}
 		if err := saveConfig(configPath, c); err != nil {
 			writePairJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			return
@@ -100,9 +108,10 @@ func registerUILocaleRoute(mux *http.ServeMux, configPath string, cfg **config) 
 		*cfg = c
 		loc := c.uiLocale()
 		writePairJSON(w, http.StatusOK, map[string]any{
-			"status":    "ok",
-			"ui_locale": loc,
-			"ui":        uiBundleMap(loc),
+			"status":         "ok",
+			"ui_locale":      loc,
+			"text_encoding":  normalizeTextEncoding(c.TextEncoding),
+			"ui":             uiBundleMap(loc),
 		})
 	})
 }
@@ -177,6 +186,9 @@ func registerPrinterWizardRoutes(mux *http.ServeMux, configPath string, cfg **co
 		}
 		if loc := strings.TrimSpace(body.UILocale); loc != "" {
 			c.UILocale = normalizeUILocale(loc)
+		}
+		if enc := strings.TrimSpace(body.TextEncoding); enc != "" {
+			c.TextEncoding = normalizeTextEncoding(enc)
 		}
 		cleaned, err := applyPrinterSetup(c, body)
 		if err != nil {

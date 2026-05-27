@@ -61,6 +61,13 @@
         <option value="en">English</option>
         <option value="pt">Português</option>
       </select>
+      <label for="textEncoding" id="textEncodingLabel" style="margin-top:12px">Chinese thermal encoding</label>
+      <p class="hint" id="textEncodingHint">…</p>
+      <select id="textEncoding">
+        <option value="auto">Auto (GBK)</option>
+        <option value="utf8">UTF-8</option>
+        <option value="gbk">GBK</option>
+      </select>
     </div>
 
     <div class="status" id="status">…</div>
@@ -155,6 +162,14 @@
         document.getElementById('langSectionTitle').textContent = t('section_lang');
         document.getElementById('langHint').textContent = t('section_lang_hint');
         document.getElementById('langLabel').textContent = t('section_lang');
+        document.getElementById('textEncodingLabel').textContent = t('text_encoding_label');
+        document.getElementById('textEncodingHint').textContent = t('text_encoding_hint');
+        var te = document.getElementById('textEncoding');
+        if (te && te.options.length >= 3) {
+          te.options[0].textContent = t('text_encoding_auto');
+          te.options[1].textContent = t('text_encoding_utf8');
+          te.options[2].textContent = t('text_encoding_gbk');
+        }
         document.getElementById('pairSectionTitle').textContent = t('section_pair');
         document.getElementById('printerSectionTitle').textContent = t('section_printers');
         document.getElementById('printerGate').textContent = t('printer_gate');
@@ -179,22 +194,30 @@
         renderStatus();
       }
 
-      function saveUILocale(loc) {
+      function saveAgentPrefs(loc, textEnc) {
+        var body = {};
+        if (loc) body.ui_locale = loc;
+        if (textEnc) body.text_encoding = textEnc;
         return fetch('/api/ui-locale', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ui_locale: loc })
+          body: JSON.stringify(body)
         }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); });
       }
 
+      function onPrefsSaved(res) {
+        if (res.ok && res.j.ui) {
+          ui = res.j.ui;
+          applyI18n();
+        }
+      }
+
       document.getElementById('uiLocale').addEventListener('change', function () {
-        var loc = document.getElementById('uiLocale').value;
-        saveUILocale(loc).then(function (res) {
-          if (res.ok && res.j.ui) {
-            ui = res.j.ui;
-            applyI18n();
-          }
-        });
+        saveAgentPrefs(document.getElementById('uiLocale').value, null).then(onPrefsSaved);
+      });
+
+      document.getElementById('textEncoding').addEventListener('change', function () {
+        saveAgentPrefs(null, document.getElementById('textEncoding').value).then(onPrefsSaved);
       });
 
       function stationLabel(s) {
@@ -395,6 +418,7 @@
             state = j;
             ui = j.ui || {};
             if (j.ui_locale) document.getElementById('uiLocale').value = j.ui_locale;
+            if (j.text_encoding) document.getElementById('textEncoding').value = j.text_encoding;
             applyI18n();
             if (params.get('api') && !document.getElementById('api').value) {
               document.getElementById('api').value = params.get('api');
@@ -450,13 +474,17 @@
           err.textContent = t('save_need_mapping');
           return;
         }
-        saveUILocale(document.getElementById('uiLocale').value).finally(function () {
+        saveAgentPrefs(
+          document.getElementById('uiLocale').value,
+          document.getElementById('textEncoding').value
+        ).finally(function () {
         fetch('/api/setup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             station_printers: station_printers,
-            ui_locale: document.getElementById('uiLocale').value
+            ui_locale: document.getElementById('uiLocale').value,
+            text_encoding: document.getElementById('textEncoding').value
           })
         })
           .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })

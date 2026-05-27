@@ -398,7 +398,11 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
 
   const occupiedTableIds = new Set(activeSessions.map((s) => s.table_id));
   const transferTargets = tables
-    .filter((row) => row.id !== sourceTableId && !occupiedTableIds.has(row.id))
+    .filter(
+      (row) =>
+        (!sourceTableId || !tableIdsEqual(row.id, sourceTableId)) &&
+        !occupiedTableIds.has(row.id),
+    )
     .sort(compareRestaurantTables);
   const mergeTargets = activeSessions
     .map((s) => s.table_id)

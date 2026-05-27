@@ -226,8 +226,16 @@ function WaiterTableDetailInner({
   }, [configuredTables, orders, activeSessionByTableId]);
 
   const targetCandidates = operationType === 'transfer'
-    ? configuredTables.filter((table) => !activeTableIds.includes(table.id) || table.id === sourceTable)
-    : configuredTables.filter((table) => activeTableIds.includes(table.id) && table.id !== sourceTable);
+    ? configuredTables.filter(
+        (table) =>
+          !activeTableIds.includes(table.id) &&
+          (!sourceTable || !tableIdsEqual(table.id, sourceTable)),
+      )
+    : configuredTables.filter(
+        (table) =>
+          activeTableIds.includes(table.id) &&
+          (!sourceTable || !tableIdsEqual(table.id, sourceTable)),
+      );
 
   const sourceTableLabel =
     configuredTables.find((row) => row.id === sourceTable)?.display_name ?? sourceTable ?? '';
@@ -294,7 +302,7 @@ function WaiterTableDetailInner({
 
   const handleActionSubmit = async () => {
     if (!operationType || !sourceTable || !targetTable) return;
-    if (sourceTable === targetTable) {
+    if (tableIdsEqual(sourceTable, targetTable)) {
       showToast(t.sameTableError, 'error');
       return;
     }

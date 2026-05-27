@@ -11,6 +11,7 @@ type agentSession struct {
 	cfgPath string
 	cfg     *config
 	pc      *pollController
+	hb      heartbeatSnapshot
 }
 
 func initAgentSession(runCtx context.Context, args []string) (*agentSession, bool, error) {

@@ -207,14 +207,14 @@ flowchart LR
 - [x] 日志文件人话（P0-3，v0.2.44+）：与 `ui_locale` 共用 `ui_i18n` / `log_strings.go`
 - [x] 凭证半年 + 到期提醒（v0.2.51–0.2.52）：Dashboard 顶栏/打印助手 30 天横幅；托盘关于/状态/每日轻提示；`valid_until` 写入 config
 - [x] `configure` 并入托盘进程（v0.2.47+）
-- [ ] 心跳上报 + 版本字段
+- [x] 心跳上报 + 版本字段（v0.2.56+：`POST /api/print-agent/heartbeat`、Dashboard「已配对收银机」）
 - [ ] configure/pair/setup：全页 `lang` 与降术语 UI（§5；试打区块已中文）
 - [ ] 启动时可选检查新版本
 
 **应用端（Next / Dashboard）**
 
-- [ ] `heartbeat` API + `print_agent_devices` 或独立表存储 `last_seen`
-- [ ] 打印助手：在线状态、版本落后提示
+- [x] `heartbeat` API + `print_agent_devices` 存储 `last_seen` 等字段
+- [x] 打印助手：在线状态、版本落后提示（设备列表面板）
 - [ ] 「打开本机设置」可达性检测
 - [ ] 配对码 UI 强化 + 深链 configure
 

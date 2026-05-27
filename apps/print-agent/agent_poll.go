@@ -41,6 +41,11 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 		}
 
 		open, err := pc.scheduleOpen()
+		if err == nil {
+			if hbErr := postHeartbeat(ctx, cfg, open, &sess.hb); hbErr != nil {
+				agentLogTech(cfg, "log_heartbeat_error", hbErr.Error())
+			}
+		}
 		if err != nil {
 			agentLogTech(cfg, "log_schedule_error", err.Error())
 			setStatus("Schedule error", err.Error())
@@ -149,6 +154,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 				"status":        "failed",
 				"error_message": err.Error(),
 			})
+			sess.hb.recordPrint(false)
 			agentLogTech(cfg, "log_print_failed", err.Error(), target.Display)
 			setStatus("Print failed", err.Error())
 		} else {
@@ -157,6 +163,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			} else {
 				agentLog(cfg, "log_printed_ok", target.Display, summarizeJobPayload(job))
 			}
+			sess.hb.recordPrint(true)
 			setStatus("Ready", "Last print OK")
 		}
 		queue = queue[1:]

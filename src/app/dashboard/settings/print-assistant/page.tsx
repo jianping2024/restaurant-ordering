@@ -18,7 +18,11 @@ import { getSiteOrigin } from '@/lib/site-origin';
 import { PrintAgentPairingPanel } from '@/components/dashboard/PrintAgentPairingPanel';
 import { PrintAgentSchedulePanel } from '@/components/dashboard/PrintAgentSchedulePanel';
 import { PrintAgentCredentialExpiryAlert } from '@/components/dashboard/PrintAgentCredentialExpiryAlert';
-import { loadPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-server';
+import { PrintAgentDevicesPanel } from '@/components/dashboard/PrintAgentDevicesPanel';
+import {
+  loadPrintAgentDevices,
+  loadPrintAgentDevicesNeedingRenewal,
+} from '@/lib/print-agent-devices-server';
 
 export default async function PrintAssistantSettingsPage() {
   const supabase = await createClient();
@@ -71,13 +75,20 @@ export default async function PrintAssistantSettingsPage() {
     ? await findLatestPublishedPrintAgentRelease()
     : null;
 
-  const expiringDevices = await loadPrintAgentDevicesNeedingRenewal(rid);
+  const [expiringDevices, pairedDevices] = await Promise.all([
+    loadPrintAgentDevicesNeedingRenewal(rid),
+    loadPrintAgentDevices(rid),
+  ]);
 
   return (
     <div className="space-y-6">
       {expiringDevices.length > 0 ? (
         <PrintAgentCredentialExpiryAlert devices={expiringDevices} variant="panel" />
       ) : null}
+      <PrintAgentDevicesPanel
+        initialDevices={pairedDevices}
+        recommendedVersion={printAgentVersion || ''}
+      />
       {downloadUrls ? (
         <PrintAgentDownloadPanel
           urls={downloadUrls}

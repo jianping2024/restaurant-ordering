@@ -36,6 +36,8 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   printEnqueueNoStation: string;
   printEnqueueFailed: string;
   printEnqueueRateLimited: string;
+  waitingForBuffet: string;
+  buffetRequired: string;
 }> = {
   pt: {
     table: 'Mesa',
@@ -74,6 +76,8 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
       'Pedido guardado, mas nenhum talao de estacao: ligue uma estacao de impressao na categoria ou no prato (Menu nas definicoes).',
     printEnqueueFailed: 'Pedido guardado, mas o envio para impressao falhou. Verifique o assistente de impressao.',
     printEnqueueRateLimited: 'Demasiados pedidos de impressao; tente novamente dentro de um minuto.',
+    waitingForBuffet: 'Aguarde: o garcom deve registar o buffet desta mesa antes de pedir pratos.',
+    buffetRequired: 'O garcom ainda nao activou esta mesa. Peça para registar o buffet primeiro.',
   },
   en: {
     table: 'Table',
@@ -112,6 +116,8 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
       'Order saved, but no station ticket was queued. Assign a print station on the category or dish in Menu settings.',
     printEnqueueFailed: 'Order saved, but sending to the print queue failed. Check Print assistant.',
     printEnqueueRateLimited: 'Too many print requests; please try again in a minute.',
+    waitingForBuffet: 'Please wait: staff must post buffet for this table before you can order dishes.',
+    buffetRequired: 'This table is not open for ordering yet. Ask staff to post buffet first.',
   },
   zh: {
     table: '桌号',
@@ -150,5 +156,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
       '订单已保存，但未打出品联：请在「菜单管理 → 出品档口」定义档口，并在分类或菜品上绑定。',
     printEnqueueFailed: '订单已保存，但送入打印队列失败，请检查打印助手与代理。',
     printEnqueueRateLimited: '打印请求过于频繁，请稍后再试。',
+    waitingForBuffet: '请稍候：服务员需先为本桌登记自助餐后，方可点菜。',
+    buffetRequired: '本桌尚未开台，请先请服务员登记自助餐。',
   },
 };

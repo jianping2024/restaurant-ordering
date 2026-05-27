@@ -69,10 +69,9 @@ export function buildBuffetBaseLine(params: {
 }): OrderItem | null {
   const ap = params.resolved.adult_price;
   const cp = params.resolved.child_price;
-  if (ap == null || cp == null) return null;
+  if (!Number.isFinite(Number(ap)) || !Number.isFinite(Number(cp))) return null;
   const adults = Math.max(0, Math.floor(params.adultCount));
   const children = Math.max(0, Math.floor(params.childCount));
-  if (adults + children <= 0) return null;
 
   const lineTotal = adults * Number(ap) + children * Number(cp);
   const addedAt = new Date().toISOString();

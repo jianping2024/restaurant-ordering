@@ -10,6 +10,8 @@ import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals
 import { clientIpFromRequest } from '@/lib/request-client-ip';
 import type { OrderItem } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
+import type { Order } from '@/types';
 
 export const runtime = 'nodejs';
 
@@ -166,27 +168,47 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     .limit(1)
     .maybeSingle();
 
-  if (!session?.id) {
-    const { data: created, error: csErr } = await admin
-      .from('table_sessions')
-      .insert({
-        restaurant_id: rid,
-        table_id: tableId,
-        status: 'open',
-      })
-      .select('id, status')
-      .single();
-    if (csErr || !created) {
-      return NextResponse.json({ error: 'session_create_failed' }, { status: 500 });
+  if (!staffWaiter) {
+    if (!session?.id) {
+      return NextResponse.json({ error: 'buffet_required' }, { status: 403 });
     }
-    session = created;
+    if (session.status === 'billing') {
+      return NextResponse.json({ error: 'session_billing' }, { status: 409 });
+    }
+    const { data: sessionOrders, error: buffetCheckErr } = await admin
+      .from('orders')
+      .select('*')
+      .eq('restaurant_id', rid)
+      .eq('session_id', session.id)
+      .in('status', ['pending', 'cooking', 'done']);
+    if (buffetCheckErr) {
+      return NextResponse.json({ error: 'order_query_failed' }, { status: 500 });
+    }
+    if (!guestOrderingEnabled(session, (sessionOrders || []) as Order[])) {
+      return NextResponse.json({ error: 'buffet_required' }, { status: 403 });
+    }
+  } else {
+    if (!session?.id) {
+      const { data: created, error: csErr } = await admin
+        .from('table_sessions')
+        .insert({
+          restaurant_id: rid,
+          table_id: tableId,
+          status: 'open',
+        })
+        .select('id, status')
+        .single();
+      if (csErr || !created) {
+        return NextResponse.json({ error: 'session_create_failed' }, { status: 500 });
+      }
+      session = created;
+    }
+    if (session.status === 'billing') {
+      return NextResponse.json({ error: 'session_billing' }, { status: 409 });
+    }
   }
 
-  if (session.status === 'billing') {
-    return NextResponse.json({ error: 'session_billing' }, { status: 409 });
-  }
-
-  const sessionId = session.id as string;
+  const sessionId = session!.id as string;
 
   const { data: openOrder } = await admin
     .from('orders')

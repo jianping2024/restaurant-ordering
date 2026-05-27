@@ -96,6 +96,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
   const [demoToast, setDemoToast] = useState(false);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [activeSession, setActiveSession] = useState<TableSession | null>(null);
+  const [guestOrderingEnabled, setGuestOrderingEnabled] = useState(false);
   const [latestBatchId, setLatestBatchId] = useState<string | null>(null);
 
   // 从 localStorage 恢复语言设置
@@ -123,6 +124,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
       const data = await requestCustomerSessionContext(restaurant.slug, tableId);
       if (cancelled || !data) return;
       setActiveSession((data.active_session as TableSession | null) || null);
+      setGuestOrderingEnabled(data.guest_ordering_enabled ?? false);
       if (!data.active_session) {
         setRecentOrders([]);
         return;
@@ -193,8 +195,14 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
     return descendants.has(item.category_id);
   });
 
+  const canPlaceMenuOrders = isDemo || !!returnToWaiterHref || guestOrderingEnabled;
+
   // 加入购物车
   const addToCart = (item: MenuItem) => {
+    if (!canPlaceMenuOrders) {
+      showToast(t.buffetRequired, 'info');
+      return;
+    }
     setCart(prev => {
       const existing = prev.find(c => c.menuItemId === item.id);
       if (existing) {
@@ -253,6 +261,10 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
   // 提交订单
   const submitOrder = async () => {
     if (cart.length === 0) return;
+    if (!canPlaceMenuOrders) {
+      showToast(t.buffetRequired, 'info');
+      return;
+    }
 
     if (isDemo) {
       setCart([]);
@@ -376,6 +388,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
         }
         else if (code === 'location_required') showToast(t.locationPermissionDenied, 'error');
         else if (code === 'session_billing') showToast(t.billDisabledHint, 'info');
+        else if (code === 'buffet_required') showToast(t.buffetRequired, 'info');
         else if (code === 'rate_limited') showToast(t.printEnqueueRateLimited, 'error');
         else showToast(t.submitFailed, 'error');
         return;
@@ -559,6 +572,12 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
           </div>
         )}
       </header>
+
+      {!isDemo && !returnToWaiterHref && !guestOrderingEnabled && (
+        <div className="mx-4 mt-3 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3 text-[13px] text-brand-text">
+          {t.waitingForBuffet}
+        </div>
+      )}
 
       {/* 本桌已下单记录 */}
       <section className="px-4 pt-4">

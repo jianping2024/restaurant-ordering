@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -13,7 +13,6 @@ import {
   RESTAURANT_TABLE_LIST_MAX,
   compareRestaurantTables,
   isValidTableDisplayName,
-  nextDefaultTableDisplayNames,
   normalizeTableDisplayName,
   sortRestaurantTables,
   tableIdsEqual,
@@ -34,6 +33,26 @@ type ActiveSessionRow = {
   status: 'open' | 'billing' | 'closed';
   opened_at: string;
 };
+
+type TablesApiResponse = {
+  tables?: RestaurantTableRow[];
+  error?: string;
+};
+
+async function requestDashboardTables(
+  method: 'POST' | 'PATCH' | 'DELETE',
+  body: Record<string, unknown>,
+): Promise<RestaurantTableRow[] | null> {
+  const res = await fetch('/api/dashboard/tables', {
+    method,
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = (await res.json().catch(() => ({}))) as TablesApiResponse;
+  if (!res.ok || !data.tables) return null;
+  return sortRestaurantTables(data.tables);
+}
 
 export function TablesManager({ restaurant, initialTables, embedded }: TablesManagerProps) {
   const { lang } = useLanguage();
@@ -235,7 +254,7 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
     return merged;
   };
 
-  const saveTables = useCallback(async () => {
+  const saveTables = async () => {
     const resolved = resolveTablesForSave();
     if (!resolved) return;
     setTables(resolved);
@@ -243,21 +262,14 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
 
     setSaving(true);
     try {
-      for (const row of resolved) {
-        const saved = savedTables.find((s) => s.id === row.id);
-        if (saved && saved.display_name === row.display_name) continue;
-        const { error } = await supabase
-          .from('restaurant_tables')
-          .update({ display_name: row.display_name })
-          .eq('id', row.id)
-          .eq('restaurant_id', restaurant.id);
-        if (error) {
-          showToast(t.saveFailed, 'error');
-          return;
-        }
+      const next = await requestDashboardTables('PATCH', { tables: resolved });
+      if (!next) {
+        showToast(t.saveFailed, 'error');
+        return;
       }
 
-      setSavedTables([...resolved]);
+      setTables(next);
+      setSavedTables(next);
       await loadActiveSessions();
       showToast(t.savedTables, 'success');
     } catch {
@@ -265,7 +277,7 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
     } finally {
       setSaving(false);
     }
-  }, [restaurant.id, savedTables, supabase, t]);
+  };
 
   const maxAddCount = Math.max(1, RESTAURANT_TABLE_LIST_MAX - tables.length);
 
@@ -276,26 +288,14 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
     }
     setAdding(true);
     try {
-      const existingNames = tables.map((row) => row.display_name);
-      const displayNames = nextDefaultTableDisplayNames(existingNames, count);
-      const startOrder = Math.max(0, ...tables.map((row) => row.sort_order)) + 1;
-      const rows = displayNames.map((display_name, index) => ({
-        restaurant_id: restaurant.id,
-        display_name,
-        sort_order: startOrder + index,
-      }));
-      const { data, error } = await supabase
-        .from('restaurant_tables')
-        .insert(rows)
-        .select('id, display_name, sort_order');
-      if (error || !data?.length) {
+      const next = await requestDashboardTables('POST', { count });
+      if (!next) {
         showToast(t.saveFailed, 'error');
         return;
       }
-      const next = sortRestaurantTables([...tables, ...(data as RestaurantTableRow[])]);
       setTables(next);
       setSavedTables(next);
-      showToast(t.tablesAdded.replace('{count}', String(data.length)), 'success');
+      showToast(t.tablesAdded.replace('{count}', String(next.length - tables.length)), 'success');
     } catch {
       showToast(t.saveFailed, 'error');
     } finally {
@@ -312,16 +312,11 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
     }
     setDeleting(true);
     try {
-      const { error } = await supabase
-        .from('restaurant_tables')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', deleteTarget.id)
-        .eq('restaurant_id', restaurant.id);
-      if (error) {
+      const next = await requestDashboardTables('DELETE', { table_id: deleteTarget.id });
+      if (!next) {
         showToast(t.saveFailed, 'error');
         return;
       }
-      const next = tables.filter((row) => row.id !== deleteTarget.id);
       setTables(next);
       setSavedTables(next);
       setDeleteTarget(null);

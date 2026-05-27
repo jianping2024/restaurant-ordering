@@ -1,0 +1,16 @@
+//go:build !windows
+
+package main
+
+import (
+	"context"
+	"log"
+)
+
+func runAgent(args []string) {
+	sess, _, err := initAgentSession(args)
+	if err != nil {
+		log.Fatal(err)
+	}
+	runPollLoop(context.Background(), sess, nil)
+}

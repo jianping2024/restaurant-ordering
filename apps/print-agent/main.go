@@ -7,8 +7,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
-	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -138,209 +136,6 @@ func summarizeJobPayload(job printJob) string {
 	return strings.Join(parts, " | ")
 }
 
-func runAgent(args []string) {
-	fs := flag.NewFlagSet("run", flag.ExitOnError)
-	apiBase := fs.String("api", "http://127.0.0.1:3000", "Mesa base URL")
-	code := fs.String("code", "", "6-digit pairing code (first run)")
-	defaultPrinter := fs.String("default-printer", "", "Default host:port for receipts / pre-bill (also sets legacy printer_host)")
-	cfgPath := fs.String("config", "", "Config file path")
-	_ = fs.Parse(args)
-
-	path := *cfgPath
-	if path == "" {
-		path = defaultConfigPath()
-	}
-
-	cfg, err := loadConfig(path)
-	if err != nil || cfg.AgentJWT == "" {
-		if *code != "" {
-			deviceID := newUUID()
-			cfg, err = claim(*apiBase, strings.TrimSpace(*code), deviceID)
-			if err != nil {
-				log.Fatal(err)
-			}
-			if dp := strings.TrimSpace(*defaultPrinter); dp != "" {
-				cfg.DefaultPrinter = dp
-				cfg.PrinterHost = dp
-			}
-			if err := saveConfig(path, cfg); err != nil {
-				log.Fatal(err)
-			}
-			log.Printf("saved config to %s (device_id=%s)", path, deviceID)
-		} else {
-			prefill := strings.TrimSpace(*apiBase)
-			if prefill == "http://127.0.0.1:3000" {
-				prefill = ""
-			}
-			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Minute)
-			defer cancel()
-			if err := runPairingWizard(ctx, path, prefill); err != nil {
-				log.Fatal(err)
-			}
-			cfg, err = loadConfig(path)
-			if err != nil || cfg.AgentJWT == "" {
-				log.Fatal("pairing did not save configuration")
-			}
-		}
-	}
-	if cfg.APIBase == "" {
-		cfg.APIBase = *apiBase
-	}
-	if dp := strings.TrimSpace(*defaultPrinter); dp != "" {
-		cfg.DefaultPrinter = dp
-		cfg.PrinterHost = dp
-		_ = saveConfig(path, cfg)
-	}
-
-	applyCloudRuntimeConfig(cfg, cfg.APIBase)
-
-	if !cfg.hasPrinterRouting() {
-		log.Println("no printer configured — opening setup wizard")
-		setupCtx, setupCancel := context.WithTimeout(context.Background(), 30*time.Minute)
-		if err := runSetupWizard(setupCtx, path, cfg); err != nil {
-			setupCancel()
-			log.Fatal("setup:", err)
-		}
-		setupCancel()
-		cfg, err = loadConfig(path)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	if !cfg.hasPrinterRouting() {
-		log.Println("no station printer mappings — map stations in configure")
-	}
-	syncRoutingToCloud(cfg)
-
-	stationCount := 0
-	if cfg.StationPrinters != nil {
-		stationCount = len(cfg.StationPrinters)
-	}
-	pc, err := newPollController(cfg.Schedule, cfg.Poll)
-	if err != nil {
-		log.Fatal("schedule:", err)
-	}
-	log.Printf("Mesa Print Agent %s", Version)
-	logAgentStartup(cfg, cfg.APIBase, stationCount)
-
-	var lastLogged pollPhase
-	var queue []printJob
-
-	for {
-		open, err := pc.scheduleOpen()
-		if err != nil {
-			log.Println("schedule:", err)
-			time.Sleep(pc.sleepFor(pollPhaseError))
-			continue
-		}
-		if !open {
-			queue = nil
-			if lastLogged != pollPhaseClosed {
-				if wait, werr := pc.closedSleep(); werr == nil {
-					log.Printf("outside schedule — sleeping %s (no API polls)", wait.Round(time.Second))
-				} else {
-					log.Println("outside schedule — no API polls")
-				}
-				lastLogged = pollPhaseClosed
-			}
-			time.Sleep(pc.sleepFor(pollPhaseClosed))
-			continue
-		}
-		if lastLogged == pollPhaseClosed {
-			log.Println("schedule open — resuming polls")
-			lastLogged = ""
-		}
-
-		if len(queue) == 0 {
-			jobs, err := fetchPending(cfg.APIBase, cfg.AgentJWT)
-			phase := pc.phase(len(jobs) > 0, err != nil)
-			if err != nil {
-				if lastLogged != pollPhaseError {
-					log.Println("pending-jobs:", err)
-					lastLogged = pollPhaseError
-				}
-				time.Sleep(pc.sleepFor(pollPhaseError))
-				continue
-			}
-			if len(jobs) == 0 {
-				if lastLogged != phase && phase != pollPhaseIdle {
-					log.Printf("poll %s — next check in %s", phase, pc.sleepFor(phase).Round(time.Second))
-					lastLogged = phase
-				} else if lastLogged != phase {
-					lastLogged = phase
-				}
-				time.Sleep(pc.sleepFor(phase))
-				continue
-			}
-			queue = jobs
-			lastLogged = pollPhaseBusy
-			pc.markActivity()
-		}
-
-		job := queue[0]
-		if jobPrintExpired(job) {
-			_ = patchJob(cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
-				"status":        "failed",
-				"error_message": errPrintJobExpired.Error(),
-			})
-			log.Printf("skipped expired job %s (created %s)", job.ID, job.CreatedAt)
-			queue = queue[1:]
-			pc.markActivity()
-			continue
-		}
-		target, err := cfg.printerTargetForJob(job)
-		if err != nil {
-			if errors.Is(err, errReceiptPrintDeferred) {
-				if len(queue) > 1 {
-					queue = append(queue[1:], queue[0])
-				} else {
-					queue = nil
-				}
-				if lastLogged != pollPhaseBusy {
-					log.Println("receipt job waiting for printer mapping (up to 20m)")
-					lastLogged = pollPhaseBusy
-				}
-				time.Sleep(pc.sleepFor(pollPhaseBusy))
-				pc.markActivity()
-				continue
-			}
-			_ = patchJob(cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
-				"status":        "failed",
-				"error_message": err.Error(),
-			})
-			log.Println("route:", err)
-			queue = queue[1:]
-			pc.markActivity()
-			continue
-		}
-		if err := patchJob(cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{"status": "processing"}); err != nil {
-			log.Println("claim job:", err)
-			time.Sleep(pc.sleepFor(pollPhaseBusy))
-			continue
-		}
-		data := escposFromJob(job)
-		if err := printToTarget(target, data); err != nil {
-			_ = patchJob(cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
-				"status":        "failed",
-				"error_message": err.Error(),
-			})
-			log.Printf("print failed (%s): %v", target.Display, err)
-		} else {
-			if err := patchJob(cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{"status": "done"}); err != nil {
-				log.Println("mark done:", err)
-			} else {
-				log.Printf("printed job %s (%s) -> %s\n  ticket: %s", job.ID, job.Type, target.Display, summarizeJobPayload(job))
-			}
-		}
-		queue = queue[1:]
-		pc.markActivity()
-
-		if len(queue) == 0 {
-			time.Sleep(pc.sleepFor(pollPhaseAfterPrint))
-		}
-	}
-}
-
 func main() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
@@ -385,7 +180,8 @@ func main() {
 		case "help", "-h", "--help":
 			fmt.Printf("Mesa Print Agent %s\n\n", Version)
 			fmt.Println(`Usage:
-  MesaPrintAgent              Run agent (opens pairing web UI on first run)
+  MesaPrintAgent              Run agent (Windows: system tray; first run opens pairing UI)
+  MesaPrintAgent -console     Run with visible console (debug; Windows)
   MesaPrintAgent configure     Re-pair + printer/station setup (recommended)
   MesaPrintAgent pair          Open pairing web UI only
   MesaPrintAgent setup         Open printer setup only (LAN or USB)

@@ -13,6 +13,8 @@ All job types that reference a table (`station_ticket`, `order_receipt`, `pre_bi
 
 See [`docs/restaurant-tables-design.zh.md`](../../docs/restaurant-tables-design.zh.md) §8 and [`docs/print-agent-plan.md`](../../docs/print-agent-plan.md). Legacy `table_number` in payload is **not** supported after the table migration.
 
+**Product UX / packaging roadmap (tray, onboarding, heartbeat, i18n):** [`docs/print-agent-ux-packaging.zh.md`](../../docs/print-agent-ux-packaging.zh.md).
+
 ## Commands
 
 ### Discover printers (LAN scan)
@@ -34,7 +36,7 @@ go run . -api http://localhost:3000 -code 123456
 go run . -api http://localhost:3000 -default-printer 192.168.1.50:9100
 ```
 
-**First run:** double-click `MesaPrintAgent` (or run without args) — a browser opens the **local pairing page** at `http://127.0.0.1:17890/pair` (no command line). Saves `~/.config/mesa-print-agent/config.json`. Advanced: `-api URL -code 123456` or `MesaPrintAgent pair` to re-open the wizard.
+**First run:** double-click `MesaPrintAgent` (or run without args) — a browser opens the **local pairing page** at `http://127.0.0.1:17890/pair` (no command line). Saves `~/.config/mesa-print-agent/config.json`. **Windows:** the agent then runs in the **system tray** (console hidden); use **`-console`** for debug logs, or tray → **Show debug console**. Advanced: `-api URL -code 123456` or `MesaPrintAgent pair` to re-open the wizard.
 
 ## Config (`config.json`)
 

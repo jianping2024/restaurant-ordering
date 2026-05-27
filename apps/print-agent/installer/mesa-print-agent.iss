@@ -49,8 +49,8 @@ Source: "wizard-before.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "wizard-after.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Description: "Run in the system tray"
-Name: "{group}\Printer settings"; Filename: "{app}\{#MyAppExe}"; Parameters: "configure"; Description: "Map stations and test print"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"
+Name: "{group}\Printer settings"; Filename: "{app}\{#MyAppExe}"; Parameters: "configure"
 Name: "{group}\Setup guide"; Filename: "{app}\WINDOWS-README.txt"
 Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: autostart
 

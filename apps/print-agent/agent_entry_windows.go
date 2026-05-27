@@ -136,8 +136,6 @@ func onTrayReady(rt *trayRuntime) {
 	mStatus.Disable()
 	systray.AddSeparator()
 	mSettings := systray.AddMenuItem(uiT(loc, "menu_settings"), uiT(loc, "menu_settings_tip"))
-	mTestPrint := systray.AddMenuItem(uiT(loc, "menu_test_print"), uiT(loc, "menu_test_print_tip"))
-	mTestPrint.Disable()
 	mOpenLog := systray.AddMenuItem(uiT(loc, "menu_open_log"), uiT(loc, "menu_open_log_tip"))
 	systray.AddSeparator()
 	mShowConsole := systray.AddMenuItem(uiT(loc, "menu_console"), uiT(loc, "menu_console_tip"))
@@ -155,7 +153,7 @@ func onTrayReady(rt *trayRuntime) {
 			if loc != lastLoc {
 				lastLoc = loc
 				systray.SetTitle(uiT(loc, "tray_title"))
-				applyTrayMenuLabels(mStatus, mSettings, mTestPrint, mOpenLog, mShowConsole, mAbout, mQuit, loc)
+				applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mShowConsole, mAbout, mQuit, loc)
 			}
 			mStatus.SetTitle(rt.status.menuStatusLine(loc))
 			tip := rt.status.tooltip(Version, loc)
@@ -166,12 +164,6 @@ func onTrayReady(rt *trayRuntime) {
 			}
 			systray.SetTooltip(tip)
 			applyTrayIcon()
-			sess, _, done := rt.snapshot()
-			if done && sess != nil && sess.cfg.hasPrinterRouting() {
-				mTestPrint.Enable()
-			} else {
-				mTestPrint.Disable()
-			}
 		}
 	}()
 
@@ -180,19 +172,6 @@ func onTrayReady(rt *trayRuntime) {
 			select {
 			case <-mSettings.ClickedCh:
 				rt.startTrayConfigureWizard("")
-			case <-mTestPrint.ClickedCh:
-				go func() {
-					rt.syncConfigFromDisk()
-					loc := rt.uiLocale()
-					sess, _, done := rt.snapshot()
-					if !done || sess == nil || sess.cfg == nil {
-						showTestPrintResult(uiError(loc, "tray_not_ready"), loc)
-						return
-					}
-					display, err := runTrayTestPrintTarget(sess.cfg)
-					setTrayStatusOnTestPrint(rt, err)
-					showTestPrintResult(err, loc, display)
-				}()
 			case <-mOpenLog.ClickedCh:
 				if err := openAgentLogFolder(); err != nil {
 					log.Println("tray:", err)

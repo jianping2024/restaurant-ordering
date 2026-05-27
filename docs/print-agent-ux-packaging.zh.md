@@ -35,7 +35,7 @@
 
 ## 已落地（与体验相关）
 
-- **托盘与常驻（P0-1，v0.2.35–0.2.41）**：`windowsgui` 无默认黑窗；托盘先于配对/初始化；`Global\MesaPrintAgent-SingleInstance` 单实例；`ShellExecute` 打开浏览器 + 首装/配对 URL 弹窗；日志 `%LOCALAPPDATA%\Mesa Print Agent\agent.log`；**v0.2.40+** 绿/黄/红图标、中文菜单（打印机设置 / 测试打印 / 打开日志 / 调试控制台 / 关于 / 退出）、只读状态行、退出确认；**v0.2.41+** 退出时取消向导 HTTP 并 `os.Exit` 结束进程；**v0.2.48+** **每次启动**弹窗确认已启动（已配对/未配对文案不同），不再「终身只弹一次」。
+- **托盘与常驻（P0-1，v0.2.35–0.2.41）**：`windowsgui` 无默认黑窗；托盘先于配对/初始化；`Global\MesaPrintAgent-SingleInstance` 单实例；`ShellExecute` 打开浏览器 + 首装/配对 URL 弹窗；日志 `%LOCALAPPDATA%\Mesa Print Agent\agent.log`；**v0.2.40+** 绿/黄/红图标、中文菜单（打印机设置 / 打开日志 / 调试控制台 / 关于 / 退出；试打在设置页）、只读状态行、退出确认；**v0.2.41+** 退出时取消向导 HTTP 并 `os.Exit` 结束进程；**v0.2.48+** **每次启动**弹窗确认已启动（已配对/未配对文案不同），不再「终身只弹一次」。
 - **界面语言（v0.2.43+）**：`config.json` 字段 `ui_locale`（默认 `zh`，可选 `en`/`pt`）；configure 顶栏可改；托盘菜单/tooltip/弹窗与试打条标题随此设置；**订单/厨房真实打印仍用 Mesa 下发的 `payload.locale`，与 `ui_locale` 无关**。
 - **首装试打确认（P0-2，v0.2.42+）**：`configure` / `setup` 页「③ 试打确认」；`POST /api/test-print`；出纸「是/否」、否时排障卡片；未完成确认关闭会二次提示；保存须至少映射一个出品档口（与 §6 校验一致）。
 - **任务最大年龄 20 分钟**：`GET /api/print-agent/pending-jobs` 拉取前将超时 `pending`/`processing` 标为 `failed`；仅返回 `created_at` 在窗口内的 `pending`；Go 代理处理前再次跳过。实现：`src/lib/print-job-max-age.ts`、`src/lib/expire-stale-print-jobs.ts`、`apps/print-agent/job_max_age.go`。
@@ -72,7 +72,7 @@ flowchart LR
 **建议（剩余）**：
 
 - 托盘图标状态：**绿** 已连接且轮询正常 / **黄** 仅 schedule 外或等待映射 / **红** 连续失败或无法连 Mesa。
-- 右键菜单：**打开设置**（`configure`）、**测试打印**、**打开日志目录**、**关于/版本**、**退出**。
+- 右键菜单：**打开设置**（`configure`，内含试打）、**打开日志目录**、**关于/版本**、**退出**（v0.2.62+ 已去掉托盘「测试打印」）。
 - 默认 **无控制台**；`-console` 或环境变量保留给实施/排障。
 - 用户文档与安装完成页 **只讲托盘**，删除「请保持黑窗口打开」表述（同步改 [`apps/print-agent/README.md`](../apps/print-agent/README.md)、[`WINDOWS-README.txt`](../apps/print-agent/installer/WINDOWS-README.txt)）。
 
@@ -201,7 +201,7 @@ flowchart LR
 - [x] 托盘（v0.2.35+）：状态 tooltip + 菜单 + 默认隐藏控制台（`-console` 调试）
 - [x] 托盘先于配对阻塞（v0.2.37+）：`systray.Run` 不再等 `initAgentSession` 结束
 - [x] 单实例 + 启动反馈（v0.2.38–0.2.39）：Mutex、`agent.log`、配对 URL 弹窗
-- [x] 托盘：绿/黄/红多状态图标 + 中文菜单 + 测试打印 + 打开日志（v0.2.40+）
+- [x] 托盘：绿/黄/红多状态图标 + 中文菜单 + 打开日志（v0.2.40+）；试打仅在 **设置页**（v0.2.62+ 去掉托盘测试打印）
 - [x] 托盘退出结束进程（v0.2.41+）：取消向导 HTTP + `os.Exit`
 - [x] 向导：试打 + 用户确认出纸 + 排障分支（v0.2.42+，`/api/test-print`）
 - [x] 日志文件人话（P0-3，v0.2.44+）：与 `ui_locale` 共用 `ui_i18n` / `log_strings.go`

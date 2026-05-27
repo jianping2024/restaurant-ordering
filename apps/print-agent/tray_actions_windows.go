@@ -26,28 +26,6 @@ func confirmTrayExit(locale string) bool {
 	)
 }
 
-func showTestPrintResult(err error, locale, printerDisplay string) {
-	phrase := testPrintPhrase(locale)
-	if err == nil {
-		var body string
-		if strings.TrimSpace(printerDisplay) != "" {
-			body = fmt.Sprintf(uiT(locale, "test_print_ok_body_named"), printerDisplay, phrase)
-		} else {
-			body = fmt.Sprintf(uiT(locale, "test_print_ok_body"), phrase)
-		}
-		messageBoxOK(uiT(locale, "test_print_ok_title"), body)
-		return
-	}
-	messageBoxError(uiT(locale, "test_print_fail_title"), err.Error())
-}
-
-func setTrayStatusOnTestPrint(rt *trayRuntime, err error) {
-	if rt == nil || err == nil {
-		return
-	}
-	rt.status.set("Print failed", err.Error())
-}
-
 func trayAboutText(rt *trayRuntime, locale string) string {
 	text := uiT(locale, "about_title") + " " + Version + "\n\n" + uiT(locale, "about_config") + "\n" + defaultConfigPath()
 	text += "\n\n" + uiT(locale, "about_log") + "\n" + filepath.Join(agentDataDir(), "agent.log")
@@ -68,15 +46,13 @@ func trayAboutText(rt *trayRuntime, locale string) string {
 	return text
 }
 
-func applyTrayMenuLabels(mStatus, mSettings, mTestPrint, mOpenLog, mShowConsole, mAbout, mQuit interface {
+func applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mShowConsole, mAbout, mQuit interface {
 	SetTitle(string)
 	SetTooltip(string)
 }, locale string) {
 	mStatus.SetTitle(uiT(locale, "menu_status_prefix") + "…")
 	mSettings.SetTitle(uiT(locale, "menu_settings"))
 	mSettings.SetTooltip(uiT(locale, "menu_settings_tip"))
-	mTestPrint.SetTitle(uiT(locale, "menu_test_print"))
-	mTestPrint.SetTooltip(uiT(locale, "menu_test_print_tip"))
 	mOpenLog.SetTitle(uiT(locale, "menu_open_log"))
 	mOpenLog.SetTooltip(uiT(locale, "menu_open_log_tip"))
 	mShowConsole.SetTitle(uiT(locale, "menu_console"))

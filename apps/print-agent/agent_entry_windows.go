@@ -23,6 +23,7 @@ func runAgent(args []string) {
 }
 
 func runAgentTray(sess *agentSession) {
+	// No-op when built with -H windowsgui (no console allocated). Helps dev/console-subsystem builds.
 	hideConsoleWindow()
 
 	ctx, cancel := context.WithCancel(context.Background())

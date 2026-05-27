@@ -33,7 +33,7 @@ foreach ($a in $archs) {
   $exe = Join-Path $outDir "MesaPrintAgent.exe"
   Push-Location $Root
   try {
-    go build -ldflags "-s -w -X main.Version=$Version" -o $exe .
+    go build -ldflags "-s -w -H windowsgui -X main.Version=$Version" -o $exe .
     if ($LASTEXITCODE -ne 0) { throw "go build failed for $($a.Name) (exit $LASTEXITCODE)" }
     Set-Content -Path (Join-Path $outDir "VERSION.txt") -Value $Version -NoNewline
   } finally {

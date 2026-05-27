@@ -80,13 +80,21 @@ func showConsoleWindow() {
 
 // messageBoxOK shows a simple info dialog (tray "About").
 func messageBoxOK(title, text string) {
+	messageBoxModal(title, text, 0x40) // MB_ICONINFORMATION
+}
+
+// messageBoxError shows a failure dialog (tray test print, etc.).
+func messageBoxError(title, text string) {
+	messageBoxModal(title, text, 0x10) // MB_ICONERROR
+}
+
+func messageBoxModal(title, text string, icon uintptr) {
 	user32 := syscall.NewLazyDLL("user32.dll")
 	messageBoxW := user32.NewProc("MessageBoxW")
-	mbOK := uintptr(0)
-	mbIconInfo := uintptr(0x40)
+	const mbOK = 0
 	tPtr, _ := syscall.UTF16PtrFromString(title)
 	mPtr, _ := syscall.UTF16PtrFromString(text)
-	_, _, _ = messageBoxW.Call(0, uintptr(unsafe.Pointer(mPtr)), uintptr(unsafe.Pointer(tPtr)), mbOK|mbIconInfo)
+	_, _, _ = messageBoxW.Call(0, uintptr(unsafe.Pointer(mPtr)), uintptr(unsafe.Pointer(tPtr)), mbOK|icon)
 }
 
 // messageBoxYesNo returns true if the user chose Yes.

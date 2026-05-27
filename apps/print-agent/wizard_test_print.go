@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"strings"
+	"time"
 )
 
 type testPrintRequest struct {
@@ -66,6 +67,13 @@ func runTestPrintForStation(cfg *config, stationID, printerOverride string) erro
 	data := escposFromJob(job)
 	if err := printToTarget(target, data); err != nil {
 		return uiError(loc, "err_print_failed", target.Display, err)
+	}
+	// WinSpool often accepts RAW jobs while the queue is offline; re-check after a short delay.
+	if target.Scheme == schemeWinspool {
+		time.Sleep(450 * time.Millisecond)
+		if err := winspoolCheckReady(target.WinspoolName); err != nil {
+			return uiError(loc, "err_print_failed", target.Display, err)
+		}
 	}
 	return nil
 }

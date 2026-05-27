@@ -11,3 +11,7 @@ func winspoolPrint(printerName string, data []byte) error {
 func listWinspoolPrinterNames() ([]string, error) {
 	return nil, nil
 }
+
+func winspoolCheckReady(printerName string) error {
+	return fmt.Errorf("USB/Windows printer queues are only supported on Windows (got %q)", printerName)
+}

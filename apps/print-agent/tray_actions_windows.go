@@ -35,7 +35,14 @@ func showTestPrintResult(err error, locale string) {
 		)
 		return
 	}
-	messageBoxOK(uiT(locale, "test_print_fail_title"), err.Error())
+	messageBoxError(uiT(locale, "test_print_fail_title"), err.Error())
+}
+
+func setTrayStatusOnTestPrint(rt *trayRuntime, err error) {
+	if rt == nil || err == nil {
+		return
+	}
+	rt.status.set("Print failed", err.Error())
 }
 
 func trayAboutText(rt *trayRuntime, locale string) string {

@@ -18,7 +18,6 @@ export type CustomerRestaurantRow = {
 export type CustomerResolvedTableContext = {
   tableId: string;
   displayName: string;
-  activeTables: RestaurantTableRow[];
   activeSession: TableSession | null;
 };
 
@@ -104,7 +103,6 @@ export async function resolveCustomerTableContext(params: {
   return {
     tableId,
     displayName,
-    activeTables: tables,
     activeSession: (activeSession as TableSession | null) || null,
   };
 }

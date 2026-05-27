@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
 import type { BillSplit, Order } from '@/types';
 import { OrdersPageClient } from '@/components/dashboard/OrdersPageClient';
 import { loadOwnerDashboardTables } from '@/lib/dashboard-tables';
@@ -8,9 +7,7 @@ export default async function UnpaidOrdersPage() {
   const loaded = await loadOwnerDashboardTables();
   if ('error' in loaded) notFound();
 
-  const supabase = await createClient();
-
-  const { data: activeSessions } = await supabase
+  const { data: activeSessions } = await loaded.admin
     .from('table_sessions')
     .select('id')
     .eq('restaurant_id', loaded.restaurant.id)
@@ -18,7 +15,7 @@ export default async function UnpaidOrdersPage() {
 
   const activeSessionIds = new Set((activeSessions || []).map((row) => row.id));
 
-  const { data: orders } = await supabase
+  const { data: orders } = await loaded.admin
     .from('orders')
     .select('*')
     .eq('restaurant_id', loaded.restaurant.id)

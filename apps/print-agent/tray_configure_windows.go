@@ -10,8 +10,8 @@ import (
 )
 
 // startTrayConfigureWizard serves the configure UI in the tray process (no child exe).
-// Stops when the user exits the tray or the wizard finishes.
-func (rt *trayRuntime) startTrayConfigureWizard() {
+// launchQuery is optional (?api=…&code=…) from a browser deep link.
+func (rt *trayRuntime) startTrayConfigureWizard(launchQuery string) {
 	if rt == nil || rt.ctx == nil {
 		return
 	}
@@ -42,7 +42,7 @@ func (rt *trayRuntime) startTrayConfigureWizard() {
 		}
 		wctx, cancel := context.WithTimeout(rt.ctx, 60*time.Minute)
 		defer cancel()
-		if err := runConfigureWizard(wctx, path, prefill); err != nil {
+		if err := trayLocal.runConfigureSession(wctx, path, prefill, ""); err != nil {
 			if errors.Is(err, context.Canceled) {
 				log.Println("tray: configure wizard stopped")
 				return

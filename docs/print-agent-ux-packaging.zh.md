@@ -215,7 +215,7 @@ flowchart LR
 
 - [x] `heartbeat` API + `print_agent_devices` 存储 `last_seen` 等字段
 - [x] 打印助手：在线状态、版本落后提示（设备列表面板）
-- [ ] 「打开本机设置」可达性检测
+- [x] 「打开本机设置」可达性检测（`GET /api/health` + Dashboard 探测后再打开）
 - [ ] 配对码 UI 强化 + 深链 configure
 
 **文档**

@@ -11,19 +11,7 @@ import (
 //go:embed configure_ui.html
 var configureUIHTML []byte
 
-// runConfigureWizard serves re-pair + printer setup until the user closes the page.
-func runConfigureWizard(ctx context.Context, configPath string, prefillAPI string) error {
-	listenAddr, err := pickLocalListenAddr(ConfigureWizardPort)
-	if err != nil {
-		return err
-	}
-
-	cfg := reloadConfig(configPath, &config{})
-	cfgPtr := &cfg
-
-	done := make(chan error, 1)
-	mux := http.NewServeMux()
-
+func registerConfigureWizardRoutes(mux *http.ServeMux, configPath string, cfgPtr **config, done chan<- error) {
 	mux.HandleFunc("/configure", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		_, _ = w.Write(configureUIHTML)
@@ -44,8 +32,36 @@ func runConfigureWizard(ctx context.Context, configPath string, prefillAPI strin
 			return
 		}
 		writePairJSON(w, http.StatusOK, map[string]string{"status": "ok"})
-		done <- nil
+		if done != nil {
+			select {
+			case done <- nil:
+			default:
+			}
+		}
 	})
+}
+
+func configureWizardBaseURL(listenAddr, prefillAPI string) string {
+	baseURL := "http://" + listenAddr + "/configure"
+	if api, err := normalizeAPIBase(prefillAPI); err == nil && api != "" {
+		baseURL = "http://" + listenAddr + "/configure?api=" + url.QueryEscape(api)
+	}
+	return baseURL
+}
+
+// runConfigureWizard serves re-pair + printer setup until the user closes the page (standalone CLI).
+func runConfigureWizard(ctx context.Context, configPath string, prefillAPI string) error {
+	listenAddr, err := pickLocalListenAddr(ConfigureWizardPort)
+	if err != nil {
+		return err
+	}
+
+	cfg := reloadConfig(configPath, &config{})
+	cfgPtr := &cfg
+
+	done := make(chan error, 1)
+	mux := http.NewServeMux()
+	registerConfigureWizardRoutes(mux, configPath, cfgPtr, done)
 
 	srv := &http.Server{Addr: listenAddr, Handler: mux, ReadHeaderTimeout: 10 * time.Second}
 	go func() {
@@ -54,10 +70,7 @@ func runConfigureWizard(ctx context.Context, configPath string, prefillAPI strin
 		}
 	}()
 
-	baseURL := "http://" + listenAddr + "/configure"
-	if api, err := normalizeAPIBase(prefillAPI); err == nil && api != "" {
-		baseURL = "http://" + listenAddr + "/configure?api=" + url.QueryEscape(api)
-	}
+	baseURL := configureWizardBaseURL(listenAddr, prefillAPI)
 	agentLogLocale(localeFromConfigPath(configPath), "log_wizard_open", baseURL)
 	if onConfigureWizardReady != nil {
 		onConfigureWizardReady(baseURL)

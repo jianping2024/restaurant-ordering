@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import { buildPrintAgentConfigureUrl } from '@/lib/print-agent-local';
+import { openPrintAgentConfigure } from '@/lib/print-agent-local';
 
 type PairingRow = {
   id: string;
@@ -20,6 +20,7 @@ export function PrintAgentPairingPanel() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [freshCode, setFreshCode] = useState<{ code: string; expires_at: string } | null>(null);
+  const [configureProbe, setConfigureProbe] = useState<'idle' | 'checking' | 'unreachable'>('idle');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -78,6 +79,12 @@ export function PrintAgentPairingPanel() {
 
   const siteOrigin = typeof window !== 'undefined' ? window.location.origin : '';
 
+  const openConfigure = async (code?: string) => {
+    setConfigureProbe('checking');
+    const result = await openPrintAgentConfigure(siteOrigin, code);
+    setConfigureProbe(result === 'unreachable' ? 'unreachable' : 'idle');
+  };
+
   return (
     <div className="rounded-2xl border border-brand-border bg-brand-card p-4 sm:p-5 space-y-4">
       <div>
@@ -104,14 +111,14 @@ export function PrintAgentPairingPanel() {
             <li>{t.configureStep3}</li>
           </ol>
           <div className="flex flex-wrap gap-2 pt-1">
-            <a
-              href={buildPrintAgentConfigureUrl(siteOrigin, freshCode.code)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-lg bg-brand-gold text-brand-on-gold px-4 py-2 text-sm font-semibold hover:bg-brand-gold-light transition-colors"
+            <button
+              type="button"
+              disabled={configureProbe === 'checking'}
+              onClick={() => void openConfigure(freshCode.code)}
+              className="inline-flex items-center justify-center rounded-lg bg-brand-gold text-brand-on-gold px-4 py-2 text-sm font-semibold hover:bg-brand-gold-light transition-colors disabled:opacity-60"
             >
-              {t.configureOpenWithCode}
-            </a>
+              {configureProbe === 'checking' ? '…' : t.configureOpenWithCode}
+            </button>
             <button
               type="button"
               className="text-[12px] px-3 py-2 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text"
@@ -123,6 +130,12 @@ export function PrintAgentPairingPanel() {
           <p className="text-[11px] text-brand-text-muted leading-relaxed">{t.pairingWizardNote}</p>
         </div>
       )}
+
+      {configureProbe === 'unreachable' ? (
+        <p className="text-[13px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 leading-relaxed">
+          {t.configureUnreachable}
+        </p>
+      ) : null}
 
       {error && <p className="text-[13px] text-red-600">{t.pairingErrorPrefix}{error}</p>}
 
@@ -176,14 +189,14 @@ export function PrintAgentPairingPanel() {
           <li>{t.configureStep2}</li>
           <li>{t.configureStep3}</li>
         </ol>
-        <a
-          href={buildPrintAgentConfigureUrl(siteOrigin)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex text-[12px] text-brand-gold hover:underline font-medium"
+        <button
+          type="button"
+          disabled={configureProbe === 'checking'}
+          onClick={() => void openConfigure()}
+          className="inline-flex text-[12px] text-brand-gold hover:underline font-medium disabled:opacity-60"
         >
-          {t.configureOpenIdle}
-        </a>
+          {configureProbe === 'checking' ? '…' : t.configureOpenIdle}
+        </button>
         <p className="text-[12px] text-brand-text-muted leading-relaxed pt-1">{t.pairingAgentHint}</p>
       </div>
     </div>

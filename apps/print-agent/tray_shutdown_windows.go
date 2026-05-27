@@ -17,6 +17,7 @@ func stopTrayAgentWork(rt *trayRuntime) {
 		rt.cancel()
 	}
 	shutdownAllWizardServers()
+	shutdownTrayLocalHTTP()
 	terminateSpawnedChildren()
 	releaseAgentSingleInstance()
 }

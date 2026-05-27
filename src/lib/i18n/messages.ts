@@ -449,12 +449,13 @@ export const MESSAGES = {
       configureTitle: '重新配对 / 调整打印机',
       configureSubtitle:
         '在 configure 为各出品档口映射打印机；结账/账单页从已映射档口中选择打印（多台档口可共用同一打印机）。',
-      configureStep1: '在收银电脑关闭正在运行的打印助手（若已打开）',
-      configureStep2: '双击 MesaPrintAgent.exe configure，或在命令行运行该命令',
-      configureStep3:
-        '为 Bar、checkout、kitchen 等档口分别选打印机；保存后在结账页下拉选择要用的档口',
-      configureOpenWithCode: '打开重新配置页（已填入配对码）',
-      configureOpenIdle: '打开重新配置页（需先运行 configure 命令）',
+      configureOpenWithCode: '在本机打开设置（已填入配对码）',
+      configureOpenIdle: '在本机打开设置',
+      configureUnreachable:
+        '未检测到本机打印助手。请在收银电脑上确认托盘有 Mesa 图标并已启动，再点「打开设置」；须在本机浏览器打开 Mesa，不能在其他电脑操作。',
+      configureStep1: '在收银电脑安装并启动 Mesa 打印助手（任务栏托盘图标）',
+      configureStep2: '在本页生成配对码后，点击「在本机打开设置」',
+      configureStep3: '在打开的设置页填入配对码、映射打印机并完成试打',
       queueTitle: '最近打印队列',
       refresh: '刷新',
       empty: '暂无打印任务。顾客或服务员下单成功后会自动入队；请确认已绑定出品档口且打印代理在线。',
@@ -1261,12 +1262,13 @@ export const MESSAGES = {
       configureTitle: 'Re-pair / printer setup',
       configureSubtitle:
         'Map each print station to a printer in configure; on checkout pick which mapped station prints receipts (stations may share one device).',
-      configureStep1: 'Close the running print agent on the POS PC (if open)',
-      configureStep2: 'Run MesaPrintAgent.exe configure (double-click or from a terminal)',
-      configureStep3:
-        'Assign a printer per station (bar, checkout, kitchen, etc.); pick the station on checkout when printing',
-      configureOpenWithCode: 'Open configure page (code filled in)',
-      configureOpenIdle: 'Open configure page (run configure command first)',
+      configureOpenWithCode: 'Open settings on this PC (code filled in)',
+      configureOpenIdle: 'Open settings on this PC',
+      configureUnreachable:
+        'Print agent not detected on this computer. On the POS PC, check the Mesa tray icon is running, then try again. Open Mesa in this PC’s browser—not from another machine.',
+      configureStep1: 'Install and start Mesa Print Agent on the POS PC (system tray icon)',
+      configureStep2: 'Generate a pairing code here, then click Open settings on this PC',
+      configureStep3: 'In the settings page, enter the code, map printers, and run a test print',
       queueTitle: 'Recent print queue',
       refresh: 'Refresh',
       empty: 'No print jobs yet. Jobs are queued automatically after an order is submitted; check station bindings and that the print agent is online.',
@@ -1845,12 +1847,13 @@ export const MESSAGES = {
       configureTitle: 'Reemparelhar / configurar impressoras',
       configureSubtitle:
         'Mapeie cada estacao de impressao no configure; no checkout escolha qual estacao mapeada imprime (podem partilhar a mesma maquina).',
-      configureStep1: 'Feche o agente de impressao no PC da caixa (se estiver aberto)',
-      configureStep2: 'Execute MesaPrintAgent.exe configure (duplo clique ou terminal)',
-      configureStep3:
-        'Atribua impressora a cada estacao; no checkout escolha a estacao ao imprimir',
-      configureOpenWithCode: 'Abrir pagina de configuracao (codigo preenchido)',
-      configureOpenIdle: 'Abrir pagina de configuracao (execute configure primeiro)',
+      configureOpenWithCode: 'Abrir definicoes neste PC (codigo preenchido)',
+      configureOpenIdle: 'Abrir definicoes neste PC',
+      configureUnreachable:
+        'Agente nao detetado neste PC. No PC da caixa, confirme o icone Mesa na bandeja e tente de novo. Abra o Mesa neste browser, nao noutro computador.',
+      configureStep1: 'Instale e inicie o Mesa Print Agent no PC da caixa (icone na bandeja)',
+      configureStep2: 'Gere um codigo aqui e clique em Abrir definicoes neste PC',
+      configureStep3: 'Na pagina de definicoes, introduza o codigo, mapeie impressoras e teste',
       queueTitle: 'Fila recente',
       refresh: 'Atualizar',
       empty: 'Sem tarefas ainda. As tarefas entram na fila ao confirmar um pedido; confirme estacoes ligadas e agente online.',

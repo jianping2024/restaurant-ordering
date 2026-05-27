@@ -95,6 +95,7 @@ func runAgentTrayFirst(args []string) {
 			return
 		}
 		rt.status.set("Ready", "Connected to Mesa")
+		startTrayLocalHTTP(rt)
 		go runPollLoop(ctx, sess, rt.status)
 	}()
 
@@ -178,7 +179,7 @@ func onTrayReady(rt *trayRuntime) {
 		for {
 			select {
 			case <-mSettings.ClickedCh:
-				rt.startTrayConfigureWizard()
+				rt.startTrayConfigureWizard("")
 			case <-mTestPrint.ClickedCh:
 				go func() {
 					rt.syncConfigFromDisk()

@@ -49,6 +49,8 @@ func initAgentSession(args []string) (*agentSession, bool, error) {
 			if prefill == "http://127.0.0.1:3000" {
 				prefill = ""
 			}
+			// Tray may already be visible (runAgentTrayFirst); hint user to use browser wizard.
+			log.Println("pairing required — complete the browser wizard (tray icon should be visible)")
 			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Minute)
 			defer cancel()
 			if err := runPairingWizard(ctx, path, prefill); err != nil {

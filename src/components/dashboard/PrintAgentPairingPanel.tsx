@@ -8,12 +8,14 @@ import {
   formatPairingCountdown,
   pairingExpiryRemainingMs,
 } from '@/lib/pairing-code-countdown';
+import { PRINT_AGENT_PAIRING_PENDING_SLOT_MAX } from '@/lib/print-agent-pairing-slots';
 
 type PairingRow = {
   id: string;
   expires_at: string;
   consumed_at: string | null;
   code_mask: string;
+  pending: boolean;
 };
 
 type ConfigureProbe = 'idle' | 'checking' | 'unreachable' | 'opened';
@@ -30,13 +32,18 @@ export function PrintAgentPairingPanel() {
   const [codeCopied, setCodeCopied] = useState(false);
   const [countdown, setCountdown] = useState('');
   const [codeExpired, setCodeExpired] = useState(false);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await fetch('/api/print-agent/pairings', { credentials: 'include' });
-      const data = (await res.json()) as { pairings?: PairingRow[]; error?: string };
+      const data = (await res.json()) as {
+        pairings?: PairingRow[];
+        pending_count?: number;
+        error?: string;
+      };
       if (!res.ok) {
         setError(data.error || 'load_failed');
         return;
@@ -74,8 +81,8 @@ export function PrintAgentPairingPanel() {
     return () => window.clearInterval(id);
   }, [freshCode?.expires_at]);
 
-  const activeSlotCount = pairings.length;
-  const canCreate = activeSlotCount < 3;
+  const pendingCount = pairings.filter((p) => p.pending).length;
+  const canCreate = pendingCount < PRINT_AGENT_PAIRING_PENDING_SLOT_MAX;
   const siteOrigin = typeof window !== 'undefined' ? window.location.origin : '';
 
   const openConfigure = useCallback(
@@ -131,6 +138,27 @@ export function PrintAgentPairingPanel() {
       setError('network');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const revokePairing = async (id: string) => {
+    setRevokingId(id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/print-agent/pairings/${encodeURIComponent(id)}/revoke`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const data = (await res.json()) as { error?: string; message?: string };
+      if (!res.ok) {
+        setError(data.error || data.message || 'revoke_failed');
+        return;
+      }
+      await load();
+    } catch {
+      setError('network');
+    } finally {
+      setRevokingId(null);
     }
   };
 
@@ -248,13 +276,25 @@ export function PrintAgentPairingPanel() {
             {pairings.map((p) => (
               <li
                 key={p.id}
-                className="flex flex-wrap items-baseline justify-between gap-2 border border-brand-border/60 rounded-lg px-3 py-2"
+                className="flex flex-wrap items-center justify-between gap-2 border border-brand-border/60 rounded-lg px-3 py-2"
               >
                 <span className="font-mono tracking-wider">{p.code_mask}</span>
-                <span className="text-brand-text-muted text-[12px]">
-                  {p.consumed_at ? t.pairingUsed : t.pairingPending} ·{' '}
-                  {new Date(p.expires_at).toLocaleString()}
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-brand-text-muted text-[12px]">
+                    {p.consumed_at ? t.pairingUsed : t.pairingPending} ·{' '}
+                    {new Date(p.expires_at).toLocaleString()}
+                  </span>
+                  {p.pending ? (
+                    <button
+                      type="button"
+                      disabled={revokingId === p.id}
+                      onClick={() => void revokePairing(p.id)}
+                      className="text-[12px] px-2 py-1 rounded-md border border-brand-border text-brand-text-muted hover:text-red-700 hover:border-red-200 transition-colors disabled:opacity-50"
+                    >
+                      {revokingId === p.id ? '…' : t.pairingRevoke}
+                    </button>
+                  ) : null}
+                </div>
               </li>
             ))}
           </ul>

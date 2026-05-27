@@ -59,6 +59,7 @@ export async function POST(req: Request) {
     .select('id, restaurant_id, expires_at, consumed_at')
     .eq('code', code)
     .is('consumed_at', null)
+    .is('revoked_at', null)
     .gt('expires_at', nowIso)
     .limit(2);
 

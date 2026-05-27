@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { randomPairingCode } from '@/lib/print-agent-pairing-code';
+import { PRINT_AGENT_PAIRING_PENDING_SLOT_MAX } from '@/lib/print-agent-pairing-slots';
 
 export const runtime = 'nodejs';
 
@@ -38,14 +39,19 @@ export async function POST() {
     .from('print_agent_pairings')
     .select('id', { count: 'exact', head: true })
     .eq('restaurant_id', rid)
+    .is('consumed_at', null)
+    .is('revoked_at', null)
     .gt('expires_at', nowIso);
 
   if (cErr) {
     return NextResponse.json({ error: 'query_failed', message: cErr.message }, { status: 500 });
   }
-  if ((slotCount ?? 0) >= 3) {
+  if ((slotCount ?? 0) >= PRINT_AGENT_PAIRING_PENDING_SLOT_MAX) {
     return NextResponse.json(
-      { error: 'pairing_slot_full', message: 'At most 3 non-expired pairing rows per restaurant.' },
+      {
+        error: 'pairing_slot_full',
+        message: `At most ${PRINT_AGENT_PAIRING_PENDING_SLOT_MAX} unused pairing codes per restaurant.`,
+      },
       { status: 409 },
     );
   }
@@ -99,6 +105,7 @@ export async function POST() {
       .select('id')
       .eq('code', code)
       .is('consumed_at', null)
+      .is('revoked_at', null)
       .gt('expires_at', nowIso)
       .maybeSingle();
     if (!clash) break;

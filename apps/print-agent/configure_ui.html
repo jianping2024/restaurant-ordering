@@ -36,6 +36,15 @@
     .station-sub { font-size: 11px; color: #9aa5b1; margin-bottom: 6px; }
     .section-title { font-size: 13px; color: #d4a853; margin: 0 0 8px; font-weight: 600; }
     .footer { text-align: center; margin-top: 8px; }
+    .test-card { border-color: #3d4f63; }
+    .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+    .btn-row button { flex: 1; margin-top: 0; }
+    button.yes { background: #4ade80; color: #0f1419; }
+    button.no { background: transparent; border: 1px solid #f87171; color: #f87171; }
+    .troubleshoot { font-size: 13px; color: #9aa5b1; line-height: 1.55; padding: 12px; background: #0f1419; border-radius: 8px; border: 1px solid #2d3a4a; margin-top: 12px; }
+    .troubleshoot ol { margin: 8px 0 0; padding-left: 20px; }
+    .troubleshoot li { margin-bottom: 6px; }
+    .confirm-q { font-size: 14px; color: #e8e6e3; margin: 12px 0 4px; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -79,8 +88,36 @@
       </div>
     </div>
 
+    <div class="card test-card hidden" id="testCard">
+      <h2>③ 试打确认</h2>
+      <p class="hint">保存映射后，请对<strong>至少一个档口</strong>试打。代理已把数据送到打印机，但您仍需目视确认纸上出现「打印测试」。</p>
+      <label for="testStation">试打档口</label>
+      <select id="testStation"></select>
+      <button type="button" id="testPrintBtn">打印测试条</button>
+      <p class="err" id="testErr"></p>
+      <p class="ok-msg" id="testSent"></p>
+      <div id="testConfirmBlock" class="hidden">
+        <p class="confirm-q">纸上是否已出现「打印测试」字样？</p>
+        <div class="btn-row">
+          <button type="button" id="paperYes" class="yes">是，已出纸</button>
+          <button type="button" id="paperNo" class="no">否，没有出纸</button>
+        </div>
+        <div id="testTroubleshoot" class="troubleshoot hidden">
+          <strong style="color:#fbbf24">排障建议</strong>
+          <ol>
+            <li><strong>USB</strong>：线是否接在这台收银电脑；驱动是否已装；Windows「设置 → 打印机」里是否能看到设备。</li>
+            <li><strong>队列名</strong>：所选打印机是否与实体机一致（勿选 PDF / 传真 / 旧队列）。</li>
+            <li><strong>走纸</strong>：按打印机 <strong>FEED</strong> 键看是否进纸。</li>
+            <li><strong>脱机/暂停</strong>：Windows 打印队列中是否显示暂停、脱机或错误。</li>
+          </ol>
+          <p style="margin-top:10px">修正后请重新「打印测试条」，确认出纸后再关闭本页。</p>
+        </div>
+      </div>
+      <p class="ok-msg hidden" id="testDone">已确认出纸，可以关闭本页。</p>
+    </div>
+
     <div class="footer">
-      <button type="button" id="doneBtn" class="secondary">Done — close this tab</button>
+      <button type="button" id="doneBtn" class="secondary">完成 — 关闭此页</button>
     </div>
   </div>
   <script>
@@ -89,6 +126,7 @@
       var cache = { tcp: [], winspool: [] };
       var stations = [];
       var state = { paired: false, station_printers: {} };
+      var testConfirmed = false;
 
       function stationLabel(s) {
         return s.name_en || s.name_pt || s.name_zh || s.id;
@@ -190,6 +228,54 @@
         });
       }
 
+      function collectStationPrinters() {
+        var station_printers = {};
+        document.querySelectorAll('.station-row').forEach(function (row) {
+          var sid = row.dataset.stationId;
+          var addr = row.querySelector('.station-printer').value;
+          if (sid && addr) station_printers[sid] = addr;
+        });
+        return station_printers;
+      }
+
+      function fillTestStationSelect() {
+        var sel = document.getElementById('testStation');
+        sel.innerHTML = '';
+        var maps = collectStationPrinters();
+        if (!Object.keys(maps).length && state.station_printers) {
+          maps = state.station_printers;
+        }
+        var ids = Object.keys(maps);
+        if (!ids.length) {
+          var o = document.createElement('option');
+          o.value = '';
+          o.textContent = '（请先映射至少一个档口并保存）';
+          sel.appendChild(o);
+          return false;
+        }
+        ids.forEach(function (sid) {
+          var o = document.createElement('option');
+          o.value = sid;
+          var label = sid;
+          stations.forEach(function (s) {
+            if (s.id === sid) label = stationLabel(s);
+          });
+          o.textContent = label;
+          sel.appendChild(o);
+        });
+        return true;
+      }
+
+      function showTestCard() {
+        document.getElementById('testCard').classList.remove('hidden');
+        fillTestStationSelect();
+        document.getElementById('testConfirmBlock').classList.add('hidden');
+        document.getElementById('testTroubleshoot').classList.add('hidden');
+        document.getElementById('testSent').textContent = '';
+        document.getElementById('testErr').textContent = '';
+        document.getElementById('testDone').classList.add('hidden');
+      }
+
       function renderStatus() {
         var el = document.getElementById('status');
         if (!state.paired) {
@@ -249,6 +335,7 @@
             if (state.paired) {
               loadPrinters();
               loadStations();
+              if (state.station_count > 0) showTestCard();
             }
           });
       }
@@ -285,12 +372,11 @@
         var ok = document.getElementById('saveOk');
         err.textContent = '';
         ok.textContent = '';
-        var station_printers = {};
-        document.querySelectorAll('.station-row').forEach(function (row) {
-          var sid = row.dataset.stationId;
-          var addr = row.querySelector('.station-printer').value;
-          if (sid && addr) station_printers[sid] = addr;
-        });
+        var station_printers = collectStationPrinters();
+        if (!Object.keys(station_printers).length) {
+          err.textContent = '请至少为一个出品档口选择打印机';
+          return;
+        }
         fetch('/api/setup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -302,13 +388,60 @@
               err.textContent = res.j.error || 'Save failed';
               return;
             }
-            ok.textContent = 'Saved. If the agent is running, close and reopen it to load the new settings.';
+            ok.textContent = '已保存。托盘代理会自动使用新映射。';
+            testConfirmed = false;
+            showTestCard();
             loadState();
           })
           .catch(function () { err.textContent = 'Cannot reach local configure service'; });
       });
 
+      document.getElementById('testPrintBtn').addEventListener('click', function () {
+        var testErr = document.getElementById('testErr');
+        var testSent = document.getElementById('testSent');
+        testErr.textContent = '';
+        testSent.textContent = '';
+        document.getElementById('testConfirmBlock').classList.add('hidden');
+        document.getElementById('testTroubleshoot').classList.add('hidden');
+        var sid = document.getElementById('testStation').value;
+        if (!sid) {
+          testErr.textContent = '请先映射并保存至少一个档口';
+          return;
+        }
+        var maps = collectStationPrinters();
+        var printer = maps[sid] || (state.station_printers && state.station_printers[sid]) || '';
+        fetch('/api/test-print', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ station_id: sid, printer: printer })
+        })
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+          .then(function (res) {
+            if (!res.ok) {
+              testErr.textContent = res.j.error || '试打失败';
+              return;
+            }
+            testSent.textContent = '已发送测试条，请查看打印机出纸。';
+            document.getElementById('testConfirmBlock').classList.remove('hidden');
+          })
+          .catch(function () { testErr.textContent = '无法连接本机配置服务'; });
+      });
+
+      document.getElementById('paperYes').addEventListener('click', function () {
+        testConfirmed = true;
+        document.getElementById('testTroubleshoot').classList.add('hidden');
+        document.getElementById('testDone').classList.remove('hidden');
+      });
+
+      document.getElementById('paperNo').addEventListener('click', function () {
+        testConfirmed = false;
+        document.getElementById('testTroubleshoot').classList.remove('hidden');
+      });
+
       document.getElementById('doneBtn').addEventListener('click', function () {
+        if (!testConfirmed) {
+          if (!confirm('尚未确认测试条已出纸。仍要关闭此页吗？')) return;
+        }
         fetch('/api/configure-done', { method: 'POST' }).finally(function () { window.close(); });
       });
 

@@ -1,8 +1,19 @@
 # Mesa Print Agent：客户体验与包装路线图
 
-**状态**：产品/实施备忘（2026-05）  
+**状态**：产品/实施备忘（2026-05，进度见下表）  
 **范围**：Windows 收银机侧 **安装、常驻、配置、排障、与 Mesa Web 闭环**；**不含** Authenticode 代码签名（见 [`print-agent-plan.md`](./print-agent-plan.md) · P1-4）。  
 **关联**：[实施计划](./print-agent-plan.md)、[USB 方案](./print-agent-usb-plan.md)、[`apps/print-agent/README.md`](../apps/print-agent/README.md)、[`installer/WINDOWS-README.txt`](../apps/print-agent/installer/WINDOWS-README.txt)。
+
+### 进度总览（Windows 代理 · 本地代码，发布 tag 由维护者自行打）
+
+| 文档项 | 状态 | 版本参考 |
+|--------|------|----------|
+| P0-1 托盘主壳 + 无默认黑窗 | **已落地** | v0.2.35–0.2.40 |
+| P0-1 绿/黄/红图标 + 中文菜单 + 日志目录 | **已落地** | v0.2.40+ |
+| P0-1 单实例 / 启动可见（弹窗+日志）/ 托盘退出杀进程 | **已落地** | v0.2.38–0.2.41 |
+| P0-2 向导试打 + 出纸确认 + 排障 | **已落地** | v0.2.42+ |
+| P0-3 运行期人话（日志/托盘） | **进行中** | 托盘 tooltip 已中文化；轮询日志映射未做 |
+| P1 心跳 / configure 全量本地化 / 安装收尾 | **未做** | — |
 
 ---
 
@@ -23,10 +34,12 @@
 
 ## 已落地（与体验相关）
 
-- **Windows 托盘 P0（v0.2.40+）**：绿/黄/红图标、中文菜单（设置/测试打印/日志/关于/退出）、只读状态行、退出确认、本地测试条（首台已映射打印机）；日志目录 `%LOCALAPPDATA%\Mesa Print Agent\`。
+- **托盘与常驻（P0-1，v0.2.35–0.2.41）**：`windowsgui` 无默认黑窗；托盘先于配对/初始化；`Global\MesaPrintAgent-SingleInstance` 单实例；`ShellExecute` 打开浏览器 + 首装/配对 URL 弹窗；日志 `%LOCALAPPDATA%\Mesa Print Agent\agent.log`；**v0.2.40+** 绿/黄/红图标、中文菜单（打印机设置 / 测试打印 / 打开日志 / 调试控制台 / 关于 / 退出）、只读状态行、退出确认；**v0.2.41+** 退出时取消向导 HTTP 并 `os.Exit` 结束进程。
+- **首装试打确认（P0-2，v0.2.42+）**：`configure` / `setup` 页「③ 试打确认」；`POST /api/test-print`；出纸「是/否」、否时排障卡片；未完成确认关闭会二次提示；保存须至少映射一个出品档口（与 §6 校验一致）。
 - **任务最大年龄 20 分钟**：`GET /api/print-agent/pending-jobs` 拉取前将超时 `pending`/`processing` 标为 `failed`；仅返回 `created_at` 在窗口内的 `pending`；Go 代理处理前再次跳过。实现：`src/lib/print-job-max-age.ts`、`src/lib/expire-stale-print-jobs.ts`、`apps/print-agent/job_max_age.go`。
 - **Dashboard**：打印助手配对码、最近任务、`print-job-error-hints` 中文/英/葡 hint；`buildPrintAgentConfigureUrl` 深链本机 `http://127.0.0.1:17892/configure`。
-- **安装**：Inno Setup、登录自启（默认勾选）、`WINDOWS-README.txt` 首装步骤；`claim` 后试打任务（`connection_test`）见 P0-3。
+- **安装**：Inno Setup、`WINDOWS-README.txt` 首装步骤（含托盘颜色说明，v0.2.40+）；Inno **登录自启** 文案在 README 中，安装脚本是否勾选任务以 `mesa-print-agent.iss` 为准。
+- **API 试打任务**：`claim` 成功可插入 `connection_test` 的 `order_receipt`（服务端 P0-3）；与向导本地试打（P0-2）互补，非同一 UI。
 
 ---
 
@@ -52,9 +65,9 @@ flowchart LR
 
 ### 1. 系统托盘为主壳（扩展 P1-3）
 
-**现状**：[`print-agent-plan.md`](./print-agent-plan.md) · **P1-3** 已定「到期前 15 天托盘提醒」，但主流程仍依赖 **黑色控制台** 常驻。
+**现状（2026-05）**：**P0-1 主体已落地**（v0.2.40–0.2.41）：托盘为主、无默认黑窗、三色图标、中文菜单、日志目录、退出确认与进程退出。未做：到期前 15 天提醒（仍属 P1-3）、`configure` 并入主进程（仍为子进程）。
 
-**建议**：
+**建议（剩余）**：
 
 - 托盘图标状态：**绿** 已连接且轮询正常 / **黄** 仅 schedule 外或等待映射 / **红** 连续失败或无法连 Mesa。
 - 右键菜单：**打开设置**（`configure`）、**测试打印**、**打开日志目录**、**关于/版本**、**退出**。
@@ -65,9 +78,9 @@ flowchart LR
 
 ### 2. 首装闭环：配对 → 映射 → 试打 → 确认
 
-**现状**：`claim` 成功后可插入 `connection_test` 的 `order_receipt`（P0-3），但向导未强制用户 **目视确认出纸**。
+**现状（2026-05）**：**P0-2 已落地**（v0.2.42+）：`configure` / `setup` 在保存映射后提供试打条、**是/否** 出纸确认与排障卡片；未做：`pair_ui.html` 单独收尾页、**每个档口** 各打一条（当前为选一个档口试打）。
 
-**建议**（本地 `pair` / `configure` 或独立 `setup` 收尾页）：
+**建议（剩余）**：
 
 1. 配对成功（6 位码 + Mesa URL）。
 2. 为每个已映射 **出品档口** 提供 **「打印测试条」**（至少默认/第一个档口必选）。
@@ -82,7 +95,9 @@ flowchart LR
 
 ### 3. 运行期人话反馈（日志 / 托盘 / 可选本地状态页）
 
-将现有技术日志映射为店主可读文案（中/英/葡与 Mesa 一致），例如：
+**现状**：托盘 **tooltip / 菜单状态行** 已对常见 `summary` 做中文映射（`agent_status.go`）；**文件日志与 `log.Printf` 仍为英文技术句**。
+
+**待做**：将现有技术日志映射为店主可读文案（中/英/葡与 Mesa 一致），例如：
 
 | 内部/日志 | 用户文案方向 |
 |-----------|----------------|
@@ -168,7 +183,7 @@ flowchart LR
 | 本文档项 | `print-agent-plan.md` |
 |----------|------------------------|
 | §1 托盘主壳 | 扩展 **P1-3**（托盘不应仅做到期提醒） |
-| §2 试打确认 | **P0-3** 试打 + 向导 UI |
+| §2 试打确认 | **P0-2 向导已落地**；服务端 `claim` 试打任务仍对应 plan **P0-3** |
 | §4 心跳 | 新增（应用端 API + 打印助手 UI） |
 | §5 本地化 | 安装包端 UI（未单列，可并入 P1） |
 | §8 升级提示 | 与 **P1-5** Releases 衔接 |
@@ -181,13 +196,16 @@ flowchart LR
 
 **安装包端（Go + Inno）**
 
-- [x] 托盘（v0.2.35+）：状态 tooltip + 菜单（设置 / 显示控制台 / 关于 / 退出）+ 默认隐藏控制台（`-console` 调试）
-- [x] 托盘先于配对阻塞（v0.2.37+）：`systray.Run` 不再等 `initAgentSession` 结束；单实例 Mutex 防止连开两个无图标进程
-- [ ] 托盘：绿/黄/红多状态图标
-- [ ] 向导：试打 + 用户确认出纸 + 排障分支
-- [ ] 日志/托盘：人话文案（i18n 资源文件或内嵌 JSON）
+- [x] 托盘（v0.2.35+）：状态 tooltip + 菜单 + 默认隐藏控制台（`-console` 调试）
+- [x] 托盘先于配对阻塞（v0.2.37+）：`systray.Run` 不再等 `initAgentSession` 结束
+- [x] 单实例 + 启动反馈（v0.2.38–0.2.39）：Mutex、`agent.log`、配对 URL 弹窗
+- [x] 托盘：绿/黄/红多状态图标 + 中文菜单 + 测试打印 + 打开日志（v0.2.40+）
+- [x] 托盘退出结束进程（v0.2.41+）：取消向导 HTTP + `os.Exit`
+- [x] 向导：试打 + 用户确认出纸 + 排障分支（v0.2.42+，`/api/test-print`）
+- [ ] 日志文件：英文技术句改人话（P0-3）；可选 i18n JSON
+- [ ] 托盘：到期提醒（P1-3）；`configure` 不另起进程（架构项）
 - [ ] 心跳上报 + 版本字段
-- [ ] configure/pair/setup：`lang` 与降术语 UI
+- [ ] configure/pair/setup：全页 `lang` 与降术语 UI（§5；试打区块已中文）
 - [ ] 启动时可选检查新版本
 
 **应用端（Next / Dashboard）**
@@ -200,7 +218,8 @@ flowchart LR
 **文档**
 
 - [x] 本文档
-- [ ] 同步更新 `WINDOWS-README.txt` / agent README（托盘为主、20 分钟过期说明）
+- [x] `WINDOWS-README.txt` 托盘颜色与菜单说明（v0.2.40+）
+- [ ] 同步 `apps/print-agent/README.md`（托盘为主、勿保持黑窗、20 分钟过期）
 
 ---
 

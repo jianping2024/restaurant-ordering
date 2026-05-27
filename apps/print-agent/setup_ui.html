@@ -32,6 +32,14 @@
     .station-name { font-size: 14px; color: #e8e6e3; }
     .station-sub { font-size: 11px; color: #9aa5b1; margin-bottom: 6px; }
     .warn { font-size: 12px; color: #fbbf24; margin-bottom: 12px; line-height: 1.45; }
+    .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+    .btn-row button { flex: 1; margin-top: 0; }
+    button.yes { background: #4ade80; color: #0f1419; }
+    button.no { background: transparent; border: 1px solid #f87171; color: #f87171; }
+    .troubleshoot { font-size: 13px; color: #9aa5b1; line-height: 1.55; padding: 12px; background: #0f1419; border-radius: 8px; border: 1px solid #2d3a4a; margin-top: 12px; }
+    .troubleshoot ol { margin: 8px 0 0; padding-left: 20px; }
+    .confirm-q { font-size: 14px; color: #e8e6e3; margin: 12px 0 4px; font-weight: 600; }
+    .ok-msg { color: #4ade80; font-size: 13px; min-height: 1.2em; margin-top: 8px; }
   </style>
 </head>
 <body>
@@ -53,10 +61,32 @@
       <button type="button" id="saveBtn">Save and start printing</button>
       <p class="err" id="err"></p>
     </div>
-    <div id="ok" class="ok">
-      <h2>Saved</h2>
-      <p style="color:#9aa5b1;font-size:13px">Station mapping saved. You can close this tab; keep the agent window running.</p>
-      <p style="color:#9aa5b1;font-size:12px;margin-top:10px">To re-pair or change mapping later: run <strong>MesaPrintAgent.exe configure</strong></p>
+    <div id="ok" class="ok" style="display:none">
+      <h2>已保存</h2>
+      <p class="sub" style="margin-bottom:14px">请试打并确认纸上出现「打印测试」后再关闭。</p>
+      <label for="testStation">试打档口</label>
+      <select id="testStation"></select>
+      <button type="button" id="testPrintBtn">打印测试条</button>
+      <p class="err" id="testErr"></p>
+      <p class="ok-msg" id="testSent"></p>
+      <div id="testConfirmBlock" class="hidden">
+        <p class="confirm-q">纸上是否已出现「打印测试」？</p>
+        <div class="btn-row">
+          <button type="button" id="paperYes" class="yes">是，已出纸</button>
+          <button type="button" id="paperNo" class="no">否，没有出纸</button>
+        </div>
+        <div id="testTroubleshoot" class="troubleshoot hidden">
+          <strong style="color:#fbbf24">排障建议</strong>
+          <ol>
+            <li>USB 线、驱动、Windows 打印机列表是否正常。</li>
+            <li>队列名是否与实体机一致（勿选 PDF/旧队列）。</li>
+            <li>按打印机 FEED 键；检查队列是否暂停/脱机。</li>
+          </ol>
+        </div>
+      </div>
+      <p class="ok-msg hidden" id="testDone">已确认出纸。</p>
+      <button type="button" id="finishBtn" class="secondary" style="margin-top:16px">完成 — 关闭此页</button>
+      <p style="color:#9aa5b1;font-size:12px;margin-top:10px">以后修改映射：托盘 → 打印机设置，或 <strong>MesaPrintAgent.exe configure</strong></p>
     </div>
   </div>
   <script>
@@ -69,6 +99,8 @@
       var cache = { tcp: [], winspool: [] };
       var stations = [];
       var saved = { station_printers: {} };
+      var lastSavedMaps = {};
+      var testConfirmed = false;
 
       function scanSummaryText() {
         var lan = (cache.tcp || []).length;
@@ -205,6 +237,21 @@
         });
       }
       document.getElementById('refreshBtn').addEventListener('click', loadList);
+      function fillTestStationSelect(maps) {
+        var sel = document.getElementById('testStation');
+        sel.innerHTML = '';
+        var ids = Object.keys(maps || {});
+        if (!ids.length) return;
+        ids.forEach(function (sid) {
+          var o = document.createElement('option');
+          o.value = sid;
+          var label = sid;
+          stations.forEach(function (s) { if (s.id === sid) label = stationLabel(s); });
+          o.textContent = label;
+          sel.appendChild(o);
+        });
+      }
+
       document.getElementById('saveBtn').addEventListener('click', function () {
         err.textContent = '';
         var station_printers = {};
@@ -213,6 +260,10 @@
           var addr = row.querySelector('.station-printer').value;
           if (sid && addr) station_printers[sid] = addr;
         });
+        if (!Object.keys(station_printers).length) {
+          err.textContent = '请至少为一个出品档口选择打印机';
+          return;
+        }
         fetch('/api/setup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -220,11 +271,49 @@
         }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
             if (!res.ok) { err.textContent = res.j.error || 'Save failed'; return; }
+            lastSavedMaps = station_printers;
+            testConfirmed = false;
             document.getElementById('formWrap').classList.add('hidden');
             document.getElementById('ok').style.display = 'block';
-            setTimeout(function () { fetch('/api/setup-done', { method: 'POST' }); }, 800);
+            fillTestStationSelect(lastSavedMaps);
           }).catch(function () { err.textContent = 'Cannot reach local setup service'; });
       });
+
+      document.getElementById('testPrintBtn').addEventListener('click', function () {
+        var testErr = document.getElementById('testErr');
+        var testSent = document.getElementById('testSent');
+        testErr.textContent = '';
+        testSent.textContent = '';
+        document.getElementById('testConfirmBlock').classList.add('hidden');
+        document.getElementById('testTroubleshoot').classList.add('hidden');
+        var sid = document.getElementById('testStation').value;
+        var printer = lastSavedMaps[sid] || '';
+        fetch('/api/test-print', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ station_id: sid, printer: printer })
+        }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+          .then(function (res) {
+            if (!res.ok) { testErr.textContent = res.j.error || '试打失败'; return; }
+            testSent.textContent = '已发送测试条，请查看打印机出纸。';
+            document.getElementById('testConfirmBlock').classList.remove('hidden');
+          }).catch(function () { testErr.textContent = '无法连接本机服务'; });
+      });
+
+      document.getElementById('paperYes').addEventListener('click', function () {
+        testConfirmed = true;
+        document.getElementById('testTroubleshoot').classList.add('hidden');
+        document.getElementById('testDone').classList.remove('hidden');
+      });
+      document.getElementById('paperNo').addEventListener('click', function () {
+        testConfirmed = false;
+        document.getElementById('testTroubleshoot').classList.remove('hidden');
+      });
+      document.getElementById('finishBtn').addEventListener('click', function () {
+        if (!testConfirmed && !confirm('尚未确认测试条已出纸。仍要关闭吗？')) return;
+        fetch('/api/setup-done', { method: 'POST' }).finally(function () { window.close(); });
+      });
+
       loadSaved();
     })();
   </script>

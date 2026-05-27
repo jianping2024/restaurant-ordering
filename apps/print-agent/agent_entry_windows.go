@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"runtime"
@@ -30,7 +31,7 @@ func (rt *trayRuntime) snapshot() (*agentSession, error, bool) {
 
 func runAgent(args []string) {
 	if agentArgsWantConsole(args) {
-		sess, _, err := initAgentSession(args)
+		sess, _, err := initAgentSession(context.Background(), args)
 		if err != nil {
 			showConsoleWindow()
 			log.Fatal(err)
@@ -56,16 +57,20 @@ func runAgentTrayFirst(args []string) {
 
 	go func() {
 		rt.status.set("Setting up", "Complete pairing or printer mapping in the browser if it opened")
-		sess, _, err := initAgentSession(args)
+		sess, _, err := initAgentSession(ctx, args)
 		rt.mu.Lock()
 		rt.sess = sess
 		rt.initErr = err
 		rt.initDone = true
 		rt.mu.Unlock()
 		if err != nil {
+			if errors.Is(err, context.Canceled) {
+				log.Println("tray: init cancelled")
+				return
+			}
 			rt.status.set("Error", err.Error())
 			messageBoxOK("Mesa 打印代理", err.Error())
-			systray.Quit()
+			stopTrayAgent(rt)
 			return
 		}
 		rt.status.set("Ready", "Connected to Mesa")
@@ -76,8 +81,12 @@ func runAgentTrayFirst(args []string) {
 	systray.Run(func() {
 		onTrayReady(rt)
 	}, func() {
-		cancel()
+		if rt.cancel != nil {
+			rt.cancel()
+		}
+		shutdownAllWizardServers()
 	})
+	exitTrayAgent()
 }
 
 func onTrayReady(rt *trayRuntime) {
@@ -161,10 +170,12 @@ func onTrayReady(rt *trayRuntime) {
 				if !confirmTrayExit() {
 					continue
 				}
-				if rt.cancel != nil {
-					rt.cancel()
-				}
-				systray.Quit()
+				stopTrayAgent(rt)
+				// systray.Quit from a menu goroutine may not unwind Run on Windows; force exit if stuck.
+				go func() {
+					time.Sleep(800 * time.Millisecond)
+					exitTrayAgent()
+				}()
 				return
 			}
 		}

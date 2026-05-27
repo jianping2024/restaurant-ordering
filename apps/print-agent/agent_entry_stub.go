@@ -8,7 +8,7 @@ import (
 )
 
 func runAgent(args []string) {
-	sess, _, err := initAgentSession(args)
+	sess, _, err := initAgentSession(context.Background(), args)
 	if err != nil {
 		log.Fatal(err)
 	}

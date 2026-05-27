@@ -14,7 +14,10 @@ type agentSession struct {
 	pc      *pollController
 }
 
-func initAgentSession(args []string) (*agentSession, bool, error) {
+func initAgentSession(runCtx context.Context, args []string) (*agentSession, bool, error) {
+	if runCtx == nil {
+		runCtx = context.Background()
+	}
 	fs := flag.NewFlagSet("run", flag.ExitOnError)
 	apiBase := fs.String("api", "http://127.0.0.1:3000", "Mesa base URL")
 	code := fs.String("code", "", "6-digit pairing code (first run)")
@@ -51,9 +54,12 @@ func initAgentSession(args []string) (*agentSession, bool, error) {
 			}
 			// Tray may already be visible (runAgentTrayFirst); hint user to use browser wizard.
 			log.Println("pairing required — complete the browser wizard (tray icon should be visible)")
-			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Minute)
+			ctx, cancel := context.WithTimeout(runCtx, 20*time.Minute)
 			defer cancel()
 			if err := runPairingWizard(ctx, path, prefill); err != nil {
+				if runCtx.Err() != nil {
+					return nil, *showConsole, runCtx.Err()
+				}
 				return nil, *showConsole, err
 			}
 			cfg, err = loadConfig(path)
@@ -78,12 +84,14 @@ func initAgentSession(args []string) (*agentSession, bool, error) {
 
 	if !cfg.hasPrinterRouting() {
 		log.Println("no printer configured — opening setup wizard")
-		setupCtx, setupCancel := context.WithTimeout(context.Background(), 30*time.Minute)
+		setupCtx, setupCancel := context.WithTimeout(runCtx, 30*time.Minute)
+		defer setupCancel()
 		if err := runSetupWizard(setupCtx, path, cfg); err != nil {
-			setupCancel()
+			if runCtx.Err() != nil {
+				return nil, *showConsole, runCtx.Err()
+			}
 			return nil, *showConsole, err
 		}
-		setupCancel()
 		cfg, err = loadConfig(path)
 		if err != nil {
 			return nil, *showConsole, err

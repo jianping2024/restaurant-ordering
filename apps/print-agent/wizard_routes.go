@@ -157,6 +157,29 @@ func registerPrinterWizardRoutes(mux *http.ServeMux, configPath string, cfg **co
 		log.Printf("%s: station_printers=%d", logPrefix, len(cleaned))
 		writePairJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
+
+	mux.HandleFunc("/api/test-print", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		c := reloadConfig(configPath, *cfg)
+		if strings.TrimSpace(c.AgentJWT) == "" {
+			writePairJSON(w, http.StatusUnauthorized, map[string]string{"error": "请先完成配对"})
+			return
+		}
+		var body testPrintRequest
+		if err := json.NewDecoder(io.LimitReader(r.Body, 4096)).Decode(&body); err != nil {
+			writePairJSON(w, http.StatusBadRequest, map[string]string{"error": "无效的请求"})
+			return
+		}
+		if err := runTestPrintForStation(c, body.StationID, body.Printer); err != nil {
+			writePairJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+			return
+		}
+		log.Printf("%s: test print station=%s", logPrefix, strings.TrimSpace(body.StationID))
+		writePairJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	})
 }
 
 func registerPairWizardRoute(mux *http.ServeMux, configPath string, cfg **config, logPrefix string, onSuccess func()) {

@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
+	"time"
 )
 
 func openAgentLogFolder() error {
@@ -39,8 +41,19 @@ func showTestPrintResult(err error, locale string) {
 func trayAboutText(rt *trayRuntime, locale string) string {
 	text := uiT(locale, "about_title") + " " + Version + "\n\n" + uiT(locale, "about_config") + "\n" + defaultConfigPath()
 	text += "\n\n" + uiT(locale, "about_log") + "\n" + filepath.Join(agentDataDir(), "agent.log")
-	if sess, _, done := rt.snapshot(); done && sess != nil && sess.cfg.APIBase != "" {
-		text += "\n\n" + uiT(locale, "about_mesa") + " " + sess.cfg.APIBase
+	cfg, _ := loadConfig(defaultConfigPath())
+	if cfg == nil {
+		if sess, _, done := rt.snapshot(); done && sess != nil && sess.cfg != nil {
+			cfg = sess.cfg
+		}
+	}
+	if cfg != nil {
+		if line := cfg.credentialAboutLine(locale, time.Now()); line != "" {
+			text += "\n\n" + line
+		}
+		if strings.TrimSpace(cfg.APIBase) != "" {
+			text += "\n\n" + uiT(locale, "about_mesa") + " " + cfg.APIBase
+		}
 	}
 	return text
 }

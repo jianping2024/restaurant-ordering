@@ -44,7 +44,9 @@ func claim(apiBase, code, deviceID string) (*config, error) {
 		return nil, fmt.Errorf("claim %s: %s", res.Status, string(raw))
 	}
 	var out struct {
-		AgentJWT string `json:"agentjwt"`
+		AgentJWT    string `json:"agentjwt"`
+		ValidUntil  string `json:"valid_until"`
+		SupabaseURL string `json:"supabase_url"`
 	}
 	if err := json.Unmarshal(raw, &out); err != nil {
 		return nil, err
@@ -52,7 +54,12 @@ func claim(apiBase, code, deviceID string) (*config, error) {
 	if out.AgentJWT == "" {
 		return nil, fmt.Errorf("claim: missing agentjwt")
 	}
-	return &config{APIBase: apiBase, AgentJWT: out.AgentJWT, DeviceID: deviceID}, nil
+	return &config{
+		APIBase:    apiBase,
+		AgentJWT:   out.AgentJWT,
+		DeviceID:   deviceID,
+		ValidUntil: out.ValidUntil,
+	}, nil
 }
 
 type printJob struct {

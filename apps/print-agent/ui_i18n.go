@@ -132,6 +132,12 @@ func uiStringsZH() map[string]string {
 		"ts_queue":                "队列名：所选打印机是否与实体机一致（勿选 PDF / 传真 / 旧队列）。",
 		"ts_feed":                 "走纸：按打印机 FEED 键看是否进纸。",
 		"ts_spool":                "脱机/暂停：Windows 打印队列中是否显示暂停、脱机或错误。",
+		"credential_valid_until_line": "凭证有效至：%s",
+		"credential_days_left_line":   "凭证将于 %s 到期（约 %d 天后需重新配对）",
+		"credential_expired_line":     "凭证已过期，请在 Mesa「打印助手」重新配对。",
+		"credential_status_suffix":    "约 %d 天后需重新配对",
+		"credential_toast_title":      "Mesa 打印代理",
+		"credential_toast_body":       "打印凭证将于 %s 到期（约 %d 天后）。\n\n请在 Mesa「打印助手」生成配对码并重新连接。",
 	}
 }
 
@@ -228,6 +234,12 @@ func uiStringsEN() map[string]string {
 		"ts_queue":                "Queue name matches the physical printer (not PDF/fax/old queue).",
 		"ts_feed":                 "Paper feed: press FEED on the printer.",
 		"ts_spool":                "Spooler: check Windows queue for paused/offline/errors.",
+		"credential_valid_until_line": "Credential valid until: %s",
+		"credential_days_left_line":   "Credential expires %s (re-pair in about %d days)",
+		"credential_expired_line":     "Credential expired. Re-pair in Mesa Print assistant.",
+		"credential_status_suffix":    "Re-pair in ~%d days",
+		"credential_toast_title":      "Mesa Print Agent",
+		"credential_toast_body":       "Print credential expires %s (about %d days).\n\nGenerate a pairing code in Mesa Print assistant and reconnect.",
 	}
 }
 
@@ -324,5 +336,11 @@ func uiStringsPT() map[string]string {
 		"ts_queue":                "Nome da fila corresponde à impressora física (não PDF/fax).",
 		"ts_feed":                 "Papel: prima FEED na impressora.",
 		"ts_spool":                "Fila Windows: verifique pausa/desligada/erros.",
+		"credential_valid_until_line": "Credencial válida até: %s",
+		"credential_days_left_line":   "Credencial expira em %s (reemparelhar em ~%d dias)",
+		"credential_expired_line":     "Credencial expirada. Reemparelhe no assistente Mesa.",
+		"credential_status_suffix":    "Reemparelhar em ~%d dias",
+		"credential_toast_title":      "Agente Mesa",
+		"credential_toast_body":       "A credencial expira em %s (~%d dias).\n\nGere um código no assistente Mesa e volte a ligar.",
 	}
 }

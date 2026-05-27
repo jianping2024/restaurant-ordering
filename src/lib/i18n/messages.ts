@@ -478,6 +478,14 @@ export const MESSAGES = {
       statusProcessing: '打印中',
       statusDone: '已完成',
       statusFailed: '失败',
+      credentialExpiryTitle: '打印助手凭证即将到期',
+      credentialExpirySingle:
+        '本店收银机打印凭证将于 {date} 到期（约 {days} 天后），届时需重新配对才能继续自动打印。',
+      credentialExpiryMultiple:
+        '本店有 {count} 台打印助手将于 {date} 前到期（最近一台约 {days} 天后），请提前重新配对。',
+      credentialExpiryUnlabeledName: '收银机',
+      credentialExpiryDeviceRow: '{name} — 请于 {date} 前重新配对',
+      credentialExpiryLink: '打开打印助手生成配对码 →',
       scheduleTitle: '营业时间与拉取策略',
       scheduleSubtitle:
         '保存后，打印助手在下次启动时会从 Mesa 拉取并覆盖本机 config 中的 schedule / poll（打印机地址仍用本机配置）。运行中不会反复拉取。',
@@ -1268,6 +1276,14 @@ export const MESSAGES = {
       statusProcessing: 'Printing',
       statusDone: 'Done',
       statusFailed: 'Failed',
+      credentialExpiryTitle: 'Print agent credential expiring soon',
+      credentialExpirySingle:
+        'A POS print credential expires on {date} (about {days} days). Re-pair before then to keep printing.',
+      credentialExpiryMultiple:
+        '{count} print agent(s) need re-pairing before {date} (soonest in about {days} days).',
+      credentialExpiryUnlabeledName: 'POS PC',
+      credentialExpiryDeviceRow: '{name} — re-pair before {date}',
+      credentialExpiryLink: 'Open Print assistant to generate a code →',
       scheduleTitle: 'Hours & polling',
       scheduleSubtitle:
         'Saved settings are fetched once when the print agent starts (overrides local schedule/poll; printer addresses stay on the PC). Not polled while running.',
@@ -1830,6 +1846,14 @@ export const MESSAGES = {
       statusProcessing: 'A imprimir',
       statusDone: 'Concluido',
       statusFailed: 'Falhou',
+      credentialExpiryTitle: 'Credencial do agente a expirar',
+      credentialExpirySingle:
+        'A credencial de impressao expira em {date} (cerca de {days} dias). Reemparelhe antes dessa data.',
+      credentialExpiryMultiple:
+        '{count} agente(s) precisam de reemparelhamento antes de {date} (o mais proximo em ~{days} dias).',
+      credentialExpiryUnlabeledName: 'PC da caixa',
+      credentialExpiryDeviceRow: '{name} — reemparelhar antes de {date}',
+      credentialExpiryLink: 'Abrir assistente de impressao →',
       scheduleTitle: 'Horario e polling',
       scheduleSubtitle:
         'Ao guardar, o agente aplica na proxima arrancada (substitui schedule/poll local; impressoras ficam no PC). Nao ha polling de configuracao em execucao.',

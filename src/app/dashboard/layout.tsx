@@ -3,6 +3,8 @@ import { DashboardAccessError } from '@/components/dashboard/DashboardAccessErro
 import { DashboardNav } from '@/components/dashboard/DashboardNav';
 import { RestaurantOnboarding } from '@/components/dashboard/RestaurantOnboarding';
 import { loadDashboardAccess } from '@/lib/dashboard-access';
+import { PrintAgentCredentialExpiryAlert } from '@/components/dashboard/PrintAgentCredentialExpiryAlert';
+import { loadPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-server';
 
 export default async function DashboardLayout({
   children,
@@ -31,10 +33,18 @@ export default async function DashboardLayout({
     );
   }
 
+  const expiringDevices =
+    access.mode === 'owner'
+      ? await loadPrintAgentDevicesNeedingRenewal(access.restaurant.id)
+      : [];
+
   return (
     <div className="min-h-screen bg-brand-bg flex">
       <DashboardNav restaurant={access.restaurant} accessMode={access.mode} />
       <main className="flex-1 min-w-0 overflow-x-hidden lg:ml-64 p-4 pt-20 sm:p-6 sm:pt-20 lg:p-8 lg:pt-8 min-h-screen">
+        {expiringDevices.length > 0 ? (
+          <PrintAgentCredentialExpiryAlert devices={expiringDevices} variant="bar" />
+        ) : null}
         {children}
       </main>
     </div>

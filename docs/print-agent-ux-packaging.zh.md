@@ -205,7 +205,8 @@ flowchart LR
 - [x] 托盘退出结束进程（v0.2.41+）：取消向导 HTTP + `os.Exit`
 - [x] 向导：试打 + 用户确认出纸 + 排障分支（v0.2.42+，`/api/test-print`）
 - [x] 日志文件人话（P0-3，v0.2.44+）：与 `ui_locale` 共用 `ui_i18n` / `log_strings.go`
-- [ ] 托盘：到期提醒（P1-3）；`configure` 不另起进程（架构项）
+- [x] 凭证半年 + 到期提醒（v0.2.51–0.2.52）：Dashboard 顶栏/打印助手 30 天横幅；托盘关于/状态/每日轻提示；`valid_until` 写入 config
+- [x] `configure` 并入托盘进程（v0.2.47+）
 - [ ] 心跳上报 + 版本字段
 - [ ] configure/pair/setup：全页 `lang` 与降术语 UI（§5；试打区块已中文）
 - [ ] 启动时可选检查新版本

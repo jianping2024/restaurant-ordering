@@ -20,6 +20,8 @@ type config struct {
 	Poll            *pollConfig       `json:"poll,omitempty"`
 	// UILocale: zh | en | pt — tray, wizards, and local test print only (not order tickets).
 	UILocale string `json:"ui_locale,omitempty"`
+	// ValidUntil: RFC3339 from claim; used for tray renewal hints (half-year credential).
+	ValidUntil string `json:"valid_until,omitempty"`
 }
 
 func defaultConfigPath() string {
@@ -132,6 +134,9 @@ func mergePrinterConfig(prev, next *config) {
 	}
 	if strings.TrimSpace(prev.UILocale) != "" {
 		next.UILocale = prev.UILocale
+	}
+	if strings.TrimSpace(prev.ValidUntil) != "" && strings.TrimSpace(next.ValidUntil) == "" {
+		next.ValidUntil = prev.ValidUntil
 	}
 }
 

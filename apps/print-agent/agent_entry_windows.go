@@ -126,6 +126,10 @@ func onTrayReady(rt *trayRuntime) {
 	systray.SetTitle(uiT(loc, "tray_title"))
 	systray.SetTooltip(rt.status.tooltip(Version, loc))
 	go maybeNotifyTrayReady()
+	go func() {
+		time.Sleep(3 * time.Second)
+		maybeNotifyCredentialRenewal()
+	}()
 
 	mStatus := systray.AddMenuItem(rt.status.menuStatusLine(loc), "")
 	mStatus.Disable()
@@ -153,7 +157,13 @@ func onTrayReady(rt *trayRuntime) {
 				applyTrayMenuLabels(mStatus, mSettings, mTestPrint, mOpenLog, mShowConsole, mAbout, mQuit, loc)
 			}
 			mStatus.SetTitle(rt.status.menuStatusLine(loc))
-			systray.SetTooltip(rt.status.tooltip(Version, loc))
+			tip := rt.status.tooltip(Version, loc)
+			if cfg, err := loadConfig(defaultConfigPath()); err == nil && cfg != nil {
+				if suffix := cfg.credentialStatusSuffix(loc, time.Now()); suffix != "" {
+					tip += "\n" + suffix
+				}
+			}
+			systray.SetTooltip(tip)
 			applyTrayIcon()
 			sess, _, done := rt.snapshot()
 			if done && sess != nil && sess.cfg.hasPrinterRouting() {

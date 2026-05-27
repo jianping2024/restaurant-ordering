@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 )
 
 // trayLevel drives tray icon color on Windows.
@@ -152,6 +153,11 @@ func (s *agentStatus) menuStatusLine(locale string) string {
 	line := uiT(locale, "menu_status_prefix") + s.userSummary(locale)
 	if det := s.userDetail(locale); det != "" && len(det) < 80 {
 		line += " — " + det
+	}
+	if cfg, err := loadConfig(defaultConfigPath()); err == nil && cfg != nil {
+		if suffix := cfg.credentialStatusSuffix(locale, time.Now()); suffix != "" {
+			line += " — " + suffix
+		}
 	}
 	return line
 }

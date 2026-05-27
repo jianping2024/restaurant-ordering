@@ -1,7 +1,8 @@
 # Table Transfer & Merge Plan
 
 > **Identity model:** Stable `table_id` (UUID) + mutable `display_name` (e.g. `A-01`).  
-> See [restaurant-tables-design.zh.md](./restaurant-tables-design.zh.md) for the full table model. This doc covers transfer / merge / close-table behaviour under **`table_id`** and required RPC changes. Implement after the table migration.
+> See [restaurant-tables-design.zh.md](./restaurant-tables-design.zh.md) for the full table model. This doc covers transfer / merge / close-table behaviour under **`table_id`** and required RPC changes. Implement after the table migration.  
+> **Forced table close (cancel unpaid splits, void order lines, close session):** see [table-session-close.zh.md](./table-session-close.zh.md) (Chinese; canonical behaviour).
 
 ---
 

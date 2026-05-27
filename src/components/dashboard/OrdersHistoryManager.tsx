@@ -10,10 +10,8 @@ import { endOfMonth, format, startOfMonth, startOfToday, subDays } from 'date-fn
 import Select from 'react-select';
 import type { MultiValue, StylesConfig } from 'react-select';
 import 'react-day-picker/dist/style.css';
-import { mergeTablesWithOrderHistory, compareRestaurantTables, tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
+import { mergeTablesWithOrderHistory, compareRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
-import { closeActiveTableSession } from '@/lib/close-table-session';
-import { createClient } from '@/lib/supabase/client';
 import { showToast } from '@/components/ui/Toast';
 
 interface Props {
@@ -250,16 +248,20 @@ export function OrdersHistoryManager({
     }
     setClosingTable(closeTableId);
     try {
-      const supabase = createClient();
-      const result = await closeActiveTableSession(supabase, restaurantId, closeTableId, 'owner_closed');
-      if (!result.ok) {
-        showToast(
-          result.code === 'no_session' ? i18n.closeTableNoSession : i18n.closeTableFailed,
-          'error',
-        );
+      const res = await fetch('/api/dashboard/close-table-session', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ table_id: closeTableId }),
+      });
+      if (res.status === 404) {
+        showToast(i18n.closeTableNoSession, 'error');
         return;
       }
-      setOrders((prev) => prev.filter((o) => !tableIdsEqual(o.table_id, closeTableId)));
+      if (!res.ok) {
+        showToast(i18n.closeTableFailed, 'error');
+        return;
+      }
       showToast(i18n.closeTableSuccess, 'success');
       router.refresh();
     } catch {

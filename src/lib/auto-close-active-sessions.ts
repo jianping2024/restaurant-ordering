@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getZonedCalendarParts } from '@/lib/zoned-time';
+import { closeActiveTableSessionWithOperationalCleanup } from '@/lib/close-active-table-session-with-cleanup';
 
 /** Nightly auto-close: 05:00 in this zone (local scheduler checks hourly while app is running). */
 export const NIGHTLY_AUTO_CLOSE_TIMEZONE = 'Europe/Lisbon';
@@ -10,21 +11,23 @@ export function isNightlyAutoCloseDue(now = new Date()): boolean {
   return hour === NIGHTLY_AUTO_CLOSE_HOUR;
 }
 
-/** Marks every open/billing table session closed (nightly cutover). Idempotent on repeat. */
-export async function closeAllOpenBillingSessions(
-  admin: SupabaseClient,
-  closedReason: string = 'auto_nightly',
-): Promise<{ closedCount: number }> {
-  const { data, error } = await admin
+/**
+ * Nightly cutover: same operational close as waiter/owner (cancel unpaid splits, void lines, close session).
+ * Processes each open/billing table row once.
+ */
+export async function closeAllOpenBillingSessions(admin: SupabaseClient): Promise<{ closedCount: number }> {
+  const { data: rows, error } = await admin
     .from('table_sessions')
-    .update({
-      status: 'closed',
-      closed_at: new Date().toISOString(),
-      closed_reason: closedReason,
-    })
-    .in('status', ['open', 'billing'])
-    .select('id');
+    .select('restaurant_id, table_id')
+    .in('status', ['open', 'billing']);
 
   if (error) throw error;
-  return { closedCount: data?.length ?? 0 };
+  let closedCount = 0;
+  for (const row of rows || []) {
+    const rid = row.restaurant_id as string;
+    const tid = row.table_id as string;
+    const result = await closeActiveTableSessionWithOperationalCleanup(admin, rid, tid, 'auto_nightly');
+    if (result.ok) closedCount += 1;
+  }
+  return { closedCount };
 }

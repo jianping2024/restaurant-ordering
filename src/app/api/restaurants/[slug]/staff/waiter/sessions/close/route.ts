@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { closeActiveTableSessionWithOperationalCleanup } from '@/lib/close-active-table-session-with-cleanup';
 
 export const runtime = 'nodejs';
 
@@ -38,32 +39,20 @@ export async function POST(
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
-  const { data: session, error: findError } = await admin
-    .from('table_sessions')
-    .select('id')
-    .eq('restaurant_id', ctx.restaurant_id)
-    .eq('table_id', tableId)
-    .in('status', ['open', 'billing'])
-    .order('opened_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const result = await closeActiveTableSessionWithOperationalCleanup(
+    admin,
+    ctx.restaurant_id,
+    tableId,
+    'waiter_closed',
+  );
 
-  if (findError || !session?.id) {
-    return NextResponse.json({ error: 'session_not_found' }, { status: 404 });
+  if (!result.ok) {
+    const status = result.code === 'no_session' ? 404 : 500;
+    return NextResponse.json(
+      { error: result.code, message: result.message },
+      { status },
+    );
   }
 
-  const { error: updError } = await admin
-    .from('table_sessions')
-    .update({
-      status: 'closed',
-      closed_at: new Date().toISOString(),
-      closed_reason: 'waiter_closed',
-    })
-    .eq('id', session.id);
-
-  if (updError) {
-    return NextResponse.json({ error: 'update_failed', message: updError.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, session_id: result.session_id });
 }

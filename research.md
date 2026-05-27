@@ -102,6 +102,7 @@
 - 服务员/店主确认收款后：
   - `bill_splits.status -> paid`
   - `table_sessions.status -> closed`
+- **强制关台**（未走完分账全员 paid）：须同时取消未付分账、作废当餐订单行并关餐次，与看板「结账请求」绿灯一致；详见 [`docs/table-session-close.zh.md`](docs/table-session-close.zh.md)。
 - 关台后，顾客若刷新账单页会被服务端强制跳转回点单页（`/menu?table_id={uuid}`）。
 
 ## 10. 员工入口与桌位二维码（后台桌位页）

@@ -20,7 +20,7 @@ async function runNightlyAutoCloseIfDue() {
 
   try {
     const admin = createAdminClient();
-    const { closedCount } = await closeAllOpenBillingSessions(admin, 'auto_nightly');
+    const { closedCount } = await closeAllOpenBillingSessions(admin);
     console.info('[mesa nightly-auto-close] closed sessions:', closedCount, dateKey);
   } catch (e) {
     console.error('[mesa nightly-auto-close] failed:', e);

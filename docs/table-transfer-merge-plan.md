@@ -106,10 +106,11 @@ Three RPC functions as atomic boundaries (**parameters change from text table la
 
 ## Customer URL after merge
 
-If a guest stays on the **source** QR (`?table_id=source_uuid`) after merge:
+Guests scanning the **source** table QR (`?table_id=source_uuid`) after merge still resolve to that table (same `table_id` / `display_name`). They do **not** follow `merge_into_session_id` to the target.
 
-- **Bill page** detects merged source session with `merge_into_session_id` and **redirects** to `/{slug}/menu?table_id={target_table_id}` (or bill equivalent).
-- No string table-number redirects.
+- No active session on the source table → `active_session` is null; menu shows that table until staff opens a new session / posts buffet.
+- Bill page with no session redirects to menu with the **same** `table_id`, not the merge target.
+- `merge_into_session_id` is staff/audit only.
 
 ---
 

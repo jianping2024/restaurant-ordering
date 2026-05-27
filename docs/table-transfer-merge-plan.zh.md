@@ -107,10 +107,11 @@
 
 ## 顾客端：并台后的 URL
 
-来源桌 session 关闭后，顾客若仍停留在来源桌 QR（`?table_id=来源UUID`）的 menu / bill 页：
+来源桌 session 关闭后，顾客扫来源桌 QR（`?table_id=来源UUID`）仍解析为**来源桌**（`display_name` 与 `table_id` 不变），**不**跟随 `merge_into_session_id` 跳到目标桌。
 
-- **账单页**（`bill/page.tsx`）检测到来源 session 已 `merged` 且存在 `merge_into_session_id` 时，应 **redirect** 到目标桌：`/{slug}/menu?table_id={目标 table_id}`（或 bill 等价路径）。
-- 不再通过改「字符串桌号」跳转；**只认 `table_id`**。
+- 来源桌无 `open`/`billing` 会话时：`active_session` 为 `null`，菜单页展示该桌；服务员为该桌重新开台/入账自助后，客人方可在此桌下单。
+- 账单页无活跃会话时照旧回到本桌菜单 URL（`bill/page.tsx`），不把 `table_id` 改成目标桌。
+- **只认 `table_id`**；`merge_into_session_id` 仅供后台审计与服务员查账。
 
 ---
 

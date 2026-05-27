@@ -58,10 +58,10 @@ export async function resolveCustomerTableContext(params: {
   const requestedTable = tables.find((t) => t.id === requestedTableId);
   if (!requestedTable) return null;
 
-  let tableId = requestedTableId;
-  let displayName = requestedTable.display_name;
+  const tableId = requestedTableId;
+  const displayName = requestedTable.display_name;
 
-  let { data: activeSession } = await admin
+  const { data: activeSession } = await admin
     .from('table_sessions')
     .select('*')
     .eq('restaurant_id', restaurantId)
@@ -70,35 +70,6 @@ export async function resolveCustomerTableContext(params: {
     .order('opened_at', { ascending: false })
     .limit(1)
     .maybeSingle();
-
-  if (!activeSession) {
-    const { data: mergedFromSession } = await admin
-      .from('table_sessions')
-      .select('merge_into_session_id')
-      .eq('restaurant_id', restaurantId)
-      .eq('table_id', requestedTableId)
-      .eq('status', 'closed')
-      .eq('closed_reason', 'merged')
-      .not('merge_into_session_id', 'is', null)
-      .order('closed_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (mergedFromSession?.merge_into_session_id) {
-      const { data: targetSession } = await admin
-        .from('table_sessions')
-        .select('*')
-        .eq('id', mergedFromSession.merge_into_session_id)
-        .in('status', ['open', 'billing'])
-        .maybeSingle();
-
-      if (targetSession?.table_id) {
-        activeSession = targetSession;
-        tableId = targetSession.table_id as string;
-        displayName = tables.find((t) => t.id === tableId)?.display_name ?? displayName;
-      }
-    }
-  }
 
   return {
     tableId,

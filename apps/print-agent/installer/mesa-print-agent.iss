@@ -24,22 +24,12 @@ OutputBaseFilename=MesaPrintAgent-Setup-amd64
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-PrivilegesRequired=admin
-InfoBeforeFile=wizard-before.txt
-InfoAfterFile=wizard-after.txt
-UninstallDisplayIcon={app}\{#MyAppExe}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
-[CustomMessages]
-english.AutostartTask=Start %1 when the current user logs on to Windows
-english.AutostartTaskDesc=Adds a shortcut to your Windows Startup folder (removed on uninstall). Uncheck if you start the agent manually.
-english.LaunchAgent=Launch %1 now (system tray, browser setup if needed)
-english.OpenReadme=Open setup guide (Read me)
-
 [Tasks]
-Name: "autostart"; Description: "{cm:AutostartTask,{#MyAppName}}"; GroupDescription: "Startup:"; Flags: checked
+Name: "autostart"; Description: "Start Mesa Print Agent when the current user logs on to Windows"; GroupDescription: "Additional tasks:"; Flags: checked
 
 [Files]
 Source: "..\dist\amd64\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
@@ -55,5 +45,5 @@ Name: "{group}\Setup guide"; Filename: "{app}\WINDOWS-README.txt"
 Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: autostart
 
 [Run]
-Filename: "{app}\{#MyAppExe}"; Description: "{cm:LaunchAgent,{#MyAppName}}"; Flags: nowait postinstall skipifsilent checked
-Filename: "{app}\WINDOWS-README.txt"; Description: "{cm:OpenReadme}"; Flags: postinstall shellexec skipifsilent unchecked
+Filename: "{app}\{#MyAppExe}"; Description: "Launch Mesa Print Agent now (system tray)"; Flags: nowait postinstall skipifsilent checked
+Filename: "{app}\WINDOWS-README.txt"; Description: "Open setup guide (Read me)"; Flags: postinstall shellexec skipifsilent unchecked

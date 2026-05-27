@@ -9,6 +9,6 @@ const (
 )
 
 func winspoolStatusIsProblem(flags uint32) bool {
-	bad := printerStatusError | printerStatusPendingDeletion | printerStatusOffline | printerStatusNotAvailable
+	const bad = uint32(printerStatusError | printerStatusPendingDeletion | printerStatusOffline | printerStatusNotAvailable)
 	return flags&bad != 0
 }

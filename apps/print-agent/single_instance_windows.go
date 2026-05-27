@@ -55,9 +55,16 @@ func acquireAgentSingleInstance() bool {
 }
 
 func exitAlreadyRunning() {
-	messageBoxOK(
-		"Mesa 打印代理",
-		"打印代理已在运行，无法启动第二个实例。\n\n请在任务栏右下角点击 ^ 查看「Mesa Print」托盘图标。\n若需重启，请先在任务管理器中结束所有 MesaPrintAgent.exe，再重新打开。",
-	)
+	loc := loadTrayUILocale()
+	messageBoxOK(uiT(loc, "instance_running_title"), uiT(loc, "instance_running_body"))
 	os.Exit(0)
+}
+
+// releaseAgentSingleInstance closes our mutex handle so the next start is not blocked after exit.
+func releaseAgentSingleInstance() {
+	if agentInstanceMutex == 0 {
+		return
+	}
+	_ = syscall.CloseHandle(agentInstanceMutex)
+	agentInstanceMutex = 0
 }

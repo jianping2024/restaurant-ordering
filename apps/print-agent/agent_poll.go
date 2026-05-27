@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"log"
 	"strconv"
 	"time"
 )
@@ -31,7 +30,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 
 		open, err := pc.scheduleOpen()
 		if err != nil {
-			log.Println("schedule:", err)
+			agentLogTech(cfg, "log_schedule_error", err.Error())
 			setStatus("Schedule error", err.Error())
 			sleepOrCancel(ctx, pc.sleepFor(pollPhaseError))
 			continue
@@ -40,10 +39,10 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			queue = nil
 			if lastLogged != pollPhaseClosed {
 				if wait, werr := pc.closedSleep(); werr == nil {
-					log.Printf("outside schedule — sleeping %s (no API polls)", wait.Round(time.Second))
+					agentLog(cfg, "log_outside_schedule_sleep", wait.Round(time.Second))
 					setStatus("Outside business hours", "Not polling until next window")
 				} else {
-					log.Println("outside schedule — no API polls")
+					agentLog(cfg, "log_outside_schedule")
 					setStatus("Outside business hours", "Not polling")
 				}
 				lastLogged = pollPhaseClosed
@@ -52,16 +51,16 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			continue
 		}
 		if lastLogged == pollPhaseClosed {
-			log.Println("schedule open — resuming polls")
+			agentLog(cfg, "log_schedule_resume")
 			lastLogged = ""
 		}
 
 		if len(queue) == 0 {
-			jobs, err := fetchPending(cfg.APIBase, cfg.AgentJWT)
+			jobs, err := fetchPending(ctx, cfg.APIBase, cfg.AgentJWT)
 			phase := pc.phase(len(jobs) > 0, err != nil)
 			if err != nil {
 				if lastLogged != pollPhaseError {
-					log.Println("pending-jobs:", err)
+					agentLogTech(cfg, "log_pending_jobs_error", err.Error())
 					lastLogged = pollPhaseError
 				}
 				setStatus("Connection problem", err.Error())
@@ -69,10 +68,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 				continue
 			}
 			if len(jobs) == 0 {
-				if lastLogged != phase && phase != pollPhaseIdle {
-					log.Printf("poll %s — next check in %s", phase, pc.sleepFor(phase).Round(time.Second))
-					lastLogged = phase
-				} else if lastLogged != phase {
+				if lastLogged != phase {
 					lastLogged = phase
 				}
 				switch phase {
@@ -94,11 +90,11 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 
 		job := queue[0]
 		if jobPrintExpired(job) {
-			_ = patchJob(cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
+			_ = patchJob(ctx, cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
 				"status":        "failed",
 				"error_message": errPrintJobExpired.Error(),
 			})
-			log.Printf("skipped expired job %s (created %s)", job.ID, job.CreatedAt)
+			agentLog(cfg, "log_skipped_expired", job.ID)
 			queue = queue[1:]
 			pc.markActivity()
 			continue
@@ -112,7 +108,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 					queue = nil
 				}
 				if lastLogged != pollPhaseBusy {
-					log.Println("receipt job waiting for printer mapping (up to 20m)")
+					agentLog(cfg, "log_receipt_deferred")
 					lastLogged = pollPhaseBusy
 				}
 				setStatus("Waiting for receipt printer", "Map a station in Settings (up to 20 min)")
@@ -120,34 +116,34 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 				pc.markActivity()
 				continue
 			}
-			_ = patchJob(cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
+			_ = patchJob(ctx, cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
 				"status":        "failed",
 				"error_message": err.Error(),
 			})
-			log.Println("route:", err)
+			agentLogTech(cfg, "log_route_error", err.Error())
 			queue = queue[1:]
 			pc.markActivity()
 			continue
 		}
 		setStatus("Printing", summarizeJobPayload(job))
-		if err := patchJob(cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{"status": "processing"}); err != nil {
-			log.Println("claim job:", err)
+		if err := patchJob(ctx, cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{"status": "processing"}); err != nil {
+			agentLogTech(cfg, "log_claim_job_error", err.Error())
 			sleepOrCancel(ctx, pc.sleepFor(pollPhaseBusy))
 			continue
 		}
 		data := escposFromJob(job)
 		if err := printToTarget(target, data); err != nil {
-			_ = patchJob(cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
+			_ = patchJob(ctx, cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
 				"status":        "failed",
 				"error_message": err.Error(),
 			})
-			log.Printf("print failed (%s): %v", target.Display, err)
+			agentLogTech(cfg, "log_print_failed", err.Error(), target.Display)
 			setStatus("Print failed", err.Error())
 		} else {
-			if err := patchJob(cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{"status": "done"}); err != nil {
-				log.Println("mark done:", err)
+			if err := patchJob(ctx, cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{"status": "done"}); err != nil {
+				agentLogTech(cfg, "log_mark_done_error", err.Error())
 			} else {
-				log.Printf("printed job %s (%s) -> %s\n  ticket: %s", job.ID, job.Type, target.Display, summarizeJobPayload(job))
+				agentLog(cfg, "log_printed_ok", target.Display, summarizeJobPayload(job))
 			}
 			setStatus("Ready", "Last print OK")
 		}

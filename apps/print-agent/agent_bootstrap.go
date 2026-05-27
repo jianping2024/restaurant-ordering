@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"log"
 	"strings"
 	"time"
 )
@@ -46,14 +45,14 @@ func initAgentSession(runCtx context.Context, args []string) (*agentSession, boo
 			if err := saveConfig(path, cfg); err != nil {
 				return nil, *showConsole, err
 			}
-			log.Printf("saved config to %s (device_id=%s)", path, deviceID)
+			agentLogLocale(localeFromConfigPath(path), "log_saved_config", path)
 		} else {
 			prefill := strings.TrimSpace(*apiBase)
 			if prefill == "http://127.0.0.1:3000" {
 				prefill = ""
 			}
 			// Tray may already be visible (runAgentTrayFirst); hint user to use browser wizard.
-			log.Println("pairing required — complete the browser wizard (tray icon should be visible)")
+			agentLogLocale(localeFromConfigPath(path), "log_pairing_required")
 			ctx, cancel := context.WithTimeout(runCtx, 20*time.Minute)
 			defer cancel()
 			if err := runPairingWizard(ctx, path, prefill); err != nil {
@@ -83,7 +82,7 @@ func initAgentSession(runCtx context.Context, args []string) (*agentSession, boo
 	applyCloudRuntimeConfig(cfg, cfg.APIBase)
 
 	if !cfg.hasPrinterRouting() {
-		log.Println("no printer configured — opening setup wizard")
+		agentLogLocale(localeFromConfigPath(path), "log_setup_wizard")
 		setupCtx, setupCancel := context.WithTimeout(runCtx, 30*time.Minute)
 		defer setupCancel()
 		if err := runSetupWizard(setupCtx, path, cfg); err != nil {
@@ -98,7 +97,7 @@ func initAgentSession(runCtx context.Context, args []string) (*agentSession, boo
 		}
 	}
 	if !cfg.hasPrinterRouting() {
-		log.Println("no station printer mappings — map stations in configure")
+		agentLog(cfg, "log_no_station_mapping")
 	}
 
 	syncRoutingToCloud(cfg)
@@ -111,7 +110,7 @@ func initAgentSession(runCtx context.Context, args []string) (*agentSession, boo
 	if err != nil {
 		return nil, *showConsole, err
 	}
-	log.Printf("Mesa Print Agent %s", Version)
+	agentLog(cfg, "log_agent_startup", cfg.APIBase, stationCount)
 	logAgentStartup(cfg, cfg.APIBase, stationCount)
 
 	return &agentSession{cfgPath: path, cfg: cfg, pc: pc}, *showConsole, nil

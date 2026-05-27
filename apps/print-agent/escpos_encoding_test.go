@@ -53,8 +53,11 @@ func TestConnectionTestNeedsGBK(t *testing.T) {
 	if !connectionTestNeedsGBK(jobPayload{RestaurantName: "川味"}) {
 		t.Fatal("connection test should use GBK when venue name has Han")
 	}
-	if connectionTestNeedsGBK(jobPayload{RestaurantName: "Mesa Lisboa"}) {
-		t.Fatal("ASCII venue should use Latin on connection test")
+	if !connectionTestNeedsGBK(jobPayload{Locale: "zh", RestaurantName: "restaurant-ordering.vercel.app"}) {
+		t.Fatal("zh locale test slip needs GBK for 打印测试 headline")
+	}
+	if connectionTestNeedsGBK(jobPayload{Locale: "en", RestaurantName: "Mesa Lisboa"}) {
+		t.Fatal("en locale + ASCII venue should use Latin on connection test")
 	}
 }
 

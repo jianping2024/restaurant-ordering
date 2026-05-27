@@ -81,9 +81,12 @@ func receiptTicketNeedsGBK(p jobPayload) bool {
 	return false
 }
 
-// connectionTestNeedsGBK — test slip prints venue name only (plus ASCII labels).
+// connectionTestNeedsGBK — local test slips: zh UI locale must use GBK for「打印测试」even when venue line is ASCII URL.
 func connectionTestNeedsGBK(p jobPayload) bool {
-	return hasHan(p.venueName())
+	if normalizeUILocale(p.Locale) == "zh" {
+		return true
+	}
+	return hasHan(p.venueName()) || hasHan(labelsFor(p.Locale).connectionTest)
 }
 
 // labelsASCII strips accents for printers in GBK mode with pt/en locale.

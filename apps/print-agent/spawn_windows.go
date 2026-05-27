@@ -22,5 +22,6 @@ func spawnAgentSubcommand(subcmd string) error {
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("start %s: %w", subcmd, err)
 	}
+	registerSpawnedProcess(cmd)
 	return nil
 }

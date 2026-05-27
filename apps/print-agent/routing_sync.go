@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -29,14 +28,14 @@ func syncRoutingToCloud(cfg *config) {
 	req.Header.Set("Authorization", "Bearer "+cfg.AgentJWT)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Printf("routing sync: %v", err)
+		agentLogTech(cfg, "log_routing_sync_fail", err.Error())
 		return
 	}
 	defer res.Body.Close()
 	_, _ = io.Copy(io.Discard, res.Body)
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
-		log.Printf("routing sync: HTTP %d", res.StatusCode)
+		agentLog(cfg, "log_routing_sync_http", res.StatusCode)
 		return
 	}
-	log.Printf("routing sync: ok (station maps=%d)", len(cfg.StationPrinters))
+	agentLog(cfg, "log_routing_sync_ok", len(cfg.StationPrinters))
 }

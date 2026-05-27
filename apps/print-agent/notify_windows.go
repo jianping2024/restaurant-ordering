@@ -3,19 +3,14 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 )
 
-func notifyLocalWizardURL(title, url string) {
-	loc := loadTrayUILocale()
-	messageBoxOK(title,
-		uiT(loc, "wizard_open_body")+"\n\n"+url+
-			"\n\n"+uiT(loc, "wizard_open_footer"))
-}
-
 func maybeNotifyTrayReady() {
-	if cfg, err := loadConfig(defaultConfigPath()); err != nil || cfg == nil || cfg.AgentJWT == "" {
+	cfg, err := loadConfig(defaultConfigPath())
+	if err != nil || cfg == nil || cfg.AgentJWT == "" {
 		return
 	}
 	marker := filepath.Join(agentDataDir(), ".tray_ready_tip_shown")
@@ -24,9 +19,9 @@ func maybeNotifyTrayReady() {
 	}
 	_ = os.MkdirAll(agentDataDir(), 0o700)
 	_ = os.WriteFile(marker, []byte("1"), 0o644)
-	messageBoxOK("Mesa 打印代理",
-		"打印代理已在后台运行。\n\n"+
-			"请在任务栏右下角点击 ^，找到「Mesa 打印」图标（绿色=正常）。\n"+
-			"右键：打印机设置、测试打印、打开日志、退出。\n\n"+
-			"日志：\n"+filepath.Join(agentDataDir(), "agent.log"))
+	loc := cfg.uiLocale()
+	messageBoxOK(
+		uiT(loc, "tray_startup_title"),
+		fmt.Sprintf(uiT(loc, "tray_startup_body"), filepath.Join(agentDataDir(), "agent.log")),
+	)
 }

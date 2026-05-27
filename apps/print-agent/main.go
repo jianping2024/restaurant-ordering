@@ -63,8 +63,8 @@ type printJob struct {
 	Payload   json.RawMessage `json:"payload"`
 }
 
-func fetchPending(apiBase, jwt string) ([]printJob, error) {
-	req, err := http.NewRequest(http.MethodGet, strings.TrimRight(apiBase, "/")+"/api/print-agent/pending-jobs", nil)
+func fetchPending(ctx context.Context, apiBase, jwt string) ([]printJob, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimRight(apiBase, "/")+"/api/print-agent/pending-jobs", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -87,9 +87,9 @@ func fetchPending(apiBase, jwt string) ([]printJob, error) {
 	return out.Jobs, nil
 }
 
-func patchJob(apiBase, jwt, id string, patch map[string]any) error {
+func patchJob(ctx context.Context, apiBase, jwt, id string, patch map[string]any) error {
 	body, _ := json.Marshal(patch)
-	req, err := http.NewRequest(http.MethodPatch, strings.TrimRight(apiBase, "/")+"/api/print-agent/jobs/"+id, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, strings.TrimRight(apiBase, "/")+"/api/print-agent/jobs/"+id, bytes.NewReader(body))
 	if err != nil {
 		return err
 	}

@@ -78,7 +78,7 @@ func runAgentTrayFirst(args []string) {
 			rt.status.set("Error", err.Error())
 			loc := loadTrayUILocale()
 			messageBoxOK(uiT(loc, "about_title"), err.Error())
-			stopTrayAgent(rt)
+			requestTrayExit(rt)
 			return
 		}
 		rt.status.set("Ready", "Connected to Mesa")
@@ -89,10 +89,7 @@ func runAgentTrayFirst(args []string) {
 	systray.Run(func() {
 		onTrayReady(rt)
 	}, func() {
-		if rt.cancel != nil {
-			rt.cancel()
-		}
-		shutdownAllWizardServers()
+		stopTrayAgentWork(rt)
 	})
 	exitTrayAgent()
 }
@@ -189,11 +186,7 @@ func onTrayReady(rt *trayRuntime) {
 				if !confirmTrayExit(loc) {
 					continue
 				}
-				stopTrayAgent(rt)
-				go func() {
-					time.Sleep(800 * time.Millisecond)
-					exitTrayAgent()
-				}()
+				requestTrayExit(rt)
 				return
 			}
 		}

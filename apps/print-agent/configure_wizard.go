@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	_ "embed"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -59,7 +58,7 @@ func runConfigureWizard(ctx context.Context, configPath string, prefillAPI strin
 	if api, err := normalizeAPIBase(prefillAPI); err == nil && api != "" {
 		baseURL = "http://" + listenAddr + "/configure?api=" + url.QueryEscape(api)
 	}
-	log.Printf("configure wizard: open %s", baseURL)
+	agentLogLocale(localeFromConfigPath(configPath), "log_wizard_open", baseURL)
 	announceWizardURL("Mesa 打印机设置", baseURL)
 
 	return waitLocalWizard(ctx, srv, done)

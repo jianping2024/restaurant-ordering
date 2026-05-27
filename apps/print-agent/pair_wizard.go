@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -86,7 +85,7 @@ func runPairingWizard(ctx context.Context, configPath, prefillAPI string) error 
 		baseURL = "http://" + listenAddr + "/pair?api=" + url.QueryEscape(api)
 	}
 
-	log.Printf("pairing wizard: open %s in your browser", baseURL)
+	agentLogLocale(localeFromConfigPath(configPath), "log_wizard_open", baseURL)
 	announceWizardURL("Mesa 配对", baseURL)
 
 	return waitLocalWizard(ctx, srv, done)

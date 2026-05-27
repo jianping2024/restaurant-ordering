@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -31,7 +30,7 @@ func applyCloudRuntimeConfig(cfg *config, apiBase string) {
 	url := strings.TrimRight(apiBase, "/") + "/api/print-agent/runtime-config"
 	remote, err := fetchCloudRuntimeConfig(url, cfg.AgentJWT)
 	if err != nil {
-		log.Printf("startup: runtime-config failed: %v (keeping local schedule/poll if any)", err)
+		agentLogTech(cfg, "log_runtime_config_fail", err.Error())
 		return
 	}
 
@@ -44,26 +43,24 @@ func applyCloudRuntimeConfig(cfg *config, apiBase string) {
 }
 
 func logAgentStartup(cfg *config, apiBase string, stationCount int) {
-	log.Printf("agent %s | station_printers=%d", apiBase, stationCount)
 	if cfg.Schedule != nil && cfg.Schedule.enabled() {
 		tz := strings.TrimSpace(cfg.Schedule.Timezone)
 		if tz == "" {
 			tz = "Local"
 		}
 		for _, line := range formatScheduleLines(cfg.Schedule) {
-			log.Printf("  schedule %s", line)
+			agentLog(cfg, "log_schedule_line", line)
 		}
-		log.Printf("  schedule timezone=%s", tz)
+		agentLog(cfg, "log_schedule_tz", tz)
 	} else {
-		log.Println("  schedule: disabled (poll 24/7 while agent runs)")
+		agentLog(cfg, "log_schedule_disabled")
 	}
 
 	p := defaultPollConfig()
 	if cfg.Poll != nil {
 		p = cfg.Poll.normalized()
 	}
-	log.Printf(
-		"  poll: after_print=%ds warm=%ds (for %ds after activity) idle=%ds busy_claim=%ds closed_check=%ds",
+	agentLog(cfg, "log_poll_intervals",
 		p.AfterPrintIntervalSec,
 		p.WarmIntervalSec,
 		p.WarmAfterActivitySec,

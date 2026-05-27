@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 	"sort"
 	"strings"
@@ -186,7 +185,7 @@ func registerPrinterWizardRoutes(mux *http.ServeMux, configPath string, cfg **co
 		}
 		*cfg = c
 		syncRoutingToCloud(c)
-		log.Printf("%s: station_printers=%d", logPrefix, len(cleaned))
+		agentLog(c, "log_station_maps_saved", len(cleaned))
 		writePairJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 
@@ -209,7 +208,7 @@ func registerPrinterWizardRoutes(mux *http.ServeMux, configPath string, cfg **co
 			writePairJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 			return
 		}
-		log.Printf("%s: test print station=%s", logPrefix, strings.TrimSpace(body.StationID))
+		agentLog(c, "log_test_print_station", strings.TrimSpace(body.StationID))
 		writePairJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 }
@@ -262,7 +261,7 @@ func registerPairWizardRoute(mux *http.ServeMux, configPath string, cfg **config
 		if cfg != nil {
 			*cfg = reloadConfig(configPath, next)
 		}
-		log.Printf("%s: saved config (device_id=%s)", logPrefix, deviceID)
+		agentLogLocale(localeFromConfigPath(configPath), "log_pair_ok")
 		writePairJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 		if onSuccess != nil {
 			onSuccess()

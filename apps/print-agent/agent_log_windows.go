@@ -31,5 +31,5 @@ func initWindowsAgentLog() {
 		return
 	}
 	log.SetOutput(io.MultiWriter(f))
-	log.Printf("--- Mesa Print Agent %s starting ---", Version)
+	agentLogLocale(loadTrayUILocale(), "log_agent_start", Version)
 }

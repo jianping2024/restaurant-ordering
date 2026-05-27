@@ -11,4 +11,4 @@ USB printers (UNYKA UK56009, etc.)
 
 Portable zip vs this Setup
   This installer can add a startup shortcut (optional task) and uninstall cleanly.
-  The portable zip does NOT configure sign-in autostart — use Setup for daily POS PCs.
+  The portable zip does NOT configure sign-in autostart - use Setup for daily POS PCs.

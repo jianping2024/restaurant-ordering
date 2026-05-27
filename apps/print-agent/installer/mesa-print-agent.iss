@@ -9,8 +9,6 @@
 #define MyAppExe "MesaPrintAgent.exe"
 #define MyAppPublisher "Mesa"
 #define MyAppURL "https://github.com/jianping2024/restaurant-ordering"
-#define UnykaDriverURL "https://unykach.com/"
-
 [Setup]
 AppId={{A3B8F2E1-9C4D-4A2B-8E1F-0D5C6B7A8E9F}}
 AppName={#MyAppName}
@@ -40,7 +38,7 @@ english.LaunchAgent=Launch %1 now (system tray; browser setup if needed)
 english.OpenReadme=Open setup guide (Read me)
 
 [Tasks]
-Name: "autostart"; Description: "{cm:AutostartTask,{#MyAppName}}"; GroupDescription: "Startup:"; Flags: checked
+Name: "autostart"; Description: "{cm:AutostartTask|{#MyAppName}}"; GroupDescription: "Startup:"; Flags: checked
 
 [Files]
 Source: "..\dist\amd64\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
@@ -50,12 +48,11 @@ Source: "wizard-before.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "wizard-after.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Comment: "Run in the system tray"
-Name: "{group}\Printer settings"; Filename: "{app}\{#MyAppExe}"; Parameters: "configure"; Comment: "Map stations and test print"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Description: "Run in the system tray"
+Name: "{group}\Printer settings"; Filename: "{app}\{#MyAppExe}"; Parameters: "configure"; Description: "Map stations and test print"
 Name: "{group}\Setup guide"; Filename: "{app}\WINDOWS-README.txt"
-Name: "{group}\UNYKA driver (web)"; Filename: "{#UnykaDriverURL}"
 Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: autostart
 
 [Run]
-Filename: "{app}\{#MyAppExe}"; Description: "{cm:LaunchAgent,{#MyAppName}}"; Flags: nowait postinstall skipifsilent checked
+Filename: "{app}\{#MyAppExe}"; Description: "{cm:LaunchAgent|{#MyAppName}}"; Flags: nowait postinstall skipifsilent checked
 Filename: "{app}\WINDOWS-README.txt"; Description: "{cm:OpenReadme}"; Flags: postinstall shellexec skipifsilent unchecked

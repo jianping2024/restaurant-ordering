@@ -5,6 +5,7 @@ import type { PrintJobSummary, PrintJobStatus, PrintJobType } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { printJobErrorHint } from '@/lib/print-job-error-hints';
+import { openPrintAgentConfigure } from '@/lib/print-agent-local';
 
 function isPrintJobType(v: string): v is PrintJobType {
   return v === 'order_receipt' || v === 'station_ticket' || v === 'pre_bill';
@@ -22,6 +23,8 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [retryingId, setRetryingId] = useState<string | null>(null);
+  const [openingConfigure, setOpeningConfigure] = useState(false);
+  const siteOrigin = typeof window !== 'undefined' ? window.location.origin : '';
 
   const labelType = (type: string) => {
     if (!isPrintJobType(type)) return type;
@@ -98,9 +101,20 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
       </div>
       <p className="text-[12px] text-brand-text-muted mb-3 leading-relaxed">{t.tableHint}</p>
       {failedCount > 0 ? (
-        <p className="text-[12px] mesa-alert-warning px-3 py-2 mb-3 leading-relaxed">
-          {t.failedJobsHint}
-        </p>
+        <div className="text-[12px] mesa-alert-warning px-3 py-2 mb-3 leading-relaxed space-y-2">
+          <p>{t.failedJobsHint}</p>
+          <button
+            type="button"
+            disabled={openingConfigure}
+            onClick={() => {
+              setOpeningConfigure(true);
+              void openPrintAgentConfigure(siteOrigin).finally(() => setOpeningConfigure(false));
+            }}
+            className="text-[12px] font-medium text-brand-gold hover:underline disabled:opacity-50"
+          >
+            {openingConfigure ? '…' : t.failedJobsOpenConfigure}
+          </button>
+        </div>
       ) : null}
       {loadError && <p className="text-[13px] mesa-text-danger mb-2">{t.loadError}</p>}
       {jobs.length === 0 ? (

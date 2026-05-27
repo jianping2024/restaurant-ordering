@@ -150,8 +150,8 @@ flowchart LR
 ### 7. Mesa 打印助手闭环按钮
 
 - **「在本机打开设置」**：探测 `127.0.0.1:17892`；不可达则提示先启动 Mesa Print Agent。
-- 生成配对码：**大号 6 位 + 过期倒计时 + 复制**；生成后自动带 `code` 打开 configure（已有 `freshCode` + `buildPrintAgentConfigureUrl`，可加强 UI）。
-- 任务 `failed`：展示 `print-job-error-hints` + 链到本机 configure。
+- 生成配对码：**大号 6 位 + 过期倒计时 + 复制**；生成后自动带 `code` 打开 configure（Dashboard `PrintAgentPairingPanel`）。
+- 任务 `failed`：展示 `print-job-error-hints` + **在本机打开打印机设置**（深链 configure）。
 
 ---
 
@@ -216,7 +216,7 @@ flowchart LR
 - [x] `heartbeat` API + `print_agent_devices` 存储 `last_seen` 等字段
 - [x] 打印助手：在线状态、版本落后提示（设备列表面板）
 - [x] 「打开本机设置」可达性检测（`GET /api/health` + Dashboard 探测后再打开）
-- [ ] 配对码 UI 强化 + 深链 configure
+- [x] 配对码 UI 强化 + 深链 configure（大号码、倒计时、复制、生成后自动深链；失败任务链到本机设置）
 
 **文档**
 

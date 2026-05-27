@@ -278,6 +278,16 @@ func runAgent(args []string) {
 		}
 
 		job := queue[0]
+		if jobPrintExpired(job) {
+			_ = patchJob(cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
+				"status":        "failed",
+				"error_message": errPrintJobExpired.Error(),
+			})
+			log.Printf("skipped expired job %s (created %s)", job.ID, job.CreatedAt)
+			queue = queue[1:]
+			pc.markActivity()
+			continue
+		}
 		target, err := cfg.printerTargetForJob(job)
 		if err != nil {
 			if errors.Is(err, errReceiptPrintDeferred) {

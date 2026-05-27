@@ -4,6 +4,14 @@ type ErrorHint = { match: (msg: string) => boolean; hint: Record<UILanguage, str
 
 const ERROR_HINTS: ErrorHint[] = [
   {
+    match: (m) => /print job expired.*20 minutes/i.test(m),
+    hint: {
+      zh: '任务已超过 20 分钟未打出，系统已自动作废；如需补打请在后台对该任务点「重试」（会生成新的待打印任务）。',
+      en: 'Job was older than 20 minutes and was auto-cancelled; use Retry in the dashboard to re-queue if you still need a ticket.',
+      pt: 'Trabalho com mais de 20 minutos foi cancelado; use Repetir no painel para reenviar se ainda precisar do ticket.',
+    },
+  },
+  {
     match: (m) => /startdocprinter/i.test(m),
     hint: {
       zh: 'USB 打印 bug：请升级至 print-agent v0.2.1+ 并重启代理。',

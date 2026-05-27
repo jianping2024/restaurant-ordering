@@ -13,10 +13,10 @@ const receiptPrintDeferWindow = 20 * time.Minute
 // errReceiptPrintDeferred — job stays pending; agent retries until printer is mapped or window expires.
 var errReceiptPrintDeferred = errors.New("receipt printer not ready; will retry within 20 minutes")
 
-func jobCreatedWithin(job printJob, within time.Duration) bool {
+func parseJobCreatedAt(job printJob) (time.Time, bool) {
 	raw := strings.TrimSpace(job.CreatedAt)
 	if raw == "" {
-		return true
+		return time.Time{}, false
 	}
 	for _, layout := range []string{
 		time.RFC3339Nano,
@@ -24,10 +24,18 @@ func jobCreatedWithin(job printJob, within time.Duration) bool {
 		"2006-01-02T15:04:05.999999999Z07:00",
 	} {
 		if t, err := time.Parse(layout, raw); err == nil {
-			return time.Since(t) <= within
+			return t, true
 		}
 	}
-	return true
+	return time.Time{}, false
+}
+
+func jobCreatedWithin(job printJob, within time.Duration) bool {
+	t, ok := parseJobCreatedAt(job)
+	if !ok {
+		return true
+	}
+	return time.Since(t) <= within
 }
 
 func (c *config) firstMappedStationAddr() (string, bool) {

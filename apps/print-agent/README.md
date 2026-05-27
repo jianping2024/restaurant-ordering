@@ -95,6 +95,8 @@ While **inside** schedule:
 
 While **outside** schedule: sleep `closed_check_sec` (default 60s), no HTTP polls.
 
+**Job max age:** `GET /api/print-agent/pending-jobs` only returns `pending` rows **newer than 20 minutes**; older `pending`/`processing` rows are marked `failed` on each poll. The agent also skips expired jobs defensively. Reconnecting after days offline will **not** replay old kitchen tickets (use dashboard **Retry** if you need a reprint).
+
 Set `poll.fixed_interval_sec` to disable dynamic tiers and use a single interval (legacy behaviour).
 
 See **[dev/config.example.json](./dev/config.example.json)** for a Pirata-style template.

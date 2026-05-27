@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyAgentBearer } from '@/lib/print-agent-auth';
+import { expireStalePrintJobs } from '@/lib/expire-stale-print-jobs';
+import { printJobMaxAgeCutoffIso } from '@/lib/print-job-max-age';
 import {
   filterPrintJobsByRestaurant,
   rejectForbiddenPrintJobsScopeParams,
@@ -9,7 +11,7 @@ import {
 
 export const runtime = 'nodejs';
 
-/** Agent: pending jobs for JWT restaurant only. No query params (no cross-tenant scope). */
+/** Agent: pending jobs for JWT restaurant only (created within 20 minutes). Stale jobs are failed on each poll. */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
@@ -38,11 +40,18 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
+  const { error: expireErr } = await expireStalePrintJobs(admin, ctx.restaurant_id);
+  if (expireErr) {
+    return NextResponse.json({ error: 'expire_stale_failed', message: expireErr }, { status: 500 });
+  }
+
+  const cutoff = printJobMaxAgeCutoffIso();
   const { data: rows, error } = await admin
     .from('print_jobs')
     .select('id, restaurant_id, type, payload, status, created_at, attempts, error_message')
     .eq('restaurant_id', ctx.restaurant_id)
     .eq('status', 'pending')
+    .gte('created_at', cutoff)
     .order('created_at', { ascending: true })
     .limit(25);
 

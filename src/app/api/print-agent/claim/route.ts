@@ -9,10 +9,9 @@ import {
 } from '@/lib/print-agent-claim-rate-limit';
 import { isUuid } from '@/lib/print-agent-auth';
 import { clientIpFromRequest } from '@/lib/request-client-ip';
+import { PRINT_AGENT_CREDENTIAL_TTL_SEC } from '@/lib/print-agent-credential';
 
 export const runtime = 'nodejs';
-
-const NINETY_DAYS_SEC = 90 * 24 * 60 * 60;
 
 export async function POST(req: Request) {
   const ip = clientIpFromRequest(req);
@@ -104,7 +103,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'code_already_used' }, { status: 409 });
   }
 
-  const validUntil = new Date(Date.now() + NINETY_DAYS_SEC * 1000).toISOString();
+  const validUntil = new Date(Date.now() + PRINT_AGENT_CREDENTIAL_TTL_SEC * 1000).toISOString();
 
   const { error: devErr } = await admin.from('print_agent_devices').upsert(
     {
@@ -153,7 +152,7 @@ export async function POST(req: Request) {
   const agentjwt = signPrintAgentJwt(
     { restaurant_id: p.restaurant_id, device_id: deviceId },
     jwtSecret,
-    NINETY_DAYS_SEC,
+    PRINT_AGENT_CREDENTIAL_TTL_SEC,
   );
 
   claimRecordSuccess(ip);

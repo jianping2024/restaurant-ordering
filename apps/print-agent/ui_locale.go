@@ -15,6 +15,26 @@ func normalizeUILocale(raw string) string {
 	}
 }
 
+// normalizePrintLocale normalizes payload.locale from Mesa print jobs (default pt).
+func normalizePrintLocale(raw string) string {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "en", "english":
+		return "en"
+	case "pt", "pt-br", "pt-pt", "por", "portuguese", "português":
+		return "pt"
+	case "zh", "zh-cn", "zh-hans", "zh-tw", "chinese", "cn":
+		return "zh"
+	case "":
+		return "pt"
+	default:
+		return "pt"
+	}
+}
+
+func localeUsesGBK(locale string) bool {
+	return normalizePrintLocale(locale) == "zh"
+}
+
 func (c *config) uiLocale() string {
 	if c == nil {
 		return "zh"

@@ -35,11 +35,16 @@ func (rt *trayRuntime) snapshot() (*agentSession, error, bool) {
 }
 
 func (rt *trayRuntime) uiLocale() string {
-	sess, _, done := rt.snapshot()
-	if done && sess != nil && sess.cfg != nil {
-		return sess.cfg.uiLocale()
-	}
+	// Configure/setup write config.json; do not use stale sess.cfg from agent startup.
 	return loadTrayUILocale()
+}
+
+func (rt *trayRuntime) syncConfigFromDisk() {
+	sess, _, done := rt.snapshot()
+	if !done || sess == nil {
+		return
+	}
+	reloadAgentSessionConfig(sess)
 }
 
 func runAgent(args []string) {
@@ -140,6 +145,7 @@ func onTrayReady(rt *trayRuntime) {
 		defer tick.Stop()
 		var lastLoc string
 		for range tick.C {
+			rt.syncConfigFromDisk()
 			loc = rt.uiLocale()
 			if loc != lastLoc {
 				lastLoc = loc
@@ -165,9 +171,10 @@ func onTrayReady(rt *trayRuntime) {
 				rt.startTrayConfigureWizard()
 			case <-mTestPrint.ClickedCh:
 				go func() {
+					rt.syncConfigFromDisk()
 					loc := rt.uiLocale()
 					sess, _, done := rt.snapshot()
-					if !done || sess == nil {
+					if !done || sess == nil || sess.cfg == nil {
 						showTestPrintResult(uiError(loc, "tray_not_ready"), loc)
 						return
 					}

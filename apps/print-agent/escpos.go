@@ -160,9 +160,7 @@ type jobPayload struct {
 func parseJobPayload(job printJob) jobPayload {
 	var p jobPayload
 	_ = json.Unmarshal(job.Payload, &p)
-	if p.Locale == "" {
-		p.Locale = "pt"
-	}
+	p.Locale = normalizePrintLocale(p.Locale)
 	return p
 }
 
@@ -292,10 +290,13 @@ func (w *escposWriter) enableLatin() {
 	w.prefix = append(w.prefix, 0x1B, 0x74, 16)
 }
 
-// enableGBK selects simplified Chinese mode (common on POS-80 USB printers).
+// enableGBK selects simplified Chinese mode (GBK/GB2312 on Epson-compatible 80mm printers).
 func (w *escposWriter) enableGBK() {
 	w.gbk = true
-	w.prefix = append(w.prefix, 0x1C, 0x26) // FS &
+	w.prefix = append(w.prefix,
+		0x1C, 0x26, // FS & — enter Chinese mode
+		0x1C, 0x43, 0x01, // FS C 1 — GBK code table (common on UNYKA / clone firmware)
+	)
 }
 
 func (w *escposWriter) align(mode byte) {
@@ -462,18 +463,21 @@ func escposFromJob(job printJob) []byte {
 			variant = "final"
 		}
 		withPayment := variant == "final" || variant == "split_payment"
-		return buildOrderReceipt(p, receiptTicketLabels(), withPayment, variant)
+		return buildOrderReceipt(p, receiptLabelsFor(p.Locale), withPayment, variant)
 	case "pre_bill":
 		p.ReceiptVariant = "pre_bill"
-		return buildOrderReceipt(p, receiptTicketLabels(), false, "pre_bill")
+		return buildOrderReceipt(p, receiptLabelsFor(p.Locale), false, "pre_bill")
 	default:
 		return buildStationTicket(p)
 	}
 }
 
-// buildStationTicket — internal station slip; English Guest Order layout (reference sample).
+// buildStationTicket — internal station slip; English layout by default, Chinese when locale is zh.
 func buildStationTicket(p jobPayload) []byte {
 	lab := stationTicketLabels()
+	if localeUsesGBK(p.Locale) {
+		lab = labelsFor("zh")
+	}
 	w := newEscposForStationTicket(p)
 
 	w.align(0)

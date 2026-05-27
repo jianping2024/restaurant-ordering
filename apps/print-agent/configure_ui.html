@@ -450,10 +450,14 @@
           err.textContent = t('save_need_mapping');
           return;
         }
+        saveUILocale(document.getElementById('uiLocale').value).finally(function () {
         fetch('/api/setup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ station_printers: station_printers })
+          body: JSON.stringify({
+            station_printers: station_printers,
+            ui_locale: document.getElementById('uiLocale').value
+          })
         })
           .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
@@ -467,6 +471,7 @@
             loadState();
           })
           .catch(function () { err.textContent = 'Cannot reach local configure service'; });
+        });
       });
 
       document.getElementById('testPrintBtn').addEventListener('click', function () {

@@ -16,6 +16,7 @@ type printerListEntry struct {
 
 type setupRequestBody struct {
 	StationPrinters map[string]string `json:"station_printers"`
+	UILocale        string            `json:"ui_locale,omitempty"`
 }
 
 func discoverAllPrinters(timeout time.Duration, workers int) (tcp []printerListEntry, winspool []printerListEntry, err error) {
@@ -164,7 +165,7 @@ func registerPrinterWizardRoutes(mux *http.ServeMux, configPath string, cfg **co
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-		c := *cfg
+		c := reloadConfig(configPath, *cfg)
 		if strings.TrimSpace(c.AgentJWT) == "" {
 			writePairJSON(w, http.StatusUnauthorized, map[string]string{"error": "请先完成配对"})
 			return
@@ -173,6 +174,9 @@ func registerPrinterWizardRoutes(mux *http.ServeMux, configPath string, cfg **co
 		if err := json.NewDecoder(io.LimitReader(r.Body, 65536)).Decode(&body); err != nil {
 			writePairJSON(w, http.StatusBadRequest, map[string]string{"error": "无效的请求"})
 			return
+		}
+		if loc := strings.TrimSpace(body.UILocale); loc != "" {
+			c.UILocale = normalizeUILocale(loc)
 		}
 		cleaned, err := applyPrinterSetup(c, body)
 		if err != nil {

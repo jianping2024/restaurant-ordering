@@ -8,7 +8,6 @@ import (
 )
 
 func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
-	cfg := sess.cfg
 	pc := sess.pc
 	var lastLogged pollPhase
 	var queue []printJob
@@ -18,6 +17,12 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			status.set(summary, detail)
 		}
 	}
+	reloadAgentSessionConfig(sess)
+	cfg := sess.cfg
+	if cfg == nil {
+		setStatus("Error", "config missing")
+		return
+	}
 	setStatus("Starting", cfg.APIBase)
 
 	for {
@@ -26,6 +31,13 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			setStatus("Stopped", "")
 			return
 		default:
+		}
+
+		reloadAgentSessionConfig(sess)
+		cfg = sess.cfg
+		if cfg == nil {
+			sleepOrCancel(ctx, 5*time.Second)
+			continue
 		}
 
 		open, err := pc.scheduleOpen()

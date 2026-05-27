@@ -33,7 +33,7 @@ func hasHan(s string) bool {
 }
 
 func payloadNeedsGBK(p jobPayload) bool {
-	if p.Locale == "zh" {
+	if localeUsesGBK(p.Locale) {
 		return true
 	}
 	if hasHan(p.RestaurantName) || hasHan(p.stationName()) {
@@ -49,6 +49,9 @@ func payloadNeedsGBK(p jobPayload) bool {
 
 // stationTicketNeedsGBK — internal station slips use a fixed English header ("restaurant").
 func stationTicketNeedsGBK(p jobPayload) bool {
+	if localeUsesGBK(p.Locale) {
+		return true
+	}
 	for _, ln := range p.Lines {
 		if hasHan(ln.CategoryGroupHeader) || hasHan(ln.DisplayName) || hasHan(ln.Note) {
 			return true
@@ -67,9 +70,20 @@ func receiptTicketLabels() ticketLabels {
 	return labelsFor("en")
 }
 
+// receiptLabelsFor uses Chinese ticket labels when print_locale is zh.
+func receiptLabelsFor(locale string) ticketLabels {
+	if localeUsesGBK(locale) {
+		return labelsFor("zh")
+	}
+	return receiptTicketLabels()
+}
+
 // receiptTicketNeedsGBK — receipt/pre-bill paper uses English headers and does not print
 // restaurant_name; do not switch the whole ticket to GBK because of a Chinese venue name in payload.
 func receiptTicketNeedsGBK(p jobPayload) bool {
+	if localeUsesGBK(p.Locale) {
+		return true
+	}
 	if hasHan(formatSplitPayerForReceipt(p.PayerName)) {
 		return true
 	}
@@ -83,7 +97,7 @@ func receiptTicketNeedsGBK(p jobPayload) bool {
 
 // connectionTestNeedsGBK — local test slips: zh UI locale must use GBK for「打印测试」even when venue line is ASCII URL.
 func connectionTestNeedsGBK(p jobPayload) bool {
-	if normalizeUILocale(p.Locale) == "zh" {
+	if localeUsesGBK(p.Locale) || normalizeUILocale(p.Locale) == "zh" {
 		return true
 	}
 	return hasHan(p.venueName()) || hasHan(labelsFor(p.Locale).connectionTest)

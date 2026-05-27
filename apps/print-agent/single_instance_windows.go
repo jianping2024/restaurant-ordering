@@ -10,19 +10,35 @@ import (
 
 const agentMutexName = "Global\\MesaPrintAgent-SingleInstance-v1"
 
-// acquireAgentSingleInstance returns false if another agent instance holds the mutex.
-func acquireAgentSingleInstance() bool {
-	name, _ := syscall.UTF16PtrFromString(agentMutexName)
-	kernel32 := syscall.NewLazyDLL("kernel32.dll")
-	createMutex := kernel32.NewProc("CreateMutexW")
-	const errorAlreadyExists = 183
+const errorAlreadyExists = syscall.Errno(183)
 
-	handle, _, err := createMutex.Call(0, 0, uintptr(unsafe.Pointer(name)))
+// Held until process exit so the mutex stays owned by this instance.
+var agentInstanceMutex syscall.Handle
+
+// acquireAgentSingleInstance returns false if another main agent instance is already running.
+func acquireAgentSingleInstance() bool {
+	if agentInstanceMutex != 0 {
+		return true
+	}
+	name, err := syscall.UTF16PtrFromString(agentMutexName)
+	if err != nil {
+		return true
+	}
+	kernel32 := syscall.NewLazyDLL("kernel32.dll")
+	createMutexW := kernel32.NewProc("CreateMutexW")
+	getLastError := kernel32.NewProc("GetLastError")
+
+	handle, _, _ := createMutexW.Call(0, 0, uintptr(unsafe.Pointer(name)))
 	if handle == 0 {
 		return true
 	}
-	if err == syscall.Errno(errorAlreadyExists) {
-		_ = syscall.CloseHandle(syscall.Handle(handle))
+	agentInstanceMutex = syscall.Handle(handle)
+
+	// CreateMutex returns a valid handle when the mutex already exists; check GetLastError.
+	errno, _, _ := getLastError.Call()
+	if syscall.Errno(errno) == errorAlreadyExists {
+		_ = syscall.CloseHandle(agentInstanceMutex)
+		agentInstanceMutex = 0
 		return false
 	}
 	return true
@@ -31,7 +47,7 @@ func acquireAgentSingleInstance() bool {
 func exitAlreadyRunning() {
 	messageBoxOK(
 		"Mesa Print Agent",
-		"打印代理已在运行。\n\n请在任务栏右下角点击 ^ 查看隐藏图标，或在任务管理器中结束多余的 MesaPrintAgent 后再启动。",
+		"打印代理已在运行，无法启动第二个实例。\n\n请在任务栏右下角点击 ^ 查看托盘图标。\n若需重启，请先在任务管理器中结束 MesaPrintAgent，再重新打开。",
 	)
 	os.Exit(0)
 }

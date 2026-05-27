@@ -138,6 +138,7 @@ func summarizeJobPayload(job printJob) string {
 
 func main() {
 	windowsPrepareConsole(os.Args)
+	guardMainAgentSingleInstance()
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "discover":

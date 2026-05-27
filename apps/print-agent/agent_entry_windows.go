@@ -28,9 +28,6 @@ func (rt *trayRuntime) snapshot() (*agentSession, error, bool) {
 
 func runAgent(args []string) {
 	if agentArgsWantConsole(args) {
-		if !acquireAgentSingleInstance() {
-			exitAlreadyRunning()
-		}
 		sess, _, err := initAgentSession(args)
 		if err != nil {
 			showConsoleWindow()
@@ -38,10 +35,6 @@ func runAgent(args []string) {
 		}
 		runPollLoop(context.Background(), sess, nil)
 		return
-	}
-
-	if !acquireAgentSingleInstance() {
-		exitAlreadyRunning()
 	}
 
 	runAgentTrayFirst(args)

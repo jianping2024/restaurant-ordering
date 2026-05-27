@@ -23,9 +23,9 @@ func maybeNotifyTrayReady() {
 	}
 	_ = os.MkdirAll(agentDataDir(), 0o700)
 	_ = os.WriteFile(marker, []byte("1"), 0o644)
-	messageBoxOK("Mesa Print Agent",
+	messageBoxOK("Mesa 打印代理",
 		"打印代理已在后台运行。\n\n"+
-			"请在任务栏右下角点击 ^，找到「Mesa Print」托盘图标。\n"+
-			"右键可打开打印机设置或退出。\n\n"+
-			"日志文件：\n"+filepath.Join(agentDataDir(), "agent.log"))
+			"请在任务栏右下角点击 ^，找到「Mesa 打印」图标（绿色=正常）。\n"+
+			"右键：打印机设置、测试打印、打开日志、退出。\n\n"+
+			"日志：\n"+filepath.Join(agentDataDir(), "agent.log"))
 }

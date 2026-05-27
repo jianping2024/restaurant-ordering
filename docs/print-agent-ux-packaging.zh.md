@@ -23,6 +23,7 @@
 
 ## 已落地（与体验相关）
 
+- **Windows 托盘 P0（v0.2.40+）**：绿/黄/红图标、中文菜单（设置/测试打印/日志/关于/退出）、只读状态行、退出确认、本地测试条（首台已映射打印机）；日志目录 `%LOCALAPPDATA%\Mesa Print Agent\`。
 - **任务最大年龄 20 分钟**：`GET /api/print-agent/pending-jobs` 拉取前将超时 `pending`/`processing` 标为 `failed`；仅返回 `created_at` 在窗口内的 `pending`；Go 代理处理前再次跳过。实现：`src/lib/print-job-max-age.ts`、`src/lib/expire-stale-print-jobs.ts`、`apps/print-agent/job_max_age.go`。
 - **Dashboard**：打印助手配对码、最近任务、`print-job-error-hints` 中文/英/葡 hint；`buildPrintAgentConfigureUrl` 深链本机 `http://127.0.0.1:17892/configure`。
 - **安装**：Inno Setup、登录自启（默认勾选）、`WINDOWS-README.txt` 首装步骤；`claim` 后试打任务（`connection_test`）见 P0-3。

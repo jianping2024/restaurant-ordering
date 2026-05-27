@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"runtime"
 	"sync"
@@ -42,8 +43,6 @@ func runAgent(args []string) {
 }
 
 // runAgentTrayFirst shows the tray icon immediately, then runs pairing/setup/poll in the background.
-// Evidence: systray.Run was previously called only after initAgentSession returned, so users saw
-// Task Manager processes (~4MB) with no tray while the local pairing HTTP wizard blocked (up to 20m).
 func runAgentTrayFirst(args []string) {
 	initWindowsAgentLog()
 	hideConsoleWindow()
@@ -65,7 +64,7 @@ func runAgentTrayFirst(args []string) {
 		rt.mu.Unlock()
 		if err != nil {
 			rt.status.set("Error", err.Error())
-			messageBoxOK("Mesa Print Agent", err.Error())
+			messageBoxOK("Mesa 打印代理", err.Error())
 			systray.Quit()
 			return
 		}
@@ -81,27 +80,51 @@ func runAgentTrayFirst(args []string) {
 	})
 }
 
-
 func onTrayReady(rt *trayRuntime) {
 	log.Println("tray: ready")
-	if len(trayIconICO) > 0 {
-		systray.SetIcon(trayIconICO)
+	var lastIcon trayLevel = -1
+	applyTrayIcon := func() {
+		lvl := rt.status.level()
+		if lvl == lastIcon {
+			return
+		}
+		lastIcon = lvl
+		if icon := trayIconForLevel(lvl); len(icon) > 0 {
+			systray.SetIcon(icon)
+		}
 	}
-	systray.SetTitle("Mesa Print")
+	applyTrayIcon()
+
+	systray.SetTitle("Mesa 打印")
 	systray.SetTooltip(rt.status.tooltip(Version))
 	go maybeNotifyTrayReady()
 
-	mSettings := systray.AddMenuItem("Printer settings…", "Open configure wizard (pair + map stations)")
-	mShowConsole := systray.AddMenuItem("Show debug console", "Show log window for troubleshooting")
+	mStatus := systray.AddMenuItem(rt.status.menuStatusLine(), "")
+	mStatus.Disable()
 	systray.AddSeparator()
-	mAbout := systray.AddMenuItem("About", "Version and config path")
-	mQuit := systray.AddMenuItem("Exit", "Stop Mesa Print Agent")
+	mSettings := systray.AddMenuItem("打印机设置…", "配对与档口映射")
+	mTestPrint := systray.AddMenuItem("测试打印", "向第一台已映射打印机发送测试条")
+	mTestPrint.Disable()
+	mOpenLog := systray.AddMenuItem("打开日志文件夹", "查看 agent.log")
+	systray.AddSeparator()
+	mShowConsole := systray.AddMenuItem("显示调试控制台", "排障用日志窗口")
+	systray.AddSeparator()
+	mAbout := systray.AddMenuItem("关于", "版本与配置路径")
+	mQuit := systray.AddMenuItem("退出", "停止 Mesa 打印代理")
 
 	go func() {
 		tick := time.NewTicker(2 * time.Second)
 		defer tick.Stop()
 		for range tick.C {
+			mStatus.SetTitle(rt.status.menuStatusLine())
 			systray.SetTooltip(rt.status.tooltip(Version))
+			applyTrayIcon()
+			sess, _, done := rt.snapshot()
+			if done && sess != nil && sess.cfg.hasPrinterRouting() {
+				mTestPrint.Enable()
+			} else {
+				mTestPrint.Disable()
+			}
 		}
 	}()
 
@@ -112,6 +135,20 @@ func onTrayReady(rt *trayRuntime) {
 				if err := spawnAgentSubcommand("configure"); err != nil {
 					log.Println("tray:", err)
 				}
+			case <-mTestPrint.ClickedCh:
+				go func() {
+					sess, _, done := rt.snapshot()
+					if !done || sess == nil {
+						showTestPrintResult(fmt.Errorf("代理尚未就绪，请稍候再试"))
+						return
+					}
+					showTestPrintResult(runTrayTestPrint(sess.cfg))
+				}()
+			case <-mOpenLog.ClickedCh:
+				if err := openAgentLogFolder(); err != nil {
+					log.Println("tray:", err)
+					messageBoxOK("Mesa 打印代理", "无法打开日志文件夹："+err.Error())
+				}
 			case <-mShowConsole.ClickedCh:
 				showConsoleWindow()
 				_, err, done := rt.snapshot()
@@ -119,12 +156,11 @@ func onTrayReady(rt *trayRuntime) {
 					log.Println(err)
 				}
 			case <-mAbout.ClickedCh:
-				text := "Mesa Print Agent " + Version + "\n\nConfig:\n" + defaultConfigPath()
-				if sess, _, done := rt.snapshot(); done && sess != nil && sess.cfg.APIBase != "" {
-					text += "\n\nMesa: " + sess.cfg.APIBase
-				}
-				messageBoxOK("Mesa Print Agent", text)
+				messageBoxOK("Mesa 打印代理", trayAboutText(rt))
 			case <-mQuit.ClickedCh:
+				if !confirmTrayExit() {
+					continue
+				}
 				if rt.cancel != nil {
 					rt.cancel()
 				}

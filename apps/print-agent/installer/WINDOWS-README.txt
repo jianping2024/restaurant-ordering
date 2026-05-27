@@ -17,7 +17,10 @@ First-time setup (no command line)
 3. Double-click MesaPrintAgent.exe (or sign in to Windows if autostart was enabled).
 4. Browser: pairing page — enter Mesa URL (https://your-site.vercel.app) and 6-digit code.
 5. Browser: map each print station to a printer (network LAN or USB/Windows—pick per station in the grouped list).
-6. After setup, the agent runs in the Windows system tray (near the clock). Right-click the icon for printer settings or to exit. No need to keep a black console window open.
+6. After setup, the agent runs in the Windows system tray (near the clock, click ^ if hidden).
+   Icon color: green = OK, yellow = outside hours or setup, red = error.
+   Right-click: printer settings, test print, open log folder, exit.
+   No need to keep a black console window open.
 
 Debug (show console logs): MesaPrintAgent.exe -console
 

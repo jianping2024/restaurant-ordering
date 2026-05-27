@@ -189,9 +189,9 @@ func onTrayReady(rt *trayRuntime) {
 						showTestPrintResult(uiError(loc, "tray_not_ready"), loc)
 						return
 					}
-					err := runTrayTestPrint(sess.cfg)
+					display, err := runTrayTestPrintTarget(sess.cfg)
 					setTrayStatusOnTestPrint(rt, err)
-					showTestPrintResult(err, loc)
+					showTestPrintResult(err, loc, display)
 				}()
 			case <-mOpenLog.ClickedCh:
 				if err := openAgentLogFolder(); err != nil {

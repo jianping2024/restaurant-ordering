@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"strings"
-	"time"
 )
 
 type testPrintRequest struct {
@@ -25,14 +24,8 @@ func runTestPrintForStation(cfg *config, stationID, printerOverride string) erro
 	} else if stationID != "" && cfg.StationPrinters != nil {
 		rawAddr = strings.TrimSpace(cfg.StationPrinters[stationID])
 	}
-	if rawAddr == "" {
-		for sid, v := range cfg.StationPrinters {
-			if strings.TrimSpace(v) != "" {
-				stationID = sid
-				rawAddr = strings.TrimSpace(v)
-				break
-			}
-		}
+	if rawAddr == "" && stationID == "" {
+		stationID, rawAddr = firstMappedStationPrinter(cfg)
 	}
 	if rawAddr == "" {
 		return uiError(loc, "err_save_mapping_first")
@@ -67,13 +60,6 @@ func runTestPrintForStation(cfg *config, stationID, printerOverride string) erro
 	data := escposFromJob(job)
 	if err := printToTarget(target, data); err != nil {
 		return uiError(loc, "err_print_failed", target.Display, err)
-	}
-	// WinSpool often accepts RAW jobs while the queue is offline; re-check after a short delay.
-	if target.Scheme == schemeWinspool {
-		time.Sleep(450 * time.Millisecond)
-		if err := winspoolCheckReady(target.WinspoolName); err != nil {
-			return uiError(loc, "err_print_failed", target.Display, err)
-		}
 	}
 	return nil
 }

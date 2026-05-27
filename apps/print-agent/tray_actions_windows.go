@@ -26,13 +26,16 @@ func confirmTrayExit(locale string) bool {
 	)
 }
 
-func showTestPrintResult(err error, locale string) {
+func showTestPrintResult(err error, locale, printerDisplay string) {
 	phrase := testPrintPhrase(locale)
 	if err == nil {
-		messageBoxOK(
-			uiT(locale, "test_print_ok_title"),
-			fmt.Sprintf(uiT(locale, "test_print_ok_body"), phrase),
-		)
+		var body string
+		if strings.TrimSpace(printerDisplay) != "" {
+			body = fmt.Sprintf(uiT(locale, "test_print_ok_body_named"), printerDisplay, phrase)
+		} else {
+			body = fmt.Sprintf(uiT(locale, "test_print_ok_body"), phrase)
+		}
+		messageBoxOK(uiT(locale, "test_print_ok_title"), body)
 		return
 	}
 	messageBoxError(uiT(locale, "test_print_fail_title"), err.Error())

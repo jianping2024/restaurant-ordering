@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"sort"
 	"strings"
 )
 
@@ -25,7 +26,7 @@ func runTestPrintForStation(cfg *config, stationID, printerOverride string) erro
 		rawAddr = strings.TrimSpace(cfg.StationPrinters[stationID])
 	}
 	if rawAddr == "" && stationID == "" {
-		stationID, rawAddr = firstMappedStationPrinter(cfg)
+		stationID, rawAddr = firstMappedStationAddr(cfg)
 	}
 	if rawAddr == "" {
 		return uiError(loc, "err_save_mapping_first")
@@ -62,4 +63,23 @@ func runTestPrintForStation(cfg *config, stationID, printerOverride string) erro
 		return uiError(loc, "err_print_failed", target.Display, err)
 	}
 	return nil
+}
+
+// firstMappedStationAddr is used when /api/test-print omits station_id (configure UI always sends one).
+func firstMappedStationAddr(cfg *config) (stationID, rawAddr string) {
+	if cfg == nil || cfg.StationPrinters == nil {
+		return "", ""
+	}
+	ids := make([]string, 0, len(cfg.StationPrinters))
+	for sid, raw := range cfg.StationPrinters {
+		if strings.TrimSpace(raw) != "" {
+			ids = append(ids, sid)
+		}
+	}
+	sort.Strings(ids)
+	if len(ids) == 0 {
+		return "", ""
+	}
+	sid := ids[0]
+	return sid, strings.TrimSpace(cfg.StationPrinters[sid])
 }

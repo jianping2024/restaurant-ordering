@@ -15,7 +15,7 @@
 | **界面语言 `ui_locale`**（zh/en/pt，仅 UI+试打条） | **已落地** | v0.2.43+ |
 | P0-3 运行期人话（日志/托盘） | **已落地** | v0.2.44+：`agent.log` 随 `ui_locale`；错误行尾附技术摘要 |
 | P1 心跳 + Dashboard 设备在线 | **已落地** | v0.2.56+ |
-| P1 设置页全页 i18n + 降术语（§5） | **部分** | v0.2.43+ 托盘/`ui_locale`；configure ③ 试打已 i18n；①② 与 pair/setup 仍多英文 |
+| P1 设置页全页 i18n + 降术语（§5） | **已落地（未发布）** | `configure` ①②、打印机下拉、`pair_ui` / `setup_ui` 接入 `ui_locale`；Dashboard 深链 `lang=` |
 | P1 安装收尾（Inno 最后一屏等） | **已落地** | `mesa-print-agent.iss`：自启任务、完成页说明、快捷方式、装完启动 |
 | P2 版本升级提示（§8） | **已落地** | v0.2.66+：`runtime-config` 推荐版本、托盘每日弹窗、Dashboard 升级说明 |
 | P2 §10（服务/Realtime/QR 等） | **未做** | 见 §10 |
@@ -131,17 +131,16 @@ flowchart LR
 | 页面 | i18n | 说明 |
 |------|------|------|
 | 托盘 | ✅ `ui_locale` | `ui_i18n.go` |
-| `configure_ui.html` | ⚠️ 部分 | 顶栏语言 + **`applyI18n()`** 覆盖页标题、③ 试打/排障、部分按钮；**① 重配说明、② 扫描摘要、档口下拉分组** 仍为 HTML/JS 硬编码英文 |
-| `pair_ui.html` | ❌ | 全页静态英文；主流程常跳过（Dashboard 深链 `configure?code=`） |
-| `setup_ui.html` | ❌ | 主体英文；保存后试打块为硬编码中文 |
+| `configure_ui.html` | ✅ | 顶栏语言、① 重新配对、② 打印机扫描/映射、③ 试打/排障均走 `ui_i18n.go` |
+| `pair_ui.html` | ✅ | 接入 `ui_locale`；支持深链 `lang=` 后写入本机 UI 语言 |
+| `setup_ui.html` | ✅ | 主体、保存后试打确认、排障与完成文案均走 `ui_i18n.go` |
 
-下拉 **展示**已分组「Network / USB」，但 **option value** 仍为 `tcp:…` / `winspool:…`；缺设备时可能显示 `(saved — rescan…)` 含完整技术串。`buildPrintAgentConfigureUrl` **未**传 `lang=`（与 Dashboard 语言未自动对齐）。
+下拉仍保留 `tcp:…` / `winspool:…` 作为内部 `value`，但普通展示已改为「网线打印机 / Windows 打印机」友好名；缺设备时显示「已保存的打印机（当前未发现）」并把技术串放入 `title`。`buildPrintAgentConfigureUrl` 已支持 `lang=`，Dashboard 打开本机设置时自动传当前 UI 语言。
 
-**建议（剩余）**：
+**剩余可增强**：
 
-- **全页 i18n**：pair/setup 接入 `/api/ui-locale`；configure ①② 与 `scanSummaryText` / `fillStationSelect` 等补 `ui_i18n` 键。
-- **语言联动（可选）**：深链 `?lang=` 或首次打开读 Dashboard/`ui_locale`；**不要**与 `restaurants.print_locale`（纸面语言）混为一谈。
-- **降术语**：下拉仅显示 Windows 打印机友好名 /「网线打印机」；`tcp:`/`winspool:` 收进「高级」；未映射档口黄条：「这些菜下单后不会自动打出品联」。
+- 把更细的技术信息收进显式「高级」区。
+- 未映射档口可进一步做成黄色列表警告。
 
 ### 6. 打印机发现与映射产品化
 
@@ -222,10 +221,10 @@ flowchart LR
 - [x] `configure` 并入托盘进程（v0.2.47+）
 - [x] 心跳上报 + 版本字段（v0.2.56+：`POST /api/print-agent/heartbeat`、Dashboard「已配对收银机」）
 - [x] configure **③ 试打** + 顶栏 `ui_locale` / `/api/ui-locale`（v0.2.43+；≠ 全页完成）
-- [ ] configure **① 重配、② 扫描映射** 全量 i18n（§5）
-- [ ] `pair_ui` / `setup_ui` 接入 `ui_locale`（§5；主路径常不经 pair）
-- [ ] 打印机下拉降术语（友好名、隐藏 `tcp:`/`winspool:` 前缀；§5）
-- [ ] 深链 `buildPrintAgentConfigureUrl` 可选 `lang=`（与 Dashboard 对齐）
+- [x] configure **① 重配、② 扫描映射** 全量 i18n（§5）
+- [x] `pair_ui` / `setup_ui` 接入 `ui_locale`（§5；主路径常不经 pair）
+- [x] 打印机下拉降术语（友好名、隐藏 `tcp:`/`winspool:` 前缀；§5）
+- [x] 深链 `buildPrintAgentConfigureUrl` 可选 `lang=`（与 Dashboard 对齐）
 - [x] Inno 安装收尾（§9）：`wizard-before/after`、自启任务、快捷方式、完成页启动代理
 - [x] 版本升级提示（§8）：`recommended_agent_version`、托盘每日弹窗、Dashboard 升级文案
 

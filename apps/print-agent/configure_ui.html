@@ -61,7 +61,7 @@
         <option value="en">English</option>
         <option value="pt">Português</option>
       </select>
-      <label for="textEncoding" id="textEncodingLabel" style="margin-top:12px">Chinese thermal encoding</label>
+      <label for="textEncoding" id="textEncodingLabel" style="margin-top:12px">…</label>
       <p class="hint" id="textEncodingHint">…</p>
       <select id="textEncoding">
         <option value="auto">Auto (GBK)</option>
@@ -74,13 +74,12 @@
 
     <div class="card">
       <h2 id="pairSectionTitle">① Re-pair</h2>
-      <p class="hint">New PC, expired code, or another Mesa account. Printer settings are kept when re-pairing.</p>
-      <label for="api">Mesa URL</label>
+      <p class="hint" id="pairHint">…</p>
+      <label for="api" id="apiLabel">Mesa URL</label>
       <input id="api" type="url" placeholder="https://your-app.vercel.app" autocomplete="url" />
-      <label for="code">Pairing code (6 digits, from Mesa Print assistant)</label>
+      <label for="code" id="codeLabel">Pairing code (6 digits, from Mesa Print assistant)</label>
       <input id="code" class="code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" />
       <button type="button" id="pairBtn">Re-pair</button>
-      <!-- pair labels stay English for Mesa URL field clarity -->
       <p class="err" id="pairErr"></p>
       <p class="ok-msg" id="pairOk"></p>
     </div>
@@ -89,14 +88,14 @@
       <h2 id="printerSectionTitle">② Printers</h2>
       <p class="hint" id="printerGate">Pair first, then configure printers.</p>
       <div id="printerForm" class="hidden">
-        <p class="hint">Scans <strong>network (TCP&nbsp;9100)</strong> and <strong>USB / Windows</strong> printers together. Pick one device per station below—you can mix LAN and USB on different stations.</p>
+        <p class="hint" id="printerIntro">…</p>
         <div class="scan-bar">
-          <p class="scan-status" id="scanHint">Scanning…</p>
-          <button type="button" id="refreshBtn" class="secondary scan-refresh">Scan again</button>
+          <p class="scan-status" id="scanHint">…</p>
+          <button type="button" id="refreshBtn" class="secondary scan-refresh">…</button>
         </div>
 
         <div class="stations">
-          <p class="section-title">Print stations</p>
+          <p class="section-title" id="stationsTitle">…</p>
           <p class="hint" id="stationsHint">Loading stations…</p>
           <p class="warn hidden" id="stationsWarn"></p>
           <div id="stations"></div>
@@ -156,6 +155,19 @@
         return ui.test_print_phrase || '打印测试';
       }
 
+      function queryLocale() {
+        var lang = params.get('lang');
+        return (lang === 'zh' || lang === 'en' || lang === 'pt') ? lang : '';
+      }
+
+      function fmt(key, value) {
+        return t(key).replace('%s', value);
+      }
+
+      function fmtCount(key, value) {
+        return t(key).replace('%d', String(value));
+      }
+
       function applyI18n() {
         document.getElementById('pageTitle').textContent = t('configure_page_title');
         document.getElementById('pageSub').textContent = t('configure_page_sub');
@@ -171,8 +183,15 @@
           te.options[2].textContent = t('text_encoding_gbk');
         }
         document.getElementById('pairSectionTitle').textContent = t('section_pair');
+        document.getElementById('pairHint').textContent = t('pair_hint');
+        document.getElementById('apiLabel').textContent = t('mesa_url_label');
+        document.getElementById('codeLabel').textContent = t('pair_code_label');
         document.getElementById('printerSectionTitle').textContent = t('section_printers');
         document.getElementById('printerGate').textContent = t('printer_gate');
+        document.getElementById('printerIntro').textContent = t('printer_intro');
+        document.getElementById('scanHint').textContent = scanSummaryText();
+        document.getElementById('refreshBtn').textContent = t('scan_again');
+        document.getElementById('stationsTitle').textContent = t('stations_title');
         document.getElementById('testSectionTitle').textContent = t('section_test');
         document.getElementById('testHint').textContent = t('test_section_hint').replace('%s', testPhrase());
         document.getElementById('testStationLabel').textContent = t('test_station_label');
@@ -192,6 +211,7 @@
         document.getElementById('doneBtn').textContent = t('done_btn');
         document.title = t('configure_page_title');
         renderStatus();
+        renderStations();
       }
 
       function saveAgentPrefs(loc, textEnc) {
@@ -235,12 +255,19 @@
         var lan = (cache.tcp || []).length;
         var usb = (cache.winspool || []).length;
         if (lan === 0 && usb === 0) {
-          return 'No printers found. Check network/USB drivers, then scan again.';
+          return t('scan_none');
         }
         var parts = [];
-        if (lan) parts.push(lan + ' network (LAN)');
-        if (usb) parts.push(usb + ' USB / Windows');
-        return 'Found ' + parts.join(' · ') + '. Choose per station (groups in each dropdown).';
+        if (lan) parts.push(fmtCount('scan_lan_count', lan));
+        if (usb) parts.push(fmtCount('scan_usb_count', usb));
+        return fmt('scan_found', parts.join(' · '));
+      }
+
+      function printerDisplayName(p) {
+        var addr = (p && p.addr) || '';
+        if (addr.indexOf('tcp:') === 0) return fmt('printer_lan_label', addr.slice(4));
+        if (addr.indexOf('winspool:') === 0) return addr.slice(9);
+        return (p && p.label) || addr;
       }
 
       function optionExists(selectEl, value) {
@@ -255,7 +282,7 @@
         selectEl.innerHTML = '';
         var def = document.createElement('option');
         def.value = '';
-        def.textContent = '(Not mapped)';
+        def.textContent = t('printer_not_mapped');
         selectEl.appendChild(def);
 
         function addGroup(label, list, emptyText) {
@@ -271,7 +298,8 @@
             list.forEach(function (p) {
               var o = document.createElement('option');
               o.value = p.addr;
-              o.textContent = p.label || p.addr;
+              o.textContent = printerDisplayName(p);
+              o.title = p.addr;
               if (selected && selected === p.addr) o.selected = true;
               g.appendChild(o);
             });
@@ -279,13 +307,14 @@
           selectEl.appendChild(g);
         }
 
-        addGroup('Network (LAN · TCP 9100)', cache.tcp || [], 'None found on this network');
-        addGroup('USB / Windows printer', cache.winspool || [], 'None installed in Windows');
+        addGroup(t('printer_group_lan'), cache.tcp || [], t('printer_none_lan'));
+        addGroup(t('printer_group_windows'), cache.winspool || [], t('printer_none_windows'));
 
         if (selected && !optionExists(selectEl, selected)) {
           var saved = document.createElement('option');
           saved.value = selected;
-          saved.textContent = selected + ' (saved — rescan if device missing)';
+          saved.textContent = t('printer_saved_missing');
+          saved.title = selected;
           saved.selected = true;
           selectEl.insertBefore(saved, selectEl.options[1] || null);
         }
@@ -297,13 +326,13 @@
         var visibleStations = stationsForRender();
         stationsEl.innerHTML = '';
         if (!visibleStations.length) {
-          stationsHint.textContent = 'No print stations in Mesa yet.';
+          stationsHint.textContent = t('stations_empty');
           return;
         }
         if (!stations.length) {
-          stationsHint.textContent = 'Could not load station names from Mesa. Showing saved mappings so you can still update printers.';
+          stationsHint.textContent = t('stations_saved_only');
         } else {
-          stationsHint.textContent = 'Map each station to a printer. Each mapped station appears on checkout (several stations may use the same printer).';
+          stationsHint.textContent = t('stations_map_hint');
         }
         visibleStations.forEach(function (s) {
           var row = document.createElement('div');
@@ -353,7 +382,7 @@
         if (!ids.length) {
           var o = document.createElement('option');
           o.value = '';
-          o.textContent = '（请先映射至少一个档口并保存）';
+          o.textContent = t('save_need_mapping');
           sel.appendChild(o);
           return false;
         }
@@ -396,7 +425,7 @@
       }
 
       function loadPrinters() {
-        document.getElementById('scanHint').textContent = 'Scanning…';
+        document.getElementById('scanHint').textContent = t('scan_scanning');
         fetch('/api/printers')
           .then(function (r) { return r.json(); })
           .then(function (j) {
@@ -406,7 +435,7 @@
             refreshStationSelects();
           })
           .catch(function () {
-            document.getElementById('scanHint').textContent = 'Could not load printer list. Check Windows printer drivers, then scan again.';
+            document.getElementById('scanHint').textContent = t('scan_load_failed');
           });
       }
 
@@ -416,7 +445,7 @@
           .then(function (res) {
             if (!res.ok) {
               document.getElementById('stationsWarn').classList.remove('hidden');
-              document.getElementById('stationsWarn').textContent = 'Could not load stations from Mesa.';
+              document.getElementById('stationsWarn').textContent = t('stations_load_failed');
               stations = [];
               renderStations();
               return;
@@ -427,7 +456,7 @@
           })
           .catch(function () {
             document.getElementById('stationsWarn').classList.remove('hidden');
-            document.getElementById('stationsWarn').textContent = 'Could not reach Mesa to load stations.';
+            document.getElementById('stationsWarn').textContent = t('stations_reach_failed');
             stations = [];
             renderStations();
           });
@@ -445,8 +474,13 @@
             state = j;
             ui = j.ui || {};
             if (j.ui_locale) document.getElementById('uiLocale').value = j.ui_locale;
+            var requestedLocale = queryLocale();
+            if (requestedLocale) document.getElementById('uiLocale').value = requestedLocale;
             if (j.text_encoding) document.getElementById('textEncoding').value = j.text_encoding;
             applyI18n();
+            if (requestedLocale && requestedLocale !== j.ui_locale) {
+              saveAgentPrefs(requestedLocale, null).then(onPrefsSaved);
+            }
             if (params.get('api') && !document.getElementById('api').value) {
               document.getElementById('api').value = params.get('api');
             } else if (j.api_base) {
@@ -482,13 +516,13 @@
           .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
             if (!res.ok) {
-              err.textContent = res.j.error || 'Pairing failed';
+              err.textContent = res.j.error || t('save_failed');
               return;
             }
-            ok.textContent = 'Paired. Adjust printers below if needed.';
+            ok.textContent = t('pair_ok');
             loadState();
           })
-          .catch(function () { err.textContent = 'Cannot reach local configure service'; });
+          .catch(function () { err.textContent = t('pair_service_unreachable'); });
       });
 
       document.getElementById('saveBtn').addEventListener('click', function () {
@@ -517,7 +551,7 @@
           .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
             if (!res.ok) {
-              err.textContent = res.j.error || 'Save failed';
+              err.textContent = res.j.error || t('pair_failed');
               return;
             }
             ok.textContent = t('save_ok');
@@ -525,7 +559,7 @@
             showTestCard();
             loadState();
           })
-          .catch(function () { err.textContent = 'Cannot reach local configure service'; });
+          .catch(function () { err.textContent = t('pair_service_unreachable'); });
         });
       });
 
@@ -551,14 +585,14 @@
           .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
             if (!res.ok) {
-              testErr.textContent = res.j.error || '试打失败';
+              testErr.textContent = res.j.error || t('test_failed');
               return;
             }
             testSent.textContent = t('test_sent');
             document.getElementById('testConfirmQ').textContent = t('test_confirm_q').replace('%s', testPhrase());
             document.getElementById('testConfirmBlock').classList.remove('hidden');
           })
-          .catch(function () { testErr.textContent = '无法连接本机配置服务'; });
+          .catch(function () { testErr.textContent = t('pair_service_unreachable'); });
       });
 
       document.getElementById('paperYes').addEventListener('click', function () {

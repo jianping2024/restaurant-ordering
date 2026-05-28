@@ -88,14 +88,14 @@ export function PrintAgentPairingPanel() {
   const openConfigure = useCallback(
     async (code?: string) => {
       setConfigureProbe('checking');
-      const result = await openPrintAgentConfigure(siteOrigin, code);
+      const result = await openPrintAgentConfigure(siteOrigin, code, lang);
       if (result === 'unreachable') {
         setConfigureProbe('unreachable');
       } else {
         setConfigureProbe('opened');
       }
     },
-    [siteOrigin],
+    [lang, siteOrigin],
   );
 
   const copyPairingCode = async (code: string) => {

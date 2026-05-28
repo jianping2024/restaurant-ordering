@@ -62,26 +62,26 @@
 <body>
   <div class="card">
     <div id="formWrap" class="form-wrap">
-      <h1>Pair Mesa Print Agent</h1>
-      <p class="sub">Generate a 6-digit code in Mesa → Settings → Print assistant, then connect here. No command line.</p>
+      <h1 id="pageTitle">Pair Mesa Print Agent</h1>
+      <p class="sub" id="pageSub">Generate a 6-digit code in Mesa → Settings → Print assistant, then connect here. No command line.</p>
       <ol class="steps">
-        <li>Sign in to Mesa → Settings → Print assistant → Generate code</li>
-        <li>Enter your Mesa URL below (check if pre-filled)</li>
-        <li>Enter the 6-digit code and connect</li>
+        <li id="step1">Sign in to Mesa → Settings → Print assistant → Generate code</li>
+        <li id="step2">Enter your Mesa URL below (check if pre-filled)</li>
+        <li id="step3">Enter the 6-digit code and connect</li>
       </ol>
       <form id="pairForm">
-        <label for="api">Mesa URL</label>
+        <label for="api" id="apiLabel">Mesa URL</label>
         <input id="api" name="api" type="url" required placeholder="https://your-app.vercel.app" autocomplete="url" />
-        <label for="code">Pairing code (6 digits)</label>
+        <label for="code" id="codeLabel">Pairing code (6 digits)</label>
         <input id="code" name="code" class="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" required placeholder="000000" autocomplete="one-time-code" />
         <button type="submit" id="submitBtn">Connect and save</button>
         <p class="err" id="err"></p>
       </form>
     </div>
     <div id="ok" class="ok">
-      <h2>Paired</h2>
-      <p>Settings saved. If the agent keeps running, the <strong>printer setup</strong> page opens next—map each station to a LAN or USB printer. Keep the Mesa Print Agent window open.</p>
-      <p style="margin-top:12px;font-size:12px">You can close this browser tab.</p>
+      <h2 id="okTitle">Paired</h2>
+      <p id="okBody">Settings saved. If the agent keeps running, the <strong>printer setup</strong> page opens next—map each station to a LAN or USB printer. Keep the Mesa Print Agent window open.</p>
+      <p id="okClose" style="margin-top:12px;font-size:12px">You can close this browser tab.</p>
     </div>
   </div>
   <script>
@@ -89,6 +89,41 @@
       var params = new URLSearchParams(location.search);
       var apiEl = document.getElementById('api');
       var codeEl = document.getElementById('code');
+      var ui = {};
+      function t(key) { return (ui && ui[key]) ? ui[key] : key; }
+      function queryLocale() {
+        var lang = params.get('lang');
+        return (lang === 'zh' || lang === 'en' || lang === 'pt') ? lang : '';
+      }
+      function applyI18n() {
+        document.getElementById('pageTitle').textContent = t('pair_page_title');
+        document.getElementById('pageSub').textContent = t('pair_page_sub');
+        document.getElementById('step1').textContent = t('pair_step_1');
+        document.getElementById('step2').textContent = t('pair_step_2');
+        document.getElementById('step3').textContent = t('pair_step_3');
+        document.getElementById('apiLabel').textContent = t('mesa_url_label');
+        document.getElementById('codeLabel').textContent = t('pair_code_label');
+        document.getElementById('submitBtn').textContent = t('pair_connect_btn');
+        document.getElementById('okTitle').textContent = t('pair_success_title');
+        document.getElementById('okBody').textContent = t('pair_success_body');
+        document.getElementById('okClose').textContent = t('pair_success_close');
+        document.title = t('pair_page_title');
+      }
+      function loadI18n() {
+        fetch('/api/setup-state').then(function (r) { return r.json(); }).then(function (j) {
+          ui = j.ui || {};
+          var loc = queryLocale();
+          if (!loc) { applyI18n(); return; }
+          fetch('/api/ui-locale', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ui_locale: loc })
+          }).then(function (r) { return r.json(); }).then(function (saved) {
+            ui = saved.ui || ui;
+            applyI18n();
+          }).catch(applyI18n);
+        }).catch(function () {});
+      }
       if (params.get('api')) apiEl.value = params.get('api');
       if (params.get('code')) codeEl.value = params.get('code').replace(/\D/g, '').slice(0, 6);
       document.getElementById('pairForm').addEventListener('submit', function (e) {
@@ -105,7 +140,7 @@
           .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
             if (!res.ok) {
-              err.textContent = res.j.error || 'Pairing failed';
+              err.textContent = res.j.error || t('pair_failed');
               btn.disabled = false;
               return;
             }
@@ -113,10 +148,11 @@
             document.getElementById('ok').style.display = 'block';
           })
           .catch(function () {
-            err.textContent = 'Cannot reach local pairing service — is Mesa Print Agent running?';
+            err.textContent = t('pair_service_unreachable');
             btn.disabled = false;
           });
       });
+      loadI18n();
     })();
   </script>
 </body>

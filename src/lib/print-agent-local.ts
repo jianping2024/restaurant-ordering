@@ -4,11 +4,14 @@ export const PRINT_AGENT_CONFIGURE_PORT = 17892;
 const HEALTH_PATH = '/api/health';
 const PROBE_TIMEOUT_MS = 2500;
 
-export function buildPrintAgentConfigureUrl(siteOrigin: string, code?: string): string {
+export function buildPrintAgentConfigureUrl(siteOrigin: string, code?: string, lang?: string): string {
   const origin = siteOrigin.replace(/\/$/, '');
   const params = new URLSearchParams({ api: origin });
   if (code) {
     params.set('code', code.replace(/\D/g, '').slice(0, 6));
+  }
+  if (lang === 'zh' || lang === 'en' || lang === 'pt') {
+    params.set('lang', lang);
   }
   return `http://127.0.0.1:${PRINT_AGENT_CONFIGURE_PORT}/configure?${params.toString()}`;
 }
@@ -50,11 +53,12 @@ export async function probeLocalPrintAgent(timeoutMs = PROBE_TIMEOUT_MS): Promis
 export async function openPrintAgentConfigure(
   siteOrigin: string,
   code?: string,
+  lang?: string,
 ): Promise<'opened' | 'unreachable'> {
   if (typeof window === 'undefined') {
     return 'unreachable';
   }
-  const url = buildPrintAgentConfigureUrl(siteOrigin, code);
+  const url = buildPrintAgentConfigureUrl(siteOrigin, code, lang);
   // Must not use noopener/noreferrer: Chrome then returns null or a tab we cannot assign.
   const popup = window.open('', '_blank');
   const ok = await probeLocalPrintAgent();

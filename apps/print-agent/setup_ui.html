@@ -45,15 +45,15 @@
 <body>
   <div class="card">
     <div id="formWrap">
-      <h1>Choose printers</h1>
-      <p class="sub">Map each <strong>print station</strong> to a printer. Each mapped station appears on checkout; several stations may share one machine.</p>
-      <p class="hint">Scans <strong>network (TCP&nbsp;9100)</strong> and <strong>USB / Windows</strong> together. Pick one device per station—you can mix LAN and USB.</p>
+      <h1 id="pageTitle">…</h1>
+      <p class="sub" id="pageSub">Map each print station to a printer.</p>
+      <p class="hint" id="printerIntro">…</p>
       <div class="scan-bar">
-        <p class="scan-status" id="scanHint">Scanning…</p>
-        <button type="button" id="refreshBtn" class="secondary scan-refresh">Scan again</button>
+        <p class="scan-status" id="scanHint">…</p>
+        <button type="button" id="refreshBtn" class="secondary scan-refresh">…</button>
       </div>
       <div class="stations" id="stationsWrap">
-        <p class="section-title">Print stations</p>
+        <p class="section-title" id="stationsTitle">…</p>
         <p class="hint" id="stationsHint">Loading stations from Mesa…</p>
         <p class="warn hidden" id="stationsWarn"></p>
         <div id="stations"></div>
@@ -62,31 +62,31 @@
       <p class="err" id="err"></p>
     </div>
     <div id="ok" class="ok" style="display:none">
-      <h2>已保存</h2>
-      <p class="sub" style="margin-bottom:14px">请试打并确认纸上出现「打印测试」后再关闭。</p>
-      <label for="testStation">试打档口</label>
+      <h2 id="okTitle">已保存</h2>
+      <p class="sub" id="okSub" style="margin-bottom:14px">请试打并确认纸上出现「打印测试」后再关闭。</p>
+      <label for="testStation" id="testStationLabel">试打档口</label>
       <select id="testStation"></select>
       <button type="button" id="testPrintBtn">打印测试条</button>
       <p class="err" id="testErr"></p>
       <p class="ok-msg" id="testSent"></p>
       <div id="testConfirmBlock" class="hidden">
-        <p class="confirm-q">纸上是否已出现「打印测试」？</p>
+        <p class="confirm-q" id="testConfirmQ">纸上是否已出现「打印测试」？</p>
         <div class="btn-row">
           <button type="button" id="paperYes" class="yes">是，已出纸</button>
           <button type="button" id="paperNo" class="no">否，没有出纸</button>
         </div>
         <div id="testTroubleshoot" class="troubleshoot hidden">
-          <strong style="color:#fbbf24">排障建议</strong>
+          <strong style="color:#fbbf24" id="tsTitle">排障建议</strong>
           <ol>
-            <li>USB 线、驱动、Windows 打印机列表是否正常。</li>
-            <li>队列名是否与实体机一致（勿选 PDF/旧队列）。</li>
-            <li>按打印机 FEED 键；检查队列是否暂停/脱机。</li>
+            <li id="ts1">USB 线、驱动、Windows 打印机列表是否正常。</li>
+            <li id="ts2">队列名是否与实体机一致（勿选 PDF/旧队列）。</li>
+            <li id="ts3">按打印机 FEED 键；检查队列是否暂停/脱机。</li>
           </ol>
         </div>
       </div>
       <p class="ok-msg hidden" id="testDone">已确认出纸。</p>
       <button type="button" id="finishBtn" class="secondary" style="margin-top:16px">完成 — 关闭此页</button>
-      <p style="color:#9aa5b1;font-size:12px;margin-top:10px">以后修改映射：托盘 → 打印机设置，或 <strong>MesaPrintAgent.exe configure</strong></p>
+      <p id="finishHint" style="color:#9aa5b1;font-size:12px;margin-top:10px">以后修改映射：托盘 → 打印机设置，或 MesaPrintAgent.exe configure</p>
     </div>
   </div>
   <script>
@@ -101,17 +101,53 @@
       var saved = { station_printers: {} };
       var lastSavedMaps = {};
       var testConfirmed = false;
+      var ui = {};
+
+      function t(key) { return (ui && ui[key]) ? ui[key] : key; }
+      function fmt(key, value) { return t(key).replace('%s', value); }
+      function fmtCount(key, value) { return t(key).replace('%d', String(value)); }
+      function testPhrase() { return ui.test_print_phrase || '打印测试'; }
+      function queryLocale() {
+        var lang = new URLSearchParams(location.search).get('lang');
+        return (lang === 'zh' || lang === 'en' || lang === 'pt') ? lang : '';
+      }
+
+      function applyI18n() {
+        document.getElementById('pageTitle').textContent = t('setup_page_title');
+        document.getElementById('pageSub').textContent = t('configure_page_sub');
+        document.getElementById('printerIntro').textContent = t('printer_intro');
+        document.getElementById('refreshBtn').textContent = t('scan_again');
+        document.getElementById('stationsTitle').textContent = t('stations_title');
+        document.getElementById('saveBtn').textContent = t('setup_save_btn');
+        document.getElementById('okTitle').textContent = t('setup_saved_title');
+        document.getElementById('okSub').textContent = t('test_section_hint').replace('%s', testPhrase());
+        document.getElementById('testStationLabel').textContent = t('test_station_label');
+        document.getElementById('testPrintBtn').textContent = t('test_print_btn');
+        document.getElementById('testConfirmQ').textContent = t('test_confirm_q').replace('%s', testPhrase());
+        document.getElementById('paperYes').textContent = t('test_yes');
+        document.getElementById('paperNo').textContent = t('test_no');
+        document.getElementById('tsTitle').textContent = t('test_troubleshoot_title');
+        document.getElementById('ts1').textContent = t('ts_usb');
+        document.getElementById('ts2').textContent = t('ts_queue');
+        document.getElementById('ts3').textContent = t('ts_feed') + ' ' + t('ts_spool');
+        document.getElementById('testDone').textContent = t('test_done');
+        document.getElementById('finishBtn').textContent = t('done_btn');
+        document.getElementById('finishHint').textContent = t('setup_finish_hint');
+        document.title = t('setup_page_title');
+        hint.textContent = scanSummaryText();
+        renderStations();
+      }
 
       function scanSummaryText() {
         var lan = (cache.tcp || []).length;
         var usb = (cache.winspool || []).length;
         if (lan === 0 && usb === 0) {
-          return 'No printers found. Check network/USB drivers, then scan again.';
+          return t('scan_none');
         }
         var parts = [];
-        if (lan) parts.push(lan + ' network (LAN)');
-        if (usb) parts.push(usb + ' USB / Windows');
-        return 'Found ' + parts.join(' · ') + '. Choose per station (groups in each dropdown).';
+        if (lan) parts.push(fmtCount('scan_lan_count', lan));
+        if (usb) parts.push(fmtCount('scan_usb_count', usb));
+        return fmt('scan_found', parts.join(' · '));
       }
 
       function optionExists(selectEl, value) {
@@ -126,11 +162,18 @@
         return s.name_en || s.name_pt || s.name_zh || s.id;
       }
 
+      function printerDisplayName(p) {
+        var addr = (p && p.addr) || '';
+        if (addr.indexOf('tcp:') === 0) return fmt('printer_lan_label', addr.slice(4));
+        if (addr.indexOf('winspool:') === 0) return addr.slice(9);
+        return (p && p.label) || addr;
+      }
+
       function fillStationSelect(selectEl, selected) {
         selectEl.innerHTML = '';
         var def = document.createElement('option');
         def.value = '';
-        def.textContent = '(Not mapped)';
+        def.textContent = t('printer_not_mapped');
         selectEl.appendChild(def);
 
         function addGroup(label, list, emptyText) {
@@ -146,7 +189,8 @@
             list.forEach(function (p) {
               var o = document.createElement('option');
               o.value = p.addr;
-              o.textContent = p.label || p.addr;
+              o.textContent = printerDisplayName(p);
+              o.title = p.addr;
               if (selected && selected === p.addr) o.selected = true;
               g.appendChild(o);
             });
@@ -154,13 +198,14 @@
           selectEl.appendChild(g);
         }
 
-        addGroup('Network (LAN · TCP 9100)', cache.tcp || [], 'None found on this network');
-        addGroup('USB / Windows printer', cache.winspool || [], 'None installed in Windows');
+        addGroup(t('printer_group_lan'), cache.tcp || [], t('printer_none_lan'));
+        addGroup(t('printer_group_windows'), cache.winspool || [], t('printer_none_windows'));
 
         if (selected && !optionExists(selectEl, selected)) {
           var orphan = document.createElement('option');
           orphan.value = selected;
-          orphan.textContent = selected + ' (saved — rescan if device missing)';
+          orphan.textContent = t('printer_saved_missing');
+          orphan.title = selected;
           orphan.selected = true;
           selectEl.insertBefore(orphan, selectEl.options[1] || null);
         }
@@ -168,10 +213,10 @@
       function renderStations() {
         stationsEl.innerHTML = '';
         if (!stations.length) {
-          stationsHint.textContent = 'No print stations yet. Add them in Mesa → Print stations.';
+          stationsHint.textContent = t('stations_empty');
           return;
         }
-        stationsHint.textContent = 'Map each station. Unmapped stations will not print.';
+        stationsHint.textContent = t('stations_map_hint');
         stations.forEach(function (s) {
           var row = document.createElement('div');
           row.className = 'station-row';
@@ -198,14 +243,14 @@
       }
       function loadList() {
         err.textContent = '';
-        hint.textContent = 'Scanning…';
+        hint.textContent = t('scan_scanning');
         fetch('/api/printers').then(function (r) { return r.json(); }).then(function (j) {
           cache.tcp = j.tcp || [];
           cache.winspool = j.winspool || [];
           hint.textContent = scanSummaryText();
           refreshStationSelects();
         }).catch(function () {
-          err.textContent = 'Could not load printer list';
+          err.textContent = t('scan_load_failed');
           hint.textContent = '';
         });
       }
@@ -214,7 +259,7 @@
           .then(function (res) {
             if (!res.ok) {
               stationsWarn.classList.remove('hidden');
-              stationsWarn.textContent = 'Could not load stations from Mesa.';
+              stationsWarn.textContent = t('stations_load_failed');
               stations = [];
               renderStations();
               return;
@@ -223,7 +268,7 @@
             renderStations();
           }).catch(function () {
             stationsWarn.classList.remove('hidden');
-            stationsWarn.textContent = 'Could not reach Mesa to load stations.';
+            stationsWarn.textContent = t('stations_reach_failed');
             stations = [];
             renderStations();
           });
@@ -231,7 +276,18 @@
       function loadSaved() {
         fetch('/api/setup-state').then(function (r) { return r.json(); }).then(function (j) {
           saved.station_printers = j.station_printers || {};
+          ui = j.ui || {};
+          var loc = queryLocale();
+          if (!loc || loc === j.ui_locale) return;
+          return fetch('/api/ui-locale', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ui_locale: loc })
+          }).then(function (r) { return r.json(); }).then(function (savedPrefs) {
+            ui = savedPrefs.ui || ui;
+          });
         }).catch(function () {}).finally(function () {
+          applyI18n();
           loadList();
           loadStations();
         });
@@ -261,7 +317,7 @@
           if (sid && addr) station_printers[sid] = addr;
         });
         if (!Object.keys(station_printers).length) {
-          err.textContent = '请至少为一个出品档口选择打印机';
+          err.textContent = t('save_need_mapping');
           return;
         }
         fetch('/api/setup', {
@@ -270,13 +326,13 @@
           body: JSON.stringify({ station_printers: station_printers })
         }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
-            if (!res.ok) { err.textContent = res.j.error || 'Save failed'; return; }
+            if (!res.ok) { err.textContent = res.j.error || t('save_failed'); return; }
             lastSavedMaps = station_printers;
             testConfirmed = false;
             document.getElementById('formWrap').classList.add('hidden');
             document.getElementById('ok').style.display = 'block';
             fillTestStationSelect(lastSavedMaps);
-          }).catch(function () { err.textContent = 'Cannot reach local setup service'; });
+          }).catch(function () { err.textContent = t('pair_service_unreachable'); });
       });
 
       document.getElementById('testPrintBtn').addEventListener('click', function () {
@@ -294,10 +350,10 @@
           body: JSON.stringify({ station_id: sid, printer: printer })
         }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
-            if (!res.ok) { testErr.textContent = res.j.error || '试打失败'; return; }
-            testSent.textContent = '已发送测试条，请查看打印机出纸。';
+            if (!res.ok) { testErr.textContent = res.j.error || t('test_failed'); return; }
+            testSent.textContent = t('test_sent');
             document.getElementById('testConfirmBlock').classList.remove('hidden');
-          }).catch(function () { testErr.textContent = '无法连接本机服务'; });
+          }).catch(function () { testErr.textContent = t('pair_service_unreachable'); });
       });
 
       document.getElementById('paperYes').addEventListener('click', function () {
@@ -310,7 +366,7 @@
         document.getElementById('testTroubleshoot').classList.remove('hidden');
       });
       document.getElementById('finishBtn').addEventListener('click', function () {
-        if (!testConfirmed && !confirm('尚未确认测试条已出纸。仍要关闭吗？')) return;
+        if (!testConfirmed && !confirm(t('close_unconfirmed'))) return;
         fetch('/api/setup-done', { method: 'POST' }).finally(function () { window.close(); });
       });
 

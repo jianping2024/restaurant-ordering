@@ -172,7 +172,7 @@ export function PrintJobsQueuePanel({
             disabled={openingConfigure}
             onClick={() => {
               setOpeningConfigure(true);
-              void openPrintAgentConfigure(siteOrigin).finally(() => setOpeningConfigure(false));
+              void openPrintAgentConfigure(siteOrigin, undefined, lang).finally(() => setOpeningConfigure(false));
             }}
             className="text-[12px] font-medium text-brand-gold hover:underline disabled:opacity-50"
           >

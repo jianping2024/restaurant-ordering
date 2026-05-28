@@ -406,9 +406,9 @@ export const MESSAGES = {
       downloadTitle: '下载 Windows 打印助手',
       downloadVersionBadge: 'v{version}',
       downloadVersionHint:
-        '下载链接固定为本站地址（自动跳转到 GitHub 对应版本安装包）。徽章为当前版本 {version}；安装目录有 VERSION.txt，或运行 MesaPrintAgent.exe -version 核对。',
+        '下载当前推荐版本。安装后可在上方「已配对收银机」列表查看实际运行版本。',
       downloadReleasePending:
-        'v{version} 的安装包尚未在 GitHub 发布（不会悄悄降级到旧版）。请打开下方「全部版本」查看是否已有 print-agent-v{version}，或等待 CI 发布完成后再下载。',
+        'v{version} 安装包正在准备，暂时不可下载。可先查看下方已发布版本，或稍后刷新。',
       downloadSubtitle:
         '安装包向导默认勾选「当前用户登录 Windows 时自动运行 Mesa Print Agent」（可取消）；免安装 zip 不含开机自启。安装或解压后双击程序，按浏览器配对页完成连接。',
       downloadUpgradeSteps:
@@ -427,7 +427,7 @@ export const MESSAGES = {
         '安装包未做代码签名，Windows 可能提示「未知发布者」。请选择「更多信息」→「仍要运行」，或在文件属性中勾选「解除锁定」。可在 GitHub Release 页核对 SHA256SUMS。',
       pairingTitle: '配对 Windows 打印助手',
       pairingSubtitle:
-        '在收银电脑安装并启动 Mesa 打印助手（托盘图标）后，在此生成配对码；生成后会尝试在本机自动打开设置页（已填入配对码）。码约 10 分钟有效；每店最多 3 个待使用配对码（已核销不占槽，误生成可作废）。',
+        '新收银机或重新连接时，在这里生成配对码。请在同一台收银电脑上打开 Mesa，并确认右下角托盘有 Mesa 图标。',
       pairingWizardNote:
         '若未自动打开设置页，请点上方金色按钮；须在本机浏览器操作，且托盘 Mesa 图标已启动。',
       pairingGenerate: '生成配对码',
@@ -451,7 +451,7 @@ export const MESSAGES = {
         '已配对后调整打印机：收银电脑托盘右键「打印机设置…」。无需新配对码时可用下方「在本机打开设置」。',
       configureTitle: '重新配对 / 调整打印机',
       configureSubtitle:
-        '在 configure 为各出品档口映射打印机；结账/账单页从已映射档口中选择打印（多台档口可共用同一打印机）。',
+        '在本机设置页为每个出品档口选择打印机，并完成试打。结账和账单打印会使用这里保存的映射。',
       configureOpenWithCode: '在本机打开设置（已填入配对码）',
       configureOpenIdle: '在本机打开设置',
       configureUnreachable:
@@ -467,10 +467,16 @@ export const MESSAGES = {
       empty: '暂无打印任务。顾客或服务员下单成功后会自动入队；请确认已绑定出品档口且打印代理在线。',
       loadError: '加载失败，请稍后重试',
       tableHint:
-        '「类型」含出品联、订单小票等；失败时可对照任务 ID 与代理日志。需要最新记录时请点「刷新」。失败任务修复后可点「重试」。',
+        '每页显示 20 条。点「状态」可在全部、待处理、打印中、已完成、失败之间切换；修复打印机问题后可重试失败任务。',
       failedJobsHint:
-        '失败任务不会自动重打。请先按下方提示修复（升级代理 v0.2.3、运行 configure 配置打印机），再点「重试」。',
+        '有打印任务失败。请先打开打印机设置检查映射、纸张和连接，试打正常后再点「重试」。',
       retryFailed: '重试',
+      prevPage: '上一页',
+      nextPage: '下一页',
+      pageIndicator: '第 {page} / {totalPages} 页',
+      pageSummary: '显示 {from}-{to}，共 {total} 条',
+      statusAll: '全部',
+      statusCycleHint: '点击切换队列状态筛选',
       colActions: '操作',
       colTime: '时间',
       colTable: '桌台',
@@ -1226,9 +1232,9 @@ export const MESSAGES = {
       downloadTitle: 'Download Windows print agent',
       downloadVersionBadge: 'v{version}',
       downloadVersionHint:
-        'Download links use permanent URLs on this site (redirect to the matching GitHub release). Badge shows build {version}. Check VERSION.txt or MesaPrintAgent.exe -version.',
+        'Download the recommended build. After installing, check the running version in the paired POS PCs list above.',
       downloadReleasePending:
-        'v{version} is not published on GitHub yet (we do not redirect to an older /latest build). Open All releases for print-agent-v{version}, or retry after CI finishes.',
+        'v{version} is still being prepared and is not available yet. Use the published version below or refresh later.',
       downloadSubtitle:
         'The installer checks “run at Windows sign-in” by default (you can uncheck). Portable zip has no autostart. Double-click the agent and complete pairing in the browser.',
       downloadUpgradeSteps:
@@ -1247,7 +1253,7 @@ export const MESSAGES = {
         'Builds are not Authenticode-signed. If SmartScreen blocks the installer, choose More info → Run anyway, or Unblock in file Properties. Verify SHA256SUMS on the GitHub release page.',
       pairingTitle: 'Pair Windows print agent',
       pairingSubtitle:
-        'Install and start Mesa Print Agent on the POS PC (tray icon), then generate a code here—we try to open local settings with the code filled in. Codes expire in ~10 minutes; at most 3 pending codes per restaurant (used codes free a slot; void mistaken codes).',
+        'Generate a code when adding a new POS PC or reconnecting one. Open Mesa on that same POS PC and make sure the Mesa tray icon is running.',
       pairingWizardNote:
         'If settings did not open automatically, use the gold button above. Use this PC’s browser with the Mesa tray icon running.',
       pairingGenerate: 'Generate pairing code',
@@ -1272,7 +1278,7 @@ export const MESSAGES = {
         'After pairing, change printers from the tray menu → Printer settings. Use Open settings below when you do not need a new code.',
       configureTitle: 'Re-pair / printer setup',
       configureSubtitle:
-        'Map each print station to a printer in configure; on checkout pick which mapped station prints receipts (stations may share one device).',
+        'Use local settings to choose a printer for each print station and confirm a test print. Checkout and bill printing use these saved mappings.',
       configureOpenWithCode: 'Open settings on this PC (code filled in)',
       configureOpenIdle: 'Open settings on this PC',
       configureUnreachable:
@@ -1288,10 +1294,16 @@ export const MESSAGES = {
       empty: 'No print jobs yet. Jobs are queued automatically after an order is submitted; check station bindings and that the print agent is online.',
       loadError: 'Could not load the list. Try again later.',
       tableHint:
-        'Types include station tickets and receipts; on failure, match task ID with agent logs. Tap Refresh for the latest jobs. After fixing, use Retry.',
+        'Shows 20 jobs per page. Click Status to cycle All, Pending, Printing, Done, and Failed; after fixing printer setup, retry failed jobs.',
       failedJobsHint:
-        'Failed jobs are not retried automatically. Fix the issue below (upgrade to print-agent v0.2.3, run configure), then tap Retry.',
+        'Some jobs failed. Open printer settings, check mapping, paper, and connection, confirm test print works, then Retry.',
       retryFailed: 'Retry',
+      prevPage: 'Previous',
+      nextPage: 'Next',
+      pageIndicator: 'Page {page} / {totalPages}',
+      pageSummary: 'Showing {from}-{to} of {total}',
+      statusAll: 'All',
+      statusCycleHint: 'Click to switch queue status filter',
       colActions: 'Actions',
       colTime: 'Time',
       colTable: 'Table',
@@ -1819,9 +1831,9 @@ export const MESSAGES = {
       downloadTitle: 'Descarregar agente Windows',
       downloadVersionBadge: 'v{version}',
       downloadVersionHint:
-        'Links permanentes neste site (redirecionam para o release no GitHub). Insignia: versao {version}. VERSION.txt ou MesaPrintAgent.exe -version.',
+        'Descarregue a versao recomendada. Depois de instalar, veja a versao em execucao na lista de PCs emparelhados acima.',
       downloadReleasePending:
-        'v{version} ainda nao esta publicado no GitHub (sem redirecionar para /latest). Abra Todas as versoes ou aguarde o CI.',
+        'v{version} ainda esta a ser preparado e nao esta disponivel. Use a versao publicada abaixo ou atualize mais tarde.',
       downloadSubtitle:
         'O instalador marca por defeito «executar ao iniciar sessao no Windows» (pode desmarcar). O zip portatil nao configura arranque automatico. Duplo clique no agente e emparelhe no browser.',
       downloadUpgradeSteps:
@@ -1840,7 +1852,7 @@ export const MESSAGES = {
         'Sem assinatura Authenticode. Se o SmartScreen bloquear, escolha Mais informacoes → Executar mesmo assim, ou Desbloquear nas propriedades. Verifique SHA256SUMS no GitHub.',
       pairingTitle: 'Emparelhar agente Windows',
       pairingSubtitle:
-        'Instale e inicie o Mesa Print Agent no PC da caixa (icone na bandeja), depois gere o codigo aqui — tentamos abrir as definicoes locais com o codigo. Validade ~10 minutos; maximo 3 codigos pendentes (usados libertam vaga; pode anular codigos por engano).',
+        'Gere um codigo ao adicionar um novo PC da caixa ou ao religar um existente. Abra o Mesa nesse mesmo PC e confirme o icone Mesa na bandeja.',
       pairingWizardNote:
         'Se as definicoes nao abriram sozinhas, use o botao dourado acima. Use o browser deste PC com o icone Mesa na bandeja.',
       pairingGenerate: 'Gerar codigo',
@@ -1865,7 +1877,7 @@ export const MESSAGES = {
         'Depois de emparelhar, mude impressoras no menu da bandeja → Definicoes de impressora. Use Abrir definicoes abaixo sem codigo novo.',
       configureTitle: 'Reemparelhar / configurar impressoras',
       configureSubtitle:
-        'Mapeie cada estacao de impressao no configure; no checkout escolha qual estacao mapeada imprime (podem partilhar a mesma maquina).',
+        'Use as definicoes locais para escolher uma impressora por estacao e confirmar o teste. Checkout e contas usam estes mapeamentos guardados.',
       configureOpenWithCode: 'Abrir definicoes neste PC (codigo preenchido)',
       configureOpenIdle: 'Abrir definicoes neste PC',
       configureUnreachable:
@@ -1881,10 +1893,16 @@ export const MESSAGES = {
       empty: 'Sem tarefas ainda. As tarefas entram na fila ao confirmar um pedido; confirme estacoes ligadas e agente online.',
       loadError: 'Falha ao carregar. Tente mais tarde.',
       tableHint:
-        'Tipos incluem taloes de estacao e recibos; em falha, cruze o ID da tarefa com os logs do agente. Use Atualizar para ver a lista mais recente. Depois de corrigir, use Repetir.',
+        'Mostra 20 tarefas por pagina. Clique em Estado para alternar entre todas, pendentes, a imprimir, concluidas e falhadas; depois de corrigir a impressora, repita as falhadas.',
       failedJobsHint:
-        'Tarefas falhadas nao reimprimem sozinhas. Corrija (atualize para v0.2.3, execute configure) e toque em Repetir.',
+        'Ha tarefas falhadas. Abra as definicoes de impressora, verifique mapeamento, papel e ligacao, confirme o teste e depois toque em Repetir.',
       retryFailed: 'Repetir',
+      prevPage: 'Anterior',
+      nextPage: 'Seguinte',
+      pageIndicator: 'Pagina {page} / {totalPages}',
+      pageSummary: 'A mostrar {from}-{to} de {total}',
+      statusAll: 'Todos',
+      statusCycleHint: 'Clique para mudar o filtro de estado',
       colActions: 'Acoes',
       colTime: 'Hora',
       colTable: 'Mesa',

@@ -7,6 +7,20 @@ import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { printJobErrorHint } from '@/lib/print-job-error-hints';
 import { openPrintAgentConfigure } from '@/lib/print-agent-local';
 
+const PAGE_SIZE = 20;
+const STATUS_CYCLE = ['all', 'pending', 'processing', 'done', 'failed'] as const;
+
+type PrintJobStatusFilter = (typeof STATUS_CYCLE)[number];
+
+type QueueResponse = {
+  jobs?: PrintJobSummary[];
+  page?: number;
+  pageSize?: number;
+  status?: PrintJobStatusFilter;
+  total?: number;
+  totalPages?: number;
+};
+
 function isPrintJobType(v: string): v is PrintJobType {
   return v === 'order_receipt' || v === 'station_ticket' || v === 'pre_bill';
 }
@@ -15,11 +29,21 @@ function isPrintJobStatus(v: string): v is PrintJobStatus {
   return v === 'pending' || v === 'processing' || v === 'done' || v === 'failed';
 }
 
-export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSummary[] }) {
+export function PrintJobsQueuePanel({
+  initialJobs,
+  initialTotal,
+}: {
+  initialJobs: PrintJobSummary[];
+  initialTotal: number;
+}) {
   const { lang } = useLanguage();
   const t = getMessages(lang).printAssistant;
   const locale = UI_LOCALE_BY_LANG[lang];
   const [jobs, setJobs] = useState<PrintJobSummary[]>(initialJobs);
+  const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<PrintJobStatusFilter>('all');
+  const [total, setTotal] = useState(initialTotal);
+  const [totalPages, setTotalPages] = useState(Math.max(1, Math.ceil(initialTotal / PAGE_SIZE)));
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [retryingId, setRetryingId] = useState<string | null>(null);
@@ -41,31 +65,59 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
     return t.statusFailed;
   };
 
-  const refresh = useCallback(async (opts?: { silent?: boolean }) => {
-    const silent = opts?.silent === true;
-    if (!silent) {
-      setLoading(true);
-      setLoadError(false);
-    }
-    try {
-      const qs = new URLSearchParams({ limit: '25' });
-      const res = await fetch(`/api/print-agent/print-jobs/recent?${qs}`, { credentials: 'include' });
-      if (!res.ok) {
+  const labelStatusFilter = (status: PrintJobStatusFilter) => {
+    if (status === 'all') return t.statusAll;
+    return labelStatus(status);
+  };
+
+  const loadQueue = useCallback(
+    async (
+      nextPage: number,
+      nextStatus: PrintJobStatusFilter,
+      opts?: { silent?: boolean },
+    ) => {
+      const silent = opts?.silent === true;
+      if (!silent) {
+        setLoading(true);
+        setLoadError(false);
+      }
+      try {
+        const qs = new URLSearchParams({ page: String(nextPage) });
+        if (nextStatus !== 'all') qs.set('status', nextStatus);
+        const res = await fetch(`/api/print-agent/print-jobs/recent?${qs}`, { credentials: 'include' });
+        if (!res.ok) {
+          if (!silent) setLoadError(true);
+          return;
+        }
+        const json = (await res.json()) as QueueResponse;
+        const rows = json.jobs || [];
+        setJobs(rows);
+        setPage(json.page || nextPage);
+        setStatusFilter(json.status || nextStatus);
+        setTotal(json.total || 0);
+        setTotalPages(Math.max(1, json.totalPages || 1));
+      } catch {
         if (!silent) setLoadError(true);
         return;
+      } finally {
+        if (!silent) {
+          setLoading(false);
+        }
       }
-      const json = (await res.json()) as { jobs?: PrintJobSummary[] };
-      const rows = json.jobs || [];
-      setJobs(rows);
-    } catch {
-      if (!silent) setLoadError(true);
-      return;
-    } finally {
-      if (!silent) {
-        setLoading(false);
-      }
-    }
-  }, []);
+    },
+    [],
+  );
+
+  const refresh = useCallback(
+    async (opts?: { silent?: boolean }) => loadQueue(page, statusFilter, opts),
+    [loadQueue, page, statusFilter],
+  );
+
+  const cycleStatusFilter = () => {
+    const current = STATUS_CYCLE.indexOf(statusFilter);
+    const next = STATUS_CYCLE[(current + 1) % STATUS_CYCLE.length];
+    void loadQueue(1, next);
+  };
 
   const retryJob = useCallback(
     async (jobId: string) => {
@@ -76,28 +128,41 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
           credentials: 'include',
         });
         if (!res.ok) return;
-        await refresh({ silent: true });
+        await loadQueue(page, statusFilter, { silent: true });
       } finally {
         setRetryingId(null);
       }
     },
-    [refresh],
+    [loadQueue, page, statusFilter],
   );
 
   const failedCount = jobs.filter((j) => j.status === 'failed').length;
+  const fromRow = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const toRow = total === 0 ? 0 : Math.min(total, (page - 1) * PAGE_SIZE + jobs.length);
 
   return (
     <div className="rounded-2xl border border-brand-border bg-brand-card p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h2 className="font-heading text-lg text-brand-text">{t.queueTitle}</h2>
-        <button
-          type="button"
-          onClick={() => void refresh()}
-          disabled={loading}
-          className="text-[12px] px-3 py-1.5 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors disabled:opacity-50"
-        >
-          {loading ? '…' : t.refresh}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={cycleStatusFilter}
+            disabled={loading}
+            className="text-[12px] px-3 py-1.5 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors disabled:opacity-50"
+            title={t.statusCycleHint}
+          >
+            {t.colStatus}: <span className="text-brand-gold">{labelStatusFilter(statusFilter)}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => void refresh()}
+            disabled={loading}
+            className="text-[12px] px-3 py-1.5 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors disabled:opacity-50"
+          >
+            {loading ? '…' : t.refresh}
+          </button>
+        </div>
       </div>
       <p className="text-[12px] text-brand-text-muted mb-3 leading-relaxed">{t.tableHint}</p>
       {failedCount > 0 ? (
@@ -127,7 +192,19 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
                 <th className="py-2 pr-3 font-medium">{t.colTime}</th>
                 <th className="py-2 pr-3 font-medium whitespace-nowrap">{t.colTable}</th>
                 <th className="py-2 pr-3 font-medium">{t.colType}</th>
-                <th className="py-2 pr-3 font-medium">{t.colStatus}</th>
+                <th className="py-2 pr-3 font-medium">
+                  <button
+                    type="button"
+                    onClick={cycleStatusFilter}
+                    className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 -ml-1.5 text-brand-text-muted hover:text-brand-text hover:bg-brand-muted/50 transition-colors"
+                    title={t.statusCycleHint}
+                  >
+                    <span>{t.colStatus}</span>
+                    <span className="text-[11px] text-brand-gold">
+                      {labelStatusFilter(statusFilter)}
+                    </span>
+                  </button>
+                </th>
                 <th className="py-2 pr-3 font-medium">{t.colError}</th>
                 <th className="py-2 pr-3 font-medium">{t.colActions}</th>
                 <th className="py-2 font-medium">{t.colId}</th>
@@ -206,6 +283,33 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
               ))}
             </tbody>
           </table>
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-brand-border/60 pt-3 mt-2 text-[12px] text-brand-text-muted">
+            <span>
+              {t.pageSummary
+                .replace('{from}', String(fromRow))
+                .replace('{to}', String(toRow))
+                .replace('{total}', String(total))}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={loading || page <= 1}
+                onClick={() => void loadQueue(page - 1, statusFilter)}
+                className="px-2.5 py-1 rounded-md border border-brand-border hover:text-brand-text hover:border-brand-gold/40 disabled:opacity-50"
+              >
+                {t.prevPage}
+              </button>
+              <span>{t.pageIndicator.replace('{page}', String(page)).replace('{totalPages}', String(totalPages))}</span>
+              <button
+                type="button"
+                disabled={loading || page >= totalPages}
+                onClick={() => void loadQueue(page + 1, statusFilter)}
+                className="px-2.5 py-1 rounded-md border border-brand-border hover:text-brand-text hover:border-brand-gold/40 disabled:opacity-50"
+              >
+                {t.nextPage}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

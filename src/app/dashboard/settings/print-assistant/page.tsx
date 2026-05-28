@@ -54,12 +54,12 @@ export default async function PrintAssistantSettingsPage() {
     /* use defaults */
   }
 
-  const { data: jobRows, error: jobsError } = await supabase
+  const { data: jobRows, error: jobsError, count: jobsCount } = await supabase
     .from('print_jobs')
-    .select('id, type, status, created_at, error_message, table_display, table_id')
+    .select('id, type, status, created_at, error_message, table_display, table_id', { count: 'exact' })
     .eq('restaurant_id', rid)
     .order('created_at', { ascending: false })
-    .limit(25);
+    .range(0, 19);
 
   const initialJobs: PrintJobSummary[] = jobsError
     ? []
@@ -89,6 +89,8 @@ export default async function PrintAssistantSettingsPage() {
         initialDevices={pairedDevices}
         recommendedVersion={printAgentVersion || ''}
       />
+      <PrintAgentPairingPanel />
+      <PrintJobsQueuePanel initialJobs={initialJobs} initialTotal={jobsError ? 0 : jobsCount || 0} />
       {downloadUrls ? (
         <PrintAgentDownloadPanel
           urls={downloadUrls}
@@ -98,8 +100,6 @@ export default async function PrintAssistantSettingsPage() {
         />
       ) : null}
       <PrintAgentSchedulePanel initialForm={initialScheduleForm} />
-      <PrintAgentPairingPanel />
-      <PrintJobsQueuePanel initialJobs={initialJobs} />
     </div>
   );
 }

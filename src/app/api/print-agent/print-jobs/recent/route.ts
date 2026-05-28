@@ -5,9 +5,22 @@ import {
   rejectForbiddenPrintJobsScopeParams,
   rejectUnexpectedPrintJobsQueryParams,
 } from '@/lib/print-jobs-scope';
-import type { PrintJobSummary } from '@/types';
+import type { PrintJobStatus, PrintJobSummary } from '@/types';
 
 export const runtime = 'nodejs';
+
+const PAGE_SIZE = 20;
+
+function parsePage(raw: string | null): number {
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return 1;
+  return Math.max(1, Math.floor(n));
+}
+
+function parseStatus(raw: string | null): PrintJobStatus | null {
+  if (raw === 'pending' || raw === 'processing' || raw === 'done' || raw === 'failed') return raw;
+  return null;
+}
 
 /** Dashboard: recent print_jobs for the logged-in owner's restaurant only (no restaurant_id param). */
 export async function GET(req: Request) {
@@ -21,7 +34,7 @@ export async function GET(req: Request) {
     );
   }
 
-  const unexpected = rejectUnexpectedPrintJobsQueryParams(searchParams, ['limit']);
+  const unexpected = rejectUnexpectedPrintJobsQueryParams(searchParams, ['page', 'status']);
   if (unexpected) {
     return NextResponse.json({ error: 'unexpected_query_param', param: unexpected }, { status: 400 });
   }
@@ -31,21 +44,37 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
-  const limit = Math.min(20, Math.max(1, Number(searchParams.get('limit')) || 5));
+  const page = parsePage(searchParams.get('page'));
+  const status = parseStatus(searchParams.get('status'));
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
 
   const supabase = await createClient();
-  const { data: rows, error } = await supabase
+  let query = supabase
     .from('print_jobs')
-    .select('id, type, status, created_at, error_message, table_display, table_id')
+    .select('id, type, status, created_at, error_message, table_display, table_id', { count: 'exact' })
     .eq('restaurant_id', auth.restaurantId)
-    .order('created_at', { ascending: false })
-    .limit(limit);
+    .order('created_at', { ascending: false });
+
+  if (status) {
+    query = query.eq('status', status);
+  }
+
+  const { data: rows, error, count } = await query.range(from, to);
 
   if (error) {
     return NextResponse.json({ error: 'query_failed', message: error.message }, { status: 500 });
   }
 
   const jobs = (rows || []) as PrintJobSummary[];
+  const total = count || 0;
 
-  return NextResponse.json({ jobs });
+  return NextResponse.json({
+    jobs,
+    page,
+    pageSize: PAGE_SIZE,
+    status: status || 'all',
+    total,
+    totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
+  });
 }

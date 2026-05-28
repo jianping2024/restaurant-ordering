@@ -34,6 +34,12 @@
     .test-row label { display: block; font-size: 12px; color: #9aa5b1; margin-bottom: 6px; }
     .footer { text-align: center; margin-top: 8px; }
     a.pair-link { color: #d4a853; }
+    .debug-panel { margin-top: 20px; border: 1px dashed #3d4f63; border-radius: 10px; padding: 12px 14px; background: #0a0e12; font-size: 11px; color: #8b9aab; }
+    .debug-panel.open { border-color: #d4a853; }
+    .debug-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .debug-head button { width: auto; padding: 6px 10px; font-size: 11px; font-weight: 500; }
+    .debug-pre { margin: 0; white-space: pre-wrap; word-break: break-all; max-height: 280px; overflow: auto; font-family: ui-monospace, monospace; font-size: 10px; line-height: 1.45; color: #b8c5d3; }
+    .debug-err { color: #f87171; }
   </style>
 </head>
 <body>
@@ -42,6 +48,7 @@
     <p class="sub" id="pageSub">…</p>
 
     <div class="status" id="status">…</div>
+    <button type="button" id="stateRetryBtn" class="secondary hidden" style="margin-bottom:16px">…</button>
 
     <div class="card hidden" id="gateCard">
       <p class="hint" id="gateBody">…</p>
@@ -56,6 +63,7 @@
       <p class="hint" id="stationsTitle">…</p>
       <p class="hint" id="stationsHint">…</p>
       <p class="warn hidden" id="stationsWarn"></p>
+      <button type="button" id="stationsRetryBtn" class="secondary scan-refresh hidden" style="margin-bottom:12px">…</button>
       <div class="stations" id="stations"></div>
       <button type="button" id="saveBtn">…</button>
       <p class="err" id="saveErr"></p>
@@ -73,6 +81,16 @@
     <div class="footer">
       <button type="button" id="doneBtn" class="secondary">…</button>
     </div>
+
+    <div class="debug-panel" id="debugPanel">
+      <div class="debug-head">
+        <strong style="color:#d4a853">诊断</strong>
+        <span id="debugSummary">—</span>
+        <button type="button" id="debugToggle" class="secondary">展开详情</button>
+        <button type="button" id="debugCopy" class="secondary">复制</button>
+      </div>
+      <pre class="debug-pre hidden" id="debugPre"></pre>
+    </div>
   </div>
   <script>
     (function () {
@@ -84,6 +102,70 @@
       var draftMappings = {};
       var scanning = false;
       var pageGen = 0;
+      var debugLines = [];
+      var debugOpen = false;
+      var debugForce = false;
+      try { debugForce = new URLSearchParams(window.location.search).get('debug') === '1'; } catch (e) { debugForce = false; }
+
+      function dbg(msg) {
+        var line = new Date().toISOString().slice(11, 23) + ' ' + msg;
+        debugLines.push(line);
+        if (debugLines.length > 80) debugLines.shift();
+        renderDebug();
+      }
+
+      function dbgResponse(label, url, r, txt) {
+        var ct = (r.headers && r.headers.get) ? (r.headers.get('content-type') || '') : '';
+        var jsonOk = false;
+        try { if (txt) JSON.parse(txt); jsonOk = !!txt; } catch (e) { jsonOk = false; }
+        var preview = txt || '';
+        if (preview.length > 360) preview = preview.slice(0, 360) + '…(' + txt.length + 'B)';
+        preview = preview.replace(/\s+/g, ' ').trim();
+        dbg(label + ' ' + r.status + ' ' + url + ' ct=' + ct + ' json=' + jsonOk + (preview ? ' body=' + preview : ''));
+        if (!r.ok || !jsonOk) openDebug(true);
+      }
+
+      function dbgError(label, url, err) {
+        dbg(label + ' ERR ' + url + ' ' + String(err && err.message || err));
+        openDebug(true);
+      }
+
+      function openDebug(force) {
+        if (force) {
+          debugOpen = true;
+          document.getElementById('debugPanel').classList.add('open');
+          document.getElementById('debugPre').classList.remove('hidden');
+          document.getElementById('debugToggle').textContent = '收起详情';
+        }
+      }
+
+      function renderDebug() {
+        var paired = !!state.paired;
+        var nCloud = (stations || []).length;
+        var nRender = stationsForRender().length;
+        var api = state.api_base || '(none)';
+        document.getElementById('debugSummary').innerHTML =
+          'paired=' + paired +
+          ' api=' + escapeHtml(String(api).slice(0, 48)) +
+          ' cloud_stations=' + nCloud +
+          ' render_rows=' + nRender +
+          ' maps=' + Object.keys(state.station_printers || {}).length;
+        document.getElementById('debugPre').textContent = debugLines.join('\n');
+        if (debugForce) openDebug(true);
+      }
+
+      function fetchTextLogged(label, url, opts) {
+        dbg('→ ' + label + ' ' + url);
+        return fetch(url, opts || {}).then(function (r) {
+          return r.text().then(function (txt) {
+            dbgResponse(label, url, r, txt);
+            return { r: r, txt: txt };
+          });
+        }).catch(function (err) {
+          dbgError(label, url, err);
+          throw err;
+        });
+      }
 
       function t(key) { return (ui && ui[key]) ? ui[key] : key; }
       function fmt(key, val) { return t(key).replace('%s', val); }
@@ -105,6 +187,8 @@
         document.getElementById('scanBtn').textContent = t('scan_again');
         document.getElementById('stationsTitle').textContent = t('stations_title');
         document.getElementById('saveBtn').textContent = t('save_printers_btn');
+        document.getElementById('stationsRetryBtn').textContent = t('stations_retry');
+        document.getElementById('stateRetryBtn').textContent = t('state_retry');
         document.getElementById('testOptionalTitle').textContent = t('configure_test_optional');
         document.getElementById('testStationLabel').textContent = t('test_station_label');
         document.getElementById('testPrintBtn').textContent = t('test_print_btn');
@@ -260,6 +344,7 @@
         root.innerHTML = '';
         if (!visible.length) {
           document.getElementById('stationsHint').textContent = t('stations_empty');
+          refreshTestSelect();
           return;
         }
         document.getElementById('stationsHint').textContent = stations.length
@@ -301,39 +386,83 @@
       function refreshTestSelect() {
         var sel = document.getElementById('testStation');
         sel.innerHTML = '';
-        var maps = collectMappings();
-        var ids = Object.keys(maps);
-        if (!ids.length) {
-          var o = document.createElement('option');
-          o.value = '';
-          o.textContent = t('save_need_mapping');
-          sel.appendChild(o);
+        var visible = stationsForRender();
+        if (!visible.length) {
+          var empty = document.createElement('option');
+          empty.value = '';
+          empty.textContent = t('stations_empty');
+          sel.appendChild(empty);
+          sel.disabled = true;
           return;
         }
-        ids.forEach(function (sid) {
+        sel.disabled = false;
+        visible.forEach(function (s) {
           var o = document.createElement('option');
-          o.value = sid;
-          o.textContent = stationLabel({ id: sid });
+          o.value = s.id;
+          o.textContent = stationLabel(s);
           sel.appendChild(o);
         });
       }
 
-      function fetchStations() {
-        return fetch('/api/print-stations').then(function (r) {
-          return r.text().then(function (txt) {
-            var j = {};
-            try { j = txt ? JSON.parse(txt) : {}; } catch (e) { j = { error: txt }; }
-            return { ok: r.ok, j: j };
+      function parseStateResponse(r, txt) {
+        var j = {};
+        try { j = txt ? JSON.parse(txt) : {}; } catch (e) {
+          dbg('state JSON.parse failed: ' + String(e.message || e));
+          throw new Error('parse');
+        }
+        if (!r.ok) throw new Error((j && j.error) || 'state');
+        return j;
+      }
+
+      function fetchConfigureStateOnce() {
+        return fetchTextLogged('configure-state', '/api/configure-state').then(function (res) {
+          return parseStateResponse(res.r, res.txt);
+        });
+      }
+
+      function fetchConfigureState() {
+        return fetchConfigureStateOnce().catch(function (err) {
+          dbg('configure-state failed, try setup-state');
+          return fetchTextLogged('setup-state', '/api/setup-state').then(function (res) {
+            return parseStateResponse(res.r, res.txt);
           });
         });
       }
 
+      function fetchConfigureStateWithRetry(attempt) {
+        return fetchConfigureState().catch(function (err) {
+          dbg('state retry ' + (attempt + 1) + '/4');
+          if (attempt >= 4) throw err;
+          return new Promise(function (resolve) {
+            window.setTimeout(resolve, 350 * (attempt + 1));
+          }).then(function () {
+            return fetchConfigureStateWithRetry(attempt + 1);
+          });
+        });
+      }
+
+      function showStateRetry(show) {
+        var btn = document.getElementById('stateRetryBtn');
+        if (show) btn.classList.remove('hidden');
+        else btn.classList.add('hidden');
+      }
+
+      function fetchStations() {
+        return fetchTextLogged('print-stations', '/api/print-stations').then(function (res) {
+          var j = {};
+          try { j = res.txt ? JSON.parse(res.txt) : {}; } catch (e) { j = { error: res.txt, parse: String(e.message || e) }; }
+          return { ok: res.r.ok, j: j };
+        });
+      }
+
       function applyStations(res) {
+        var retryBtn = document.getElementById('stationsRetryBtn');
         if (!res.ok) {
           stations = [];
           stationNamesById = {};
           document.getElementById('stationsWarn').classList.remove('hidden');
           document.getElementById('stationsWarn').textContent = (res.j && res.j.error) || t('stations_load_failed');
+          retryBtn.classList.remove('hidden');
           return;
         }
         stations = res.j.stations || [];
@@ -341,19 +470,20 @@
         stations.forEach(function (s) {
           if (s && s.id) stationNamesById[s.id] = s;
         });
+        dbg('stations applied count=' + stations.length);
         document.getElementById('stationsWarn').classList.add('hidden');
+        retryBtn.classList.add('hidden');
       }
 
       function runScan() {
         if (scanning) return Promise.resolve();
         scanning = true;
         updateScanHint();
-        return fetch('/api/printers?refresh=1')
-          .then(function (r) {
-            return r.json().then(function (j) {
-              if (!r.ok) throw new Error((j && j.error) || 'scan');
-              return j;
-            });
+        return fetchTextLogged('printers', '/api/printers?refresh=1').then(function (res) {
+            var j = {};
+            try { j = res.txt ? JSON.parse(res.txt) : {}; } catch (e) { throw new Error('parse'); }
+            if (!res.r.ok) throw new Error((j && j.error) || 'scan');
+            return j;
           })
           .then(function (j) {
             cache.tcp = j.tcp || [];
@@ -371,24 +501,34 @@
           });
       }
 
+      function loadStations(gen) {
+        return fetchStations().then(function (res) {
+          if (gen !== pageGen) return;
+          applyStations(res);
+          renderStations();
+        }).catch(function () {
+          if (gen !== pageGen) return;
+          stations = [];
+          stationNamesById = {};
+          document.getElementById('stationsWarn').classList.remove('hidden');
+          document.getElementById('stationsWarn').textContent = t('stations_reach_failed');
+          document.getElementById('stationsRetryBtn').classList.remove('hidden');
+          renderStations();
+        });
+      }
+
       function loadPage() {
         var gen = ++pageGen;
+        showStateRetry(false);
         document.getElementById('status').textContent = t('status_loading');
-        return fetch('/api/configure-state')
-          .then(function (r) {
-            return r.json().then(function (j) {
-              if (!r.ok) throw new Error((j && j.error) || 'state');
-              return j;
-            });
-          })
+        fetchConfigureStateWithRetry(0)
           .then(function (j) {
             if (gen !== pageGen) return;
             state = j;
             ui = j.ui || {};
             seedDraft();
             var pairPath = j.pair_path || '/pair';
-            var pairLink = document.getElementById('gatePairLink');
-            pairLink.href = buildPairHref(pairPath);
+            document.getElementById('gatePairLink').href = buildPairHref(pairPath);
             applyLabels();
             renderStatus();
             if (!state.paired) {
@@ -399,17 +539,19 @@
               }
               return;
             }
-            return fetchStations().then(function (res) {
-              if (gen !== pageGen) return;
-              applyStations(res);
-              renderStations();
-            });
+            return loadStations(gen);
           })
           .catch(function () {
             if (gen !== pageGen) return;
+            dbg('loadPage FAILED (configure-state)');
+            document.getElementById('gateCard').classList.add('hidden');
+            document.getElementById('mainCard').classList.add('hidden');
             document.getElementById('status').textContent = t('state_load_failed');
+            showStateRetry(true);
           });
       }
+
+      document.getElementById('stateRetryBtn').addEventListener('click', loadPage);
 
       document.getElementById('stations').addEventListener('change', function (e) {
         if (!e.target || !e.target.classList.contains('station-printer')) return;
@@ -421,6 +563,9 @@
       });
 
       document.getElementById('scanBtn').addEventListener('click', runScan);
+      document.getElementById('stationsRetryBtn').addEventListener('click', function () {
+        loadStations(pageGen);
+      });
 
       document.getElementById('saveBtn').addEventListener('click', function () {
         var err = document.getElementById('saveErr');
@@ -468,11 +613,15 @@
         testSent.textContent = '';
         var sid = document.getElementById('testStation').value;
         if (!sid) {
-          testErr.textContent = t('save_need_mapping');
+          testErr.textContent = t('stations_empty');
           return;
         }
         var maps = collectMappings();
         var printer = maps[sid] || mappedValue(sid) || '';
+        if (!printer) {
+          testErr.textContent = t('save_need_mapping');
+          return;
+        }
         fetch('/api/test-print', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -492,6 +641,27 @@
       document.getElementById('doneBtn').addEventListener('click', function () {
         fetch('/api/configure-done', { method: 'POST' }).finally(function () { window.close(); });
       });
+
+      document.getElementById('debugToggle').addEventListener('click', function () {
+        debugOpen = !debugOpen;
+        document.getElementById('debugPre').classList.toggle('hidden', !debugOpen);
+        document.getElementById('debugPanel').classList.toggle('open', debugOpen);
+        document.getElementById('debugToggle').textContent = debugOpen ? '收起详情' : '展开详情';
+      });
+      document.getElementById('debugCopy').addEventListener('click', function () {
+        var text = 'url=' + window.location.href + '\n' + debugLines.join('\n');
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).catch(function () {});
+        }
+      });
+
+      dbg('page load ' + window.location.href);
+      fetchTextLogged('health', '/api/health').then(function (res) {
+        try {
+          var h = JSON.parse(res.txt || '{}');
+          dbg('agent version=' + (h.version || '?'));
+        } catch (e) { /* ignore */ }
+      }).catch(function () {});
 
       loadPage();
     })();

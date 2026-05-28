@@ -178,7 +178,8 @@ func registerPrinterWizardRoutes(mux *http.ServeMux, configPath string, cfg **co
 	})
 
 	mux.HandleFunc("/api/print-stations", func(w http.ResponseWriter, r *http.Request) {
-		c := *cfg
+		c := reloadConfig(configPath, *cfg)
+		*cfg = c
 		if strings.TrimSpace(c.AgentJWT) == "" {
 			writePairJSON(w, http.StatusUnauthorized, map[string]string{"error": "请先完成配对"})
 			return
@@ -192,7 +193,9 @@ func registerPrinterWizardRoutes(mux *http.ServeMux, configPath string, cfg **co
 	})
 
 	mux.HandleFunc("/api/setup-state", func(w http.ResponseWriter, r *http.Request) {
-		writeConfigureState(w, *cfg)
+		c := reloadConfig(configPath, *cfg)
+		*cfg = c
+		writeConfigureState(w, c)
 	})
 
 	mux.HandleFunc("/api/setup", func(w http.ResponseWriter, r *http.Request) {

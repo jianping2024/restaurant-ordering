@@ -441,11 +441,21 @@
 
       function loadStations() {
         fetch('/api/print-stations')
-          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+          .then(function (r) {
+            return r.text().then(function (txt) {
+              var j = {};
+              try {
+                j = txt ? JSON.parse(txt) : {};
+              } catch (e) {
+                j = { error: txt || r.statusText };
+              }
+              return { ok: r.ok, status: r.status, j: j };
+            });
+          })
           .then(function (res) {
             if (!res.ok) {
               document.getElementById('stationsWarn').classList.remove('hidden');
-              document.getElementById('stationsWarn').textContent = t('stations_load_failed');
+              document.getElementById('stationsWarn').textContent = (res.j && res.j.error) ? res.j.error : t('stations_load_failed');
               stations = [];
               renderStations();
               return;

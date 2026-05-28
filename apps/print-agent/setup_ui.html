@@ -255,11 +255,21 @@
         });
       }
       function loadStations() {
-        fetch('/api/print-stations').then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        fetch('/api/print-stations').then(function (r) {
+          return r.text().then(function (txt) {
+            var j = {};
+            try {
+              j = txt ? JSON.parse(txt) : {};
+            } catch (e) {
+              j = { error: txt || r.statusText };
+            }
+            return { ok: r.ok, status: r.status, j: j };
+          });
+        })
           .then(function (res) {
             if (!res.ok) {
               stationsWarn.classList.remove('hidden');
-              stationsWarn.textContent = t('stations_load_failed');
+              stationsWarn.textContent = (res.j && res.j.error) ? res.j.error : t('stations_load_failed');
               stations = [];
               renderStations();
               return;

@@ -14,5 +14,5 @@ func startTrayLocalHTTP(rt *trayRuntime) {}
 func shutdownTrayLocalHTTP()             {}
 
 func (t *trayLocalHTTP) runConfigureSession(ctx context.Context, configPath, prefillAPI, rawQuery string) error {
-	return runConfigureWizard(ctx, configPath, prefillAPI)
+	return runConfigureWizard(ctx, configPath, prefillAPI, rawQuery)
 }

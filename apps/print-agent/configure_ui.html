@@ -143,6 +143,7 @@
       var params = new URLSearchParams(location.search);
       var cache = { tcp: [], winspool: [] };
       var stations = [];
+      var stationNamesById = {};
       var state = { paired: false, station_printers: {} };
       var ui = {};
       var testConfirmed = false;
@@ -241,23 +242,27 @@
       });
 
       function stationLabel(s) {
+        var known = stationNamesById[s.id];
+        if (known) {
+          return known.name_en || known.name_pt || known.name_zh || known.id;
+        }
         return s.name_en || s.name_pt || s.name_zh || s.id;
       }
 
       function stationsForRender() {
         var out = [];
         var seen = {};
+        (stations || []).forEach(function (s) {
+          var key = String(s && s.id || '').trim();
+          if (!key || seen[key]) return;
+          seen[key] = true;
+          out.push(s);
+        });
         Object.keys(state.station_printers || {}).forEach(function (sid) {
           var key = String(sid || '').trim();
           if (!key || seen[key]) return;
           seen[key] = true;
           out.push({ id: key });
-        });
-        stations.forEach(function (s) {
-          var key = String(s && s.id || '').trim();
-          if (!key || seen[key]) return;
-          seen[key] = true;
-          out.push(s);
         });
         return out;
       }
@@ -337,7 +342,7 @@
         var visibleStations = stationsForRender();
         stationsEl.innerHTML = '';
         if (!visibleStations.length) {
-          stationsHint.textContent = stations.length ? t('stations_empty') : t('stations_loading');
+          stationsHint.textContent = t('stations_loading');
           return;
         }
         stationsHint.textContent = stations.length ? t('stations_map_hint') : t('stations_saved_only');
@@ -447,7 +452,6 @@
       }
 
       function loadStations() {
-        renderStations();
         fetch('/api/print-stations')
           .then(function (r) {
             return r.text().then(function (txt) {
@@ -468,6 +472,10 @@
               return;
             }
             stations = res.j.stations || [];
+            stationNamesById = {};
+            stations.forEach(function (s) {
+              if (s && s.id) stationNamesById[s.id] = s;
+            });
             document.getElementById('stationsWarn').classList.add('hidden');
             renderStations();
           })

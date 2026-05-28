@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -41,16 +42,33 @@ func registerConfigureWizardRoutes(mux *http.ServeMux, configPath string, cfgPtr
 	})
 }
 
-func configureWizardBaseURL(listenAddr, prefillAPI string) string {
+func configureWizardBaseURL(listenAddr, prefillAPI, rawQuery string) string {
 	baseURL := "http://" + listenAddr + "/configure"
+	q := url.Values{}
 	if api, err := normalizeAPIBase(prefillAPI); err == nil && api != "" {
-		baseURL = "http://" + listenAddr + "/configure?api=" + url.QueryEscape(api)
+		q.Set("api", api)
+	}
+	if rawQuery != "" {
+		if incoming, err := url.ParseQuery(rawQuery); err == nil {
+			if api := strings.TrimSpace(incoming.Get("api")); api != "" {
+				q.Set("api", api)
+			}
+			if code := strings.TrimSpace(incoming.Get("code")); code != "" {
+				q.Set("code", code)
+			}
+			if lang := strings.TrimSpace(incoming.Get("lang")); lang != "" {
+				q.Set("lang", lang)
+			}
+		}
+	}
+	if len(q) > 0 {
+		baseURL += "?" + q.Encode()
 	}
 	return baseURL
 }
 
 // runConfigureWizard serves re-pair + printer setup until the user closes the page (standalone CLI).
-func runConfigureWizard(ctx context.Context, configPath string, prefillAPI string) error {
+func runConfigureWizard(ctx context.Context, configPath string, prefillAPI, rawQuery string) error {
 	listenAddr, err := pickLocalListenAddr(ConfigureWizardPort)
 	if err != nil {
 		return err
@@ -70,7 +88,7 @@ func runConfigureWizard(ctx context.Context, configPath string, prefillAPI strin
 		}
 	}()
 
-	baseURL := configureWizardBaseURL(listenAddr, prefillAPI)
+	baseURL := configureWizardBaseURL(listenAddr, prefillAPI, rawQuery)
 	agentLogLocale(localeFromConfigPath(configPath), "log_wizard_open", baseURL)
 	if onConfigureWizardReady != nil {
 		onConfigureWizardReady(baseURL)

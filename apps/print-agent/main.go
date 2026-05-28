@@ -174,7 +174,7 @@ func main() {
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), 60*time.Minute)
 			defer cancel()
-			if err := runConfigureWizard(ctx, path, prefill); err != nil {
+			if err := runConfigureWizard(ctx, path, prefill, ""); err != nil {
 				log.Fatal(err)
 			}
 			fmt.Println("Configuration saved to", path)

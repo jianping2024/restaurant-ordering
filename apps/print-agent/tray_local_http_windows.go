@@ -15,13 +15,13 @@ import (
 
 // trayLocalHTTP serves /api/health while the tray agent runs; mounts configure routes while settings are open.
 type trayLocalHTTP struct {
-	mu      sync.Mutex
-	rt      *trayRuntime
-	srv     *http.Server
-	addr    string
-	cmux    *http.ServeMux
-	active  bool
-	done    chan error
+	mu     sync.Mutex
+	rt     *trayRuntime
+	srv    *http.Server
+	addr   string
+	cmux   *http.ServeMux
+	active bool
+	done   chan error
 }
 
 var trayLocal trayLocalHTTP
@@ -136,10 +136,10 @@ func (t *trayLocalHTTP) runConfigureSession(ctx context.Context, configPath, pre
 	t.mu.Lock()
 	if t.srv == nil {
 		t.mu.Unlock()
-		return runConfigureWizard(ctx, configPath, prefillAPI)
+		return runConfigureWizard(ctx, configPath, prefillAPI, rawQuery)
 	}
 	if t.active {
-		url := configureWizardBaseURL(t.addr, prefillAPI)
+		url := configureWizardBaseURL(t.addr, prefillAPI, rawQuery)
 		if rawQuery != "" {
 			if q, err := urlParseQueryMerge(rawQuery); err == nil && q.Get("api") != "" {
 				url = "http://" + t.addr + "/configure?" + q.Encode()
@@ -176,7 +176,7 @@ func (t *trayLocalHTTP) runConfigureSession(ctx context.Context, configPath, pre
 		t.mu.Unlock()
 	}()
 
-	baseURL := configureWizardBaseURL(addr, prefillAPI)
+	baseURL := configureWizardBaseURL(addr, prefillAPI, rawQuery)
 	if rawQuery != "" {
 		if u, err := url.Parse(baseURL); err == nil {
 			q, _ := url.ParseQuery(rawQuery)

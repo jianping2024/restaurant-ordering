@@ -143,6 +143,8 @@
       var params = new URLSearchParams(location.search);
       var cache = { tcp: [], winspool: [] };
       var stations = [];
+      var stationsLoading = false;
+      var stationsLoaded = false;
       var state = { paired: false, station_printers: {} };
       var ui = {};
       var testConfirmed = false;
@@ -325,6 +327,10 @@
         var stationsHint = document.getElementById('stationsHint');
         var visibleStations = stationsForRender();
         stationsEl.innerHTML = '';
+        if (stationsLoading && !stationsLoaded) {
+          stationsHint.textContent = t('stations_loading');
+          return;
+        }
         if (!visibleStations.length) {
           stationsHint.textContent = t('stations_empty');
           return;
@@ -440,6 +446,8 @@
       }
 
       function loadStations() {
+        stationsLoading = true;
+        renderStations();
         fetch('/api/print-stations')
           .then(function (r) {
             return r.text().then(function (txt) {
@@ -453,28 +461,24 @@
             });
           })
           .then(function (res) {
+            stationsLoading = false;
             if (!res.ok) {
               document.getElementById('stationsWarn').classList.remove('hidden');
               document.getElementById('stationsWarn').textContent = (res.j && res.j.error) ? res.j.error : t('stations_load_failed');
-              stations = [];
               renderStations();
               return;
             }
+            stationsLoaded = true;
             stations = res.j.stations || [];
             document.getElementById('stationsWarn').classList.add('hidden');
             renderStations();
           })
           .catch(function () {
+            stationsLoading = false;
             document.getElementById('stationsWarn').classList.remove('hidden');
             document.getElementById('stationsWarn').textContent = t('stations_reach_failed');
-            stations = [];
             renderStations();
           });
-      }
-
-      function refreshPrintersAndStations() {
-        loadPrinters();
-        loadStations();
       }
 
       function loadState() {
@@ -508,7 +512,7 @@
           });
       }
 
-      document.getElementById('refreshBtn').addEventListener('click', refreshPrintersAndStations);
+      document.getElementById('refreshBtn').addEventListener('click', loadPrinters);
 
       document.getElementById('pairBtn').addEventListener('click', function () {
         var err = document.getElementById('pairErr');

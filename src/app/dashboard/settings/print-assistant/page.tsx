@@ -59,7 +59,7 @@ export default async function PrintAssistantSettingsPage() {
     .select('id, type, status, created_at, error_message, table_display, table_id', { count: 'exact' })
     .eq('restaurant_id', rid)
     .order('created_at', { ascending: false })
-    .range(0, 19);
+    .range(0, 9);
 
   const initialJobs: PrintJobSummary[] = jobsError
     ? []

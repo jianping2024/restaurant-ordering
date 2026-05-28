@@ -467,7 +467,7 @@ export const MESSAGES = {
       empty: '暂无打印任务。顾客或服务员下单成功后会自动入队；请确认已绑定出品档口且打印代理在线。',
       loadError: '加载失败，请稍后重试',
       tableHint:
-        '每页显示 20 条。可用右上角状态下拉筛选队列；修复打印机问题后可重试失败任务。',
+        '每页显示 10 条。可用右上角状态下拉筛选队列；修复打印机问题后可重试失败任务。',
       failedJobsHint:
         '有打印任务失败。请先打开打印机设置检查映射、纸张和连接，试打正常后再点「重试」。',
       retryFailed: '重试',
@@ -1293,7 +1293,7 @@ export const MESSAGES = {
       empty: 'No print jobs yet. Jobs are queued automatically after an order is submitted; check station bindings and that the print agent is online.',
       loadError: 'Could not load the list. Try again later.',
       tableHint:
-        'Shows 20 jobs per page. Use the status dropdown in the top right to filter the queue; after fixing printer setup, retry failed jobs.',
+        'Shows 10 jobs per page. Use the status dropdown in the top right to filter the queue; after fixing printer setup, retry failed jobs.',
       failedJobsHint:
         'Some jobs failed. Open printer settings, check mapping, paper, and connection, confirm test print works, then Retry.',
       retryFailed: 'Retry',
@@ -1891,7 +1891,7 @@ export const MESSAGES = {
       empty: 'Sem tarefas ainda. As tarefas entram na fila ao confirmar um pedido; confirme estacoes ligadas e agente online.',
       loadError: 'Falha ao carregar. Tente mais tarde.',
       tableHint:
-        'Mostra 20 tarefas por pagina. Use o seletor de estado no canto superior direito para filtrar a fila; depois de corrigir a impressora, repita as falhadas.',
+        'Mostra 10 tarefas por pagina. Use o seletor de estado no canto superior direito para filtrar a fila; depois de corrigir a impressora, repita as falhadas.',
       failedJobsHint:
         'Ha tarefas falhadas. Abra as definicoes de impressora, verifique mapeamento, papel e ligacao, confirme o teste e depois toque em Repetir.',
       retryFailed: 'Repetir',

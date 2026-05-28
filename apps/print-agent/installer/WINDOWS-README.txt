@@ -13,10 +13,10 @@ Portable zip does not configure autostart.
 First-time setup (no command line)
 ----------------------------------
 1. Install UNYKA UK56009 driver if using USB (Start menu -> UNYKA driver (web), or https://unykach.com/).
-2. Mesa Dashboard -> Print assistant -> Generate pairing code (6 digits).
-3. Run Mesa Print Agent (installer finish page "Launch now", or sign in if autostart was enabled).
-4. Browser: complete pairing (code may be pre-filled from Dashboard) and map each print station.
-5. Test print: confirm paper in the settings page (section 3) or tray -> Printer settings.
+2. Keep Mesa Print Agent running after install (finish page "Launch now", or sign in if autostart was enabled).
+3. Return to Mesa Dashboard -> Print assistant.
+4. Click "Generate pairing code", then "Open settings on this PC".
+5. Browser: complete pairing, map each print station, and confirm test print in the settings page.
 6. The agent stays in the Windows system tray (near the clock, click ^ if hidden).
    Icon color: green = OK, yellow = outside hours or setup, red = error.
    Right-click: printer settings (includes test print), open log folder, exit.

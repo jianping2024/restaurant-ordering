@@ -7,7 +7,7 @@ import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { printJobErrorHint } from '@/lib/print-job-error-hints';
 import { openPrintAgentConfigure } from '@/lib/print-agent-local';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 const STATUS_CYCLE = ['all', 'pending', 'processing', 'done', 'failed'] as const;
 
 type PrintJobStatusFilter = (typeof STATUS_CYCLE)[number];

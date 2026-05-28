@@ -9,7 +9,7 @@ import type { PrintJobStatus, PrintJobSummary } from '@/types';
 
 export const runtime = 'nodejs';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 function parsePage(raw: string | null): number {
   const n = Number(raw);

@@ -179,7 +179,6 @@ func winspoolVerifyJobOutcome(h windows.Handle, jobID uint32, printerName string
 		interval = 400 * time.Millisecond
 	)
 	var last uint32
-	sawComplete := false
 	for i := 0; i < polls; i++ {
 		time.Sleep(interval)
 		st, err := winspoolJobStatus(h, jobID)
@@ -191,18 +190,11 @@ func winspoolVerifyJobOutcome(h windows.Handle, jobID uint32, printerName string
 			return fmt.Errorf("print job on %q failed (job status 0x%X)", printerName, st)
 		}
 		if st&jobStatusComplete != 0 {
-			sawComplete = true
 			break
 		}
 	}
 	if winspoolJobStatusIsProblem(last) {
 		return fmt.Errorf("print job on %q failed (job status 0x%X)", printerName, last)
-	}
-	if !sawComplete && (last&jobStatusSpooling != 0 || last == 0) {
-		return fmt.Errorf(
-			"print job on %q did not finish (job status 0x%X); check USB cable and Windows printer queue",
-			printerName, last,
-		)
 	}
 	return nil
 }

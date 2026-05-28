@@ -137,6 +137,7 @@ func onTrayReady(rt *trayRuntime) {
 	systray.AddSeparator()
 	mSettings := systray.AddMenuItem(uiT(loc, "menu_settings"), uiT(loc, "menu_settings_tip"))
 	mOpenLog := systray.AddMenuItem(uiT(loc, "menu_open_log"), uiT(loc, "menu_open_log_tip"))
+	mOpenLogDir := systray.AddMenuItem(uiT(loc, "menu_open_log_dir"), uiT(loc, "menu_open_log_dir_tip"))
 	systray.AddSeparator()
 	mShowConsole := systray.AddMenuItem(uiT(loc, "menu_console"), uiT(loc, "menu_console_tip"))
 	systray.AddSeparator()
@@ -153,7 +154,7 @@ func onTrayReady(rt *trayRuntime) {
 			if loc != lastLoc {
 				lastLoc = loc
 				systray.SetTitle(uiT(loc, "tray_title"))
-				applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mShowConsole, mAbout, mQuit, loc)
+				applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mQuit, loc)
 			}
 			mStatus.SetTitle(rt.status.menuStatusLine(loc))
 			tip := rt.status.tooltip(Version, loc)
@@ -173,10 +174,16 @@ func onTrayReady(rt *trayRuntime) {
 			case <-mSettings.ClickedCh:
 				rt.startTrayConfigureWizard("")
 			case <-mOpenLog.ClickedCh:
-				if err := openAgentLogFolder(); err != nil {
+				if err := openAgentLog(); err != nil {
 					log.Println("tray:", err)
 					loc := rt.uiLocale()
 					messageBoxOK(uiT(loc, "about_title"), fmt.Sprintf(uiT(loc, "open_log_fail"), err.Error()))
+				}
+			case <-mOpenLogDir.ClickedCh:
+				if err := openAgentLogFolder(); err != nil {
+					log.Println("tray:", err)
+					loc := rt.uiLocale()
+					messageBoxOK(uiT(loc, "about_title"), fmt.Sprintf(uiT(loc, "open_log_dir_fail"), err.Error()))
 				}
 			case <-mShowConsole.ClickedCh:
 				shown := toggleConsoleWindow()

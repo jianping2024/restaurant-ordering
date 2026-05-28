@@ -10,6 +10,25 @@ import (
 	"time"
 )
 
+func agentLogPath() string {
+	return filepath.Join(agentDataDir(), "agent.log")
+}
+
+func openAgentLog() error {
+	path := agentLogPath()
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		return err
+	}
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
+	if err != nil {
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	return exec.Command("rundll32", "url.dll,FileProtocolHandler", path).Start()
+}
+
 func openAgentLogFolder() error {
 	dir := agentDataDir()
 	if err := os.MkdirAll(dir, 0o700); err != nil {
@@ -27,7 +46,7 @@ func confirmTrayExit(locale string) bool {
 
 func trayAboutText(rt *trayRuntime, locale string) string {
 	text := uiT(locale, "about_title") + " " + Version + "\n\n" + uiT(locale, "about_config") + "\n" + defaultConfigPath()
-	text += "\n\n" + uiT(locale, "about_log") + "\n" + filepath.Join(agentDataDir(), "agent.log")
+	text += "\n\n" + uiT(locale, "about_log") + "\n" + agentLogPath()
 	cfg, _ := loadConfig(defaultConfigPath())
 	if cfg == nil {
 		if sess, _, done := rt.snapshot(); done && sess != nil && sess.cfg != nil {
@@ -45,7 +64,7 @@ func trayAboutText(rt *trayRuntime, locale string) string {
 	return text
 }
 
-func applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mShowConsole, mAbout, mQuit interface {
+func applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mQuit interface {
 	SetTitle(string)
 	SetTooltip(string)
 }, locale string) {
@@ -54,6 +73,8 @@ func applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mShowConsole, mAbout, mQu
 	mSettings.SetTooltip(uiT(locale, "menu_settings_tip"))
 	mOpenLog.SetTitle(uiT(locale, "menu_open_log"))
 	mOpenLog.SetTooltip(uiT(locale, "menu_open_log_tip"))
+	mOpenLogDir.SetTitle(uiT(locale, "menu_open_log_dir"))
+	mOpenLogDir.SetTooltip(uiT(locale, "menu_open_log_dir_tip"))
 	mShowConsole.SetTitle(uiT(locale, "menu_console"))
 	mShowConsole.SetTooltip(uiT(locale, "menu_console_tip"))
 	mAbout.SetTitle(uiT(locale, "menu_about"))

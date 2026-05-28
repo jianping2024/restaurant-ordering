@@ -133,20 +133,16 @@ func winspoolPrinterQueueStatus(printerName string) (uint32, error) {
 	return (*printerInfo8)(unsafe.Pointer(&buf[0])).dwStatus, nil
 }
 
-func winspoolCheckReady(printerName string) error {
+func winspoolDiagnosticStatus(printerName string) (uint32, error) {
 	flags6, err := winspoolPrinterStatusFlags(printerName)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	flags8, err8 := winspoolPrinterQueueStatus(printerName)
 	if err8 != nil {
 		flags8 = 0
 	}
-	combined := flags6 | flags8
-	if winspoolStatusIsProblem(combined) {
-		return fmt.Errorf("printer %q offline or unavailable (Windows status 0x%X)", printerName, combined)
-	}
-	return nil
+	return flags6 | flags8, nil
 }
 
 func winspoolJobStatus(h windows.Handle, jobID uint32) (uint32, error) {
@@ -199,9 +195,6 @@ func winspoolVerifyJobOutcome(h windows.Handle, jobID uint32, printerName string
 			break
 		}
 	}
-	if err := winspoolCheckReady(printerName); err != nil {
-		return err
-	}
 	if winspoolJobStatusIsProblem(last) {
 		return fmt.Errorf("print job on %q failed (job status 0x%X)", printerName, last)
 	}
@@ -223,9 +216,6 @@ type docInfo1 struct {
 func winspoolPrint(printerName string, data []byte) error {
 	if len(data) == 0 {
 		return fmt.Errorf("empty print payload")
-	}
-	if err := winspoolCheckReady(printerName); err != nil {
-		return err
 	}
 	namePtr, err := windows.UTF16PtrFromString(printerName)
 	if err != nil {

@@ -2,7 +2,7 @@ package main
 
 import "testing"
 
-func TestWinspoolStatusIsProblem(t *testing.T) {
+func TestWinspoolStatusIsProblemDiagnostic(t *testing.T) {
 	if winspoolStatusIsProblem(0) {
 		t.Fatal("zero status should be OK")
 	}

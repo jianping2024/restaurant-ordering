@@ -1,6 +1,6 @@
 package main
 
-// Win32 PRINTER_STATUS_* (subset) for USB/Windows queue health checks.
+// Win32 PRINTER_STATUS_* (subset) for USB/Windows queue diagnostics.
 const (
 	printerStatusError           = 0x00000002
 	printerStatusPendingDeletion = 0x00000004

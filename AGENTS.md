@@ -1,16 +1,19 @@
 # AGENTS.md
 
 ## Tech Stack
+
 - Next.js 14 App Router, React 18, TypeScript strict mode, Tailwind CSS.
 - Supabase for Auth, Postgres, Storage, Realtime, RLS, and migrations.
 - Go 1.22 print agent in `apps/print-agent` for ESC/POS LAN TCP and Windows USB printing.
 - Deployed on Vercel; CI uses Node 20 and npm.
 
 ## Package Manager
+
 - Use npm. `package-lock.json` is committed; install with `npm ci` in clean/CI environments.
 - Go module commands run from `apps/print-agent`.
 
 ## Common Commands
+
 - `npm run dev` - start Next.js on `0.0.0.0:3000`.
 - `npm run lint` - run Next/TypeScript ESLint checks.
 - `npm run build` - production build; needs placeholder or real Supabase env vars.
@@ -21,6 +24,7 @@
 - `supabase db push` - apply migrations after `supabase link`.
 
 ## Folder Structure
+
 - `src/app` - App Router pages, layouts, and route handlers.
 - `src/app/api` - API routes; many use server-only Supabase/admin clients.
 - `src/components` - UI and feature components grouped by area: menu, dashboard, kitchen, waiter, staff.
@@ -32,6 +36,7 @@
 - `docs` - durable design and implementation notes.
 
 ## Coding Rules
+
 - Prefer existing patterns in nearby files; keep changes scoped to the requested behavior.
 - Use the `@/*` path alias for imports from `src`.
 - Keep server-only Supabase/service-role logic in server code and route handlers; never expose service keys to client components.
@@ -42,15 +47,32 @@
 - For Go code, keep standard `gofmt` formatting and add focused table-driven tests for parser/routing behavior.
 
 ## Testing Rules
+
 - For web changes, run `npm run lint`; run `npm run build` when touching routes, server code, env-dependent code, or shared types.
 - For print-agent changes, run `go test ./...`, `go vet ./...`, and the Windows cross-compile command above.
 - For migration/RLS changes, inspect policies carefully and verify tenant isolation paths, not just happy paths.
 - There is no broad web unit-test suite; add targeted tests only where the repo already supports them or the risk justifies setup.
 
 ## Dangerous Areas To Avoid
+
 - Do not commit `.env.local`, real Supabase keys, JWT secrets, pairing codes, or restaurant/customer data.
 - Do not edit old Supabase migrations unless explicitly repairing local history; create a new timestamped migration instead.
 - Avoid weakening RLS, service-role boundaries, staff auth, print-agent JWT checks, or rate limits.
 - Do not print or expose table UUIDs on receipts; paper output should use `display_name`.
 - Be careful with checkout, billing, table transfer/merge, auto-close sessions, and print-job claiming; these affect money or operations.
 - Do not hard-delete restaurant tables or live operational records unless the product flow explicitly requires it.
+
+
+
+## 🪙 Token Saving & Output Rules (CRITICAL)
+
+To optimize token efficiency and prevent clutter, the AI MUST strictly follow these output constraints:
+
+1. **Be Concise**: Keep explanations to a absolute minimum. Briefly state the approach in 1-2 sentences maximum before the code.
+
+2. **Code Snippets Only**: NEVER output the entire file. ONLY output the specific modified code snippets, showing the exact changes.
+
+3. **Context Truncation**: Use standard comments like `// ... existing code ...` or `# ... existing code ...` to indicate unmodified sections.
+
+*Failure to comply with these rules will result in an inefficient build and wasted context.*
+

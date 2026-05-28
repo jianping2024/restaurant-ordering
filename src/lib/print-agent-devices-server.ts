@@ -1,10 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
-import {
-  isPrintAgentDeviceOnline,
-  devicesNeedingRenewal,
-  type PrintAgentDeviceRow,
-} from '@/lib/print-agent-credential-expiry';
+import { devicesNeedingRenewal, type PrintAgentDeviceRow } from '@/lib/print-agent-credential-expiry';
 import type { PrintAgentDeviceHeartbeatRow } from '@/lib/print-agent-heartbeat';
+import { isPrintAgentDeviceOnline } from '@/lib/print-agent-heartbeat';
 
 export async function loadPrintAgentDevicesNeedingRenewal(
   restaurantId: string,

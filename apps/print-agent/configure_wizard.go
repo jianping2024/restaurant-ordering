@@ -18,9 +18,9 @@ func registerConfigureWizardRoutes(mux *http.ServeMux, configPath string, cfgPtr
 		_, _ = w.Write(configureUIHTML)
 	})
 
-	registerPairWizardRoute(mux, configPath, cfgPtr, "configure wizard", nil)
+	registerPairWebRoutes(mux, configPath, cfgPtr, "configure wizard", nil)
 	registerPrinterWizardRoutes(mux, configPath, cfgPtr, "configure wizard")
-	registerUILocaleRoute(mux, configPath, cfgPtr)
+	registerUILocaleRoute(mux, configPath, cfgPtr) // pair page at /pair
 
 	mux.HandleFunc("/api/configure-state", func(w http.ResponseWriter, r *http.Request) {
 		*cfgPtr = reloadConfig(configPath, *cfgPtr)
@@ -56,9 +56,6 @@ func configureWizardBaseURL(listenAddr, prefillAPI, rawQuery string) string {
 			if code := strings.TrimSpace(incoming.Get("code")); code != "" {
 				q.Set("code", code)
 			}
-			if lang := strings.TrimSpace(incoming.Get("lang")); lang != "" {
-				q.Set("lang", lang)
-			}
 		}
 	}
 	if len(q) > 0 {
@@ -67,7 +64,7 @@ func configureWizardBaseURL(listenAddr, prefillAPI, rawQuery string) string {
 	return baseURL
 }
 
-// runConfigureWizard serves re-pair + printer setup until the user closes the page (standalone CLI).
+// runConfigureWizard serves printer mapping (/configure) and /pair on the same local server (standalone CLI).
 func runConfigureWizard(ctx context.Context, configPath string, prefillAPI, rawQuery string) error {
 	listenAddr, err := pickLocalListenAddr(ConfigureWizardPort)
 	if err != nil {

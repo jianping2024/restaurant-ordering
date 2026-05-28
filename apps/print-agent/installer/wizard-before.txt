@@ -15,4 +15,6 @@ Portable zip vs this Setup
 
 Configuration flow
   This installer only installs and starts the local tray agent.
-  Pairing, printer mapping, and test print are completed from Mesa Dashboard → Print assistant.
+  Pairing and printer mapping are done from Mesa Dashboard → Print assistant
+  (pairing page + printer settings page in the browser; scan printers manually).
+  A test print is recommended but not required to close the page.

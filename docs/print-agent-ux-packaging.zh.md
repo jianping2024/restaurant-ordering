@@ -15,7 +15,8 @@
 | **界面语言 `ui_locale`**（zh/en/pt，仅 UI+试打条） | **已落地** | v0.2.43+ |
 | P0-3 运行期人话（日志/托盘） | **已落地** | v0.2.44+：`agent.log` 随 `ui_locale`；错误行尾附技术摘要 |
 | P1 心跳 + Dashboard 设备在线 | **已落地** | v0.2.56+ |
-| P1 设置页全页 i18n + 降术语（§5） | **已落地（未发布）** | `configure` ①②、打印机下拉、`pair_ui` / `setup_ui` 接入 `ui_locale`；Dashboard 深链 `lang=` |
+| P1 设置页全页 i18n + 降术语（§5） | **已落地** | `configure` / `pair_ui` / `setup_ui` 接入 `ui_i18n.go`；Dashboard 深链可选 `lang=`（仅影响配对页） |
+| **S0 configure 精简**（映射专页） | **已落地** | `configure_ui`：未配对 gate → `/pair`；**手动扫描**；试打可选；无顶栏改语言；同会话 `17892` 含 `/pair` |
 | P1 安装收尾（Inno 最后一屏等） | **已落地** | `mesa-print-agent.iss`：自启任务、完成页说明、快捷方式、装完启动 |
 | P2 版本升级提示（§8） | **已落地** | v0.2.66+：`runtime-config` 推荐版本、托盘每日弹窗、Dashboard 升级说明 |
 | P2 §10（服务/Realtime/QR 等） | **未做** | 见 §10 |
@@ -31,7 +32,7 @@
 | 日志写 `printed` 但无纸 | USB 未接电脑、`winspool` 队列名与实体机不一致、假成功进 Windows 队列 |
 | 一连上狂打历史单 | 库内长期 `pending` 积压；代理重连后按时间顺序消费（**已修复**：超过 **20 分钟** 的任务在 API 侧作废且不再下发，代理侧二次跳过，见下文「已落地」） |
 | 店主不敢关黑窗口 | **已缓解**：正式包托盘为主、无默认黑窗（见 README / `WINDOWS-README.txt`）；仍有人习惯找「黑窗口」 |
-| 配置分散 / 术语重 | 主路径：**Dashboard 打印助手** → 深链 `configure`（`:17892`）；`pair`（`:17890`）多为首装兜底。设置页 **① 重配、② 扫描映射** 仍偏英文，下拉偶见 `tcp:` / `winspool:` 技术地址 |
+| 配置分散 / 术语重 | 主路径：**Dashboard 打印助手** → `configure`（`:17892`）。**S0**：映射与配对分页（`/configure` + `/pair` 同端口）；**手动扫描**；`pair`（`:17890`）仍为首启 bootstrap 兜底。下拉 value 仍为 `tcp:` / `winspool:`，展示已友好化 |
 
 本文档归纳 **面向餐厅客户的包装改进**，供排期；与 [`print-agent-plan.md`](./print-agent-plan.md) 中 **P0/P1** 条目互补，不重复协议与 RLS 细节。
 
@@ -40,9 +41,10 @@
 ## 已落地（与体验相关）
 
 - **托盘与常驻（P0-1，v0.2.35–0.2.41）**：`windowsgui` 无默认黑窗；托盘先于配对/初始化；`Global\MesaPrintAgent-SingleInstance` 单实例；`ShellExecute` 打开浏览器 + 首装/配对 URL 弹窗；日志 `%LOCALAPPDATA%\Mesa Print Agent\agent.log`；**v0.2.40+** 绿/黄/红图标、中文菜单（打印机设置 / 打开日志 / 调试控制台 / 关于 / 退出；试打在设置页）、只读状态行、退出确认；**v0.2.41+** 退出时取消向导 HTTP 并 `os.Exit` 结束进程；**v0.2.48+** **每次启动**弹窗确认已启动（已配对/未配对文案不同），不再「终身只弹一次」。
-- **界面语言（v0.2.43+）**：`config.json` 的 `ui_locale`（默认 `zh`，可选 `en`/`pt`）；**托盘**菜单/tooltip/弹窗、`agent.log` 人话行随此设置；**configure** 顶栏可改语言，**`/api/ui-locale` + `ui_i18n.go`** 已翻译标题与 **③ 试打/排障**，**① 重配、② 扫描与档口下拉** 仍大量硬编码英文。**`pair_ui` / `setup_ui` 未接 i18n**（setup 试打区有硬编码中文）。**订单/厨房纸面语言**仍用 Mesa `print_locale` → `payload.locale`，与 `ui_locale` 无关。
+- **界面语言（v0.2.43+）**：`config.json` 的 `ui_locale`（默认 `zh`，可选 `en`/`pt`）；**托盘**菜单/tooltip/弹窗、`agent.log` 人话行随此设置。**S0 configure** 不再提供顶栏改语言（文案随磁盘 `ui_locale`）；**`pair_ui`** 仍可用 `?lang=` + `/api/ui-locale`。**`configure` / `pair_ui` / `setup_ui`** 主体走 **`ui_i18n.go`**。**订单/厨房纸面语言**仍用 Mesa `print_locale` → `payload.locale`，与 `ui_locale` 无关。
+- **S0 configure 精简（2026-05）**：`configure_ui.html` 仅 **状态 →（未配对 gate）→ 手动扫描 → 档口映射 → 保存 → 可选试打 → 完成关页**；配对在 **`/pair`**（configure 会话挂载于托盘 **17892** 时与 `/configure` 同端口）。**不**进页自动 LAN 扫描；**不**强制试打确认关页。首启无 JWT 时代理仍可能自动弹 **17890** 配对 + **17891** `setup`（bootstrap），与 Dashboard 深链可并存。
 - **心跳与在线（v0.2.56+）**：`POST /api/print-agent/heartbeat`；Dashboard **已配对收银机** 列表（`last_seen`、版本、映射数等）。
-- **首装试打确认（P0-2，v0.2.42+）**：`configure` / `setup` 页「③ 试打确认」；`POST /api/test-print`；出纸「是/否」、否时排障卡片；未完成确认关闭会二次提示；保存须至少映射一个出品档口（与 §6 校验一致）。
+- **首装试打（P0-2，v0.2.42+；S0 调整）**：`POST /api/test-print`；**configure（S0）** 试打为**可选**，关页不二次拦截。**`setup_ui`** 仍保留较完整的试打/排障向导（首启 bootstrap 路径）。保存须至少映射一个出品档口。
 - **任务最大年龄 20 分钟**：`GET /api/print-agent/pending-jobs` 拉取前将超时 `pending`/`processing` 标为 `failed`；仅返回 `created_at` 在窗口内的 `pending`；Go 代理处理前再次跳过。实现：`src/lib/print-job-max-age.ts`、`src/lib/expire-stale-print-jobs.ts`、`apps/print-agent/job_max_age.go`。
 - **Dashboard**：打印助手配对码、最近任务、`print-job-error-hints` 中文/英/葡 hint；`buildPrintAgentConfigureUrl` 深链本机 `http://127.0.0.1:17892/configure`。
 - **配对码槽位与作废（Web，2026-05）**：单店最多 **3 个待使用** 码（`expires_at > now` 且 `consumed_at` / `revoked_at` 均为空）；**已核销不占槽**（重装、换机、重配后可立刻再生成）；列表对未使用码提供 **作废**（`POST /api/print-agent/pairings/[id]/revoke` → `revoked_at`），误生成可腾槽。迁移：`supabase/migrations/20260531140000_print_agent_pairing_revoked_at.sql`。
@@ -68,7 +70,7 @@ flowchart LR
   D --> E[P2 升级提示 + 安装收尾页]
 ```
 
-（P0、**C**、**§8**、**§9** 已落地；**D**（configure 全页 i18n）与 **§10** 仍为 backlog。）
+（P0、**C**、**§8**、**§9**、**S0 configure** 已落地；**§10** 仍为 backlog。）
 
 ---
 
@@ -86,7 +88,7 @@ flowchart LR
 
 ### 2. 首装闭环：配对 → 映射 → 试打 → 确认
 
-**现状（2026-05）**：**P0-2 已落地**（v0.2.42+）：`configure` / `setup` 在保存映射后提供试打条、**是/否** 出纸确认与排障卡片；未做：`pair_ui.html` 单独收尾页、**每个档口** 各打一条（当前为选一个档口试打）。
+**现状（2026-05）**：**P0-2 已落地**；**S0** 后 **`configure`** 试打为可选、无强制关页确认；**`setup`** 向导仍保留较完整试打/排障。未做：**每个档口** 各打一条（当前为选一个档口试打）。
 
 **建议（剩余）**：
 
@@ -131,7 +133,7 @@ flowchart LR
 | 页面 | i18n | 说明 |
 |------|------|------|
 | 托盘 | ✅ `ui_locale` | `ui_i18n.go` |
-| `configure_ui.html` | ✅ | 顶栏语言、① 重新配对、② 打印机扫描/映射、③ 试打/排障均走 `ui_i18n.go` |
+| `configure_ui.html` | ✅ **S0** | 映射专页：`ui_i18n.go`；未配对链 `/pair`；**手动扫描**；可选试打；**无**顶栏改语言/内嵌重配 |
 | `pair_ui.html` | ✅ | 接入 `ui_locale`；支持深链 `lang=` 后写入本机 UI 语言 |
 | `setup_ui.html` | ✅ | 主体、保存后试打确认、排障与完成文案均走 `ui_i18n.go` |
 
@@ -220,8 +222,8 @@ flowchart LR
 - [x] 凭证半年 + 到期提醒（v0.2.51–0.2.52）：Dashboard 顶栏/打印助手 30 天横幅；托盘关于/状态/每日轻提示；`valid_until` 写入 config
 - [x] `configure` 并入托盘进程（v0.2.47+）
 - [x] 心跳上报 + 版本字段（v0.2.56+：`POST /api/print-agent/heartbeat`、Dashboard「已配对收银机」）
-- [x] configure **③ 试打** + 顶栏 `ui_locale` / `/api/ui-locale`（v0.2.43+；≠ 全页完成）
-- [x] configure **① 重配、② 扫描映射** 全量 i18n（§5）
+- [x] configure 试打 + i18n（S0：可选试打；配对拆到 `/pair`；手动扫描）
+- [x] configure 映射页 i18n（§5；S0 去掉顶栏改语言与内嵌重配）
 - [x] `pair_ui` / `setup_ui` 接入 `ui_locale`（§5；主路径常不经 pair）
 - [x] 打印机下拉降术语（友好名、隐藏 `tcp:`/`winspool:` 前缀；§5）
 - [x] 深链 `buildPrintAgentConfigureUrl` 可选 `lang=`（与 Dashboard 对齐）

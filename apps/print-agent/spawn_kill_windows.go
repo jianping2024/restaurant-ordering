@@ -4,6 +4,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"syscall"
 )
 
@@ -26,4 +27,9 @@ func killWindowsPID(pid int) {
 	if ok, _, err := terminateProcess.Call(h, 1); ok == 0 {
 		log.Printf("tray: TerminateProcess pid=%d: %v", pid, err)
 	}
+}
+
+// killCurrentProcess ends this process when os.Exit does not return (systray thread edge cases).
+func killCurrentProcess() {
+	killWindowsPID(os.Getpid())
 }

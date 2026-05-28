@@ -68,9 +68,7 @@ func shutdownTrayLocalHTTP() {
 	if srv == nil {
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-	_ = srv.Shutdown(ctx)
+	shutdownHTTPServer(srv, 2*time.Second)
 }
 
 func setTrayLocalCORS(w http.ResponseWriter, r *http.Request) {
@@ -114,7 +112,7 @@ func (t *trayLocalHTTP) serveHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.URL.Path == "/configure" || strings.HasPrefix(r.URL.Path, "/api/") {
+	if r.URL.Path == "/configure" || r.URL.Path == "/pair" || strings.HasPrefix(r.URL.Path, "/api/") {
 		if rt != nil {
 			rt.startTrayConfigureWizard(r.URL.RawQuery)
 		}

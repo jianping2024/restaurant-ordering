@@ -18,11 +18,20 @@ const PairWizardPort = 17890
 // SetupWizardPort is the localhost port for printer setup UI (dashboard need not link).
 const SetupWizardPort = 17891
 
-// ConfigureWizardPort is the unified re-pair + printer setup UI.
+// ConfigureWizardPort is the printer mapping UI (/configure).
 const ConfigureWizardPort = 17892
 
 //go:embed pair_ui.html
 var pairUIHTML []byte
+
+// registerPairWebRoutes serves /pair and POST /api/pair on the given mux (configure tray session or pair wizard).
+func registerPairWebRoutes(mux *http.ServeMux, configPath string, cfg **config, logPrefix string, onSuccess func()) {
+	mux.HandleFunc("/pair", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, _ = w.Write(pairUIHTML)
+	})
+	registerPairWizardRoute(mux, configPath, cfg, logPrefix, onSuccess)
+}
 
 func normalizeAPIBase(raw string) (string, error) {
 	s := strings.TrimSpace(raw)
@@ -65,13 +74,14 @@ func runPairingWizard(ctx context.Context, configPath, prefillAPI string) error 
 
 	done := make(chan error, 1)
 	mux := http.NewServeMux()
-
-	mux.HandleFunc("/pair", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		_, _ = w.Write(pairUIHTML)
+	var cfg *config
+	cfgPtr := &cfg
+	registerPairWebRoutes(mux, configPath, cfgPtr, "pairing wizard", func() { done <- nil })
+	registerUILocaleRoute(mux, configPath, cfgPtr)
+	mux.HandleFunc("/api/setup-state", func(w http.ResponseWriter, r *http.Request) {
+		*cfgPtr = reloadConfig(configPath, *cfgPtr)
+		writeConfigureState(w, *cfgPtr)
 	})
-
-	registerPairWizardRoute(mux, configPath, nil, "pairing wizard", func() { done <- nil })
 
 	srv := &http.Server{Addr: listenAddr, Handler: mux, ReadHeaderTimeout: 10 * time.Second}
 	go func() {

@@ -35,10 +35,10 @@ Use the printed addresses in `config.json` (see below). Map each **print station
 
 1. Install from Dashboard download; sign-in autostart is **on by default** in the Setup wizard (portable zip does not).
 2. **Double-click `MesaPrintAgent`** (or let it start at logon). The agent runs in the **system tray** (taskbar **^** → **Mesa Print**). **No black console window** — you do **not** need to keep a command prompt open while printing.
-3. **First pairing:** generate a 6-digit code in Mesa **打印助手**, then complete pairing in the browser (often opens automatically). Tray → **Printer settings…** maps stations and runs the **test print** there (not from the tray menu).
+3. **First pairing:** generate a 6-digit code in Mesa **打印助手**, then **Open settings on this PC** (or tray → **Printer settings…**). If not paired, use the **pairing page** link; on the settings page click **Scan printers**, map stations, **Save** (test print optional). First agent start may also auto-open pairing on port **17890** before you use Dashboard.
 4. **Troubleshooting only:** `MesaPrintAgent.exe -console`, or tray → **Show debug console**; log file under `%LOCALAPPDATA%\Mesa Print Agent\agent.log`. Optional advanced: `MesaPrintAgent.exe -api URL -code 123456` or `MesaPrintAgent pair`.
 
-Local HTTP: pairing `http://127.0.0.1:17890/pair`, settings `http://127.0.0.1:17892/configure` (also opened from the tray while the agent is running).
+Local HTTP: settings `http://127.0.0.1:17892/configure` (tray / Dashboard; while open, **`/pair`** is on the same port). Standalone pairing wizard: `http://127.0.0.1:17890/pair` (first-run bootstrap). Legacy setup-only: `http://127.0.0.1:17891/` (`setup` subcommand).
 
 **Development** (`go run` from this directory):
 
@@ -146,7 +146,7 @@ cd apps/print-agent
 .\scripts\build-release.ps1
 ```
 
-**POS first run:** install → start agent (tray icon) → Mesa Dashboard **打印助手** pairing code → browser wizard → tray **Printer settings…** (map + test print). See **Run agent** above; end-user steps also in **[installer/WINDOWS-README.txt](./installer/WINDOWS-README.txt)**.
+**POS first run:** install → tray icon → Dashboard **打印助手** code → **Open settings** → pair if needed → **Scan printers** → map → save (optional test). See **Run agent** above; **[installer/WINDOWS-README.txt](./installer/WINDOWS-README.txt)**.
 
 Mesa Dashboard reads `NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO` (see `.env.local.example`) for download buttons.
 

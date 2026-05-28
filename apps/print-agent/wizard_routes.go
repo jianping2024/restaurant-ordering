@@ -102,6 +102,7 @@ func writeConfigureState(w http.ResponseWriter, cfg *config) {
 		"ui_locale":        loc,
 		"text_encoding":    normalizeTextEncoding(cfg.TextEncoding),
 		"ui":               uiBundleMap(loc),
+		"pair_path":        "/pair",
 	})
 }
 
@@ -168,7 +169,7 @@ func applyPrinterSetup(cfg *config, body setupRequestBody) (map[string]string, e
 
 func registerPrinterWizardRoutes(mux *http.ServeMux, configPath string, cfg **config, logPrefix string) {
 	mux.HandleFunc("/api/printers", func(w http.ResponseWriter, r *http.Request) {
-		tcp, win, err := discoverAllPrinters(600*time.Millisecond, 32)
+		tcp, win, err := discoverPrintersForAPI(printersAPIForceRefresh(r))
 		if err != nil && len(tcp) == 0 && len(win) == 0 {
 			writePairJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			return
@@ -225,9 +226,19 @@ func registerPrinterWizardRoutes(mux *http.ServeMux, configPath string, cfg **co
 			return
 		}
 		*cfg = c
-		syncRoutingToCloud(c)
+		syncStatus := "ok"
+		var syncErr string
+		if err := syncRoutingToCloud(c); err != nil {
+			syncStatus = "failed"
+			syncErr = err.Error()
+		}
 		agentLog(c, "log_station_maps_saved", len(cleaned))
-		writePairJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+		writePairJSON(w, http.StatusOK, map[string]any{
+			"status":              "ok",
+			"station_printers":    c.StationPrinters,
+			"routing_sync":        syncStatus,
+			"routing_sync_error":  syncErr,
+		})
 	})
 
 	mux.HandleFunc("/api/test-print", func(w http.ResponseWriter, r *http.Request) {

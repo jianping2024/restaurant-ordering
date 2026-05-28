@@ -5,10 +5,13 @@ package main
 import (
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/getlantern/systray"
 )
+
+var exitOnce sync.Once
 
 // stopTrayAgentWork cancels polling/init and stops local HTTP wizards. Safe from any goroutine.
 func stopTrayAgentWork(rt *trayRuntime) {
@@ -37,6 +40,9 @@ func requestTrayExit(rt *trayRuntime) {
 
 // exitTrayAgent terminates the process (does not return).
 func exitTrayAgent() {
-	log.Println("tray: exiting process")
-	os.Exit(0)
+	exitOnce.Do(func() {
+		log.Println("tray: exiting process")
+		os.Exit(0)
+		killCurrentProcess()
+	})
 }

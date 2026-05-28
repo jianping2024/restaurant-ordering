@@ -449,9 +449,9 @@ export const MESSAGES = {
       pairingErrorPrefix: '操作失败：',
       pairingAgentHint:
         '已配对后调整打印机：收银电脑托盘右键「打印机设置…」。无需新配对码时可用下方「在本机打开设置」。',
-      configureTitle: '重新配对 / 调整打印机',
+      configureTitle: '本机打印机设置',
       configureSubtitle:
-        '在本机设置页为每个出品档口选择打印机，并完成试打。结账和账单打印会使用这里保存的映射。',
+        '在本机设置页为每个出品档口选择打印机；建议试打确认。结账和账单打印会使用这里保存的映射。重新配对请在本机配对页完成。',
       configureOpenWithCode: '在本机打开设置（已填入配对码）',
       configureOpenIdle: '在本机打开设置',
       configureUnreachable:
@@ -460,7 +460,8 @@ export const MESSAGES = {
         '已在本机打开设置页（配对码已填入）。若未看到浏览器窗口，请检查是否被拦截或点「在本机打开设置」重试。',
       configureStep1: '在收银电脑安装并启动 Mesa 打印助手（任务栏托盘图标）',
       configureStep2: '生成配对码后会自动打开本机设置；也可手动点下方按钮',
-      configureStep3: '在设置页完成配对、映射打印机并试打确认',
+      configureStep3:
+        '浏览器打开后：若未配对，先进入配对页输入码；回到设置页点「扫描打印机」→ 选档口 → 保存（试打可选）',
       failedJobsOpenConfigure: '在本机打开打印机设置',
       queueTitle: '最近打印队列',
       refresh: '刷新',
@@ -1275,9 +1276,9 @@ export const MESSAGES = {
       pairingErrorPrefix: 'Something went wrong: ',
       pairingAgentHint:
         'After pairing, change printers from the tray menu → Printer settings. Use Open settings below when you do not need a new code.',
-      configureTitle: 'Re-pair / printer setup',
+      configureTitle: 'Printer settings on this PC',
       configureSubtitle:
-        'Use local settings to choose a printer for each print station and confirm a test print. Checkout and bill printing use these saved mappings.',
+        'Choose a printer for each print station on this PC; a test print is recommended. Checkout and bills use these mappings. Re-pair on the local pairing page if needed.',
       configureOpenWithCode: 'Open settings on this PC (code filled in)',
       configureOpenIdle: 'Open settings on this PC',
       configureUnreachable:
@@ -1286,7 +1287,8 @@ export const MESSAGES = {
         'Local settings opened with your code filled in. If you do not see a browser tab, check for pop-up blockers or tap Open settings again.',
       configureStep1: 'Install and start Mesa Print Agent on the POS PC (system tray icon)',
       configureStep2: 'After generating a code, settings open automatically—or use the button below',
-      configureStep3: 'Complete pairing, map printers, and confirm test print on that page',
+      configureStep3:
+        'In the browser: if not paired yet, open the pairing page and enter the code; then Scan printers → map stations → Save (test print optional)',
       failedJobsOpenConfigure: 'Open printer settings on this PC',
       queueTitle: 'Recent print queue',
       refresh: 'Refresh',
@@ -1873,9 +1875,9 @@ export const MESSAGES = {
       pairingErrorPrefix: 'Erro: ',
       pairingAgentHint:
         'Depois de emparelhar, mude impressoras no menu da bandeja → Definicoes de impressora. Use Abrir definicoes abaixo sem codigo novo.',
-      configureTitle: 'Reemparelhar / configurar impressoras',
+      configureTitle: 'Definicoes de impressora neste PC',
       configureSubtitle:
-        'Use as definicoes locais para escolher uma impressora por estacao e confirmar o teste. Checkout e contas usam estes mapeamentos guardados.',
+        'Escolha uma impressora por estacao neste PC; recomenda-se um teste. Checkout e contas usam estes mapeamentos. Para reemparelhar, use a pagina de emparelhamento local.',
       configureOpenWithCode: 'Abrir definicoes neste PC (codigo preenchido)',
       configureOpenIdle: 'Abrir definicoes neste PC',
       configureUnreachable:
@@ -1884,7 +1886,8 @@ export const MESSAGES = {
         'Definicoes locais abertas com o codigo preenchido. Se nao vir o browser, verifique pop-ups ou toque em Abrir definicoes novamente.',
       configureStep1: 'Instale e inicie o Mesa Print Agent no PC da caixa (icone na bandeja)',
       configureStep2: 'Apos gerar o codigo, as definicoes abrem sozinhas — ou use o botao abaixo',
-      configureStep3: 'Na pagina, emparelhe, mapeie impressoras e confirme o teste',
+      configureStep3:
+        'No browser: se ainda nao emparelhou, abra a pagina de emparelhamento e introduza o codigo; depois Voltar a procurar → mapear estacoes → Guardar (teste opcional)',
       failedJobsOpenConfigure: 'Abrir definicoes de impressora neste PC',
       queueTitle: 'Fila recente',
       refresh: 'Atualizar',

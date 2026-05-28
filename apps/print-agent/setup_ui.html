@@ -102,6 +102,11 @@
       var lastSavedMaps = {};
       var testConfirmed = false;
       var ui = {};
+      var printerScanInFlight = false;
+      var pageLoadGen = 0;
+      var printerScanGen = 0;
+      var draftMappings = {};
+      var uiBusy = false;
 
       function t(key) { return (ui && ui[key]) ? ui[key] : key; }
       function fmt(key, value) { return t(key).replace('%s', value); }
@@ -112,7 +117,8 @@
         return (lang === 'zh' || lang === 'en' || lang === 'pt') ? lang : '';
       }
 
-      function applyI18n() {
+      /** Static labels only — never rebuild station rows or printer dropdowns. */
+      function applyI18nLabels() {
         document.getElementById('pageTitle').textContent = t('setup_page_title');
         document.getElementById('pageSub').textContent = t('configure_page_sub');
         document.getElementById('printerIntro').textContent = t('printer_intro');
@@ -134,8 +140,7 @@
         document.getElementById('finishBtn').textContent = t('done_btn');
         document.getElementById('finishHint').textContent = t('setup_finish_hint');
         document.title = t('setup_page_title');
-        hint.textContent = scanSummaryText();
-        renderStations();
+        updateScanHint();
       }
 
       function scanSummaryText() {
@@ -149,6 +154,63 @@
         if (usb) parts.push(fmtCount('scan_usb_count', usb));
         return fmt('scan_found', parts.join(' · '));
       }
+
+      function updateScanHint() {
+        if (printerScanInFlight) {
+          hint.textContent = t('scan_scanning');
+        } else {
+          hint.textContent = scanSummaryText();
+        }
+        updateActionButtons();
+      }
+
+      function updateActionButtons() {
+        var scanBusy = printerScanInFlight;
+        document.getElementById('refreshBtn').disabled = scanBusy;
+        document.getElementById('saveBtn').disabled = uiBusy || scanBusy;
+        document.getElementById('testPrintBtn').disabled = uiBusy || scanBusy;
+        document.getElementById('finishBtn').disabled = uiBusy;
+      }
+
+      function fetchPrintersJSON(forceRefresh) {
+        var url = '/api/printers' + (forceRefresh ? '?refresh=1' : '');
+        return fetch(url).then(function (r) {
+          return r.json().then(function (j) {
+            if (!r.ok) throw new Error((j && j.error) || 'printers');
+            return j;
+          });
+        });
+      }
+
+      function applyPrintersIfCurrent(j, scanGen, pageGen) {
+        if (scanGen !== printerScanGen) return false;
+        if (pageGen != null && pageGen !== pageLoadGen) return false;
+        cache.tcp = j.tcp || [];
+        cache.winspool = j.winspool || [];
+        return true;
+      }
+
+      function seedDraftFromSaved() {
+        draftMappings = {};
+        Object.keys(saved.station_printers || {}).forEach(function (sid) {
+          var addr = saved.station_printers[sid];
+          if (sid && addr) draftMappings[sid] = addr;
+        });
+      }
+
+      function stationMappedValue(sid) {
+        if (Object.prototype.hasOwnProperty.call(draftMappings, sid)) {
+          return draftMappings[sid] || '';
+        }
+        return (saved.station_printers && saved.station_printers[sid]) || '';
+      }
+
+      stationsEl.addEventListener('change', function (e) {
+        var sel = e.target;
+        if (!sel || !sel.classList || !sel.classList.contains('station-printer')) return;
+        var row = sel.closest('.station-row');
+        if (row && row.dataset.stationId) draftMappings[row.dataset.stationId] = sel.value;
+      });
 
       function optionExists(selectEl, value) {
         if (!value) return false;
@@ -229,7 +291,7 @@
           lab.textContent = stationLabel(s);
           var stationSel = document.createElement('select');
           stationSel.className = 'station-printer';
-          fillStationSelect(stationSel, (saved.station_printers && saved.station_printers[s.id]) || '');
+          fillStationSelect(stationSel, stationMappedValue(s.id));
           row.appendChild(lab);
           if (sub.textContent) row.appendChild(sub);
           row.appendChild(stationSel);
@@ -242,20 +304,29 @@
         });
       }
       function loadList() {
+        var scanGen = ++printerScanGen;
+        var pageGen = pageLoadGen;
         err.textContent = '';
-        hint.textContent = t('scan_scanning');
-        fetch('/api/printers').then(function (r) { return r.json(); }).then(function (j) {
-          cache.tcp = j.tcp || [];
-          cache.winspool = j.winspool || [];
-          hint.textContent = scanSummaryText();
+        printerScanInFlight = true;
+        updateScanHint();
+        return fetchPrintersJSON(true).then(function (j) {
+          if (!applyPrintersIfCurrent(j, scanGen, pageGen)) return j;
+          printerScanInFlight = false;
+          updateScanHint();
           refreshStationSelects();
+          return j;
         }).catch(function () {
+          if (scanGen !== printerScanGen) return;
+          printerScanInFlight = false;
+          updateScanHint();
           err.textContent = t('scan_load_failed');
           hint.textContent = '';
+          throw new Error('printers');
         });
       }
-      function loadStations() {
-        fetch('/api/print-stations').then(function (r) {
+
+      function fetchStationsResponse() {
+        return fetch('/api/print-stations').then(function (r) {
           return r.text().then(function (txt) {
             var j = {};
             try {
@@ -263,44 +334,88 @@
             } catch (e) {
               j = { error: txt || r.statusText };
             }
-            return { ok: r.ok, status: r.status, j: j };
+            return { ok: r.ok, j: j };
           });
-        })
-          .then(function (res) {
-            if (!res.ok) {
-              stationsWarn.classList.remove('hidden');
-              stationsWarn.textContent = (res.j && res.j.error) ? res.j.error : t('stations_load_failed');
-              stations = [];
-              renderStations();
+        });
+      }
+
+      function applyStationsResponse(res) {
+        if (!res.ok) {
+          stationsWarn.classList.remove('hidden');
+          stationsWarn.textContent = (res.j && res.j.error) ? res.j.error : t('stations_load_failed');
+          stations = [];
+          return;
+        }
+        stations = res.j.stations || [];
+        stationsWarn.classList.add('hidden');
+      }
+
+      function bootstrapPrinterSection(pageGen) {
+        var scanGen = ++printerScanGen;
+        printerScanInFlight = true;
+        updateScanHint();
+        return Promise.allSettled([
+          fetchPrintersJSON(false),
+          fetchStationsResponse()
+        ]).then(function (settled) {
+          if (pageGen !== pageLoadGen) return;
+          if (settled[0].status === 'fulfilled') {
+            if (!applyPrintersIfCurrent(settled[0].value, scanGen, pageGen)) {
+              printerScanInFlight = false;
+              updateScanHint();
               return;
             }
-            stations = res.j.stations || [];
-            renderStations();
-          }).catch(function () {
+          } else {
+            err.textContent = t('scan_load_failed');
+            hint.textContent = '';
+          }
+          if (settled[1].status === 'fulfilled') {
+            applyStationsResponse(settled[1].value);
+          } else {
+            stations = [];
             stationsWarn.classList.remove('hidden');
             stationsWarn.textContent = t('stations_reach_failed');
-            stations = [];
-            renderStations();
-          });
-      }
-      function loadSaved() {
-        fetch('/api/setup-state').then(function (r) { return r.json(); }).then(function (j) {
-          saved.station_printers = j.station_printers || {};
-          ui = j.ui || {};
-          var loc = queryLocale();
-          if (!loc || loc === j.ui_locale) return;
-          return fetch('/api/ui-locale', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ui_locale: loc })
-          }).then(function (r) { return r.json(); }).then(function (savedPrefs) {
-            ui = savedPrefs.ui || ui;
-          });
-        }).catch(function () {}).finally(function () {
-          applyI18n();
-          loadList();
-          loadStations();
+          }
+          printerScanInFlight = false;
+          updateScanHint();
+          renderStations();
         });
+      }
+
+      function loadSaved() {
+        var gen = ++pageLoadGen;
+        fetch('/api/setup-state')
+          .then(function (r) {
+            return r.json().then(function (j) {
+              if (!r.ok) throw new Error((j && j.error) || 'state');
+              return j;
+            });
+          })
+          .then(function (j) {
+            if (gen !== pageLoadGen) return;
+            saved.station_printers = j.station_printers || {};
+            seedDraftFromSaved();
+            ui = j.ui || {};
+            var loc = queryLocale();
+            if (!loc || loc === j.ui_locale) return;
+            return fetch('/api/ui-locale', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ui_locale: loc })
+            }).then(function (r) { return r.json(); }).then(function (savedPrefs) {
+              if (gen !== pageLoadGen) return;
+              ui = savedPrefs.ui || ui;
+            });
+          })
+          .catch(function () {
+            if (gen !== pageLoadGen) return;
+            err.textContent = t('state_load_failed');
+          })
+          .finally(function () {
+            if (gen !== pageLoadGen) return;
+            applyI18nLabels();
+            bootstrapPrinterSection(gen);
+          });
       }
       document.getElementById('refreshBtn').addEventListener('click', loadList);
       function fillTestStationSelect(maps) {
@@ -319,17 +434,21 @@
       }
 
       document.getElementById('saveBtn').addEventListener('click', function () {
+        if (uiBusy || printerScanInFlight) return;
         err.textContent = '';
         var station_printers = {};
         document.querySelectorAll('.station-row').forEach(function (row) {
           var sid = row.dataset.stationId;
           var addr = row.querySelector('.station-printer').value;
+          if (sid) draftMappings[sid] = addr;
           if (sid && addr) station_printers[sid] = addr;
         });
         if (!Object.keys(station_printers).length) {
           err.textContent = t('save_need_mapping');
           return;
         }
+        uiBusy = true;
+        updateActionButtons();
         fetch('/api/setup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -337,15 +456,25 @@
         }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
             if (!res.ok) { err.textContent = res.j.error || t('save_failed'); return; }
+            saved.station_printers = res.j.station_printers || station_printers;
+            seedDraftFromSaved();
             lastSavedMaps = station_printers;
             testConfirmed = false;
             document.getElementById('formWrap').classList.add('hidden');
             document.getElementById('ok').style.display = 'block';
+            if (res.j.routing_sync === 'failed') {
+              err.textContent = fmt('save_routing_sync_failed', res.j.routing_sync_error || '');
+            }
             fillTestStationSelect(lastSavedMaps);
-          }).catch(function () { err.textContent = t('pair_service_unreachable'); });
+          }).catch(function () { err.textContent = t('pair_service_unreachable'); })
+          .finally(function () {
+            uiBusy = false;
+            updateActionButtons();
+          });
       });
 
       document.getElementById('testPrintBtn').addEventListener('click', function () {
+        if (uiBusy || printerScanInFlight) return;
         var testErr = document.getElementById('testErr');
         var testSent = document.getElementById('testSent');
         testErr.textContent = '';
@@ -353,7 +482,9 @@
         document.getElementById('testConfirmBlock').classList.add('hidden');
         document.getElementById('testTroubleshoot').classList.add('hidden');
         var sid = document.getElementById('testStation').value;
-        var printer = lastSavedMaps[sid] || '';
+        var printer = lastSavedMaps[sid] || stationMappedValue(sid) || '';
+        uiBusy = true;
+        updateActionButtons();
         fetch('/api/test-print', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -363,7 +494,11 @@
             if (!res.ok) { testErr.textContent = res.j.error || t('test_failed'); return; }
             testSent.textContent = t('test_sent');
             document.getElementById('testConfirmBlock').classList.remove('hidden');
-          }).catch(function () { testErr.textContent = t('pair_service_unreachable'); });
+          }).catch(function () { testErr.textContent = t('pair_service_unreachable'); })
+          .finally(function () {
+            uiBusy = false;
+            updateActionButtons();
+          });
       });
 
       document.getElementById('paperYes').addEventListener('click', function () {

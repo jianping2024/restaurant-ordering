@@ -197,9 +197,9 @@ func main() {
 			fmt.Println(`Usage:
   MesaPrintAgent              Run agent (Windows: system tray; first run opens pairing UI)
   MesaPrintAgent -console     Run with visible console (debug; Windows)
-  MesaPrintAgent configure     Re-pair + printer/station setup (recommended)
-  MesaPrintAgent pair          Open pairing web UI only
-  MesaPrintAgent setup         Open printer setup only (LAN or USB)
+  MesaPrintAgent configure     Printer/station mapping (http://127.0.0.1:17892/configure; /pair on same server while tray session is open)
+  MesaPrintAgent pair          Open pairing web UI only (http://127.0.0.1:17890/pair)
+  MesaPrintAgent setup         Legacy printer setup wizard (first-run bootstrap; port 17891)
   MesaPrintAgent discover      Scan LAN :9100 and list Windows printers
   MesaPrintAgent [-api URL] [-code CODE]   Optional CLI pairing (advanced)
 

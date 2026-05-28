@@ -104,6 +104,7 @@ func runAgentTrayFirst(args []string) {
 		onTrayReady(rt)
 	}, func() {
 		stopTrayAgentWork(rt)
+		exitTrayAgent()
 	})
 	exitTrayAgent()
 }

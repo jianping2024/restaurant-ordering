@@ -81,6 +81,7 @@
     <div id="ok" class="ok">
       <h2 id="okTitle">Paired</h2>
       <p id="okBody">Settings saved. If the agent keeps running, the <strong>printer setup</strong> page opens next—map each station to a LAN or USB printer. Keep the Mesa Print Agent window open.</p>
+      <p class="hidden" id="configureLinkWrap" style="margin-top:14px"><a href="/configure" id="openConfigure" style="color:#d4a853">…</a></p>
       <p id="okClose" style="margin-top:12px;font-size:12px">You can close this browser tab.</p>
     </div>
   </div>
@@ -107,7 +108,16 @@
         document.getElementById('okTitle').textContent = t('pair_success_title');
         document.getElementById('okBody').textContent = t('pair_success_body');
         document.getElementById('okClose').textContent = t('pair_success_close');
+        var oc = document.getElementById('openConfigure');
+        if (oc) oc.textContent = t('pair_open_configure');
         document.title = t('pair_page_title');
+      }
+      function showConfigureLinkIfAvailable() {
+        var wrap = document.getElementById('configureLinkWrap');
+        if (!wrap) return;
+        fetch('/configure', { method: 'HEAD' }).then(function (r) {
+          if (r.ok) wrap.classList.remove('hidden');
+        }).catch(function () {});
       }
       function loadI18n() {
         fetch('/api/setup-state').then(function (r) { return r.json(); }).then(function (j) {
@@ -146,6 +156,7 @@
             }
             document.getElementById('formWrap').classList.add('hidden');
             document.getElementById('ok').style.display = 'block';
+            showConfigureLinkIfAvailable();
           })
           .catch(function () {
             err.textContent = t('pair_service_unreachable');

@@ -1,4 +1,4 @@
-/** Unified re-pair + printer setup (must match apps/print-agent ConfigureWizardPort). */
+/** Local printer mapping UI (must match apps/print-agent ConfigureWizardPort). Pairing uses /pair on the same port while the tray configure session is active. */
 export const PRINT_AGENT_CONFIGURE_PORT = 17892;
 
 const HEALTH_PATH = '/api/health';

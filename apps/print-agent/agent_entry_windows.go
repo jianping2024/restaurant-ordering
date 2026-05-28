@@ -23,9 +23,7 @@ type trayRuntime struct {
 	status   *agentStatus
 	cancel   context.CancelFunc
 
-	configureMu     sync.Mutex
-	configureActive bool
-	configureURL    string
+	configureURL string
 }
 
 func (rt *trayRuntime) snapshot() (*agentSession, error, bool) {

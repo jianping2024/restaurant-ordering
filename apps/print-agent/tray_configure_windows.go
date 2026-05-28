@@ -3,61 +3,39 @@
 package main
 
 import (
-	"context"
-	"errors"
 	"log"
-	"time"
 )
 
-// startTrayConfigureWizard serves the configure UI in the tray process (no child exe).
-// launchQuery is optional (?api=…&code=…) from a browser deep link.
+// startTrayConfigureWizard opens the local printer settings page in the default browser.
+// launchQuery is optional (?api=…&code=…) from a dashboard deep link.
 func (rt *trayRuntime) startTrayConfigureWizard(launchQuery string) {
-	if rt == nil || rt.ctx == nil {
+	if rt == nil {
 		return
 	}
-	rt.configureMu.Lock()
-	if rt.configureActive {
-		url := rt.configureURL
-		rt.configureMu.Unlock()
-		if url != "" {
-			announceWizardURL("", url)
-		}
+	path := defaultConfigPath()
+	prefill := ""
+	if loaded, err := loadConfig(path); err == nil && loaded.APIBase != "" {
+		prefill = loaded.APIBase
+	}
+
+	addr := trayLocal.listenAddr()
+	if addr == "" {
+		log.Println("tray: configure: local http not ready")
 		return
 	}
-	rt.configureActive = true
-	rt.configureMu.Unlock()
 
-	go func() {
-		defer func() {
-			rt.configureMu.Lock()
-			rt.configureActive = false
-			rt.configureURL = ""
-			rt.configureMu.Unlock()
-		}()
-
-		path := defaultConfigPath()
-		prefill := ""
-		if loaded, err := loadConfig(path); err == nil && loaded.APIBase != "" {
-			prefill = loaded.APIBase
-		}
-		wctx, cancel := context.WithTimeout(rt.ctx, 60*time.Minute)
-		defer cancel()
-		if err := trayLocal.runConfigureSession(wctx, path, prefill, launchQuery); err != nil {
-			if errors.Is(err, context.Canceled) {
-				log.Println("tray: configure wizard stopped")
-				return
-			}
-			log.Println("tray: configure wizard:", err)
-		}
-	}()
+	baseURL := configureWizardBaseURL(addr, prefill, launchQuery)
+	if onConfigureWizardReady != nil {
+		onConfigureWizardReady(baseURL)
+	}
+	announceWizardURL("Mesa 打印机设置", baseURL)
 }
 
-// rememberConfigureWizardURL is called when the local configure server is ready.
 func (rt *trayRuntime) rememberConfigureWizardURL(url string) {
 	if rt == nil || url == "" {
 		return
 	}
-	rt.configureMu.Lock()
+	rt.mu.Lock()
 	rt.configureURL = url
-	rt.configureMu.Unlock()
+	rt.mu.Unlock()
 }

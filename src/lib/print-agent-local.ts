@@ -7,13 +7,15 @@ const PROBE_TIMEOUT_MS = 2500;
 export function buildPrintAgentConfigureUrl(siteOrigin: string, code?: string, lang?: string): string {
   const origin = siteOrigin.replace(/\/$/, '');
   const params = new URLSearchParams({ api: origin });
-  if (code) {
-    params.set('code', code.replace(/\D/g, '').slice(0, 6));
+  const normalizedCode = code ? code.replace(/\D/g, '').slice(0, 6) : '';
+  if (normalizedCode) {
+    params.set('code', normalizedCode);
   }
   if (lang === 'zh' || lang === 'en' || lang === 'pt') {
     params.set('lang', lang);
   }
-  return `http://127.0.0.1:${PRINT_AGENT_CONFIGURE_PORT}/configure?${params.toString()}`;
+  const path = normalizedCode ? '/pair' : '/configure';
+  return `http://127.0.0.1:${PRINT_AGENT_CONFIGURE_PORT}${path}?${params.toString()}`;
 }
 
 export function printAgentLocalHealthUrl(): string {

@@ -4,27 +4,48 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"strings"
 	"sync"
-	"time"
 )
 
-// trayLocalHTTP serves /api/health while the tray agent runs; mounts configure routes while settings are open.
+// trayLocalHTTP serves /api/health and configure/pair routes while the tray agent runs.
 type trayLocalHTTP struct {
-	mu     sync.Mutex
-	rt     *trayRuntime
-	srv    *http.Server
-	addr   string
-	cmux   *http.ServeMux
-	active bool
-	done   chan error
+	mu           sync.Mutex
+	rt           *trayRuntime
+	srv          *http.Server
+	addr         string
+	configureMux *http.ServeMux
 }
 
 var trayLocal trayLocalHTTP
+
+func isTrayConfigurePath(path string) bool {
+	switch path {
+	case "/configure", "/pair":
+		return true
+	default:
+		return strings.HasPrefix(path, "/api/") && path != "/api/health"
+	}
+}
+
+func (t *trayLocalHTTP) listenAddr() string {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.addr
+}
+
+func (t *trayLocalHTTP) mountConfigureRoutes(configPath string) {
+	cfg := reloadConfig(configPath, &config{})
+	cfgPtr := &cfg
+	mux := http.NewServeMux()
+	// done=nil: tray keeps routes until exit; configure-done only closes the browser tab.
+	registerConfigureWizardRoutes(mux, configPath, cfgPtr, nil)
+	t.mu.Lock()
+	t.configureMux = mux
+	t.mu.Unlock()
+}
 
 func startTrayLocalHTTP(rt *trayRuntime) {
 	trayLocal.mu.Lock()
@@ -35,11 +56,14 @@ func startTrayLocalHTTP(rt *trayRuntime) {
 	trayLocal.rt = rt
 	trayLocal.mu.Unlock()
 
+	configPath := defaultConfigPath()
 	addr, err := pickLocalListenAddr(ConfigureWizardPort)
 	if err != nil {
 		log.Println("tray: local http:", err)
 		return
 	}
+	trayLocal.mountConfigureRoutes(configPath)
+
 	srv := &http.Server{
 		Addr:              addr,
 		Handler:           http.HandlerFunc(trayLocal.serveHTTP),
@@ -62,8 +86,8 @@ func shutdownTrayLocalHTTP() {
 	trayLocal.mu.Lock()
 	srv := trayLocal.srv
 	trayLocal.srv = nil
-	trayLocal.cmux = nil
-	trayLocal.active = false
+	trayLocal.configureMux = nil
+	trayLocal.addr = ""
 	trayLocal.mu.Unlock()
 	if srv == nil {
 		return
@@ -78,7 +102,7 @@ func setTrayLocalCORS(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Vary", "Origin")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	if strings.EqualFold(r.Header.Get("Access-Control-Request-Private-Network"), "true") {
 		w.Header().Set("Access-Control-Allow-Private-Network", "true")
 	}
@@ -100,119 +124,38 @@ func (t *trayLocalHTTP) serveHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t.mu.Lock()
-	cmux := t.cmux
-	active := t.active
-	rt := t.rt
-	addr := t.addr
-	t.mu.Unlock()
-
-	if active && cmux != nil {
-		cmux.ServeHTTP(w, r)
-		return
-	}
-
-	if r.URL.Path == "/configure" || r.URL.Path == "/pair" || strings.HasPrefix(r.URL.Path, "/api/") {
-		if rt != nil {
-			rt.startTrayConfigureWizard(r.URL.RawQuery)
-		}
+	if isTrayConfigurePath(r.URL.Path) {
 		setTrayLocalCORS(w, r)
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		refreshTarget := htmlEscape("http://" + addr + r.URL.RequestURI())
-		_, _ = fmt.Fprintf(w, `<!DOCTYPE html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=%s"></head><body><p>正在打开打印设置…</p><p><a href="%s">若未跳转请点这里</a></p></body></html>`, refreshTarget, refreshTarget)
+		t.mu.Lock()
+		mux := t.configureMux
+		t.mu.Unlock()
+		if mux == nil {
+			writePairJSON(w, http.StatusServiceUnavailable, map[string]string{
+				"error": "print agent still starting; try again in a few seconds",
+			})
+			return
+		}
+		mux.ServeHTTP(w, r)
 		return
 	}
 
 	http.NotFound(w, r)
 }
 
-func htmlEscape(s string) string {
-	return strings.NewReplacer("&", "&amp;", `"`, "&quot;", "<", "&lt;", ">", "&gt;").Replace(s)
-}
-
+// runConfigureSession is kept for non-tray fallbacks; tray uses permanently mounted routes.
 func (t *trayLocalHTTP) runConfigureSession(ctx context.Context, configPath, prefillAPI, rawQuery string) error {
-	t.mu.Lock()
 	if t.srv == nil {
-		t.mu.Unlock()
 		return runConfigureWizard(ctx, configPath, prefillAPI, rawQuery)
 	}
-	if t.active {
-		url := configureWizardBaseURL(t.addr, prefillAPI, rawQuery)
-		if rawQuery != "" {
-			if q, err := urlParseQueryMerge(rawQuery); err == nil && q.Get("api") != "" {
-				url = "http://" + t.addr + "/configure?" + q.Encode()
-			}
-		}
-		t.mu.Unlock()
-		announceWizardURL("", url)
-		return nil
+	addr := t.listenAddr()
+	if addr == "" {
+		return runConfigureWizard(ctx, configPath, prefillAPI, rawQuery)
 	}
-	t.mu.Unlock()
-
-	if api := apiBaseFromRawQuery(rawQuery); api != "" {
-		prefillAPI = api
-	}
-
-	cfg := reloadConfig(configPath, &config{})
-	cfgPtr := &cfg
-	done := make(chan error, 1)
-	cmux := http.NewServeMux()
-	registerConfigureWizardRoutes(cmux, configPath, cfgPtr, done)
-
-	t.mu.Lock()
-	t.cmux = cmux
-	t.active = true
-	t.done = done
-	addr := t.addr
-	t.mu.Unlock()
-
-	defer func() {
-		t.mu.Lock()
-		t.cmux = nil
-		t.active = false
-		t.done = nil
-		t.mu.Unlock()
-	}()
-
 	baseURL := configureWizardBaseURL(addr, prefillAPI, rawQuery)
-	if rawQuery != "" {
-		if u, err := url.Parse(baseURL); err == nil {
-			q, _ := url.ParseQuery(rawQuery)
-			if api := strings.TrimSpace(q.Get("api")); api != "" {
-				u.RawQuery = rawQuery
-				baseURL = u.String()
-			}
-		}
-	}
-	agentLogLocale(localeFromConfigPath(configPath), "log_wizard_open", baseURL)
 	if onConfigureWizardReady != nil {
 		onConfigureWizardReady(baseURL)
 	}
 	announceWizardURL("Mesa 打印机设置", baseURL)
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case err := <-done:
-		return err
-	}
-}
-
-func apiBaseFromRawQuery(rawQuery string) string {
-	if rawQuery == "" {
-		return ""
-	}
-	q, err := url.ParseQuery(rawQuery)
-	if err != nil {
-		return ""
-	}
-	api, err := normalizeAPIBase(q.Get("api"))
-	if err != nil {
-		return ""
-	}
-	return api
-}
-
-func urlParseQueryMerge(rawQuery string) (url.Values, error) {
-	return url.ParseQuery(rawQuery)
+	<-ctx.Done()
+	return ctx.Err()
 }

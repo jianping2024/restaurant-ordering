@@ -85,20 +85,7 @@ export function PrintAgentPairingPanel() {
   const canCreate = pendingCount < PRINT_AGENT_PAIRING_PENDING_SLOT_MAX;
   const siteOrigin = typeof window !== 'undefined' ? window.location.origin : '';
 
-  const openConfigure = useCallback(
-    async (code?: string) => {
-      setConfigureProbe('checking');
-      const result = await openPrintAgentConfigure(siteOrigin, code, lang);
-      if (result === 'unreachable') {
-        setConfigureProbe('unreachable');
-      } else {
-        setConfigureProbe('opened');
-      }
-    },
-    [lang, siteOrigin],
-  );
-
-  const copyPairingCode = async (code: string) => {
+  const copyPairingCode = useCallback(async (code: string) => {
     try {
       await navigator.clipboard.writeText(code);
       setCodeCopied(true);
@@ -106,7 +93,23 @@ export function PrintAgentPairingPanel() {
     } catch {
       /* clipboard denied — user can still select the code */
     }
-  };
+  }, []);
+
+  const openConfigure = useCallback(
+    async (code?: string) => {
+      setConfigureProbe('checking');
+      if (code) {
+        await copyPairingCode(code);
+      }
+      const result = await openPrintAgentConfigure(siteOrigin, code, lang);
+      if (result === 'unreachable') {
+        setConfigureProbe('unreachable');
+      } else {
+        setConfigureProbe('opened');
+      }
+    },
+    [copyPairingCode, lang, siteOrigin],
+  );
 
   const createPairing = async () => {
     setCreating(true);

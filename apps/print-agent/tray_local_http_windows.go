@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 )
 
 // trayLocalHTTP serves /api/health and configure/pair routes while the tray agent runs.

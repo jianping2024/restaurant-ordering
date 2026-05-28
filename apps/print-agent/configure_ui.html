@@ -143,8 +143,6 @@
       var params = new URLSearchParams(location.search);
       var cache = { tcp: [], winspool: [] };
       var stations = [];
-      var stationsLoading = false;
-      var stationsLoaded = false;
       var state = { paired: false, station_printers: {} };
       var ui = {};
       var testConfirmed = false;
@@ -247,10 +245,21 @@
       }
 
       function stationsForRender() {
-        if (stations.length) return stations;
-        return Object.keys(state.station_printers || {}).map(function (sid) {
-          return { id: sid };
+        var out = [];
+        var seen = {};
+        Object.keys(state.station_printers || {}).forEach(function (sid) {
+          var key = String(sid || '').trim();
+          if (!key || seen[key]) return;
+          seen[key] = true;
+          out.push({ id: key });
         });
+        stations.forEach(function (s) {
+          var key = String(s && s.id || '').trim();
+          if (!key || seen[key]) return;
+          seen[key] = true;
+          out.push(s);
+        });
+        return out;
       }
 
       function scanSummaryText() {
@@ -327,19 +336,11 @@
         var stationsHint = document.getElementById('stationsHint');
         var visibleStations = stationsForRender();
         stationsEl.innerHTML = '';
-        if (stationsLoading && !stationsLoaded) {
-          stationsHint.textContent = t('stations_loading');
-          return;
-        }
         if (!visibleStations.length) {
-          stationsHint.textContent = t('stations_empty');
+          stationsHint.textContent = stations.length ? t('stations_empty') : t('stations_loading');
           return;
         }
-        if (!stations.length) {
-          stationsHint.textContent = t('stations_saved_only');
-        } else {
-          stationsHint.textContent = t('stations_map_hint');
-        }
+        stationsHint.textContent = stations.length ? t('stations_map_hint') : t('stations_saved_only');
         visibleStations.forEach(function (s) {
           var row = document.createElement('div');
           row.className = 'station-row';
@@ -446,7 +447,6 @@
       }
 
       function loadStations() {
-        stationsLoading = true;
         renderStations();
         fetch('/api/print-stations')
           .then(function (r) {
@@ -461,20 +461,17 @@
             });
           })
           .then(function (res) {
-            stationsLoading = false;
             if (!res.ok) {
               document.getElementById('stationsWarn').classList.remove('hidden');
               document.getElementById('stationsWarn').textContent = (res.j && res.j.error) ? res.j.error : t('stations_load_failed');
               renderStations();
               return;
             }
-            stationsLoaded = true;
             stations = res.j.stations || [];
             document.getElementById('stationsWarn').classList.add('hidden');
             renderStations();
           })
           .catch(function () {
-            stationsLoading = false;
             document.getElementById('stationsWarn').classList.remove('hidden');
             document.getElementById('stationsWarn').textContent = t('stations_reach_failed');
             renderStations();

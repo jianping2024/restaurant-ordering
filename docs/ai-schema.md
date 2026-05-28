@@ -1,0 +1,351 @@
+# AI Compact Schema
+
+Purpose: fast database reference for AI coding agents.  
+Source of truth remains the real Supabase schema/migrations.
+
+## Tables
+
+bill_splits (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, order_ids: uuid[], split_mode: text [even|by_item|custom], persons: jsonb, result: jsonb, total_amount: numeric, status: text [pending|confirmed|requested|paid|cancelled], created_at: timestamptz, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id, display_name: text)
+
+buffet_calendar_overrides (restaurant_id: uuid PK FK -> restaurants.id, on_date: date PK, kind: text [holiday|special])
+
+buffet_price_rules (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, buffet_id: uuid FK -> buffets.id, time_slot_id: uuid FK -> buffet_time_slots.id, calendar_kind: text [weekday|weekend|holiday|special], valid_from: date, valid_to: date, adult_price: numeric, child_price: numeric, priority: integer, is_active: boolean, note: text nullable, created_at: timestamptz)
+
+buffet_time_slots (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name: text, start_time: time, end_time: time, weekdays: integer[], sort_order: integer, created_at: timestamptz)
+
+buffets (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name: text, is_active: boolean, description: text nullable, created_at: timestamptz, updated_at: timestamptz)
+
+dish_feedback (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, session_id: uuid FK -> table_sessions.id, order_id: uuid FK -> orders.id, menu_item_id: uuid FK -> menu_items.id, vote: text [up|down], reasons: text[], comment: text nullable, created_at: timestamptz, updated_at: timestamptz)
+
+feedback_sessions (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, session_id: uuid FK -> table_sessions.id, source: text, shown_at: timestamptz, completed_at: timestamptz nullable, skipped_at: timestamptz nullable, created_at: timestamptz)
+
+menu_categories (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, parent_id: uuid FK -> menu_categories.id nullable, name_pt: text, name_en: text nullable, name_zh: text nullable, sort_order: integer, active: boolean, created_at: timestamptz, print_station_id: uuid FK -> print_stations.id nullable, item_code: varchar nullable)
+
+menu_items (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, description_pt: text nullable, description_en: text nullable, price: numeric, category: text, emoji: text, available: boolean, sort_order: integer, created_at: timestamptz, image_url: text nullable, note_preset_keys: text[], category_en: text nullable, category_zh: text nullable, category_id: uuid FK -> menu_categories.id nullable, print_station_id: uuid FK -> print_stations.id nullable, item_code: varchar nullable)
+
+orders (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, status: text [pending|cooking|done], items: jsonb, total_amount: numeric, created_at: timestamptz, updated_at: timestamptz, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id, display_name: text)
+
+print_agent_devices (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, pairing_id: uuid FK -> print_agent_pairings.id nullable, label: text nullable, paired_at: timestamptz, valid_until: timestamptz, revoked_at: timestamptz nullable, last_seen: timestamptz nullable, routing_snapshot: jsonb nullable, agent_version: text nullable, mapped_station_count: integer nullable, last_print_at: timestamptz nullable, last_print_status: text nullable, schedule_open: boolean nullable)
+
+print_agent_pairings (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, code: text check six_digits, expires_at: timestamptz, consumed_at: timestamptz nullable, created_by: uuid FK -> auth.users.id nullable, created_at: timestamptz, revoked_at: timestamptz nullable)
+
+print_jobs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, type: text [order_receipt|station_ticket|pre_bill], payload: jsonb, status: text [pending|processing|done|failed], claimed_by: text nullable, attempts: integer, error_message: text nullable, created_at: timestamptz, updated_at: timestamptz, table_display: text generated_from_payload nullable, table_id: uuid generated_from_payload nullable)
+
+print_stations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, sort_order: integer, ticket_layout: text [kitchen|beverage|standard], created_at: timestamptz)
+
+restaurant_staff_accounts (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, user_id: uuid unique FK -> auth.users.id, role: text [kitchen|waiter|cashier], display_name: text, login_name: text, email: text unique, created_by: uuid FK -> auth.users.id nullable, created_at: timestamptz, updated_at: timestamptz, disabled_at: timestamptz nullable)
+
+restaurant_tables (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, display_name: text length 1..16, sort_order: integer, deleted_at: timestamptz nullable, created_at: timestamptz)
+
+restaurants (id: uuid PK, name: text, slug: text unique, owner_id: uuid FK -> auth.users.id, logo_url: text nullable, address: text nullable, phone: text nullable, plan: text [free|pro], kitchen_password: text, waiter_password: text, geo_latitude: double precision nullable, geo_longitude: double precision nullable, print_locale: text [zh|en|pt], print_agent_config: jsonb, kitchen_password_version: integer, waiter_password_version: integer, order_radius_meters: integer range 10..10000, buffet_friday_weekend_from: time nullable, created_at: timestamptz)
+
+table_sessions (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, status: text [open|billing|closed], opened_at: timestamptz, closed_at: timestamptz nullable, merge_into_session_id: uuid FK -> table_sessions.id nullable, closed_reason: text nullable, table_id: uuid FK -> restaurant_tables.id)
+
+## Relationships
+
+restaurants.owner_id -> auth.users.id
+
+restaurant_tables.restaurant_id -> restaurants.id  
+table_sessions.restaurant_id -> restaurants.id  
+table_sessions.table_id -> restaurant_tables.id  
+table_sessions.merge_into_session_id -> table_sessions.id
+
+orders.restaurant_id -> restaurants.id  
+orders.session_id -> table_sessions.id  
+orders.table_id -> restaurant_tables.id
+
+bill_splits.restaurant_id -> restaurants.id  
+bill_splits.session_id -> table_sessions.id  
+bill_splits.table_id -> restaurant_tables.id
+
+menu_categories.restaurant_id -> restaurants.id  
+menu_categories.parent_id -> menu_categories.id  
+menu_categories.print_station_id -> print_stations.id
+
+menu_items.restaurant_id -> restaurants.id  
+menu_items.category_id -> menu_categories.id  
+menu_items.print_station_id -> print_stations.id
+
+dish_feedback.restaurant_id -> restaurants.id  
+dish_feedback.session_id -> table_sessions.id  
+dish_feedback.order_id -> orders.id  
+dish_feedback.menu_item_id -> menu_items.id
+
+feedback_sessions.restaurant_id -> restaurants.id  
+feedback_sessions.session_id -> table_sessions.id
+
+buffets.restaurant_id -> restaurants.id  
+buffet_time_slots.restaurant_id -> restaurants.id  
+buffet_calendar_overrides.restaurant_id -> restaurants.id  
+buffet_price_rules.restaurant_id -> restaurants.id  
+buffet_price_rules.buffet_id -> buffets.id  
+buffet_price_rules.time_slot_id -> buffet_time_slots.id
+
+print_stations.restaurant_id -> restaurants.id  
+print_jobs.restaurant_id -> restaurants.id  
+print_agent_pairings.restaurant_id -> restaurants.id  
+print_agent_pairings.created_by -> auth.users.id  
+print_agent_devices.restaurant_id -> restaurants.id  
+print_agent_devices.pairing_id -> print_agent_pairings.id
+
+restaurant_staff_accounts.restaurant_id -> restaurants.id  
+restaurant_staff_accounts.user_id -> auth.users.id  
+restaurant_staff_accounts.created_by -> auth.users.id
+
+## Domain Values / Check Constraints
+
+bill_splits.split_mode: even | by_item | custom  
+bill_splits.status: pending | confirmed | requested | paid | cancelled  
+buffet_calendar_overrides.kind: holiday | special  
+buffet_price_rules.calendar_kind: weekday | weekend | holiday | special  
+dish_feedback.vote: up | down  
+orders.status: pending | cooking | done  
+print_jobs.type: order_receipt | station_ticket | pre_bill  
+print_jobs.status: pending | processing | done | failed  
+print_stations.ticket_layout: kitchen | beverage | standard  
+restaurant_staff_accounts.role: kitchen | waiter | cashier  
+restaurants.plan: free | pro  
+restaurants.print_locale: zh | en | pt  
+restaurants.order_radius_meters: 10..10000  
+table_sessions.status: open | billing | closed
+
+## Indexes
+
+bill_splits:
+
+- bill_splits_pkey: PK btree(id)
+- idx_bill_splits_restaurant: btree(restaurant_id)
+- idx_bill_splits_session: btree(session_id)
+
+buffet_calendar_overrides:
+
+- buffet_calendar_overrides_pkey: PK btree(restaurant_id, on_date)
+
+buffet_price_rules:
+
+- buffet_price_rules_pkey: PK btree(id)
+- idx_buffet_price_rules_lookup: btree(restaurant_id, buffet_id, time_slot_id, calendar_kind) WHERE is_active = true
+
+buffet_time_slots:
+
+- buffet_time_slots_pkey: PK btree(id)
+- idx_buffet_time_slots_restaurant: btree(restaurant_id)
+
+buffets:
+
+- buffets_pkey: PK btree(id)
+- idx_buffets_restaurant: btree(restaurant_id)
+
+dish_feedback:
+
+- dish_feedback_pkey: PK btree(id)
+- idx_dish_feedback_restaurant_created: btree(restaurant_id, created_at DESC)
+- idx_dish_feedback_vote: btree(restaurant_id, vote)
+- uniq_dish_feedback_session_item: unique btree(session_id, menu_item_id)
+
+feedback_sessions:
+
+- feedback_sessions_pkey: PK btree(id)
+- idx_feedback_sessions_restaurant_created: btree(restaurant_id, created_at DESC)
+- uniq_feedback_session: unique btree(session_id)
+
+menu_categories:
+
+- idx_menu_categories_code_per_parent: unique btree(restaurant_id, COALESCE(parent_id, '00000000-0000-0000-0000-000000000000'::uuid), lower(btrim((item_code)::text))) WHERE (item_code IS NOT NULL) AND (btrim((item_code)::text) <> ''::text)
+- idx_menu_categories_print_station: btree(print_station_id) WHERE print_station_id IS NOT NULL
+- idx_menu_categories_restaurant: btree(restaurant_id, parent_id, sort_order)
+- menu_categories_pkey: PK btree(id)
+
+menu_items:
+
+- idx_menu_items_category: btree(restaurant_id, category)
+- idx_menu_items_category_id: btree(restaurant_id, category_id)
+- idx_menu_items_code_per_restaurant: unique btree(restaurant_id, lower(btrim((item_code)::text))) WHERE (item_code IS NOT NULL) AND (btrim((item_code)::text) <> ''::text)
+- idx_menu_items_note_preset_keys: gin(note_preset_keys)
+- idx_menu_items_print_station: btree(restaurant_id, print_station_id) WHERE print_station_id IS NOT NULL
+- idx_menu_items_restaurant: btree(restaurant_id)
+- menu_items_pkey: PK btree(id)
+
+orders:
+
+- idx_orders_restaurant: btree(restaurant_id)
+- idx_orders_restaurant_table_id: btree(restaurant_id, table_id)
+- idx_orders_session: btree(session_id)
+- idx_orders_status: btree(restaurant_id, status)
+- orders_pkey: PK btree(id)
+
+print_agent_devices:
+
+- idx_print_agent_devices_restaurant: btree(restaurant_id)
+- print_agent_devices_pkey: PK btree(id)
+
+print_agent_pairings:
+
+- idx_print_agent_pairings_claim_lookup: btree(code) WHERE (consumed_at IS NULL) AND (revoked_at IS NULL)
+- idx_print_agent_pairings_restaurant_expires: btree(restaurant_id, expires_at DESC)
+- idx_print_agent_pairings_restaurant_pending: btree(restaurant_id, expires_at DESC) WHERE (consumed_at IS NULL) AND (revoked_at IS NULL)
+- print_agent_pairings_pkey: PK btree(id)
+
+print_jobs:
+
+- idx_print_jobs_restaurant_status_created: btree(restaurant_id, status, created_at DESC)
+- idx_print_jobs_restaurant_table_id: btree(restaurant_id, table_id, created_at DESC) WHERE table_id IS NOT NULL
+- print_jobs_pkey: PK btree(id)
+
+print_stations:
+
+- idx_print_stations_restaurant: btree(restaurant_id, sort_order, created_at)
+- print_stations_pkey: PK btree(id)
+
+restaurant_staff_accounts:
+
+- restaurant_staff_accounts_email_key: unique btree(email)
+- restaurant_staff_accounts_pkey: PK btree(id)
+- restaurant_staff_accounts_restaurant_id_idx: btree(restaurant_id)
+- restaurant_staff_accounts_user_id_idx: btree(user_id)
+- restaurant_staff_accounts_user_id_key: unique btree(user_id)
+
+restaurant_tables:
+
+- idx_restaurant_tables_restaurant_active: btree(restaurant_id, sort_order) WHERE deleted_at IS NULL
+- restaurant_tables_active_display_name_unique: unique btree(restaurant_id, display_name) WHERE deleted_at IS NULL
+- restaurant_tables_pkey: PK btree(id)
+
+restaurants:
+
+- restaurants_pkey: PK btree(id)
+- restaurants_slug_key: unique btree(slug)
+
+table_sessions:
+
+- idx_table_sessions_merge_into: btree(merge_into_session_id)
+- idx_table_sessions_restaurant_table_id: btree(restaurant_id, table_id)
+- idx_table_sessions_status: btree(restaurant_id, status)
+- table_sessions_pkey: PK btree(id)
+- uniq_active_table_session: unique btree(restaurant_id, table_id) WHERE status = ANY (ARRAY['open'::text, 'billing'::text])
+
+## RLS / Policies
+
+Common helpers:
+
+- Owner access usually means `restaurant_id IN (SELECT restaurants.id FROM restaurants WHERE restaurants.owner_id = auth.uid())` or `owner_id = auth.uid()`.
+- Staff access uses `is_active_restaurant_staff(restaurant_id[, roles])`, `auth_staff_restaurant_ids()`, or `auth_owned_restaurant_ids()`.
+- Several policies use role `{public}` but still rely on `auth.uid()` inside the predicate; treat these as auth-dependent owner checks, not necessarily anonymous write access.
+
+bill_splits:
+
+- SELECT: authenticated cashier via `is_active_restaurant_staff(restaurant_id, ['cashier'])`.
+- SELECT: authenticated owner by restaurant ownership.
+- UPDATE: authenticated owner by restaurant ownership, with matching `WITH CHECK`.
+
+buffet_calendar_overrides:
+
+- SELECT: public read (`true`).
+- INSERT/UPDATE/DELETE: owner by restaurant ownership.
+
+buffet_price_rules:
+
+- SELECT: public read (`true`).
+- INSERT/UPDATE/DELETE: owner by restaurant ownership.
+
+buffet_time_slots:
+
+- SELECT: public read (`true`).
+- INSERT/UPDATE/DELETE: owner by restaurant ownership.
+
+buffets:
+
+- SELECT: public read (`true`).
+- INSERT/UPDATE/DELETE: owner by restaurant ownership.
+
+dish_feedback:
+
+- ALL: public read/write (`USING true`, `WITH CHECK true`). Review carefully if feedback should be restricted.
+
+feedback_sessions:
+
+- ALL: public read/write (`USING true`, `WITH CHECK true`). Review carefully if feedback session writes should be restricted.
+
+menu_categories:
+
+- SELECT: public read (`true`).
+- ALL: owner by restaurant ownership.
+
+menu_items:
+
+- SELECT: public read (`true`).
+- ALL: owner by restaurant ownership.
+
+orders:
+
+- INSERT: public insert (`WITH CHECK true`). This is intended for customer ordering but should be protected by app-level validation/rate limits.
+- SELECT: authenticated owner by restaurant ownership.
+- SELECT: authenticated staff via `is_active_restaurant_staff(restaurant_id)`.
+- SELECT: authenticated cashier via `is_active_restaurant_staff(restaurant_id, ['cashier'])`.
+- UPDATE: public owner by restaurant ownership.
+- UPDATE: authenticated kitchen/waiter via `is_active_restaurant_staff(restaurant_id, ['kitchen','waiter'])`, with matching `WITH CHECK`.
+
+print_agent_devices:
+
+- SELECT: owner by restaurant ownership.
+
+print_agent_pairings:
+
+- SELECT/UPDATE: owner by restaurant ownership.
+- INSERT: owner by restaurant ownership, with `WITH CHECK`.
+
+print_jobs:
+
+- SELECT/UPDATE/DELETE: owner by restaurant ownership.
+- INSERT: owner by restaurant ownership, with `WITH CHECK`.
+
+print_stations:
+
+- SELECT: public read (`true`).
+- ALL: owner by restaurant ownership.
+
+restaurant_staff_accounts:
+
+- ALL: authenticated owner through `auth_owned_restaurant_ids()`, with matching `WITH CHECK`.
+- SELECT: authenticated staff can select own active staff account where `user_id = auth.uid()` and `disabled_at IS NULL`.
+
+restaurant_tables:
+
+- ALL: owner by restaurant ownership.
+- SELECT: authenticated active staff kitchen/waiter/cashier can read non-deleted tables where `deleted_at IS NULL`.
+
+restaurants:
+
+- SELECT/INSERT/UPDATE/DELETE: owner where `owner_id = auth.uid()`; insert requires `owner_id = auth.uid()`.
+- SELECT: authenticated staff can select restaurants from `auth_staff_restaurant_ids()`.
+
+table_sessions:
+
+- SELECT: authenticated owner by restaurant ownership.
+- UPDATE: authenticated owner by restaurant ownership, with matching `WITH CHECK`.
+- SELECT: authenticated staff via `is_active_restaurant_staff(restaurant_id)`.
+
+## Important Notes
+
+- Multi-tenant root entity is `restaurants`; most business tables reference `restaurant_id`.
+- Auth ownership/staff users are linked through `auth.users`.
+- Table lifecycle: `restaurant_tables` defines physical/logical tables; `table_sessions` tracks open/billing/closed dining sessions.
+- Ordering flow: `orders` stores item payloads in `items` jsonb and links to restaurant/table/session.
+- Billing flow: `bill_splits` supports even/by-item/custom splits and stores calculated result in jsonb.
+- Menu routing: `menu_categories` and `menu_items` can each map to `print_stations`.
+- Print agent flow: `print_agent_pairings` issues six-digit pairing codes; `print_agent_devices` stores paired agent state; `print_jobs` stores queued print work.
+- Buffet pricing: `buffets` + `buffet_time_slots` + `buffet_calendar_overrides` + `buffet_price_rules` model time/calendar-sensitive prices.
+- Soft deletion appears only on `restaurant_tables.deleted_at` in this schema extract.
+- Indexes are included below from the Supabase `pg_indexes` export.
+- No RLS policies were included yet; add `pg_policies` export when available.
+
+## When To Read Full SQL
+
+Read the full schema/migrations only when:
+
+- changing constraints, generated columns, defaults, or check expressions
+- debugging RLS, grants, or security behavior
+- adding/removing indexes
+- changing foreign keys
+- investigating migration history
+

@@ -71,11 +71,46 @@ func showConsoleWindow() {
 	hwnd, _, _ := syscall.NewLazyDLL("kernel32.dll").NewProc("GetConsoleWindow").Call()
 	if hwnd == 0 {
 		attachConsoleWindow()
-		return
+		hwnd, _, _ = syscall.NewLazyDLL("kernel32.dll").NewProc("GetConsoleWindow").Call()
 	}
+	disableConsoleCloseButton(hwnd)
 	showWindow := syscall.NewLazyDLL("user32.dll").NewProc("ShowWindow")
 	const swShow = 5
 	_, _, _ = showWindow.Call(hwnd, swShow)
+}
+
+func toggleConsoleWindow() bool {
+	hwnd, _, _ := syscall.NewLazyDLL("kernel32.dll").NewProc("GetConsoleWindow").Call()
+	if hwnd != 0 {
+		isWindowVisible := syscall.NewLazyDLL("user32.dll").NewProc("IsWindowVisible")
+		visible, _, _ := isWindowVisible.Call(hwnd)
+		if visible != 0 {
+			hideConsoleWindow()
+			return false
+		}
+	}
+	showConsoleWindow()
+	return true
+}
+
+func disableConsoleCloseButton(hwnd uintptr) {
+	if hwnd == 0 {
+		return
+	}
+	user32 := syscall.NewLazyDLL("user32.dll")
+	getSystemMenu := user32.NewProc("GetSystemMenu")
+	deleteMenu := user32.NewProc("DeleteMenu")
+	drawMenuBar := user32.NewProc("DrawMenuBar")
+	const (
+		scClose     = 0xF060
+		mfByCommand = 0x00000000
+	)
+	menu, _, _ := getSystemMenu.Call(hwnd, 0)
+	if menu == 0 {
+		return
+	}
+	_, _, _ = deleteMenu.Call(menu, scClose, mfByCommand)
+	_, _, _ = drawMenuBar.Call(hwnd)
 }
 
 // messageBoxOK shows a simple info dialog (tray "About").
@@ -94,9 +129,9 @@ func messageBoxYesNo(title, text string) bool {
 	user32 := syscall.NewLazyDLL("user32.dll")
 	messageBoxW := user32.NewProc("MessageBoxW")
 	const (
-		mbYesNo      = 0x00000004
-		mbIconQuest  = 0x00000020
-		idYes        = 6
+		mbYesNo     = 0x00000004
+		mbIconQuest = 0x00000020
+		idYes       = 6
 	)
 	tPtr, _ := syscall.UTF16PtrFromString(title)
 	mPtr, _ := syscall.UTF16PtrFromString(text)

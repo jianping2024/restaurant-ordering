@@ -23,9 +23,9 @@ type trayRuntime struct {
 	status   *agentStatus
 	cancel   context.CancelFunc
 
-	configureMu      sync.Mutex
-	configureActive    bool
-	configureURL       string
+	configureMu     sync.Mutex
+	configureActive bool
+	configureURL    string
 }
 
 func (rt *trayRuntime) snapshot() (*agentSession, error, bool) {
@@ -179,9 +179,9 @@ func onTrayReady(rt *trayRuntime) {
 					messageBoxOK(uiT(loc, "about_title"), fmt.Sprintf(uiT(loc, "open_log_fail"), err.Error()))
 				}
 			case <-mShowConsole.ClickedCh:
-				showConsoleWindow()
+				shown := toggleConsoleWindow()
 				_, err, done := rt.snapshot()
-				if done && err != nil {
+				if shown && done && err != nil {
 					log.Println(err)
 				}
 			case <-mAbout.ClickedCh:

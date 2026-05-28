@@ -24,9 +24,14 @@ OutputBaseFilename=MesaPrintAgent-Setup-amd64
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+InfoBeforeFile=wizard-before.txt
+InfoAfterFile=wizard-after.txt
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
+
+[Tasks]
+Name: "autostart"; Description: "Start Mesa Print Agent when the current user logs on"; GroupDescription: "Startup options:"; Flags: checkedonce
 
 [Files]
 Source: "..\dist\amd64\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
@@ -35,4 +40,9 @@ Source: "WINDOWS-README.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"
+Name: "{group}\Printer settings"; Filename: "{app}\{#MyAppExe}"; Parameters: "configure"
 Name: "{group}\Read me"; Filename: "{app}\WINDOWS-README.txt"
+Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: autostart
+
+[Run]
+Filename: "{app}\{#MyAppExe}"; Description: "Launch Mesa Print Agent now"; Flags: nowait postinstall skipifsilent

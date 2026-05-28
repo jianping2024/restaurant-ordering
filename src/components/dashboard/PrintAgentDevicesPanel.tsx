@@ -33,7 +33,7 @@ export function PrintAgentDevicesPanel({
       const res = await fetch('/api/print-agent/devices', { credentials: 'include' });
       if (!res.ok) return;
       const json = (await res.json()) as { devices?: PrintAgentDeviceHeartbeatRow[] };
-      setDevices(json.devices || []);
+      setDevices((json.devices || []).filter((d) => isPrintAgentDeviceOnline(d.last_seen)));
     } finally {
       setLoading(false);
     }
@@ -58,7 +58,7 @@ export function PrintAgentDevicesPanel({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-lg font-semibold text-brand-ink">{t.devicesTitle}</h2>
-          <p className="mt-1 text-sm text-brand-muted">{t.devicesSubtitle}</p>
+          <p className="mt-1 text-sm text-brand-muted">{t.devicesSubtitleOnlineOnly}</p>
         </div>
         <button
           type="button"
@@ -88,9 +88,6 @@ export function PrintAgentDevicesPanel({
                 />
                 <span className="font-medium text-brand-ink">
                   {deviceLabel(d, t.devicesUnlabeled)}
-                </span>
-                <span className="text-brand-muted">
-                  {online ? t.devicesOnline : t.devicesOffline}
                 </span>
                 {d.schedule_open === false && online ? (
                   <span className="text-amber-700">{t.devicesOutsideSchedule}</span>

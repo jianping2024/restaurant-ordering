@@ -28,7 +28,13 @@ func newUUID() string {
 }
 
 func claim(apiBase, code, deviceID string) (*config, error) {
-	body, _ := json.Marshal(map[string]string{"code": code, "device_id": deviceID})
+	bodyMap := map[string]string{"code": code, "device_id": deviceID}
+	if host, err := os.Hostname(); err == nil {
+		if label := strings.TrimSpace(host); label != "" {
+			bodyMap["label"] = label
+		}
+	}
+	body, _ := json.Marshal(bodyMap)
 	req, err := http.NewRequest(http.MethodPost, strings.TrimRight(apiBase, "/")+"/api/print-agent/claim", bytes.NewReader(body))
 	if err != nil {
 		return nil, err

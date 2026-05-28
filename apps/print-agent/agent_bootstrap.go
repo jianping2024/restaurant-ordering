@@ -34,7 +34,7 @@ func initAgentSession(runCtx context.Context, args []string) (*agentSession, boo
 	cfg, err := loadConfig(path)
 	if err != nil || cfg.AgentJWT == "" {
 		if *code != "" {
-			deviceID := newUUID()
+			deviceID := deviceIDForPairing(path)
 			cfg, err = claim(*apiBase, strings.TrimSpace(*code), deviceID)
 			if err != nil {
 				return nil, *showConsole, err

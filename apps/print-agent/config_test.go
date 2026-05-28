@@ -1,6 +1,7 @@
 package main
 
 import (
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -71,5 +72,23 @@ func TestPrinterAddrForJob_stationMapped(t *testing.T) {
 	addr, err := c.printerAddrForJob(printJob{Type: "station_ticket", Payload: payload})
 	if err != nil || addr != "tcp:10.0.0.1:9100" {
 		t.Fatalf("got %q err=%v", addr, err)
+	}
+}
+
+func TestDeviceIDForPairingReusesExistingConfigID(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+	want := "11111111-2222-4333-8444-555555555555"
+	if err := saveConfig(path, &config{DeviceID: want}); err != nil {
+		t.Fatal(err)
+	}
+	if got := deviceIDForPairing(path); got != want {
+		t.Fatalf("got %q want %q", got, want)
+	}
+}
+
+func TestDeviceIDForPairingCreatesIDWhenMissing(t *testing.T) {
+	got := deviceIDForPairing(filepath.Join(t.TempDir(), "missing.json"))
+	if !looksLikeUUID(got) {
+		t.Fatalf("expected generated uuid, got %q", got)
 	}
 }

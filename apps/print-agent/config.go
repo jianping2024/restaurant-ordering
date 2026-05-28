@@ -137,6 +137,9 @@ func mergePrinterConfig(prev, next *config) {
 	if prev == nil || next == nil {
 		return
 	}
+	if strings.TrimSpace(prev.DeviceID) != "" && strings.TrimSpace(next.DeviceID) == "" {
+		next.DeviceID = prev.DeviceID
+	}
 	if len(prev.StationPrinters) > 0 {
 		next.StationPrinters = prev.StationPrinters
 	}
@@ -158,4 +161,32 @@ func savePairConfig(configPath string, next *config) error {
 	}
 	mergePrinterConfig(prev, next)
 	return saveConfig(configPath, next)
+}
+
+func deviceIDForPairing(configPath string) string {
+	if prev, err := loadConfig(configPath); err == nil {
+		if id := strings.TrimSpace(prev.DeviceID); looksLikeUUID(id) {
+			return id
+		}
+	}
+	return newUUID()
+}
+
+func looksLikeUUID(s string) bool {
+	if len(s) != 36 {
+		return false
+	}
+	for i, ch := range s {
+		switch i {
+		case 8, 13, 18, 23:
+			if ch != '-' {
+				return false
+			}
+		default:
+			if !((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F')) {
+				return false
+			}
+		}
+	}
+	return true
 }

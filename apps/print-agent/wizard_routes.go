@@ -37,6 +37,7 @@ func discoverAllPrinters(timeout time.Duration, workers int) (tcp []printerListE
 			Label: p.Addr + " (LAN)",
 		})
 	}
+	tcp = dedupePrinterList(tcp)
 	names, _ := listWinspoolPrinterNames()
 	sort.Strings(names)
 	for _, name := range names {
@@ -49,7 +50,31 @@ func discoverAllPrinters(timeout time.Duration, workers int) (tcp []printerListE
 			Label: name + " (USB / Windows)",
 		})
 	}
+	winspool = dedupePrinterList(winspool)
 	return tcp, winspool, nil
+}
+
+func dedupePrinterList(list []printerListEntry) []printerListEntry {
+	if len(list) < 2 {
+		return list
+	}
+	out := make([]printerListEntry, 0, len(list))
+	seen := make(map[string]struct{}, len(list))
+	for _, p := range list {
+		addr := strings.TrimSpace(p.Addr)
+		if addr == "" {
+			continue
+		}
+		key := strings.ToLower(strings.Join(strings.Fields(addr), " "))
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		p.Addr = addr
+		p.Label = strings.TrimSpace(p.Label)
+		out = append(out, p)
+	}
+	return out
 }
 
 func reloadConfig(configPath string, fallback *config) *config {
@@ -108,10 +133,10 @@ func registerUILocaleRoute(mux *http.ServeMux, configPath string, cfg **config) 
 		*cfg = c
 		loc := c.uiLocale()
 		writePairJSON(w, http.StatusOK, map[string]any{
-			"status":         "ok",
-			"ui_locale":      loc,
-			"text_encoding":  normalizeTextEncoding(c.TextEncoding),
-			"ui":             uiBundleMap(loc),
+			"status":        "ok",
+			"ui_locale":     loc,
+			"text_encoding": normalizeTextEncoding(c.TextEncoding),
+			"ui":            uiBundleMap(loc),
 		})
 	})
 }
@@ -260,7 +285,7 @@ func registerPairWizardRoute(mux *http.ServeMux, configPath string, cfg **config
 			}
 		}
 
-		deviceID := newUUID()
+		deviceID := deviceIDForPairing(configPath)
 		next, err := claim(apiBase, code, deviceID)
 		if err != nil {
 			msg := err.Error()

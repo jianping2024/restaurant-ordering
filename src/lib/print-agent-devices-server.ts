@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import {
+  isPrintAgentDeviceOnline,
   devicesNeedingRenewal,
   type PrintAgentDeviceRow,
 } from '@/lib/print-agent-credential-expiry';
@@ -38,5 +39,7 @@ export async function loadPrintAgentDevices(
   if (error) {
     return [];
   }
-  return (data || []) as PrintAgentDeviceHeartbeatRow[];
+  return ((data || []) as PrintAgentDeviceHeartbeatRow[]).filter((d) =>
+    isPrintAgentDeviceOnline(d.last_seen),
+  );
 }

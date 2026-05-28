@@ -224,6 +224,13 @@
         return s.name_en || s.name_pt || s.name_zh || s.id;
       }
 
+      function stationsForRender() {
+        if (stations.length) return stations;
+        return Object.keys(state.station_printers || {}).map(function (sid) {
+          return { id: sid };
+        });
+      }
+
       function scanSummaryText() {
         var lan = (cache.tcp || []).length;
         var usb = (cache.winspool || []).length;
@@ -287,13 +294,18 @@
       function renderStations() {
         var stationsEl = document.getElementById('stations');
         var stationsHint = document.getElementById('stationsHint');
+        var visibleStations = stationsForRender();
         stationsEl.innerHTML = '';
-        if (!stations.length) {
+        if (!visibleStations.length) {
           stationsHint.textContent = 'No print stations in Mesa yet.';
           return;
         }
-        stationsHint.textContent = 'Map each station to a printer. Each mapped station appears on checkout (several stations may use the same printer).';
-        stations.forEach(function (s) {
+        if (!stations.length) {
+          stationsHint.textContent = 'Could not load station names from Mesa. Showing saved mappings so you can still update printers.';
+        } else {
+          stationsHint.textContent = 'Map each station to a printer. Each mapped station appears on checkout (several stations may use the same printer).';
+        }
+        visibleStations.forEach(function (s) {
           var row = document.createElement('div');
           row.className = 'station-row';
           row.dataset.stationId = s.id;
@@ -392,6 +404,9 @@
             cache.winspool = j.winspool || [];
             document.getElementById('scanHint').textContent = scanSummaryText();
             refreshStationSelects();
+          })
+          .catch(function () {
+            document.getElementById('scanHint').textContent = 'Could not load printer list. Check Windows printer drivers, then scan again.';
           });
       }
 
@@ -407,8 +422,20 @@
               return;
             }
             stations = res.j.stations || [];
+            document.getElementById('stationsWarn').classList.add('hidden');
+            renderStations();
+          })
+          .catch(function () {
+            document.getElementById('stationsWarn').classList.remove('hidden');
+            document.getElementById('stationsWarn').textContent = 'Could not reach Mesa to load stations.';
+            stations = [];
             renderStations();
           });
+      }
+
+      function refreshPrintersAndStations() {
+        loadPrinters();
+        loadStations();
       }
 
       function loadState() {
@@ -437,7 +464,7 @@
           });
       }
 
-      document.getElementById('refreshBtn').addEventListener('click', loadPrinters);
+      document.getElementById('refreshBtn').addEventListener('click', refreshPrintersAndStations);
 
       document.getElementById('pairBtn').addEventListener('click', function () {
         var err = document.getElementById('pairErr');

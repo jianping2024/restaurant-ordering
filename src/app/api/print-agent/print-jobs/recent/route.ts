@@ -17,9 +17,10 @@ function parsePage(raw: string | null): number {
   return Math.max(1, Math.floor(n));
 }
 
-function parseStatus(raw: string | null): PrintJobStatus | null {
+function parseStatus(raw: string | null): PrintJobStatus | 'invalid' | null {
+  if (!raw) return null;
   if (raw === 'pending' || raw === 'processing' || raw === 'done' || raw === 'failed') return raw;
-  return null;
+  return 'invalid';
 }
 
 /** Dashboard: recent print_jobs for the logged-in owner's restaurant only (no restaurant_id param). */
@@ -46,6 +47,9 @@ export async function GET(req: Request) {
 
   const page = parsePage(searchParams.get('page'));
   const status = parseStatus(searchParams.get('status'));
+  if (status === 'invalid') {
+    return NextResponse.json({ error: 'invalid_status' }, { status: 400 });
+  }
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 

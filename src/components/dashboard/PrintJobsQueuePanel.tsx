@@ -15,7 +15,6 @@ type PrintJobStatusFilter = (typeof STATUS_CYCLE)[number];
 type QueueResponse = {
   jobs?: PrintJobSummary[];
   page?: number;
-  pageSize?: number;
   status?: PrintJobStatusFilter;
   total?: number;
   totalPages?: number;
@@ -113,12 +112,6 @@ export function PrintJobsQueuePanel({
     [loadQueue, page, statusFilter],
   );
 
-  const cycleStatusFilter = () => {
-    const current = STATUS_CYCLE.indexOf(statusFilter);
-    const next = STATUS_CYCLE[(current + 1) % STATUS_CYCLE.length];
-    void loadQueue(1, next);
-  };
-
   const retryJob = useCallback(
     async (jobId: string) => {
       setRetryingId(jobId);
@@ -145,15 +138,21 @@ export function PrintJobsQueuePanel({
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h2 className="font-heading text-lg text-brand-text">{t.queueTitle}</h2>
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={cycleStatusFilter}
-            disabled={loading}
-            className="text-[12px] px-3 py-1.5 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors disabled:opacity-50"
-            title={t.statusCycleHint}
-          >
-            {t.colStatus}: <span className="text-brand-gold">{labelStatusFilter(statusFilter)}</span>
-          </button>
+          <label className="flex items-center gap-2 text-[12px] text-brand-text-muted">
+            <span>{t.colStatus}</span>
+            <select
+              value={statusFilter}
+              disabled={loading}
+              onChange={(e) => void loadQueue(1, e.target.value as PrintJobStatusFilter)}
+              className="rounded-lg border border-brand-border bg-brand-bg px-2.5 py-1.5 text-[12px] text-brand-text focus:outline-none focus:border-brand-gold/50 disabled:opacity-50"
+            >
+              {STATUS_CYCLE.map((status) => (
+                <option key={status} value={status}>
+                  {labelStatusFilter(status)}
+                </option>
+              ))}
+            </select>
+          </label>
           <button
             type="button"
             onClick={() => void refresh()}
@@ -192,19 +191,7 @@ export function PrintJobsQueuePanel({
                 <th className="py-2 pr-3 font-medium">{t.colTime}</th>
                 <th className="py-2 pr-3 font-medium whitespace-nowrap">{t.colTable}</th>
                 <th className="py-2 pr-3 font-medium">{t.colType}</th>
-                <th className="py-2 pr-3 font-medium">
-                  <button
-                    type="button"
-                    onClick={cycleStatusFilter}
-                    className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 -ml-1.5 text-brand-text-muted hover:text-brand-text hover:bg-brand-muted/50 transition-colors"
-                    title={t.statusCycleHint}
-                  >
-                    <span>{t.colStatus}</span>
-                    <span className="text-[11px] text-brand-gold">
-                      {labelStatusFilter(statusFilter)}
-                    </span>
-                  </button>
-                </th>
+                <th className="py-2 pr-3 font-medium">{t.colStatus}</th>
                 <th className="py-2 pr-3 font-medium">{t.colError}</th>
                 <th className="py-2 pr-3 font-medium">{t.colActions}</th>
                 <th className="py-2 font-medium">{t.colId}</th>

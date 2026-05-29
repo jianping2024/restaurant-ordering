@@ -64,7 +64,7 @@
       <p class="hint" id="stationsHint">…</p>
       <p class="warn hidden" id="stationsWarn"></p>
       <button type="button" id="stationsRetryBtn" class="secondary scan-refresh hidden" style="margin-bottom:12px">…</button>
-      <div class="stations" id="stations"></div>
+      <div class="stations" id="stationsRoot"></div>
       <button type="button" id="saveBtn">…</button>
       <p class="err" id="saveErr"></p>
       <p class="ok-msg" id="saveOk"></p>
@@ -107,11 +107,35 @@
       var debugForce = false;
       try { debugForce = new URLSearchParams(window.location.search).get('debug') === '1'; } catch (e) { debugForce = false; }
 
+      function errBrief(err) {
+        if (!err) return 'unknown';
+        var msg = String(err.message || err);
+        if (err.stack) {
+          var frame = String(err.stack).split('\n')[1] || '';
+          if (frame) msg += ' |' + frame.trim();
+        }
+        return msg;
+      }
+
       function dbg(msg) {
         var line = new Date().toISOString().slice(11, 23) + ' ' + msg;
         debugLines.push(line);
         if (debugLines.length > 80) debugLines.shift();
-        renderDebug();
+        try {
+          renderDebug();
+        } catch (e) {
+          debugLines.push(new Date().toISOString().slice(11, 23) + ' renderDebug FAILED: ' + errBrief(e));
+          if (debugLines.length > 80) debugLines.shift();
+          var pre = document.getElementById('debugPre');
+          if (pre) pre.textContent = debugLines.join('\n');
+        }
+      }
+
+      function normalizeCloudStations(raw) {
+        if (Array.isArray(raw)) return raw;
+        if (raw == null) return [];
+        dbg('WARN print-stations payload not array type=' + typeof raw);
+        return [];
       }
 
       function dbgResponse(label, url, r, txt) {
@@ -141,16 +165,20 @@
 
       function renderDebug() {
         var paired = !!state.paired;
-        var nCloud = (stations || []).length;
+        var list = Array.isArray(stations) ? stations : [];
+        var nCloud = list.length;
         var nRender = stationsForRender().length;
         var api = state.api_base || '(none)';
-        document.getElementById('debugSummary').innerHTML =
+        var summary = document.getElementById('debugSummary');
+        var pre = document.getElementById('debugPre');
+        if (!summary || !pre) return;
+        summary.innerHTML =
           'paired=' + paired +
           ' api=' + escapeHtml(String(api).slice(0, 48)) +
           ' cloud_stations=' + nCloud +
           ' render_rows=' + nRender +
           ' maps=' + Object.keys(state.station_printers || {}).length;
-        document.getElementById('debugPre').textContent = debugLines.join('\n');
+        pre.textContent = debugLines.join('\n');
         if (debugForce) openDebug(true);
       }
 
@@ -215,7 +243,8 @@
       function stationsForRender() {
         var out = [];
         var seen = {};
-        (stations || []).forEach(function (s) {
+        var list = Array.isArray(stations) ? stations : [];
+        list.forEach(function (s) {
           var key = String(s && s.id || '').trim();
           if (!key || seen[key]) return;
           seen[key] = true;
@@ -339,7 +368,8 @@
       }
 
       function renderStations() {
-        var root = document.getElementById('stations');
+        var root = document.getElementById('stationsRoot');
+        if (!root) throw new Error('DOM #stationsRoot missing');
         var visible = stationsForRender();
         root.innerHTML = '';
         if (!visible.length) {
@@ -369,6 +399,25 @@
           root.appendChild(row);
         });
         refreshTestSelect();
+      }
+
+      function safeRenderStations() {
+        dbg('phase stations_render start');
+        try {
+          renderStations();
+          dbg('phase stations_render ok rows=' + stationsForRender().length);
+          return true;
+        } catch (e) {
+          dbg('phase stations_render FAILED: ' + errBrief(e));
+          var warn = document.getElementById('stationsWarn');
+          if (warn) {
+            warn.classList.remove('hidden');
+            warn.textContent = t('render_stations_failed');
+          }
+          var retryBtn = document.getElementById('stationsRetryBtn');
+          if (retryBtn) retryBtn.classList.remove('hidden');
+          return false;
+        }
       }
 
       function collectMappings() {
@@ -443,6 +492,7 @@
 
       function showStateRetry(show) {
         var btn = document.getElementById('stateRetryBtn');
+        if (!btn) return;
         if (show) btn.classList.remove('hidden');
         else btn.classList.add('hidden');
       }
@@ -457,22 +507,26 @@
 
       function applyStations(res) {
         var retryBtn = document.getElementById('stationsRetryBtn');
+        var warn = document.getElementById('stationsWarn');
         if (!res.ok) {
           stations = [];
           stationNamesById = {};
-          document.getElementById('stationsWarn').classList.remove('hidden');
-          document.getElementById('stationsWarn').textContent = (res.j && res.j.error) || t('stations_load_failed');
-          retryBtn.classList.remove('hidden');
+          if (warn) {
+            warn.classList.remove('hidden');
+            warn.textContent = (res.j && res.j.error) || t('stations_load_failed');
+          }
+          if (retryBtn) retryBtn.classList.remove('hidden');
+          dbg('phase stations_apply http_fail');
           return;
         }
-        stations = res.j.stations || [];
+        stations = normalizeCloudStations(res.j && res.j.stations);
         stationNamesById = {};
         stations.forEach(function (s) {
           if (s && s.id) stationNamesById[s.id] = s;
         });
-        dbg('stations applied count=' + stations.length);
-        document.getElementById('stationsWarn').classList.add('hidden');
-        retryBtn.classList.add('hidden');
+        dbg('phase stations_apply ok count=' + stations.length);
+        if (warn) warn.classList.add('hidden');
+        if (retryBtn) retryBtn.classList.add('hidden');
       }
 
       function runScan() {
@@ -505,25 +559,38 @@
         return fetchStations().then(function (res) {
           if (gen !== pageGen) return;
           applyStations(res);
-          renderStations();
-        }).catch(function () {
+          safeRenderStations();
+        }).catch(function (err) {
           if (gen !== pageGen) return;
+          dbg('print-stations FAILED: ' + String(err && err.message || err));
           stations = [];
           stationNamesById = {};
           document.getElementById('stationsWarn').classList.remove('hidden');
           document.getElementById('stationsWarn').textContent = t('stations_reach_failed');
           document.getElementById('stationsRetryBtn').classList.remove('hidden');
-          renderStations();
+          safeRenderStations();
         });
+      }
+
+      function failStateLoad(gen, phase, err) {
+        if (gen !== pageGen) return;
+        dbg('loadPage FAILED phase=' + phase + ': ' + errBrief(err));
+        document.getElementById('gateCard').classList.add('hidden');
+        document.getElementById('mainCard').classList.add('hidden');
+        document.getElementById('status').textContent = t('state_load_failed');
+        showStateRetry(true);
+        openDebug(true);
       }
 
       function loadPage() {
         var gen = ++pageGen;
         showStateRetry(false);
         document.getElementById('status').textContent = t('status_loading');
+        dbg('phase loadPage start gen=' + gen);
         fetchConfigureStateWithRetry(0)
           .then(function (j) {
             if (gen !== pageGen) return;
+            dbg('phase configure_state ok paired=' + !!j.paired);
             state = j;
             ui = j.ui || {};
             seedDraft();
@@ -537,23 +604,22 @@
                 window.location.replace(buildPairHref(pairPath));
                 return;
               }
+              dbg('phase loadPage done unpaired');
               return;
             }
-            return loadStations(gen);
+            return loadStations(gen).then(function () {
+              if (gen !== pageGen) return;
+              dbg('phase loadPage done paired');
+            });
           })
-          .catch(function () {
-            if (gen !== pageGen) return;
-            dbg('loadPage FAILED (configure-state)');
-            document.getElementById('gateCard').classList.add('hidden');
-            document.getElementById('mainCard').classList.add('hidden');
-            document.getElementById('status').textContent = t('state_load_failed');
-            showStateRetry(true);
+          .catch(function (err) {
+            failStateLoad(gen, 'configure_state', err);
           });
       }
 
       document.getElementById('stateRetryBtn').addEventListener('click', loadPage);
 
-      document.getElementById('stations').addEventListener('change', function (e) {
+      document.getElementById('stationsRoot').addEventListener('change', function (e) {
         if (!e.target || !e.target.classList.contains('station-printer')) return;
         var row = e.target.closest('.station-row');
         if (row && row.dataset.stationId) {

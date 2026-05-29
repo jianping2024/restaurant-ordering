@@ -1,15 +1,17 @@
 export type SettingsNavId =
   | 'profile'
+  | 'features'
   | 'tables'
   | 'staff'
   | 'menu'
   | 'buffet'
   | 'print-assistant';
 
-export type SettingsNavGroupId = 'basics' | 'venue' | 'menu' | 'print';
+export type SettingsNavGroupId = 'basics' | 'features' | 'venue' | 'menu' | 'print';
 
 export type SettingsHubLabelKey =
   | 'tabProfile'
+  | 'tabFeatures'
   | 'tabTables'
   | 'tabStaff'
   | 'tabMenu'
@@ -18,6 +20,7 @@ export type SettingsHubLabelKey =
 
 export type SettingsHubHintKey =
   | 'hintProfile'
+  | 'hintFeatures'
   | 'hintTables'
   | 'hintStaff'
   | 'hintMenu'
@@ -34,7 +37,7 @@ export type SettingsNavItem = {
 
 export type SettingsNavGroup = {
   groupId: SettingsNavGroupId;
-  groupKey: 'groupBasics' | 'groupVenue' | 'groupMenu' | 'groupPrint';
+  groupKey: 'groupBasics' | 'groupFeatures' | 'groupVenue' | 'groupMenu' | 'groupPrint';
   items: SettingsNavItem[];
 };
 
@@ -50,6 +53,19 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
         hintKey: 'hintProfile',
         isActive: (pathname) =>
           pathname === '/dashboard/settings' || pathname === '/dashboard/settings/',
+      },
+    ],
+  },
+  {
+    groupId: 'features',
+    groupKey: 'groupFeatures',
+    items: [
+      {
+        id: 'features',
+        href: '/dashboard/settings/features',
+        labelKey: 'tabFeatures',
+        hintKey: 'hintFeatures',
+        isActive: (pathname) => pathname.startsWith('/dashboard/settings/features'),
       },
     ],
   },

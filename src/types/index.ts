@@ -75,6 +75,8 @@ export interface Restaurant {
   print_locale?: 'zh' | 'en' | 'pt';
   /** Lisbon local time: Friday at/after this → weekend buffet pricing; null = off. */
   buffet_friday_weekend_from?: string | null;
+  /** Owner toggles for optional product modules; see `src/lib/restaurant-features.ts`. */
+  feature_flags?: Record<string, boolean> | null;
   created_at: string;
 }
 

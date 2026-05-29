@@ -10,6 +10,7 @@ import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { getMessages } from '@/lib/i18n/messages';
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
+import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 
 const ownerNavItems = [
   { href: '/dashboard/unpaid-orders', key: 'unpaidOrders', icon: '🧾', exact: false },
@@ -27,9 +28,10 @@ export function DashboardNav({
   restaurant,
   accessMode = 'owner',
 }: {
-  restaurant: Pick<Restaurant, 'id' | 'name' | 'slug'>;
+  restaurant: Pick<Restaurant, 'id' | 'name' | 'slug' | 'feature_flags'>;
   accessMode?: DashboardAccessMode;
 }) {
+  const kitchenShortcutEnabled = isDashboardKitchenShortcutEnabled(restaurant.feature_flags);
   const pathname = usePathname();
   const router = useRouter();
   const { lang } = useLanguage();
@@ -180,15 +182,17 @@ export function DashboardNav({
 
       {accessMode === 'owner' ? (
         <div className="px-4 py-3 border-t border-brand-border">
-          <a
-            href={`/${restaurant.slug}/kitchen`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2 text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
-          >
-            <span>🍳</span>
-            {t.viewKitchen}
-          </a>
+          {kitchenShortcutEnabled ? (
+            <a
+              href={`/${restaurant.slug}/kitchen`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
+            >
+              <span>🍳</span>
+              {t.viewKitchen}
+            </a>
+          ) : null}
           <a
             href={`/${restaurant.slug}/waiter`}
             target="_blank"

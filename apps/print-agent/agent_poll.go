@@ -113,6 +113,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 				sleepOrCancel(ctx, pc.sleepFor(phase))
 				continue
 			}
+			sess.printerReady().armPrintAfterOnPendingFetch(cfg, sess.cfgPath)
 			queue = jobs
 			blockedSpins = 0
 			reorderPasses = 0
@@ -257,7 +258,9 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 		}
 		data := escposFromJob(job)
 		if err := printToTarget(target, data); err != nil {
-			sess.printerReady().notePrintFailure(cfg, sess.cfgPath, target, err)
+			if printerIOFailure(err) {
+				sess.printerReady().noteTargetOffline(cfg, sess.cfgPath, target)
+			}
 			if patchJobStatus(ctx, cfg, job.ID, map[string]any{
 				"status":        "failed",
 				"error_message": err.Error(),

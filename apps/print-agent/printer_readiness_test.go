@@ -88,6 +88,47 @@ func TestPrinterReadyTracker_markOnMappingChange(t *testing.T) {
 	}
 }
 
+func TestArmPrintAfterOnPendingFetch_skipsOlderJobs(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	path := dir + "/config.json"
+	cfg := &config{
+		StationPrinters: map[string]string{"s1": "winspool:Kitchen"},
+	}
+	_ = saveConfig(path, cfg)
+	tr := newPrinterReadyTracker()
+	tr.armPrintAfterOnPendingFetch(cfg, path)
+	key := "winspool:Kitchen"
+	since := tr.printAfter[key]
+	old := printJob{
+		ID:        "old",
+		CreatedAt: since.Add(-2 * time.Minute).UTC().Format(time.RFC3339),
+	}
+	if skip, _ := tr.shouldSkipBacklog(key, old); !skip {
+		t.Fatal("expected skip for job before pending fetch arm")
+	}
+	fresh := printJob{
+		ID:        "new",
+		CreatedAt: since.Add(2 * time.Second).UTC().Format(time.RFC3339),
+	}
+	if skip, _ := tr.shouldSkipBacklog(key, fresh); skip {
+		t.Fatal("expected job after arm time to print")
+	}
+}
+
+func TestArmPrintAfterOnPendingFetch_doesNotOverwriteReconnect(t *testing.T) {
+	t.Parallel()
+	tr := newPrinterReadyTracker()
+	key := "winspool:Kitchen"
+	earlier := time.Now().Add(-10 * time.Minute)
+	tr.printAfter[key] = earlier
+	cfg := &config{StationPrinters: map[string]string{"s1": "winspool:Kitchen"}}
+	tr.armPrintAfterOnPendingFetch(cfg, "")
+	if !tr.printAfter[key].Equal(earlier) {
+		t.Fatal("must not overwrite printAfter from reconnect or disk")
+	}
+}
+
 func TestPrinterReadyTracker_loadFromConfig(t *testing.T) {
 	t.Parallel()
 	tr := newPrinterReadyTracker()

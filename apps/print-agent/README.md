@@ -15,6 +15,8 @@ See [`docs/restaurant-tables-design.zh.md`](../../docs/restaurant-tables-design.
 
 **Product UX / packaging roadmap (tray, onboarding, heartbeat, i18n):** [`docs/print-agent-ux-packaging.zh.md`](../../docs/print-agent-ux-packaging.zh.md).
 
+**End-to-end print flow + Windows spooler rules (do not use `PRINTER_STATUS_*` preflight):** [`docs/print-agent-flow.zh.md`](../../docs/print-agent-flow.zh.md) — especially **§1 开发约束**.
+
 ## Commands
 
 ### Discover printers (LAN scan)

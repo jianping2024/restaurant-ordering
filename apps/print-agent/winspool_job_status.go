@@ -3,7 +3,6 @@ package main
 // Win32 JOB_STATUS_* (subset) for post-submit verify on Windows.
 const (
 	jobStatusError    = 0x00000002
-	jobStatusBlocked  = 0x00000200
 	jobStatusComplete = 0x00001000
 )
 

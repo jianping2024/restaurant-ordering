@@ -12,7 +12,7 @@ func TestWinspoolJobStatusIsProblem(t *testing.T) {
 	if !winspoolJobStatusIsProblem(jobStatusError) {
 		t.Fatal("job error should fail verify")
 	}
-	if winspoolJobStatusIsProblem(jobStatusBlocked) {
+	if winspoolJobStatusIsProblem(0x200) {
 		t.Fatal("job blocked alone must not fail verify")
 	}
 }

@@ -24,14 +24,16 @@ func TestPrinterIOFailure(t *testing.T) {
 	}
 }
 
-func TestNotePrintFailureMarksOffline(t *testing.T) {
+func TestPrinterIOFailureMarksOffline(t *testing.T) {
 	dir := t.TempDir()
 	path := dir + "/config.json"
 	cfg := &config{APIBase: "https://x", AgentJWT: "t"}
 	_ = saveConfig(path, cfg)
 	tr := newPrinterReadyTracker()
 	target := printerTarget{Scheme: schemeTCP, TCPHostPort: "10.0.0.1:9100", Display: "tcp:10.0.0.1:9100"}
-	tr.notePrintFailure(cfg, path, target, fmt.Errorf("%w: write failed", errPrinterNotReady))
+	if printerIOFailure(fmt.Errorf("%w: write failed", errPrinterNotReady)) {
+		tr.noteTargetOffline(cfg, path, target)
+	}
 	key := targetKey(target)
 	if !tr.wasOffline[key] {
 		t.Fatal("expected wasOffline after IO print failure")

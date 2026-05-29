@@ -1,6 +1,6 @@
 # Mesa 打印全链路说明
 
-本文描述当前仓库中 **云端 `print_jobs` 队列** 与 **本地 print-agent（Go）** 的协作方式，对应 agent 版本 **0.3.11+** 行为。
+本文描述当前仓库中 **云端 `print_jobs` 队列** 与 **本地 print-agent（Go）** 的协作方式，对应 agent 版本 **0.3.12+** 行为。
 
 相关代码：
 
@@ -9,7 +9,43 @@
 
 ---
 
-## 1. 架构概览
+## 1. 开发约束：Windows / WinSpool 就绪判断（必读）
+
+修改 `apps/print-agent` 时，**不得**恢复「读 Windows 打印机状态位 → 判定不可打印」一类逻辑。USB 热敏机（含 POS-80）经常在**能正常 RAW 出纸**时仍上报 `PRINTER_STATUS_OFFLINE`（例如合并状态 **0xC0** = OFFLINE \| PAPER_PROBLEM），会导致任务永远 `pending`、日志里反复 `not ready (status 0xC0)`。
+
+### 禁止（勿再引入）
+
+| 反模式 | 典型代码 / API | 后果 |
+|--------|----------------|------|
+| 预检读 `PRINTER_STATUS_*` | `GetPrinter` level 6/8 → `winspoolDiagnosticStatus` → **`winspoolStatusIsProblem(flags)`** → `winspoolCheckReady` 返回 not ready | 0.2.60+ 整批不打印；与物理打印机是否正常无关 |
+| 把 OFFLINE / NOT_AVAILABLE 当硬故障 | `flags & (PRINTER_STATUS_OFFLINE \| …)` 在 **claim 之前** 拦截 | 误报 0xC0；积压与在线单都打不出去 |
+| 预检用 `JOB_STATUS_OFFLINE` / `BLOCKED` | 在 `preparePrint` / `winspoolCheckReady` 路径查作业状态 | 同类误报 |
+| 仅因状态位标 `wasOffline` | 未发生 `OpenPrinter` / `Write` 失败就持久化离线 | 离线积压策略与真实断线不一致 |
+
+历史：print-agent **0.2.59** 及更早仅 `OpenPrinter` + RAW；**0.2.60** 起引入上述状态位预检后出现现场故障；**0.3.9+** 已从预检路径移除 `winspoolStatusIsProblem`；**0.3.11** 起打印 IO 失败统一走 `printerIOFailure` / `notePrintFailure`。
+
+### 允许（当前约定）
+
+| 阶段 | WinSpool | TCP |
+|------|----------|-----|
+| **能否开始打（预检）** | `winspoolCheckReady` = **`OpenPrinter` 成功**（`sink_winspool_windows.go`），不读 `PRINTER_STATUS_*` | `Dial` 2s（`tcpCheckReady`） |
+| **物理输出** | `WritePrinter` / RAW；失败包装为 `errPrinterNotReady` 或经 `printerIOFailure` 记离线 | `Write`；失败同上 |
+| **提交后校验（可选）** | 仅 `winspoolJobStatusIsProblem` 且 **只认 `JOB_STATUS_ERROR`**（`winspool_job_status.go`），用于 RAW 提交后轮询，**不**用于 `preparePrint` | 无作业状态 API |
+
+离线积压（`printAfter` / `printer_was_offline`）依赖：**探测或写入失败** → 恢复在线时 `markPrintAfter`，再按 `created_at` 跳过旧单；见 §7.3。
+
+### Code review 自检
+
+- [ ] `winspoolCheckReady` 内没有 `GetPrinter`、`winspoolStatusIsProblem`、`winspoolDiagnosticStatus`
+- [ ] 不存在仅因 `PRINTER_STATUS_OFFLINE` / `0xC0` 返回 `errPrinterNotReady` 的分支
+- [ ] `preparePrint` 之前没有 `JOB_STATUS_*` 预检
+- [ ] 若新增「就绪」辅助函数，命名上不要与已删除的 `winspool_status.go` 混淆；逻辑上仍以 **Open + Write 结果** 为准
+
+相关实现注释：`printer_io_errors.go`、`sink_winspool_windows.go` 中 `winspoolCheckReady`。
+
+---
+
+## 2. 架构概览
 
 ```mermaid
 flowchart LR
@@ -36,7 +72,7 @@ flowchart LR
 
 ---
 
-## 2. 任务类型与入队（云端）
+## 3. 任务类型与入队（云端）
 
 | `type` | 触发场景 | `payload` 路由关键字段 |
 |--------|----------|------------------------|
@@ -55,7 +91,7 @@ flowchart LR
 
 ---
 
-## 3. Agent API（云端）
+## 4. Agent API（云端）
 
 | 方法 | 路径 | 作用 |
 |------|------|------|
@@ -65,7 +101,7 @@ flowchart LR
 | `POST` | `/api/print-agent/heartbeat` | 在线心跳、最近打印结果 |
 | `PUT` | `/api/print-agent/routing` | 同步档口映射（Dashboard 配置） |
 
-### 3.1 `GET pending-jobs` 过滤规则
+### 4.1 `GET pending-jobs` 过滤规则
 
 每次请求会：
 
@@ -75,7 +111,7 @@ flowchart LR
 
 因此：断线很多天后的旧单不会再次被拉取；与 agent 侧 20 分钟防御性过期一致。
 
-### 3.2 `PATCH jobs/:id` 状态机
+### 4.2 `PATCH jobs/:id` 状态机
 
 | 目标状态 | 允许的前置 | 副作用 |
 |----------|------------|--------|
@@ -87,7 +123,7 @@ Agent 在**确认可以打印之后**才 PATCH `processing`，避免长时间占
 
 ---
 
-## 4. 本地配置（`config.json`）
+## 5. 本地配置（`config.json`）
 
 路径：`%USERPROFILE%\.config\mesa-print-agent\config.json`（见 `apps/print-agent/README.md`）。
 
@@ -101,7 +137,7 @@ Agent 在**确认可以打印之后**才 PATCH `processing`，避免长时间占
 | `printer_print_after` | 每台打印机目标的「恢复在线」时间（RFC3339），用于跳过离线积压 |
 | `printer_was_offline` | 持久化离线标记，重启后仍能触发「恢复在线」逻辑 |
 
-### 4.1 打印机地址格式
+### 5.1 打印机地址格式
 
 | 写法 | 协议 | 示例 |
 |------|------|------|
@@ -116,7 +152,7 @@ Agent 内部统一为 `printerTarget`，**目标键** `targetKey`：
 
 ---
 
-## 5. 轮询主循环（`runPollLoop`）
+## 6. 轮询主循环（`runPollLoop`）
 
 ```mermaid
 stateDiagram-v2
@@ -137,14 +173,14 @@ stateDiagram-v2
 2. 判断营业时间 `scheduleOpen`；歇业则不拉单。
 3. `postHeartbeat`。
 4. 本地队列 `queue` 为空时 `fetchPending`；否则继续消化队首（一批拉取后顺序处理，减少 API 压力）。
-5. 对队首任务走 **单任务流水线**（§6）。
+5. 对队首任务走 **单任务流水线**（§7）。
 6. 按 `poll` 配置休眠：`busy` / `after_print` / `idle` / `warm` / `error` / `closed`。
 
 **启动时**：`printerReady().bootstrap(sess)` 探测所有已映射打印机；不可达则记 `wasOffline` 并写入 `printer_was_offline`。
 
 ---
 
-## 6. 单任务流水线
+## 7. 单任务流水线
 
 ```mermaid
 flowchart TD
@@ -162,18 +198,18 @@ flowchart TD
   G -->|成功| H[PATCH done]
 ```
 
-### 6.1 过期（20 分钟）
+### 7.1 过期（20 分钟）
 
 - 云端拉单已过滤；agent 仍对队首做 `jobPrintExpired`（`job_max_age.go`），双保险标 `failed:expired`。
 
-### 6.2 路由（`config.printerTargetForJob`）
+### 7.2 路由（`config.printerTargetForJob`）
 
 | 类型 | 规则 |
 |------|------|
 | `station_ticket` | `station_printers[print_station_id]` |
 | `order_receipt` / `pre_bill` | `receipt_printer_id` → `station:{id}` 查映射；若为空且任务 **20 分钟内** 且无映射 → `errReceiptPrintDeferred`（保持 `pending`，不标 failed） |
 
-### 6.3 打印机就绪与离线积压（`printer_readiness.go`）
+### 7.3 打印机就绪与离线积压（`printer_readiness.go`）
 
 **设计目标**：打印机离线期间产生的任务，在 **恢复在线之后不要自动补打**；恢复之后新下的单正常打印。
 
@@ -188,7 +224,7 @@ flowchart TD
 
 1. `targetCheckReady`：
    - **TCP**：2s 内 `Dial` 成功。
-   - **WinSpool**：`OpenPrinter` 成功即可（**不**根据 `PRINTER_STATUS_OFFLINE` 等易误报状态位拦截，避免 0xC0 假离线）。
+   - **WinSpool**：`OpenPrinter` 成功即可（细则见 **§1 开发约束**）。
 2. 失败 → `wasOffline = true`，持久化，返回 `errPrinterNotReady`（任务保持 `pending`）。
 3. 成功且此前 `wasOffline` → `markPrintAfter(now)`，打日志「打印机已恢复在线…」，清除 `wasOffline`。
 
@@ -202,29 +238,28 @@ flowchart TD
 
 #### 触发 `printAfter` 的三种情况
 
-1. **离线 → 在线**（上节）。
+1. **离线 → 在线**（上节）：`wasOffline` 清除前 `markPrintAfter`。
 2. **档口换了打印机**（`noteMappingChanges`）：该目标立即 `markPrintAfter`。
-3. **打印过程报 not ready**（`noteTargetOffline`）：下次成功就绪时再 arm。
+3. **打印 IO 失败**（`notePrintFailure`）：持久化 `printer_was_offline`，恢复后走 (1)。
+4. **拉取到非空 pending 队列**（`armPrintAfterOnPendingFetch`，**0.3.12+**）：对尚无 `printAfter` 的映射打印机 arm 当前时间，跳过更早的 `created_at`（含冷启动时 USB 已插回但 agent 未记录离线的积压）。
 
 #### 队列调度
 
 - 某打印机 not ready 时：`reorderQueueAwayFromPrinter` 优先处理绑定其他打印机的任务。
 - 否则 `deferBlockedHead` 轮转队首，避免单任务堵死整批。
 
-### 6.4 打印执行（`printToTarget`）
+### 7.4 打印执行（`printToTarget`）
 
 | 协议 | 实现 | 就绪检查 |
 |------|------|----------|
 | TCP | `tcpPrint` 直写 socket | 连接探测 |
-| WinSpool | `OpenPrinter` → `RAW` / `XPS_PASS` → `WritePrinter` | 仅 `OpenPrinter` 预检；**不读** `PRINTER_STATUS_*`；提交后仅 `JOB_STATUS_ERROR` 判失败（忽略 OFFLINE/BLOCKED 误报） |
+| WinSpool | `OpenPrinter` → `RAW` / `XPS_PASS` → `WritePrinter` | 仅 `OpenPrinter` 预检；提交后仅 `JOB_STATUS_ERROR`（见 **§1**） |
 
-**禁止再犯的规则**：USB 热敏机不得以 Windows 打印机/作业状态位作为「能否打印」的唯一依据；以 `OpenPrinter`、TCP 连通、实际 `Write` 结果为准。
-
-成功 → `done` + 心跳 `last_print_status=done`；失败 → `failed:print`，若 `errPrinterNotReady` 则记离线。
+成功 → `done` + 心跳 `last_print_status=done`；失败 → `failed:print`，IO 类失败经 `notePrintFailure` 记离线。
 
 ---
 
-## 7. 任务结局对照表
+## 8. 任务结局对照表
 
 | Agent 行为 | `print_jobs.status` | 典型 `error_message` / 备注 |
 |------------|---------------------|-----------------------------|
@@ -241,7 +276,7 @@ flowchart TD
 
 ---
 
-## 8. 与版本相关的行为变更（摘要）
+## 9. 与版本相关的行为变更（摘要）
 
 | 版本区间 | 行为 |
 |----------|------|
@@ -250,10 +285,11 @@ flowchart TD
 | **0.3.x** | 轮询前 `preparePrint`；离线积压逻辑；但 `everReady` 导致 **重启 agent 不打 printAfter**，积压仍会打印 |
 | **0.3.10+** | 去掉状态位预检；`printer_print_after` / `printer_was_offline` 持久化；去掉 `everReady` 门槛 |
 | **0.3.11+** | TCP/WinSpool 写入失败记离线；`printerIOFailure` 统一判断；作业状态不再看 `BLOCKED` |
+| **0.3.12+** | 拉取 pending 时为未 arm 的打印机设置 `printAfter`，避免冷启动打出离线积压 |
 
 ---
 
-## 9. 已知边界（非状态位类）
+## 10. 已知边界（非状态位类）
 
 | 场景 | 行为 |
 |------|------|
@@ -264,7 +300,7 @@ flowchart TD
 
 ---
 
-## 10. 运维与测试建议
+## 11. 运维与测试建议
 
 1. **拔线测试**：拔 USB → 下单 → 插回；应看到「已跳过打印机恢复前的积压」，且仅插回后的新单会 `已打印`。
 2. **勿仅靠重启 agent 代替插回**：重启会 `bootstrap`；若拔线时 agent 未探测到离线且未持久化 `printer_was_offline`，仍可能打出旧单——以日志中是否出现 `log_skipped_offline_backlog` 为准。
@@ -272,7 +308,7 @@ flowchart TD
 
 ---
 
-## 11. 文件索引（Agent）
+## 12. 文件索引（Agent）
 
 | 文件 | 职责 |
 |------|------|
@@ -282,7 +318,9 @@ flowchart TD
 | `config.go` | 路由解析、`mappedPrinterTargets` |
 | `receipt_defer.go` | 小票 20 分钟 defer |
 | `job_max_age.go` | 客户端过期判断 |
-| `sink_winspool_windows.go` | Windows RAW 打印 |
+| `sink_winspool_windows.go` | Windows RAW 打印（`winspoolCheckReady` 仅 OpenPrinter） |
+| `printer_io_errors.go` | IO 失败判定；注释禁止 PRINTER_STATUS 预检 |
+| `winspool_job_status.go` | 提交后仅 `JOB_STATUS_ERROR` |
 | `sink_tcp.go` | LAN 打印 |
 | `main.go` | HTTP 拉单/改状态 |
 

@@ -97,6 +97,32 @@ func (tr *printerReadyTracker) bootstrap(sess *agentSession) {
 	}
 }
 
+// armPrintAfterOnPendingFetch skips jobs created before now for mapped printers without printAfter yet.
+func (tr *printerReadyTracker) armPrintAfterOnPendingFetch(cfg *config, cfgPath string) {
+	if tr == nil || cfg == nil {
+		return
+	}
+	displays := tr.armPrintAfterUnsetKeys(cfg, time.Now())
+	if len(displays) == 0 {
+		return
+	}
+	tr.persist(cfg, cfgPath)
+	agentLog(cfg, "log_printer_arm_skip_stale_pending", strings.Join(displays, ", "))
+}
+
+func (tr *printerReadyTracker) armPrintAfterUnsetKeys(cfg *config, when time.Time) []string {
+	var displays []string
+	for _, pt := range cfg.mappedPrinterTargets() {
+		key := targetKey(pt)
+		if _, ok := tr.printAfter[key]; ok {
+			continue
+		}
+		tr.printAfter[key] = when
+		displays = append(displays, pt.Display)
+	}
+	return displays
+}
+
 func targetKey(t printerTarget) string {
 	switch t.Scheme {
 	case schemeTCP:
@@ -144,13 +170,6 @@ func (tr *printerReadyTracker) noteTargetOffline(cfg *config, cfgPath string, ta
 	key := targetKey(target)
 	tr.wasOffline[key] = true
 	tr.persist(cfg, cfgPath)
-}
-
-// notePrintFailure marks the target offline after a transport/spooler error (arms backlog skip on reconnect).
-func (tr *printerReadyTracker) notePrintFailure(cfg *config, cfgPath string, target printerTarget, err error) {
-	if printerIOFailure(err) {
-		tr.noteTargetOffline(cfg, cfgPath, target)
-	}
 }
 
 func (tr *printerReadyTracker) noteMappingChanges(cfg *config, cfgPath string, prev, next *config) {

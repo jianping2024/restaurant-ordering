@@ -153,7 +153,28 @@ func TestPreparePrint_gateUnconfirmedWinspoolPending(t *testing.T) {
 	}
 }
 
-func TestLoadFromConfig_restoresOnlineConfirmedWhenNotOffline(t *testing.T) {
+// TestReadinessInvariants_documentsAxes guards against conflating printAfter with onlineConfirmed.
+func TestReadinessInvariants_documentsAxes(t *testing.T) {
+	t.Parallel()
+	tr := newPrinterReadyTracker()
+	key := "winspool:Bar"
+	when := time.Now().Add(-time.Hour)
+	tr.printAfter[key] = when
+	tr.loadFromConfig(&config{
+		PrinterPrintAfter: map[string]string{key: when.UTC().Format(time.RFC3339)},
+	})
+	if tr.onlineConfirmed[key] {
+		t.Fatal("printAfter on disk must not imply onlineConfirmed")
+	}
+	tr.resetWinspoolSessionTrust(&config{
+		StationPrinters: map[string]string{"s": "winspool:Bar"},
+	})
+	if tr.onlineConfirmed[key] {
+		t.Fatal("resetWinspoolSessionTrust must clear onlineConfirmed")
+	}
+}
+
+func TestLoadFromConfig_doesNotAutoConfirmWinspool(t *testing.T) {
 	t.Parallel()
 	tr := newPrinterReadyTracker()
 	when := time.Date(2026, 5, 29, 12, 0, 0, 0, time.UTC)
@@ -162,8 +183,12 @@ func TestLoadFromConfig_restoresOnlineConfirmedWhenNotOffline(t *testing.T) {
 		PrinterWasOffline: nil,
 	}
 	tr.loadFromConfig(cfg)
-	if !tr.onlineConfirmed["winspool:Bar"] {
-		t.Fatal("expected online confirmed when print_after persisted and not offline")
+	if tr.onlineConfirmed["winspool:Bar"] {
+		t.Fatal("must not trust persisted print_after as online confirmed")
+	}
+	tr.resetWinspoolSessionTrust(cfg)
+	if tr.onlineConfirmed["winspool:Bar"] {
+		t.Fatal("session reset must keep winspool unconfirmed")
 	}
 }
 

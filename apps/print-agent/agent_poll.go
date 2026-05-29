@@ -261,6 +261,11 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			if printerIOFailure(err) {
 				sess.printerReady().noteTargetOffline(cfg, sess.cfgPath, target)
 			}
+			sess.printerReady().logReadiness(cfg, readinessPrepare, target, job, map[string]string{
+				"decision":   "print_io_fail",
+				"mesa_patch": "failed:print",
+				"detail":     err.Error(),
+			})
 			if patchJobStatus(ctx, cfg, job.ID, map[string]any{
 				"status":        "failed",
 				"error_message": err.Error(),
@@ -272,7 +277,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			}
 			setStatus("Print failed", err.Error())
 		} else {
-			sess.printerReady().confirmOnline(cfg, sess.cfgPath, target)
+			sess.printerReady().confirmOnline(cfg, sess.cfgPath, target, job)
 			if patchJobStatus(ctx, cfg, job.ID, map[string]any{"status": "done"}, "done") {
 				agentLog(cfg, "log_printed_ok", target.Display, summarizeJobPayload(job), job.ID)
 				sess.hb.recordPrint(true)

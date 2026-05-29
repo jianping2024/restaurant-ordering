@@ -24,9 +24,11 @@ type config struct {
 	ValidUntil string `json:"valid_until,omitempty"`
 	// TextEncoding: auto | utf8 | gbk | latin — Chinese/non-Latin bytes on thermal paper (UI/test + zh jobs).
 	TextEncoding string `json:"text_encoding,omitempty"`
-	// PrinterPrintAfter: per target key (tcp:… / winspool:…), RFC3339 — skip pending jobs created before this time after reconnect.
+	// PrinterPrintAfter: per targetKey → RFC3339 backlog cutoff only (job.created_at < T → failed:offline_backlog).
+	// NOT "printer is online". Do not use to set onlineConfirmed on agent load (see printer_readiness.go).
 	PrinterPrintAfter map[string]string `json:"printer_print_after,omitempty"`
-	// PrinterWasOffline: persisted until the target is reachable again (arms print_after on reconnect).
+	// PrinterWasOffline: targetKey was unreachable on last probe/IO; cleared when targetCheckReady succeeds.
+	// Absence on disk does NOT mean onlineConfirmed; WinSpool may still need session print proof.
 	PrinterWasOffline map[string]bool `json:"printer_was_offline,omitempty"`
 }
 

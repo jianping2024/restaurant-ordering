@@ -238,6 +238,14 @@
         });
       }
 
+      /** Non-empty station_printers from local config.json (via /api/configure-state). */
+      function hasSavedStationMappings() {
+        var maps = state.station_printers || {};
+        return Object.keys(maps).some(function (sid) {
+          return sid && String(maps[sid] || '').trim() !== '';
+        });
+      }
+
       function mappedValue(sid) {
         if (Object.prototype.hasOwnProperty.call(draftMappings, sid)) {
           return draftMappings[sid] || '';
@@ -648,7 +656,13 @@
             }
             return loadStations(gen).then(function () {
               if (gen !== pageGen) return;
-              dbg('phase loadPage stations ready, auto scan');
+              if (hasSavedStationMappings()) {
+                dbg('phase loadPage skip auto scan local_maps=' +
+                  Object.keys(state.station_printers || {}).length);
+                updateScanHint();
+                return;
+              }
+              dbg('phase loadPage no local maps, auto scan');
               return runScan('auto', gen);
             }).then(function () {
               if (gen !== pageGen) return;

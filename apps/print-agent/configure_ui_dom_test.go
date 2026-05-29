@@ -47,4 +47,7 @@ func TestConfigureUIDOMIDs(t *testing.T) {
 	if !strings.Contains(html, "phase printers_scan coalesce") {
 		t.Error("missing phase log printers_scan coalesce (single-flight)")
 	}
+	if !strings.Contains(html, "phase loadPage skip auto scan") {
+		t.Error("missing phase log loadPage skip auto scan when local maps exist")
+	}
 }

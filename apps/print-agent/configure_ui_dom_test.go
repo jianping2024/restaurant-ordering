@@ -41,4 +41,10 @@ func TestConfigureUIDOMIDs(t *testing.T) {
 	if !strings.Contains(html, "phase stations_render") {
 		t.Error("missing phase log stations_render")
 	}
+	if !strings.Contains(html, "phase printers_scan start") {
+		t.Error("missing phase log printers_scan start")
+	}
+	if !strings.Contains(html, "phase printers_scan coalesce") {
+		t.Error("missing phase log printers_scan coalesce (single-flight)")
+	}
 }

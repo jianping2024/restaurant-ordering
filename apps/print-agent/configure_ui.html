@@ -102,6 +102,8 @@
       var draftMappings = {};
       var scanning = false;
       var pageGen = 0;
+      var scanSeq = 0;
+      var scanFlight = null;
       var debugLines = [];
       var debugOpen = false;
       var debugForce = false;
@@ -174,10 +176,13 @@
         if (!summary || !pre) return;
         summary.innerHTML =
           'paired=' + paired +
+          ' scanning=' + scanning +
           ' api=' + escapeHtml(String(api).slice(0, 48)) +
           ' cloud_stations=' + nCloud +
           ' render_rows=' + nRender +
-          ' maps=' + Object.keys(state.station_printers || {}).length;
+          ' maps=' + Object.keys(state.station_printers || {}).length +
+          ' lan=' + (cache.tcp || []).length +
+          ' usb=' + (cache.winspool || []).length;
         pre.textContent = debugLines.join('\n');
         if (debugForce) openDebug(true);
       }
@@ -532,30 +537,58 @@
         if (retryBtn) retryBtn.classList.add('hidden');
       }
 
-      function runScan() {
-        if (scanning) return Promise.resolve();
+      function runScan(reason, bindPageGen) {
+        if (scanFlight) {
+          dbg('phase printers_scan coalesce reason=' + reason + ' pageGen=' + bindPageGen);
+          return scanFlight;
+        }
+        var seq = ++scanSeq;
+        var label = reason || 'manual';
+        dbg('phase printers_scan start seq=' + seq + ' reason=' + label + ' pageGen=' + bindPageGen);
         scanning = true;
         updateScanHint();
-        return fetchTextLogged('printers', '/api/printers?refresh=1').then(function (res) {
+
+        scanFlight = fetchTextLogged('printers', '/api/printers?refresh=1')
+          .then(function (res) {
             var j = {};
             try { j = res.txt ? JSON.parse(res.txt) : {}; } catch (e) { throw new Error('parse'); }
             if (!res.r.ok) throw new Error((j && j.error) || 'scan');
             return j;
           })
           .then(function (j) {
+            if (seq !== scanSeq) {
+              dbg('phase printers_scan drop stale seq=' + seq + ' current=' + scanSeq);
+              return;
+            }
+            if (bindPageGen != null && bindPageGen !== pageGen) {
+              dbg('phase printers_scan drop stale pageGen=' + bindPageGen + ' current=' + pageGen);
+              return;
+            }
             cache.tcp = j.tcp || [];
             cache.winspool = j.winspool || [];
+            dbg('phase printers_scan ok seq=' + seq + ' lan=' + cache.tcp.length + ' usb=' + cache.winspool.length);
             document.querySelectorAll('.station-printer').forEach(function (sel) {
               fillSelect(sel, sel.value);
             });
           })
-          .catch(function () {
-            document.getElementById('scanHint').textContent = t('scan_load_failed');
+          .catch(function (err) {
+            if (seq !== scanSeq) return;
+            if (bindPageGen != null && bindPageGen !== pageGen) return;
+            dbg('phase printers_scan FAILED seq=' + seq + ': ' + errBrief(err));
+            var hint = document.getElementById('scanHint');
+            if (hint) hint.textContent = t('scan_load_failed');
           })
           .finally(function () {
+            if (seq !== scanSeq) {
+              dbg('phase printers_scan end stale seq=' + seq);
+              return;
+            }
             scanning = false;
+            scanFlight = null;
             updateScanHint();
+            dbg('phase printers_scan end seq=' + seq);
           });
+        return scanFlight;
       }
 
       function loadStations(gen) {
@@ -587,9 +620,12 @@
 
       function loadPage() {
         var gen = ++pageGen;
+        scanSeq++;
+        scanFlight = null;
+        scanning = false;
         showStateRetry(false);
         document.getElementById('status').textContent = t('status_loading');
-        dbg('phase loadPage start gen=' + gen);
+        dbg('phase loadPage start gen=' + gen + ' scanSeq=' + scanSeq);
         fetchConfigureStateWithRetry(0)
           .then(function (j) {
             if (gen !== pageGen) return;
@@ -612,6 +648,10 @@
             }
             return loadStations(gen).then(function () {
               if (gen !== pageGen) return;
+              dbg('phase loadPage stations ready, auto scan');
+              return runScan('auto', gen);
+            }).then(function () {
+              if (gen !== pageGen) return;
               dbg('phase loadPage done paired');
             });
           })
@@ -631,7 +671,9 @@
         }
       });
 
-      document.getElementById('scanBtn').addEventListener('click', runScan);
+      document.getElementById('scanBtn').addEventListener('click', function () {
+        runScan('manual', pageGen);
+      });
       document.getElementById('stationsRetryBtn').addEventListener('click', function () {
         loadStations(pageGen);
       });

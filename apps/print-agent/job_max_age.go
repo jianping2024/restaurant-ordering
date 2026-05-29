@@ -12,5 +12,5 @@ func jobPrintExpired(job printJob) bool {
 	if !ok {
 		return false
 	}
-	return time.Since(t) > receiptPrintDeferWindow
+	return time.Since(t) >= receiptPrintDeferWindow
 }

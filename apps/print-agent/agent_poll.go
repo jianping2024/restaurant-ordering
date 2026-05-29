@@ -11,6 +11,9 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 	pc := sess.pc
 	var lastLogged pollPhase
 	var queue []printJob
+	var blockedSpins int
+	var throttle pollLogThrottle
+	const waitLogEvery = 60 * time.Second
 
 	setStatus := func(summary, detail string) {
 		if status != nil {
@@ -24,6 +27,15 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 		return
 	}
 	setStatus("Starting", cfg.APIBase)
+
+	logBatchAllBlocked := func(c *config, reason string) {
+		if c == nil {
+			return
+		}
+		if throttle.allow("queue_all_blocked:"+reason, waitLogEvery) {
+			agentLog(c, "log_queue_all_blocked")
+		}
+	}
 
 	for {
 		select {
@@ -76,7 +88,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			jobs, err := fetchPending(ctx, cfg.APIBase, cfg.AgentJWT)
 			phase := pc.phase(len(jobs) > 0, err != nil)
 			if err != nil {
-				if lastLogged != pollPhaseError {
+				if throttle.allow("pending_jobs_error", waitLogEvery) || lastLogged != pollPhaseError {
 					agentLogTech(cfg, "log_pending_jobs_error", err.Error())
 					lastLogged = pollPhaseError
 				}
@@ -100,107 +112,157 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 				continue
 			}
 			queue = jobs
+			blockedSpins = 0
 			lastLogged = pollPhaseBusy
 			pc.markActivity()
+			agentLog(cfg, "log_fetched_pending", len(jobs))
 			setStatus("Printing queue", strconv.Itoa(len(jobs))+" job(s) pending")
 		}
 
 		job := queue[0]
 		if jobPrintExpired(job) {
-			_ = patchJob(ctx, cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
+			if patchJobStatus(ctx, cfg, job.ID, map[string]any{
 				"status":        "failed",
 				"error_message": errPrintJobExpired.Error(),
-			})
-			agentLog(cfg, "log_skipped_expired", job.ID)
+			}, "failed:expired") {
+				agentLog(cfg, "log_skipped_expired", job.ID)
+			} else {
+				agentLog(cfg, "log_job_still_pending", job.ID, "failed:expired")
+			}
 			queue = queue[1:]
+			blockedSpins = 0
 			pc.markActivity()
 			continue
 		}
 		target, err := cfg.printerTargetForJob(job)
 		if err != nil {
 			if errors.Is(err, errReceiptPrintDeferred) {
-				shouldLog := lastLogged != pollPhaseBusy
-				deferPollJob(&queue, &lastLogged, pollPhaseBusy)
-				if shouldLog {
+				if throttle.allow("receipt_deferred", waitLogEvery) {
 					agentLog(cfg, "log_receipt_deferred")
+					lastLogged = pollPhaseBusy
 				}
 				setStatus("Waiting for receipt printer", "Map a station in Settings (up to 20 min)")
+				var allBlocked bool
+				queue, allBlocked = deferBlockedHead(queue, &blockedSpins)
+				if !allBlocked {
+					if throttle.allow("queue_try_other:receipt", waitLogEvery) {
+						agentLog(cfg, "log_queue_try_other", job.ID)
+					}
+					pc.markActivity()
+					continue
+				}
+				logBatchAllBlocked(cfg, "receipt")
 				sleepOrCancel(ctx, pc.sleepFor(pollPhaseBusy))
 				pc.markActivity()
 				continue
 			}
-			_ = patchJob(ctx, cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
+			if patchJobStatus(ctx, cfg, job.ID, map[string]any{
 				"status":        "failed",
 				"error_message": err.Error(),
-			})
-			agentLogTech(cfg, "log_route_error", err.Error())
+			}, "failed:route") {
+				agentLog(cfg, "log_route_error", job.ID, err.Error())
+			} else {
+				agentLog(cfg, "log_job_still_pending", job.ID, "failed:route")
+			}
 			queue = queue[1:]
+			blockedSpins = 0
 			pc.markActivity()
 			continue
 		}
-		if prepErr := sess.printerReady().preparePrint(target, job); prepErr != nil {
+		if prepErr := sess.printerReady().preparePrint(cfg, target, job); prepErr != nil {
 			if errors.Is(prepErr, errPrinterNotReady) {
-				shouldLog := lastLogged != pollPhaseBusy
-				deferPollJob(&queue, &lastLogged, pollPhaseBusy)
-				if shouldLog {
-					agentLog(cfg, "log_printer_not_ready")
+				if throttle.allow("printer_not_ready:"+targetKey(target), waitLogEvery) {
+					agentLog(cfg, "log_printer_not_ready", target.Display, prepErr.Error())
+					lastLogged = pollPhaseBusy
 				}
 				setStatus("Waiting for printer", "Printer offline or unreachable")
+				var allBlocked bool
+				queue, allBlocked = deferBlockedHead(queue, &blockedSpins)
+				if !allBlocked {
+					if throttle.allow("queue_try_other:printer:"+targetKey(target), waitLogEvery) {
+						agentLog(cfg, "log_queue_try_other", job.ID)
+					}
+					pc.markActivity()
+					continue
+				}
+				logBatchAllBlocked(cfg, "printer:"+targetKey(target))
 				sleepOrCancel(ctx, pc.sleepFor(pollPhaseBusy))
 				pc.markActivity()
 				continue
 			}
 			if errors.Is(prepErr, errPrintJobSkippedBacklog) {
-				_ = patchJob(ctx, cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
+				if patchJobStatus(ctx, cfg, job.ID, map[string]any{
 					"status":        "failed",
 					"error_message": printJobSkippedBacklogMsg,
-				})
-				agentLog(cfg, "log_skipped_offline_backlog", job.ID)
+				}, "failed:offline_backlog") {
+					agentLog(cfg, "log_skipped_offline_backlog", job.ID, target.Display)
+				} else {
+					agentLog(cfg, "log_job_still_pending", job.ID, "failed:offline_backlog")
+				}
 				queue = queue[1:]
+				blockedSpins = 0
 				pc.markActivity()
 				continue
 			}
+			if patchJobStatus(ctx, cfg, job.ID, map[string]any{
+				"status":        "failed",
+				"error_message": prepErr.Error(),
+			}, "failed:prepare") {
+				agentLog(cfg, "log_prepare_print_error", job.ID, prepErr.Error())
+			} else {
+				agentLog(cfg, "log_job_still_pending", job.ID, "failed:prepare")
+			}
+			queue = queue[1:]
+			blockedSpins = 0
+			pc.markActivity()
+			continue
 		}
+		agentLog(cfg, "log_printing_job", job.ID, job.Type, target.Display)
 		setStatus("Printing", summarizeJobPayload(job))
-		if err := patchJob(ctx, cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{"status": "processing"}); err != nil {
-			agentLogTech(cfg, "log_claim_job_error", err.Error())
+		if !patchJobStatus(ctx, cfg, job.ID, map[string]any{"status": "processing"}, "processing") {
+			var allBlocked bool
+			queue, allBlocked = deferBlockedHead(queue, &blockedSpins)
+			if !allBlocked {
+				if throttle.allow("queue_try_other:claim", waitLogEvery) {
+					agentLog(cfg, "log_queue_try_other", job.ID)
+				}
+				pc.markActivity()
+				continue
+			}
+			logBatchAllBlocked(cfg, "claim")
 			sleepOrCancel(ctx, pc.sleepFor(pollPhaseBusy))
 			continue
 		}
 		data := escposFromJob(job)
 		if err := printToTarget(target, data); err != nil {
-			_ = patchJob(ctx, cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
+			if patchJobStatus(ctx, cfg, job.ID, map[string]any{
 				"status":        "failed",
 				"error_message": err.Error(),
-			})
-			sess.hb.recordPrint(false)
-			agentLogTech(cfg, "log_print_failed", err.Error(), target.Display)
+			}, "failed:print") {
+				sess.hb.recordPrint(false)
+				agentLog(cfg, "log_print_failed", job.ID, target.Display, err.Error())
+			} else {
+				agentLog(cfg, "log_print_failed_stuck", job.ID, target.Display)
+			}
 			setStatus("Print failed", err.Error())
 		} else {
-			if err := patchJob(ctx, cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{"status": "done"}); err != nil {
-				agentLogTech(cfg, "log_mark_done_error", err.Error())
+			if patchJobStatus(ctx, cfg, job.ID, map[string]any{"status": "done"}, "done") {
+				agentLog(cfg, "log_printed_ok", target.Display, summarizeJobPayload(job), job.ID)
+				sess.hb.recordPrint(true)
+				setStatus("Ready", "Last print OK")
 			} else {
-				agentLog(cfg, "log_printed_ok", target.Display, summarizeJobPayload(job))
+				agentLog(cfg, "log_print_ok_patch_stuck", job.ID, target.Display)
+				sess.hb.recordPrint(true)
 			}
-			sess.hb.recordPrint(true)
-			setStatus("Ready", "Last print OK")
 		}
 		queue = queue[1:]
+		blockedSpins = 0
 		pc.markActivity()
 
 		if len(queue) == 0 {
 			sleepOrCancel(ctx, pc.sleepFor(pollPhaseAfterPrint))
 		}
 	}
-}
-
-func deferPollJob(queue *[]printJob, lastLogged *pollPhase, phase pollPhase) {
-	if len(*queue) > 1 {
-		*queue = append((*queue)[1:], (*queue)[0])
-	} else {
-		*queue = nil
-	}
-	*lastLogged = phase
 }
 
 func sleepOrCancel(ctx context.Context, d time.Duration) {

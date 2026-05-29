@@ -19,12 +19,14 @@ var errPrintJobSkippedBacklog = errors.New(printJobSkippedBacklogMsg)
 type printerReadyTracker struct {
 	printAfter map[string]time.Time
 	wasOffline map[string]bool
+	everReady  map[string]bool // avoid treating agent startup as offline→online reconnect
 }
 
 func newPrinterReadyTracker() *printerReadyTracker {
 	return &printerReadyTracker{
 		printAfter: make(map[string]time.Time),
 		wasOffline: make(map[string]bool),
+		everReady:  make(map[string]bool),
 	}
 }
 
@@ -78,7 +80,7 @@ func (tr *printerReadyTracker) markPrintAfter(key string) {
 	tr.printAfter[key] = time.Now()
 }
 
-func (tr *printerReadyTracker) noteMappingChanges(prev, next *config) {
+func (tr *printerReadyTracker) noteMappingChanges(cfg *config, prev, next *config) {
 	if next == nil || next.StationPrinters == nil {
 		return
 	}
@@ -96,42 +98,54 @@ func (tr *printerReadyTracker) noteMappingChanges(prev, next *config) {
 			prevAddr = strings.TrimSpace(prev.StationPrinters[sid])
 		}
 		if prevAddr != addr {
-			tr.markPrintAfter(targetKey(pt))
+			key := targetKey(pt)
+			tr.markPrintAfter(key)
+			if cfg != nil {
+				agentLog(cfg, "log_printer_remap_backlog", pt.Display, sid)
+			}
 		}
 	}
 }
 
-func (tr *printerReadyTracker) shouldSkipBacklog(key string, job printJob) bool {
+func (tr *printerReadyTracker) shouldSkipBacklog(key string, job printJob) (skip bool, noCreatedAt bool) {
 	since, ok := tr.printAfter[key]
 	if !ok || since.IsZero() {
-		return false
+		return false, false
 	}
 	created, ok := parseJobCreatedAt(job)
 	if !ok {
-		return false
+		return true, true
 	}
-	return created.Before(since)
+	return created.Before(since), false
 }
 
-func (tr *printerReadyTracker) observeTargetReady(target printerTarget) error {
+func (tr *printerReadyTracker) observeTargetReady(cfg *config, target printerTarget) error {
 	key := targetKey(target)
 	if err := targetCheckReady(target); err != nil {
 		tr.wasOffline[key] = true
 		return fmt.Errorf("%w: %v", errPrinterNotReady, err)
 	}
-	if tr.wasOffline[key] {
+	if tr.wasOffline[key] && tr.everReady[key] {
 		tr.markPrintAfter(key)
-		delete(tr.wasOffline, key)
+		if cfg != nil {
+			agentLog(cfg, "log_printer_reconnect_backlog", target.Display)
+		}
 	}
+	delete(tr.wasOffline, key)
+	tr.everReady[key] = true
 	return nil
 }
 
 // preparePrint updates offline→online state and returns whether this job may print now.
-func (tr *printerReadyTracker) preparePrint(target printerTarget, job printJob) error {
-	if err := tr.observeTargetReady(target); err != nil {
+func (tr *printerReadyTracker) preparePrint(cfg *config, target printerTarget, job printJob) error {
+	if err := tr.observeTargetReady(cfg, target); err != nil {
 		return err
 	}
-	if tr.shouldSkipBacklog(targetKey(target), job) {
+	key := targetKey(target)
+	if skip, noCreatedAt := tr.shouldSkipBacklog(key, job); skip {
+		if noCreatedAt && cfg != nil {
+			agentLog(cfg, "log_skipped_offline_backlog_no_time", job.ID, target.Display)
+		}
 		return errPrintJobSkippedBacklog
 	}
 	return nil

@@ -15,7 +15,7 @@ func reloadAgentSessionConfig(sess *agentSession) {
 		return
 	}
 	if prev != nil {
-		sess.printerReady().noteMappingChanges(prev, cfg)
+		sess.printerReady().noteMappingChanges(cfg, prev, cfg)
 	}
 	sess.cfg = cfg
 }

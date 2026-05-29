@@ -97,6 +97,7 @@
       var stationsWarn = document.getElementById('stationsWarn');
       var stationsEl = document.getElementById('stations');
       var cache = { tcp: [], winspool: [] };
+      var printerLists = { tcp: [], winspool: [] };
       var stations = [];
       var saved = { station_printers: {} };
       var lastSavedMaps = {};
@@ -231,6 +232,60 @@
         return (p && p.label) || addr;
       }
 
+      function savedPrinterAddrs() {
+        var maps = saved.station_printers || {};
+        var seen = {};
+        var out = [];
+        Object.keys(maps).forEach(function (sid) {
+          var addr = String(maps[sid] || '').trim();
+          if (!addr || seen[addr]) return;
+          seen[addr] = true;
+          out.push(addr);
+        });
+        return out;
+      }
+
+      function mergePrinterGroup(scanned, savedAddrs, prefix) {
+        var byAddr = {};
+        (scanned || []).forEach(function (p) {
+          var a = String(p && p.addr || '').trim();
+          if (a) byAddr[a] = p;
+        });
+        var addedFromSaved = 0;
+        var skippedDup = 0;
+        savedAddrs.forEach(function (addr) {
+          if (prefix != null && addr.indexOf(prefix) !== 0) return;
+          if (byAddr[addr]) {
+            skippedDup++;
+            return;
+          }
+          byAddr[addr] = { addr: addr };
+          addedFromSaved++;
+        });
+        return {
+          list: Object.keys(byAddr).map(function (k) { return byAddr[k]; }),
+          addedFromSaved: addedFromSaved,
+          skippedDup: skippedDup
+        };
+      }
+
+      function rebuildPrinterLists() {
+        var saved = savedPrinterAddrs();
+        var tcpSaved = [];
+        var winSaved = [];
+        var otherSaved = [];
+        saved.forEach(function (addr) {
+          if (addr.indexOf('tcp:') === 0) tcpSaved.push(addr);
+          else if (addr.indexOf('winspool:') === 0) winSaved.push(addr);
+          else otherSaved.push(addr);
+        });
+        var tcpM = mergePrinterGroup(cache.tcp, tcpSaved, 'tcp:');
+        var winM = mergePrinterGroup(cache.winspool, winSaved, 'winspool:');
+        if (otherSaved.length) winM = mergePrinterGroup(winM.list, otherSaved, null);
+        printerLists.tcp = tcpM.list;
+        printerLists.winspool = winM.list;
+      }
+
       function fillStationSelect(selectEl, selected) {
         selectEl.innerHTML = '';
         var def = document.createElement('option');
@@ -260,8 +315,8 @@
           selectEl.appendChild(g);
         }
 
-        addGroup(t('printer_group_lan'), cache.tcp || [], t('printer_none_lan'));
-        addGroup(t('printer_group_windows'), cache.winspool || [], t('printer_none_windows'));
+        addGroup(t('printer_group_lan'), printerLists.tcp || [], t('printer_none_lan'));
+        addGroup(t('printer_group_windows'), printerLists.winspool || [], t('printer_none_windows'));
 
         if (selected && !optionExists(selectEl, selected)) {
           var orphan = document.createElement('option');
@@ -275,6 +330,7 @@
         }
       }
       function renderStations() {
+        rebuildPrinterLists();
         stationsEl.innerHTML = '';
         if (!stations.length) {
           stationsHint.textContent = t('stations_empty');
@@ -301,6 +357,7 @@
         });
       }
       function refreshStationSelects() {
+        rebuildPrinterLists();
         document.querySelectorAll('.station-row .station-printer').forEach(function (el) {
           fillStationSelect(el, el.value);
         });

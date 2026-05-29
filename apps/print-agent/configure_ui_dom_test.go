@@ -50,4 +50,10 @@ func TestConfigureUIDOMIDs(t *testing.T) {
 	if !strings.Contains(html, "phase loadPage skip auto scan") {
 		t.Error("missing phase log loadPage skip auto scan when local maps exist")
 	}
+	if !strings.Contains(html, "phase printer_lists") {
+		t.Error("missing phase log printer_lists (saved + scan merge)")
+	}
+	if !strings.Contains(html, "dedupe_skip") {
+		t.Error("missing dedupe_skip in printer_lists log")
+	}
 }

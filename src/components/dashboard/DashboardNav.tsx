@@ -13,9 +13,9 @@ import type { DashboardAccessMode } from '@/lib/dashboard-access';
 import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 
 const ownerNavItems = [
+  { href: '/dashboard/checkout', key: 'checkout', icon: '💳', exact: false },
   { href: '/dashboard/unpaid-orders', key: 'unpaidOrders', icon: '🧾', exact: false },
   { href: '/dashboard/orders', key: 'orders', icon: '📋', exact: false },
-  { href: '/dashboard/checkout', key: 'checkout', icon: '💳', exact: false },
   { href: '/dashboard/settings', key: 'settings', icon: '⚙️', exact: false, matchPrefix: '/dashboard/settings' },
   { href: '/dashboard', key: 'overview', icon: '📊', exact: true },
 ] as const;

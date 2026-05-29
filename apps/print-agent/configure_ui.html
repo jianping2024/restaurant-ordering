@@ -373,7 +373,8 @@
           if (!found) {
             var orphan = document.createElement('option');
             orphan.value = selected;
-            orphan.textContent = t('printer_saved_missing');
+            orphan.textContent = printerDisplayName({ addr: selected });
+            orphan.title = t('printer_saved_missing');
             orphan.selected = true;
             // options[i] may live inside <optgroup>; insertBefore requires a direct child of <select>.
             var anchor = selectEl.querySelector('optgroup');

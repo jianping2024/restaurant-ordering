@@ -266,8 +266,8 @@
         if (selected && !optionExists(selectEl, selected)) {
           var orphan = document.createElement('option');
           orphan.value = selected;
-          orphan.textContent = t('printer_saved_missing');
-          orphan.title = selected;
+          orphan.textContent = printerDisplayName({ addr: selected });
+          orphan.title = t('printer_saved_missing') + ' — ' + selected;
           orphan.selected = true;
           var anchor = selectEl.querySelector('optgroup');
           if (anchor) selectEl.insertBefore(orphan, anchor);

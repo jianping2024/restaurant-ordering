@@ -17,14 +17,18 @@ const printJobSkippedBacklogMsg = "Print job skipped (printer was offline; only 
 var errPrintJobSkippedBacklog = errors.New(printJobSkippedBacklogMsg)
 
 type printerReadyTracker struct {
-	printAfter map[string]time.Time
-	wasOffline map[string]bool
+	agentStartedAt time.Time
+	printAfter     map[string]time.Time
+	wasOffline     map[string]bool
+	onlineConfirmed map[string]bool
 }
 
 func newPrinterReadyTracker() *printerReadyTracker {
 	return &printerReadyTracker{
-		printAfter: make(map[string]time.Time),
-		wasOffline: make(map[string]bool),
+		agentStartedAt:  time.Now(),
+		printAfter:      make(map[string]time.Time),
+		wasOffline:      make(map[string]bool),
+		onlineConfirmed: make(map[string]bool),
 	}
 }
 
@@ -56,6 +60,11 @@ func (tr *printerReadyTracker) loadFromConfig(cfg *config) {
 	for k, v := range cfg.PrinterWasOffline {
 		if v {
 			tr.wasOffline[strings.TrimSpace(k)] = true
+		}
+	}
+	for k := range tr.printAfter {
+		if !tr.wasOffline[k] {
+			tr.onlineConfirmed[k] = true
 		}
 	}
 }
@@ -97,30 +106,39 @@ func (tr *printerReadyTracker) bootstrap(sess *agentSession) {
 	}
 }
 
-// armPrintAfterOnPendingFetch skips jobs created before now for mapped printers without printAfter yet.
+// armPrintAfterOnPendingFetch arms backlog skip only when the printer is unreachable now,
+// or (reachable at fetch) jobs created before this agent session started.
 func (tr *printerReadyTracker) armPrintAfterOnPendingFetch(cfg *config, cfgPath string) {
 	if tr == nil || cfg == nil {
 		return
 	}
-	displays := tr.armPrintAfterUnsetKeys(cfg, time.Now())
-	if len(displays) == 0 {
-		return
-	}
-	tr.persist(cfg, cfgPath)
-	agentLog(cfg, "log_printer_arm_skip_stale_pending", strings.Join(displays, ", "))
-}
-
-func (tr *printerReadyTracker) armPrintAfterUnsetKeys(cfg *config, when time.Time) []string {
 	var displays []string
 	for _, pt := range cfg.mappedPrinterTargets() {
 		key := targetKey(pt)
 		if _, ok := tr.printAfter[key]; ok {
 			continue
 		}
-		tr.printAfter[key] = when
+		if err := targetCheckReady(pt); err != nil {
+			tr.wasOffline[key] = true
+			tr.onlineConfirmed[key] = false
+			tr.printAfter[key] = time.Now()
+			displays = append(displays, pt.Display)
+			continue
+		}
+		// OpenPrinter can lie while USB is unplugged; only skip queue older than session start.
+		tr.printAfter[key] = tr.agentStartedAt
+		if pt.Scheme == schemeTCP {
+			tr.onlineConfirmed[key] = true
+		} else {
+			tr.onlineConfirmed[key] = false
+		}
 		displays = append(displays, pt.Display)
 	}
-	return displays
+	if len(displays) == 0 {
+		return
+	}
+	tr.persist(cfg, cfgPath)
+	agentLog(cfg, "log_printer_arm_skip_stale_pending", strings.Join(displays, ", "))
 }
 
 func targetKey(t printerTarget) string {
@@ -220,11 +238,13 @@ func (tr *printerReadyTracker) observeTargetReady(cfg *config, cfgPath string, t
 	key := targetKey(target)
 	if err := targetCheckReady(target); err != nil {
 		tr.wasOffline[key] = true
+		tr.onlineConfirmed[key] = false
 		tr.persist(cfg, cfgPath)
 		return fmt.Errorf("%w: %v", errPrinterNotReady, err)
 	}
 	if tr.wasOffline[key] {
 		tr.markPrintAfter(key)
+		tr.onlineConfirmed[key] = true
 		if cfg != nil {
 			agentLog(cfg, "log_printer_reconnect_backlog", target.Display)
 		}
@@ -234,12 +254,28 @@ func (tr *printerReadyTracker) observeTargetReady(cfg *config, cfgPath string, t
 	return nil
 }
 
+func (tr *printerReadyTracker) confirmOnline(cfg *config, cfgPath string, target printerTarget) {
+	key := targetKey(target)
+	tr.onlineConfirmed[key] = true
+	delete(tr.wasOffline, key)
+	tr.persist(cfg, cfgPath)
+}
+
 // preparePrint updates offline→online state and returns whether this job may print now.
 func (tr *printerReadyTracker) preparePrint(cfg *config, cfgPath string, target printerTarget, job printJob) error {
 	if err := tr.observeTargetReady(cfg, cfgPath, target); err != nil {
 		return err
 	}
 	key := targetKey(target)
+	if !tr.onlineConfirmed[key] {
+		if skip, _ := tr.shouldSkipBacklog(key, job); skip {
+			if cfg != nil {
+				agentLog(cfg, "log_skipped_offline_backlog", job.ID, jobRouteStationID(job), target.Display)
+			}
+			return errPrintJobSkippedBacklog
+		}
+		return errPrinterNotReady
+	}
 	if skip, noCreatedAt := tr.shouldSkipBacklog(key, job); skip {
 		if noCreatedAt && cfg != nil {
 			agentLog(cfg, "log_skipped_offline_backlog_no_time", job.ID, jobRouteStationID(job), target.Display)

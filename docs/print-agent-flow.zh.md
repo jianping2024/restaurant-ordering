@@ -218,7 +218,8 @@ flowchart TD
 | 状态 | 含义 |
 |------|------|
 | `wasOffline` | 当前或上次探测认为不可达（内存 + `printer_was_offline` 持久化） |
-| `printAfter` | 「恢复在线」时刻（内存 + `printer_print_after` 持久化） |
+| `printAfter` | 「恢复在线」或「本会话起点」时刻（内存 + `printer_print_after` 持久化） |
+| `onlineConfirmed` | 本会话已确认该目标可安全标 `done`（WinSpool 在 **真实离线→在线** 或 **成功打印** 后成立；TCP 在 arm 时可达即可） |
 
 #### `observeTargetReady`
 
@@ -226,7 +227,7 @@ flowchart TD
    - **TCP**：2s 内 `Dial` 成功。
    - **WinSpool**：`OpenPrinter` 成功即可（细则见 **§1 开发约束**）。
 2. 失败 → `wasOffline = true`，持久化，返回 `errPrinterNotReady`（任务保持 `pending`）。
-3. 成功且此前 `wasOffline` → `markPrintAfter(now)`，打日志「打印机已恢复在线…」，清除 `wasOffline`。
+3. 成功且此前 `wasOffline` → `markPrintAfter(now)`、`onlineConfirmed=true`，打日志「打印机已恢复在线…」，清除 `wasOffline`。
 
 #### `shouldSkipBacklog`
 
@@ -241,7 +242,11 @@ flowchart TD
 1. **离线 → 在线**（上节）：`wasOffline` 清除前 `markPrintAfter`。
 2. **档口换了打印机**（`noteMappingChanges`）：该目标立即 `markPrintAfter`。
 3. **打印 IO 失败**（`notePrintFailure`）：持久化 `printer_was_offline`，恢复后走 (1)。
-4. **拉取到非空 pending 队列**（`armPrintAfterOnPendingFetch`，**0.3.12+**）：对尚无 `printAfter` 的映射打印机 arm 当前时间，跳过更早的 `created_at`（含冷启动时 USB 已插回但 agent 未记录离线的积压）。
+4. **拉取到非空 pending 队列**（`armPrintAfterOnPendingFetch`，**0.3.13+**）：
+   - 探测失败：`printAfter=now`，`onlineConfirmed=false`。
+   - 探测成功（WinSpool `OpenPrinter` 可能误报）：`printAfter=agentStartedAt`，`onlineConfirmed=false`，`preparePrint` 对未确认目标返回 `errPrinterNotReady`（保持 pending），避免「仅第一条 failed、后续误标 done」。
+   - TCP 探测成功：同时 `onlineConfirmed=true`。
+   - 从磁盘加载且该目标无 `was_offline`：恢复 `onlineConfirmed=true`。
 
 #### 队列调度
 

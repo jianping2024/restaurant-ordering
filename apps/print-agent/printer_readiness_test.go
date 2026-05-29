@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"path/filepath"
 	"testing"
 	"time"
@@ -126,6 +127,43 @@ func TestArmPrintAfterOnPendingFetch_doesNotOverwriteReconnect(t *testing.T) {
 	tr.armPrintAfterOnPendingFetch(cfg, "")
 	if !tr.printAfter[key].Equal(earlier) {
 		t.Fatal("must not overwrite printAfter from reconnect or disk")
+	}
+}
+
+func TestPreparePrint_gateUnconfirmedWinspoolPending(t *testing.T) {
+	t.Parallel()
+	tr := newPrinterReadyTracker()
+	key := "winspool:Kitchen"
+	tr.printAfter[key] = tr.agentStartedAt
+	tr.onlineConfirmed[key] = false
+	job := printJob{
+		ID:        "j1",
+		CreatedAt: tr.agentStartedAt.Add(2 * time.Second).UTC().Format(time.RFC3339),
+	}
+	var err error
+	if !tr.onlineConfirmed[key] {
+		if skip, _ := tr.shouldSkipBacklog(key, job); skip {
+			err = errPrintJobSkippedBacklog
+		} else {
+			err = errPrinterNotReady
+		}
+	}
+	if !errors.Is(err, errPrinterNotReady) {
+		t.Fatalf("expected pending, got %v", err)
+	}
+}
+
+func TestLoadFromConfig_restoresOnlineConfirmedWhenNotOffline(t *testing.T) {
+	t.Parallel()
+	tr := newPrinterReadyTracker()
+	when := time.Date(2026, 5, 29, 12, 0, 0, 0, time.UTC)
+	cfg := &config{
+		PrinterPrintAfter: map[string]string{"winspool:Bar": when.Format(time.RFC3339)},
+		PrinterWasOffline: nil,
+	}
+	tr.loadFromConfig(cfg)
+	if !tr.onlineConfirmed["winspool:Bar"] {
+		t.Fatal("expected online confirmed when print_after persisted and not offline")
 	}
 }
 

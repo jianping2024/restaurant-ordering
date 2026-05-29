@@ -272,6 +272,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			}
 			setStatus("Print failed", err.Error())
 		} else {
+			sess.printerReady().confirmOnline(cfg, sess.cfgPath, target)
 			if patchJobStatus(ctx, cfg, job.ID, map[string]any{"status": "done"}, "done") {
 				agentLog(cfg, "log_printed_ok", target.Display, summarizeJobPayload(job), job.ID)
 				sess.hb.recordPrint(true)

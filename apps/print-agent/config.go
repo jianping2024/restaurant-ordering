@@ -24,12 +24,6 @@ type config struct {
 	ValidUntil string `json:"valid_until,omitempty"`
 	// TextEncoding: auto | utf8 | gbk | latin — Chinese/non-Latin bytes on thermal paper (UI/test + zh jobs).
 	TextEncoding string `json:"text_encoding,omitempty"`
-	// PrinterPrintAfter: per targetKey → RFC3339 backlog cutoff only (job.created_at < T → failed:offline_backlog).
-	// NOT "printer is online". Do not use to set onlineConfirmed on agent load (see printer_readiness.go).
-	PrinterPrintAfter map[string]string `json:"printer_print_after,omitempty"`
-	// PrinterWasOffline: targetKey was unreachable on last probe/IO; cleared when targetCheckReady succeeds.
-	// Absence on disk does NOT mean onlineConfirmed; WinSpool may still need session print proof.
-	PrinterWasOffline map[string]bool `json:"printer_was_offline,omitempty"`
 }
 
 // configPathOverride is set by tests only.
@@ -157,12 +151,6 @@ func mergePrinterConfig(prev, next *config) {
 	}
 	if strings.TrimSpace(prev.TextEncoding) != "" && strings.TrimSpace(next.TextEncoding) == "" {
 		next.TextEncoding = prev.TextEncoding
-	}
-	if len(prev.PrinterPrintAfter) > 0 && len(next.PrinterPrintAfter) == 0 {
-		next.PrinterPrintAfter = prev.PrinterPrintAfter
-	}
-	if len(prev.PrinterWasOffline) > 0 && len(next.PrinterWasOffline) == 0 {
-		next.PrinterWasOffline = prev.PrinterWasOffline
 	}
 }
 

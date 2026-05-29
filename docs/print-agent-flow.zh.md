@@ -1,6 +1,6 @@
 # Mesa 打印全链路说明
 
-本文描述当前仓库中 **云端 `print_jobs` 队列** 与 **本地 print-agent（Go）** 的协作方式，对应 agent 版本 **0.3.15+** 行为。
+本文描述当前仓库中 **云端 `print_jobs` 队列** 与 **本地 print-agent（Go）** 的协作方式，对应 agent 版本 **0.3.19+** 行为。
 
 相关代码：
 
@@ -20,7 +20,7 @@
 | 预检读 `PRINTER_STATUS_*` | `GetPrinter` level 6/8 → `winspoolDiagnosticStatus` → **`winspoolStatusIsProblem(flags)`** → `winspoolCheckReady` 返回 not ready | 0.2.60+ 整批不打印；与物理打印机是否正常无关 |
 | 把 OFFLINE / NOT_AVAILABLE 当硬故障 | `flags & (PRINTER_STATUS_OFFLINE \| …)` 在 **claim 之前** 拦截 | 误报 0xC0；积压与在线单都打不出去 |
 | 预检用 `JOB_STATUS_OFFLINE` / `BLOCKED` | 在 `preparePrint` / `winspoolCheckReady` 路径查作业状态 | 同类误报 |
-| 仅因状态位标 `wasOffline` | 未发生 `OpenPrinter` / `Write` 失败就持久化离线 | 离线积压策略与真实断线不一致 |
+| 仅因状态位标 `wasOffline` | 未发生 `OpenPrinter` / `Write` 失败就持久化离线 | 已删除（0.3.19 无离线积压） |
 
 历史：print-agent **0.2.59** 及更早仅 `OpenPrinter` + RAW；**0.2.60** 起引入上述状态位预检后出现现场故障；**0.3.9+** 已从预检路径移除 `winspoolStatusIsProblem`；**0.3.11** 起打印 IO 失败统一走 `printerIOFailure` / `notePrintFailure`。
 
@@ -32,7 +32,7 @@
 | **物理输出** | `WritePrinter` / RAW；失败包装为 `errPrinterNotReady` 或经 `printerIOFailure` 记离线 | `Write`；失败同上 |
 | **提交后校验（可选）** | 仅 `winspoolJobStatusIsProblem` 且 **只认 `JOB_STATUS_ERROR`**（`winspool_job_status.go`），用于 RAW 提交后轮询，**不**用于 `preparePrint` | 无作业状态 API |
 
-离线积压（`printAfter` / `printer_was_offline`）依赖：**探测或写入失败** → 恢复在线时 `markPrintAfter`，再按 `created_at` 跳过旧单；见 §7.3。
+**0.3.19+** 已移除 `print_after` 离线积压策略；每单仅 `preparePrint`（TCP Dial / WinSpool Open）→ 打印 → 成功 `done` / 预检失败 `pending` / IO 失败 `failed`。
 
 ### Code review 自检
 
@@ -313,47 +313,14 @@ flowchart TD
 | `station_ticket` | `station_printers[print_station_id]` |
 | `order_receipt` / `pre_bill` | `receipt_printer_id` → `station:{id}` 查映射；若为空且任务 **20 分钟内** 且无映射 → `errReceiptPrintDeferred`（保持 `pending`，不标 failed） |
 
-### 7.3 打印机就绪与离线积压（`printer_readiness.go`）
+### 7.3 打印前预检（`printer_readiness.go`）
 
-**设计目标**：打印机离线期间产生的任务，在 **恢复在线之后不要自动补打**；恢复之后新下的单正常打印。
+每单调用 `preparePrint(target)` → `targetCheckReady`：
 
-#### 变量（每台 `targetKey`）— 三者独立，禁止混用
+- **TCP**：2s 内 `Dial` 成功；失败 → `errPrinterNotReady`，任务保持 `pending`。
+- **WinSpool**：`OpenPrinter` 成功即可（细则见 **§1**）；失败同上。
 
-| 变量 | 存储 | 唯一用途 | 禁止误用 |
-|------|------|----------|----------|
-| `printAfter` | 内存 + `printer_print_after` | 积压分界：`job.created_at < printAfter` → `failed:offline_backlog` | **不代表**打印机已在线、**不能**用来设 `onlineConfirmed` |
-| `wasOffline` | 内存 + `printer_was_offline` | 上次探测/IO 认为不可达；恢复探测成功时 `markPrintAfter(now)` | 磁盘上为 false **不代表**可以标 `done`（OpenPrinter 可 lie） |
-| `onlineConfirmed` | **仅内存**（不持久化） | 本会话允许 `preparePrint` 通过并 PATCH `done` | WinSpool：仅 `confirmOnline`（打印成功）或 TCP 首次 arm；**禁止**从磁盘 `print_after` 推断 |
-| `agentStartedAt` | 仅内存 | 本会话启动时刻；WinSpool 首次 arm 且 Open 成功时作 `printAfter` 下限 | **不等于**「首次拉 Mesa 队列」时刻 |
-
-**代码内注释与 invariant**：`apps/print-agent/printer_readiness.go` 文件头、`config` 结构体字段注释。
-
-#### `observeTargetReady`
-
-1. `targetCheckReady`：
-   - **TCP**：2s 内 `Dial` 成功。
-   - **WinSpool**：`OpenPrinter` 成功即可（细则见 **§1 开发约束**）。
-2. 失败 → `wasOffline = true`，持久化，返回 `errPrinterNotReady`（任务保持 `pending`）。
-3. 成功且此前 `wasOffline` → `markPrintAfter(now)`，打日志「打印机已恢复在线…」，清除 `wasOffline`（**不**设 `onlineConfirmed`；WinSpool 仍须本会话打印成功）。
-
-#### `shouldSkipBacklog`
-
-若存在 `printAfter` 且 `job.created_at < printAfter` → `errPrintJobSkippedBacklog` → PATCH `failed`，文案：
-
-`Print job skipped (printer was offline; only jobs created after the printer came online are printed)`
-
-无 `created_at` 时保守跳过。
-
-#### 触发 `printAfter` 的三种情况
-
-1. **离线 → 在线**（上节）：`wasOffline` 清除前 `markPrintAfter`。
-2. **档口换了打印机**（`noteMappingChanges`）：该目标立即 `markPrintAfter`。
-3. **打印 IO 失败**（`notePrintFailure`）：持久化 `printer_was_offline`，恢复后走 (1)。
-4. **拉取到非空 pending 队列**（`armPrintAfterOnPendingFetch`，**0.3.13+**）：
-   - 探测失败：`printAfter=now`，`onlineConfirmed=false`。
-   - 探测成功（WinSpool `OpenPrinter` 可能误报）：`printAfter=agentStartedAt`，`onlineConfirmed=false`，`preparePrint` 对未确认目标返回 `errPrinterNotReady`（保持 pending），避免「仅第一条 failed、后续误标 done」。
-   - TCP 探测成功：同时 `onlineConfirmed=true`。
-   - 从磁盘加载且该目标无 `was_offline`：恢复 `onlineConfirmed=true`。
+无 `print_after` / `online_confirmed` / 磁盘离线标记。**网线**探测相对可信；**USB** 仍可能 Open 成功但纸未出，见 §1.1。
 
 #### 队列调度
 
@@ -367,7 +334,7 @@ flowchart TD
 | TCP | `tcpPrint` 直写 socket | 连接探测 |
 | WinSpool | `OpenPrinter` → `RAW` / `XPS_PASS` → `WritePrinter` | 仅 `OpenPrinter` 预检；提交后仅 `JOB_STATUS_ERROR`（见 **§1**） |
 
-成功 → `done` + 心跳 `last_print_status=done`；失败 → `failed:print`，IO 类失败经 `notePrintFailure` 记离线。
+成功 → `done` + 心跳 `last_print_status=done`；失败 → `failed:print`。
 
 ---
 
@@ -376,7 +343,6 @@ flowchart TD
 | Agent 行为 | `print_jobs.status` | 典型 `error_message` / 备注 |
 |------------|---------------------|-----------------------------|
 | 打印成功 | `done` | — |
-| 离线积压跳过 | `failed` | `Print job skipped (printer was offline; …)` |
 | 超时 | `failed` | `print job expired (older than 20 minutes)` |
 | 路由错误 | `failed` | 无映射、不支持的 type 等 |
 | 小票暂无可映射打印机 | 保持 `pending` | 20 分钟内重试 |
@@ -400,7 +366,8 @@ flowchart TD
 | **0.3.12** | 首次拉 pending 时 `OpenPrinter` 成功则 `printAfter=拉取时刻` → 易「首条 failed、后续误标 done」（见 **§1.1**） |
 | **0.3.13** | WinSpool：`online_confirmed` + `agentStartedAt` arm；未确认前保持 pending（但有磁盘 `print_after` 误确认漏洞） |
 | **0.3.14+** | 去掉磁盘误确认；每会话重置 WinSpool trust；仅打印成功 `confirmOnline` |
-| **0.3.15+** | 统一 `log_readiness` 决策日志（`event` / `decision` / `mesa_patch` 等，见 §1.1） |
+| **0.3.15–0.3.18** | `print_after` / `online_confirmed` / `log_readiness`（已废弃，见 §1.1 历史） |
+| **0.3.19+** | 移除离线积压与就绪状态机；仅 `preparePrint` + 打印结果 |
 
 ---
 
@@ -408,19 +375,17 @@ flowchart TD
 
 | 场景 | 行为 |
 |------|------|
-| 拔线但 `OpenPrinter`/TCP 仍成功 | WinSpool 可能 spooler 假成功；**0.3.13+** 未 `online_confirmed` 时不标 done；仍建议以 Write 失败 + `noteTargetOffline` 为辅 |
-| 未插 USB，新下的单 | **`pending`**（`pending_unconfirmed`），**不是** `failed`；`job_created` 晚于 `print_after` 时不走积压失败；插上并成功出纸后自动打 |
-| 未插 USB，旧积压单 | **`failed:offline_backlog`**（`job_created` 早于 `print_after`） |
-| Agent 被强杀且从未探测到离线 | 磁盘无 `printer_was_offline` 时，行为见 **§1.1**；积压用 Dashboard Retry |
-| 时钟偏差 | `created_at`（服务器）与 `printAfter`（本机）相差过大时，极少数单可能被误 skip/误打 |
-| 试打 / 设置页测试 | 不经 `preparePrint`，不更新积压策略 |
-| Mesa API 超时 | 拉单/心跳失败；与 `failed:offline_backlog` **无关**（见 **§1.1 日志表**） |
+| 拔线但 `OpenPrinter`/TCP 仍成功 | WinSpool 可能 spooler 假成功并标 `done`；网线以 TCP 失败为准 |
+| 预检失败 | 任务保持 `pending`，日志「打印机不可达」 |
+| 试打 / 设置页测试 | 不经 `preparePrint` |
+| Mesa API 超时 | 拉单/心跳失败，与打印机预检无关 |
 
 ---
 
 ## 11. 运维与测试建议
 
-1. **拔线测试**：拔 USB → 下单 → 插回；应看到「已跳过打印机恢复前的积压」，且仅插回后的新单会 `已打印`。
+1. **网线**：拔网线 → 下单 → 预检应 pending；接回后应能打印。
+2. **USB**：拔线行为不可靠；以实际出纸与 Dashboard Retry 为准。
 2. **勿仅靠重启 agent 代替插回**：重启会 `bootstrap`；若拔线时 agent 未探测到离线且未持久化 `printer_was_offline`，仍可能打出旧单——以日志中是否出现 `log_skipped_offline_backlog` 为准。
 3. **重打旧单**：用 Dashboard Retry，不要依赖 agent 自动补打离线积压。
 

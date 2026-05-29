@@ -27,7 +27,6 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 		setStatus("Error", "config missing")
 		return
 	}
-	sess.printerReady().bootstrap(sess)
 	setStatus("Starting", cfg.APIBase)
 
 	logBatchAllBlocked := func(c *config, reason string) {
@@ -113,7 +112,6 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 				sleepOrCancel(ctx, pc.sleepFor(phase))
 				continue
 			}
-			sess.printerReady().armPrintAfterOnPendingFetch(cfg, sess.cfgPath)
 			queue = jobs
 			blockedSpins = 0
 			reorderPasses = 0
@@ -175,7 +173,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			pc.markActivity()
 			continue
 		}
-		if prepErr := sess.printerReady().preparePrint(cfg, sess.cfgPath, target, job); prepErr != nil {
+		if prepErr := preparePrint(target); prepErr != nil {
 			if errors.Is(prepErr, errPrinterNotReady) {
 				bk := targetKey(target)
 				station := jobRouteStationID(job)
@@ -215,21 +213,6 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 				pc.markActivity()
 				continue
 			}
-			if errors.Is(prepErr, errPrintJobSkippedBacklog) {
-				if patchJobStatus(ctx, cfg, job.ID, map[string]any{
-					"status":        "failed",
-					"error_message": printJobSkippedBacklogMsg,
-				}, "failed:offline_backlog") {
-					agentLog(cfg, "log_skipped_offline_backlog", job.ID, jobRouteStationID(job), target.Display)
-				} else {
-					agentLog(cfg, "log_job_still_pending", job.ID, "failed:offline_backlog")
-				}
-				queue = queue[1:]
-				blockedSpins = 0
-				reorderPasses = 0
-				pc.markActivity()
-				continue
-			}
 			if patchJobStatus(ctx, cfg, job.ID, map[string]any{
 				"status":        "failed",
 				"error_message": prepErr.Error(),
@@ -262,14 +245,6 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 		}
 		data := escposFromJob(job)
 		if err := printToTarget(target, data); err != nil {
-			if printerIOFailure(err) {
-				sess.printerReady().noteTargetOffline(cfg, sess.cfgPath, target)
-			}
-			sess.printerReady().logReadiness(cfg, readinessPrepare, target, job, map[string]string{
-				"decision":   "print_io_fail",
-				"mesa_patch": "failed:print",
-				"detail":     err.Error(),
-			})
 			if patchJobStatus(ctx, cfg, job.ID, map[string]any{
 				"status":        "failed",
 				"error_message": err.Error(),
@@ -281,7 +256,6 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			}
 			setStatus("Print failed", err.Error())
 		} else {
-			sess.printerReady().confirmOnline(cfg, sess.cfgPath, target, job)
 			if patchJobStatus(ctx, cfg, job.ID, map[string]any{"status": "done"}, "done") {
 				agentLog(cfg, "log_printed_ok", target.Display, summarizeJobPayload(job), job.ID)
 				sess.hb.recordPrint(true)

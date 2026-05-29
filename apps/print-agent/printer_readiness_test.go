@@ -1,225 +1,25 @@
 package main
 
 import (
-	"path/filepath"
+	"errors"
 	"testing"
-	"time"
 )
 
-func TestPrinterReadyTracker_shouldSkipBacklogAfterReconnect(t *testing.T) {
-	t.Parallel()
-	tr := newPrinterReadyTracker()
-	key := "winspool:Kitchen"
-	tr.printAfter[key] = time.Now()
-
-	old := printJob{
-		ID:        "old",
-		CreatedAt: tr.printAfter[key].Add(-5 * time.Minute).UTC().Format(time.RFC3339),
+func TestTargetKey(t *testing.T) {
+	if got := targetKey(printerTarget{Scheme: schemeTCP, TCPHostPort: "192.168.1.10:9100"}); got != "tcp:192.168.1.10:9100" {
+		t.Fatalf("tcp key: %q", got)
 	}
-	if skip, _ := tr.shouldSkipBacklog(key, old); !skip {
-		t.Fatal("expected skip for job before reconnect")
-	}
-	fresh := printJob{
-		ID:        "new",
-		CreatedAt: tr.printAfter[key].Add(2 * time.Second).UTC().Format(time.RFC3339),
-	}
-	if skip, _ := tr.shouldSkipBacklog(key, fresh); skip {
-		t.Fatal("expected fresh job after reconnect to print")
+	if got := targetKey(printerTarget{Scheme: schemeWinspool, WinspoolName: "Kitchen"}); got != "winspool:Kitchen" {
+		t.Fatalf("winspool key: %q", got)
 	}
 }
 
-func TestPrinterReadyTracker_reconnectPersists(t *testing.T) {
-	t.Parallel()
-	dir := t.TempDir()
-	path := filepath.Join(dir, "config.json")
-	cfg := &config{
-		APIBase:           "https://example.com",
-		AgentJWT:          "x",
-		PrinterWasOffline: map[string]bool{"winspool:Kitchen": true},
+func TestPreparePrintUnknownScheme(t *testing.T) {
+	err := preparePrint(printerTarget{Scheme: "ftp", Display: "ftp:x"})
+	if err == nil {
+		t.Fatal("expected error")
 	}
-	if err := saveConfig(path, cfg); err != nil {
-		t.Fatal(err)
-	}
-	tr := newPrinterReadyTracker()
-	tr.loadFromConfig(cfg)
-	key := "winspool:Kitchen"
-	tr.markPrintAfter(key)
-	delete(tr.wasOffline, key)
-	tr.persist(cfg, path)
-
-	loaded, err := loadConfig(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if loaded.PrinterPrintAfter[key] == "" {
-		t.Fatal("expected print_after persisted")
-	}
-	if loaded.PrinterWasOffline != nil && loaded.PrinterWasOffline[key] {
-		t.Fatal("expected was_offline cleared on disk")
-	}
-}
-
-func TestShouldSkipBacklog_missingCreatedAt(t *testing.T) {
-	t.Parallel()
-	tr := newPrinterReadyTracker()
-	key := "tcp:10.0.0.1:9100"
-	tr.printAfter[key] = time.Now()
-	skip, noTime := tr.shouldSkipBacklog(key, printJob{ID: "x"})
-	if !skip || !noTime {
-		t.Fatal("expected conservative skip when created_at missing")
-	}
-}
-
-func TestPrinterReadyTracker_markOnMappingChange(t *testing.T) {
-	t.Parallel()
-	dir := t.TempDir()
-	path := filepath.Join(dir, "config.json")
-	cfg := &config{StationPrinters: map[string]string{"a": "tcp:10.0.0.1:9100"}}
-	if err := saveConfig(path, cfg); err != nil {
-		t.Fatal(err)
-	}
-	sess := &agentSession{cfgPath: path, cfg: cfg, printer: newPrinterReadyTracker()}
-	prev := &config{StationPrinters: map[string]string{"a": "tcp:10.0.0.1:9100"}}
-	next := &config{StationPrinters: map[string]string{"a": "winspool:Kitchen"}}
-	sess.printerReady().noteMappingChanges(cfg, path, prev, next)
-	key := targetKey(printerTarget{Scheme: schemeWinspool, WinspoolName: "Kitchen"})
-	if _, ok := sess.printer.printAfter[key]; !ok {
-		t.Fatal("expected printAfter marker on remap")
-	}
-}
-
-func TestArmPrintAfterOnPendingFetch_skipsOlderJobs(t *testing.T) {
-	t.Parallel()
-	dir := t.TempDir()
-	path := dir + "/config.json"
-	cfg := &config{
-		StationPrinters: map[string]string{"s1": "winspool:Kitchen"},
-	}
-	_ = saveConfig(path, cfg)
-	tr := newPrinterReadyTracker()
-	tr.armPrintAfterOnPendingFetch(cfg, path)
-	key := "winspool:Kitchen"
-	since := tr.printAfter[key]
-	old := printJob{
-		ID:        "old",
-		CreatedAt: since.Add(-2 * time.Minute).UTC().Format(time.RFC3339),
-	}
-	if skip, _ := tr.shouldSkipBacklog(key, old); !skip {
-		t.Fatal("expected skip for job before pending fetch arm")
-	}
-	fresh := printJob{
-		ID:        "new",
-		CreatedAt: since.Add(2 * time.Second).UTC().Format(time.RFC3339),
-	}
-	if skip, _ := tr.shouldSkipBacklog(key, fresh); skip {
-		t.Fatal("expected job after arm time to print")
-	}
-}
-
-func TestArmPrintAfterOnPendingFetch_doesNotOverwriteReconnect(t *testing.T) {
-	t.Parallel()
-	tr := newPrinterReadyTracker()
-	key := "winspool:Kitchen"
-	earlier := time.Now().Add(-10 * time.Minute)
-	tr.printAfter[key] = earlier
-	cfg := &config{StationPrinters: map[string]string{"s1": "winspool:Kitchen"}}
-	tr.armPrintAfterOnPendingFetch(cfg, "")
-	if !tr.printAfter[key].Equal(earlier) {
-		t.Fatal("must not overwrite printAfter from reconnect or disk")
-	}
-}
-
-func TestBacklogCompareFields_jobAfterPrintAfter(t *testing.T) {
-	t.Parallel()
-	tr := newPrinterReadyTracker()
-	key := "winspool:K"
-	cutoff := time.Date(2026, 5, 29, 13, 32, 41, 0, time.UTC)
-	tr.printAfter[key] = cutoff
-	job := printJob{
-		ID:        "j1",
-		CreatedAt: time.Date(2026, 5, 29, 14, 2, 44, 0, time.UTC).Format(time.RFC3339),
-	}
-	f := tr.backlogCompareFields(key, job)
-	if f["backlog_skip"] != "false" || f["backlog_reason"] != "job_after_print_after" {
-		t.Fatalf("expected new job not backlog-skipped, got %v", f)
-	}
-}
-
-func TestPreparePrint_unconfirmedStillAllowsAfterObserve(t *testing.T) {
-	t.Parallel()
-	tr := newPrinterReadyTracker()
-	key := "winspool:Kitchen"
-	tr.printAfter[key] = tr.agentStartedAt
-	tr.onlineConfirmed[key] = false
-	job := printJob{
-		ID:        "j1",
-		CreatedAt: tr.agentStartedAt.Add(2 * time.Second).UTC().Format(time.RFC3339),
-	}
-	if skip, _ := tr.shouldSkipBacklog(key, job); skip {
-		t.Fatal("new job should not be backlog-skipped")
-	}
-	if tr.onlineConfirmed[key] {
-		t.Fatal("fixture: not confirmed yet")
-	}
-	// After observe OK, preparePrint must allow attempt (not leave Mesa pending forever).
-	allowed := !tr.onlineConfirmed[key] && !func() bool { s, _ := tr.shouldSkipBacklog(key, job); return s }()
-	if !allowed {
-		t.Fatal("expected allow path when observe succeeded")
-	}
-}
-
-// TestReadinessInvariants_documentsAxes guards against conflating printAfter with onlineConfirmed.
-func TestReadinessInvariants_documentsAxes(t *testing.T) {
-	t.Parallel()
-	tr := newPrinterReadyTracker()
-	key := "winspool:Bar"
-	when := time.Now().Add(-time.Hour)
-	tr.printAfter[key] = when
-	tr.loadFromConfig(&config{
-		PrinterPrintAfter: map[string]string{key: when.UTC().Format(time.RFC3339)},
-	})
-	if tr.onlineConfirmed[key] {
-		t.Fatal("printAfter on disk must not imply onlineConfirmed")
-	}
-	tr.resetWinspoolSessionTrust(&config{
-		StationPrinters: map[string]string{"s": "winspool:Bar"},
-	})
-	if tr.onlineConfirmed[key] {
-		t.Fatal("resetWinspoolSessionTrust must clear onlineConfirmed")
-	}
-}
-
-func TestLoadFromConfig_doesNotAutoConfirmWinspool(t *testing.T) {
-	t.Parallel()
-	tr := newPrinterReadyTracker()
-	when := time.Date(2026, 5, 29, 12, 0, 0, 0, time.UTC)
-	cfg := &config{
-		PrinterPrintAfter: map[string]string{"winspool:Bar": when.Format(time.RFC3339)},
-		PrinterWasOffline: nil,
-	}
-	tr.loadFromConfig(cfg)
-	if tr.onlineConfirmed["winspool:Bar"] {
-		t.Fatal("must not trust persisted print_after as online confirmed")
-	}
-	tr.resetWinspoolSessionTrust(cfg)
-	if tr.onlineConfirmed["winspool:Bar"] {
-		t.Fatal("session reset must keep winspool unconfirmed")
-	}
-}
-
-func TestPrinterReadyTracker_loadFromConfig(t *testing.T) {
-	t.Parallel()
-	tr := newPrinterReadyTracker()
-	when := time.Date(2026, 5, 29, 12, 0, 0, 0, time.UTC)
-	cfg := &config{
-		PrinterPrintAfter: map[string]string{"winspool:Bar": when.Format(time.RFC3339)},
-		PrinterWasOffline: map[string]bool{"winspool:Bar": true},
-	}
-	tr.loadFromConfig(cfg)
-	if tr.printAfter["winspool:Bar"] != when {
-		t.Fatalf("printAfter got %v", tr.printAfter["winspool:Bar"])
-	}
-	if !tr.wasOffline["winspool:Bar"] {
-		t.Fatal("expected wasOffline loaded")
+	if !errors.Is(err, errPrinterNotReady) {
+		t.Fatalf("got %v", err)
 	}
 }

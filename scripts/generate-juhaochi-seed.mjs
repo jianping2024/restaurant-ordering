@@ -25,7 +25,6 @@ const outPath = path.join(root, 'supabase', 'seed.sql');
 const DEV_EMAIL = 'dev-owner@local.test';
 const DEV_PASSWORD = 'localdev123';
 const OWNER_ID = '40bb02de-21e0-47e7-a3d6-caab3d8bb059';
-const IDENTITY_ID = '2b9b01e9-f5b2-4b88-a2cc-afc5c4a0423e';
 
 const payload = JSON.parse(fs.readFileSync(payloadPath, 'utf8'));
 const { restaurant, print_stations, menu_categories, menu_items } = payload;
@@ -58,28 +57,32 @@ lines.push('');
 
 lines.push('DO $$');
 lines.push('DECLARE');
-lines.push(`  v_pw text := crypt('${esc(DEV_PASSWORD)}', gen_salt('bf'));`);
+lines.push(`  v_pw text := extensions.crypt('${esc(DEV_PASSWORD)}', extensions.gen_salt('bf'));`);
 lines.push('BEGIN');
 lines.push(`  DELETE FROM auth.identities WHERE user_id = '${OWNER_ID}';`);
 lines.push(`  DELETE FROM auth.users WHERE id = '${OWNER_ID}';`);
 lines.push('');
 lines.push('  INSERT INTO auth.users (');
 lines.push('    id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,');
-lines.push('    raw_app_meta_data, raw_user_meta_data, created_at, updated_at');
+lines.push('    confirmation_token, recovery_token, email_change, email_change_token_new,');
+lines.push('    phone, raw_app_meta_data, raw_user_meta_data, created_at, updated_at,');
+lines.push('    is_sso_user, is_anonymous');
 lines.push('  ) VALUES (');
 lines.push(`    '${OWNER_ID}',`);
 lines.push("    '00000000-0000-0000-0000-000000000000',");
 lines.push("    'authenticated', 'authenticated',");
 lines.push(`    '${DEV_EMAIL}', v_pw, NOW(),`);
+lines.push("    '', '', '', '',");
+lines.push("    '',");
 lines.push(`    '{"provider":"email","providers":["email"]}'::jsonb,`);
 lines.push(`    jsonb_build_object('email', '${DEV_EMAIL}', 'email_verified', true, 'sub', '${OWNER_ID}'),`);
-lines.push('    NOW(), NOW()');
+lines.push('    NOW(), NOW(), false, false');
 lines.push('  );');
 lines.push('');
 lines.push('  INSERT INTO auth.identities (');
 lines.push('    id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at');
 lines.push('  ) VALUES (');
-lines.push(`    '${IDENTITY_ID}', '${OWNER_ID}',`);
+lines.push(`    gen_random_uuid(), '${OWNER_ID}',`);
 lines.push(
   `    jsonb_build_object('sub', '${OWNER_ID}', 'email', '${DEV_EMAIL}', 'email_verified', true),`,
 );

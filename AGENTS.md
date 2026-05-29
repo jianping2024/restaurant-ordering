@@ -37,7 +37,13 @@ Do not broaden the task unless the user explicitly asks.
 npm run dev
 ```
 
-Start Next.js on `0.0.0.0:3000`.
+Start Next.js on `0.0.0.0:3000` (loads `.env.local.supabase` — local Supabase).
+
+```bash
+npm run cloud
+```
+
+Start Next.js against cloud Supabase (uses `.env.local`).
 
 ```bash
 npm run lint

@@ -20,12 +20,15 @@ npm install
 cp .env.local.example .env.local
 ```
 
-打开 `.env.local`，填入你的 Supabase 配置（见下方 Supabase 初始化步骤）。
+- **本地库**：`bash scripts/sync-local-supabase-env.sh`（见下方「本地 Supabase」）
+- **云端库**：在 `.env.local` 填入云项目配置（见下方 Supabase 初始化）
 
 ### 3. 启动开发服务器
 
 ```bash
-npm run dev
+supabase start          # 仅本地库需要
+npm run dev             # 本地 Supabase（读 .env.local.supabase）
+# npm run cloud         # 云端 Supabase（读 .env.local）
 ```
 
 访问 http://localhost:3000
@@ -66,6 +69,18 @@ Schema 已 squash 为单文件 `supabase/migrations/20240101000000_initial_schem
 ### 4. （可选）插入示例数据
 
 执行 `supabase/seed.sql` 会自动创建本地演示账号与「巨好吃餐厅」菜单（来自云库快照，不含订单）。登录：`dev-owner@local.test` / `localdev123`。更新快照：`node scripts/generate-juhaochi-seed.mjs`。
+
+**本地 Supabase**：`.env.local.supabase` 仅在本机生成（已 gitignore，勿提交）。首次：
+
+```bash
+supabase start
+bash scripts/sync-local-supabase-env.sh
+npm run dev
+```
+
+`npm run dev` 会先加载 `.env.local.supabase`；已注入的变量不会被 `.env.local` 覆盖。
+
+**云端**：`npm run cloud` 使用现有 `.env.local`（联调/生产 Supabase 项目）。
 
 ### 5. 配置环境变量（管理员开户）
 

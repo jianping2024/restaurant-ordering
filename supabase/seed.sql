@@ -6,28 +6,32 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
 
 DO $$
 DECLARE
-  v_pw text := crypt('localdev123', gen_salt('bf'));
+  v_pw text := extensions.crypt('localdev123', extensions.gen_salt('bf'));
 BEGIN
   DELETE FROM auth.identities WHERE user_id = '40bb02de-21e0-47e7-a3d6-caab3d8bb059';
   DELETE FROM auth.users WHERE id = '40bb02de-21e0-47e7-a3d6-caab3d8bb059';
 
   INSERT INTO auth.users (
     id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
-    raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+    confirmation_token, recovery_token, email_change, email_change_token_new,
+    phone, raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+    is_sso_user, is_anonymous
   ) VALUES (
     '40bb02de-21e0-47e7-a3d6-caab3d8bb059',
     '00000000-0000-0000-0000-000000000000',
     'authenticated', 'authenticated',
     'dev-owner@local.test', v_pw, NOW(),
+    '', '', '', '',
+    '',
     '{"provider":"email","providers":["email"]}'::jsonb,
     jsonb_build_object('email', 'dev-owner@local.test', 'email_verified', true, 'sub', '40bb02de-21e0-47e7-a3d6-caab3d8bb059'),
-    NOW(), NOW()
+    NOW(), NOW(), false, false
   );
 
   INSERT INTO auth.identities (
     id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at
   ) VALUES (
-    '2b9b01e9-f5b2-4b88-a2cc-afc5c4a0423e', '40bb02de-21e0-47e7-a3d6-caab3d8bb059',
+    gen_random_uuid(), '40bb02de-21e0-47e7-a3d6-caab3d8bb059',
     jsonb_build_object('sub', '40bb02de-21e0-47e7-a3d6-caab3d8bb059', 'email', 'dev-owner@local.test', 'email_verified', true),
     'email', '40bb02de-21e0-47e7-a3d6-caab3d8bb059', NOW(), NOW(), NOW());
 END $$;

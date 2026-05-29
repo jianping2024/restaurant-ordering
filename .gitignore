@@ -36,6 +36,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# supabase cli local state
+supabase/.branches/
+
 # supabase cli local cache
 supabase/.temp/
 

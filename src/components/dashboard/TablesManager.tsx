@@ -166,14 +166,6 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
     link.click();
   };
 
-  const downloadStaffLoginQR = () => {
-    if (!staffLoginQr) return;
-    const link = document.createElement('a');
-    link.href = staffLoginQr;
-    link.download = 'staff-login-qr.png';
-    link.click();
-  };
-
   const printTables = (rows: RestaurantTableRow[]) => {
     const printable = rows.filter((row) => qrCodes[row.id]);
     if (printable.length === 0) return;
@@ -222,6 +214,14 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
   const printAll = () => printTables(tables);
 
   const printTable = (table: RestaurantTableRow) => printTables([table]);
+
+  const downloadStaffLoginQR = () => {
+    if (!staffLoginQr) return;
+    const link = document.createElement('a');
+    link.href = staffLoginQr;
+    link.download = 'staff-login-qr.png';
+    link.click();
+  };
 
   const tableLabelForInput = (table: RestaurantTableRow) =>
     labelDrafts[table.id] ?? table.display_name;
@@ -548,9 +548,6 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
               ) : (
                 <div className="w-32 h-32 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
               )}
-              <p className="text-brand-text-muted text-[13px] mb-3 truncate">
-                /{restaurant.slug}/menu?table_id=…
-              </p>
               <div className="flex flex-col items-center justify-center gap-2">
                 <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
                   <button
@@ -648,7 +645,6 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
           ) : (
             <div className="w-44 h-44 mx-auto bg-brand-border rounded-lg mb-3 animate-pulse" />
           )}
-          <p className="text-brand-text-muted text-[13px] mb-3 truncate">/{restaurant.slug}/staff/login</p>
           <div className="flex items-center justify-center gap-3">
             <button
               type="button"

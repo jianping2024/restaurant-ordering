@@ -65,7 +65,7 @@ Schema 已 squash 为单文件 `supabase/migrations/20240101000000_initial_schem
 
 ### 4. （可选）插入示例数据
 
-执行 `supabase/seed.sql`，但需先将文件中 `owner_id` 替换为真实注册用户的 user id。
+执行 `supabase/seed.sql` 会自动创建本地演示账号与「巨好吃餐厅」菜单（来自云库快照，不含订单）。登录：`dev-owner@local.test` / `localdev123`。更新快照：`node scripts/generate-juhaochi-seed.mjs`。
 
 ### 5. 配置环境变量（管理员开户）
 

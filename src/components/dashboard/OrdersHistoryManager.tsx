@@ -11,8 +11,9 @@ import Select from 'react-select';
 import type { MultiValue, StylesConfig } from 'react-select';
 import 'react-day-picker/dist/style.css';
 import { mergeTablesWithOrderHistory, compareRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
-import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { showToast } from '@/components/ui/Toast';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { interpretCloseTableSessionResponse } from '@/lib/close-table-session-ui';
 
 interface Props {
   initialOrders: Order[];
@@ -38,6 +39,7 @@ export function OrdersHistoryManager({
   const locale = UI_LOCALE_BY_LANG[lang];
   const [orders, setOrders] = useState(initialOrders);
   const [closingTable, setClosingTable] = useState<string | null>(null);
+  const [checkoutCloseConfirmTableId, setCheckoutCloseConfirmTableId] = useState<string | null>(null);
   const [selectedTables, setSelectedTables] = useState<TableOption[]>([]);
   const [statusFilter, setStatusFilter] = useState<'all' | OrderStatus>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -239,26 +241,30 @@ export function OrdersHistoryManager({
     printWindow.document.close();
   };
 
-  const handleCloseTable = async (closeTableId: string, displayName: string) => {
+  const handleCloseTable = async (closeTableId: string, _displayName: string, confirmClose = false) => {
     if (!restaurantId) return;
-    const card = buildWaiterTableCard(closeTableId, displayName, orders);
-    if (card.cooking > 0 || card.ready > 0) {
-      showToast(i18n.closeTableBlocked, 'error');
-      return;
-    }
     setClosingTable(closeTableId);
     try {
       const res = await fetch('/api/dashboard/close-table-session', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ table_id: closeTableId }),
+        body: JSON.stringify({
+          table_id: closeTableId,
+          confirm_close: confirmClose,
+        }),
       });
-      if (res.status === 404) {
+      const data = (await res.json().catch(() => ({}))) as { error?: string; ok?: boolean };
+      const next = interpretCloseTableSessionResponse(res.status, data);
+      if (next.action === 'no_session') {
         showToast(i18n.closeTableNoSession, 'error');
         return;
       }
-      if (!res.ok) {
+      if (next.action === 'confirm_close') {
+        setCheckoutCloseConfirmTableId(closeTableId);
+        return;
+      }
+      if (next.action === 'error') {
         showToast(i18n.closeTableFailed, 'error');
         return;
       }
@@ -392,8 +398,6 @@ export function OrdersHistoryManager({
       ) : showCloseTable && tableGroups ? (
         <div className="space-y-6">
           {tableGroups.map(([tableId, group]) => {
-            const card = buildWaiterTableCard(tableId, group.displayName, orders);
-            const canClose = card.cooking === 0 && card.ready === 0;
             return (
               <section key={tableId}>
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
@@ -402,10 +406,9 @@ export function OrdersHistoryManager({
                   </h2>
                   <button
                     type="button"
-                    disabled={!canClose || closingTable === tableId}
-                    onClick={() => void handleCloseTable(tableId, group.displayName)}
+                    disabled={closingTable === tableId}
+                    onClick={() => setCheckoutCloseConfirmTableId(tableId)}
                     className="text-sm px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:border-brand-gold/50 hover:text-brand-gold disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    title={!canClose ? i18n.closeTableBlocked : undefined}
                   >
                     {closingTable === tableId ? i18n.closeTableOperating : i18n.closeTable}
                   </button>
@@ -420,6 +423,24 @@ export function OrdersHistoryManager({
           {filteredOrders.map(renderOrderCard)}
         </div>
       )}
+      <ConfirmModal
+        open={checkoutCloseConfirmTableId != null}
+        onClose={() => setCheckoutCloseConfirmTableId(null)}
+        title={i18n.closeTableConfirmTitle}
+        message={i18n.closeTableConfirmMessage}
+        confirmLabel={i18n.closeTableConfirmButton}
+        cancelLabel={i18n.closeTableCancel}
+        variant="danger"
+        confirming={closingTable === checkoutCloseConfirmTableId}
+        onConfirm={async () => {
+          if (!checkoutCloseConfirmTableId) return;
+          const tableId = checkoutCloseConfirmTableId;
+          const displayName =
+            tableGroups?.find(([id]) => id === tableId)?.[1].displayName ?? '';
+          setCheckoutCloseConfirmTableId(null);
+          await handleCloseTable(tableId, displayName, true);
+        }}
+      />
     </div>
   );
 }

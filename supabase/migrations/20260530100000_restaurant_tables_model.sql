@@ -1,21 +1,12 @@
 -- ============================================================
 -- Restaurant tables model: table_id + display_name
--- Dev phase: wipe order-related data; no legacy table_number compat
+-- Data-preserving: backfill from table_number / table_numbers.
+-- Dev-only full wipe: scripts/dev-wipe-order-data.sql (never in migrations)
 -- ============================================================
 
 create extension if not exists pgcrypto;
 
--- 1. Clear business data (single TRUNCATE + CASCADE for FK graph)
-truncate table
-  public.dish_feedback,
-  public.feedback_sessions,
-  public.print_jobs,
-  public.bill_splits,
-  public.orders,
-  public.table_sessions
-restart identity cascade;
-
--- 2. restaurant_tables
+-- 1. restaurant_tables
 create table if not exists public.restaurant_tables (
   id uuid primary key default gen_random_uuid(),
   restaurant_id uuid not null references public.restaurants(id) on delete cascade,
@@ -36,7 +27,58 @@ create index if not exists idx_restaurant_tables_restaurant_active
   on public.restaurant_tables (restaurant_id, sort_order)
   where deleted_at is null;
 
--- Seed A-01 … A-10 per restaurant (only if none exist yet)
+-- Seed from restaurants.table_numbers (preserve configured labels)
+insert into public.restaurant_tables (restaurant_id, display_name, sort_order)
+select r.id, tn.label, tn.ord::integer
+from public.restaurants r
+cross join lateral unnest(r.table_numbers) with ordinality as tn(label, ord)
+where not exists (
+  select 1
+  from public.restaurant_tables rt
+  where rt.restaurant_id = r.id
+    and rt.display_name = tn.label
+    and rt.deleted_at is null
+);
+
+-- Historical labels missing from table_numbers (orders / sessions / splits)
+with orphan_labels as (
+  select distinct restaurant_id, table_number as display_name
+  from (
+    select restaurant_id, table_number from public.table_sessions
+    union
+    select restaurant_id, table_number from public.orders
+    union
+    select restaurant_id, table_number from public.bill_splits
+  ) src
+  where table_number is not null
+    and btrim(table_number) <> ''
+),
+numbered_orphans as (
+  select
+    o.restaurant_id,
+    o.display_name,
+    coalesce((
+      select max(rt.sort_order)
+      from public.restaurant_tables rt
+      where rt.restaurant_id = o.restaurant_id
+    ), 0) + row_number() over (
+      partition by o.restaurant_id
+      order by o.display_name
+    ) as sort_order
+  from orphan_labels o
+  where not exists (
+    select 1
+    from public.restaurant_tables rt
+    where rt.restaurant_id = o.restaurant_id
+      and rt.display_name = o.display_name
+      and rt.deleted_at is null
+  )
+)
+insert into public.restaurant_tables (restaurant_id, display_name, sort_order)
+select restaurant_id, display_name, sort_order
+from numbered_orphans;
+
+-- Default A-01 … A-10 when a restaurant has no table rows yet
 insert into public.restaurant_tables (restaurant_id, display_name, sort_order)
 select r.id, 'A-' || lpad(i::text, 2, '0'), i
 from public.restaurants r
@@ -45,17 +87,39 @@ where not exists (
   select 1 from public.restaurant_tables rt where rt.restaurant_id = r.id
 );
 
--- 3. Drop old session / order indexes on table_number
+-- 2. Drop old session / order indexes on table_number
 drop index if exists public.uniq_active_table_session;
 drop index if exists public.idx_table_sessions_restaurant_table;
 drop index if exists public.idx_orders_table;
 
--- 4. table_sessions: table_id replaces table_number
-alter table public.table_sessions
-  drop column if exists table_number;
-
+-- 3. table_sessions: table_id replaces table_number
 alter table public.table_sessions
   add column if not exists table_id uuid references public.restaurant_tables(id) on delete restrict;
+
+update public.table_sessions ts
+set table_id = rt.id
+from public.restaurant_tables rt
+where ts.table_id is null
+  and ts.restaurant_id = rt.restaurant_id
+  and ts.table_number = rt.display_name
+  and rt.deleted_at is null;
+
+do $$
+begin
+  if exists (
+    select 1
+    from public.table_sessions ts
+    where ts.table_id is null
+      and ts.table_number is not null
+      and btrim(ts.table_number) <> ''
+  ) then
+    raise exception 'table_sessions backfill incomplete: orphan table_number values remain';
+  end if;
+end;
+$$;
+
+alter table public.table_sessions
+  drop column if exists table_number;
 
 alter table public.table_sessions
   alter column table_id set not null;
@@ -67,15 +131,39 @@ create unique index if not exists uniq_active_table_session
 create index if not exists idx_table_sessions_restaurant_table_id
   on public.table_sessions (restaurant_id, table_id);
 
--- 5. orders
-alter table public.orders
-  drop column if exists table_number;
-
+-- 4. orders
 alter table public.orders
   add column if not exists table_id uuid references public.restaurant_tables(id) on delete restrict;
 
 alter table public.orders
   add column if not exists display_name text;
+
+update public.orders o
+set
+  table_id = rt.id,
+  display_name = coalesce(o.display_name, rt.display_name)
+from public.restaurant_tables rt
+where o.table_id is null
+  and o.restaurant_id = rt.restaurant_id
+  and o.table_number = rt.display_name
+  and rt.deleted_at is null;
+
+do $$
+begin
+  if exists (
+    select 1
+    from public.orders o
+    where o.table_id is null
+      and o.table_number is not null
+      and btrim(o.table_number) <> ''
+  ) then
+    raise exception 'orders backfill incomplete: orphan table_number values remain';
+  end if;
+end;
+$$;
+
+alter table public.orders
+  drop column if exists table_number;
 
 alter table public.orders
   alter column table_id set not null;
@@ -86,15 +174,39 @@ alter table public.orders
 create index if not exists idx_orders_restaurant_table_id
   on public.orders (restaurant_id, table_id);
 
--- 6. bill_splits
-alter table public.bill_splits
-  drop column if exists table_number;
-
+-- 5. bill_splits
 alter table public.bill_splits
   add column if not exists table_id uuid references public.restaurant_tables(id) on delete restrict;
 
 alter table public.bill_splits
   add column if not exists display_name text;
+
+update public.bill_splits bs
+set
+  table_id = rt.id,
+  display_name = coalesce(bs.display_name, rt.display_name)
+from public.restaurant_tables rt
+where bs.table_id is null
+  and bs.restaurant_id = rt.restaurant_id
+  and bs.table_number = rt.display_name
+  and rt.deleted_at is null;
+
+do $$
+begin
+  if exists (
+    select 1
+    from public.bill_splits bs
+    where bs.table_id is null
+      and bs.table_number is not null
+      and btrim(bs.table_number) <> ''
+  ) then
+    raise exception 'bill_splits backfill incomplete: orphan table_number values remain';
+  end if;
+end;
+$$;
+
+alter table public.bill_splits
+  drop column if exists table_number;
 
 alter table public.bill_splits
   alter column table_id set not null;
@@ -102,7 +214,7 @@ alter table public.bill_splits
 alter table public.bill_splits
   alter column display_name set not null;
 
--- 7. restaurants: drop table_numbers array
+-- 6. restaurants: drop table_numbers array
 drop view if exists public.restaurants_public;
 
 alter table public.restaurants
@@ -130,7 +242,33 @@ with (security_invoker = false) as
 
 grant select on public.restaurants_public to anon, authenticated;
 
--- 8. print_jobs generated columns (payload table_id + display_name)
+-- 7. print_jobs: backfill payload, then generated columns (table_id + display_name)
+update public.print_jobs pj
+set payload = pj.payload
+  || jsonb_strip_nulls(jsonb_build_object(
+    'display_name', coalesce(
+      nullif(btrim(pj.payload->>'display_name'), ''),
+      case jsonb_typeof(pj.payload->'table_number')
+        when 'number' then trim((pj.payload->'table_number')::text)
+        when 'string' then nullif(btrim(pj.payload->>'table_number'), '')
+        else null
+      end
+    ),
+    'table_id', rt.id::text
+  ))
+from public.restaurant_tables rt
+where pj.restaurant_id = rt.restaurant_id
+  and rt.deleted_at is null
+  and (
+    not (pj.payload ? 'table_id')
+    or nullif(btrim(pj.payload->>'table_id'), '') is null
+  )
+  and rt.display_name = case jsonb_typeof(pj.payload->'table_number')
+    when 'number' then trim((pj.payload->'table_number')::text)
+    when 'string' then nullif(btrim(pj.payload->>'table_number'), '')
+    else null
+  end;
+
 alter table public.print_jobs drop column if exists table_number;
 
 alter table public.print_jobs

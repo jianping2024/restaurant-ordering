@@ -5,6 +5,11 @@ import { isBuffetBaseItem } from '@/lib/order-items';
 
 export type CloseTableOperationalReason = 'waiter_closed' | 'owner_closed' | 'auto_nightly';
 
+export type CloseTableSessionAudit = {
+  /** Supabase auth user id for manual close (waiter/owner). Omit for auto_nightly. */
+  closed_by_user_id?: string | null;
+};
+
 export type CloseTableOperationalResult =
   | { ok: true; session_id: string }
   | { ok: false; code: 'no_session' | 'update_failed'; message?: string };
@@ -33,6 +38,7 @@ export async function closeActiveTableSessionWithOperationalCleanup(
   restaurantId: string,
   tableId: string,
   closedReason: CloseTableOperationalReason,
+  audit: CloseTableSessionAudit = {},
 ): Promise<CloseTableOperationalResult> {
   const { data: session, error: findError } = await admin
     .from('table_sessions')
@@ -97,6 +103,7 @@ export async function closeActiveTableSessionWithOperationalCleanup(
       status: 'closed',
       closed_at: nowIso,
       closed_reason: closedReason,
+      closed_by_user_id: audit.closed_by_user_id ?? null,
     })
     .eq('id', sessionId);
 

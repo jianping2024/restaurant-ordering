@@ -7,7 +7,7 @@
 
 | # | 阶段 | 状态 | 说明 |
 |---|------|------|------|
-| 1 | DB migration + 清业务数据 | ✅ 完成 | `20260530100000_restaurant_tables_model.sql` |
+| 1 | DB migration + backfill | ✅ 完成 | `20260530100000_restaurant_tables_model.sql`（保留历史数据） |
 | 2 | `restaurant-tables.ts` + 类型 | ✅ 完成 | 已删 `restaurant-table-numbers.ts` |
 | 3 | RPC / RLS | ✅ 完成 | 含在 migration |
 | 4 | API 路由 | ✅ 完成 | append、receipt、buffet、waiter、kitchen board |
@@ -19,13 +19,13 @@
 
 图例：✅ 完成 · 🔄 进行中 · ⏳ 待做
 
-**部署前：** 在目标库执行 `supabase db push`（或应用 migration），会 **清空** 订单/餐次/打印队列等业务数据。
+**部署前：** 在目标库执行 `supabase db push`（或应用 migration）。Migration **保留** 订单/餐次等业务数据并完成 `table_number` → `table_id` backfill。开发环境如需清空历史，手动运行 `scripts/dev-wipe-order-data.sql`（**勿用于生产**）。
 
 ---
 
 ## 1. 数据库（阶段 1）— ✅
 
-- [x] Truncate：`print_jobs`、`dish_feedback`、`feedback_sessions`、`bill_splits`、`orders`、`table_sessions`
+- [x] Backfill：`table_number` / `table_numbers` → `restaurant_tables` + 业务表 `table_id` / `display_name`（dev 清库见 `scripts/dev-wipe-order-data.sql`）
 - [x] 新建 `restaurant_tables`（`deleted_at`、部分唯一 `(restaurant_id, display_name)`）
 - [x] 为现有餐厅 seed **A-01…A-10**
 - [x] `table_sessions` / `orders` / `bill_splits`：`table_id` + `display_name`，drop `table_number`

@@ -1,4 +1,5 @@
 -- One-time dev/staging reset: clear live orders and release all tables.
+-- For a full TRUNCATE of order history, use scripts/dev-wipe-order-data.sql instead.
 -- Run: supabase db query -f scripts/cleanup-operational-data.sql --linked
 
 begin;

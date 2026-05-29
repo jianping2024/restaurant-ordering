@@ -135,9 +135,11 @@
 
 ---
 
-## 5. 开发阶段数据策略
+## 5. 数据迁移策略
 
-**不兼容旧数据。** 实施 migration 时可对以下表 **truncate 或 delete**（按 FK 顺序）：
+**保留历史数据。** Migration 从 `restaurants.table_numbers` 与各业务表的 `table_number` backfill 到 `restaurant_tables` 及 `table_id` / `display_name` 快照列；若 backfill 后仍有无法映射的桌号，migration 会 **失败** 而非静默丢数。
+
+**开发环境可选清空：** 手动运行 `scripts/dev-wipe-order-data.sql`（**禁止** 写入 migration 或在生产执行），会 truncate：
 
 - `print_jobs`
 - `dish_feedback` / `feedback_sessions`（若存在）

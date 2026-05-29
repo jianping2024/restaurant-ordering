@@ -39,7 +39,7 @@ restaurant_tables (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, displa
 
 restaurants (id: uuid PK, name: text, slug: text unique, owner_id: uuid FK -> auth.users.id, logo_url: text nullable, address: text nullable, phone: text nullable, plan: text [free|pro], kitchen_password: text, waiter_password: text, geo_latitude: double precision nullable, geo_longitude: double precision nullable, print_locale: text [zh|en|pt], print_agent_config: jsonb, kitchen_password_version: integer, waiter_password_version: integer, order_radius_meters: integer range 10..10000, buffet_friday_weekend_from: time nullable, created_at: timestamptz)
 
-table_sessions (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, status: text [open|billing|closed], opened_at: timestamptz, closed_at: timestamptz nullable, merge_into_session_id: uuid FK -> table_sessions.id nullable, closed_reason: text nullable, table_id: uuid FK -> restaurant_tables.id)
+table_sessions (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, status: text [open|billing|closed], opened_at: timestamptz, closed_at: timestamptz nullable, merge_into_session_id: uuid FK -> table_sessions.id nullable, closed_reason: text nullable, closed_by_user_id: uuid FK -> auth.users.id nullable, table_id: uuid FK -> restaurant_tables.id)
 
 ## Relationships
 
@@ -48,7 +48,8 @@ restaurants.owner_id -> auth.users.id
 restaurant_tables.restaurant_id -> restaurants.id  
 table_sessions.restaurant_id -> restaurants.id  
 table_sessions.table_id -> restaurant_tables.id  
-table_sessions.merge_into_session_id -> table_sessions.id
+table_sessions.merge_into_session_id -> table_sessions.id  
+table_sessions.closed_by_user_id -> auth.users.id
 
 orders.restaurant_id -> restaurants.id  
 orders.session_id -> table_sessions.id  

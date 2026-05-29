@@ -17,6 +17,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
 import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { Modal } from '@/components/ui/Modal';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { showToast } from '@/components/ui/Toast';
 import { deriveOrderStatusFromItems } from '@/lib/order-status';
@@ -27,6 +28,9 @@ import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
+import {
+  interpretCloseTableSessionResponse,
+} from '@/lib/close-table-session-ui';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -62,6 +66,7 @@ function WaiterTableDetailInner({
     tables,
     tablesLoaded,
     activeSessionByTableId,
+    checkoutRequestedTableIds,
   } = useWaiterOrders(
     restaurant,
     initialOrders,
@@ -75,6 +80,7 @@ function WaiterTableDetailInner({
   const [targetTable, setTargetTable] = useState<string | null>(null);
   const [operating, setOperating] = useState(false);
   const [closingTable, setClosingTable] = useState<string | null>(null);
+  const [checkoutCloseConfirmTableId, setCheckoutCloseConfirmTableId] = useState<string | null>(null);
   const activeBuffets = useMemo(() => initialBuffets.filter((b) => b.is_active), [initialBuffets]);
   const [buffetId, setBuffetId] = useState<string>(() => activeBuffets[0]?.id || '');
   const [buffetAdults, setBuffetAdults] = useState(2);
@@ -240,8 +246,6 @@ function WaiterTableDetailInner({
   const sourceTableLabel =
     configuredTables.find((row) => row.id === sourceTable)?.display_name ?? sourceTable ?? '';
 
-  const canCloseTableCard = selectedCard.cooking === 0 && selectedCard.ready === 0;
-
   const boardHref = isDemo ? '/demo/waiter' : `/${restaurant.slug}/waiter`;
   const waiterReturnPath = isDemo
     ? `/demo/waiter/${encodeURIComponent(tableId)}`
@@ -375,6 +379,23 @@ function WaiterTableDetailInner({
     }
   };
 
+  const closeConfirmCopy = useMemo(() => {
+    const pendingTableId = checkoutCloseConfirmTableId;
+    if (!pendingTableId) {
+      return { title: t.closeTableConfirmTitle, message: t.closeTableConfirmMessage };
+    }
+    const hasCheckoutRequest = checkoutRequestedTableIds.some((id) =>
+      tableIdsEqual(id, pendingTableId),
+    );
+    if (hasCheckoutRequest) {
+      return {
+        title: t.closeTableCheckoutConfirmTitle,
+        message: t.closeTableCheckoutConfirmMessage,
+      };
+    }
+    return { title: t.closeTableConfirmTitle, message: t.closeTableConfirmMessage };
+  }, [checkoutCloseConfirmTableId, checkoutRequestedTableIds, t]);
+
   if (!isDemo && tablesLoaded && !selectedTable) {
     return (
       <div className="min-h-screen bg-brand-bg p-4">
@@ -392,7 +413,7 @@ function WaiterTableDetailInner({
     );
   }
 
-  const closeTableFromWaiter = async (closeTableId: string) => {
+  const closeTableFromWaiter = async (closeTableId: string, confirmClose = false) => {
     setClosingTable(closeTableId);
     try {
       if (!isDemo) {
@@ -402,14 +423,23 @@ function WaiterTableDetailInner({
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ table_id: closeTableId }),
+            body: JSON.stringify({
+              table_id: closeTableId,
+              confirm_close: confirmClose,
+            }),
           },
         );
-        if (res.status === 404) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string; ok?: boolean };
+        const next = interpretCloseTableSessionResponse(res.status, data);
+        if (next.action === 'no_session') {
           showToast(t.closeTableNoSession, 'error');
           return;
         }
-        if (!res.ok) {
+        if (next.action === 'confirm_close') {
+          setCheckoutCloseConfirmTableId(closeTableId);
+          return;
+        }
+        if (next.action === 'error') {
           showToast(t.actionFailed, 'error');
           return;
         }
@@ -454,6 +484,10 @@ function WaiterTableDetailInner({
     } finally {
       setClosingTable(null);
     }
+  };
+
+  const requestCloseTable = (closeTableId: string) => {
+    setCheckoutCloseConfirmTableId(closeTableId);
   };
 
   const applyBuffetToTable = async () => {
@@ -850,16 +884,14 @@ function WaiterTableDetailInner({
               >
                 {t.merge}
               </button>
-              {canCloseTableCard && (
-                <button
-                  type="button"
-                  onClick={() => closeTableFromWaiter(selectedCard.tableId)}
-                  disabled={closingTable === selectedCard.tableId}
-                  className={`${waiterUi.btnSecondary} ${waiterUi.btnDanger} disabled:opacity-50`}
-                >
-                  {closingTable === selectedCard.tableId ? t.closeTableOperating : t.closeTable}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => requestCloseTable(selectedCard.tableId)}
+                disabled={closingTable === selectedCard.tableId}
+                className={`${waiterUi.btnSecondary} ${waiterUi.btnDanger} disabled:opacity-50`}
+              >
+                {closingTable === selectedCard.tableId ? t.closeTableOperating : t.closeTable}
+              </button>
             </div>
 
             <div className="flex items-center gap-2 text-[13px] mb-3">
@@ -961,6 +993,22 @@ function WaiterTableDetailInner({
           </button>
         </div>
       </Modal>
+      <ConfirmModal
+        open={checkoutCloseConfirmTableId != null}
+        onClose={() => setCheckoutCloseConfirmTableId(null)}
+        title={closeConfirmCopy.title}
+        message={closeConfirmCopy.message}
+        confirmLabel={t.closeTableConfirmButton}
+        cancelLabel={t.closeTableCancel}
+        variant="danger"
+        confirming={closingTable === checkoutCloseConfirmTableId}
+        onConfirm={async () => {
+          if (!checkoutCloseConfirmTableId) return;
+          const tableId = checkoutCloseConfirmTableId;
+          setCheckoutCloseConfirmTableId(null);
+          await closeTableFromWaiter(tableId, true);
+        }}
+      />
     </div>
   );
 }

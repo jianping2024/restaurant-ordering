@@ -304,6 +304,7 @@ export interface TableSession {
   closed_at?: string | null;
   merge_into_session_id?: string | null;
   closed_reason?: string | null;
+  closed_by_user_id?: string | null;
 }
 
 // 购物车条目

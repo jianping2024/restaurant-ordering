@@ -362,7 +362,10 @@
             orphan.value = selected;
             orphan.textContent = t('printer_saved_missing');
             orphan.selected = true;
-            selectEl.insertBefore(orphan, selectEl.options[1] || null);
+            // options[i] may live inside <optgroup>; insertBefore requires a direct child of <select>.
+            var anchor = selectEl.querySelector('optgroup');
+            if (anchor) selectEl.insertBefore(orphan, anchor);
+            else selectEl.appendChild(orphan);
           }
         }
       }

@@ -269,7 +269,9 @@
           orphan.textContent = t('printer_saved_missing');
           orphan.title = selected;
           orphan.selected = true;
-          selectEl.insertBefore(orphan, selectEl.options[1] || null);
+          var anchor = selectEl.querySelector('optgroup');
+          if (anchor) selectEl.insertBefore(orphan, anchor);
+          else selectEl.appendChild(orphan);
         }
       }
       function renderStations() {

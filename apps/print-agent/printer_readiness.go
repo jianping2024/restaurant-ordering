@@ -19,22 +19,82 @@ var errPrintJobSkippedBacklog = errors.New(printJobSkippedBacklogMsg)
 type printerReadyTracker struct {
 	printAfter map[string]time.Time
 	wasOffline map[string]bool
-	everReady  map[string]bool // avoid treating agent startup as offline→online reconnect
 }
 
 func newPrinterReadyTracker() *printerReadyTracker {
 	return &printerReadyTracker{
 		printAfter: make(map[string]time.Time),
 		wasOffline: make(map[string]bool),
-		everReady:  make(map[string]bool),
 	}
 }
 
 func (sess *agentSession) printerReady() *printerReadyTracker {
 	if sess.printer == nil {
-		sess.printer = newPrinterReadyTracker()
+		tr := newPrinterReadyTracker()
+		tr.loadFromConfig(sess.cfg)
+		sess.printer = tr
 	}
 	return sess.printer
+}
+
+func (tr *printerReadyTracker) loadFromConfig(cfg *config) {
+	if cfg == nil {
+		return
+	}
+	for k, raw := range cfg.PrinterPrintAfter {
+		k = strings.TrimSpace(k)
+		raw = strings.TrimSpace(raw)
+		if k == "" || raw == "" {
+			continue
+		}
+		t, err := time.Parse(time.RFC3339, raw)
+		if err != nil {
+			continue
+		}
+		tr.printAfter[k] = t
+	}
+	for k, v := range cfg.PrinterWasOffline {
+		if v {
+			tr.wasOffline[strings.TrimSpace(k)] = true
+		}
+	}
+}
+
+func (tr *printerReadyTracker) persist(cfg *config, cfgPath string) {
+	if tr == nil || cfg == nil || strings.TrimSpace(cfgPath) == "" {
+		return
+	}
+	if len(tr.printAfter) > 0 {
+		m := make(map[string]string, len(tr.printAfter))
+		for k, t := range tr.printAfter {
+			if k == "" || t.IsZero() {
+				continue
+			}
+			m[k] = t.UTC().Format(time.RFC3339)
+		}
+		cfg.PrinterPrintAfter = m
+	}
+	offline := make(map[string]bool)
+	for k, v := range tr.wasOffline {
+		if v && strings.TrimSpace(k) != "" {
+			offline[k] = true
+		}
+	}
+	if len(offline) > 0 {
+		cfg.PrinterWasOffline = offline
+	} else {
+		cfg.PrinterWasOffline = nil
+	}
+	_ = saveConfig(cfgPath, cfg)
+}
+
+func (tr *printerReadyTracker) bootstrap(sess *agentSession) {
+	if tr == nil || sess == nil || sess.cfg == nil {
+		return
+	}
+	for _, pt := range sess.cfg.mappedPrinterTargets() {
+		_ = tr.observeTargetReady(sess.cfg, sess.cfgPath, pt)
+	}
 }
 
 func targetKey(t printerTarget) string {
@@ -80,10 +140,24 @@ func (tr *printerReadyTracker) markPrintAfter(key string) {
 	tr.printAfter[key] = time.Now()
 }
 
-func (tr *printerReadyTracker) noteMappingChanges(cfg *config, prev, next *config) {
+func (tr *printerReadyTracker) noteTargetOffline(cfg *config, cfgPath string, target printerTarget) {
+	key := targetKey(target)
+	tr.wasOffline[key] = true
+	tr.persist(cfg, cfgPath)
+}
+
+// notePrintFailure marks the target offline after a transport/spooler error (arms backlog skip on reconnect).
+func (tr *printerReadyTracker) notePrintFailure(cfg *config, cfgPath string, target printerTarget, err error) {
+	if printerIOFailure(err) {
+		tr.noteTargetOffline(cfg, cfgPath, target)
+	}
+}
+
+func (tr *printerReadyTracker) noteMappingChanges(cfg *config, cfgPath string, prev, next *config) {
 	if next == nil || next.StationPrinters == nil {
 		return
 	}
+	var remapped bool
 	for sid, addr := range next.StationPrinters {
 		addr = strings.TrimSpace(addr)
 		if addr == "" {
@@ -100,10 +174,14 @@ func (tr *printerReadyTracker) noteMappingChanges(cfg *config, prev, next *confi
 		if prevAddr != addr {
 			key := targetKey(pt)
 			tr.markPrintAfter(key)
+			remapped = true
 			if cfg != nil {
 				agentLog(cfg, "log_printer_remap_backlog", pt.Display, sid)
 			}
 		}
+	}
+	if remapped {
+		tr.persist(cfg, cfgPath)
 	}
 }
 
@@ -119,26 +197,27 @@ func (tr *printerReadyTracker) shouldSkipBacklog(key string, job printJob) (skip
 	return created.Before(since), false
 }
 
-func (tr *printerReadyTracker) observeTargetReady(cfg *config, target printerTarget) error {
+func (tr *printerReadyTracker) observeTargetReady(cfg *config, cfgPath string, target printerTarget) error {
 	key := targetKey(target)
 	if err := targetCheckReady(target); err != nil {
 		tr.wasOffline[key] = true
+		tr.persist(cfg, cfgPath)
 		return fmt.Errorf("%w: %v", errPrinterNotReady, err)
 	}
-	if tr.wasOffline[key] && tr.everReady[key] {
+	if tr.wasOffline[key] {
 		tr.markPrintAfter(key)
 		if cfg != nil {
 			agentLog(cfg, "log_printer_reconnect_backlog", target.Display)
 		}
 	}
 	delete(tr.wasOffline, key)
-	tr.everReady[key] = true
+	tr.persist(cfg, cfgPath)
 	return nil
 }
 
 // preparePrint updates offline→online state and returns whether this job may print now.
-func (tr *printerReadyTracker) preparePrint(cfg *config, target printerTarget, job printJob) error {
-	if err := tr.observeTargetReady(cfg, target); err != nil {
+func (tr *printerReadyTracker) preparePrint(cfg *config, cfgPath string, target printerTarget, job printJob) error {
+	if err := tr.observeTargetReady(cfg, cfgPath, target); err != nil {
 		return err
 	}
 	key := targetKey(target)

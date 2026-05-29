@@ -24,6 +24,10 @@ type config struct {
 	ValidUntil string `json:"valid_until,omitempty"`
 	// TextEncoding: auto | utf8 | gbk | latin — Chinese/non-Latin bytes on thermal paper (UI/test + zh jobs).
 	TextEncoding string `json:"text_encoding,omitempty"`
+	// PrinterPrintAfter: per target key (tcp:… / winspool:…), RFC3339 — skip pending jobs created before this time after reconnect.
+	PrinterPrintAfter map[string]string `json:"printer_print_after,omitempty"`
+	// PrinterWasOffline: persisted until the target is reachable again (arms print_after on reconnect).
+	PrinterWasOffline map[string]bool `json:"printer_was_offline,omitempty"`
 }
 
 // configPathOverride is set by tests only.
@@ -152,6 +156,38 @@ func mergePrinterConfig(prev, next *config) {
 	if strings.TrimSpace(prev.TextEncoding) != "" && strings.TrimSpace(next.TextEncoding) == "" {
 		next.TextEncoding = prev.TextEncoding
 	}
+	if len(prev.PrinterPrintAfter) > 0 && len(next.PrinterPrintAfter) == 0 {
+		next.PrinterPrintAfter = prev.PrinterPrintAfter
+	}
+	if len(prev.PrinterWasOffline) > 0 && len(next.PrinterWasOffline) == 0 {
+		next.PrinterWasOffline = prev.PrinterWasOffline
+	}
+}
+
+// mappedPrinterTargets returns deduplicated routing targets from station_printers.
+func (c *config) mappedPrinterTargets() []printerTarget {
+	if c == nil || c.StationPrinters == nil {
+		return nil
+	}
+	seen := make(map[string]bool)
+	var out []printerTarget
+	for _, addr := range c.StationPrinters {
+		addr = strings.TrimSpace(addr)
+		if addr == "" {
+			continue
+		}
+		pt, err := parsePrinterTarget(addr)
+		if err != nil {
+			continue
+		}
+		key := targetKey(pt)
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		out = append(out, pt)
+	}
+	return out
 }
 
 func savePairConfig(configPath string, next *config) error {

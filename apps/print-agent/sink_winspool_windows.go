@@ -15,7 +15,6 @@ var (
 	modWinspool          = windows.NewLazySystemDLL("winspool.drv")
 	procOpenPrinterW     = modWinspool.NewProc("OpenPrinterW")
 	procClosePrinter     = modWinspool.NewProc("ClosePrinter")
-	procGetPrinterW      = modWinspool.NewProc("GetPrinterW")
 	procGetJobW          = modWinspool.NewProc("GetJobW")
 	procStartDocPrinterW = modWinspool.NewProc("StartDocPrinterW")
 	procEndDocPrinter    = modWinspool.NewProc("EndDocPrinter")
@@ -23,20 +22,6 @@ var (
 	procEndPagePrinter   = modWinspool.NewProc("EndPagePrinter")
 	procWritePrinter     = modWinspool.NewProc("WritePrinter")
 )
-
-const (
-	printerInfoLevel6 = 6
-	printerInfoLevel8 = 8
-)
-
-type printerInfo6 struct {
-	Status uint32
-}
-
-type printerInfo8 struct {
-	cJobs    uint32
-	dwStatus uint32
-}
 
 // jobInfo1 — 64-bit layout (JOB_INFO_1W).
 type jobInfo1 struct {
@@ -51,7 +36,7 @@ type jobInfo1 struct {
 	Status       uint32
 }
 
-func winspoolPrinterStatusFlags(printerName string) (uint32, error) {
+func winspoolOpenPrinter(printerName string) (windows.Handle, error) {
 	namePtr, err := windows.UTF16PtrFromString(printerName)
 	if err != nil {
 		return 0, err
@@ -65,84 +50,7 @@ func winspoolPrinterStatusFlags(printerName string) (uint32, error) {
 	if r0 == 0 {
 		return 0, fmt.Errorf("open printer %q: %w", printerName, e1)
 	}
-	defer procClosePrinter.Call(uintptr(h))
-
-	var needed uint32
-	_, _, _ = procGetPrinterW.Call(
-		uintptr(h),
-		printerInfoLevel6,
-		0,
-		0,
-		uintptr(unsafe.Pointer(&needed)),
-	)
-	if needed < uint32(unsafe.Sizeof(printerInfo6{})) {
-		needed = uint32(unsafe.Sizeof(printerInfo6{}))
-	}
-	buf := make([]byte, needed)
-	r0, _, e2 := procGetPrinterW.Call(
-		uintptr(h),
-		printerInfoLevel6,
-		uintptr(unsafe.Pointer(&buf[0])),
-		uintptr(needed),
-		uintptr(unsafe.Pointer(&needed)),
-	)
-	if r0 == 0 {
-		return 0, fmt.Errorf("GetPrinter(%q): %w", printerName, e2)
-	}
-	return (*printerInfo6)(unsafe.Pointer(&buf[0])).Status, nil
-}
-
-func winspoolPrinterQueueStatus(printerName string) (uint32, error) {
-	namePtr, err := windows.UTF16PtrFromString(printerName)
-	if err != nil {
-		return 0, err
-	}
-	var h windows.Handle
-	r0, _, e1 := procOpenPrinterW.Call(
-		uintptr(unsafe.Pointer(namePtr)),
-		uintptr(unsafe.Pointer(&h)),
-		0,
-	)
-	if r0 == 0 {
-		return 0, fmt.Errorf("open printer %q: %w", printerName, e1)
-	}
-	defer procClosePrinter.Call(uintptr(h))
-
-	var needed uint32
-	_, _, _ = procGetPrinterW.Call(
-		uintptr(h),
-		printerInfoLevel8,
-		0,
-		0,
-		uintptr(unsafe.Pointer(&needed)),
-	)
-	if needed < uint32(unsafe.Sizeof(printerInfo8{})) {
-		needed = uint32(unsafe.Sizeof(printerInfo8{}))
-	}
-	buf := make([]byte, needed)
-	r0, _, e2 := procGetPrinterW.Call(
-		uintptr(h),
-		printerInfoLevel8,
-		uintptr(unsafe.Pointer(&buf[0])),
-		uintptr(needed),
-		uintptr(unsafe.Pointer(&needed)),
-	)
-	if r0 == 0 {
-		return 0, fmt.Errorf("GetPrinter level 8 (%q): %w", printerName, e2)
-	}
-	return (*printerInfo8)(unsafe.Pointer(&buf[0])).dwStatus, nil
-}
-
-func winspoolDiagnosticStatus(printerName string) (uint32, error) {
-	flags6, err := winspoolPrinterStatusFlags(printerName)
-	if err != nil {
-		return 0, err
-	}
-	flags8, err8 := winspoolPrinterQueueStatus(printerName)
-	if err8 != nil {
-		flags8 = 0
-	}
-	return flags6 | flags8, nil
+	return h, nil
 }
 
 func winspoolJobStatus(h windows.Handle, jobID uint32) (uint32, error) {
@@ -206,13 +114,11 @@ type docInfo1 struct {
 }
 
 func winspoolCheckReady(printerName string) error {
-	flags, err := winspoolDiagnosticStatus(printerName)
+	h, err := winspoolOpenPrinter(printerName)
 	if err != nil {
 		return err
 	}
-	if winspoolStatusIsProblem(flags) {
-		return fmt.Errorf("printer %q not ready (status 0x%X)", printerName, flags)
-	}
+	defer procClosePrinter.Call(uintptr(h))
 	return nil
 }
 
@@ -220,32 +126,27 @@ func winspoolPrint(printerName string, data []byte) error {
 	if len(data) == 0 {
 		return fmt.Errorf("empty print payload")
 	}
-	if err := winspoolCheckReady(printerName); err != nil {
-		return fmt.Errorf("%w: %v", errPrinterNotReady, err)
-	}
-	namePtr, err := windows.UTF16PtrFromString(printerName)
+	h, err := winspoolOpenPrinter(printerName)
 	if err != nil {
-		return err
-	}
-	var h windows.Handle
-	r0, _, e1 := procOpenPrinterW.Call(
-		uintptr(unsafe.Pointer(namePtr)),
-		uintptr(unsafe.Pointer(&h)),
-		0,
-	)
-	if r0 == 0 {
-		return fmt.Errorf("open printer %q: %w", printerName, e1)
+		return fmt.Errorf("%w: %v", errPrinterNotReady, err)
 	}
 	defer procClosePrinter.Call(uintptr(h))
 
+	var last error
 	for _, dtype := range []string{"RAW", "XPS_PASS"} {
 		if err := winspoolPrintRawDoc(h, printerName, dtype, data); err == nil {
 			return nil
-		} else if dtype == "XPS_PASS" {
-			return err
+		} else {
+			last = err
+			if dtype == "XPS_PASS" {
+				return fmt.Errorf("%w: %v", errPrinterNotReady, err)
+			}
 		}
 	}
-	return fmt.Errorf("raw print to %q failed", printerName)
+	if last != nil {
+		return fmt.Errorf("%w: %v", errPrinterNotReady, last)
+	}
+	return fmt.Errorf("%w: raw print to %q failed", errPrinterNotReady, printerName)
 }
 
 func winspoolPrintRawDoc(h windows.Handle, printerName, datatype string, data []byte) error {

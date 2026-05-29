@@ -27,6 +27,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 		setStatus("Error", "config missing")
 		return
 	}
+	sess.printerReady().bootstrap(sess)
 	setStatus("Starting", cfg.APIBase)
 
 	logBatchAllBlocked := func(c *config, reason string) {
@@ -173,7 +174,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			pc.markActivity()
 			continue
 		}
-		if prepErr := sess.printerReady().preparePrint(cfg, target, job); prepErr != nil {
+		if prepErr := sess.printerReady().preparePrint(cfg, sess.cfgPath, target, job); prepErr != nil {
 			if errors.Is(prepErr, errPrinterNotReady) {
 				bk := targetKey(target)
 				station := jobRouteStationID(job)
@@ -181,7 +182,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 					agentLog(cfg, "log_printer_not_ready", target.Display, station, prepErr.Error())
 					lastLogged = pollPhaseBusy
 				}
-				setStatus("Waiting for printer", "Printer offline or unreachable")
+				setStatus("Waiting for printer", "Spooler not accepting jobs; retrying")
 				if reordered := reorderQueueAwayFromPrinter(queue, cfg, bk); len(reordered) > 0 && reordered[0].ID != queue[0].ID {
 					queue = reordered
 					blockedSpins = 0
@@ -256,6 +257,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 		}
 		data := escposFromJob(job)
 		if err := printToTarget(target, data); err != nil {
+			sess.printerReady().notePrintFailure(cfg, sess.cfgPath, target, err)
 			if patchJobStatus(ctx, cfg, job.ID, map[string]any{
 				"status":        "failed",
 				"error_message": err.Error(),

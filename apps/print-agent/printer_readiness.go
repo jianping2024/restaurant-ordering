@@ -144,7 +144,7 @@ func (tr *printerReadyTracker) preparePrint(cfg *config, target printerTarget, j
 	key := targetKey(target)
 	if skip, noCreatedAt := tr.shouldSkipBacklog(key, job); skip {
 		if noCreatedAt && cfg != nil {
-			agentLog(cfg, "log_skipped_offline_backlog_no_time", job.ID, target.Display)
+			agentLog(cfg, "log_skipped_offline_backlog_no_time", job.ID, jobRouteStationID(job), target.Display)
 		}
 		return errPrintJobSkippedBacklog
 	}

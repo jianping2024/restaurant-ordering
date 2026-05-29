@@ -12,6 +12,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 	var lastLogged pollPhase
 	var queue []printJob
 	var blockedSpins int
+	var reorderPasses int
 	var throttle pollLogThrottle
 	const waitLogEvery = 60 * time.Second
 
@@ -113,6 +114,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			}
 			queue = jobs
 			blockedSpins = 0
+			reorderPasses = 0
 			lastLogged = pollPhaseBusy
 			pc.markActivity()
 			agentLog(cfg, "log_fetched_pending", len(jobs))
@@ -131,6 +133,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			}
 			queue = queue[1:]
 			blockedSpins = 0
+			reorderPasses = 0
 			pc.markActivity()
 			continue
 		}
@@ -160,22 +163,38 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 				"status":        "failed",
 				"error_message": err.Error(),
 			}, "failed:route") {
-				agentLog(cfg, "log_route_error", job.ID, err.Error())
+				agentLog(cfg, "log_route_error", job.ID, jobRouteStationID(job), err.Error())
 			} else {
 				agentLog(cfg, "log_job_still_pending", job.ID, "failed:route")
 			}
 			queue = queue[1:]
 			blockedSpins = 0
+			reorderPasses = 0
 			pc.markActivity()
 			continue
 		}
 		if prepErr := sess.printerReady().preparePrint(cfg, target, job); prepErr != nil {
 			if errors.Is(prepErr, errPrinterNotReady) {
-				if throttle.allow("printer_not_ready:"+targetKey(target), waitLogEvery) {
-					agentLog(cfg, "log_printer_not_ready", target.Display, prepErr.Error())
+				bk := targetKey(target)
+				station := jobRouteStationID(job)
+				if throttle.allow("printer_not_ready:"+bk, waitLogEvery) {
+					agentLog(cfg, "log_printer_not_ready", target.Display, station, prepErr.Error())
 					lastLogged = pollPhaseBusy
 				}
 				setStatus("Waiting for printer", "Printer offline or unreachable")
+				if reordered := reorderQueueAwayFromPrinter(queue, cfg, bk); len(reordered) > 0 && reordered[0].ID != queue[0].ID {
+					queue = reordered
+					blockedSpins = 0
+					reorderPasses++
+					if reorderPasses < len(queue) {
+						if throttle.allow("queue_reorder:"+bk, waitLogEvery) {
+							agentLog(cfg, "log_queue_reorder_printer", target.Display, station)
+						}
+						pc.markActivity()
+						continue
+					}
+					reorderPasses = 0
+				}
 				var allBlocked bool
 				queue, allBlocked = deferBlockedHead(queue, &blockedSpins)
 				if !allBlocked {
@@ -195,12 +214,13 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 					"status":        "failed",
 					"error_message": printJobSkippedBacklogMsg,
 				}, "failed:offline_backlog") {
-					agentLog(cfg, "log_skipped_offline_backlog", job.ID, target.Display)
+					agentLog(cfg, "log_skipped_offline_backlog", job.ID, jobRouteStationID(job), target.Display)
 				} else {
 					agentLog(cfg, "log_job_still_pending", job.ID, "failed:offline_backlog")
 				}
 				queue = queue[1:]
 				blockedSpins = 0
+				reorderPasses = 0
 				pc.markActivity()
 				continue
 			}
@@ -214,10 +234,11 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			}
 			queue = queue[1:]
 			blockedSpins = 0
+			reorderPasses = 0
 			pc.markActivity()
 			continue
 		}
-		agentLog(cfg, "log_printing_job", job.ID, job.Type, target.Display)
+		agentLog(cfg, "log_printing_job", job.ID, jobRouteStationID(job), target.Display, job.Type)
 		setStatus("Printing", summarizeJobPayload(job))
 		if !patchJobStatus(ctx, cfg, job.ID, map[string]any{"status": "processing"}, "processing") {
 			var allBlocked bool
@@ -240,7 +261,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 				"error_message": err.Error(),
 			}, "failed:print") {
 				sess.hb.recordPrint(false)
-				agentLog(cfg, "log_print_failed", job.ID, target.Display, err.Error())
+				agentLog(cfg, "log_print_failed", job.ID, jobRouteStationID(job), target.Display, err.Error())
 			} else {
 				agentLog(cfg, "log_print_failed_stuck", job.ID, target.Display)
 			}
@@ -257,6 +278,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 		}
 		queue = queue[1:]
 		blockedSpins = 0
+		reorderPasses = 0
 		pc.markActivity()
 
 		if len(queue) == 0 {

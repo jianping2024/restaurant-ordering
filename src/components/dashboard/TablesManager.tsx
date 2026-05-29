@@ -191,10 +191,11 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
           <style>
             body { font-family: serif; background: white; margin: 0; padding: 20px; }
             .grid { display: grid; grid-template-columns: ${single ? '1fr' : 'repeat(3, 1fr)'}; gap: 20px; ${single ? 'max-width: 320px; margin: 0 auto;' : ''} }
-            .item { text-align: center; page-break-inside: avoid; border: 1px solid #ddd; padding: 15px; border-radius: 8px; }
+            .item { text-align: center; page-break-inside: avoid; border: 1px solid #ddd; padding: 20px 16px; border-radius: 8px; }
             .item img { width: ${single ? '200px' : '150px'}; height: ${single ? '200px' : '150px'}; }
-            h2 { font-size: 14px; margin: 8px 0 4px; }
-            p { font-size: 11px; color: #666; margin: 0; }
+            .item-single { padding: 28px 24px; max-width: 320px; margin: 0 auto; }
+            .table-no-large { font-size: 42px; font-weight: 700; margin: 0 0 16px; line-height: 1.1; letter-spacing: 0.02em; }
+            h2 { font-size: 13px; margin: 14px 0 0; color: #444; font-weight: normal; }
             @media print { .no-print { display: none; } }
           </style>
         </head>
@@ -204,10 +205,10 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
             ${printable.map((row) => {
               const qrSrc = qrCodes[row.id];
               return `
-              <div class="item">
+              <div class="item${single ? ' item-single' : ''}">
+                <p class="table-no-large">${escapeHtml(row.display_name)}</p>
                 <img src="${qrSrc}" alt="${escapeHtml(`${t.table} ${row.display_name}`)}" />
                 <h2>${escapeHtml(restaurant.name)}</h2>
-                <p>${escapeHtml(`${t.table} ${row.display_name}`)}</p>
               </div>
             `;
             }).join('')}

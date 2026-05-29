@@ -8,8 +8,12 @@ const (
 	printerStatusNotAvailable    = 0x00001000
 )
 
+// winspoolStatusIsProblem reports hard spooler faults before sending RAW data.
+// Many ESC/POS USB drivers set PRINTER_STATUS_OFFLINE (and PAPER_PROBLEM) while
+// still accepting jobs; do not treat OFFLINE as a preflight failure — rely on
+// OpenPrinter / WritePrinter errors instead.
 func winspoolStatusIsProblem(flags uint32) bool {
-	const bad = uint32(printerStatusError | printerStatusPendingDeletion | printerStatusOffline | printerStatusNotAvailable)
+	const bad = uint32(printerStatusError | printerStatusPendingDeletion | printerStatusNotAvailable)
 	return flags&bad != 0
 }
 

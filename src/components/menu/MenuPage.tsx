@@ -3,7 +3,15 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { MenuItem, Language, CartItem, Order, TableSession, MenuCategory } from '@/types';
+import type {
+  AppendCartLineInput,
+  MenuItem,
+  Language,
+  CartItem,
+  Order,
+  TableSession,
+  MenuCategory,
+} from '@/types';
 import { MenuItemCard } from './MenuItemCard';
 import { CartDrawer } from './CartDrawer';
 import { CATEGORY_LABELS } from '@/lib/i18n/messages';
@@ -340,21 +348,10 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
         }
       }
 
-      const batchId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const addedAt = new Date().toISOString();
-      const items = cart.map((c) => ({
-        id: c.menuItemId,
-        name: c[`name_${lang}`] || c.name_pt,
-        name_pt: c.name_pt,
-        name_en: c.name_en,
-        name_zh: c.name_zh,
+      const items: AppendCartLineInput[] = cart.map((c) => ({
+        menu_item_id: c.menuItemId,
         qty: coerceCartQty(c.qty),
-        note: c.note || '',
-        price: coerceCartPrice(c.price),
-        emoji: c.emoji,
-        item_status: 'pending' as const,
-        batch_id: batchId,
-        added_at: addedAt,
+        ...(c.note?.trim() ? { note: c.note.trim() } : {}),
       }));
 
       const appendRes = await fetch(`/api/restaurants/${restaurant.slug}/orders/append`, {
@@ -418,7 +415,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
         const latest = await requestCustomerSessionContext(restaurant.slug, tableId);
         setRecentOrders((latest?.recent_orders || []) as Order[]);
       }
-      setLatestBatchId(batchId);
+      setLatestBatchId(appendData.batch_id);
       setTimeout(() => setLatestBatchId(null), 15000);
 
       setCart([]);

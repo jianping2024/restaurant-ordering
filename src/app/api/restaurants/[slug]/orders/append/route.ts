@@ -6,8 +6,9 @@ import { normalizeOrderRadiusMeters } from '@/lib/order-radius';
 import { orderEnqueueSecret, signOrderEnqueueToken } from '@/lib/order-enqueue-token';
 import { orderAppendRateLimitCheck } from '@/lib/order-append-rate-limit';
 import { deriveOrderStatusFromItems } from '@/lib/order-status';
-import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
+import { sumLineTotals } from '@/lib/cart-totals';
 import { clientIpFromRequest } from '@/lib/request-client-ip';
+import { resolveAppendCartItems } from '@/lib/resolve-append-cart-items';
 import type { OrderItem } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
@@ -17,39 +18,6 @@ export const runtime = 'nodejs';
 
 const isDevBypassHost = (host: string) =>
   host.startsWith('localhost') || host.startsWith('127.0.0.1') || host.endsWith('.local');
-
-function parseItems(raw: unknown): OrderItem[] | null {
-  if (!Array.isArray(raw) || raw.length === 0 || raw.length > 80) return null;
-  const items: OrderItem[] = [];
-  for (const row of raw) {
-    if (!row || typeof row !== 'object') return null;
-    const r = row as Record<string, unknown>;
-    const name = typeof r.name === 'string' ? r.name.trim() : '';
-    const name_pt = typeof r.name_pt === 'string' ? r.name_pt.trim() : name;
-    if (!name_pt) return null;
-    const qty = coerceCartQty(Number(r.qty));
-    if (qty < 1 || qty > 99) return null;
-    const price = coerceCartPrice(Number(r.price));
-    if (price < 0 || price > 9999) return null;
-    items.push({
-      id: typeof r.id === 'string' ? r.id : '',
-      name: name || name_pt,
-      name_pt,
-      name_en: typeof r.name_en === 'string' ? r.name_en : undefined,
-      name_zh: typeof r.name_zh === 'string' ? r.name_zh : undefined,
-      qty,
-      note: typeof r.note === 'string' ? r.note.slice(0, 500) : '',
-      price,
-      emoji: typeof r.emoji === 'string' ? r.emoji.slice(0, 8) : '🍽️',
-      item_status: 'pending',
-      batch_id: typeof r.batch_id === 'string' ? r.batch_id.slice(0, 64) : undefined,
-      added_at: typeof r.added_at === 'string' ? r.added_at : new Date().toISOString(),
-    });
-  }
-  const batchId = items[0]?.batch_id;
-  if (!batchId || !items.every((i) => i.batch_id === batchId)) return null;
-  return items;
-}
 
 /** Guest/waiter order submit: server-side geo fence + signed enqueue token. */
 export async function POST(req: Request, { params }: { params: { slug: string } }) {
@@ -89,13 +57,6 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   if (!tableId) {
     return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
   }
-
-  const newItems = parseItems(body.items);
-  if (!newItems) {
-    return NextResponse.json({ error: 'invalid_items' }, { status: 400 });
-  }
-
-  const batchId = newItems[0].batch_id!;
 
   let admin;
   try {
@@ -209,6 +170,23 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   }
 
   const sessionId = session!.id as string;
+
+  let resolved;
+  try {
+    resolved = await resolveAppendCartItems({
+      admin,
+      restaurantId: rid,
+      rawItems: body.items,
+    });
+  } catch {
+    return NextResponse.json({ error: 'menu_items_query_failed' }, { status: 500 });
+  }
+  if (!resolved.ok) {
+    return NextResponse.json({ error: resolved.error }, { status: 400 });
+  }
+
+  const newItems = resolved.items;
+  const batchId = resolved.batchId;
 
   const { data: openOrder } = await admin
     .from('orders')

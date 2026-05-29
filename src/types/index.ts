@@ -160,6 +160,31 @@ export interface OrderItem {
   void_reason?: string;
 }
 
+/**
+ * Client → `POST /api/restaurants/{slug}/orders/append` cart line (trusted fields only).
+ * Server resolves `menu_item_id` against `menu_items` and builds {@link OrderItem}.
+ */
+export interface AppendCartLineInput {
+  menu_item_id: string;
+  qty: number;
+  note?: string;
+}
+
+/** Request body for guest/waiter order append (see guest-order-append-price-trust.zh.md). */
+export interface OrdersAppendRequestBody {
+  table_id: string;
+  items: AppendCartLineInput[];
+  latitude?: number;
+  longitude?: number;
+  waiter_flow?: boolean;
+}
+
+/** Append cart limits (shared with resolve-append-cart-items in phase 2). */
+export const APPEND_CART_MAX_LINES = 80;
+export const APPEND_CART_QTY_MIN = 1;
+export const APPEND_CART_QTY_MAX = 99;
+export const APPEND_CART_NOTE_MAX_LEN = 500;
+
 export interface Buffet {
   id: string;
   restaurant_id: string;

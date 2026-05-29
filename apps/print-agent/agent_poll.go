@@ -119,14 +119,10 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 		target, err := cfg.printerTargetForJob(job)
 		if err != nil {
 			if errors.Is(err, errReceiptPrintDeferred) {
-				if len(queue) > 1 {
-					queue = append(queue[1:], queue[0])
-				} else {
-					queue = nil
-				}
-				if lastLogged != pollPhaseBusy {
+				shouldLog := lastLogged != pollPhaseBusy
+				deferPollJob(&queue, &lastLogged, pollPhaseBusy)
+				if shouldLog {
 					agentLog(cfg, "log_receipt_deferred")
-					lastLogged = pollPhaseBusy
 				}
 				setStatus("Waiting for receipt printer", "Map a station in Settings (up to 20 min)")
 				sleepOrCancel(ctx, pc.sleepFor(pollPhaseBusy))
@@ -141,6 +137,29 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			queue = queue[1:]
 			pc.markActivity()
 			continue
+		}
+		if prepErr := sess.printerReady().preparePrint(target, job); prepErr != nil {
+			if errors.Is(prepErr, errPrinterNotReady) {
+				shouldLog := lastLogged != pollPhaseBusy
+				deferPollJob(&queue, &lastLogged, pollPhaseBusy)
+				if shouldLog {
+					agentLog(cfg, "log_printer_not_ready")
+				}
+				setStatus("Waiting for printer", "Printer offline or unreachable")
+				sleepOrCancel(ctx, pc.sleepFor(pollPhaseBusy))
+				pc.markActivity()
+				continue
+			}
+			if errors.Is(prepErr, errPrintJobSkippedBacklog) {
+				_ = patchJob(ctx, cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{
+					"status":        "failed",
+					"error_message": printJobSkippedBacklogMsg,
+				})
+				agentLog(cfg, "log_skipped_offline_backlog", job.ID)
+				queue = queue[1:]
+				pc.markActivity()
+				continue
+			}
 		}
 		setStatus("Printing", summarizeJobPayload(job))
 		if err := patchJob(ctx, cfg.APIBase, cfg.AgentJWT, job.ID, map[string]any{"status": "processing"}); err != nil {
@@ -173,6 +192,15 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			sleepOrCancel(ctx, pc.sleepFor(pollPhaseAfterPrint))
 		}
 	}
+}
+
+func deferPollJob(queue *[]printJob, lastLogged *pollPhase, phase pollPhase) {
+	if len(*queue) > 1 {
+		*queue = append((*queue)[1:], (*queue)[0])
+	} else {
+		*queue = nil
+	}
+	*lastLogged = phase
 }
 
 func sleepOrCancel(ctx context.Context, d time.Duration) {

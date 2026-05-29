@@ -9,9 +9,13 @@ func reloadAgentSessionConfig(sess *agentSession) {
 	if path == "" {
 		path = defaultConfigPath()
 	}
+	prev := sess.cfg
 	cfg, err := loadConfig(path)
 	if err != nil || cfg == nil {
 		return
+	}
+	if prev != nil {
+		sess.printerReady().noteMappingChanges(prev, cfg)
 	}
 	sess.cfg = cfg
 }

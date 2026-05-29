@@ -12,6 +12,7 @@ type agentSession struct {
 	cfg     *config
 	pc      *pollController
 	hb      heartbeatSnapshot
+	printer *printerReadyTracker
 }
 
 func initAgentSession(runCtx context.Context, args []string) (*agentSession, bool, error) {

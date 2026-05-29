@@ -205,9 +205,23 @@ type docInfo1 struct {
 	pDatatype   *uint16
 }
 
+func winspoolCheckReady(printerName string) error {
+	flags, err := winspoolDiagnosticStatus(printerName)
+	if err != nil {
+		return err
+	}
+	if winspoolStatusIsProblem(flags) {
+		return fmt.Errorf("printer %q not ready (status 0x%X)", printerName, flags)
+	}
+	return nil
+}
+
 func winspoolPrint(printerName string, data []byte) error {
 	if len(data) == 0 {
 		return fmt.Errorf("empty print payload")
+	}
+	if err := winspoolCheckReady(printerName); err != nil {
+		return fmt.Errorf("%w: %v", errPrinterNotReady, err)
 	}
 	namePtr, err := windows.UTF16PtrFromString(printerName)
 	if err != nil {

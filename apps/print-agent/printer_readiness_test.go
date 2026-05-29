@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"path/filepath"
 	"testing"
 	"time"
@@ -130,7 +129,23 @@ func TestArmPrintAfterOnPendingFetch_doesNotOverwriteReconnect(t *testing.T) {
 	}
 }
 
-func TestPreparePrint_gateUnconfirmedWinspoolPending(t *testing.T) {
+func TestBacklogCompareFields_jobAfterPrintAfter(t *testing.T) {
+	t.Parallel()
+	tr := newPrinterReadyTracker()
+	key := "winspool:K"
+	cutoff := time.Date(2026, 5, 29, 13, 32, 41, 0, time.UTC)
+	tr.printAfter[key] = cutoff
+	job := printJob{
+		ID:        "j1",
+		CreatedAt: time.Date(2026, 5, 29, 14, 2, 44, 0, time.UTC).Format(time.RFC3339),
+	}
+	f := tr.backlogCompareFields(key, job)
+	if f["backlog_skip"] != "false" || f["backlog_reason"] != "job_after_print_after" {
+		t.Fatalf("expected new job not backlog-skipped, got %v", f)
+	}
+}
+
+func TestPreparePrint_unconfirmedStillAllowsAfterObserve(t *testing.T) {
 	t.Parallel()
 	tr := newPrinterReadyTracker()
 	key := "winspool:Kitchen"
@@ -140,16 +155,16 @@ func TestPreparePrint_gateUnconfirmedWinspoolPending(t *testing.T) {
 		ID:        "j1",
 		CreatedAt: tr.agentStartedAt.Add(2 * time.Second).UTC().Format(time.RFC3339),
 	}
-	var err error
-	if !tr.onlineConfirmed[key] {
-		if skip, _ := tr.shouldSkipBacklog(key, job); skip {
-			err = errPrintJobSkippedBacklog
-		} else {
-			err = errPrinterNotReady
-		}
+	if skip, _ := tr.shouldSkipBacklog(key, job); skip {
+		t.Fatal("new job should not be backlog-skipped")
 	}
-	if !errors.Is(err, errPrinterNotReady) {
-		t.Fatalf("expected pending, got %v", err)
+	if tr.onlineConfirmed[key] {
+		t.Fatal("fixture: not confirmed yet")
+	}
+	// After observe OK, preparePrint must allow attempt (not leave Mesa pending forever).
+	allowed := !tr.onlineConfirmed[key] && !func() bool { s, _ := tr.shouldSkipBacklog(key, job); return s }()
+	if !allowed {
+		t.Fatal("expected allow path when observe succeeded")
 	}
 }
 

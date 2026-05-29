@@ -179,6 +179,10 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 			if errors.Is(prepErr, errPrinterNotReady) {
 				bk := targetKey(target)
 				station := jobRouteStationID(job)
+				if throttle.allow("job_held_pending:"+job.ID, waitLogEvery) {
+					agentLog(cfg, "log_job_held_pending", job.ID, target.Display)
+					lastLogged = pollPhaseBusy
+				}
 				if throttle.allow("printer_not_ready:"+bk, waitLogEvery) {
 					agentLog(cfg, "log_printer_not_ready", target.Display, station, prepErr.Error())
 					lastLogged = pollPhaseBusy

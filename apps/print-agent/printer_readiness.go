@@ -48,19 +48,28 @@ type printerReadyTracker struct {
 	// Persisted as printer_was_offline[key]. When cleared after targetCheckReady OK, markPrintAfter(now).
 	wasOffline map[string]bool
 
+	// probeEverFailed[key] — this session saw targetCheckReady or print IO fail (incl. loaded was_offline).
+	// When observe succeeds after this, onlineConfirmed is set (printer reconnect).
+	probeEverFailed map[string]bool
+
 	// onlineConfirmed[key] — this session may print and PATCH done for key.
-	// WinSpool: set only by confirmOnline (after successful print) or TCP first arm.
+	// Set by: TCP first arm, confirmOnline, observe after probeEverFailed/wasOffline reconnect.
 	// Cleared on: session start (resetWinspoolSessionTrust), noteTargetOffline, observe fail.
 	// NOT persisted; MUST NOT be derived from printer_print_after on load.
 	onlineConfirmed map[string]bool
+
+	// readinessArmLogged suppresses repeated arm_pending readiness lines per targetKey per session.
+	readinessArmLogged map[string]bool
 }
 
 func newPrinterReadyTracker() *printerReadyTracker {
 	return &printerReadyTracker{
-		agentStartedAt:  time.Now(),
-		printAfter:      make(map[string]time.Time),
-		wasOffline:      make(map[string]bool),
-		onlineConfirmed: make(map[string]bool),
+		agentStartedAt:     time.Now(),
+		printAfter:         make(map[string]time.Time),
+		wasOffline:         make(map[string]bool),
+		probeEverFailed:    make(map[string]bool),
+		onlineConfirmed:    make(map[string]bool),
+		readinessArmLogged: make(map[string]bool),
 	}
 }
 
@@ -70,6 +79,9 @@ func (sess *agentSession) printerReady() *printerReadyTracker {
 		tr.loadFromConfig(sess.cfg)
 		tr.resetWinspoolSessionTrust(sess.cfg)
 		tr.logSessionInit(sess.cfg)
+		if sess.cfg != nil {
+			agentLog(sess.cfg, "log_readiness_policy")
+		}
 		sess.printer = tr
 	}
 	return sess.printer
@@ -94,8 +106,10 @@ func (tr *printerReadyTracker) loadFromConfig(cfg *config) {
 		tr.printAfter[k] = t
 	}
 	for k, v := range cfg.PrinterWasOffline {
-		if v {
-			tr.wasOffline[strings.TrimSpace(k)] = true
+		k = strings.TrimSpace(k)
+		if v && k != "" {
+			tr.wasOffline[k] = true
+			tr.probeEverFailed[k] = true
 		}
 	}
 }
@@ -168,16 +182,23 @@ func (tr *printerReadyTracker) armPrintAfterOnPendingFetch(cfg *config, cfgPath 
 			tr.onlineConfirmed[key] = false
 		}
 		if _, ok := tr.printAfter[key]; ok {
-			tr.logReadiness(cfg, readinessArmPending, pt, printJob{}, map[string]string{
-				"arm_reason": "print_after_already_set",
-				"decision":   "winspool_unconfirmed_reset",
-			})
+			if pt.Scheme == schemeWinspool {
+				tr.onlineConfirmed[key] = false
+			}
+			if !tr.readinessArmLogged[key] {
+				tr.readinessArmLogged[key] = true
+				tr.logReadiness(cfg, readinessArmPending, pt, printJob{}, map[string]string{
+					"arm_reason": "print_after_already_set",
+					"decision":   "winspool_unconfirmed_reset",
+				})
+			}
 			continue
 		}
 		err := targetCheckReady(pt)
 		fields := map[string]string{"check": readinessCheckValue(err, pt.Scheme)}
 		if err != nil {
 			tr.wasOffline[key] = true
+			tr.probeEverFailed[key] = true
 			tr.onlineConfirmed[key] = false
 			tr.printAfter[key] = time.Now()
 			fields["arm_reason"] = "first_pending_unreachable"
@@ -256,6 +277,7 @@ func (tr *printerReadyTracker) markPrintAfter(key string) {
 func (tr *printerReadyTracker) noteTargetOffline(cfg *config, cfgPath string, target printerTarget) {
 	key := targetKey(target)
 	tr.wasOffline[key] = true
+	tr.probeEverFailed[key] = true
 	tr.onlineConfirmed[key] = false
 	tr.logReadiness(cfg, readinessIOOffline, target, printJob{}, map[string]string{
 		"decision": "mark_was_offline",
@@ -313,23 +335,60 @@ func (tr *printerReadyTracker) shouldSkipBacklog(key string, job printJob) (skip
 	return created.Before(since), false
 }
 
-// observeTargetReady runs targetCheckReady; on success after wasOffline, markPrintAfter (not onlineConfirmed).
+// backlogCompareFields documents why a job is or is not failed:offline_backlog (for readiness logs).
+func (tr *printerReadyTracker) backlogCompareFields(key string, job printJob) map[string]string {
+	since, ok := tr.printAfter[key]
+	if !ok || since.IsZero() {
+		return map[string]string{
+			"backlog_armed": "false",
+			"backlog_skip":  "false",
+		}
+	}
+	created, ok := parseJobCreatedAt(job)
+	if !ok {
+		return map[string]string{
+			"backlog_armed":  "true",
+			"backlog_skip":   "true",
+			"backlog_reason": "no_created_at",
+		}
+	}
+	if created.Before(since) {
+		return map[string]string{
+			"backlog_armed":  "true",
+			"backlog_skip":   "true",
+			"backlog_reason": "job_before_print_after",
+		}
+	}
+	return map[string]string{
+		"backlog_armed":  "true",
+		"backlog_skip":   "false",
+		"backlog_reason": "job_after_print_after",
+	}
+}
+
+// observeTargetReady runs targetCheckReady; after probe/IO failure then OK, mark reconnect + onlineConfirmed.
 func (tr *printerReadyTracker) observeTargetReady(cfg *config, cfgPath string, target printerTarget) error {
 	key := targetKey(target)
 	err := targetCheckReady(target)
 	fields := map[string]string{"check": readinessCheckValue(err, target.Scheme)}
 	if err != nil {
 		tr.wasOffline[key] = true
+		tr.probeEverFailed[key] = true
 		tr.onlineConfirmed[key] = false
 		fields["decision"] = "observe_fail"
+		if target.Scheme == schemeWinspool {
+			mergeProbeFields(fields, winspoolProbeLog(target.WinspoolName))
+		}
 		tr.logReadiness(cfg, readinessObserve, target, printJob{}, fields)
 		tr.persist(cfg, cfgPath)
 		return fmt.Errorf("%w: %v", errPrinterNotReady, err)
 	}
-	if tr.wasOffline[key] {
+	reconnect := tr.wasOffline[key] || tr.probeEverFailed[key]
+	if reconnect {
 		tr.markPrintAfter(key)
-		fields["decision"] = "reconnect_mark_print_after"
-		fields["arm_reason"] = "was_offline_cleared"
+		tr.onlineConfirmed[key] = true
+		fields["decision"] = "reconnect_confirmed"
+		fields["arm_reason"] = "probe_ok_after_failure"
 		if cfg != nil {
 			agentLog(cfg, "log_printer_reconnect_backlog", target.Display)
 		}
@@ -337,6 +396,9 @@ func (tr *printerReadyTracker) observeTargetReady(cfg *config, cfgPath string, t
 		fields["decision"] = "observe_ok"
 	}
 	delete(tr.wasOffline, key)
+	if target.Scheme == schemeWinspool {
+		mergeProbeFields(fields, winspoolProbeLog(target.WinspoolName))
+	}
 	tr.logReadiness(cfg, readinessObserve, target, printJob{}, fields)
 	tr.persist(cfg, cfgPath)
 	return nil
@@ -354,10 +416,11 @@ func (tr *printerReadyTracker) confirmOnline(cfg *config, cfgPath string, target
 	tr.persist(cfg, cfgPath)
 }
 
-// preparePrint gate order: observe → onlineConfirmed? → shouldSkipBacklog.
-//   - !onlineConfirmed && !skip → errPrinterNotReady (pending)
-//   - onlineConfirmed && skip → errPrintJobSkippedBacklog (failed)
-//   - onlineConfirmed && !skip → nil (caller may print)
+// preparePrint gate order: observe → backlog skip → print if confirmed or probe OK.
+//   - observe fail → pending
+//   - skip backlog → failed:offline_backlog
+//   - !onlineConfirmed but observe OK → still print (WinSpool OpenPrinter may lie; confirm on success)
+//   - onlineConfirmed && !skip → print
 func (tr *printerReadyTracker) preparePrint(cfg *config, cfgPath string, target printerTarget, job printJob) error {
 	if err := tr.observeTargetReady(cfg, cfgPath, target); err != nil {
 		tr.logReadiness(cfg, readinessPrepare, target, job, map[string]string{
@@ -366,23 +429,6 @@ func (tr *printerReadyTracker) preparePrint(cfg *config, cfgPath string, target 
 		return err
 	}
 	key := targetKey(target)
-	if !tr.onlineConfirmed[key] {
-		if skip, _ := tr.shouldSkipBacklog(key, job); skip {
-			if cfg != nil {
-				agentLog(cfg, "log_skipped_offline_backlog", job.ID, jobRouteStationID(job), target.Display)
-			}
-			tr.logReadiness(cfg, readinessPrepare, target, job, map[string]string{
-				"decision":   "skip_backlog_unconfirmed",
-				"mesa_patch": "failed:offline_backlog",
-			})
-			return errPrintJobSkippedBacklog
-		}
-		tr.logReadiness(cfg, readinessPrepare, target, job, map[string]string{
-			"decision":   "pending_unconfirmed",
-			"mesa_patch": "pending",
-		})
-		return errPrinterNotReady
-	}
 	if skip, noCreatedAt := tr.shouldSkipBacklog(key, job); skip {
 		if noCreatedAt && cfg != nil {
 			agentLog(cfg, "log_skipped_offline_backlog_no_time", job.ID, jobRouteStationID(job), target.Display)
@@ -391,14 +437,24 @@ func (tr *printerReadyTracker) preparePrint(cfg *config, cfgPath string, target 
 		if noCreatedAt {
 			decision = "skip_backlog_no_created_at"
 		}
-		tr.logReadiness(cfg, readinessPrepare, target, job, map[string]string{
+		fields := map[string]string{
 			"decision":   decision,
 			"mesa_patch": "failed:offline_backlog",
-		})
+		}
+		for k, v := range tr.backlogCompareFields(key, job) {
+			fields[k] = v
+		}
+		tr.logReadiness(cfg, readinessPrepare, target, job, fields)
 		return errPrintJobSkippedBacklog
 	}
-	tr.logReadiness(cfg, readinessPrepare, target, job, map[string]string{
-		"decision": "allow_print",
-	})
+	decision := "allow_print"
+	if !tr.onlineConfirmed[key] {
+		decision = "allow_print_unconfirmed"
+	}
+	fields := map[string]string{"decision": decision}
+	for k, v := range tr.backlogCompareFields(key, job) {
+		fields[k] = v
+	}
+	tr.logReadiness(cfg, readinessPrepare, target, job, fields)
 	return nil
 }

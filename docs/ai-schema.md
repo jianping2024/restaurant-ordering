@@ -332,6 +332,7 @@ table_sessions:
 - Table lifecycle: `restaurant_tables` defines physical/logical tables; `table_sessions` tracks open/billing/closed dining sessions.
 - Ordering flow: `orders` stores item payloads in `items` jsonb and links to restaurant/table/session.
 - Billing flow: `bill_splits` supports even/by-item/custom splits and stores calculated result in jsonb.
+- Checkout confirm payment: `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index, discount_rate)` — `SECURITY DEFINER`; locks `bill_splits` with `FOR UPDATE`, merges one `paid` flag, closes `table_sessions` when all rows paid. Execute via service role (API) or `authenticated`; not granted to `anon`.
 - Menu routing: `menu_categories` and `menu_items` can each map to `print_stations`.
 - Print agent flow: `print_agent_pairings` issues six-digit pairing codes; `print_agent_devices` stores paired agent state; `print_jobs` stores queued print work.
 - Buffet pricing: `buffets` + `buffet_time_slots` + `buffet_calendar_overrides` + `buffet_price_rules` model time/calendar-sensitive prices.

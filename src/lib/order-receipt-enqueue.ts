@@ -29,6 +29,8 @@ export type OrderReceiptJobPayload = {
   amount_paid?: number;
   payment_method?: string;
   ordered_by?: string;
+  /** Checkout confirm dedup; ignored by print agent */
+  idempotency_key?: string;
   lines: Array<{
     item_index: number;
     display_name: string;
@@ -130,6 +132,41 @@ export function buildSplitPersonReceiptLines(
   return lines;
 }
 
+/** Stable key for checkout split/final receipt jobs (phase 4 dedup). */
+export function checkoutReceiptIdempotencyKey(
+  variant: ReceiptVariant,
+  billSplitId: string,
+  personIndex?: number,
+): string | undefined {
+  if (variant === 'split_payment' && personIndex != null && personIndex >= 0) {
+    return `checkout:${billSplitId}:split:${personIndex}`;
+  }
+  if (variant === 'final') {
+    return `checkout:${billSplitId}:final`;
+  }
+  return undefined;
+}
+
+async function findCheckoutReceiptJobId(
+  admin: SupabaseClient,
+  restaurantId: string,
+  idempotencyKey: string,
+): Promise<string | null> {
+  const { data, error } = await admin
+    .from('print_jobs')
+    .select('id')
+    .eq('restaurant_id', restaurantId)
+    .eq('type', 'order_receipt')
+    .in('status', ['pending', 'processing', 'done'])
+    .eq('payload->>idempotency_key', idempotencyKey)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data?.id) return null;
+  return data.id as string;
+}
+
 type EnqueueParams = {
   admin: SupabaseClient;
   restaurantId: string;
@@ -177,7 +214,7 @@ export async function loadOrdersForReceiptPrint(
 export async function enqueueReceiptPrint(
   params: EnqueueParams,
 ): Promise<
-  | { ok: true; job_id: string }
+  | { ok: true; job_id: string; deduped?: boolean }
   | { ok: false; status: number; code: string; message?: string }
 > {
   const {
@@ -200,6 +237,17 @@ export async function enqueueReceiptPrint(
 
   const locale = (printLocale || 'pt') as 'zh' | 'en' | 'pt';
   const jobType: PrintJobType = variant === 'pre_bill' ? 'pre_bill' : 'order_receipt';
+
+  const idempotencyKey =
+    billSplitId != null
+      ? checkoutReceiptIdempotencyKey(variant, billSplitId, personIndex)
+      : undefined;
+  if (idempotencyKey) {
+    const existingId = await findCheckoutReceiptJobId(admin, restaurantId, idempotencyKey);
+    if (existingId) {
+      return { ok: true, job_id: existingId, deduped: true };
+    }
+  }
 
   let billSplit: BillSplit | null = null;
   if (billSplitId) {
@@ -283,6 +331,7 @@ export async function enqueueReceiptPrint(
   const payload: OrderReceiptJobPayload = {
     order_id: firstOrder.id,
     locale,
+    ...(idempotencyKey ? { idempotency_key: idempotencyKey } : {}),
     ...(printerId ? { receipt_printer_id: printerId } : {}),
     receipt_variant: variant,
     table_id: tableId,

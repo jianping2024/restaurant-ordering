@@ -30,6 +30,45 @@ export type ConfirmPaymentResult =
     }
   | { ok: false; status: number; code: string; message?: string };
 
+type ConfirmBillSplitPaymentRpc = {
+  ok: boolean;
+  code?: string;
+  message?: string;
+  all_paid?: boolean;
+  result?: SplitResult[];
+  final_amount?: number;
+  session_id?: string | null;
+  table_id?: string;
+  display_name?: string;
+  order_ids?: unknown;
+  row_name?: string;
+  row_amount?: number;
+  newly_paid?: boolean;
+  should_print_split?: boolean;
+  should_print_final?: boolean;
+  should_close_session?: boolean;
+};
+
+const RPC_ERROR_STATUS: Record<string, number> = {
+  bill_split_not_found: 404,
+  empty_split: 400,
+  invalid_person_index: 400,
+  already_paid: 409,
+  bill_update_failed: 500,
+  session_close_failed: 500,
+};
+
+/** HTTP status for confirm-payment RPC error codes (unit-tested). */
+export function httpStatusForConfirmPaymentRpcCode(code: string): number {
+  return RPC_ERROR_STATUS[code] ?? 500;
+}
+
+function parseRpcOrderIds(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const ids = raw.filter((id): id is string => typeof id === 'string' && id.length > 0);
+  return ids.length > 0 ? ids : undefined;
+}
+
 export async function confirmBillSplitPayment(params: {
   admin: SupabaseClient;
   restaurantId: string;
@@ -49,59 +88,49 @@ export async function confirmBillSplitPayment(params: {
     receiptPrinterId,
   } = params;
 
-  const { data: split, error: loadErr } = await admin
-    .from('bill_splits')
-    .select('*')
-    .eq('id', billSplitId)
-    .eq('restaurant_id', restaurantId)
-    .maybeSingle();
+  const { data: rpcData, error: rpcErr } = await admin.rpc('confirm_bill_split_payment', {
+    p_restaurant_id: restaurantId,
+    p_bill_split_id: billSplitId,
+    p_person_index: personIndex,
+    p_discount_rate: discountRate,
+  });
 
-  if (loadErr || !split) {
-    return { ok: false, status: 404, code: 'bill_split_not_found', message: loadErr?.message };
+  if (rpcErr) {
+    return {
+      ok: false,
+      status: 500,
+      code: 'bill_update_failed',
+      message: rpcErr.message,
+    };
   }
 
-  const bill = split as BillSplit;
-  const baseRows = normalizeSplitRows(bill);
-  if (baseRows.length === 0) {
-    return { ok: false, status: 400, code: 'empty_split' };
+  const payload = rpcData as ConfirmBillSplitPaymentRpc | null;
+  if (!payload?.ok) {
+    const code = payload?.code ?? 'bill_update_failed';
+    return {
+      ok: false,
+      status: httpStatusForConfirmPaymentRpcCode(code),
+      code,
+      message: payload?.message,
+    };
   }
 
-  if (personIndex < 0 || personIndex >= baseRows.length) {
-    return { ok: false, status: 400, code: 'invalid_person_index' };
-  }
-
-  const discountedRows = applyDiscountToRows(baseRows, discountRate);
-  const row = discountedRows[personIndex];
-  if (row.paid) {
-    return { ok: false, status: 409, code: 'already_paid' };
-  }
-
-  const nextResult = discountedRows.map((item, idx) =>
-    idx === personIndex ? { ...item, paid: true } : item,
-  );
-  const allPaid = nextResult.every((item) => !!item.paid);
-  const finalAmount = nextResult.reduce((sum, r) => sum + Number(r.amount || 0), 0);
-
-  const { error: billErr } = await admin
-    .from('bill_splits')
-    .update({
-      status: allPaid ? 'paid' : 'requested',
-      total_amount: allPaid ? finalAmount : bill.total_amount,
-      result: nextResult,
-    })
-    .eq('id', billSplitId);
-
-  if (billErr) {
-    return { ok: false, status: 500, code: 'bill_update_failed', message: billErr.message };
-  }
-
-  const tableId = bill.table_id;
-  const tableDisplayName = bill.display_name;
-  const sessionId = bill.session_id;
-
+  const result = (payload.result || []) as SplitResult[];
+  const allPaid = !!payload.all_paid;
+  const finalAmount = Number(payload.final_amount) || 0;
+  const sessionId = payload.session_id ?? null;
+  const tableId = payload.table_id;
+  const tableDisplayName = payload.display_name;
   const printTarget = receiptPrinterId?.trim() || undefined;
+  const rowAmount = Number(payload.row_amount) || 0;
 
-  if (sessionId && nextResult.length > 1) {
+  if (
+    payload.newly_paid &&
+    payload.should_print_split &&
+    sessionId &&
+    tableId &&
+    tableDisplayName
+  ) {
     await enqueueReceiptPrint({
       admin,
       restaurantId,
@@ -110,9 +139,9 @@ export async function confirmBillSplitPayment(params: {
       tableId,
       tableDisplayName,
       variant: 'split_payment',
-      payerName: receiptPayerNameForPrint(row.name, personIndex),
-      personAmount: row.amount,
-      amountPaid: row.amount,
+      payerName: receiptPayerNameForPrint(payload.row_name ?? '', personIndex),
+      personAmount: rowAmount,
+      amountPaid: rowAmount,
       paymentMethod: 'Cash',
       billSplitId,
       personIndex,
@@ -120,19 +149,13 @@ export async function confirmBillSplitPayment(params: {
     });
   }
 
-  if (allPaid && sessionId) {
-    const { error: sessionErr } = await admin
-      .from('table_sessions')
-      .update({
-        status: 'closed',
-        closed_at: new Date().toISOString(),
-      })
-      .eq('id', sessionId);
-
-    if (sessionErr) {
-      return { ok: false, status: 500, code: 'session_close_failed', message: sessionErr.message };
-    }
-
+  if (
+    payload.newly_paid &&
+    payload.should_print_final &&
+    sessionId &&
+    tableId &&
+    tableDisplayName
+  ) {
     await enqueueReceiptPrint({
       admin,
       restaurantId,
@@ -145,9 +168,9 @@ export async function confirmBillSplitPayment(params: {
       paymentMethod: 'Cash',
       receiptPrinterId: printTarget,
       billSplitId,
-      orderIds: bill.order_ids?.length ? bill.order_ids : undefined,
+      orderIds: parseRpcOrderIds(payload.order_ids),
     });
   }
 
-  return { ok: true, all_paid: allPaid, result: nextResult, final_amount: finalAmount };
+  return { ok: true, all_paid: allPaid, result, final_amount: finalAmount };
 }

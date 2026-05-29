@@ -12,6 +12,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test:unit": "npx tsx --test src/lib/resolve-append-cart-items.test.ts src/lib/checkout-confirm-payment.test.ts",
     "push": "bash scripts/push-to-main.sh"
   },
   "dependencies": {

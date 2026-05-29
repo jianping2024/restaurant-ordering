@@ -64,6 +64,17 @@ func trayAboutText(rt *trayRuntime, locale string) string {
 	return text
 }
 
+func applyTrayUILocaleSubmenu(mUILang, mLangZh, mLangEn, mLangPt interface {
+	SetTitle(string)
+	SetTooltip(string)
+}, locale string) {
+	mUILang.SetTitle(uiT(locale, "menu_ui_locale"))
+	mUILang.SetTooltip(uiT(locale, "menu_ui_locale_tip"))
+	mLangZh.SetTitle(uiLocaleOptionTitle(locale, "zh"))
+	mLangEn.SetTitle(uiLocaleOptionTitle(locale, "en"))
+	mLangPt.SetTitle(uiLocaleOptionTitle(locale, "pt"))
+}
+
 func applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mQuit interface {
 	SetTitle(string)
 	SetTooltip(string)

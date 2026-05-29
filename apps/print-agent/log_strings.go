@@ -45,6 +45,7 @@ func logStringsZH() map[string]string {
 		"log_test_print_station":    "试打：档口 %s",
 		"log_pair_ok":               "配对成功",
 		"log_browser_open_fail":     "无法自动打开浏览器",
+		"log_tray_ui_locale":        "界面语言已设为：%s",
 	}
 }
 
@@ -81,6 +82,7 @@ func logStringsEN() map[string]string {
 		"log_test_print_station":    "Test print: station %s",
 		"log_pair_ok":               "Pairing saved",
 		"log_browser_open_fail":     "Could not open browser automatically",
+		"log_tray_ui_locale":        "Interface language set to: %s",
 	}
 }
 
@@ -117,5 +119,6 @@ func logStringsPT() map[string]string {
 		"log_test_print_station":    "Teste: estação %s",
 		"log_pair_ok":               "Emparelhamento guardado",
 		"log_browser_open_fail":     "Não foi possível abrir o browser",
+		"log_tray_ui_locale":        "Idioma da interface: %s",
 	}
 }

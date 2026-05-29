@@ -138,6 +138,11 @@ func onTrayReady(rt *trayRuntime) {
 	mOpenLog := systray.AddMenuItem(uiT(loc, "menu_open_log"), uiT(loc, "menu_open_log_tip"))
 	mOpenLogDir := systray.AddMenuItem(uiT(loc, "menu_open_log_dir"), uiT(loc, "menu_open_log_dir_tip"))
 	systray.AddSeparator()
+	mUILang := systray.AddMenuItem(uiT(loc, "menu_ui_locale"), uiT(loc, "menu_ui_locale_tip"))
+	mLangZh := mUILang.AddSubMenuItem(uiLocaleOptionTitle(loc, "zh"), "")
+	mLangEn := mUILang.AddSubMenuItem(uiLocaleOptionTitle(loc, "en"), "")
+	mLangPt := mUILang.AddSubMenuItem(uiLocaleOptionTitle(loc, "pt"), "")
+	systray.AddSeparator()
 	mShowConsole := systray.AddMenuItem(uiT(loc, "menu_console"), uiT(loc, "menu_console_tip"))
 	systray.AddSeparator()
 	mAbout := systray.AddMenuItem(uiT(loc, "menu_about"), uiT(loc, "menu_about_tip"))
@@ -154,6 +159,7 @@ func onTrayReady(rt *trayRuntime) {
 				lastLoc = loc
 				systray.SetTitle(uiT(loc, "tray_title"))
 				applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mQuit, loc)
+				applyTrayUILocaleSubmenu(mUILang, mLangZh, mLangEn, mLangPt, loc)
 			}
 			mStatus.SetTitle(rt.status.menuStatusLine(loc))
 			tip := rt.status.tooltip(Version, loc)
@@ -167,9 +173,33 @@ func onTrayReady(rt *trayRuntime) {
 		}
 	}()
 
+	applyTrayUILocaleChoice := func(code string) {
+		cur := normalizeUILocale(rt.uiLocale())
+		code = normalizeUILocale(code)
+		if cur == code {
+			return
+		}
+		if err := setTrayUILocale(code); err != nil {
+			messageBoxOK(uiT(cur, "about_title"), err.Error())
+			return
+		}
+		agentLogLocale(code, "log_tray_ui_locale", uiLocaleOptionLogLabel(code))
+		loc = code
+		systray.SetTitle(uiT(loc, "tray_title"))
+		applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mQuit, loc)
+		applyTrayUILocaleSubmenu(mUILang, mLangZh, mLangEn, mLangPt, loc)
+		systray.SetTooltip(rt.status.tooltip(Version, loc))
+	}
+
 	go func() {
 		for {
 			select {
+			case <-mLangZh.ClickedCh:
+				applyTrayUILocaleChoice("zh")
+			case <-mLangEn.ClickedCh:
+				applyTrayUILocaleChoice("en")
+			case <-mLangPt.ClickedCh:
+				applyTrayUILocaleChoice("pt")
 			case <-mSettings.ClickedCh:
 				rt.startTrayConfigureWizard("")
 			case <-mOpenLog.ClickedCh:

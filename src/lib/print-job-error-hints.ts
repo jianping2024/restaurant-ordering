@@ -12,6 +12,14 @@ const ERROR_HINTS: ErrorHint[] = [
     },
   },
   {
+    match: (m) => /printer was offline|skipped.*offline|only jobs created after the printer came online/i.test(m),
+    hint: {
+      zh: '打印机恢复上线时跳过了积压任务；打印机就绪后点「重试」即可补打。',
+      en: 'Skipped while the printer was offline; click Retry after the printer is online to reprint.',
+      pt: 'Ignorado com impressora offline; use Repetir com a impressora online para imprimir de novo.',
+    },
+  },
+  {
     match: (m) => /startdocprinter/i.test(m),
     hint: {
       zh: 'USB 打印 bug：请升级至 print-agent v0.2.1+ 并重启代理。',

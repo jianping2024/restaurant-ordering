@@ -43,7 +43,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const { data: job, error: jErr } = await admin
     .from('print_jobs')
-    .select('id, restaurant_id, status, attempts')
+    .select('id, restaurant_id, status, attempts, claimed_by')
     .eq('id', jobId)
     .maybeSingle();
 
@@ -88,6 +88,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       .update({ status: 'done', error_message: null })
       .eq('id', jobId)
       .eq('status', 'processing')
+      .eq('claimed_by', ctx.device_id)
       .select('id, status')
       .maybeSingle();
 
@@ -101,7 +102,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (current !== 'processing' && current !== 'pending') {
     return NextResponse.json({ error: 'invalid_transition' }, { status: 409 });
   }
-  const { data: updated, error: uErr } = await admin
+  let updateQuery = admin
     .from('print_jobs')
     .update({
       status: 'failed',
@@ -109,9 +110,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       ...(current === 'pending' ? { claimed_by: ctx.device_id } : {}),
     })
     .eq('id', jobId)
-    .eq('status', current)
-    .select('id, status')
-    .maybeSingle();
+    .eq('status', current);
+
+  if (current === 'processing') {
+    updateQuery = updateQuery.eq('claimed_by', ctx.device_id);
+  }
+
+  const { data: updated, error: uErr } = await updateQuery.select('id, status').maybeSingle();
 
   if (uErr || !updated) {
     return NextResponse.json({ error: 'optimistic_lock_failed' }, { status: 409 });

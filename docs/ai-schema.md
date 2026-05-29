@@ -1,7 +1,7 @@
 # AI Compact Schema
 
 Purpose: fast database reference for AI coding agents.  
-Source of truth remains the real Supabase schema/migrations.
+SQL source of truth: `supabase/migrations/20240101000000_initial_schema.sql` (squashed baseline from linked project dump, May 2026). Keep this file aligned when the schema changes.
 
 ## Tables
 
@@ -92,6 +92,34 @@ print_agent_devices.pairing_id -> print_agent_pairings.id
 restaurant_staff_accounts.restaurant_id -> restaurants.id  
 restaurant_staff_accounts.user_id -> auth.users.id  
 restaurant_staff_accounts.created_by -> auth.users.id
+
+## Views
+
+restaurants_public — security definer view; public menu/geo fields for customer ordering (no passwords).
+
+## RPC / Functions (public)
+
+| Function | Role | Notes |
+|----------|------|-------|
+| `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index, discount_rate?)` | authenticated, service_role | SECURITY DEFINER checkout; not anon |
+| `transfer_table_session(restaurant_id, from_table_id, to_table_id)` | authenticated, service_role | Move open session between tables |
+| `merge_table_sessions(restaurant_id, source_table_id, target_table_id)` | authenticated, service_role | Merge two table sessions |
+| `merge_multiple_table_sessions(restaurant_id, source_table_ids[], target_table_id)` | authenticated, service_role | Multi-source merge |
+| `resolve_buffet_prices(restaurant_id, buffet_id, at?)` | (see grants in SQL) | Buffet price resolution |
+| `get_active_restaurant_table(restaurant_id, table_id)` | — | Resolve non-deleted table row |
+| `auth_owned_restaurant_ids()` | — | SECURITY DEFINER helper for owner RLS |
+| `auth_staff_restaurant_ids()` | — | SECURITY DEFINER helper for staff RLS |
+| `is_active_restaurant_staff(restaurant_id, roles?)` | — | Staff role check (default kitchen+waiter) |
+
+Triggers / internal: `handle_updated_at`, `enforce_print_station_same_restaurant`, `seed_default_print_stations_for_restaurant`, `seed_default_restaurant_tables_for_restaurant`, `recalc_order_total_from_items`, `void_active_buffet_lines_in_items`, `rls_auto_enable`.
+
+## Storage
+
+Bucket `menu-images` (public read). Owner-scoped write policies on `storage.objects`; path `{restaurant_id}/{menu_item_id}.{ext}`.
+
+## Realtime (`supabase_realtime` publication)
+
+Tables with `REPLICA IDENTITY FULL` where filtered subscriptions need it: `orders`, `table_sessions`, `bill_splits`, `print_jobs`, buffet tables (`buffets`, `buffet_time_slots`, `buffet_price_rules`, `buffet_calendar_overrides`).
 
 ## Domain Values / Check Constraints
 
@@ -338,16 +366,16 @@ table_sessions:
 - Print agent flow: `print_agent_pairings` issues six-digit pairing codes; `print_agent_devices` stores paired agent state; `print_jobs` stores queued print work.
 - Buffet pricing: `buffets` + `buffet_time_slots` + `buffet_calendar_overrides` + `buffet_price_rules` model time/calendar-sensitive prices.
 - Soft deletion appears only on `restaurant_tables.deleted_at` in this schema extract.
-- Indexes are included below from the Supabase `pg_indexes` export.
-- No RLS policies were included yet; add `pg_policies` export when available.
+- Indexes and RLS summaries below match the squashed baseline; verify against the SQL file when in doubt.
 
 ## When To Read Full SQL
 
-Read the full schema/migrations only when:
+Read `supabase/migrations/20240101000000_initial_schema.sql` when:
 
 - changing constraints, generated columns, defaults, or check expressions
-- debugging RLS, grants, or security behavior
-- adding/removing indexes
+- debugging RLS, grants, storage policies, or security behavior
+- adding/removing indexes or RPC definitions
 - changing foreign keys
-- investigating migration history
+
+After schema edits: append a new timestamped migration (do not edit the baseline in place unless squashing again).
 

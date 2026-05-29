@@ -39,6 +39,19 @@ type TablesApiResponse = {
   error?: string;
 };
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function tableQrDownloadFilename(displayName: string) {
+  const safe = displayName.replace(/[^a-zA-Z0-9_-]+/g, '_').replace(/^_+|_+$/g, '') || 'table';
+  return `table-${safe}-qr.png`;
+}
+
 async function requestDashboardTables(
   method: 'POST' | 'PATCH' | 'DELETE',
   body: Record<string, unknown>,
@@ -149,7 +162,7 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
   const downloadQR = (tableId: string, displayName: string) => {
     const link = document.createElement('a');
     link.href = qrCodes[tableId];
-    link.download = `table-${displayName}-qr.png`;
+    link.download = tableQrDownloadFilename(displayName);
     link.click();
   };
 
@@ -161,40 +174,53 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
     link.click();
   };
 
-  const printAll = () => {
+  const printTables = (rows: RestaurantTableRow[]) => {
+    const printable = rows.filter((row) => qrCodes[row.id]);
+    if (printable.length === 0) return;
+
     const win = window.open('', '_blank');
     if (!win) return;
+
+    const single = printable.length === 1;
+    const printActionLabel = single ? t.printOne : t.print;
 
     win.document.write(`
       <html>
         <head>
-          <title>${restaurant.name} — ${t.title}</title>
+          <title>${escapeHtml(restaurant.name)} — ${escapeHtml(single ? `${t.table} ${printable[0].display_name}` : t.title)}</title>
           <style>
             body { font-family: serif; background: white; margin: 0; padding: 20px; }
-            .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+            .grid { display: grid; grid-template-columns: ${single ? '1fr' : 'repeat(3, 1fr)'}; gap: 20px; ${single ? 'max-width: 320px; margin: 0 auto;' : ''} }
             .item { text-align: center; page-break-inside: avoid; border: 1px solid #ddd; padding: 15px; border-radius: 8px; }
-            .item img { width: 150px; height: 150px; }
+            .item img { width: ${single ? '200px' : '150px'}; height: ${single ? '200px' : '150px'}; }
             h2 { font-size: 14px; margin: 8px 0 4px; }
             p { font-size: 11px; color: #666; margin: 0; }
             @media print { .no-print { display: none; } }
           </style>
         </head>
         <body>
-          <button class="no-print" onclick="window.print()" style="margin-bottom:20px;padding:8px 16px;">${t.print}</button>
+          <button class="no-print" onclick="window.print()" style="margin-bottom:20px;padding:8px 16px;">${escapeHtml(printActionLabel)}</button>
           <div class="grid">
-            ${tables.map((row) => `
+            ${printable.map((row) => {
+              const qrSrc = qrCodes[row.id];
+              return `
               <div class="item">
-                <img src="${qrCodes[row.id] || ''}" alt="${t.table} ${row.display_name}" />
-                <h2>${restaurant.name}</h2>
-                <p>${t.table} ${row.display_name}</p>
+                <img src="${qrSrc}" alt="${escapeHtml(`${t.table} ${row.display_name}`)}" />
+                <h2>${escapeHtml(restaurant.name)}</h2>
+                <p>${escapeHtml(`${t.table} ${row.display_name}`)}</p>
               </div>
-            `).join('')}
+            `;
+            }).join('')}
           </div>
         </body>
       </html>
     `);
     win.document.close();
   };
+
+  const printAll = () => printTables(tables);
+
+  const printTable = (table: RestaurantTableRow) => printTables([table]);
 
   const tableLabelForInput = (table: RestaurantTableRow) =>
     labelDrafts[table.id] ?? table.display_name;
@@ -525,13 +551,22 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
                 /{restaurant.slug}/menu?table_id=…
               </p>
               <div className="flex flex-col items-center justify-center gap-2">
-                <div className="flex items-center justify-center gap-3">
+                <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
                   <button
+                    type="button"
                     onClick={() => downloadQR(table.id, table.display_name)}
                     disabled={!qrCodes[table.id]}
                     className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
                   >
                     {t.download}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => printTable(table)}
+                    disabled={!qrCodes[table.id]}
+                    className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
+                  >
+                    {t.printOne}
                   </button>
                   <a
                     href={`${baseUrl}/${restaurant.slug}/menu?table_id=${encodeURIComponent(table.id)}`}

@@ -59,6 +59,8 @@ supabase link --project-ref <your-project-ref>
 supabase db push
 ```
 
+Schema 已 squash 为单文件 `supabase/migrations/20240101000000_initial_schema.sql`；新变更请追加带时间戳的新 migration，勿改 baseline。
+
 如果远端是历史库且出现“表已存在但迁移未记录”，先执行 `supabase migration repair` 后再 `supabase db push`。
 
 ### 4. （可选）插入示例数据

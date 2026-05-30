@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { expireStalePrintJobs } from '@/lib/expire-stale-print-jobs';
 import { verifyAgentBearer } from '@/lib/print-agent-auth';
 
 export const runtime = 'nodejs';
@@ -52,6 +53,11 @@ export async function POST(req: Request) {
     admin = createAdminClient();
   } catch {
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
+  }
+
+  const { error: expireErr } = await expireStalePrintJobs(admin, ctx.restaurant_id);
+  if (expireErr) {
+    return NextResponse.json({ error: 'expire_stale_failed', message: expireErr }, { status: 500 });
   }
 
   const nowIso = new Date().toISOString();

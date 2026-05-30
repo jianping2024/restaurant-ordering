@@ -27,7 +27,8 @@ cp .env.local.example .env.local
 
 ```bash
 supabase start          # 仅本地库需要
-npm run dev             # 本地 Supabase（读 .env.local.supabase）
+npm run dev             # 本地 Docker Supabase（读 .env.local.dev）
+npm run stage           # 云端 stage 项目（读 .env.local.supabase）
 # npm run cloud         # 云端 Supabase（读 .env.local）
 ```
 
@@ -70,7 +71,7 @@ Schema 已 squash 为单文件 `supabase/migrations/20240101000000_initial_schem
 
 执行 `supabase/seed.sql` 会自动创建本地演示账号与「巨好吃餐厅」菜单（来自云库快照，不含订单）。登录：`dev-owner@local.test` / `localdev123`。更新快照：`node scripts/generate-juhaochi-seed.mjs`。
 
-**本地 Supabase**：`.env.local.supabase` 仅在本机生成（已 gitignore，勿提交）。首次：
+**本地 Supabase**：`.env.local.dev` 仅在本机生成（已 gitignore，勿提交）。首次：
 
 ```bash
 supabase start
@@ -78,9 +79,11 @@ bash scripts/sync-local-supabase-env.sh
 npm run dev
 ```
 
-`npm run dev` 会先加载 `.env.local.supabase`；已注入的变量不会被 `.env.local` 覆盖。
+`npm run dev` 会先加载 `.env.local.dev`；已注入的变量不会被 `.env.local` 覆盖。
 
-**云端**：`npm run cloud` 使用现有 `.env.local`（联调/生产 Supabase 项目）。
+**云端 stage**：`npm run stage` 使用 `.env.local.supabase`（联调 Supabase 项目 restaurant-ordering-dev）。
+
+**云端**：`npm run cloud` 使用现有 `.env.local`（其他云 Supabase 项目）。
 
 ### 5. 配置环境变量（管理员开户）
 

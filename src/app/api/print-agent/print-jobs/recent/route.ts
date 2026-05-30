@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { expireStalePrintJobs } from '@/lib/expire-stale-print-jobs';
 import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
 import {
   rejectForbiddenPrintJobsScopeParams,
@@ -45,16 +43,6 @@ export async function GET(req: Request) {
   const auth = await getOwnerRestaurantId();
   if ('error' in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
-
-  try {
-    const admin = createAdminClient();
-    const { error: expireErr } = await expireStalePrintJobs(admin, auth.restaurantId);
-    if (expireErr) {
-      return NextResponse.json({ error: 'expire_stale_failed', message: expireErr }, { status: 500 });
-    }
-  } catch {
-    return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
   const page = parsePage(searchParams.get('page'));

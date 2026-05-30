@@ -12,14 +12,6 @@ const ERROR_HINTS: ErrorHint[] = [
     },
   },
   {
-    match: (m) => /timed out in processing|server auto-cancelled/i.test(m),
-    hint: {
-      zh: '任务在打印中长时间无进展，服务端已自动作废以防重复出纸；确认打印机状态后点「重试」补打。',
-      en: 'Job stayed in processing too long and was auto-cancelled server-side to avoid duplicate prints; check the printer, then Retry if needed.',
-      pt: 'Trabalho ficou em processamento demais e foi cancelado pelo servidor; verifique a impressora e use Repetir se necessário.',
-    },
-  },
-  {
     match: (m) => /printer was offline|skipped.*offline|only jobs created after the printer came online/i.test(m),
     hint: {
       zh: '打印机恢复上线时跳过了积压任务；打印机就绪后点「重试」即可补打。',

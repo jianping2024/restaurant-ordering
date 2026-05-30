@@ -875,7 +875,7 @@ export const MESSAGES = {
       paid: '已收款',
       receiptPrinter: '打印到小票机',
       receiptPrinterNone: '— 不打印 —',
-      receiptPrinterCurrentNone: '未选打印机：账单会保存，配好打印助手后 20 分钟内可补打。',
+      receiptPrinterCurrentNone: '未选打印机：账单会保存，配好打印助手后 10 分钟内可补打。',
       receiptPrinterCurrent: '将打印到：{label}',
       receiptPrinterCashier: '收银',
       receiptPrinterStationSuffix: '出品档口',
@@ -1545,7 +1545,7 @@ export const MESSAGES = {
       receiptPrinter: 'Receipt printer',
       receiptPrinterNone: '— Do not print —',
       receiptPrinterCurrentNone:
-        'No printer selected: bill is saved; you can print within 20 minutes after setup.',
+        'No printer selected: bill is saved; you can print within 10 minutes after setup.',
       receiptPrinterCurrent: 'Will print to: {label}',
       receiptPrinterCashier: 'Cashier',
       receiptPrinterStationSuffix: 'station',
@@ -2160,7 +2160,7 @@ export const MESSAGES = {
       receiptPrinter: 'Imprimir em',
       receiptPrinterNone: '— Nao imprimir —',
       receiptPrinterCurrentNone:
-        'Sem impressora: a conta fica guardada; pode imprimir em 20 min apos configurar.',
+        'Sem impressora: a conta fica guardada; pode imprimir em 10 min apos configurar.',
       receiptPrinterCurrent: 'Imprimir em: {label}',
       receiptPrinterCashier: 'Caixa',
       receiptPrinterStationSuffix: 'estacao',

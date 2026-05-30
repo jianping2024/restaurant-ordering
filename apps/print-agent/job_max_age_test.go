@@ -6,7 +6,7 @@ import (
 )
 
 func TestJobPrintExpired(t *testing.T) {
-	old := printJob{ID: "a", CreatedAt: time.Now().Add(-21 * time.Minute).UTC().Format(time.RFC3339)}
+	old := printJob{ID: "a", CreatedAt: time.Now().Add(-11 * time.Minute).UTC().Format(time.RFC3339)}
 	if !jobPrintExpired(old) {
 		t.Fatal("expected expired")
 	}

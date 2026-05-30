@@ -4,11 +4,11 @@ type ErrorHint = { match: (msg: string) => boolean; hint: Record<UILanguage, str
 
 const ERROR_HINTS: ErrorHint[] = [
   {
-    match: (m) => /print job expired.*20 minutes/i.test(m),
+    match: (m) => /print job expired.*\d+ minutes/i.test(m),
     hint: {
-      zh: '任务已超过 20 分钟未打出，系统已自动作废；如需补打请在后台对该任务点「重试」（会生成新的待打印任务）。',
-      en: 'Job was older than 20 minutes and was auto-cancelled; use Retry in the dashboard to re-queue if you still need a ticket.',
-      pt: 'Trabalho com mais de 20 minutos foi cancelado; use Repetir no painel para reenviar se ainda precisar do ticket.',
+      zh: '任务已超过 10 分钟未打出，系统已自动作废；如需补打请在后台对该任务点「重试」（会生成新的待打印任务）。',
+      en: 'Job was older than 10 minutes and was auto-cancelled; use Retry in the dashboard to re-queue if you still need a ticket.',
+      pt: 'Trabalho com mais de 10 minutos foi cancelado; use Repetir no painel para reenviar se ainda precisar do ticket.',
     },
   },
   {
@@ -28,19 +28,22 @@ const ERROR_HINTS: ErrorHint[] = [
     },
   },
   {
-    match: (m) => /receipt printer not ready|will retry within 20 minutes/i.test(m),
+    match: (m) => /receipt printer not ready|will retry within \d+ minutes/i.test(m),
     hint: {
-      zh: '账单已入队，等待打印机：在 configure 映射档口，或在结账页选定档口打印机；20 分钟内配好会继续打印。',
-      en: 'Receipt queued: map a station printer in configure or pick one on checkout; prints within 20 minutes once ready.',
-      pt: 'Recibo na fila: mapeie impressora no configure ou escolha no checkout; imprime em 20 minutos.',
+      zh: '账单已入队，等待打印机：在 configure 映射档口，或在结账页选定档口打印机；10 分钟内配好会继续打印。',
+      en: 'Receipt queued: map a station printer in configure or pick one on checkout; prints within 10 minutes once ready.',
+      pt: 'Recibo na fila: mapeie impressora no configure ou escolha no checkout; imprime em 10 minutos.',
     },
   },
   {
-    match: (m) => /receipt_printer_id required|multiple stations mapped|no station printers configured within 20 minutes/i.test(m),
+    match: (m) =>
+      /receipt_printer_id required|multiple stations mapped|no station printers configured within \d+ minutes/i.test(
+        m,
+      ),
     hint: {
-      zh: '超过 20 分钟仍未配置打印机：在 configure 映射档口，或在结账/账单页下拉框选定一台后重试打印。',
-      en: '20-minute window expired: map printers in configure or pick one on checkout/bill, then retry the job.',
-      pt: 'Janela de 20 min expirou: mapeie no configure ou escolha impressora e reenvie o trabalho.',
+      zh: '超过 10 分钟仍未配置打印机：在 configure 映射档口，或在结账/账单页下拉框选定一台后重试打印。',
+      en: '10-minute window expired: map printers in configure or pick one on checkout/bill, then retry the job.',
+      pt: 'Janela de 10 min expirou: mapeie no configure ou escolha impressora e reenvie o trabalho.',
     },
   },
   {

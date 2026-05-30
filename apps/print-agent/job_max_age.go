@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-var errPrintJobExpired = fmt.Errorf("print job expired (older than 20 minutes); not printed")
+var errPrintJobExpired = fmt.Errorf("print job expired (older than 10 minutes); not printed")
 
 func jobPrintExpired(job printJob) bool {
 	t, ok := parseJobCreatedAt(job)

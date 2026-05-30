@@ -8,10 +8,10 @@ import (
 	"time"
 )
 
-const receiptPrintDeferWindow = 20 * time.Minute
+const receiptPrintDeferWindow = 10 * time.Minute
 
 // errReceiptPrintDeferred — job stays pending; agent retries until printer is mapped or window expires.
-var errReceiptPrintDeferred = errors.New("receipt printer not ready; will retry within 20 minutes")
+var errReceiptPrintDeferred = errors.New("receipt printer not ready; will retry within 10 minutes")
 
 func parseJobCreatedAt(job printJob) (time.Time, bool) {
 	raw := strings.TrimSpace(job.CreatedAt)
@@ -82,5 +82,5 @@ func (c *config) resolveReceiptRouting(job printJob, explicitID string) (string,
 	if jobCreatedWithin(job, receiptPrintDeferWindow) {
 		return "", errReceiptPrintDeferred
 	}
-	return "", fmt.Errorf("receipt_printer_id required (no station printers configured within 20 minutes)")
+	return "", fmt.Errorf("receipt_printer_id required (no station printers configured within 10 minutes)")
 }

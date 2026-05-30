@@ -11,7 +11,7 @@ import {
 
 export const runtime = 'nodejs';
 
-/** Agent: pending jobs for JWT restaurant only (created within 20 minutes). Stale jobs are failed on each poll. */
+/** Agent: pending jobs for JWT restaurant only (created within 10 minutes). Stale jobs are failed on each poll. */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 

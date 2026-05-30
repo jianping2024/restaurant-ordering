@@ -144,7 +144,7 @@ func runPollLoop(ctx context.Context, sess *agentSession, status *agentStatus) {
 					agentLog(cfg, "log_receipt_deferred")
 					lastLogged = pollPhaseBusy
 				}
-				setStatus("Waiting for receipt printer", "Map a station in Settings (up to 20 min)")
+				setStatus("Waiting for receipt printer", "Map a station in Settings (up to 10 min)")
 				var allBlocked bool
 				queue, allBlocked = deferBlockedHead(queue, &blockedSpins)
 				if !allBlocked {

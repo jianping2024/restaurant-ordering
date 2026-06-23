@@ -2,21 +2,12 @@
 
 import { useRef, useState } from 'react';
 import Link from 'next/link';
+import { restaurantNameToSlug } from '@mesa/shared';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages } from '@/lib/i18n/messages';
-
-function toSlug(name: string) {
-  return name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-');
-}
 
 export default function AdminRegisterPage() {
   const { lang } = useLanguage();
@@ -103,10 +94,13 @@ export default function AdminRegisterPage() {
     }
   };
 
-  const slug = toSlug(restaurantName);
+  const slug = restaurantNameToSlug(restaurantName);
 
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-4">
+      <div className="mb-4 w-full max-w-sm rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-brand-text">
+        此页面已弃用。请使用 Mesa 运营后台创建餐厅（需单独部署的 <code className="text-xs">@mesa/ops</code>）。
+      </div>
       <div className="w-full max-w-sm">
         <div className="flex items-center justify-between mb-6">
           <Link href="/">

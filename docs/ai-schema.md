@@ -35,6 +35,10 @@ print_stations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: 
 
 restaurant_staff_accounts (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, user_id: uuid unique FK -> auth.users.id, role: text [kitchen|waiter|cashier], display_name: text, login_name: text, email: text unique, created_by: uuid FK -> auth.users.id nullable, created_at: timestamptz, updated_at: timestamptz, disabled_at: timestamptz nullable)
 
+platform_admin_accounts (id: uuid PK, user_id: uuid unique FK -> auth.users.id, role: text [support|admin], display_name: text, disabled_at: timestamptz nullable, created_at: timestamptz)
+
+platform_admin_audit_log (id: uuid PK, actor_user_id: uuid FK -> auth.users.id nullable, action: text, target_type: text, target_id: text, restaurant_id: uuid FK -> restaurants.id nullable, metadata: jsonb default {}, created_at: timestamptz)
+
 restaurant_tables (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, display_name: text length 1..16, sort_order: integer, deleted_at: timestamptz nullable, created_at: timestamptz)
 
 restaurants (id: uuid PK, name: text, slug: text unique, owner_id: uuid FK -> auth.users.id, logo_url: text nullable, address: text nullable, phone: text nullable, plan: text [free|pro], kitchen_password: text, waiter_password: text, geo_latitude: double precision nullable, geo_longitude: double precision nullable, print_locale: text [zh|en|pt], print_agent_config: jsonb, feature_flags: jsonb default {}, kitchen_password_version: integer, waiter_password_version: integer, order_radius_meters: integer range 10..10000, buffet_friday_weekend_from: time nullable, created_at: timestamptz)
@@ -369,6 +373,7 @@ table_sessions:
 - Operational close: `close_table_session_operational(...)` — advisory lock; locks active `bill_splits` then `table_sessions`; cancels splits, voids order lines, closes session.
 - Menu routing: `menu_categories` and `menu_items` can each map to `print_stations`.
 - Print agent flow: `print_agent_pairings` issues six-digit pairing codes; `print_agent_devices` stores paired agent state; `print_jobs` stores queued print work.
+- Platform ops (`@mesa/ops`): `platform_admin_accounts` links Mesa staff to `auth.users`; `platform_admin_audit_log` records cross-tenant actions. **No RLS policies** — accessed via service role only after session check in ops API.
 - Buffet pricing: `buffets` + `buffet_time_slots` + `buffet_calendar_overrides` + `buffet_price_rules` model time/calendar-sensitive prices.
 - Soft deletion appears only on `restaurant_tables.deleted_at` in this schema extract.
 - Indexes and RLS summaries below match the squashed baseline; verify against the SQL file when in doubt.

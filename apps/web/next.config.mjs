@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  transpilePackages: ['@mesa/shared'],
   // Externalize @supabase/* on the server (avoids broken vendor-chunks paths with `@` in filenames).
   experimental: {
     serverComponentsExternalPackages: ['@supabase/supabase-js', '@supabase/ssr'],

@@ -73,6 +73,7 @@ npm run build:ops  # 仅 ops
 | `NEXT_PUBLIC_SUPABASE_URL` | ✅ | ✅ |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | ✅ |
 | `NEXT_PUBLIC_BASE_URL` | 租户域名 | ops 域名 |
+| `NEXT_PUBLIC_TENANT_APP_URL` | — | 租户站 URL（餐厅菜单链接，如 `https://app.xxx.com`） |
 | `SUPABASE_SERVICE_ROLE_KEY` | 按需（API） | ✅ |
 | `ADMIN_BOOTSTRAP_SECRET` | ❌ | ✅ |
 | `CRON_SECRET` | ✅ | ❌ |

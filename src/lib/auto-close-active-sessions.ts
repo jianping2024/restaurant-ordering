@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { getZonedCalendarParts } from '@/lib/zoned-time';
 import { closeActiveTableSessionWithOperationalCleanup } from '@/lib/close-active-table-session-with-cleanup';
 
-/** Nightly auto-close: 05:00 in this zone (local scheduler checks hourly while app is running). */
+/** Nightly auto-close: 05:00 in this zone (Vercel Cron + local dev scheduler). */
 export const NIGHTLY_AUTO_CLOSE_TIMEZONE = 'Europe/Lisbon';
 export const NIGHTLY_AUTO_CLOSE_HOUR = 5;
 

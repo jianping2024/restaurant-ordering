@@ -1,0 +1,30 @@
+---
+description: Mandatory lint/build/tests before pnpm push; avoid slow or skipped verification.
+alwaysApply: true
+---
+
+# Push verification (before `pnpm push`)
+
+When the user asks to **push**, **ship**, **`pnpm push`**, or you finish web changes intended for `main`:
+
+**`pnpm push` only commits and pushes** — it does **not** run lint or build. You must run checks first.
+
+## Required order (do not skip or reorder)
+
+1. `npm run lint`
+2. `npm run build` when changes touch `src/app/**`, `src/lib/**`, or `src/types/**`
+3. Targeted unit tests for touched logic, e.g. `node --import tsx --test src/lib/<name>.test.ts`
+4. `pnpm push`
+
+## Prohibited
+
+- Push without `npm run build` when routes, server lib, or shared types changed
+- Use `npx tsx --test` (use `node --import tsx --test` instead)
+- Run lint/build/test **in parallel** with each other
+- Run an extra unrelated full-project lint **after** the push sequence already passed lint
+- Use Multitask / background subagents for small tasks (roughly ≤5 files, single feature)
+
+## Efficiency
+
+- One linear pipeline: lint → build → test → push
+- Do not open Multitask for cleanup-only or push-only follow-ups unless the user explicitly requests it

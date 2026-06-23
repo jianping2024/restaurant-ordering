@@ -18,6 +18,7 @@ import { requestOrderReceiptPrint } from '@/lib/request-order-receipt-print';
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { requestCustomerBillContext } from '@/lib/request-customer-context';
+import { formatPortugueseNif, normalizePortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -89,6 +90,7 @@ export function BillPage({
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(initialFeedbackSubmitted);
   const [feedbackSkipped, setFeedbackSkipped] = useState(initialFeedbackSkipped);
   const [feedbackHydrating, setFeedbackHydrating] = useState(() => !!existingSplit && !!sessionId && !returnPath && !initialFeedbackSubmitted && !initialFeedbackSkipped);
+  const [customerNifInput, setCustomerNifInput] = useState('');
   const [liveOrders, setLiveOrders] = useState<Order[]>(orders);
   const [editingSplitNameIndex, setEditingSplitNameIndex] = useState<number | null>(null);
   const [editingSplitNameValue, setEditingSplitNameValue] = useState('');
@@ -227,10 +229,17 @@ export function BillPage({
         ? t.splitUnassignedItems
         : t.splitAmountMismatch;
 
+  const customerNifInvalid =
+    customerNifInput.trim().length > 0 && !validatePortugueseNif(customerNifInput);
+
   // 呼叫结账
   const handleCallBill = async () => {
     if (!splitValidation.ok) {
       showToast(splitValidationMessage ?? t.splitAmountMismatch, 'error');
+      return;
+    }
+    if (customerNifInvalid) {
+      showToast(t.nifInvalid, 'error');
       return;
     }
     setSubmitting(true);
@@ -252,9 +261,10 @@ export function BillPage({
         splitMode,
         persons,
         result: results,
+        customerNif: normalizePortugueseNif(customerNifInput) || null,
       });
       if (!requestResult.ok) {
-        showToast(t.actionFailed, 'error');
+        showToast(requestResult.error === 'invalid_nif' ? t.nifInvalid : t.actionFailed, 'error');
         return;
       }
 
@@ -909,6 +919,31 @@ export function BillPage({
         <p className="px-4 pb-2 text-[13px] text-red-500">{splitValidationMessage}</p>
       ) : null}
 
+      {!submitted ? (
+        <div className="px-4 pb-3">
+          <label htmlFor="customer-nif" className="text-brand-text font-medium text-sm block mb-1.5">
+            {t.nifLabel}
+          </label>
+          <input
+            id="customer-nif"
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            value={customerNifInput}
+            onChange={(e) => setCustomerNifInput(formatPortugueseNif(e.target.value))}
+            placeholder={t.nifPlaceholder}
+            className={`w-full rounded-xl border bg-brand-card px-3 py-2.5 text-sm text-brand-text placeholder:text-brand-text-muted focus:outline-none focus:ring-1 ${
+              customerNifInvalid
+                ? 'border-red-500 focus:ring-red-500/40'
+                : 'border-brand-border focus:ring-brand-gold/40'
+            }`}
+          />
+          <p className={`text-[12px] mt-1.5 ${customerNifInvalid ? 'text-red-500' : 'text-brand-text-muted'}`}>
+            {customerNifInvalid ? t.nifInvalid : t.nifHint}
+          </p>
+        </div>
+      ) : null}
+
       {/* 呼叫结账 */}
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2">
         {isWaiterFlow ? (
@@ -923,7 +958,7 @@ export function BillPage({
           size="lg"
           onClick={handleCallBill}
           loading={submitting}
-          disabled={allItems.length === 0 || !sessionId || (!!splitMode && !splitValidation.ok)}
+          disabled={allItems.length === 0 || !sessionId || (!!splitMode && !splitValidation.ok) || customerNifInvalid}
         >
           🔔 {t.callBill} — €{total.toFixed(2)}
         </Button>

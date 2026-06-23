@@ -5,7 +5,7 @@ SQL source of truth: `supabase/migrations/20240101000000_initial_schema.sql` (sq
 
 ## Tables
 
-bill_splits (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, order_ids: uuid[], split_mode: text [even|by_item|custom], persons: jsonb, result: jsonb, total_amount: numeric, status: text [pending|confirmed|requested|paid|cancelled], created_at: timestamptz, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id, display_name: text)
+bill_splits (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, order_ids: uuid[], split_mode: text [even|by_item|custom], persons: jsonb, result: jsonb, total_amount: numeric, status: text [pending|confirmed|requested|paid|cancelled], created_at: timestamptz, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id, display_name: text, customer_nif: text nullable)
 
 buffet_calendar_overrides (restaurant_id: uuid PK FK -> restaurants.id, on_date: date PK, kind: text [holiday|special])
 
@@ -102,7 +102,7 @@ restaurants_public — security definer view; public menu/geo fields for custome
 | Function | Role | Notes |
 |----------|------|-------|
 | `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index, discount_rate?)` | authenticated, service_role | SECURITY DEFINER checkout; advisory lock per session; rejects `cancelled` splits; not anon |
-| `upsert_bill_split_request(restaurant_id, session_id, table_id, display_name, order_ids, split_mode, persons, result, total_amount)` | authenticated, service_role | Atomic checkout request; merges `paid` under lock; not anon |
+| `upsert_bill_split_request(restaurant_id, session_id, table_id, display_name, order_ids, split_mode, persons, result, total_amount, customer_nif)` | authenticated, service_role | Atomic checkout request; merges `paid` under lock; not anon |
 | `close_table_session_operational(restaurant_id, table_id, closed_reason, closed_by_user_id?)` | authenticated, service_role | Atomic operational close: cancel splits, void orders, close session; not anon |
 | `transfer_table_session(restaurant_id, from_table_id, to_table_id)` | authenticated, service_role | Move open session between tables |
 | `merge_table_sessions(restaurant_id, source_table_id, target_table_id)` | authenticated, service_role | Merge two table sessions |

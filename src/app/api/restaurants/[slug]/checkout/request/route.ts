@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
 import { validateBillSplit } from '@/lib/bill-split-validate';
+import { parsePortugueseNif } from '@/lib/pt-nif';
 import { sumLineTotals } from '@/lib/cart-totals';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import type { SplitMode, SplitPerson, SplitResult } from '@/types';
@@ -77,6 +78,7 @@ export async function POST(
     split_mode?: unknown;
     persons?: unknown;
     result?: unknown;
+    customer_nif?: unknown;
   };
   try {
     body = await req.json();
@@ -94,6 +96,12 @@ export async function POST(
   const result = parseResult(body.result);
   if (!persons || !result) {
     return NextResponse.json({ error: 'invalid_split' }, { status: 400 });
+  }
+
+  const customerNifRaw = typeof body.customer_nif === 'string' ? body.customer_nif.trim() : '';
+  const customerNif = customerNifRaw ? parsePortugueseNif(customerNifRaw) : null;
+  if (customerNifRaw && !customerNif) {
+    return NextResponse.json({ error: 'invalid_nif' }, { status: 400 });
   }
 
   let admin;
@@ -181,6 +189,7 @@ export async function POST(
     p_persons: persons,
     p_result: result,
     p_total_amount: total,
+    p_customer_nif: customerNif,
   });
 
   if (rpcErr) {

@@ -28,6 +28,7 @@ import {
   isCheckoutRequestBusy,
   mergeBillSplitsFromRefresh,
 } from '@/lib/checkout-request-state';
+import { formatPortugueseNif } from '@/lib/pt-nif';
 
 /** Fallback when Realtime is delayed; only runs while the tab is visible. */
 const CHECKOUT_REQUESTS_POLL_MS = 30_000;
@@ -296,6 +297,14 @@ export function CheckoutRequestsManager({ initialRequests, restaurantId, restaur
               formatWaitDuration(selectedRequest.created_at, t),
             )}
           </p>
+          {selectedRequest.customer_nif ? (
+            <p className="text-brand-text text-[13px] mt-2">
+              {t.customerNif}:{' '}
+              <span className="font-mono tabular-nums">
+                {formatPortugueseNif(selectedRequest.customer_nif)}
+              </span>
+            </p>
+          ) : null}
         </div>
         <div className="text-right">
           <p className="text-brand-gold font-semibold">{t.amount} €{selectedRequest.total_amount.toFixed(2)}</p>

@@ -6,8 +6,9 @@ export async function requestCheckoutRequest(params: {
   splitMode: SplitMode | null;
   persons: SplitPerson[];
   result: SplitResult[];
+  customerNif?: string | null;
 }): Promise<{ ok: true; bill_split_id: string; result: SplitResult[] } | { ok: false; error: string }> {
-  const { slug, tableId, splitMode, persons, result } = params;
+  const { slug, tableId, splitMode, persons, result, customerNif } = params;
   try {
     const res = await fetch(
       `/api/restaurants/${encodeURIComponent(slug)}/checkout/request`,
@@ -20,6 +21,7 @@ export async function requestCheckoutRequest(params: {
           split_mode: splitMode ?? 'custom',
           persons,
           result,
+          ...(customerNif ? { customer_nif: customerNif } : {}),
         }),
       },
     );

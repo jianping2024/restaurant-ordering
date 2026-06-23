@@ -273,6 +273,8 @@ export interface BillSplit {
   total_amount: number;
   status: BillStatus;
   created_at: string;
+  /** Optional Portuguese NIF (9 digits) from guest checkout request */
+  customer_nif?: string | null;
 }
 
 export interface FeedbackSession {

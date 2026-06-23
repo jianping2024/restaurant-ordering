@@ -65,6 +65,20 @@ export function formatOrderLineQtyLabel(
     .replace('{children}', String(item.child_count ?? 0));
 }
 
+/** Buffet headcount label; omits adult/child segments when count is zero. */
+export function formatBuffetGuestCountsOptional(
+  adults: number,
+  children: number,
+  templates: { adults: string; children: string },
+): string {
+  const parts: string[] = [];
+  const a = Math.max(0, Math.floor(adults));
+  const c = Math.max(0, Math.floor(children));
+  if (a > 0) parts.push(templates.adults.replace('{n}', String(a)));
+  if (c > 0) parts.push(templates.children.replace('{n}', String(c)));
+  return parts.join(' · ');
+}
+
 export interface ResolvedBuffetPriceRow {
   adult_price: number | null;
   child_price: number | null;

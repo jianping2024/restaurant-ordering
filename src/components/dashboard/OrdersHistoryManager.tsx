@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Order } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -14,6 +14,7 @@ import { mergeTablesWithOrderHistory, compareRestaurantTables, type RestaurantTa
 import { showToast } from '@/components/ui/Toast';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { interpretCloseTableSessionResponse } from '@/lib/close-table-session-ui';
+import { buildOrderListDisplayChips, countOrderListItems, formatOrderListItemPrintQty, type OrderListDisplayChip } from '@/lib/order-list-display';
 
 interface Props {
   initialOrders: Order[];
@@ -26,6 +27,9 @@ interface TableOption {
   value: string;
   label: string;
 }
+
+const META_SEP = <span className="text-brand-text-muted/50" aria-hidden>·</span>;
+const ORDER_CARD_CLASS = 'bg-brand-card border border-brand-border rounded-xl px-4 py-3';
 
 export function OrdersHistoryManager({
   initialOrders,
@@ -147,6 +151,11 @@ export function OrdersHistoryManager({
     );
   }, [filteredOrders, showCloseTable]);
 
+  const latestOrderTime = (sourceOrders: Order[]) =>
+    new Date(
+      Math.max(...sourceOrders.map((order) => new Date(order.created_at).getTime())),
+    ).toLocaleString(locale);
+
   const rangeLabel = useMemo(() => {
     if (!dateRange?.from && !dateRange?.to) return i18n.filterDateRange;
     if (dateRange?.from && dateRange?.to) return `${format(dateRange.from, 'yyyy-MM-dd')} ~ ${format(dateRange.to, 'yyyy-MM-dd')}`;
@@ -187,27 +196,38 @@ export function OrdersHistoryManager({
     };
   }, [pickerOpen]);
 
-  const handlePrintOrder = (order: Order) => {
+  const buffetGuestLabels = useMemo(
+    () => ({
+      adults: i18n.buffetAdultsCount,
+      children: i18n.buffetChildrenCount,
+    }),
+    [i18n.buffetAdultsCount, i18n.buffetChildrenCount],
+  );
+
+  const handlePrintOrders = (printOrders: Order[], displayName: string) => {
     const printWindow = window.open('', '_blank', 'width=700,height=900');
     if (!printWindow) return;
 
-    const createdAt = new Date(order.created_at).toLocaleString(locale);
-    const rows = order.items.map(item => `
+    const lineItems = printOrders.flatMap((order) =>
+      order.items.filter((item) => item.item_status !== 'voided'),
+    );
+    const rows = lineItems.map(item => `
       <tr>
         <td style="padding:6px 0;">${item.emoji} ${item.name_pt}</td>
-        <td style="padding:6px 0; text-align:center;">x${item.qty}</td>
+        <td style="padding:6px 0; text-align:center;">${formatOrderListItemPrintQty(item, buffetGuestLabels)}</td>
         <td style="padding:6px 0; text-align:right;">€${(item.price * item.qty).toFixed(2)}</td>
       </tr>
     `).join('');
+    const totalAmount = printOrders.reduce((sum, order) => sum + order.total_amount, 0);
 
     printWindow.document.write(`
       <html>
-        <head><title>${i18n.printTitle} #${order.id.slice(0, 8)}</title></head>
+        <head><title>${i18n.printTitle}</title></head>
         <body style="font-family: Arial, sans-serif; padding: 20px; color: #111;">
           <h2 style="margin-bottom: 8px;">${i18n.printTitle}</h2>
           <div style="font-size: 14px; margin-bottom: 14px;">
-            <div>${i18n.table} ${order.display_name}</div>
-            <div>${createdAt}</div>
+            <div>${i18n.table} ${displayName}</div>
+            <div>${latestOrderTime(printOrders)}</div>
           </div>
           <table style="width:100%; border-collapse: collapse; font-size: 14px;">
             <thead>
@@ -219,7 +239,7 @@ export function OrdersHistoryManager({
             </thead>
             <tbody>${rows}</tbody>
           </table>
-          <div style="margin-top: 14px; text-align: right; font-weight: 700;">${i18n.printTotal}: €${order.total_amount.toFixed(2)}</div>
+          <div style="margin-top: 14px; text-align: right; font-weight: 700;">${i18n.printTotal}: €${totalAmount.toFixed(2)}</div>
           <script>window.onload = () => { window.print(); window.close(); };</script>
         </body>
       </html>
@@ -227,7 +247,7 @@ export function OrdersHistoryManager({
     printWindow.document.close();
   };
 
-  const handleCloseTable = async (closeTableId: string, _displayName: string, confirmClose = false) => {
+  const handleCloseTable = async (closeTableId: string, confirmClose = false) => {
     if (!restaurantId) return;
     setClosingTable(closeTableId);
     try {
@@ -263,48 +283,106 @@ export function OrdersHistoryManager({
     }
   };
 
-  const renderOrderCard = (order: Order) => (
-    <div
-      key={order.id}
-      className="bg-brand-card border border-brand-border rounded-xl px-6 py-4"
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div>
-            {!showCloseTable ? (
-              <p className="text-brand-text font-medium">{i18n.table} {order.display_name}</p>
-            ) : null}
-            <p className="text-brand-text-muted text-[13px] mt-1">
-              {new Date(order.created_at).toLocaleString(locale)}
-            </p>
-          </div>
-        </div>
-        <div className="text-right flex-shrink-0">
-          <p className="text-brand-gold font-medium">€{order.total_amount.toFixed(2)}</p>
-          <p className="text-brand-text-muted text-[13px] mt-1">{order.items.length} {i18n.items}</p>
-          <button
-            type="button"
-            onClick={() => handlePrintOrder(order)}
-            className="mt-2 text-[13px] text-brand-gold hover:underline"
-          >
-            {i18n.print}
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-3 pt-3 border-t border-brand-border flex flex-wrap gap-3">
-        {order.items.map((item, idx) => (
+  const renderItemChips = (chips: OrderListDisplayChip[]) => {
+    if (chips.length === 0) return null;
+    return (
+      <div className="mt-2.5 flex flex-wrap gap-2">
+        {chips.map((chip) => (
           <span
-            key={idx}
-            className="text-[13px] bg-brand-border px-3 py-1 rounded-full text-brand-text-muted"
+            key={chip.key}
+            className="text-[13px] bg-brand-border px-2.5 py-1 rounded-full text-brand-text-muted"
           >
-            {item.emoji} {item.name_pt} x {item.qty}
-            {item.note && <span className="text-brand-text ml-1">({item.note})</span>}
+            {chip.emoji} {chip.name} {chip.quantityLabel}
+            {chip.note ? <span className="text-brand-text ml-1">({chip.note})</span> : null}
           </span>
         ))}
       </div>
+    );
+  };
+
+  const renderListCard = (key: string, header: ReactNode, chips: OrderListDisplayChip[]) => (
+    <div key={key} className={ORDER_CARD_CLASS}>
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">{header}</div>
+      {renderItemChips(chips)}
     </div>
   );
+
+  const renderMetaAmount = (amount: number) => (
+    <span className="text-brand-gold font-medium tabular-nums">€{amount.toFixed(2)}</span>
+  );
+
+  const renderPrintButton = (onClick: () => void) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className="text-[13px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-gold hover:border-brand-gold/50 transition-colors"
+    >
+      {i18n.print}
+    </button>
+  );
+
+  const renderTableCard = ([tableId, group]: [string, { displayName: string; orders: Order[] }]) => {
+    const totalAmount = group.orders.reduce((sum, order) => sum + order.total_amount, 0);
+    const chips = buildOrderListDisplayChips(group.orders, buffetGuestLabels);
+
+    return renderListCard(
+      tableId,
+      <>
+        <span className="font-medium text-brand-text">
+          {i18n.table} {group.displayName}
+        </span>
+        {group.orders.length > 1 ? (
+          <>
+            {META_SEP}
+            <span className="text-brand-text-muted">
+              {i18n.batchesCount.replace('{n}', String(group.orders.length))}
+            </span>
+          </>
+        ) : null}
+        {META_SEP}
+        <span className="text-brand-text-muted">
+          {i18n.latestOrder.replace('{time}', latestOrderTime(group.orders))}
+        </span>
+        {META_SEP}
+        <span className="text-brand-text-muted">
+          {countOrderListItems(group.orders)} {i18n.items}
+        </span>
+        {META_SEP}
+        {renderMetaAmount(totalAmount)}
+        {renderPrintButton(() => handlePrintOrders(group.orders, group.displayName))}
+        <div className="flex-1 min-w-[8px]" />
+        <button
+          type="button"
+          disabled={closingTable === tableId}
+          onClick={() => setCheckoutCloseConfirmTableId(tableId)}
+          className="text-sm px-3 py-1.5 rounded-lg border border-brand-border text-brand-text hover:border-brand-gold/50 hover:text-brand-gold disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          {closingTable === tableId ? i18n.closeTableOperating : i18n.closeTable}
+        </button>
+      </>,
+      chips,
+    );
+  };
+
+  const renderHistoryOrderCard = (order: Order) =>
+    renderListCard(
+      order.id,
+      <>
+        <span className="font-medium text-brand-text">
+          {i18n.table} {order.display_name}
+        </span>
+        {META_SEP}
+        <span className="text-brand-text-muted">{latestOrderTime([order])}</span>
+        {META_SEP}
+        <span className="text-brand-text-muted">
+          {countOrderListItems([order])} {i18n.items}
+        </span>
+        {META_SEP}
+        {renderMetaAmount(order.total_amount)}
+        {renderPrintButton(() => handlePrintOrders([order], order.display_name))}
+      </>,
+      buildOrderListDisplayChips([order], buffetGuestLabels),
+    );
 
   return (
     <div>
@@ -366,32 +444,13 @@ export function OrdersHistoryManager({
         <div className="bg-brand-card border border-brand-border rounded-2xl p-12 text-center">
           <p className="text-brand-text-muted">{i18n.empty}</p>
         </div>
-      ) : showCloseTable && tableGroups ? (
-        <div className="space-y-6">
-          {tableGroups.map(([tableId, group]) => {
-            return (
-              <section key={tableId}>
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                  <h2 className="font-heading text-lg text-brand-text">
-                    {i18n.table} {group.displayName}
-                  </h2>
-                  <button
-                    type="button"
-                    disabled={closingTable === tableId}
-                    onClick={() => setCheckoutCloseConfirmTableId(tableId)}
-                    className="text-sm px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:border-brand-gold/50 hover:text-brand-gold disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {closingTable === tableId ? i18n.closeTableOperating : i18n.closeTable}
-                  </button>
-                </div>
-                <div className="space-y-3">{group.orders.map(renderOrderCard)}</div>
-              </section>
-            );
-          })}
+      ) : tableGroups ? (
+        <div className="space-y-3">
+          {tableGroups.map(renderTableCard)}
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredOrders.map(renderOrderCard)}
+          {filteredOrders.map(renderHistoryOrderCard)}
         </div>
       )}
       <ConfirmModal
@@ -406,10 +465,8 @@ export function OrdersHistoryManager({
         onConfirm={async () => {
           if (!checkoutCloseConfirmTableId) return;
           const tableId = checkoutCloseConfirmTableId;
-          const displayName =
-            tableGroups?.find(([id]) => id === tableId)?.[1].displayName ?? '';
           setCheckoutCloseConfirmTableId(null);
-          await handleCloseTable(tableId, displayName, true);
+          await handleCloseTable(tableId, true);
         }}
       />
     </div>

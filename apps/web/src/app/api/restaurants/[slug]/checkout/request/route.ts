@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { isRestaurantSuspended } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
 import { validateBillSplit } from '@/lib/bill-split-validate';
 import { parsePortugueseNif } from '@/lib/pt-nif';
@@ -112,19 +112,12 @@ export async function POST(
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
-  const { data: restaurant, error: rErr } = await admin
-    .from('restaurants')
-    .select('id, suspended_at')
-    .eq('slug', slug)
-    .maybeSingle();
-  if (rErr || !restaurant?.id) {
-    return NextResponse.json({ error: 'restaurant_not_found' }, { status: 404 });
-  }
-  if (isRestaurantSuspended(restaurant.suspended_at as string | null)) {
-    return NextResponse.json({ error: 'restaurant_suspended' }, { status: 403 });
+  const loaded = await loadCustomerRestaurantForApi(admin, slug);
+  if (!loaded.ok) {
+    return NextResponse.json({ error: loaded.error }, { status: loaded.status });
   }
 
-  const restaurantId = restaurant.id as string;
+  const restaurantId = loaded.restaurant.id;
   const { data: tableRow, error: tableErr } = await admin
     .from('restaurant_tables')
     .select('id, display_name')

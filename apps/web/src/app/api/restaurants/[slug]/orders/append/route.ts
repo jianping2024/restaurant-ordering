@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { isRestaurantSuspended } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { distanceMeters } from '@/lib/geo-distance';
 import { normalizeOrderRadiusMeters } from '@/lib/order-radius';
@@ -66,20 +66,22 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
+  const loaded = await loadCustomerRestaurantForApi(admin, slug);
+  if (!loaded.ok) {
+    return NextResponse.json({ error: loaded.error }, { status: loaded.status });
+  }
+
   const { data: restaurant, error: rErr } = await admin
     .from('restaurants')
-    .select('id, geo_latitude, geo_longitude, order_radius_meters, suspended_at')
-    .eq('slug', slug)
+    .select('geo_latitude, geo_longitude, order_radius_meters')
+    .eq('id', loaded.restaurant.id)
     .maybeSingle();
 
   if (rErr || !restaurant) {
     return NextResponse.json({ error: 'restaurant_not_found' }, { status: 404 });
   }
-  if (isRestaurantSuspended(restaurant.suspended_at as string | null)) {
-    return NextResponse.json({ error: 'restaurant_suspended' }, { status: 403 });
-  }
 
-  const rid = restaurant.id as string;
+  const rid = loaded.restaurant.id;
   const waiterFlow = body.waiter_flow === true;
   const staffWaiter = waiterFlow ? await staffAuthFromRequest(req, slug, 'waiter') : null;
 

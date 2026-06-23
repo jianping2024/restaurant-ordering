@@ -6,26 +6,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { isRestaurantSuspended } from '@mesa/shared';
-import { createAdminClient } from '../apps/web/src/lib/supabase/admin.ts';
-
-async function loadCustomerRestaurantForApi(
-  admin: ReturnType<typeof createAdminClient>,
-  slug: string,
-): Promise<
-  | { ok: true; restaurant: { id: string } }
-  | { ok: false; status: number; error: string }
-> {
-  const { data } = await admin
-    .from('restaurants')
-    .select('id, suspended_at')
-    .eq('slug', slug)
-    .maybeSingle();
-  if (!data) return { ok: false, status: 404, error: 'restaurant_not_found' };
-  if (isRestaurantSuspended(data.suspended_at as string | null)) {
-    return { ok: false, status: 403, error: 'restaurant_suspended' };
-  }
-  return { ok: true, restaurant: { id: data.id as string } };
-}
+import { createAdminClient } from '@/lib/supabase/admin';
+import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const ENV_FILE = resolve(ROOT, '.env.local');
@@ -246,11 +228,6 @@ async function main() {
         body: JSON.stringify({ email: staffRow.email, password: 'wrong-password-for-test' }),
       });
       const json = (await res.json().catch(() => ({}))) as { error?: string };
-      // Wrong password normally 401; suspension should win with 403 if password were correct.
-      // Probe with admin: suspension check runs before password — use invalid password;
-      // if suspension blocks before sign-in, we still get 401 because account lookup passes
-      // but actually suspension check is AFTER account lookup and BEFORE signInWithPassword
-      // So with wrong password we get 401 not 403. Need correct password or test differently.
       if (json.error === 'restaurant_suspended') {
         pass('Suspended: staff login blocked', '403 restaurant_suspended');
       } else if (res.status === 401) {

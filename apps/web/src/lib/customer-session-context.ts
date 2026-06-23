@@ -80,18 +80,6 @@ export async function loadCustomerRestaurantForApi(
   return { ok: true, restaurant: gate.restaurant };
 }
 
-export async function loadCustomerRestaurant(
-  admin: AdminClient,
-  slug: string,
-): Promise<CustomerRestaurantRow | null> {
-  const { data } = await admin
-    .from('restaurants')
-    .select('id, name, slug, logo_url, geo_latitude, geo_longitude, order_radius_meters')
-    .eq('slug', slug)
-    .maybeSingle();
-  return (data as CustomerRestaurantRow | null) || null;
-}
-
 export async function resolveCustomerTableContext(params: {
   admin: AdminClient;
   restaurantId: string;

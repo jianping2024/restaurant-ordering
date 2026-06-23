@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { isRestaurantSuspended } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
 import { enqueueStationTicketsForOrder } from '@/lib/station-ticket-enqueue';
 import { autoEnqueueRateLimitCheck } from '@/lib/station-ticket-auto-rate-limit';
 import { orderEnqueueSecret, verifyOrderEnqueueToken } from '@/lib/order-enqueue-token';
@@ -45,22 +45,24 @@ export async function POST(
     return NextResponse.json({ error: 'order_id_batch_id_and_token_required' }, { status: 400 });
   }
 
+  const loaded = await loadCustomerRestaurantForApi(admin, slug);
+  if (!loaded.ok) {
+    return NextResponse.json({ error: loaded.error }, { status: loaded.status });
+  }
+
   const { data: restaurant, error: rErr } = await admin
     .from('restaurants')
-    .select('id, name, print_locale, suspended_at')
-    .eq('slug', slug)
+    .select('name, print_locale')
+    .eq('id', loaded.restaurant.id)
     .maybeSingle();
 
   if (rErr || !restaurant) {
     return NextResponse.json({ error: 'restaurant_not_found' }, { status: 404 });
   }
-  if (isRestaurantSuspended(restaurant.suspended_at as string | null)) {
-    return NextResponse.json({ error: 'restaurant_suspended' }, { status: 403 });
-  }
 
   if (
     !verifyOrderEnqueueToken(enqueueToken, enqueueSecret, {
-      restaurant_id: restaurant.id as string,
+      restaurant_id: loaded.restaurant.id,
       order_id: orderId,
       batch_id: batchId,
     })
@@ -74,7 +76,7 @@ export async function POST(
     .eq('id', orderId)
     .maybeSingle();
 
-  if (oErr || !order || order.restaurant_id !== restaurant.id) {
+  if (oErr || !order || order.restaurant_id !== loaded.restaurant.id) {
     return NextResponse.json({ error: 'order_not_found' }, { status: 404 });
   }
 
@@ -86,7 +88,7 @@ export async function POST(
 
   const rl = autoEnqueueRateLimitCheck(
     clientIpFromRequest(req),
-    restaurant.id as string,
+    loaded.restaurant.id,
     orderId,
     batchId,
   );
@@ -100,7 +102,7 @@ export async function POST(
   const result = await enqueueStationTicketsForOrder({
     admin,
     restaurant: {
-      id: restaurant.id,
+      id: loaded.restaurant.id,
       name: restaurant.name ?? null,
       print_locale: restaurant.print_locale ?? null,
     },

@@ -58,7 +58,8 @@ export function CheckoutRequestsManager({ initialRequests, restaurantId, restaur
   const t = getMessages(lang).checkout;
   const locale = UI_LOCALE_BY_LANG[lang];
   const supabase = useMemo(() => createClient(), []);
-  const [linesByRequestId, setLinesByRequestId] = useState<Record<string, CheckoutDisplayLine[]>>({});
+  const [selectedLines, setSelectedLines] = useState<CheckoutDisplayLine[]>([]);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [selectedReceiptPrinterId, setSelectedReceiptPrinterId] = useState('');
   const [printSettingsOpen, setPrintSettingsOpen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -160,44 +161,35 @@ export function CheckoutRequestsManager({ initialRequests, restaurantId, restaur
   }, [supabase, restaurantId, refreshCheckoutRequests]);
 
   useEffect(() => {
-    if (!restaurantId || requests.length === 0) {
-      setLinesByRequestId({});
+    if (selectedRequestId && !requests.some((r) => r.id === selectedRequestId)) {
+      setSelectedRequestId(null);
+    }
+  }, [requests, selectedRequestId]);
+
+  useEffect(() => {
+    if (!restaurantId || !selectedRequestId) {
+      setSelectedLines([]);
+      return;
+    }
+
+    const sessionId = requests.find((r) => r.id === selectedRequestId)?.session_id;
+    if (!sessionId) {
+      setSelectedLines([]);
       return;
     }
 
     let cancelled = false;
     const loadLines = async () => {
-      const sessionIds = Array.from(
-        new Set(
-          requests
-            .map((r) => r.session_id)
-            .filter((id): id is string => typeof id === 'string' && id.length > 0),
-        ),
-      );
-      if (sessionIds.length === 0) {
-        if (!cancelled) setLinesByRequestId({});
-        return;
-      }
-
       const { data: orderRows, error } = await supabase
         .from('orders')
         .select('*')
         .eq('restaurant_id', restaurantId)
-        .in('session_id', sessionIds);
+        .eq('session_id', sessionId);
 
       if (cancelled) return;
       if (error) {
-        setLinesByRequestId({});
+        setSelectedLines([]);
         return;
-      }
-
-      const ordersBySession = new Map<string, Order[]>();
-      for (const row of (orderRows || []) as Order[]) {
-        const sid = row.session_id;
-        if (!sid) continue;
-        const list = ordersBySession.get(sid) || [];
-        list.push(row);
-        ordersBySession.set(sid, list);
       }
 
       const menuItemIds = distinctMenuItemIdsFromOrders((orderRows || []) as Order[]);
@@ -211,23 +203,14 @@ export function CheckoutRequestsManager({ initialRequests, restaurantId, restaur
         itemCodeByMenuId = menuItemCodeLookupFromRows(menuRows ?? []);
       }
 
-      const next: Record<string, CheckoutDisplayLine[]> = {};
-      for (const request of requests) {
-        if (!request.session_id) {
-          next[request.id] = [];
-          continue;
-        }
-        const sessionOrders = ordersBySession.get(request.session_id) || [];
-        next[request.id] = checkoutLinesFromOrders(sessionOrders, itemCodeByMenuId);
-      }
-      setLinesByRequestId(next);
+      setSelectedLines(checkoutLinesFromOrders((orderRows || []) as Order[], itemCodeByMenuId));
     };
 
     void loadLines();
     return () => {
       cancelled = true;
     };
-  }, [supabase, restaurantId, requests]);
+  }, [supabase, restaurantId, requests, selectedRequestId]);
 
   const getDiscountRate = (requestId: string) => Math.min(100, Math.max(0, discountRateById[requestId] || 0));
   const getDiscountAmount = (request: BillSplit) => request.total_amount * (getDiscountRate(request.id) / 100);
@@ -286,6 +269,129 @@ export function CheckoutRequestsManager({ initialRequests, restaurantId, restaur
   };
 
   const pendingLabel = t.pendingBadge.replace('{n}', String(requests.length));
+  const selectedRequest = selectedRequestId
+    ? requests.find((r) => r.id === selectedRequestId)
+    : undefined;
+
+  const checkoutDetail = selectedRequest ? (
+    <div className="bg-brand-card border border-brand-border rounded-xl px-5 py-5 shadow-sm">
+      <button
+        type="button"
+        onClick={() => setSelectedRequestId(null)}
+        className="text-sm text-brand-text-muted hover:text-brand-gold transition-colors mb-4"
+      >
+        ← {t.backToList}
+      </button>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="font-heading text-3xl text-brand-text leading-none">
+            {t.table} {selectedRequest.display_name}
+          </p>
+          <p className="text-brand-text-muted text-[13px] mt-2">
+            {new Date(selectedRequest.created_at).toLocaleString(locale)}
+          </p>
+          <p className="mesa-text-warning text-[12px] mt-1">
+            {t.waitingSince.replace(
+              '{duration}',
+              formatWaitDuration(selectedRequest.created_at, t),
+            )}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-brand-gold font-semibold">{t.amount} €{selectedRequest.total_amount.toFixed(2)}</p>
+          <p className="text-[12px] text-brand-text-muted mt-1">
+            {t.finalAmount} €{getPayable(selectedRequest).toFixed(2)}
+          </p>
+          <span className="text-[13px] px-2 py-0.5 rounded-full mesa-badge-warning">
+            {t.requested}
+          </span>
+        </div>
+      </div>
+      <div className="mt-3 rounded-lg border border-brand-border/60 overflow-hidden">
+        <p className="text-[13px] text-brand-text-muted px-3 pt-3 pb-2">{t.orderItems}</p>
+        {selectedLines.length === 0 ? (
+          <p className="text-brand-text-muted text-sm px-3 pb-3">{t.orderItemsEmpty}</p>
+        ) : (
+          <div className="border-t border-brand-border/60">
+            {selectedLines.map((line) => (
+              <div
+                key={line.key}
+                className="flex items-center justify-between gap-2 px-3 py-2.5 border-b border-brand-border/40 last:border-0"
+              >
+                <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
+                  {line.emoji ? <span>{line.emoji}</span> : null}
+                  {line.itemCode && (
+                    <span className="font-mono text-[11px] text-brand-gold tabular-nums shrink-0">
+                      [{line.itemCode}]
+                    </span>
+                  )}
+                  <span className="text-brand-text text-sm truncate">{line.name || '—'}</span>
+                  <span className="text-brand-text-muted text-[13px]">× {line.qty}</span>
+                </div>
+                <span className="text-brand-gold text-sm shrink-0">
+                  €{line.lineTotal.toFixed(2)}
+                </span>
+              </div>
+            ))}
+            <div className="flex items-center justify-between px-3 py-2.5 bg-brand-border/25">
+              <span className="text-brand-text font-medium text-sm">{t.orderItemsTotal}</span>
+              <span className="font-heading text-lg text-brand-gold">
+                €{selectedRequest.total_amount.toFixed(2)}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="mt-3 rounded-lg border border-brand-border/60 p-3">
+        <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.discountRate}</label>
+        <div className="flex items-center gap-2">
+          <span className="text-brand-text-muted text-sm">%</span>
+          <IntegerInput
+            min={0}
+            max={100}
+            value={getDiscountRate(selectedRequest.id)}
+            onChange={(next) =>
+              setDiscountRateById((prev) => ({ ...prev, [selectedRequest.id]: next }))
+            }
+            className="w-28 bg-brand-bg border border-brand-border rounded-lg px-3 py-1.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
+            placeholder="0"
+            disabled={hasConfirmedPerson(selectedRequest)}
+          />
+        </div>
+      </div>
+      {getSplitRows(selectedRequest).length > 0 && (
+        <div className="mt-3 rounded-lg border border-brand-border/60 p-3">
+          <p className="text-[13px] text-brand-text-muted mb-2">{t.splitResult}</p>
+          <div className="space-y-1.5">
+            {getDiscountedSplitResult(selectedRequest).map((row, idx) => (
+              <div key={`${selectedRequest.id}-${idx}`} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-brand-text">{row.name}</span>
+                  {row.paid && <span className="text-[11px] px-2 py-0.5 rounded-full mesa-badge-success">{t.paid}</span>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-brand-gold">€{Number(row.amount).toFixed(2)}</span>
+                  <button
+                    type="button"
+                    onClick={() => void handleConfirmPersonPaid(selectedRequest, idx)}
+                    disabled={
+                      !!row.paid ||
+                      isCheckoutRequestBusy(processingKeys, selectedRequest.id)
+                    }
+                    className="text-sm font-semibold px-4 py-2 rounded-lg mesa-badge-success hover:opacity-90 disabled:opacity-50 transition-opacity"
+                  >
+                    {processingKeys.has(checkoutPersonKey(selectedRequest.id, idx))
+                      ? t.processing
+                      : t.confirmOnePaid}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  ) : null;
 
   return (
     <div className="mb-8">
@@ -358,16 +464,21 @@ export function CheckoutRequestsManager({ initialRequests, restaurantId, restaur
             {t.emptyHint}
           </p>
         </div>
-      ) : (
-        <div className="space-y-4">
-          {requests.map(request => (
-            <div key={request.id} className="bg-brand-card border border-brand-border rounded-xl px-5 py-5 shadow-sm">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-heading text-3xl text-brand-text leading-none">
+      ) : checkoutDetail ?? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {requests.map((request) => (
+            <button
+              key={request.id}
+              type="button"
+              onClick={() => setSelectedRequestId(request.id)}
+              className="group rounded-xl border border-amber-500/35 bg-amber-500/8 px-4 py-3 text-left shadow-sm shadow-amber-900/5 transition-all duration-150 hover:border-amber-500/55 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-heading text-2xl text-brand-text leading-none">
                     {t.table} {request.display_name}
                   </p>
-                  <p className="text-brand-text-muted text-[13px] mt-2">
+                  <p className="text-brand-text-muted text-[12px] mt-2">
                     {new Date(request.created_at).toLocaleString(locale)}
                   </p>
                   <p className="mesa-text-warning text-[12px] mt-1">
@@ -377,100 +488,19 @@ export function CheckoutRequestsManager({ initialRequests, restaurantId, restaur
                     )}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="text-brand-gold font-semibold">{t.amount} €{request.total_amount.toFixed(2)}</p>
-                  <p className="text-[12px] text-brand-text-muted mt-1">
-                    {t.finalAmount} €{getPayable(request).toFixed(2)}
+                <div className="text-right shrink-0">
+                  <p className="text-brand-gold font-semibold text-lg">
+                    €{request.total_amount.toFixed(2)}
                   </p>
-                  <span className="text-[13px] px-2 py-0.5 rounded-full mesa-badge-warning">
+                  <span className="inline-block text-[11px] px-2 py-0.5 rounded-full mesa-badge-warning mt-1.5">
                     {t.requested}
                   </span>
                 </div>
               </div>
-              <div className="mt-3 rounded-lg border border-brand-border/60 overflow-hidden">
-                <p className="text-[13px] text-brand-text-muted px-3 pt-3 pb-2">{t.orderItems}</p>
-                {(linesByRequestId[request.id] || []).length === 0 ? (
-                  <p className="text-brand-text-muted text-sm px-3 pb-3">{t.orderItemsEmpty}</p>
-                ) : (
-                  <div className="border-t border-brand-border/60">
-                    {(linesByRequestId[request.id] || []).map((line) => (
-                      <div
-                        key={line.key}
-                        className="flex items-center justify-between gap-2 px-3 py-2.5 border-b border-brand-border/40 last:border-0"
-                      >
-                        <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
-                          {line.emoji ? <span>{line.emoji}</span> : null}
-                          {line.itemCode && (
-                            <span className="font-mono text-[11px] text-brand-gold tabular-nums shrink-0">
-                              [{line.itemCode}]
-                            </span>
-                          )}
-                          <span className="text-brand-text text-sm truncate">{line.name || '—'}</span>
-                          <span className="text-brand-text-muted text-[13px]">× {line.qty}</span>
-                        </div>
-                        <span className="text-brand-gold text-sm shrink-0">
-                          €{line.lineTotal.toFixed(2)}
-                        </span>
-                      </div>
-                    ))}
-                    <div className="flex items-center justify-between px-3 py-2.5 bg-brand-border/25">
-                      <span className="text-brand-text font-medium text-sm">{t.orderItemsTotal}</span>
-                      <span className="font-heading text-lg text-brand-gold">
-                        €{request.total_amount.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="mt-3 rounded-lg border border-brand-border/60 p-3">
-                <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.discountRate}</label>
-                <div className="flex items-center gap-2">
-                  <span className="text-brand-text-muted text-sm">%</span>
-                  <IntegerInput
-                    min={0}
-                    max={100}
-                    value={getDiscountRate(request.id)}
-                    onChange={(next) =>
-                      setDiscountRateById((prev) => ({ ...prev, [request.id]: next }))
-                    }
-                    className="w-28 bg-brand-bg border border-brand-border rounded-lg px-3 py-1.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
-                    placeholder="0"
-                    disabled={hasConfirmedPerson(request)}
-                  />
-                </div>
-              </div>
-              {getSplitRows(request).length > 0 && (
-                <div className="mt-3 rounded-lg border border-brand-border/60 p-3">
-                  <p className="text-[13px] text-brand-text-muted mb-2">{t.splitResult}</p>
-                  <div className="space-y-1.5">
-                    {getDiscountedSplitResult(request).map((row, idx) => (
-                      <div key={`${request.id}-${idx}`} className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <span className="text-brand-text">{row.name}</span>
-                          {row.paid && <span className="text-[11px] px-2 py-0.5 rounded-full mesa-badge-success">{t.paid}</span>}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-brand-gold">€{Number(row.amount).toFixed(2)}</span>
-                          <button
-                            type="button"
-                            onClick={() => void handleConfirmPersonPaid(request, idx)}
-                            disabled={
-                              !!row.paid ||
-                              isCheckoutRequestBusy(processingKeys, request.id)
-                            }
-                            className="text-sm font-semibold px-4 py-2 rounded-lg mesa-badge-success hover:opacity-90 disabled:opacity-50 transition-opacity"
-                          >
-                            {processingKeys.has(checkoutPersonKey(request.id, idx))
-                              ? t.processing
-                              : t.confirmOnePaid}
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+              <p className="text-[12px] text-brand-text-muted mt-3 transition-colors group-hover:text-brand-gold">
+                {t.clickToCheckout}
+              </p>
+            </button>
           ))}
         </div>
       )}

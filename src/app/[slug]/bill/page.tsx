@@ -50,6 +50,26 @@ export default async function BillRoute({ params, searchParams }: Props) {
     loadCustomerExistingSplit({ admin, sessionId: tableContext.activeSession.id }),
   ]);
 
+  const menuItemIds = [
+    ...new Set(
+      orders.flatMap((order) =>
+        order.items.filter((item) => item.kind !== 'buffet_base').map((item) => item.id),
+      ),
+    ),
+  ];
+  const itemCodeByMenuId: Record<string, string> = {};
+  if (menuItemIds.length > 0) {
+    const { data: menuRows } = await admin
+      .from('menu_items')
+      .select('id, item_code')
+      .eq('restaurant_id', restaurant.id)
+      .in('id', menuItemIds);
+    for (const row of menuRows ?? []) {
+      const code = row.item_code?.trim();
+      if (code) itemCodeByMenuId[row.id] = code;
+    }
+  }
+
   let initialFeedbackSubmitted = false;
   let initialFeedbackSkipped = false;
   if (tableContext.activeSession.id) {
@@ -73,6 +93,7 @@ export default async function BillRoute({ params, searchParams }: Props) {
       returnPath={from === 'waiter' ? (returnPath || `/${slug}/waiter`) : null}
       initialFeedbackSubmitted={initialFeedbackSubmitted}
       initialFeedbackSkipped={initialFeedbackSkipped}
+      itemCodeByMenuId={itemCodeByMenuId}
     />
   );
 }

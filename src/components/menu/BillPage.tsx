@@ -7,8 +7,7 @@ import { calcByItemSplitResults } from '@/lib/bill-split-by-item';
 import { validateBillSplit } from '@/lib/bill-split-validate';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
-import type { BillSplit, DishFeedbackVote, Order, SplitMode, SplitResult } from '@/types';
-import { normalizeOrderItemStatus } from '@/lib/order-status';
+import type { BillSplit, DishFeedbackVote, Order, OrderItem, SplitMode, SplitResult } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages } from '@/lib/i18n/messages';
@@ -30,6 +29,14 @@ interface Props {
   returnPath?: string | null;
   initialFeedbackSubmitted?: boolean;
   initialFeedbackSkipped?: boolean;
+  itemCodeByMenuId?: Record<string, string>;
+}
+
+function resolveBillItemCode(item: OrderItem, lookup: Record<string, string>): string | null {
+  const fromLine = item.item_code?.trim();
+  if (fromLine) return fromLine;
+  const fromMenu = lookup[item.id]?.trim();
+  return fromMenu || null;
 }
 
 interface PersonAmount {
@@ -55,6 +62,7 @@ export function BillPage({
   returnPath,
   initialFeedbackSubmitted = false,
   initialFeedbackSkipped = false,
+  itemCodeByMenuId = {},
 }: Props) {
   const isWaiterFlow = !!returnPath;
   const router = useRouter();
@@ -654,34 +662,16 @@ export function BillPage({
         <h2 className="text-brand-text font-medium mb-3">{t.details}</h2>
         <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
           {allItems.map((item) => {
-            const orderRow = liveOrders.find((o) => o.id === item.order_id);
-            const itemSt = orderRow ? normalizeOrderItemStatus(item, orderRow.status) : 'pending';
+            const itemCode = resolveBillItemCode(item, itemCodeByMenuId);
             return (
             <div key={item.key} className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0 gap-2">
               <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
                 <span>{item.emoji}</span>
+                {itemCode && (
+                  <span className="font-mono text-[11px] text-brand-gold tabular-nums shrink-0">[{itemCode}]</span>
+                )}
                 <span className="text-brand-text text-sm">{item.name || item.name_pt}</span>
                 <span className="text-brand-text-muted text-[13px]">× {item.qty}</span>
-                {itemSt === 'voided' && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-500/12 border border-slate-500/35 text-slate-700">
-                    {t.cancelledTag}
-                  </span>
-                )}
-                {itemSt === 'pending' && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-danger">
-                    {t.itemPending}
-                  </span>
-                )}
-                {itemSt === 'cooking' && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-warning">
-                    {t.itemCooking}
-                  </span>
-                )}
-                {itemSt === 'done' && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-success">
-                    {t.itemDone}
-                  </span>
-                )}
               </div>
               <span className="text-brand-gold text-sm flex-shrink-0">€{(item.price * item.qty).toFixed(2)}</span>
             </div>
@@ -779,10 +769,18 @@ export function BillPage({
         {/* 按菜分配 */}
         {splitMode && splitMode === 'by_item' && (
           <div className="space-y-3">
-            {allItems.map(item => (
+            {allItems.map(item => {
+              const itemCode = resolveBillItemCode(item, itemCodeByMenuId);
+              return (
               <div key={item.key} className="bg-brand-card border border-brand-border rounded-xl p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-brand-text text-sm">{item.emoji} {(item.name || item.name_pt)} × {item.qty}</p>
+                  <p className="text-brand-text text-sm">
+                    {item.emoji}{' '}
+                    {itemCode && (
+                      <span className="font-mono text-[11px] text-brand-gold tabular-nums mr-1">[{itemCode}]</span>
+                    )}
+                    {(item.name || item.name_pt)} × {item.qty}
+                  </p>
                   <span className="text-brand-gold text-[13px]">€{(item.price * item.qty).toFixed(2)}</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -801,7 +799,8 @@ export function BillPage({
                   ))}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

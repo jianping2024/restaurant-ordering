@@ -35,6 +35,7 @@ type MenuItemRow = {
   price: unknown;
   emoji: string | null;
   available: boolean;
+  item_code: string | null;
 };
 
 export type ParsedAppendCartLine = {
@@ -159,6 +160,7 @@ function menuRowToOrderItem(
     note: line.note,
     price: coerceCartPrice(menu.price),
     emoji: typeof menu.emoji === 'string' && menu.emoji ? menu.emoji.slice(0, 8) : '🍽️',
+    item_code: menu.item_code?.trim() || null,
     item_status: 'pending',
     batch_id: batchId,
     added_at: addedAt,
@@ -183,7 +185,7 @@ export async function resolveAppendCartItems(params: {
 
   const { data, error } = await params.admin
     .from('menu_items')
-    .select('id, name_pt, name_en, name_zh, price, emoji, available')
+    .select('id, name_pt, name_en, name_zh, price, emoji, available, item_code')
     .eq('restaurant_id', params.restaurantId)
     .in('id', ids);
 

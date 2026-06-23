@@ -15,12 +15,8 @@ type SortableWaiterVoidableItem = WaiterVoidableItem & { sortAt: string };
 export interface WaiterTableCardData {
   tableId: string;
   displayName: string;
-  pending: number;
-  cooking: number;
-  ready: number;
-  readyItems: string[];
+  orderLines: string[];
   hasBuffet: boolean;
-  voidedItems: string[];
   voidableItems: WaiterVoidableItem[];
   updatedAt: string;
 }
@@ -36,12 +32,8 @@ export function buildWaiterTableCard(
   } = {
     tableId,
     displayName,
-    pending: 0,
-    cooking: 0,
-    ready: 0,
-    readyItems: [],
+    orderLines: [],
     hasBuffet: false,
-    voidedItems: [],
     voidableItems: [],
     updatedAt: '',
   };
@@ -58,15 +50,8 @@ export function buildWaiterTableCard(
     order.items.forEach((item) => {
       const status = normalizeOrderItemStatus(item, order.status) as 'pending' | 'cooking' | 'done' | 'voided';
       if (isBuffetBaseItem(item)) return;
-      if (status === 'pending') current.pending += item.qty;
-      if (status === 'cooking') current.cooking += item.qty;
-      if (status === 'done') {
-        current.ready += item.qty;
-        current.readyItems.push(`${item.emoji} ${item.name || item.name_pt} × ${item.qty}`);
-      }
-      if (status === 'voided') {
-        current.voidedItems.push(`${item.emoji} ${item.name || item.name_pt} × ${item.qty}`);
-      }
+      if (status === 'voided') return;
+      current.orderLines.push(`${item.emoji} ${item.name || item.name_pt} × ${item.qty}`);
     });
 
     order.items.forEach((item, itemIdx) => {

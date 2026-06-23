@@ -220,12 +220,9 @@ function WaiterTableDetailInner({
         const view = ordersForWaiterTableView(table.id, orders, activeSessionByTableId);
         const c = buildWaiterTableCard(table.id, table.display_name, view);
         return (
-          c.pending > 0 ||
-          c.cooking > 0 ||
-          c.ready > 0 ||
+          c.orderLines.length > 0 ||
           c.hasBuffet ||
-          c.voidableItems.length > 0 ||
-          c.voidedItems.length > 0
+          c.voidableItems.length > 0
         );
       })
       .map((t) => t.id);
@@ -849,13 +846,9 @@ function WaiterTableDetailInner({
           </div>
         )}
 
-        {selectedCard.pending +
-          selectedCard.cooking +
-          selectedCard.ready +
-          selectedCard.voidedItems.length +
-          selectedCard.voidableItems.length +
-          (selectedCard.hasBuffet ? 1 : 0) ===
-        0 ? (
+        {selectedCard.orderLines.length === 0 &&
+          selectedCard.voidableItems.length === 0 &&
+          !selectedCard.hasBuffet ? (
           <div className="space-y-3">
             <p className="text-brand-text-muted">{t.noOrdersOnTable}</p>
             <div>
@@ -894,27 +887,10 @@ function WaiterTableDetailInner({
               </button>
             </div>
 
-            <div className="flex items-center gap-2 text-[13px] mb-3">
-              <span className={waiterUi.badgePending}>{t.pending} {selectedCard.pending}</span>
-              <span className={waiterUi.badgeCooking}>{t.cooking} {selectedCard.cooking}</span>
-              <span className={waiterUi.badgeReady}>{t.ready} {selectedCard.ready}</span>
-            </div>
-
-            <div className="rounded-lg border border-brand-border/60 p-2.5 space-y-2">
-              <p className="text-[11px] text-brand-gold font-medium">{t.ready}</p>
-              {selectedCard.readyItems.length === 0 ? (
-                <p className="text-brand-text-muted text-sm">{t.noReady}</p>
-              ) : (
-                selectedCard.readyItems.map((line, idx) => (
-                  <p key={idx} className="text-sm mesa-text-success">{line}</p>
-                ))
-              )}
-            </div>
-            {selectedCard.voidedItems.length > 0 && (
-              <div className="mt-3 rounded-lg border border-slate-500/35 p-2.5 space-y-2">
-                <p className="text-[11px] text-slate-600 font-medium">{t.voidedLabel}</p>
-                {selectedCard.voidedItems.map((line, idx) => (
-                  <p key={idx} className="text-sm text-slate-600 line-through opacity-90">{line}</p>
+            {selectedCard.orderLines.length > 0 && (
+              <div className="rounded-lg border border-brand-border/60 p-2.5 space-y-2 mb-3">
+                {selectedCard.orderLines.map((line, idx) => (
+                  <p key={idx} className="text-sm text-brand-text">{line}</p>
                 ))}
               </div>
             )}

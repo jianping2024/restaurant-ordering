@@ -18,7 +18,6 @@ import { CATEGORY_LABELS } from '@/lib/i18n/messages';
 import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { getClientLanguage, setClientLanguage } from '@/lib/i18n';
-import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
 import { showToast } from '@/components/ui/Toast';
 import { autoEnqueueStationTicketsAfterSubmit } from '@/lib/auto-enqueue-station-tickets';
@@ -44,12 +43,6 @@ interface Props {
   displayName: string;
   isDemo?: boolean;
   returnToWaiterHref?: string | null;
-}
-
-function getOrderDisplayStatus(order: Order): 'pending' | 'cooking' | 'done' | 'voided' {
-  const itemStatuses = order.items.map((item) => item.item_status || 'pending');
-  if (itemStatuses.length > 0 && itemStatuses.every((status) => status === 'voided')) return 'voided';
-  return order.status;
 }
 
 function calculateDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -586,71 +579,24 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
             <div className="space-y-3">
               {recentOrders.map(order => (
                 <div key={order.id} className="border border-brand-border rounded-xl p-3">
-                  {(() => {
-                    const displayStatus = getOrderDisplayStatus(order);
-                    return (
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="mb-2">
                     <span className="text-[13px] text-brand-text-muted">
                       {new Date(order.created_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                     </span>
-                    <span className={`text-[13px] px-2 py-0.5 rounded-full ${
-                      displayStatus === 'voided'
-                        ? 'bg-slate-500/12 border border-slate-500/35 text-slate-700'
-                        : displayStatus === 'done'
-                        ? 'mesa-badge-success'
-                        : displayStatus === 'cooking'
-                          ? 'mesa-badge-warning'
-                          : 'mesa-badge-danger'
-                    }`}>
-                      {displayStatus === 'voided'
-                        ? t.statusVoided
-                        : displayStatus === 'done'
-                          ? t.statusDone
-                          : displayStatus === 'cooking'
-                            ? t.statusCooking
-                            : t.statusPending}
-                    </span>
                   </div>
-                    );
-                  })()}
                   <div className="space-y-1">
-                    {order.items.map((item, idx) => {
-                      const itemSt = normalizeOrderItemStatus(item, order.status);
-                      return (
+                    {order.items.map((item, idx) => (
                       <div key={`${order.id}-${idx}`} className="flex items-center justify-between gap-2">
-                        <p className={`text-sm ${itemSt === 'voided' ? 'text-brand-text-muted line-through' : 'text-brand-text'}`}>
+                        <p className="text-sm text-brand-text">
                           {item.emoji} {(item.name || item.name_pt)} x {item.qty}
                         </p>
-                        <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                          {itemSt === 'voided' && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-500/12 border border-slate-500/35 text-slate-700">
-                              {t.statusVoided}
-                            </span>
-                          )}
-                          {itemSt === 'pending' && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-danger">
-                              {t.statusPending}
-                            </span>
-                          )}
-                          {itemSt === 'cooking' && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-warning">
-                              {t.statusCooking}
-                            </span>
-                          )}
-                          {itemSt === 'done' && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-success">
-                              {t.statusDone}
-                            </span>
-                          )}
-                          {latestBatchId && item.batch_id === latestBatchId && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold font-semibold">
-                              {t.newTag}
-                            </span>
-                          )}
-                        </div>
+                        {latestBatchId && item.batch_id === latestBatchId && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold font-semibold">
+                            {t.newTag}
+                          </span>
+                        )}
                       </div>
-                      );
-                    })}
+                    ))}
                   </div>
                 </div>
               ))}

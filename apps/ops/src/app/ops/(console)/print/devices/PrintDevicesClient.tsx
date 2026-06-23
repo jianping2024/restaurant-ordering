@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 type DeviceRow = {
   id: string;
@@ -39,6 +40,7 @@ export default function PrintDevicesClient({
   const [query, setQuery] = useState(q);
   const [statusFilter, setStatusFilter] = useState(status);
   const [revokingId, setRevokingId] = useState<string | null>(null);
+  const [revokeTarget, setRevokeTarget] = useState<DeviceRow | null>(null);
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
@@ -67,8 +69,9 @@ export default function PrintDevicesClient({
     router.push(`/ops/print/devices?${params}`);
   };
 
-  const revokeDevice = async (device: DeviceRow) => {
-    if (!window.confirm(`确认吊销设备 ${device.label || device.id.slice(0, 8)}？`)) return;
+  const runRevokeDevice = async () => {
+    const device = revokeTarget;
+    if (!device) return;
     setRevokingId(device.id);
     setError('');
     try {
@@ -83,6 +86,7 @@ export default function PrintDevicesClient({
         setError(json.error || '吊销失败');
         return;
       }
+      setRevokeTarget(null);
       await load();
     } catch {
       setError('网络错误');
@@ -90,6 +94,8 @@ export default function PrintDevicesClient({
       setRevokingId(null);
     }
   };
+
+  const deviceDisplayName = (device: DeviceRow) => device.label || device.id.slice(0, 8);
 
   const pageCount = Math.max(1, Math.ceil(total / 20));
   const listBase = fixedRestaurantId
@@ -197,7 +203,7 @@ export default function PrintDevicesClient({
                       <button
                         type="button"
                         disabled={revokingId === d.id}
-                        onClick={() => void revokeDevice(d)}
+                        onClick={() => setRevokeTarget(d)}
                         className="text-sm text-red-400 hover:underline disabled:opacity-50"
                       >
                         吊销
@@ -241,6 +247,22 @@ export default function PrintDevicesClient({
           ) : null}
         </div>
       ) : null}
+
+      <ConfirmModal
+        open={revokeTarget != null}
+        onClose={() => setRevokeTarget(null)}
+        title="吊销设备"
+        message={
+          revokeTarget
+            ? `确认吊销设备「${deviceDisplayName(revokeTarget)}」？\n吊销后该打印代理凭证将失效，操作会写入审计日志。`
+            : ''
+        }
+        confirmLabel="确认吊销"
+        cancelLabel="取消"
+        variant="danger"
+        confirming={revokingId != null}
+        onConfirm={runRevokeDevice}
+      />
     </div>
   );
 }

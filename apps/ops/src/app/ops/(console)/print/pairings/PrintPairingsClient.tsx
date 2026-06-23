@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 type PairingRow = {
   id: string;
@@ -33,6 +34,7 @@ export default function PrintPairingsClient({
   const [loading, setLoading] = useState(true);
   const [pendingFilter, setPendingFilter] = useState(pendingOnly);
   const [revokingId, setRevokingId] = useState<string | null>(null);
+  const [revokeTarget, setRevokeTarget] = useState<PairingRow | null>(null);
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
@@ -59,8 +61,9 @@ export default function PrintPairingsClient({
     router.push(`/ops/print/pairings?${params}`);
   };
 
-  const revokePairing = async (row: PairingRow) => {
-    if (!window.confirm(`确认吊销配对码 ${row.code}？`)) return;
+  const runRevokePairing = async () => {
+    const row = revokeTarget;
+    if (!row) return;
     setRevokingId(row.id);
     setError('');
     try {
@@ -75,6 +78,7 @@ export default function PrintPairingsClient({
         setError(json.error || '吊销失败');
         return;
       }
+      setRevokeTarget(null);
       await load();
     } catch {
       setError('网络错误');
@@ -158,7 +162,7 @@ export default function PrintPairingsClient({
                       <button
                         type="button"
                         disabled={revokingId === p.id}
-                        onClick={() => void revokePairing(p)}
+                        onClick={() => setRevokeTarget(p)}
                         className="text-sm text-red-400 hover:underline disabled:opacity-50"
                       >
                         吊销
@@ -202,6 +206,22 @@ export default function PrintPairingsClient({
           ) : null}
         </div>
       ) : null}
+
+      <ConfirmModal
+        open={revokeTarget != null}
+        onClose={() => setRevokeTarget(null)}
+        title="吊销配对码"
+        message={
+          revokeTarget
+            ? `确认吊销配对码 ${revokeTarget.code}？\n未消费的码将立即作废，操作会写入审计日志。`
+            : ''
+        }
+        confirmLabel="确认吊销"
+        cancelLabel="取消"
+        variant="danger"
+        confirming={revokingId != null}
+        onConfirm={runRevokePairing}
+      />
     </div>
   );
 }

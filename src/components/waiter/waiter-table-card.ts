@@ -7,7 +7,6 @@ type WaiterVoidableItem = {
   orderId: string;
   itemIdx: number;
   label: string;
-  status: 'pending' | 'cooking';
 };
 
 type SortableWaiterVoidableItem = WaiterVoidableItem & { sortAt: string };
@@ -47,22 +46,18 @@ export function buildWaiterTableCard(
       current.updatedAt = ts;
     }
 
-    order.items.forEach((item) => {
-      const status = normalizeOrderItemStatus(item, order.status) as 'pending' | 'cooking' | 'done' | 'voided';
-      if (isBuffetBaseItem(item)) return;
-      if (status === 'voided') return;
-      current.orderLines.push(`${item.emoji} ${item.name || item.name_pt} × ${item.qty}`);
-    });
-
     order.items.forEach((item, itemIdx) => {
       if (isBuffetBaseItem(item)) return;
-      const status = normalizeOrderItemStatus(item, order.status) as 'pending' | 'cooking' | 'done' | 'voided';
+      const status = normalizeOrderItemStatus(item, order.status);
+      if (status === 'voided') return;
+
+      current.orderLines.push(`${item.emoji} ${item.name || item.name_pt} × ${item.qty}`);
+
       if (status === 'pending' || status === 'cooking') {
         const sortAt = item.added_at || order.updated_at || order.created_at || '';
         current.voidableItems.push({
           orderId: order.id,
           itemIdx,
-          status,
           label: `${item.emoji} ${item.name || item.name_pt} × ${item.qty}`,
           sortAt,
         });

@@ -219,11 +219,7 @@ function WaiterTableDetailInner({
       .filter((table) => {
         const view = ordersForWaiterTableView(table.id, orders, activeSessionByTableId);
         const c = buildWaiterTableCard(table.id, table.display_name, view);
-        return (
-          c.orderLines.length > 0 ||
-          c.hasBuffet ||
-          c.voidableItems.length > 0
-        );
+        return c.orderLines.length > 0 || c.hasBuffet;
       })
       .map((t) => t.id);
   }, [configuredTables, orders, activeSessionByTableId]);
@@ -846,9 +842,7 @@ function WaiterTableDetailInner({
           </div>
         )}
 
-        {selectedCard.orderLines.length === 0 &&
-          selectedCard.voidableItems.length === 0 &&
-          !selectedCard.hasBuffet ? (
+        {selectedCard.orderLines.length === 0 && !selectedCard.hasBuffet ? (
           <div className="space-y-3">
             <p className="text-brand-text-muted">{t.noOrdersOnTable}</p>
             <div>

@@ -57,14 +57,8 @@ function WaiterBoardInner({
         return buildWaiterTableCard(table.id, table.display_name, view);
       })
       .sort((a, b) => {
-        const aActive =
-          a.orderLines.length > 0 || a.hasBuffet || a.voidableItems.length > 0
-            ? 1
-            : 0;
-        const bActive =
-          b.orderLines.length > 0 || b.hasBuffet || b.voidableItems.length > 0
-            ? 1
-            : 0;
+        const aActive = a.orderLines.length > 0 || a.hasBuffet ? 1 : 0;
+        const bActive = b.orderLines.length > 0 || b.hasBuffet ? 1 : 0;
         if (aActive !== bActive) return bActive - aActive;
         const ta = configuredTables.find((row) => row.id === a.tableId);
         const tb = configuredTables.find((row) => row.id === b.tableId);
@@ -113,8 +107,7 @@ function WaiterBoardInner({
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
         {allTableCards.map((card) => {
-          const hasOrderActivity =
-            card.orderLines.length > 0 || card.hasBuffet || card.voidableItems.length > 0;
+          const hasOrderActivity = card.orderLines.length > 0 || card.hasBuffet;
           const hasCheckoutRequest = checkoutRequestedTableIds.some((id) => tableIdsEqual(id, card.tableId));
           // Empty open/billing session (e.g. after merge) must not light the table green.
           const isActive = hasOrderActivity || hasCheckoutRequest;

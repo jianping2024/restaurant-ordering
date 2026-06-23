@@ -54,6 +54,17 @@ export function formatBuffetSummaryLine(
   return `🍽️ ${summary.name} · A${summary.adults} C${summary.children} · €${summary.amount.toFixed(2)}`;
 }
 
+/** Guest bill line: buffet shows adult/child headcount instead of qty. */
+export function formatOrderLineQtyLabel(
+  item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count'>,
+  buffetGuestCountsTemplate: string,
+): string {
+  if (!isBuffetBaseItem(item)) return `× ${item.qty}`;
+  return buffetGuestCountsTemplate
+    .replace('{adults}', String(item.adult_count ?? 0))
+    .replace('{children}', String(item.child_count ?? 0));
+}
+
 export interface ResolvedBuffetPriceRow {
   adult_price: number | null;
   child_price: number | null;

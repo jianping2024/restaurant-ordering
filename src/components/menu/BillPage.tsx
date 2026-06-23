@@ -5,20 +5,22 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { calcByItemSplitResults } from '@/lib/bill-split-by-item';
 import { validateBillSplit } from '@/lib/bill-split-validate';
-import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/Button';
-import type { BillSplit, DishFeedbackVote, Order, SplitMode, SplitResult } from '@/types';
-import { useLanguage } from '@/components/providers/LanguageProvider';
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { formatOrderLineQtyLabel } from '@/lib/buffet-order';
 import { getMessages } from '@/lib/i18n/messages';
-import { showToast } from '@/components/ui/Toast';
+import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import { normalizeDecimalInput as normalizeAmountInput } from '@/lib/number-input';
-import { ReceiptPrinterSelect } from '@/components/dashboard/ReceiptPrinterSelect';
-import { requestOrderReceiptPrint } from '@/lib/request-order-receipt-print';
+import { formatPortugueseNif, normalizePortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { requestCustomerBillContext } from '@/lib/request-customer-context';
-import { formatPortugueseNif, normalizePortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
+import { requestOrderReceiptPrint } from '@/lib/request-order-receipt-print';
+import { createClient } from '@/lib/supabase/client';
+import { Button } from '@/components/ui/Button';
+import type { BillSplit, DishFeedbackVote, Order, OrderItem, SplitMode, SplitResult } from '@/types';
+import { useLanguage } from '@/components/providers/LanguageProvider';
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { showToast } from '@/components/ui/Toast';
+import { ReceiptPrinterSelect } from '@/components/dashboard/ReceiptPrinterSelect';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -33,7 +35,6 @@ interface Props {
   itemCodeByMenuId?: Record<string, string>;
 }
 
-import { resolveMenuItemCode } from '@/lib/menu-item-code';
 interface PersonAmount {
   name: string;
   amount: number;
@@ -64,6 +65,8 @@ export function BillPage({
   const { lang } = useLanguage();
   const t = getMessages(lang).bill;
   const guestName = (n: number) => `${t.guest} ${n}`;
+  const lineQtyLabel = (item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count'>) =>
+    formatOrderLineQtyLabel(item, t.buffetGuestCounts);
   const initialSplitMode: SplitMode | null = (() => {
     if (!existingSplit) return null;
     if (existingSplit.split_mode === 'custom' && existingSplit.result?.length === 1) return null;
@@ -675,7 +678,7 @@ export function BillPage({
                   <span className="font-mono text-[11px] text-brand-gold tabular-nums shrink-0">[{itemCode}]</span>
                 )}
                 <span className="text-brand-text text-sm">{item.name || item.name_pt}</span>
-                <span className="text-brand-text-muted text-[13px]">× {item.qty}</span>
+                <span className="text-brand-text-muted text-[13px]">{lineQtyLabel(item)}</span>
               </div>
               <span className="text-brand-gold text-sm flex-shrink-0">€{(item.price * item.qty).toFixed(2)}</span>
             </div>
@@ -783,7 +786,7 @@ export function BillPage({
                     {itemCode && (
                       <span className="font-mono text-[11px] text-brand-gold tabular-nums mr-1">[{itemCode}]</span>
                     )}
-                    {(item.name || item.name_pt)} × {item.qty}
+                    {(item.name || item.name_pt)} {lineQtyLabel(item)}
                   </p>
                   <span className="text-brand-gold text-[13px]">€{(item.price * item.qty).toFixed(2)}</span>
                 </div>

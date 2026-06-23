@@ -101,7 +101,9 @@ restaurants_public — security definer view; public menu/geo fields for custome
 
 | Function | Role | Notes |
 |----------|------|-------|
-| `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index, discount_rate?)` | authenticated, service_role | SECURITY DEFINER checkout; not anon |
+| `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index, discount_rate?)` | authenticated, service_role | SECURITY DEFINER checkout; advisory lock per session; rejects `cancelled` splits; not anon |
+| `upsert_bill_split_request(restaurant_id, session_id, table_id, display_name, order_ids, split_mode, persons, result, total_amount)` | authenticated, service_role | Atomic checkout request; merges `paid` under lock; not anon |
+| `close_table_session_operational(restaurant_id, table_id, closed_reason, closed_by_user_id?)` | authenticated, service_role | Atomic operational close: cancel splits, void orders, close session; not anon |
 | `transfer_table_session(restaurant_id, from_table_id, to_table_id)` | authenticated, service_role | Move open session between tables |
 | `merge_table_sessions(restaurant_id, source_table_id, target_table_id)` | authenticated, service_role | Merge two table sessions |
 | `merge_multiple_table_sessions(restaurant_id, source_table_ids[], target_table_id)` | authenticated, service_role | Multi-source merge |
@@ -145,6 +147,7 @@ bill_splits:
 - bill_splits_pkey: PK btree(id)
 - idx_bill_splits_restaurant: btree(restaurant_id)
 - idx_bill_splits_session: btree(session_id)
+- idx_bill_splits_one_active_per_session: unique btree(session_id) WHERE session_id IS NOT NULL AND status IN (pending, confirmed, requested)
 
 buffet_calendar_overrides:
 
@@ -360,8 +363,10 @@ table_sessions:
 - Auth ownership/staff users are linked through `auth.users`.
 - Table lifecycle: `restaurant_tables` defines physical/logical tables; `table_sessions` tracks open/billing/closed dining sessions.
 - Ordering flow: `orders` stores item payloads in `items` jsonb and links to restaurant/table/session.
-- Billing flow: `bill_splits` supports even/by-item/custom splits and stores calculated result in jsonb.
-- Checkout confirm payment: `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index, discount_rate)` — `SECURITY DEFINER`; locks `bill_splits` with `FOR UPDATE`, merges one `paid` flag, closes `table_sessions` when all rows paid. Execute via service role (API) or `authenticated`; not granted to `anon`.
+- Billing flow: `bill_splits` supports even/by-item/custom splits and stores calculated result in jsonb. At most one active (`pending`/`confirmed`/`requested`) row per `session_id` (partial unique index).
+- Checkout request: `upsert_bill_split_request(...)` — advisory lock per session; `FOR UPDATE` on active split; merges `paid` flags; sets `table_sessions` to `billing`.
+- Checkout confirm payment: `confirm_bill_split_payment(...)` — advisory lock per session when `session_id` set; `FOR UPDATE` on `bill_splits`; rejects `cancelled`; closes `table_sessions` when all rows paid.
+- Operational close: `close_table_session_operational(...)` — advisory lock; locks active `bill_splits` then `table_sessions`; cancels splits, voids order lines, closes session.
 - Menu routing: `menu_categories` and `menu_items` can each map to `print_stations`.
 - Print agent flow: `print_agent_pairings` issues six-digit pairing codes; `print_agent_devices` stores paired agent state; `print_jobs` stores queued print work.
 - Buffet pricing: `buffets` + `buffet_time_slots` + `buffet_calendar_overrides` + `buffet_price_rules` model time/calendar-sensitive prices.

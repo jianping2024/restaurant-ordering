@@ -3,7 +3,6 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
 import { validateBillSplit } from '@/lib/bill-split-validate';
 import { sumLineTotals } from '@/lib/cart-totals';
-import { mergeSplitResultPaid } from '@/lib/checkout-request-state';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import type { SplitMode, SplitPerson, SplitResult } from '@/types';
 
@@ -170,70 +169,46 @@ export async function POST(
     return NextResponse.json({ error: validation.issue }, { status: 400 });
   }
 
-  const { data: existingRequest, error: existingErr } = await admin
-    .from('bill_splits')
-    .select('id, result')
-    .eq('session_id', sessionId)
-    .in('status', ['pending', 'confirmed', 'requested'])
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (existingErr) {
-    return NextResponse.json({ error: 'request_lookup_failed', message: existingErr.message }, { status: 500 });
-  }
-
   const orderIds = orders.map((order) => order.id);
-  const nextResult = existingRequest?.result
-    ? mergeSplitResultPaid(result, existingRequest.result as SplitResult[])
-    : result;
-  const payload = {
-    restaurant_id: restaurantId,
-    session_id: sessionId,
-    table_id: tableId,
-    display_name: tableRow.display_name as string,
-    order_ids: orderIds,
-    split_mode: splitMode,
-    persons,
-    result: nextResult,
-    total_amount: total,
-    status: 'requested' as const,
-  };
 
-  let billSplitId: string;
-  if (existingRequest?.id) {
-    const { error: updateErr } = await admin
-      .from('bill_splits')
-      .update(payload)
-      .eq('id', existingRequest.id);
-    if (updateErr) {
-      return NextResponse.json({ error: 'request_update_failed', message: updateErr.message }, { status: 500 });
-    }
-    billSplitId = existingRequest.id as string;
-  } else {
-    const { data: inserted, error: insertErr } = await admin
-      .from('bill_splits')
-      .insert(payload)
-      .select('id')
-      .single();
-    if (insertErr || !inserted?.id) {
-      return NextResponse.json({ error: 'request_insert_failed', message: insertErr?.message }, { status: 500 });
-    }
-    billSplitId = inserted.id as string;
+  const { data: rpcData, error: rpcErr } = await admin.rpc('upsert_bill_split_request', {
+    p_restaurant_id: restaurantId,
+    p_session_id: sessionId,
+    p_table_id: tableId,
+    p_display_name: tableRow.display_name as string,
+    p_order_ids: orderIds,
+    p_split_mode: splitMode,
+    p_persons: persons,
+    p_result: result,
+    p_total_amount: total,
+  });
+
+  if (rpcErr) {
+    return NextResponse.json({ error: 'upsert_failed', message: rpcErr.message }, { status: 500 });
   }
 
-  const { error: billingErr } = await admin
-    .from('table_sessions')
-    .update({ status: 'billing' })
-    .eq('id', sessionId)
-    .in('status', ['open', 'billing']);
-  if (billingErr) {
-    return NextResponse.json({ error: 'session_billing_failed', message: billingErr.message }, { status: 500 });
+  const payload = rpcData as {
+    ok?: boolean;
+    code?: string;
+    message?: string;
+    bill_split_id?: string;
+    result?: SplitResult[];
+    total_amount?: number;
+  } | null;
+
+  if (!payload?.ok) {
+    const code = payload?.code ?? 'upsert_failed';
+    const status =
+      code === 'no_active_session' ? 404
+      : code === 'invalid_request' ? 400
+      : 500;
+    return NextResponse.json({ error: code, message: payload?.message }, { status });
   }
 
   return NextResponse.json({
     ok: true,
-    bill_split_id: billSplitId,
-    result: nextResult,
-    total_amount: total,
+    bill_split_id: payload.bill_split_id,
+    result: payload.result,
+    total_amount: payload.total_amount ?? total,
   });
 }

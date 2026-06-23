@@ -1,7 +1,4 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Order, OrderItem } from '@/types';
-import { voidActiveBuffetBaseLines } from '@/lib/buffet-order';
-import { isBuffetBaseItem } from '@/lib/order-items';
 
 export type CloseTableOperationalReason = 'waiter_closed' | 'owner_closed' | 'auto_nightly';
 
@@ -13,17 +10,6 @@ export type CloseTableSessionAudit = {
 export type CloseTableOperationalResult =
   | { ok: true; session_id: string }
   | { ok: false; code: 'no_session' | 'update_failed'; message?: string };
-
-/** Void every line (buffet base + menu) so kitchen / waiter boards show no active work. */
-function voidAllLineItemsForForcedClose(items: OrderItem[]): OrderItem[] {
-  const withBuffet = voidActiveBuffetBaseLines(items);
-  const now = new Date().toISOString();
-  return withBuffet.map((item) => {
-    if (isBuffetBaseItem(item)) return item;
-    if (item.item_status === 'voided') return item;
-    return { ...item, item_status: 'voided' as const, voided_at: now };
-  });
-}
 
 /**
  * Single definition of “关台” for staff + owner + nightly auto-close:
@@ -40,76 +26,32 @@ export async function closeActiveTableSessionWithOperationalCleanup(
   closedReason: CloseTableOperationalReason,
   audit: CloseTableSessionAudit = {},
 ): Promise<CloseTableOperationalResult> {
-  const { data: session, error: findError } = await admin
-    .from('table_sessions')
-    .select('id')
-    .eq('restaurant_id', restaurantId)
-    .eq('table_id', tableId)
-    .in('status', ['open', 'billing'])
-    .order('opened_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const { data: rpcData, error: rpcErr } = await admin.rpc('close_table_session_operational', {
+    p_restaurant_id: restaurantId,
+    p_table_id: tableId,
+    p_closed_reason: closedReason,
+    p_closed_by_user_id: audit.closed_by_user_id ?? null,
+  });
 
-  if (findError || !session?.id) {
-    return { ok: false, code: 'no_session', message: findError?.message };
+  if (rpcErr) {
+    return { ok: false, code: 'update_failed', message: rpcErr.message };
   }
 
-  const sessionId = session.id as string;
+  const payload = rpcData as {
+    ok?: boolean;
+    code?: string;
+    message?: string;
+    session_id?: string;
+  } | null;
 
-  const { error: splitErr } = await admin
-    .from('bill_splits')
-    .update({ status: 'cancelled' })
-    .eq('restaurant_id', restaurantId)
-    .eq('session_id', sessionId)
-    .in('status', ['pending', 'confirmed', 'requested']);
-
-  if (splitErr) {
-    return { ok: false, code: 'update_failed', message: splitErr.message };
+  if (!payload?.ok) {
+    const code = payload?.code === 'no_session' ? 'no_session' : 'update_failed';
+    return { ok: false, code, message: payload?.message };
   }
 
-  const { data: orderRows, error: ordersErr } = await admin
-    .from('orders')
-    .select('*')
-    .eq('restaurant_id', restaurantId)
-    .eq('session_id', sessionId)
-    .in('status', ['pending', 'cooking', 'done']);
-
-  if (ordersErr) {
-    return { ok: false, code: 'update_failed', message: ordersErr.message };
+  if (!payload.session_id) {
+    return { ok: false, code: 'update_failed', message: 'missing session_id' };
   }
 
-  const nowIso = new Date().toISOString();
-  for (const row of (orderRows || []) as Order[]) {
-    const nextItems = voidAllLineItemsForForcedClose(row.items || []);
-    const { error: orderUpdErr } = await admin
-      .from('orders')
-      .update({
-        items: nextItems,
-        status: 'done',
-        total_amount: 0,
-        updated_at: nowIso,
-      })
-      .eq('id', row.id)
-      .eq('restaurant_id', restaurantId);
-
-    if (orderUpdErr) {
-      return { ok: false, code: 'update_failed', message: orderUpdErr.message };
-    }
-  }
-
-  const { error: sessionErr } = await admin
-    .from('table_sessions')
-    .update({
-      status: 'closed',
-      closed_at: nowIso,
-      closed_reason: closedReason,
-      closed_by_user_id: audit.closed_by_user_id ?? null,
-    })
-    .eq('id', sessionId);
-
-  if (sessionErr) {
-    return { ok: false, code: 'update_failed', message: sessionErr.message };
-  }
-
-  return { ok: true, session_id: sessionId };
+  return { ok: true, session_id: payload.session_id };
 }

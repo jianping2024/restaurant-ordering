@@ -51,6 +51,7 @@ type ConfirmBillSplitPaymentRpc = {
 
 const RPC_ERROR_STATUS: Record<string, number> = {
   bill_split_not_found: 404,
+  bill_split_cancelled: 409,
   empty_split: 400,
   invalid_person_index: 400,
   already_paid: 409,

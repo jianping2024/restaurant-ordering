@@ -95,11 +95,23 @@ export default function AdminRegisterPage() {
   };
 
   const slug = restaurantNameToSlug(restaurantName);
+  const opsAppUrl = process.env.NEXT_PUBLIC_OPS_APP_URL?.trim().replace(/\/$/, '');
 
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-4">
       <div className="mb-4 w-full max-w-sm rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-brand-text">
-        此页面已弃用。请使用 Mesa 运营后台创建餐厅（需单独部署的 <code className="text-xs">@mesa/ops</code>）。
+        <p>此页面已弃用。新开店请使用 Mesa 运营后台。</p>
+        {opsAppUrl ? (
+          <p className="mt-2">
+            <a href={`${opsAppUrl}/ops/restaurants/new`} className="text-brand-gold hover:underline">
+              前往运营后台创建餐厅 →
+            </a>
+          </p>
+        ) : (
+          <p className="mt-2 text-brand-text-muted text-xs">
+            配置 <code>NEXT_PUBLIC_OPS_APP_URL</code> 后可显示运营后台直达链接。
+          </p>
+        )}
       </div>
       <div className="w-full max-w-sm">
         <div className="flex items-center justify-between mb-6">

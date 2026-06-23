@@ -43,7 +43,12 @@ export async function POST(req: Request) {
       );
     }
 
-    return NextResponse.json({ ok: true, slug: result.slug });
+    return NextResponse.json({ ok: true, slug: result.slug }, {
+      headers: {
+        Deprecation: 'true',
+        Warning: '299 - "Use Mesa Ops /api/ops/restaurants instead"',
+      },
+    });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'unknown';
     if (message.includes('SUPABASE_SERVICE_ROLE_KEY')) {

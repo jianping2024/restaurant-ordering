@@ -9,6 +9,17 @@ export type AuditInsert = {
   metadata?: Record<string, unknown>;
 };
 
+export const PLATFORM_AUDIT_ACTION_LABELS: Record<string, string> = {
+  'restaurant.create': '创建餐厅',
+  'owner.reset_password': '重置店主密码',
+  'ops.login': '运营登录',
+  'ops.bootstrap_admin': 'Bootstrap 首个运营账号',
+};
+
+export function platformAuditActionLabel(action: string): string {
+  return PLATFORM_AUDIT_ACTION_LABELS[action] || action;
+}
+
 export async function writePlatformAudit(
   admin: SupabaseClient,
   entry: AuditInsert,

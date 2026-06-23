@@ -8,7 +8,7 @@ export default async function OpsHomePage() {
   return (
     <div>
       <h1 className="text-2xl font-semibold">运营概览</h1>
-      <p className="mt-2 text-zinc-400">平台租户与开店管理（P0）</p>
+      <p className="mt-2 text-zinc-400">平台租户与开店管理</p>
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
           <p className="text-sm text-zinc-500">入驻餐厅</p>

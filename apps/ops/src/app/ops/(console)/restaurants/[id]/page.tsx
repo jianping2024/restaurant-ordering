@@ -46,6 +46,14 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
           <dt className="text-zinc-500">print_locale</dt>
           <dd>{row.print_locale}</dd>
         </div>
+        <div className="sm:col-span-2">
+          <dt className="text-zinc-500">功能开关</dt>
+          <dd>
+            <pre className="mt-1 overflow-x-auto rounded bg-zinc-950 px-2 py-1 font-mono text-xs text-zinc-300">
+              {JSON.stringify(row.feature_flags ?? {}, null, 2)}
+            </pre>
+          </dd>
+        </div>
         <div>
           <dt className="text-zinc-500">创建时间</dt>
           <dd>{new Date(row.created_at).toLocaleString('zh-CN')}</dd>

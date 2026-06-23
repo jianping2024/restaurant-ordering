@@ -13,6 +13,7 @@ export async function GET(req: Request) {
   const page = Math.max(1, Number(url.searchParams.get('page') || '1'));
   const q = (url.searchParams.get('q') || '').trim();
   const plan = (url.searchParams.get('plan') || '').trim();
+  const ownerEmail = (url.searchParams.get('ownerEmail') || '').trim().toLowerCase();
 
   let query = admin
     .from('restaurants')
@@ -23,6 +24,23 @@ export async function GET(req: Request) {
 
   if (plan === 'free' || plan === 'pro') {
     query = query.eq('plan', plan);
+  }
+  if (ownerEmail) {
+    const { data: ownerData, error: ownerError } = await admin.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
+    if (ownerError) {
+      return NextResponse.json(
+        { error: 'owner_lookup_failed', detail: ownerError.message },
+        { status: 500 },
+      );
+    }
+    const owner = ownerData.users.find((u) => u.email?.toLowerCase() === ownerEmail);
+    if (!owner) {
+      return NextResponse.json({ items: [], page, pageSize: PAGE_SIZE, total: 0 });
+    }
+    query = query.eq('owner_id', owner.id);
   }
   if (q) {
     const escaped = q.replace(/[%_\\]/g, '\\$&');

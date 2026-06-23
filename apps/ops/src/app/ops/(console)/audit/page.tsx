@@ -1,10 +1,10 @@
 import { Suspense } from 'react';
-import RestaurantsListClient from './RestaurantsListClient';
+import AuditLogClient from './AuditLogClient';
 
-export default function RestaurantsPage() {
+export default function AuditPage() {
   return (
     <Suspense fallback={<p className="text-zinc-500">加载中…</p>}>
-      <RestaurantsListClient />
+      <AuditLogClient />
     </Suspense>
   );
 }

@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 const NAV = [
   { href: '/ops', label: '概览' },
   { href: '/ops/restaurants', label: '餐厅' },
+  { href: '/ops/audit', label: '审计' },
 ];
 
 export function OpsShell({

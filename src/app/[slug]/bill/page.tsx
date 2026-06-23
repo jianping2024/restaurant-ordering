@@ -50,13 +50,9 @@ export default async function BillRoute({ params, searchParams }: Props) {
     loadCustomerExistingSplit({ admin, sessionId: tableContext.activeSession.id }),
   ]);
 
-  const menuItemIds = [
-    ...new Set(
-      orders.flatMap((order) =>
-        order.items.filter((item) => item.kind !== 'buffet_base').map((item) => item.id),
-      ),
-    ),
-  ];
+  const menuItemIds = orders
+    .flatMap((order) => order.items.filter((item) => item.kind !== 'buffet_base').map((item) => item.id))
+    .filter((id, index, ids) => ids.indexOf(id) === index);
   const itemCodeByMenuId: Record<string, string> = {};
   if (menuItemIds.length > 0) {
     const { data: menuRows } = await admin

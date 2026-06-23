@@ -274,22 +274,30 @@ export function OrdersHistoryManager({
     });
   }, [orders, selectedTables, dateRange]);
 
+  const sessionTableIdById = useMemo(
+    () => new Map(activeSessions.map((s) => [s.id, s.table_id])),
+    [activeSessions],
+  );
+
   const tableGroups = useMemo(() => {
     if (!showCloseTable) return null;
-    const map = new Map<string, { displayName: string; orders: Order[] }>();
+    const map = new Map<string, { displayName: string; tableId: string; orders: Order[] }>();
     for (const order of filteredOrders) {
-      const key = order.table_id;
-      const entry = map.get(key);
+      const sessionId = order.session_id;
+      if (!sessionId) continue;
+      const tableId = sessionTableIdById.get(sessionId) ?? order.table_id;
+      const displayName = tableById.get(tableId)?.display_name ?? order.display_name;
+      const entry = map.get(sessionId);
       if (entry) entry.orders.push(order);
-      else map.set(key, { displayName: order.display_name, orders: [order] });
+      else map.set(sessionId, { displayName, tableId, orders: [order] });
     }
     return Array.from(map.entries()).sort(([, a], [, b]) =>
       compareRestaurantTables(
-        { sort_order: 0, display_name: a.displayName },
-        { sort_order: 0, display_name: b.displayName },
+        tableById.get(a.tableId) ?? { sort_order: 0, display_name: a.displayName },
+        tableById.get(b.tableId) ?? { sort_order: 0, display_name: b.displayName },
       ),
     );
-  }, [filteredOrders, showCloseTable]);
+  }, [filteredOrders, showCloseTable, sessionTableIdById, tableById]);
 
   const latestOrderTime = (sourceOrders: Order[]) =>
     new Date(
@@ -461,35 +469,36 @@ export function OrdersHistoryManager({
     </button>
   );
 
-  const renderTableCard = ([tableId, group]: [string, { displayName: string; orders: Order[] }]) => {
-    const totalAmount = group.orders.reduce((sum, order) => sum + order.total_amount, 0);
-    const chips = buildOrderListDisplayChips(group.orders, buffetGuestLabels);
+  const renderTableCard = ([sessionId, group]: [string, { displayName: string; tableId: string; orders: Order[] }]) => {
+    const { tableId, displayName, orders: groupOrders } = group;
+    const totalAmount = groupOrders.reduce((sum, order) => sum + order.total_amount, 0);
+    const chips = buildOrderListDisplayChips(groupOrders, buffetGuestLabels);
 
     return renderListCard(
-      tableId,
+      sessionId,
       <>
         <span className="font-medium text-brand-text">
-          {i18n.table} {group.displayName}
+          {i18n.table} {displayName}
         </span>
-        {group.orders.length > 1 ? (
+        {groupOrders.length > 1 ? (
           <>
             {META_SEP}
             <span className="text-brand-text-muted">
-              {i18n.batchesCount.replace('{n}', String(group.orders.length))}
+              {i18n.batchesCount.replace('{n}', String(groupOrders.length))}
             </span>
           </>
         ) : null}
         {META_SEP}
         <span className="text-brand-text-muted">
-          {i18n.latestOrder.replace('{time}', latestOrderTime(group.orders))}
+          {i18n.latestOrder.replace('{time}', latestOrderTime(groupOrders))}
         </span>
         {META_SEP}
         <span className="text-brand-text-muted">
-          {countOrderListItems(group.orders)} {i18n.items}
+          {countOrderListItems(groupOrders)} {i18n.items}
         </span>
         {META_SEP}
         {renderMetaAmount(totalAmount)}
-        {renderPrintButton(() => handlePrintOrders(group.orders, group.displayName))}
+        {renderPrintButton(() => handlePrintOrders(groupOrders, displayName))}
         <div className="flex-1 min-w-[8px]" />
         <button
           type="button"

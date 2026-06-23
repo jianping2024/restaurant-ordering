@@ -2,21 +2,21 @@ import type { Order } from '@/types';
 import { aggregateBuffetForOrders } from '@/lib/buffet-order';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
+import { resolveMenuItemCode } from '@/lib/menu-item-code';
 
-type WaiterVoidableItem = {
+export type WaiterOrderLine = {
   orderId: string;
   itemIdx: number;
   label: string;
+  itemCode: string | null;
+  canVoid: boolean;
 };
-
-type SortableWaiterVoidableItem = WaiterVoidableItem & { sortAt: string };
 
 export interface WaiterTableCardData {
   tableId: string;
   displayName: string;
-  orderLines: string[];
+  orderLines: WaiterOrderLine[];
   hasBuffet: boolean;
-  voidableItems: WaiterVoidableItem[];
   updatedAt: string;
 }
 
@@ -25,15 +25,13 @@ export function buildWaiterTableCard(
   tableId: string,
   displayName: string,
   orders: Order[],
+  itemCodeByMenuId: Record<string, string> = {},
 ): WaiterTableCardData {
-  const current: Omit<WaiterTableCardData, 'voidableItems'> & {
-    voidableItems: SortableWaiterVoidableItem[];
-  } = {
+  const current: WaiterTableCardData = {
     tableId,
     displayName,
     orderLines: [],
     hasBuffet: false,
-    voidableItems: [],
     updatedAt: '',
   };
 
@@ -51,32 +49,16 @@ export function buildWaiterTableCard(
       const status = normalizeOrderItemStatus(item, order.status);
       if (status === 'voided') return;
 
-      current.orderLines.push(`${item.emoji} ${item.name || item.name_pt} × ${item.qty}`);
-
-      if (status === 'pending' || status === 'cooking') {
-        const sortAt = item.added_at || order.updated_at || order.created_at || '';
-        current.voidableItems.push({
-          orderId: order.id,
-          itemIdx,
-          label: `${item.emoji} ${item.name || item.name_pt} × ${item.qty}`,
-          sortAt,
-        });
-      }
+      const label = `${item.emoji} ${item.name || item.name_pt} × ${item.qty}`;
+      current.orderLines.push({
+        orderId: order.id,
+        itemIdx,
+        label,
+        itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
+        canVoid: status === 'pending' || status === 'cooking',
+      });
     });
   }
 
-  current.voidableItems.sort((a, b) => {
-    if (!a.sortAt && !b.sortAt) return 0;
-    if (!a.sortAt) return 1;
-    if (!b.sortAt) return -1;
-    return b.sortAt.localeCompare(a.sortAt);
-  });
-
-  return {
-    ...current,
-    voidableItems: current.voidableItems.map(({ sortAt, ...item }) => {
-      void sortAt;
-      return item;
-    }),
-  };
+  return current;
 }

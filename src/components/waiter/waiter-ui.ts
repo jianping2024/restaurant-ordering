@@ -11,9 +11,6 @@ export const waiterUi = {
     'inline-flex border-0 outline-none no-underline rounded-lg px-3 py-1.5 text-[12px] font-medium bg-brand-gold/14 text-brand-gold-dark hover:bg-brand-gold/24 transition-colors focus-visible:ring-2 focus-visible:ring-brand-gold/35',
   btnBuffet:
     'border-0 outline-none text-[12px] px-3 py-2 rounded-lg bg-brand-gold text-brand-bg font-medium shadow-sm shadow-black/8 hover:bg-brand-gold-light disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-brand-gold/40',
-  badgePending: 'px-2.5 py-0.5 rounded-full border-0 bg-red-500/12 text-red-800',
-  badgeCooking: 'px-2.5 py-0.5 rounded-full border-0 bg-amber-500/14 text-amber-900',
-  badgeReady: 'px-2.5 py-0.5 rounded-full border-0 bg-emerald-500/14 text-emerald-900',
   navLink:
     'inline-flex border-0 no-underline text-[13px] rounded-lg px-3 py-1.5 text-brand-text-muted bg-brand-border/25 hover:bg-brand-border/45 hover:text-brand-text transition-colors focus-visible:ring-2 focus-visible:ring-brand-gold/30',
 } as const;

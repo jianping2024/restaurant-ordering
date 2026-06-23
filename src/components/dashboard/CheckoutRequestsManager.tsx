@@ -22,6 +22,7 @@ import {
   saveCheckoutSoundEnabled,
   saveReceiptPrinterId,
 } from '@/lib/receipt-printer-preference';
+import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import {
   checkoutPersonKey,
   isCheckoutRequestBusy,
@@ -55,7 +56,6 @@ export function CheckoutRequestsManager({ initialRequests, restaurantId, restaur
   const [discountRateById, setDiscountRateById] = useState<Record<string, number>>({});
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
-  const billT = getMessages(lang).bill;
   const locale = UI_LOCALE_BY_LANG[lang];
   const supabase = useMemo(() => createClient(), []);
   const [linesByRequestId, setLinesByRequestId] = useState<Record<string, CheckoutDisplayLine[]>>({});
@@ -200,6 +200,17 @@ export function CheckoutRequestsManager({ initialRequests, restaurantId, restaur
         ordersBySession.set(sid, list);
       }
 
+      const menuItemIds = distinctMenuItemIdsFromOrders((orderRows || []) as Order[]);
+      let itemCodeByMenuId: Record<string, string> = {};
+      if (menuItemIds.length > 0) {
+        const { data: menuRows } = await supabase
+          .from('menu_items')
+          .select('id, item_code')
+          .eq('restaurant_id', restaurantId)
+          .in('id', menuItemIds);
+        itemCodeByMenuId = menuItemCodeLookupFromRows(menuRows ?? []);
+      }
+
       const next: Record<string, CheckoutDisplayLine[]> = {};
       for (const request of requests) {
         if (!request.session_id) {
@@ -207,7 +218,7 @@ export function CheckoutRequestsManager({ initialRequests, restaurantId, restaur
           continue;
         }
         const sessionOrders = ordersBySession.get(request.session_id) || [];
-        next[request.id] = checkoutLinesFromOrders(sessionOrders);
+        next[request.id] = checkoutLinesFromOrders(sessionOrders, itemCodeByMenuId);
       }
       setLinesByRequestId(next);
     };
@@ -389,28 +400,13 @@ export function CheckoutRequestsManager({ initialRequests, restaurantId, restaur
                       >
                         <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
                           {line.emoji ? <span>{line.emoji}</span> : null}
+                          {line.itemCode && (
+                            <span className="font-mono text-[11px] text-brand-gold tabular-nums shrink-0">
+                              [{line.itemCode}]
+                            </span>
+                          )}
                           <span className="text-brand-text text-sm truncate">{line.name || '—'}</span>
                           <span className="text-brand-text-muted text-[13px]">× {line.qty}</span>
-                          {line.status === 'voided' && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-500/12 border border-slate-500/35 text-slate-700">
-                              {billT.cancelledTag}
-                            </span>
-                          )}
-                          {line.status === 'pending' && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-danger">
-                              {billT.itemPending}
-                            </span>
-                          )}
-                          {line.status === 'cooking' && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-warning">
-                              {billT.itemCooking}
-                            </span>
-                          )}
-                          {line.status === 'done' && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full mesa-badge-success">
-                              {billT.itemDone}
-                            </span>
-                          )}
                         </div>
                         <span className="text-brand-gold text-sm shrink-0">
                           €{line.lineTotal.toFixed(2)}
@@ -418,7 +414,7 @@ export function CheckoutRequestsManager({ initialRequests, restaurantId, restaur
                       </div>
                     ))}
                     <div className="flex items-center justify-between px-3 py-2.5 bg-brand-border/25">
-                      <span className="text-brand-text font-medium text-sm">{billT.total}</span>
+                      <span className="text-brand-text font-medium text-sm">{t.orderItemsTotal}</span>
                       <span className="font-heading text-lg text-brand-gold">
                         €{request.total_amount.toFixed(2)}
                       </span>

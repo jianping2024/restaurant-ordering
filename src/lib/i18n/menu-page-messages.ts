@@ -7,10 +7,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   noOrders: string;
   billCta: string;
   billDisabledHint: string;
-  statusPending: string;
-  statusCooking: string;
-  statusDone: string;
-  statusVoided: string;
   orderSuccess: string;
   orderReceived: string;
   firstOrderSuccess: string;
@@ -46,10 +42,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     noOrders: 'Nenhum pedido enviado ainda',
     billCta: 'Ir para conta',
     billDisabledHint: 'Esta mesa esta em processo de fechamento. Nao e possivel adicionar novos pratos agora.',
-    statusPending: 'Pendente',
-    statusCooking: 'Em preparo',
-    statusDone: 'Concluido',
-    statusVoided: 'Cancelado',
     orderSuccess: 'Pedido enviado!',
     orderReceived: 'A cozinha recebeu seu pedido. Aguarde um momento...',
     firstOrderSuccess: 'Pedido enviado com sucesso!',
@@ -86,10 +78,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     noOrders: 'No orders submitted yet',
     billCta: 'Go to bill',
     billDisabledHint: 'This table is currently in checkout. Adding new dishes is temporarily unavailable.',
-    statusPending: 'Pending',
-    statusCooking: 'Cooking',
-    statusDone: 'Done',
-    statusVoided: 'Cancelled',
     orderSuccess: 'Order placed!',
     orderReceived: 'The kitchen has received your order. Please wait a moment...',
     firstOrderSuccess: 'Order placed successfully!',
@@ -126,10 +114,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     noOrders: '还没有提交订单',
     billCta: '去结账',
     billDisabledHint: '当前餐次正在结账，暂时不能加菜',
-    statusPending: '待处理',
-    statusCooking: '备餐中',
-    statusDone: '已完成',
-    statusVoided: '已取消',
     orderSuccess: '下单成功！',
     orderReceived: '厨房已收到您的订单，请稍候...',
     firstOrderSuccess: '下单成功！',

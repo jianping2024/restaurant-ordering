@@ -7,7 +7,7 @@ import { calcByItemSplitResults } from '@/lib/bill-split-by-item';
 import { validateBillSplit } from '@/lib/bill-split-validate';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
-import type { BillSplit, DishFeedbackVote, Order, OrderItem, SplitMode, SplitResult } from '@/types';
+import type { BillSplit, DishFeedbackVote, Order, SplitMode, SplitResult } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages } from '@/lib/i18n/messages';
@@ -32,13 +32,7 @@ interface Props {
   itemCodeByMenuId?: Record<string, string>;
 }
 
-function resolveBillItemCode(item: OrderItem, lookup: Record<string, string>): string | null {
-  const fromLine = item.item_code?.trim();
-  if (fromLine) return fromLine;
-  const fromMenu = lookup[item.id]?.trim();
-  return fromMenu || null;
-}
-
+import { resolveMenuItemCode } from '@/lib/menu-item-code';
 interface PersonAmount {
   name: string;
   amount: number;
@@ -662,7 +656,7 @@ export function BillPage({
         <h2 className="text-brand-text font-medium mb-3">{t.details}</h2>
         <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
           {allItems.map((item) => {
-            const itemCode = resolveBillItemCode(item, itemCodeByMenuId);
+            const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
             return (
             <div key={item.key} className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0 gap-2">
               <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
@@ -770,7 +764,7 @@ export function BillPage({
         {splitMode && splitMode === 'by_item' && (
           <div className="space-y-3">
             {allItems.map(item => {
-              const itemCode = resolveBillItemCode(item, itemCodeByMenuId);
+              const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
               return (
               <div key={item.key} className="bg-brand-card border border-brand-border rounded-xl p-3">
                 <div className="flex items-center justify-between mb-2">

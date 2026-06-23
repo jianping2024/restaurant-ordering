@@ -7,6 +7,7 @@ import {
   loadCustomerSessionOrders,
   resolveCustomerTableContext,
 } from '@/lib/customer-session-context';
+import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -50,20 +51,15 @@ export default async function BillRoute({ params, searchParams }: Props) {
     loadCustomerExistingSplit({ admin, sessionId: tableContext.activeSession.id }),
   ]);
 
-  const menuItemIds = orders
-    .flatMap((order) => order.items.filter((item) => item.kind !== 'buffet_base').map((item) => item.id))
-    .filter((id, index, ids) => ids.indexOf(id) === index);
-  const itemCodeByMenuId: Record<string, string> = {};
+  const menuItemIds = distinctMenuItemIdsFromOrders(orders);
+  let itemCodeByMenuId: Record<string, string> = {};
   if (menuItemIds.length > 0) {
     const { data: menuRows } = await admin
       .from('menu_items')
       .select('id, item_code')
       .eq('restaurant_id', restaurant.id)
       .in('id', menuItemIds);
-    for (const row of menuRows ?? []) {
-      const code = row.item_code?.trim();
-      if (code) itemCodeByMenuId[row.id] = code;
-    }
+    itemCodeByMenuId = menuItemCodeLookupFromRows(menuRows ?? []);
   }
 
   let initialFeedbackSubmitted = false;

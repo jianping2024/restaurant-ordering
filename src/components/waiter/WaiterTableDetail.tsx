@@ -41,6 +41,7 @@ interface Props {
   tableId: string;
   displayName?: string;
   isDemo?: boolean;
+  itemCodeByMenuId?: Record<string, string>;
 }
 
 function WaiterTableDetailInner({
@@ -52,6 +53,7 @@ function WaiterTableDetailInner({
   tableId,
   displayName = '',
   isDemo = false,
+  itemCodeByMenuId = {},
   handleSignOut,
   exitLabel,
 }: Props & { handleSignOut: () => void; exitLabel: string }) {
@@ -198,8 +200,8 @@ function WaiterTableDetailInner({
   );
 
   const selectedCard = useMemo(
-    () => buildWaiterTableCard(tableId, selectedDisplayName, tableOrders),
-    [tableOrders, tableId, selectedDisplayName],
+    () => buildWaiterTableCard(tableId, selectedDisplayName, tableOrders, itemCodeByMenuId),
+    [tableOrders, tableId, selectedDisplayName, itemCodeByMenuId],
   );
 
   const tableBuffetAggregate = useMemo(
@@ -218,11 +220,11 @@ function WaiterTableDetailInner({
     return configuredTables
       .filter((table) => {
         const view = ordersForWaiterTableView(table.id, orders, activeSessionByTableId);
-        const c = buildWaiterTableCard(table.id, table.display_name, view);
+        const c = buildWaiterTableCard(table.id, table.display_name, view, itemCodeByMenuId);
         return c.orderLines.length > 0 || c.hasBuffet;
       })
       .map((t) => t.id);
-  }, [configuredTables, orders, activeSessionByTableId]);
+  }, [configuredTables, orders, activeSessionByTableId, itemCodeByMenuId]);
 
   const targetCandidates = operationType === 'transfer'
     ? configuredTables.filter(
@@ -883,24 +885,23 @@ function WaiterTableDetailInner({
 
             {selectedCard.orderLines.length > 0 && (
               <div className="rounded-lg border border-brand-border/60 p-2.5 space-y-2 mb-3">
-                {selectedCard.orderLines.map((line, idx) => (
-                  <p key={idx} className="text-sm text-brand-text">{line}</p>
-                ))}
-              </div>
-            )}
-            {selectedCard.voidableItems.length > 0 && (
-              <div className="mt-3 rounded-lg border border-brand-border/60 p-2.5 space-y-2">
-                <p className="text-[11px] text-brand-gold font-medium">{t.voidPendingTitle}</p>
-                {selectedCard.voidableItems.map((item) => (
-                  <div key={`${item.orderId}-${item.itemIdx}`} className="flex items-center justify-between gap-2">
-                    <p className="text-sm text-brand-text truncate min-w-0 flex-1">{item.label}</p>
-                    <button
-                      type="button"
-                      onClick={() => voidItemFromWaiter(item.orderId, item.itemIdx)}
-                      className={`shrink-0 ${waiterUi.btnSecondary} ${waiterUi.btnGhost}`}
-                    >
-                      {t.voidItem}
-                    </button>
+                {selectedCard.orderLines.map((line) => (
+                  <div key={`${line.orderId}-${line.itemIdx}`} className="flex items-center justify-between gap-2">
+                    <p className="text-sm text-brand-text truncate min-w-0 flex-1">
+                      {line.itemCode && (
+                        <span className="font-mono text-[11px] text-brand-gold tabular-nums mr-1">[{line.itemCode}]</span>
+                      )}
+                      {line.label}
+                    </p>
+                    {line.canVoid && (
+                      <button
+                        type="button"
+                        onClick={() => voidItemFromWaiter(line.orderId, line.itemIdx)}
+                        className={`shrink-0 ${waiterUi.btnSecondary} ${waiterUi.btnGhost}`}
+                      >
+                        {t.voidItem}
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

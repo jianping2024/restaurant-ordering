@@ -5,7 +5,6 @@ import {
   loadCustomerSessionOrders,
   resolveCustomerTableContext,
 } from '@/lib/customer-session-context';
-import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
 
 export const runtime = 'nodejs';
 
@@ -52,6 +51,5 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     display_name: ctx.displayName,
     active_session: ctx.activeSession,
     recent_orders: orders,
-    guest_ordering_enabled: guestOrderingEnabled(ctx.activeSession, orders),
   });
 }

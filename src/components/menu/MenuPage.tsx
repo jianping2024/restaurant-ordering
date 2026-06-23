@@ -22,6 +22,7 @@ import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals
 import { showToast } from '@/components/ui/Toast';
 import { autoEnqueueStationTicketsAfterSubmit } from '@/lib/auto-enqueue-station-tickets';
 import { normalizeOrderRadiusMeters } from '@/lib/order-radius';
+import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
 import { requestCustomerSessionContext } from '@/lib/request-customer-context';
 
 const LANG_FLAGS: Record<Language, string> = { pt: '🇵🇹', en: '🇬🇧', zh: '🇨🇳' };
@@ -97,7 +98,6 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
   const [demoToast, setDemoToast] = useState(false);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [activeSession, setActiveSession] = useState<TableSession | null>(null);
-  const [guestOrderingEnabled, setGuestOrderingEnabled] = useState(false);
   const [latestBatchId, setLatestBatchId] = useState<string | null>(null);
 
   // 从 localStorage 恢复语言设置
@@ -125,7 +125,6 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
       const data = await requestCustomerSessionContext(restaurant.slug, tableId);
       if (cancelled || !data) return;
       setActiveSession((data.active_session as TableSession | null) || null);
-      setGuestOrderingEnabled(data.guest_ordering_enabled ?? false);
       if (!data.active_session) {
         setRecentOrders([]);
         return;
@@ -196,12 +195,23 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
     return descendants.has(item.category_id);
   });
 
-  const canPlaceMenuOrders = isDemo || !!returnToWaiterHref || guestOrderingEnabled;
+  const guestCanOrder = useMemo(
+    () => guestOrderingEnabled(activeSession, recentOrders),
+    [activeSession, recentOrders],
+  );
+  const canPlaceMenuOrders = isDemo || !!returnToWaiterHref || guestCanOrder;
+  const guestOrderingHints = useMemo(() => {
+    const messages = MENU_PAGE_MESSAGES[lang];
+    if (activeSession?.status === 'billing') {
+      return { banner: messages.billDisabledHint, action: messages.billDisabledHint };
+    }
+    return { banner: messages.waitingForBuffet, action: messages.buffetRequired };
+  }, [activeSession?.status, lang]);
 
   // 加入购物车
   const addToCart = (item: MenuItem) => {
     if (!canPlaceMenuOrders) {
-      showToast(t.buffetRequired, 'info');
+      showToast(guestOrderingHints.action, 'info');
       return;
     }
     setCart(prev => {
@@ -263,7 +273,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
   const submitOrder = async () => {
     if (cart.length === 0) return;
     if (!canPlaceMenuOrders) {
-      showToast(t.buffetRequired, 'info');
+      showToast(guestOrderingHints.action, 'info');
       return;
     }
 
@@ -563,9 +573,9 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
         )}
       </header>
 
-      {!isDemo && !returnToWaiterHref && !guestOrderingEnabled && (
+      {!isDemo && !returnToWaiterHref && activeSession && !guestCanOrder && (
         <div className="mx-4 mt-3 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3 text-[13px] text-brand-text">
-          {t.waitingForBuffet}
+          {guestOrderingHints.banner}
         </div>
       )}
 

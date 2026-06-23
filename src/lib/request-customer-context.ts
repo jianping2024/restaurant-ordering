@@ -5,8 +5,6 @@ export type CustomerSessionResponse = {
   display_name: string;
   active_session: TableSession | null;
   recent_orders: Order[];
-  /** True when open session has waiter-confirmed buffet_base (guest may order menu). */
-  guest_ordering_enabled: boolean;
 };
 
 export type CustomerBillResponse = {

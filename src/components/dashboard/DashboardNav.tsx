@@ -18,6 +18,7 @@ const ownerNavItems = [
   { href: '/dashboard/orders', key: 'orders', icon: '📋', exact: false },
   { href: '/dashboard/settings', key: 'settings', icon: '⚙️', exact: false, matchPrefix: '/dashboard/settings' },
   { href: '/dashboard', key: 'overview', icon: '📊', exact: true },
+  { href: '/dashboard/tables', key: 'tables', icon: '🪑', exact: false },
 ] as const;
 
 const cashierNavItems = [

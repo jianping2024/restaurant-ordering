@@ -23,7 +23,6 @@ import {
 interface TablesManagerProps {
   restaurant: { id: string; slug: string; name: string };
   initialTables: RestaurantTableRow[];
-  embedded?: boolean;
 }
 
 type ActiveSessionRow = {
@@ -67,7 +66,7 @@ async function requestDashboardTables(
   return sortRestaurantTables(data.tables);
 }
 
-export function TablesManager({ restaurant, initialTables, embedded }: TablesManagerProps) {
+export function TablesManager({ restaurant, initialTables }: TablesManagerProps) {
   const { lang } = useLanguage();
   const t = getMessages(lang).tables;
   const tPrint = getMessages(lang).printStations;
@@ -443,12 +442,10 @@ export function TablesManager({ restaurant, initialTables, embedded }: TablesMan
 
   return (
     <div>
-      {!embedded ? (
-        <div className="mb-6">
-          <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
-          <p className="text-brand-text-muted text-sm mt-1">{t.desc}</p>
-        </div>
-      ) : null}
+      <div className="mb-6">
+        <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
+        <p className="text-brand-text-muted text-sm mt-1">{t.desc}</p>
+      </div>
 
       <div className="bg-brand-card border border-brand-border rounded-2xl p-6 mb-6">
         <div className="flex flex-col gap-4">

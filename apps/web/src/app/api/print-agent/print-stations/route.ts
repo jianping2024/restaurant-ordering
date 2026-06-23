@@ -1,21 +1,21 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { verifyAgentBearer } from '@/lib/print-agent-auth';
+import { verifyActiveAgentBearer } from '@/lib/print-agent-auth';
 
 export const runtime = 'nodejs';
 
 /** Agent setup wizard: list print stations for local printer mapping. */
 export async function GET(req: Request) {
-  const ctx = verifyAgentBearer(req);
-  if (!ctx) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  }
-
   let admin;
   try {
     admin = createAdminClient();
   } catch {
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
+  }
+
+  const ctx = await verifyActiveAgentBearer(req, admin);
+  if (!ctx) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
   const { data: rows, error } = await admin

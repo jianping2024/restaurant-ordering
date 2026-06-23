@@ -15,7 +15,7 @@ export type DashboardAccessResult =
   | { mode: 'access_error'; message: string };
 
 const OWNER_RESTAURANT_SELECT =
-  'id, name, slug, owner_id, logo_url, address, phone, geo_latitude, geo_longitude, plan, print_locale, feature_flags, created_at';
+  'id, name, slug, owner_id, logo_url, address, phone, geo_latitude, geo_longitude, plan, print_locale, feature_flags, suspended_at, suspension_reason, created_at';
 
 export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
   const supabase = await createClient();

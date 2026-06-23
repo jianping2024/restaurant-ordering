@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { loadCustomerRestaurant, resolveCustomerTableContext } from '@/lib/customer-session-context';
+import { RestaurantMaintenancePage } from '@/components/customer/RestaurantMaintenancePage';
+import { loadCustomerRestaurantGate, resolveCustomerTableContext } from '@/lib/customer-session-context';
 import { MenuPage } from '@/components/menu/MenuPage';
 
 interface Props {
@@ -19,8 +20,12 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
   } catch {
     notFound();
   }
-  const restaurant = await loadCustomerRestaurant(admin, slug);
-  if (!restaurant) notFound();
+  const gate = await loadCustomerRestaurantGate(admin, slug);
+  if (gate.kind === 'not_found') notFound();
+  if (gate.kind === 'suspended') {
+    return <RestaurantMaintenancePage restaurantName={gate.name} reason={gate.reason} />;
+  }
+  const restaurant = gate.restaurant;
 
   const tableContext = await resolveCustomerTableContext({
     admin,

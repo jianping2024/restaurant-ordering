@@ -60,7 +60,9 @@ export function StaffLoginForm({ mode, slug, restaurantName, expectedRole }: Pro
       }
 
       if (!res.ok || !json.ok) {
-        if (json.error === 'redirect_failed') {
+        if (json.error === 'restaurant_suspended') {
+          setError(t.restaurantSuspended);
+        } else if (json.error === 'redirect_failed') {
           setError(t.serverError);
         } else {
           setError(t.invalid);

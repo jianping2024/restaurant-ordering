@@ -34,7 +34,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const loaded = await loadOwnerRestaurantWithSlug();
+  const loaded = await loadOwnerRestaurantWithSlug({ requireWritable: true });
   if ('error' in loaded) {
     return NextResponse.json({ error: loaded.error }, { status: loaded.status });
   }

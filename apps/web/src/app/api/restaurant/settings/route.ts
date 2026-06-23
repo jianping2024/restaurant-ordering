@@ -7,7 +7,7 @@ import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
 export const runtime = 'nodejs';
 
 export async function PATCH(req: Request) {
-  const auth = await getOwnerRestaurantId();
+  const auth = await getOwnerRestaurantId({ requireWritable: true });
   if ('error' in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

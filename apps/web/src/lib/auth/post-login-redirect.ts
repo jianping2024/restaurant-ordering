@@ -1,4 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { isRestaurantSuspended } from '@mesa/shared';
 import { staffRolePath } from '@/lib/staff-routes';
 import { parseStaffUserMetadata, type StaffRole } from '@/lib/staff-account';
 
@@ -6,7 +8,7 @@ export type PostLoginRedirect =
   | { kind: 'owner'; path: '/dashboard' }
   | { kind: 'onboarding'; path: '/dashboard' }
   | { kind: 'staff'; path: string; mustChangePassword: boolean; slug: string; role: StaffRole }
-  | { kind: 'staff_error'; code: 'disabled' | 'incomplete' };
+  | { kind: 'staff_error'; code: 'disabled' | 'incomplete' | 'restaurant_suspended' };
 
 function isStaffRole(role: string): role is StaffRole {
   return role === 'kitchen' || role === 'waiter' || role === 'cashier';
@@ -53,6 +55,26 @@ export async function resolvePostLoginRedirect(
 
   if (account.disabled_at) {
     return { kind: 'staff_error', code: 'disabled' };
+  }
+
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    throw new Error('server_misconfigured');
+  }
+
+  const { data: restaurantRow, error: suspendError } = await admin
+    .from('restaurants')
+    .select('suspended_at')
+    .eq('id', account.restaurant_id)
+    .maybeSingle();
+
+  if (suspendError) {
+    throw new Error(suspendError.message);
+  }
+  if (isRestaurantSuspended(restaurantRow?.suspended_at as string | null | undefined)) {
+    return { kind: 'staff_error', code: 'restaurant_suspended' };
   }
 
   const roleRaw = String(account.role || meta?.staff_role || '');

@@ -6,7 +6,7 @@ export const runtime = 'nodejs';
 
 /** Dashboard: re-queue a failed print job (fresh created_at so agent max-age / offline-backlog rules apply to this retry). */
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
-  const auth = await getOwnerRestaurantId();
+  const auth = await getOwnerRestaurantId({ requireWritable: true });
   if ('error' in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

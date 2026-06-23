@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getTenantAppUrl } from '@/lib/tenant-app-url';
 import { RestaurantDetailActions } from './RestaurantDetailActions';
+import { RestaurantSuspensionActions } from './RestaurantSuspensionActions';
+import { isRestaurantSuspended } from '@mesa/shared';
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -12,7 +14,7 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
   const { data: row } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, plan, created_at, owner_id, print_locale, feature_flags, address, phone',
+      'id, name, slug, plan, created_at, owner_id, print_locale, feature_flags, address, phone, suspended_at, suspension_reason',
     )
     .eq('id', id)
     .maybeSingle();
@@ -22,9 +24,16 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
   const { data: owner } = await admin.auth.admin.getUserById(row.owner_id);
   const tenantUrl = getTenantAppUrl();
   const menuUrl = `${tenantUrl}/${row.slug}/menu`;
+  const suspended = isRestaurantSuspended(row.suspended_at);
 
   return (
     <div>
+      {suspended ? (
+        <p className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm text-amber-300">
+          已暂停营业
+          {row.suspension_reason ? ` — ${row.suspension_reason}` : ''}
+        </p>
+      ) : null}
       <dl className="grid gap-3 text-sm sm:grid-cols-2">
         <div>
           <dt className="text-zinc-500">slug</dt>
@@ -64,6 +73,11 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
         </div>
       </dl>
 
+      <RestaurantSuspensionActions
+        restaurantId={row.id}
+        suspended={suspended}
+        suspensionReason={row.suspension_reason}
+      />
       <RestaurantDetailActions restaurantId={row.id} />
     </div>
   );

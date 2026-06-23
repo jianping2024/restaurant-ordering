@@ -7,6 +7,9 @@ export {
 } from './create-restaurant';
 export { defaultRestaurantSlug, restaurantNameToSlug } from './slug';
 export {
+  isPrintAgentDeviceActiveInDb,
+} from './print-agent-device-active';
+export {
   isPrintAgentDeviceActive,
   isPrintAgentDeviceOnline,
   PRINT_AGENT_HEARTBEAT_OFFLINE_MS,
@@ -17,3 +20,4 @@ export {
   type RevokePrintAgentDeviceResult,
   type RevokePrintAgentPairingResult,
 } from './print-agent-revoke';
+export { isRestaurantSuspended } from './restaurant-suspension';

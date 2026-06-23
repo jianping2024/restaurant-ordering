@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { verifyAgentBearer } from '@/lib/print-agent-auth';
+import { verifyActiveAgentBearer } from '@/lib/print-agent-auth';
 import { expireStalePrintJobs } from '@/lib/expire-stale-print-jobs';
 import { printJobMaxAgeCutoffIso } from '@/lib/print-job-max-age';
 import {
@@ -28,16 +28,16 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'unexpected_query_param', param: unexpected }, { status: 400 });
   }
 
-  const ctx = verifyAgentBearer(req);
-  if (!ctx) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  }
-
   let admin;
   try {
     admin = createAdminClient();
   } catch {
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
+  }
+
+  const ctx = await verifyActiveAgentBearer(req, admin);
+  if (!ctx) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
   const { error: expireErr } = await expireStalePrintJobs(admin, ctx.restaurant_id);

@@ -41,7 +41,7 @@ platform_admin_audit_log (id: uuid PK, actor_user_id: uuid FK -> auth.users.id n
 
 restaurant_tables (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, display_name: text length 1..16, sort_order: integer, deleted_at: timestamptz nullable, created_at: timestamptz)
 
-restaurants (id: uuid PK, name: text, slug: text unique, owner_id: uuid FK -> auth.users.id, logo_url: text nullable, address: text nullable, phone: text nullable, plan: text [free|pro], kitchen_password: text, waiter_password: text, geo_latitude: double precision nullable, geo_longitude: double precision nullable, print_locale: text [zh|en|pt], print_agent_config: jsonb, feature_flags: jsonb default {}, kitchen_password_version: integer, waiter_password_version: integer, order_radius_meters: integer range 10..10000, buffet_friday_weekend_from: time nullable, created_at: timestamptz)
+restaurants (id: uuid PK, name: text, slug: text unique, owner_id: uuid FK -> auth.users.id, logo_url: text nullable, address: text nullable, phone: text nullable, plan: text [free|pro], kitchen_password: text, waiter_password: text, geo_latitude: double precision nullable, geo_longitude: double precision nullable, print_locale: text [zh|en|pt], print_agent_config: jsonb, feature_flags: jsonb default {}, kitchen_password_version: integer, waiter_password_version: integer, order_radius_meters: integer range 10..10000, buffet_friday_weekend_from: time nullable, suspended_at: timestamptz nullable, suspension_reason: text nullable, created_at: timestamptz)
 
 table_sessions (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, status: text [open|billing|closed], opened_at: timestamptz, closed_at: timestamptz nullable, merge_into_session_id: uuid FK -> table_sessions.id nullable, closed_reason: text nullable, closed_by_user_id: uuid FK -> auth.users.id nullable, table_id: uuid FK -> restaurant_tables.id)
 
@@ -93,6 +93,10 @@ print_agent_pairings.created_by -> auth.users.id
 print_agent_devices.restaurant_id -> restaurants.id  
 print_agent_devices.pairing_id -> print_agent_pairings.id
 
+platform_admin_accounts.user_id -> auth.users.id  
+platform_admin_audit_log.actor_user_id -> auth.users.id  
+platform_admin_audit_log.restaurant_id -> restaurants.id
+
 restaurant_staff_accounts.restaurant_id -> restaurants.id  
 restaurant_staff_accounts.user_id -> auth.users.id  
 restaurant_staff_accounts.created_by -> auth.users.id
@@ -117,7 +121,7 @@ restaurants_public — security definer view; public menu/geo fields for custome
 | `auth_staff_restaurant_ids()` | — | SECURITY DEFINER helper for staff RLS |
 | `is_active_restaurant_staff(restaurant_id, roles?)` | — | Staff role check (default kitchen+waiter) |
 
-Triggers / internal: `handle_updated_at`, `enforce_print_station_same_restaurant`, `seed_default_print_stations_for_restaurant`, `seed_default_restaurant_tables_for_restaurant`, `recalc_order_total_from_items`, `void_active_buffet_lines_in_items`, `rls_auto_enable`.
+Triggers / internal: `handle_updated_at`, `enforce_print_station_same_restaurant`, `seed_default_print_stations_for_restaurant`, `seed_default_restaurant_tables_for_restaurant`, `recalc_order_total_from_items`, `void_active_buffet_lines_in_items`, `void_all_line_items_for_forced_close`, `merge_split_result_paid`, `rls_auto_enable`.
 
 ## Storage
 
@@ -138,6 +142,7 @@ orders.status: pending | cooking | done
 print_jobs.type: order_receipt | station_ticket | pre_bill  
 print_jobs.status: pending | processing | done | failed  
 print_stations.ticket_layout: kitchen | beverage | standard  
+platform_admin_accounts.role: support | admin  
 restaurant_staff_accounts.role: kitchen | waiter | cashier  
 restaurants.plan: free | pro  
 restaurants.print_locale: zh | en | pt  
@@ -233,6 +238,17 @@ print_stations:
 - idx_print_stations_restaurant: btree(restaurant_id, sort_order, created_at)
 - print_stations_pkey: PK btree(id)
 
+platform_admin_accounts:
+
+- platform_admin_accounts_pkey: PK btree(id)
+- platform_admin_accounts_user_id_key: unique btree(user_id)
+
+platform_admin_audit_log:
+
+- idx_platform_admin_audit_log_created: btree(created_at DESC)
+- idx_platform_admin_audit_log_restaurant: btree(restaurant_id) WHERE restaurant_id IS NOT NULL
+- platform_admin_audit_log_pkey: PK btree(id)
+
 restaurant_staff_accounts:
 
 - restaurant_staff_accounts_email_key: unique btree(email)
@@ -249,6 +265,7 @@ restaurant_tables:
 
 restaurants:
 
+- idx_restaurants_suspended_at: btree(suspended_at) WHERE suspended_at IS NOT NULL
 - restaurants_pkey: PK btree(id)
 - restaurants_slug_key: unique btree(slug)
 
@@ -340,6 +357,14 @@ print_stations:
 - SELECT: public read (`true`).
 - ALL: owner by restaurant ownership.
 
+platform_admin_accounts:
+
+- RLS enabled; **no policies** — `@mesa/ops` uses service role after session check.
+
+platform_admin_audit_log:
+
+- RLS enabled; **no policies** — `@mesa/ops` uses service role after session check.
+
 restaurant_staff_accounts:
 
 - ALL: authenticated owner through `auth_owned_restaurant_ids()`, with matching `WITH CHECK`.
@@ -373,7 +398,7 @@ table_sessions:
 - Operational close: `close_table_session_operational(...)` — advisory lock; locks active `bill_splits` then `table_sessions`; cancels splits, voids order lines, closes session.
 - Menu routing: `menu_categories` and `menu_items` can each map to `print_stations`.
 - Print agent flow: `print_agent_pairings` issues six-digit pairing codes; `print_agent_devices` stores paired agent state; `print_jobs` stores queued print work.
-- Platform ops (`@mesa/ops`): `platform_admin_accounts` links Mesa staff to `auth.users`; `platform_admin_audit_log` records cross-tenant actions. **No RLS policies** — accessed via service role only after session check in ops API.
+- Platform ops (`@mesa/ops`): `platform_admin_accounts` links Mesa staff to `auth.users`; `platform_admin_audit_log` records cross-tenant actions. **No RLS policies** — accessed via service role only after session check in ops API. Restaurant suspend/resume sets `restaurants.suspended_at` + `suspension_reason` (null on resume).
 - Buffet pricing: `buffets` + `buffet_time_slots` + `buffet_calendar_overrides` + `buffet_price_rules` model time/calendar-sensitive prices.
 - Soft deletion appears only on `restaurant_tables.deleted_at` in this schema extract.
 - Indexes and RLS summaries below match the squashed baseline; verify against the SQL file when in doubt.

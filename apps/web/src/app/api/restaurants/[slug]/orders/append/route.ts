@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isRestaurantSuspended } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { distanceMeters } from '@/lib/geo-distance';
@@ -67,12 +68,15 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
 
   const { data: restaurant, error: rErr } = await admin
     .from('restaurants')
-    .select('id, geo_latitude, geo_longitude, order_radius_meters')
+    .select('id, geo_latitude, geo_longitude, order_radius_meters, suspended_at')
     .eq('slug', slug)
     .maybeSingle();
 
   if (rErr || !restaurant) {
     return NextResponse.json({ error: 'restaurant_not_found' }, { status: 404 });
+  }
+  if (isRestaurantSuspended(restaurant.suspended_at as string | null)) {
+    return NextResponse.json({ error: 'restaurant_suspended' }, { status: 403 });
   }
 
   const rid = restaurant.id as string;

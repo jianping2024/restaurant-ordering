@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isRestaurantSuspended } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
 import { validateBillSplit } from '@/lib/bill-split-validate';
@@ -113,11 +114,14 @@ export async function POST(
 
   const { data: restaurant, error: rErr } = await admin
     .from('restaurants')
-    .select('id')
+    .select('id, suspended_at')
     .eq('slug', slug)
     .maybeSingle();
   if (rErr || !restaurant?.id) {
     return NextResponse.json({ error: 'restaurant_not_found' }, { status: 404 });
+  }
+  if (isRestaurantSuspended(restaurant.suspended_at as string | null)) {
+    return NextResponse.json({ error: 'restaurant_suspended' }, { status: 403 });
   }
 
   const restaurantId = restaurant.id as string;

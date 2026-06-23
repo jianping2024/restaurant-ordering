@@ -36,7 +36,13 @@ export async function loadPrintAgentDevices(
   if (error) {
     return [];
   }
-  return ((data || []) as PrintAgentDeviceHeartbeatRow[]).filter((d) =>
-    isPrintAgentDeviceOnline(d.last_seen),
-  );
+  return (data || []) as PrintAgentDeviceHeartbeatRow[];
+}
+
+/** Online-only subset for dashboard heartbeat display. */
+export async function loadOnlinePrintAgentDevices(
+  restaurantId: string,
+): Promise<PrintAgentDeviceHeartbeatRow[]> {
+  const devices = await loadPrintAgentDevices(restaurantId);
+  return devices.filter((d) => isPrintAgentDeviceOnline(d.last_seen));
 }

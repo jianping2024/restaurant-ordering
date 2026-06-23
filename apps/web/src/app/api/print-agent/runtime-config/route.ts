@@ -1,23 +1,23 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { defaultPrintAgentCloudConfig, normalizePrintAgentCloudConfig } from '@/lib/print-agent-config';
-import { verifyAgentBearer } from '@/lib/print-agent-auth';
+import { verifyActiveAgentBearer } from '@/lib/print-agent-auth';
 import { getPrintAgentVersion } from '@/lib/print-agent-download';
 
 export const runtime = 'nodejs';
 
 /** Agent pulls once at startup (Bearer JWT). Overrides local schedule + poll only. */
 export async function GET(req: Request) {
-  const ctx = verifyAgentBearer(req);
-  if (!ctx) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  }
-
   let admin;
   try {
     admin = createAdminClient();
   } catch {
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
+  }
+
+  const ctx = await verifyActiveAgentBearer(req, admin);
+  if (!ctx) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
   const { data: row, error } = await admin

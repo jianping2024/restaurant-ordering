@@ -77,6 +77,8 @@ export interface Restaurant {
   buffet_friday_weekend_from?: string | null;
   /** Owner toggles for optional product modules; see `src/lib/restaurant-features.ts`. */
   feature_flags?: Record<string, boolean> | null;
+  suspended_at?: string | null;
+  suspension_reason?: string | null;
   created_at: string;
 }
 

@@ -8,8 +8,8 @@ import {
 import type { StaffAccountRole, RestaurantStaffAccount } from '@/types';
 import type { StaffRole } from '@/lib/staff-account';
 
-export async function loadOwnerRestaurantWithSlug() {
-  const auth = await getOwnerRestaurantId();
+export async function loadOwnerRestaurantWithSlug(options?: { requireWritable?: boolean }) {
+  const auth = await getOwnerRestaurantId(options);
   if ('error' in auth) return auth;
 
   let admin;

@@ -1,9 +1,10 @@
 import { notFound, redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { RestaurantMaintenancePage } from '@/components/customer/RestaurantMaintenancePage';
 import { BillPage } from '@/components/menu/BillPage';
 import {
   loadCustomerExistingSplit,
-  loadCustomerRestaurant,
+  loadCustomerRestaurantGate,
   loadCustomerSessionOrders,
   resolveCustomerTableContext,
 } from '@/lib/customer-session-context';
@@ -24,8 +25,12 @@ export default async function BillRoute({ params, searchParams }: Props) {
   } catch {
     notFound();
   }
-  const restaurant = await loadCustomerRestaurant(admin, slug);
-  if (!restaurant) notFound();
+  const gate = await loadCustomerRestaurantGate(admin, slug);
+  if (gate.kind === 'not_found') notFound();
+  if (gate.kind === 'suspended') {
+    return <RestaurantMaintenancePage restaurantName={gate.name} reason={gate.reason} />;
+  }
+  const restaurant = gate.restaurant;
 
   const tableContext = await resolveCustomerTableContext({
     admin,

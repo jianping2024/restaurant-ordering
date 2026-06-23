@@ -11,7 +11,7 @@ import type { StaffRole } from '@/lib/staff-account';
 export const runtime = 'nodejs';
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
-  const loaded = await loadOwnerRestaurantWithSlug();
+  const loaded = await loadOwnerRestaurantWithSlug({ requireWritable: true });
   if ('error' in loaded) {
     return NextResponse.json({ error: loaded.error }, { status: loaded.status });
   }

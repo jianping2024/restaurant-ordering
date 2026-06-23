@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isRestaurantSuspended } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { enqueueStationTicketsForOrder } from '@/lib/station-ticket-enqueue';
 import { autoEnqueueRateLimitCheck } from '@/lib/station-ticket-auto-rate-limit';
@@ -46,12 +47,15 @@ export async function POST(
 
   const { data: restaurant, error: rErr } = await admin
     .from('restaurants')
-    .select('id, name, print_locale')
+    .select('id, name, print_locale, suspended_at')
     .eq('slug', slug)
     .maybeSingle();
 
   if (rErr || !restaurant) {
     return NextResponse.json({ error: 'restaurant_not_found' }, { status: 404 });
+  }
+  if (isRestaurantSuspended(restaurant.suspended_at as string | null)) {
+    return NextResponse.json({ error: 'restaurant_suspended' }, { status: 403 });
   }
 
   if (

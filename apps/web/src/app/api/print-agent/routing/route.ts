@@ -1,13 +1,20 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { verifyAgentBearer } from '@/lib/print-agent-auth';
+import { verifyActiveAgentBearer } from '@/lib/print-agent-auth';
 import { buildReceiptPrinterSnapshot } from '@/lib/print-receipt-printer-options';
 
 export const runtime = 'nodejs';
 
 /** Print agent reports station printer mapping after configure/setup save. */
 export async function POST(req: Request) {
-  const auth = verifyAgentBearer(req);
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
+  }
+
+  const auth = await verifyActiveAgentBearer(req, admin);
   if (!auth) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
@@ -26,13 +33,6 @@ export async function POST(req: Request) {
     for (const [k, v] of Object.entries(body.station_printers as Record<string, unknown>)) {
       if (typeof v === 'string' && v.trim()) stationPrinters[k] = v.trim();
     }
-  }
-
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
   const { data: stations } = await admin

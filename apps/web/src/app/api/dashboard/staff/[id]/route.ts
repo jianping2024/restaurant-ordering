@@ -12,7 +12,7 @@ export const runtime = 'nodejs';
 type RouteCtx = { params: { id: string } };
 
 export async function PATCH(req: Request, { params }: RouteCtx) {
-  const loaded = await loadOwnerRestaurantWithSlug();
+  const loaded = await loadOwnerRestaurantWithSlug({ requireWritable: true });
   if ('error' in loaded) {
     return NextResponse.json({ error: loaded.error }, { status: loaded.status });
   }
@@ -92,7 +92,7 @@ export async function PATCH(req: Request, { params }: RouteCtx) {
 }
 
 export async function DELETE(_req: Request, { params }: RouteCtx) {
-  const loaded = await loadOwnerRestaurantWithSlug();
+  const loaded = await loadOwnerRestaurantWithSlug({ requireWritable: true });
   if ('error' in loaded) {
     return NextResponse.json({ error: loaded.error }, { status: loaded.status });
   }

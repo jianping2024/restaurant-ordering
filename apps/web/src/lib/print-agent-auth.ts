@@ -1,3 +1,5 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { isPrintAgentDeviceActiveInDb } from '@mesa/shared';
 import { verifyPrintAgentJwt } from '@/lib/print-agent-jwt';
 
 export function getBearerToken(req: Request): string | null {
@@ -6,6 +8,7 @@ export function getBearerToken(req: Request): string | null {
   return h.slice(7).trim() || null;
 }
 
+/** JWT signature + claims only (no DB device row check). */
 export function verifyAgentBearer(req: Request): { restaurant_id: string; device_id: string } | null {
   const secret = process.env.PRINT_AGENT_JWT_SECRET;
   if (!secret) return null;
@@ -14,6 +17,17 @@ export function verifyAgentBearer(req: Request): { restaurant_id: string; device
   const claims = verifyPrintAgentJwt(token, secret);
   if (!claims) return null;
   return { restaurant_id: claims.restaurant_id, device_id: claims.device_id };
+}
+
+/** JWT valid and print_agent_devices row is active (not revoked, not expired). */
+export async function verifyActiveAgentBearer(
+  req: Request,
+  admin: SupabaseClient,
+): Promise<{ restaurant_id: string; device_id: string } | null> {
+  const ctx = verifyAgentBearer(req);
+  if (!ctx) return null;
+  const active = await isPrintAgentDeviceActiveInDb(admin, ctx.device_id, ctx.restaurant_id);
+  return active ? ctx : null;
 }
 
 export function isUuid(v: string): boolean {

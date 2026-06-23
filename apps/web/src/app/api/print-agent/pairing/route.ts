@@ -1,18 +1,16 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
+import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
 import { randomPairingCode } from '@/lib/print-agent-pairing-code';
 import { PRINT_AGENT_PAIRING_PENDING_SLOT_MAX } from '@/lib/print-agent-pairing-slots';
 
 export const runtime = 'nodejs';
 
 export async function POST() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  const auth = await getOwnerRestaurantId({ requireWritable: true });
+  if ('error' in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   let admin;
@@ -22,17 +20,15 @@ export async function POST() {
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
-  const { data: restaurant, error: rErr } = await admin
-    .from('restaurants')
-    .select('id')
-    .eq('owner_id', user.id)
-    .maybeSingle();
-
-  if (rErr || !restaurant) {
-    return NextResponse.json({ error: 'restaurant_not_found' }, { status: 404 });
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
-  const rid = restaurant.id as string;
+  const rid = auth.restaurantId;
   const nowIso = new Date().toISOString();
 
   const { count: slotCount, error: cErr } = await admin

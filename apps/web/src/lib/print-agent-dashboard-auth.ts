@@ -1,9 +1,14 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
+import { isRestaurantSuspended } from '@mesa/shared';
 
-export async function getOwnerRestaurantId(): Promise<
-  { restaurantId: string } | { error: string; status: number }
-> {
+export type OwnerRestaurantAuthOptions = {
+  requireWritable?: boolean;
+};
+
+export async function getOwnerRestaurantId(
+  options?: OwnerRestaurantAuthOptions,
+): Promise<{ restaurantId: string } | { error: string; status: number }> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -21,7 +26,7 @@ export async function getOwnerRestaurantId(): Promise<
 
   const { data: restaurant, error } = await admin
     .from('restaurants')
-    .select('id')
+    .select('id, suspended_at')
     .eq('owner_id', user.id)
     .maybeSingle();
 
@@ -30,6 +35,9 @@ export async function getOwnerRestaurantId(): Promise<
   }
   if (!restaurant) {
     return { error: 'restaurant_not_found', status: 404 };
+  }
+  if (options?.requireWritable && isRestaurantSuspended(restaurant.suspended_at as string | null)) {
+    return { error: 'restaurant_suspended', status: 403 };
   }
   return { restaurantId: restaurant.id as string };
 }

@@ -1,4 +1,5 @@
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
+import { isRestaurantSuspended } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import type { StaffRole } from '@/lib/staff-account';
@@ -74,14 +75,15 @@ export async function staffAuthFromRequest(
   if (!error && account && !account.disabled_at) {
     const { data: restaurant } = await admin
       .from('restaurants')
-      .select('slug')
+      .select('slug, suspended_at')
       .eq('id', account.restaurant_id as string)
       .maybeSingle();
 
     if (
       restaurant &&
       (restaurant.slug as string) === slug &&
-      account.role === role
+      account.role === role &&
+      !isRestaurantSuspended(restaurant.suspended_at as string | null)
     ) {
       return {
         restaurant_id: account.restaurant_id as string,

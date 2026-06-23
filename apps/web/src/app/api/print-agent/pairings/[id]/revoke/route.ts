@@ -5,7 +5,7 @@ import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
 
 /** Void an unused pairing code so it no longer counts toward the pending slot limit. */
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
-  const auth = await getOwnerRestaurantId();
+  const auth = await getOwnerRestaurantId({ requireWritable: true });
   if ('error' in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

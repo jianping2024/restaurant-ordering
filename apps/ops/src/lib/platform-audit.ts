@@ -16,6 +16,8 @@ export const PLATFORM_AUDIT_ACTION_LABELS: Record<string, string> = {
   'ops.bootstrap_admin': 'Bootstrap 首个运营账号',
   'device.revoke': '吊销打印设备',
   'pairing.revoke': '吊销配对码',
+  'restaurant.suspend': '暂停餐厅',
+  'restaurant.resume': '恢复餐厅',
 };
 
 export function platformAuditActionLabel(action: string): string {

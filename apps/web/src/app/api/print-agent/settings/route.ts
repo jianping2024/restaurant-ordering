@@ -46,7 +46,7 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
-  const auth = await getOwnerRestaurantId();
+  const auth = await getOwnerRestaurantId({ requireWritable: true });
   if ('error' in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

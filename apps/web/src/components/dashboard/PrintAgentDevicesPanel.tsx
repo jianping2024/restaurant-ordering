@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import {
   formatLastSeenRelative,
   isPrintAgentDeviceOnline,
   type PrintAgentDeviceHeartbeatRow,
 } from '@/lib/print-agent-heartbeat';
+
 function deviceLabel(d: PrintAgentDeviceHeartbeatRow, fallback: string): string {
   const label = d.label?.trim();
   if (label) return label;
@@ -26,6 +28,9 @@ export function PrintAgentDevicesPanel({
   const locale = UI_LOCALE_BY_LANG[lang];
   const [devices, setDevices] = useState(initialDevices);
   const [loading, setLoading] = useState(false);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
+  const [revokeTarget, setRevokeTarget] = useState<PrintAgentDeviceHeartbeatRow | null>(null);
+  const [error, setError] = useState('');
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -33,7 +38,7 @@ export function PrintAgentDevicesPanel({
       const res = await fetch('/api/print-agent/devices', { credentials: 'include' });
       if (!res.ok) return;
       const json = (await res.json()) as { devices?: PrintAgentDeviceHeartbeatRow[] };
-      setDevices((json.devices || []).filter((d) => isPrintAgentDeviceOnline(d.last_seen)));
+      setDevices(json.devices || []);
     } finally {
       setLoading(false);
     }
@@ -43,6 +48,30 @@ export function PrintAgentDevicesPanel({
     const id = window.setInterval(() => void refresh(), 30_000);
     return () => window.clearInterval(id);
   }, [refresh]);
+
+  const runRevoke = async () => {
+    const target = revokeTarget;
+    if (!target) return;
+    setRevokingId(target.id);
+    setError('');
+    try {
+      const res = await fetch(`/api/print-agent/devices/${target.id}/revoke`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const json = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        setError(json.error || 'revoke_failed');
+        return;
+      }
+      setRevokeTarget(null);
+      await refresh();
+    } catch {
+      setError('network');
+    } finally {
+      setRevokingId(null);
+    }
+  };
 
   if (devices.length === 0) {
     return (
@@ -58,7 +87,7 @@ export function PrintAgentDevicesPanel({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-lg font-semibold text-brand-ink">{t.devicesTitle}</h2>
-          <p className="mt-1 text-sm text-brand-muted">{t.devicesSubtitleOnlineOnly}</p>
+          <p className="mt-1 text-sm text-brand-muted">{t.devicesSubtitle}</p>
         </div>
         <button
           type="button"
@@ -69,6 +98,7 @@ export function PrintAgentDevicesPanel({
           {loading ? t.devicesRefreshing : t.devicesRefresh}
         </button>
       </div>
+      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
       <ul className="mt-4 space-y-3">
         {devices.map((d) => {
           const online = isPrintAgentDeviceOnline(d.last_seen);
@@ -76,22 +106,34 @@ export function PrintAgentDevicesPanel({
             recommendedVersion &&
             d.agent_version &&
             d.agent_version !== recommendedVersion;
+          const name = deviceLabel(d, t.devicesUnlabeled);
           return (
             <li
               key={d.id}
               className="rounded-lg border border-brand-border/80 bg-brand-bg/40 px-4 py-3 text-sm"
             >
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={`inline-block h-2 w-2 rounded-full ${online ? 'bg-emerald-500' : 'bg-gray-400'}`}
-                  aria-hidden
-                />
-                <span className="font-medium text-brand-ink">
-                  {deviceLabel(d, t.devicesUnlabeled)}
-                </span>
-                {d.schedule_open === false && online ? (
-                  <span className="text-amber-700">{t.devicesOutsideSchedule}</span>
-                ) : null}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={`inline-block h-2 w-2 rounded-full ${online ? 'bg-emerald-500' : 'bg-gray-400'}`}
+                    aria-hidden
+                  />
+                  <span className="font-medium text-brand-ink">{name}</span>
+                  <span className={online ? 'text-emerald-700' : 'text-brand-muted'}>
+                    {online ? t.devicesOnline : t.devicesOffline}
+                  </span>
+                  {d.schedule_open === false && online ? (
+                    <span className="text-amber-700">{t.devicesOutsideSchedule}</span>
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  disabled={revokingId === d.id}
+                  onClick={() => setRevokeTarget(d)}
+                  className="text-sm text-red-600 hover:underline disabled:opacity-50"
+                >
+                  {t.devicesRevoke}
+                </button>
               </div>
               <dl className="mt-2 grid gap-1 text-brand-muted sm:grid-cols-2">
                 <div>
@@ -134,6 +176,22 @@ export function PrintAgentDevicesPanel({
           );
         })}
       </ul>
+
+      <ConfirmModal
+        open={revokeTarget != null}
+        onClose={() => setRevokeTarget(null)}
+        title={t.devicesRevokeTitle}
+        message={
+          revokeTarget
+            ? t.devicesRevokeMessage.replace('{name}', deviceLabel(revokeTarget, t.devicesUnlabeled))
+            : ''
+        }
+        confirmLabel={t.devicesRevokeConfirm}
+        cancelLabel={t.devicesRevokeCancel}
+        variant="danger"
+        confirming={revokingId != null}
+        onConfirm={runRevoke}
+      />
     </section>
   );
 }

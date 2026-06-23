@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { verifyAgentBearer } from '@/lib/print-agent-auth';
+import { verifyActiveAgentBearer } from '@/lib/print-agent-auth';
 
 export const runtime = 'nodejs';
 
@@ -14,7 +14,14 @@ type HeartbeatBody = {
 
 /** Agent: update device heartbeat (JWT device_id). */
 export async function POST(req: Request) {
-  const ctx = verifyAgentBearer(req);
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
+  }
+
+  const ctx = await verifyActiveAgentBearer(req, admin);
   if (!ctx) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
@@ -46,13 +53,6 @@ export async function POST(req: Request) {
   }
 
   const scheduleOpen = body.schedule_open === true;
-
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
-  }
 
   const nowIso = new Date().toISOString();
   const patch: Record<string, unknown> = {

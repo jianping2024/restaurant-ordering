@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isRestaurantSuspended } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { resolvePostLoginRedirect } from '@/lib/auth/post-login-redirect';
 import {
@@ -43,13 +44,24 @@ export async function POST(req: Request) {
 
   const { data: account } = await admin
     .from('restaurant_staff_accounts')
-    .select('id, disabled_at, role')
+    .select('id, disabled_at, role, restaurant_id')
     .eq('email', email)
     .maybeSingle();
 
   if (!account || account.disabled_at) {
     authLoginRecordFailure(email, ip);
     return NextResponse.json({ error: 'invalid_credentials' }, { status: 401 });
+  }
+
+  const { data: restaurantRow } = await admin
+    .from('restaurants')
+    .select('suspended_at')
+    .eq('id', account.restaurant_id as string)
+    .maybeSingle();
+
+  if (isRestaurantSuspended(restaurantRow?.suspended_at as string | null | undefined)) {
+    authLoginRecordFailure(email, ip);
+    return NextResponse.json({ error: 'restaurant_suspended' }, { status: 403 });
   }
 
   const supabase = await createClient();

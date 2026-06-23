@@ -11,6 +11,7 @@ type RestaurantRow = {
   plan: string;
   ownerEmail: string | null;
   createdAt: string;
+  suspendedAt: string | null;
 };
 
 export default function RestaurantsListClient() {
@@ -114,6 +115,7 @@ export default function RestaurantsListClient() {
                 <th className="px-3 py-2">slug</th>
                 <th className="px-3 py-2">店主邮箱</th>
                 <th className="px-3 py-2">plan</th>
+                <th className="px-3 py-2">状态</th>
                 <th className="px-3 py-2">创建时间</th>
               </tr>
             </thead>
@@ -128,6 +130,13 @@ export default function RestaurantsListClient() {
                   <td className="px-3 py-2 font-mono text-xs text-zinc-400">{r.slug}</td>
                   <td className="px-3 py-2">{r.ownerEmail || '—'}</td>
                   <td className="px-3 py-2">{r.plan}</td>
+                  <td className="px-3 py-2">
+                    {r.suspendedAt ? (
+                      <span className="rounded bg-amber-500/20 px-2 py-0.5 text-xs text-amber-300">已暂停</span>
+                    ) : (
+                      <span className="text-zinc-500">营业中</span>
+                    )}
+                  </td>
                   <td className="px-3 py-2 text-zinc-400">
                     {new Date(r.createdAt).toLocaleString('zh-CN')}
                   </td>
@@ -135,7 +144,7 @@ export default function RestaurantsListClient() {
               ))}
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-3 py-8 text-center text-zinc-500">
+                  <td colSpan={6} className="px-3 py-8 text-center text-zinc-500">
                     暂无餐厅
                   </td>
                 </tr>

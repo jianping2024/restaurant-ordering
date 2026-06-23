@@ -1,5 +1,6 @@
 import type { Order } from '@/types';
 import { aggregateBuffetForOrders } from '@/lib/buffet-order';
+import { formatOrderItemListLabel } from '@/lib/order-list-display';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
@@ -38,6 +39,30 @@ export function buildWaiterTableCard(
   const buffetSummary = aggregateBuffetForOrders(orders);
   current.hasBuffet = buffetSummary != null;
 
+  const buffetLines: WaiterOrderLine[] = [];
+  const menuLines: WaiterOrderLine[] = [];
+
+  if (buffetSummary) {
+    buffetLines.push({
+      orderId: '',
+      itemIdx: -1,
+      label: formatOrderItemListLabel(
+        {
+          emoji: '🍽️',
+          name: buffetSummary.name,
+          name_pt: buffetSummary.name,
+          kind: 'buffet_base',
+          qty: 1,
+          adult_count: buffetSummary.adults,
+          child_count: buffetSummary.children,
+        },
+        { headcountStyle: 'compact' },
+      ),
+      itemCode: null,
+      canVoid: false,
+    });
+  }
+
   for (const order of orders) {
     const ts = order.updated_at || order.created_at;
     if (ts && (!current.updatedAt || ts > current.updatedAt)) {
@@ -45,20 +70,31 @@ export function buildWaiterTableCard(
     }
 
     order.items.forEach((item, itemIdx) => {
-      if (isBuffetBaseItem(item)) return;
       const status = normalizeOrderItemStatus(item, order.status);
       if (status === 'voided') return;
 
-      const label = `${item.emoji} ${item.name || item.name_pt} × ${item.qty}`;
-      current.orderLines.push({
+      if (isBuffetBaseItem(item)) {
+        if (buffetSummary) return;
+        buffetLines.push({
+          orderId: order.id,
+          itemIdx,
+          label: formatOrderItemListLabel(item, { headcountStyle: 'compact' }),
+          itemCode: null,
+          canVoid: false,
+        });
+        return;
+      }
+
+      menuLines.push({
         orderId: order.id,
         itemIdx,
-        label,
+        label: formatOrderItemListLabel(item),
         itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
         canVoid: status === 'pending' || status === 'cooking',
       });
     });
   }
 
+  current.orderLines = [...buffetLines, ...menuLines];
   return current;
 }

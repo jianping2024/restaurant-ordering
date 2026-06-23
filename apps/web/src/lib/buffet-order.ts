@@ -48,21 +48,15 @@ export function aggregateBuffetForOrders(
   return { buffetId, name, adults, children, amount };
 }
 
+/** Compact adult/child headcount, e.g. A7 C3 (matches waiter buffet summary). */
+export function formatBuffetHeadcountLabel(adults: number, children: number): string {
+  return `A${adults} C${children}`;
+}
+
 export function formatBuffetSummaryLine(
   summary: { name: string; adults: number; children: number; amount: number },
 ): string {
-  return `🍽️ ${summary.name} · A${summary.adults} C${summary.children} · €${summary.amount.toFixed(2)}`;
-}
-
-/** Guest bill line: buffet shows adult/child headcount instead of qty. */
-export function formatOrderLineQtyLabel(
-  item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count'>,
-  buffetGuestCountsTemplate: string,
-): string {
-  if (!isBuffetBaseItem(item)) return `× ${item.qty}`;
-  return buffetGuestCountsTemplate
-    .replace('{adults}', String(item.adult_count ?? 0))
-    .replace('{children}', String(item.child_count ?? 0));
+  return `🍽️ ${summary.name} · ${formatBuffetHeadcountLabel(summary.adults, summary.children)} · €${summary.amount.toFixed(2)}`;
 }
 
 /** Buffet headcount label; omits adult/child segments when count is zero. */

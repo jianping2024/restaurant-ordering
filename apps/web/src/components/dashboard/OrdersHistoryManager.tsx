@@ -22,7 +22,13 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { createClient } from '@/lib/supabase/client';
 import { interpretCloseTableSessionResponse } from '@/lib/close-table-session-ui';
-import { buildOrderListDisplayChips, countOrderListItems, formatOrderListItemPrintQty, type OrderListDisplayChip } from '@/lib/order-list-display';
+import {
+  buildOrderListDisplayChips,
+  countOrderListItems,
+  formatOrderListItemPrintQty,
+  orderListGuestLabelsFromLang,
+  type OrderListDisplayChip,
+} from '@/lib/order-list-display';
 
 interface Props {
   initialOrders: Order[];
@@ -344,13 +350,7 @@ export function OrdersHistoryManager({
     };
   }, [pickerOpen]);
 
-  const buffetGuestLabels = useMemo(
-    () => ({
-      adults: i18n.buffetAdultsCount,
-      children: i18n.buffetChildrenCount,
-    }),
-    [i18n.buffetAdultsCount, i18n.buffetChildrenCount],
-  );
+  const buffetGuestLabels = useMemo(() => orderListGuestLabelsFromLang(lang), [lang]);
 
   const handlePrintOrders = (printOrders: Order[], displayName: string) => {
     const printWindow = window.open('', '_blank', 'width=700,height=900');

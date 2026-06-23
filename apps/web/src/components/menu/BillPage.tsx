@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { calcByItemSplitResults } from '@/lib/bill-split-by-item';
 import { validateBillSplit } from '@/lib/bill-split-validate';
-import { formatOrderLineQtyLabel } from '@/lib/buffet-order';
+import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
 import { getMessages } from '@/lib/i18n/messages';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import { normalizeDecimalInput as normalizeAmountInput } from '@/lib/number-input';
@@ -66,7 +66,10 @@ export function BillPage({
   const t = getMessages(lang).bill;
   const guestName = (n: number) => `${t.guest} ${n}`;
   const lineQtyLabel = (item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count'>) =>
-    formatOrderLineQtyLabel(item, t.buffetGuestCounts);
+    formatOrderItemQuantityLabel(item, {
+      headcountStyle: 'localized',
+      guestLabels: orderListGuestLabelsFromLang(lang),
+    });
   const initialSplitMode: SplitMode | null = (() => {
     if (!existingSplit) return null;
     if (existingSplit.split_mode === 'custom' && existingSplit.result?.length === 1) return null;

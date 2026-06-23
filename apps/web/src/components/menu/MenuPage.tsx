@@ -14,9 +14,10 @@ import type {
 } from '@/types';
 import { MenuItemCard } from './MenuItemCard';
 import { CartDrawer } from './CartDrawer';
-import { CATEGORY_LABELS } from '@/lib/i18n/messages';
-import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import { CATEGORY_LABELS, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
+import { formatOrderItemListLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
+import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { getClientLanguage, setClientLanguage } from '@/lib/i18n';
 import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
 import { showToast } from '@/components/ui/Toast';
@@ -255,6 +256,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
   const totalPrice = sumLineTotals(cart);
   const t = MENU_PAGE_MESSAGES[lang];
   const locale = UI_LOCALE_BY_LANG[lang];
+  const orderListGuestLabels = useMemo(() => orderListGuestLabelsFromLang(lang), [lang]);
   const isLocalDevHost =
     typeof window !== 'undefined' &&
     ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
@@ -595,10 +597,15 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
                     </span>
                   </div>
                   <div className="space-y-1">
-                    {order.items.map((item, idx) => (
+                    {order.items.map((item, idx) => {
+                      if (normalizeOrderItemStatus(item, order.status) === 'voided') return null;
+                      return (
                       <div key={`${order.id}-${idx}`} className="flex items-center justify-between gap-2">
                         <p className="text-sm text-brand-text">
-                          {item.emoji} {(item.name || item.name_pt)} x {item.qty}
+                          {formatOrderItemListLabel(item, {
+                            headcountStyle: 'localized',
+                            guestLabels: orderListGuestLabels,
+                          })}
                         </p>
                         {latestBatchId && item.batch_id === latestBatchId && (
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold font-semibold">
@@ -606,7 +613,8 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
                           </span>
                         )}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ))}

@@ -52,16 +52,28 @@ npm run cloud
 Start Next.js against cloud Supabase (uses `.env.local`).
 
 ```bash
+npm run dev:ops
+```
+
+Start platform ops app on `0.0.0.0:3001` (same env file as `npm run dev`).
+
+```bash
 npm run lint
 ```
 
-Run Next.js / TypeScript ESLint checks.
+Run ESLint for `@mesa/web` and `@mesa/ops`.
 
 ```bash
 npm run build
 ```
 
-Run production build. Requires placeholder or real Supabase environment variables.
+Build tenant product (`@mesa/web`). Requires placeholder or real Supabase environment variables.
+
+```bash
+npm run build:ops
+```
+
+Build platform ops app (`@mesa/ops`).
 
 ```bash
 npm run print
@@ -105,15 +117,17 @@ Do not run local `go test`, `go vet`, or `go build` commands.
 
 ## Folder Structure
 
-- `src/app` — App Router pages, layouts, and route handlers.
-- `src/app/api` — API routes; many use server-only Supabase/admin clients.
-- `src/components` — UI and feature components grouped by area: menu, dashboard, kitchen, waiter, staff.
-- `src/lib` — Shared business logic, Supabase clients, auth, printing, i18n, and validation.
-- `src/types` — Shared TypeScript types.
+npm **workspaces** monorepo:
+
+- `apps/web` — Tenant product (Next.js): customer menu, kitchen/waiter, owner `/dashboard`, `src/app/api/*`.
+- `apps/ops` — Mesa platform ops console (Next.js, separate Vercel project); see `docs/platform-admin-plan.zh.md`.
+- `packages/shared` — Shared types and server-safe helpers (`@mesa/shared`) for web + ops.
+- `apps/print-agent` — Go print agent (not on Vercel); Docker-only Go commands.
 - `supabase/migrations` — Ordered database migrations. Append new migrations; do not edit applied history.
 - `supabase/seed.sql` — Optional seed data.
-- `apps/print-agent` — Go print agent, tests, Windows installer files, and local dev tooling.
 - `docs` — Durable design and implementation notes.
+
+Within `apps/web`, use `@/*` → `src/*` as before. Vercel deploy layout: [`docs/monorepo-vercel.zh.md`](docs/monorepo-vercel.zh.md).
 
 ## Coding Rules
 

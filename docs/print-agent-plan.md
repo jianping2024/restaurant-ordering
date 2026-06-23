@@ -258,7 +258,7 @@
 2. macOS：`.pkg` 或 notarized `.app`（签名与公证成本更高）。  
 3. 多打印机：`config.json` 里 `printers[]` + `print_jobs` 带来 `printer_slot` 字段。  
 4. **纯 USB 打印机**：系统队列 / 驱动路径（与网口 RAW 分离实现）。**实施计划见 [`docs/print-agent-usb-plan.md`](./print-agent-usb-plan.md)**（Windows WinSpool RAW、配置 `winspool:` 前缀、配对向导选机）。  
-5. **平台运营后台**（与 **店主 Mesa `/dashboard`** **分系统、分鉴权**，见 `research.md` §1.1）：**跨店**只读 **`print_agent_devices`** 元数据（`restaurant_id`、`device_id`、`label`、`paired_at`、`valid_until`、`revoked_at`、代理版本等）、**代客吊销**（写 **`revoked_at`**；**底层拒绝逻辑** 与 **店主 dashboard 吊销** 相同，见文首 **吊销后 JWT…（方案已定、实现顺延）**）、只读 **`print_jobs`** 排障。**不宜**在运营页长期展示完整 **`agentjwt` 明文**；若需极端排障，用 **一次性、可审计** 的替代方案（短期 support token 等），另开权限与日志。  
+5. **平台运营后台**（与 **店主 Mesa `/dashboard`** **分系统、分鉴权**，见 `research.md` §1.1）：跨店设备列表、代客吊销、只读 `print_jobs` 排障等 — **完整范围与分期见 [`platform-admin-plan.zh.md`](./platform-admin-plan.zh.md) §4.2**；吊销后 JWT 强制校验见 [`print-agent-device-revocation-auth.zh.md`](./print-agent-device-revocation-auth.zh.md)。  
 6. **短 access + refresh**（refresh 总寿命仍 **≤90d**）：见文首 **第一期凭证形态** 演进说明。  
 7. **58mm 热敏**：代理 **`paper_width_mm`** + **第二套 ESC/POS 行宽**（第一期仅 **80mm**，见 **已确认网络与打印机**）。
 

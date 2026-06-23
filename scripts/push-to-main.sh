@@ -31,12 +31,14 @@ if not status:
     raise SystemExit(0)
 
 labels = {
-    "src/components/dashboard": "dashboard",
-    "src/components": "components",
-    "src/app/api": "API",
-    "src/app": "app routes",
-    "src/lib/i18n": "i18n",
-    "src/lib": "lib",
+    "apps/web/src/components/dashboard": "dashboard",
+    "apps/web/src/components": "components",
+    "apps/web/src/app/api": "API",
+    "apps/web/src/app": "app routes",
+    "apps/web/src/lib/i18n": "i18n",
+    "apps/web/src/lib": "lib",
+    "apps/ops": "ops",
+    "packages/shared": "shared",
     "docs": "docs",
     ".github/workflows": "CI workflows",
     ".github": "GitHub config",

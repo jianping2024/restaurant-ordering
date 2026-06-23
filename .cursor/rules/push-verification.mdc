@@ -12,8 +12,8 @@ When the user asks to **push**, **ship**, **`pnpm push`**, or you finish web cha
 ## Required order (do not skip or reorder)
 
 1. `npm run lint`
-2. `npm run build` when changes touch `src/app/**`, `src/lib/**`, or `src/types/**`
-3. Targeted unit tests for touched logic, e.g. `node --import tsx --test src/lib/<name>.test.ts`
+2. `npm run build` when changes touch `apps/web/src/app/**`, `apps/web/src/lib/**`, or `apps/web/src/types/**`; `npm run build:ops` when changes touch `apps/ops/**` or `packages/shared/**`
+3. Targeted unit tests for touched logic, e.g. `node --import tsx --test apps/web/src/lib/<name>.test.ts`
 4. `pnpm push`
 
 ## Prohibited

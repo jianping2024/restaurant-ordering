@@ -1,48 +1,32 @@
 {
-  "name": "restaurant-ordering",
+  "name": "mesa",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/web",
+    "apps/ops",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "bash scripts/dev-env.sh .env.local.dev",
+    "dev:ops": "bash scripts/dev-env.sh .env.local.dev ops",
     "stage": "bash scripts/dev-env.sh .env.local.supabase",
-    "cloud": "next dev --hostname 0.0.0.0 --port 3000",
+    "cloud": "npm run dev -w @mesa/web -- --hostname 0.0.0.0 --port 3000",
     "print": "bash apps/print-agent/dev/print-dev.sh rebuild",
     "printstop": "bash apps/print-agent/dev/print-dev.sh down",
     "printlog": "bash apps/print-agent/dev/print-dev.sh logs",
     "printagent": "bash apps/print-agent/dev/print-dev.sh agent",
     "print:dev": "bash apps/print-agent/dev/print-dev.sh",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "test:unit": "npx tsx --test src/lib/resolve-append-cart-items.test.ts src/lib/checkout-confirm-payment.test.ts src/lib/table-session-close-guards.test.ts src/lib/close-table-session-ui.test.ts src/lib/bill-split-by-item.test.ts src/lib/order-receipt-enqueue.test.ts",
+    "build": "npm run build -w @mesa/web",
+    "build:web": "npm run build -w @mesa/web",
+    "build:ops": "npm run build -w @mesa/ops",
+    "build:all": "npm run build -w @mesa/web && npm run build -w @mesa/ops",
+    "start": "npm run start -w @mesa/web",
+    "lint": "npm run lint -w @mesa/web && npm run lint -w @mesa/ops",
+    "test:unit": "cd apps/web && node --import tsx --test src/lib/resolve-append-cart-items.test.ts src/lib/checkout-confirm-payment.test.ts src/lib/table-session-close-guards.test.ts src/lib/close-table-session-ui.test.ts src/lib/bill-split-by-item.test.ts src/lib/order-receipt-enqueue.test.ts",
     "push": "bash scripts/push-to-main.sh"
   },
-  "dependencies": {
-    "@hello-pangea/dnd": "^18.0.1",
-    "@supabase/ssr": "^0.10.2",
-    "@supabase/supabase-js": "^2.104.0",
-    "@types/qrcode": "^1.5.6",
-    "bcryptjs": "^3.0.3",
-    "browser-image-compression": "^2.0.2",
-    "date-fns": "^4.1.0",
-    "next": "14.2.35",
-    "qrcode": "^1.5.4",
-    "rc-tree": "^5.13.1",
-    "react": "^18",
-    "react-beautiful-dnd": "^13.1.1",
-    "react-day-picker": "^9.14.0",
-    "react-dom": "^18",
-    "react-select": "^5.10.2"
-  },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.35",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "tsx": "^4.21.0"
   }
 }

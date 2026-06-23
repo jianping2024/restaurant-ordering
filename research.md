@@ -15,12 +15,15 @@
 
 ### 1.1 平台管理员 vs 店内角色（勿混为一谈）
 
-| 维度 | **平台管理员** | **店内 / 租户侧** |
-|------|------------------|-------------------|
-| **是谁** | 掌握部署环境变量 **`ADMIN_BOOTSTRAP_SECRET`** 的运营/技术人员；通过 `/auth/admin/register` 调受控接口 | **店主**：`restaurants.owner_id`；**厨房 / 服务员**：**独立 Supabase Auth 账号**，合成邮箱 **`{login_name}@mesa.in`**（全平台 `login_name` 唯一），见 [`docs/staff-accounts-plan.md`](docs/staff-accounts-plan.md) |
-| **数据归属** | 不天然属于某一家 `restaurants`；接口用 **service role** 代建用户与餐厅行 | 所有 `/dashboard` 与 RLS 以 **`owner_id = auth.uid()`** 绑定「本店」；员工以 **`restaurant_staff_accounts`** 绑定 **`restaurant_id` + `user_id`** |
+| 维度 | **平台管理员（Mesa 运营）** | **店内 / 租户侧** |
+|------|------------------------------|-------------------|
+| **是谁** | Mesa 内部运营 / 技术支持；**目标态**为独立平台账号登录 **`/ops/*`**（见 [`docs/platform-admin-plan.zh.md`](docs/platform-admin-plan.zh.md)）。**现状**：仍可用环境变量 **`ADMIN_BOOTSTRAP_SECRET`** + **`/auth/admin/register`** 代开新店 | **店主**：`restaurants.owner_id`；**厨房 / 服务员**：**独立 Supabase Auth 账号**，合成邮箱 **`{login_name}@mesa.in`**（全平台 `login_name` 唯一），见 [`docs/staff-accounts-plan.md`](docs/staff-accounts-plan.md) |
+| **数据归属** | 不天然属于某一家 `restaurants`；跨店读写走 **`/api/ops/*` + service role**，且写操作须 **审计** | 所有 `/dashboard` 与 RLS 以 **`owner_id = auth.uid()`** 绑定「本店」；员工以 **`restaurant_staff_accounts`** 绑定 **`restaurant_id` + `user_id`** |
+| **典型能力** | 餐厅列表与开户、店主重置密码、**远程吊销**打印设备 / 配对码、跨店 `print_jobs` 排障、套餐与功能开关 override（分阶段，见运营计划） | 菜单、订单、桌位、员工、本店打印助手等 |
 
-**设计原则**：平台级能力（开新店、未来 SaaS 计费/审计等）与租户内能力（菜单、订单、桌位）应 **分接口、分环境变量、分文档与 UI 入口**，避免混用同一套登录态或同一页配置。
+**设计原则**：平台级能力（开新店、远程吊销凭证、SaaS 计费/审计等）与租户内能力（菜单、订单、桌位）应 **分接口、分登录态、分文档与 UI 入口**，避免混用同一套登录态或同一页配置。
+
+**实施计划**：[`docs/platform-admin-plan.zh.md`](docs/platform-admin-plan.zh.md)
 
 ## 2. 多语言（zh/en/pt）
 
@@ -123,6 +126,7 @@
 
 ## 12. 后续可选 / 文档级待办
 
+- **平台运营后台**：见 [`docs/platform-admin-plan.zh.md`](docs/platform-admin-plan.zh.md)（P0 替代 `/auth/admin/register` 为主开户路径；P1 打印凭证远程吊销与审计）。
 - **数据库**：在确认无依赖后 **删除** `restaurants.kitchen_password` / `waiter_password`（及版本列等）并收缩 `staff-password` 类 helper；见 [`docs/staff-accounts-plan.md`](docs/staff-accounts-plan.md)。
 - **安全**：按需进一步 **收紧 anon RLS**（计划中同上）。
 - 其它产品文档（如 `README.md`、本文件、`print-agent-plan.md`）已与 [`docs/restaurant-tables-design.zh.md`](docs/restaurant-tables-design.zh.md) 桌位与打印 payload 定稿对齐；实施代码时以定稿为准。

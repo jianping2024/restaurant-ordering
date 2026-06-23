@@ -135,7 +135,7 @@ Supabase **内置邮件**不是给公开注册用的：在未配置 **自定义 
 | `/` | 产品落地页 |
 | `/auth/login` | 登录 |
 | `/auth/register` | 提示「公开注册已关闭」（跳转登录） |
-| `/auth/admin/register` | 管理员创建店主 + 餐厅（需 `ADMIN_BOOTSTRAP_SECRET` + Service Role） |
+| `/auth/admin/register` | 管理员创建店主 + 餐厅（需 `ADMIN_BOOTSTRAP_SECRET` + Service Role）；**目标态**迁移至平台运营后台 `/ops/*`，见 [`docs/platform-admin-plan.zh.md`](docs/platform-admin-plan.zh.md) |
 | `/dashboard` | 餐厅后台概览 |
 | `/dashboard/settings/menu` | 菜单管理 |
 | `/dashboard/tables` | 桌位二维码管理 |
@@ -181,15 +181,26 @@ git remote add origin <your-github-repo>
 git push -u origin main
 ```
 
-### 2. 在 Vercel 导入项目
+### 2. 在 Vercel 导入项目（monorepo：两个 Project）
 
-1. 前往 [vercel.com](https://vercel.com) → New Project → 导入 GitHub 仓库
-2. 在 Environment Variables 中添加变量：
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `NEXT_PUBLIC_BASE_URL`（填 Vercel 域名，如 `https://your-app.vercel.app`）
-   - `SUPABASE_SERVICE_ROLE_KEY`、`ADMIN_BOOTSTRAP_SECRET`（管理员创建店主时需要，勿泄露）
-3. 点击 Deploy
+仓库为 npm workspaces：`apps/web`（租户产品）+ `apps/ops`（运营后台）。**同一 `main` 分支、两个独立 Vercel Project**，互不影响构建与回滚。详见 [`docs/monorepo-vercel.zh.md`](docs/monorepo-vercel.zh.md)。
+
+**mesa-web（现有生产项目 — 须改 Root Directory）**
+
+1. Vercel → 现有项目 → Settings → General → **Root Directory** → `apps/web` → Save  
+2. Redeploy Production 一次  
+3. Environment Variables（与原先相同，域名改为租户域名）：
+   - `NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`、`NEXT_PUBLIC_BASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`（按需）、`CRON_SECRET` 等  
+   - **不要**在此项目配置 `ADMIN_BOOTSTRAP_SECRET`（归 ops 项目）
+
+**mesa-ops（新建）**
+
+1. New Project → 同一 GitHub 仓库 → Root Directory **`apps/ops`**  
+2. Production Branch：`main`  
+3. 环境变量：`SUPABASE_SERVICE_ROLE_KEY`、`ADMIN_BOOTSTRAP_SECRET`、Supabase URL/anon key 等（见运营计划文档）
+
+两个项目的 `vercel.json` 已配置 `ignoreCommand`：仅改 `apps/ops` 时跳过 web 构建，反之亦然。
 
 ### 3. 部署后更新 Supabase
 
@@ -199,7 +210,7 @@ git push -u origin main
 
 ## 快速使用流程
 
-1. 配置 `SUPABASE_SERVICE_ROLE_KEY` 与 `ADMIN_BOOTSTRAP_SECRET` 后，在 `/auth/admin/register` 创建店主与餐厅（或仅在 Supabase 中手动建用户后再在后台补餐厅）
+1. 配置 `SUPABASE_SERVICE_ROLE_KEY` 与 `ADMIN_BOOTSTRAP_SECRET` 后，在 `/auth/admin/register` 创建店主与餐厅（**过渡期**；目标态为平台运营后台 `/ops/*`，见 [`docs/platform-admin-plan.zh.md`](docs/platform-admin-plan.zh.md)）
 2. 店主在 `/auth/login` 登录，在 `/dashboard/settings/menu` 添加菜品
 3. 在 `/dashboard/tables` 生成桌位二维码并打印
 4. 在 `/dashboard/settings/staff` **创建厨房 / 服务员员工账号**（每人 **`{登录名}@mesa.in`** + 初始密码；登录名全平台唯一）

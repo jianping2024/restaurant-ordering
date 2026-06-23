@@ -2,7 +2,8 @@
   "framework": "nextjs",
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
-  "installCommand": "npm install",
+  "installCommand": "cd ../.. && npm ci",
+  "ignoreCommand": "bash scripts/vercel-ignore-web.sh",
   "crons": [
     {
       "path": "/api/cron/nightly-close-sessions",

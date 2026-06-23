@@ -116,20 +116,12 @@ export function OrdersHistoryManager({
     setSessionOperating(false);
   };
 
-  const mergeSourcesExcludingTarget = useMemo(
-    () =>
-      targetTableId
-        ? mergeSourceTableIds.filter((id) => !tableIdsEqual(id, targetTableId))
-        : mergeSourceTableIds,
-    [mergeSourceTableIds, targetTableId],
-  );
-
   const handleSubmitSessionOperation = async () => {
     if (!restaurantId || !operationType || !targetTableId) return;
 
     const selectedSources =
       operationType === 'merge'
-        ? mergeSourcesExcludingTarget
+        ? mergeSourceTableIds
         : sourceTableId
           ? [sourceTableId]
           : [];
@@ -187,10 +179,19 @@ export function OrdersHistoryManager({
     )
     .sort(compareRestaurantTables);
   const mergeTargets = activeSessions
+    .filter((s) => !mergeSourceTableIds.includes(s.table_id))
     .map((s) => tableById.get(s.table_id))
     .filter((row): row is RestaurantTableRow => !!row)
     .sort(compareRestaurantTables);
   const sessionOperationTargets = operationType === 'transfer' ? transferTargets : mergeTargets;
+  const maxMergeSourceCount = Math.max(0, activeSessions.length - 1);
+
+  useEffect(() => {
+    if (operationType !== 'merge' || !targetTableId) return;
+    if (mergeSourceTableIds.includes(targetTableId)) {
+      setTargetTableId(null);
+    }
+  }, [operationType, targetTableId, mergeSourceTableIds]);
 
   const tableOptions = useMemo<TableOption[]>(
     () =>
@@ -625,24 +626,32 @@ export function OrdersHistoryManager({
                 <div className="modal-scroll rounded-lg border border-brand-border bg-brand-bg p-2 max-h-40 overflow-y-auto space-y-1.5">
                   {activeSessions.map((session) => {
                     const checked = mergeSourceTableIds.includes(session.table_id);
+                    const atMaxSources = !checked && mergeSourceTableIds.length >= maxMergeSourceCount;
                     return (
-                      <label key={session.id} className="flex items-center gap-2 text-sm text-brand-text">
+                      <label
+                        key={session.id}
+                        className={`flex items-center gap-2 text-sm ${atMaxSources ? 'text-brand-text-muted' : 'text-brand-text'}`}
+                      >
                         <input
                           type="checkbox"
                           checked={checked}
+                          disabled={atMaxSources}
                           onChange={(e) => {
+                            const tableId = session.table_id;
+                            if (!e.target.checked) {
+                              setMergeSourceTableIds((prev) => prev.filter((id) => id !== tableId));
+                              return;
+                            }
                             setMergeSourceTableIds((prev) =>
-                              e.target.checked
-                                ? [...prev, session.table_id].sort((a, b) => {
-                                    const ta = tableById.get(a);
-                                    const tb = tableById.get(b);
-                                    if (ta && tb) return compareRestaurantTables(ta, tb);
-                                    return a.localeCompare(b);
-                                  })
-                                : prev.filter((id) => id !== session.table_id),
+                              [...prev, tableId].sort((a, b) => {
+                                const ta = tableById.get(a);
+                                const tb = tableById.get(b);
+                                if (ta && tb) return compareRestaurantTables(ta, tb);
+                                return a.localeCompare(b);
+                              }),
                             );
                           }}
-                          className="accent-brand-gold"
+                          className="accent-brand-gold disabled:opacity-50"
                         />
                         {tablesI18n.table} {session.display_name}
                       </label>
@@ -683,7 +692,7 @@ export function OrdersHistoryManager({
               loading={sessionOperating}
               disabled={
                 operationType === 'merge'
-                  ? !targetTableId || mergeSourcesExcludingTarget.length === 0
+                  ? mergeSourceTableIds.length === 0 || !targetTableId
                   : !sourceTableId || !targetTableId
               }
             >

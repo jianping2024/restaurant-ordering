@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Order, OrderStatus } from '@/types';
+import type { Order } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { DayPicker, type DateRange } from 'react-day-picker';
@@ -41,7 +41,6 @@ export function OrdersHistoryManager({
   const [closingTable, setClosingTable] = useState<string | null>(null);
   const [checkoutCloseConfirmTableId, setCheckoutCloseConfirmTableId] = useState<string | null>(null);
   const [selectedTables, setSelectedTables] = useState<TableOption[]>([]);
-  const [statusFilter, setStatusFilter] = useState<'all' | OrderStatus>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [pickerOpen, setPickerOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement | null>(null);
@@ -49,17 +48,6 @@ export function OrdersHistoryManager({
   useEffect(() => {
     setOrders(initialOrders);
   }, [initialOrders]);
-
-  const statusLabel: Record<OrderStatus, string> = {
-    pending: i18n.pending,
-    cooking: i18n.cooking,
-    done: i18n.done,
-  };
-  const statusColor: Record<OrderStatus, string> = {
-    pending: 'mesa-badge-danger',
-    cooking: 'mesa-badge-warning',
-    done: 'mesa-badge-success',
-  };
 
   const tableOptions = useMemo<TableOption[]>(
     () =>
@@ -123,7 +111,6 @@ export function OrdersHistoryManager({
     const selectedTableIds = new Set(selectedTables.map((item) => item.value));
     return orders.filter(order => {
       if (selectedTableIds.size > 0 && !selectedTableIds.has(order.table_id)) return false;
-      if (statusFilter !== 'all' && order.status !== statusFilter) return false;
 
       if (dateRange?.from) {
         const fromTs = new Date(dateRange.from);
@@ -141,7 +128,7 @@ export function OrdersHistoryManager({
       }
       return true;
     });
-  }, [orders, selectedTables, statusFilter, dateRange]);
+  }, [orders, selectedTables, dateRange]);
 
   const tableGroups = useMemo(() => {
     if (!showCloseTable) return null;
@@ -221,7 +208,6 @@ export function OrdersHistoryManager({
           <div style="font-size: 14px; margin-bottom: 14px;">
             <div>${i18n.table} ${order.display_name}</div>
             <div>${createdAt}</div>
-            <div>${statusLabel[order.status]}</div>
           </div>
           <table style="width:100%; border-collapse: collapse; font-size: 14px;">
             <thead>
@@ -285,14 +271,9 @@ export function OrdersHistoryManager({
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              {!showCloseTable ? (
-                <p className="text-brand-text font-medium">{i18n.table} {order.display_name}</p>
-              ) : null}
-              <span className={`text-[13px] px-2 py-0.5 rounded-full ${statusColor[order.status]}`}>
-                {statusLabel[order.status]}
-              </span>
-            </div>
+            {!showCloseTable ? (
+              <p className="text-brand-text font-medium">{i18n.table} {order.display_name}</p>
+            ) : null}
             <p className="text-brand-text-muted text-[13px] mt-1">
               {new Date(order.created_at).toLocaleString(locale)}
             </p>
@@ -327,7 +308,7 @@ export function OrdersHistoryManager({
 
   return (
     <div>
-      <div className="bg-brand-card border border-brand-border rounded-xl p-4 mb-4 grid gap-3 md:grid-cols-3">
+      <div className="bg-brand-card border border-brand-border rounded-xl p-4 mb-4 grid gap-3 md:grid-cols-2">
         <Select<TableOption, true>
           isMulti
           options={tableOptions}
@@ -343,16 +324,6 @@ export function OrdersHistoryManager({
           isClearable
           closeMenuOnSelect
         />
-        <select
-          value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value as 'all' | OrderStatus)}
-          className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
-        >
-          <option value="all">{i18n.statusAll}</option>
-          <option value="pending">{i18n.pending}</option>
-          <option value="cooking">{i18n.cooking}</option>
-          <option value="done">{i18n.done}</option>
-        </select>
         <div className="relative" ref={pickerRef}>
           <button
             type="button"

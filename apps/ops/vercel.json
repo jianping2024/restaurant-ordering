@@ -3,5 +3,5 @@
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "cd ../.. && npm ci",
-  "ignoreCommand": "bash scripts/vercel-ignore-ops.sh"
+  "ignoreCommand": "bash ../../scripts/vercel-ignore-ops.sh"
 }

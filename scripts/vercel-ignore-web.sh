@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Vercel Ignored Build Step for @mesa/web (mesa-web project).
+# ignoreCommand runs with cwd = apps/web when Root Directory is apps/web.
 # Exit 0 → skip; exit 1 → build.
 # Skips when only apps/ops/, apps/print-agent/, or docs-only paths changed.
 

@@ -128,6 +128,7 @@ type jobLine struct {
 	ItemIndex           int     `json:"item_index"`
 	DisplayName         string  `json:"display_name"`
 	Qty                 int     `json:"qty"`
+	ShareQtyLabel       string  `json:"share_qty_label"`
 	Note                string  `json:"note"`
 	UnitPrice           float64 `json:"unit_price"`
 	CategoryGroupSort   int     `json:"category_group_sort"`
@@ -641,6 +642,11 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 			}
 			label := strings.TrimSpace(ln.DisplayName)
 			lineTotal := ln.UnitPrice * float64(qty)
+			qtyCol := fmt.Sprintf("%d", qty)
+			if shareLabel := strings.TrimSpace(ln.ShareQtyLabel); shareLabel != "" {
+				qtyCol = shareLabel
+				lineTotal = ln.UnitPrice
+			}
 			if ln.UnitPrice > 0 {
 				hasPrice = true
 				sum += lineTotal
@@ -649,7 +655,7 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 			if ln.UnitPrice > 0 {
 				priceCol = formatMoney(lineTotal)
 			}
-			w.text(escposThreeColLine(label, fmt.Sprintf("%d", qty), priceCol))
+			w.text(escposThreeColLine(label, qtyCol, priceCol))
 			w.lf()
 		}
 		w.separator('-')

@@ -54,6 +54,34 @@ func TestBuildOrderReceiptEnglishLayout(t *testing.T) {
 	}
 }
 
+func TestBuildOrderReceiptSplitPaymentShareQtyLabel(t *testing.T) {
+	payload, _ := json.Marshal(map[string]any{
+		"display_name":    "A-05",
+		"receipt_variant": "split_payment",
+		"payer_name":      "1",
+		"amount_due":      1.0,
+		"amount_paid":     1.0,
+		"payment_method":  "Cash",
+		"lines": []map[string]any{
+			{
+				"item_index":       1,
+				"display_name":     "Coca-Cola",
+				"qty":              1,
+				"unit_price":       1.0,
+				"share_qty_label":  "1/3",
+			},
+		},
+	})
+	raw := escposFromJob(printJob{Type: "order_receipt", Payload: payload})
+	s := string(raw)
+	if !strings.Contains(s, "1/3") {
+		t.Fatalf("split receipt must show share qty 1/3, got: %q", s)
+	}
+	if !strings.Contains(s, "1.00") {
+		t.Fatalf("split receipt must show share price 1.00, got: %q", s)
+	}
+}
+
 func TestBuildOrderReceiptSplitPaymentGuestNumber(t *testing.T) {
 	payload, _ := json.Marshal(map[string]any{
 		"display_name":    "A-05",

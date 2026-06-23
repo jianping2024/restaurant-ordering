@@ -17,6 +17,42 @@ export type ByItemSplitRow = {
   items: Array<{ name: string; qty: number; price: number }>;
 };
 
+function gcd(a: number, b: number): number {
+  let x = Math.abs(a);
+  let y = Math.abs(b);
+  while (y !== 0) {
+    const t = y;
+    y = x % y;
+    x = t;
+  }
+  return x || 1;
+}
+
+/** Human-readable share of ordered qty when a line is split among assignees (e.g. 1/3, 2). */
+export function byItemQtyShareLabel(lineQty: number, assigneeCount: number): string {
+  const qty = Math.max(0, Math.round(lineQty));
+  const n = Math.max(1, assigneeCount);
+  if (qty === 0) return '0';
+  const g = gcd(qty, n);
+  const num = qty / g;
+  const den = n / g;
+  return den === 1 ? String(num) : `${num}/${den}`;
+}
+
+/** Assignee ids for a line key (`orderId-index`), matching bill UI person ids `p1`, `p2`, … */
+export function byItemAssigneesForKey(
+  persons: Array<{ items?: string[] }>,
+  lineKey: string,
+): string[] {
+  const assignees: string[] = [];
+  persons.forEach((person, idx) => {
+    if ((person.items || []).includes(lineKey)) {
+      assignees.push(`p${idx + 1}`);
+    }
+  });
+  return assignees;
+}
+
 /** One person's share of a line total when split among assignees (cent-safe). */
 export function byItemLineShare(lineTotal: number, assigneeIds: string[], personId: string): number {
   const n = assigneeIds.length;

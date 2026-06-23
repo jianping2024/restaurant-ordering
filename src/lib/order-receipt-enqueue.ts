@@ -1,5 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BillSplit, Order, PrintJobType } from '@/types';
+import {
+  byItemAssigneesForKey,
+  byItemLineShare,
+  byItemQtyShareLabel,
+} from '@/lib/bill-split-by-item';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { fetchMenuPrintContext } from '@/lib/menu-print-context';
 import { orderItemPrintDisplayName } from '@/lib/menu-print-label';
@@ -37,6 +42,8 @@ export type OrderReceiptJobPayload = {
     qty: number;
     unit_price: number;
     note?: string;
+    /** by_item split receipts: person's share of dish qty (e.g. 1/3) for thermal Qty column */
+    share_qty_label?: string;
   }>;
 };
 
@@ -73,42 +80,14 @@ export function buildSplitPersonReceiptLines(
   orders: Order[],
   printCtx?: Awaited<ReturnType<typeof fetchMenuPrintContext>>,
 ): OrderReceiptJobPayload['lines'] {
-  const row = split.result?.[personIndex];
-  if (row?.items?.length) {
-    return row.items.map((it, idx) => {
-      const baseName = (it.name || '').trim();
-      let display_name = baseName;
-      if (printCtx) {
-        const match = (orders || [])
-          .flatMap((o) => (o.items || []).map((line) => ({ order: o, line })))
-          .find(
-            ({ line }) =>
-              (line.name_pt || line.name || '').trim() === baseName ||
-              (line.name || '').trim() === baseName,
-          );
-        if (match) {
-          display_name = orderItemPrintDisplayName(
-            match.line,
-            printCtx.menuById,
-            printCtx.categories,
-          );
-        }
-      }
-      return {
-        item_index: idx + 1,
-        display_name,
-        qty: it.qty,
-        unit_price: it.qty > 0 ? it.price / it.qty : it.price,
-      };
-    });
-  }
-
   if (split.split_mode !== 'by_item') return [];
 
   const person = split.persons?.[personIndex];
   const keys = new Set(person?.items || []);
   if (keys.size === 0) return [];
 
+  const persons = split.persons || [];
+  const personId = `p${personIndex + 1}`;
   const lines: OrderReceiptJobPayload['lines'] = [];
   let itemIndex = 0;
   for (const order of orders) {
@@ -116,7 +95,13 @@ export function buildSplitPersonReceiptLines(
       const st = normalizeOrderItemStatus(item, order.status);
       if (st === 'voided') return;
       const key = `${order.id}-${idx}`;
-      if (!keys.has(key) && !keys.has(item.id)) return;
+      if (!keys.has(key)) return;
+
+      const assignees = byItemAssigneesForKey(persons, key);
+      const lineTotal = item.price * item.qty;
+      const sharePrice = byItemLineShare(lineTotal, assignees, personId);
+      const shareLabel = byItemQtyShareLabel(item.qty, assignees.length);
+
       itemIndex += 1;
       const display_name = printCtx
         ? orderItemPrintDisplayName(item, printCtx.menuById, printCtx.categories)
@@ -124,8 +109,9 @@ export function buildSplitPersonReceiptLines(
       lines.push({
         item_index: itemIndex,
         display_name,
-        qty: item.qty,
-        unit_price: item.price,
+        qty: 1,
+        unit_price: sharePrice,
+        share_qty_label: shareLabel,
       });
     });
   }

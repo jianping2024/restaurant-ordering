@@ -132,24 +132,7 @@ export function DashboardPageClient({
                     </p>
                     <p className="text-[13px] text-brand-text-muted">{order.createdAtLabel}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm text-brand-gold">€{order.total_amount.toFixed(2)}</p>
-                    <span
-                      className={`text-[13px] px-2 py-0.5 rounded-full ${
-                        order.status === 'done'
-                          ? 'bg-green-400/15 text-green-400'
-                          : order.status === 'cooking'
-                            ? 'mesa-badge-warning'
-                            : 'mesa-badge-danger'
-                      }`}
-                    >
-                      {order.status === 'done'
-                        ? i18n.done
-                        : order.status === 'cooking'
-                          ? i18n.cooking
-                          : i18n.pending}
-                    </span>
-                  </div>
+                  <p className="text-sm text-brand-gold">€{order.total_amount.toFixed(2)}</p>
                 </div>
               ))}
             </div>

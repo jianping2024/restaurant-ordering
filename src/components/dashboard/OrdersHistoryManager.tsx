@@ -116,12 +116,20 @@ export function OrdersHistoryManager({
     setSessionOperating(false);
   };
 
+  const mergeSourcesExcludingTarget = useMemo(
+    () =>
+      targetTableId
+        ? mergeSourceTableIds.filter((id) => !tableIdsEqual(id, targetTableId))
+        : mergeSourceTableIds,
+    [mergeSourceTableIds, targetTableId],
+  );
+
   const handleSubmitSessionOperation = async () => {
     if (!restaurantId || !operationType || !targetTableId) return;
 
     const selectedSources =
       operationType === 'merge'
-        ? mergeSourceTableIds
+        ? mergeSourcesExcludingTarget
         : sourceTableId
           ? [sourceTableId]
           : [];
@@ -130,7 +138,7 @@ export function OrdersHistoryManager({
       return;
     }
 
-    if (selectedSources.some((id) => tableIdsEqual(id, targetTableId))) {
+    if (operationType === 'transfer' && tableIdsEqual(sourceTableId, targetTableId)) {
       showToast(tablesI18n.sameTableError, 'error');
       return;
     }
@@ -179,9 +187,7 @@ export function OrdersHistoryManager({
     )
     .sort(compareRestaurantTables);
   const mergeTargets = activeSessions
-    .map((s) => s.table_id)
-    .filter((id) => !mergeSourceTableIds.includes(id))
-    .map((id) => tableById.get(id))
+    .map((s) => tableById.get(s.table_id))
     .filter((row): row is RestaurantTableRow => !!row)
     .sort(compareRestaurantTables);
   const sessionOperationTargets = operationType === 'transfer' ? transferTargets : mergeTargets;
@@ -677,7 +683,7 @@ export function OrdersHistoryManager({
               loading={sessionOperating}
               disabled={
                 operationType === 'merge'
-                  ? mergeSourceTableIds.length === 0 || !targetTableId
+                  ? !targetTableId || mergeSourcesExcludingTarget.length === 0
                   : !sourceTableId || !targetTableId
               }
             >

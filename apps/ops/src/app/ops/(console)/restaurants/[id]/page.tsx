@@ -25,11 +25,7 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
 
   return (
     <div>
-      <Link href="/ops/restaurants" className="text-sm text-zinc-500 hover:text-zinc-300">
-        ← 返回列表
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold">{row.name}</h1>
-      <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
+      <dl className="grid gap-3 text-sm sm:grid-cols-2">
         <div>
           <dt className="text-zinc-500">slug</dt>
           <dd className="font-mono">{row.slug}</dd>

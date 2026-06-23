@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
+import { revokePrintAgentPairing } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
-
-export const runtime = 'nodejs';
 
 /** Void an unused pairing code so it no longer counts toward the pending slot limit. */
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
@@ -23,27 +22,20 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
-  const nowIso = new Date().toISOString();
-  const { data: row, error: uErr } = await admin
-    .from('print_agent_pairings')
-    .update({ revoked_at: nowIso })
-    .eq('id', pairingId)
-    .eq('restaurant_id', auth.restaurantId)
-    .is('consumed_at', null)
-    .is('revoked_at', null)
-    .gt('expires_at', nowIso)
-    .select('id')
-    .maybeSingle();
-
-  if (uErr) {
-    return NextResponse.json({ error: 'update_failed', message: uErr.message }, { status: 500 });
-  }
-  if (!row) {
+  const result = await revokePrintAgentPairing(admin, pairingId, auth.restaurantId);
+  if (!result.ok) {
+    const status = result.error === 'not_revokable' ? 409 : 500;
     return NextResponse.json(
-      { error: 'not_revokable', message: 'Code already used, expired, or voided.' },
-      { status: 409 },
+      {
+        error: result.error === 'not_revokable' ? 'not_revokable' : 'update_failed',
+        message:
+          result.error === 'not_revokable'
+            ? 'Code already used, expired, or voided.'
+            : result.detail,
+      },
+      { status },
     );
   }
 
-  return NextResponse.json({ ok: true, id: row.id });
+  return NextResponse.json({ ok: true, id: result.pairingId });
 }

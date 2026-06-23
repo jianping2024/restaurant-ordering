@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 const NAV = [
   { href: '/ops', label: '概览' },
   { href: '/ops/restaurants', label: '餐厅' },
+  { href: '/ops/print/devices', label: '打印' },
   { href: '/ops/audit', label: '审计' },
 ];
 
@@ -36,7 +37,9 @@ export function OpsShell({
                 const active =
                   item.href === '/ops'
                     ? pathname === '/ops'
-                    : pathname.startsWith(item.href);
+                    : item.href.startsWith('/ops/print')
+                      ? pathname.startsWith('/ops/print')
+                      : pathname.startsWith(item.href);
                 return (
                   <Link
                     key={item.href}

@@ -99,7 +99,7 @@ export function PrintAgentDevicesPanel({
         </button>
       </div>
       {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
-      <ul className="mt-4 space-y-3">
+      <ul className="modal-scroll mt-4 max-h-96 space-y-3 overflow-y-auto">
         {devices.map((d) => {
           const online = isPrintAgentDeviceOnline(d.last_seen);
           const versionBehind =

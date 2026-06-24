@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BillSplit, Order } from '@/types';
-import { buildSplitPersonReceiptLines } from './order-receipt-enqueue';
+import { buildSplitPersonReceiptLines, enqueueReceiptPrint } from './order-receipt-enqueue';
+
+const RESTAURANT_ID = '11111111-1111-4111-8111-111111111111';
 
 const ORDER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
@@ -82,5 +85,49 @@ describe('buildSplitPersonReceiptLines', () => {
       orders,
     );
     assert.deepEqual(lines, []);
+  });
+});
+
+describe('enqueueReceiptPrint', () => {
+  it('skips print job when bill_receipt_print is disabled', async () => {
+    let insertCalled = false;
+    const admin = {
+      from(table: string) {
+        if (table === 'restaurants') {
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({
+                  data: { feature_flags: { bill_receipt_print: false } },
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'print_jobs') {
+          return {
+            insert: () => {
+              insertCalled = true;
+              return { select: () => ({ single: async () => ({ data: null, error: null }) }) };
+            },
+          };
+        }
+        throw new Error(`unexpected table: ${table}`);
+      },
+    } as unknown as SupabaseClient;
+
+    const result = await enqueueReceiptPrint({
+      admin,
+      restaurantId: RESTAURANT_ID,
+      printLocale: 'pt',
+      sessionId: 'sess-1',
+      tableId: 'table-1',
+      tableDisplayName: 'A-01',
+      variant: 'pre_bill',
+    });
+
+    assert.deepEqual(result, { ok: true, skipped: true });
+    assert.equal(insertCalled, false);
   });
 });

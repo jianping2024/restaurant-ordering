@@ -199,5 +199,9 @@ export async function POST(
     return NextResponse.json({ error: result.code, message: result.message }, { status: result.status });
   }
 
+  if ('skipped' in result) {
+    return NextResponse.json({ ok: true, skipped: true });
+  }
+
   return NextResponse.json({ ok: true, job_id: result.job_id });
 }

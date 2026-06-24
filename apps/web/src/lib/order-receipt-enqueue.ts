@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BillSplit, Order, PrintJobType } from '@/types';
+import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import {
   byItemAssigneesForKey,
   byItemLineShare,
@@ -201,6 +202,7 @@ export async function enqueueReceiptPrint(
   params: EnqueueParams,
 ): Promise<
   | { ok: true; job_id: string; deduped?: boolean }
+  | { ok: true; skipped: true }
   | { ok: false; status: number; code: string; message?: string }
 > {
   const {
@@ -220,6 +222,23 @@ export async function enqueueReceiptPrint(
     receiptPrinterId,
     orderIds: orderIdsParam,
   } = params;
+
+  const { data: restaurantRow, error: restaurantErr } = await admin
+    .from('restaurants')
+    .select('feature_flags')
+    .eq('id', restaurantId)
+    .maybeSingle();
+  if (restaurantErr) {
+    return {
+      ok: false,
+      status: 500,
+      code: 'restaurant_load_failed',
+      message: restaurantErr.message,
+    };
+  }
+  if (!isRestaurantFeatureEnabled(restaurantRow?.feature_flags, 'bill_receipt_print')) {
+    return { ok: true, skipped: true };
+  }
 
   const locale = (printLocale || 'pt') as 'zh' | 'en' | 'pt';
   const jobType: PrintJobType = variant === 'pre_bill' ? 'pre_bill' : 'order_receipt';
@@ -351,15 +370,4 @@ export async function enqueueReceiptPrint(
   }
 
   return { ok: true, job_id: inserted.id as string };
-}
-
-/** @deprecated Use enqueueReceiptPrint */
-export async function enqueueOrderReceiptForSession(
-  params: Omit<EnqueueParams, 'variant'> & {
-    jobType?: Extract<PrintJobType, 'order_receipt' | 'pre_bill'>;
-  },
-) {
-  const variant: ReceiptVariant =
-    params.jobType === 'pre_bill' ? 'pre_bill' : 'final';
-  return enqueueReceiptPrint({ ...params, variant });
 }

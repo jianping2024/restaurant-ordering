@@ -1,8 +1,8 @@
 /** Known restaurant feature keys — extend this union when adding toggles. */
-export type RestaurantFeatureKey = 'kitchen_board';
+export type RestaurantFeatureKey = 'kitchen_board' | 'bill_receipt_print';
 
 /** UI grouping by product page / surface area — not stored in jsonb. */
-export type RestaurantFeatureModuleId = 'dashboard_nav';
+export type RestaurantFeatureModuleId = 'dashboard_nav' | 'billing';
 
 export type RestaurantFeatureFlags = Partial<Record<RestaurantFeatureKey, boolean>>;
 
@@ -10,7 +10,7 @@ export type ResolvedRestaurantFeatureFlags = Record<RestaurantFeatureKey, boolea
 
 export type RestaurantFeatureModuleDefinition = {
   id: RestaurantFeatureModuleId;
-  labelKey: 'moduleDashboardNav';
+  labelKey: 'moduleDashboardNav' | 'moduleBilling';
   /** Lower values render first on the settings page. */
   sortOrder: number;
 };
@@ -20,8 +20,8 @@ export type RestaurantFeatureDefinition = {
   moduleId: RestaurantFeatureModuleId;
   /** Used when the key is absent from stored jsonb. */
   defaultEnabled: boolean;
-  labelKey: 'kitchenBoard';
-  descKey: 'kitchenBoardDesc';
+  labelKey: 'kitchenBoard' | 'billReceiptPrint';
+  descKey: 'kitchenBoardDesc' | 'billReceiptPrintDesc';
   /** Which dashboard sidebar shortcut this feature controls. */
   dashboardShortcut?: 'kitchen';
 };
@@ -38,6 +38,11 @@ export const RESTAURANT_FEATURE_MODULES: readonly RestaurantFeatureModuleDefinit
     labelKey: 'moduleDashboardNav',
     sortOrder: 10,
   },
+  {
+    id: 'billing',
+    labelKey: 'moduleBilling',
+    sortOrder: 20,
+  },
 ] as const;
 
 /** Single registry for UI, API validation, and nav gating. */
@@ -49,6 +54,13 @@ export const RESTAURANT_FEATURE_DEFINITIONS: readonly RestaurantFeatureDefinitio
     labelKey: 'kitchenBoard',
     descKey: 'kitchenBoardDesc',
     dashboardShortcut: 'kitchen',
+  },
+  {
+    key: 'bill_receipt_print',
+    moduleId: 'billing',
+    defaultEnabled: false,
+    labelKey: 'billReceiptPrint',
+    descKey: 'billReceiptPrintDesc',
   },
 ] as const;
 

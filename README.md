@@ -85,12 +85,14 @@ npm run dev
 
 **云端**：`npm run cloud` 使用现有 `.env.local`（其他云 Supabase 项目）。
 
-### 5. 配置环境变量（管理员开户）
+### 5. 配置环境变量（运营开户 / 服务端）
 
-除 `NEXT_PUBLIC_*` 外，若使用管理员创建账号，还需：
+除 `NEXT_PUBLIC_*` 外，运营后台与 bootstrap 还需：
 
 - `SUPABASE_SERVICE_ROLE_KEY`：Supabase 项目 Settings → API → `service_role` secret
-- `ADMIN_BOOTSTRAP_SECRET`：自行生成的长随机串，与 `/auth/admin/register` 页面填写的「管理员密钥」一致
+- `ADMIN_BOOTSTRAP_SECRET`：长随机串；仅用于 **首个运营账号** bootstrap（`@mesa/ops` 的 `/ops/bootstrap`），不再用于租户侧开新店
+
+租户 Web（`@mesa/web`）建议配置 `NEXT_PUBLIC_OPS_APP_URL`（运营后台公网 URL），以便 `/auth/admin/register` 自动跳转到 `/ops/login`。
 
 ### 6. 配置 Supabase Auth
 
@@ -101,10 +103,11 @@ npm run dev
 
 ### 7. 店主账号如何创建（公开注册已关闭）
 
-1. 在 [Supabase Dashboard](https://supabase.com/dashboard) → **Project Settings → API** 复制 **service_role** 密钥（仅服务端使用，勿写入前端或提交 Git）。
-2. 在 `.env.local` 中配置 `SUPABASE_SERVICE_ROLE_KEY` 与 `ADMIN_BOOTSTRAP_SECRET`（足够长的随机字符串）。
-3. 浏览器打开 **`/auth/admin/register`**，填写管理员密钥、餐厅名称、新店主邮箱与初始密码并提交。
-4. 通知店主使用 **`/auth/login`** 登录后台（**无需点击邮箱验证链接**：接口已用 Admin API 将邮箱标为已确认）。
+1. **运营后台**（推荐）：在 `@mesa/ops` 登录后打开 **创建餐厅**（`/ops/restaurants/new`）。若尚无运营账号，先在 `/ops/bootstrap` 用 `ADMIN_BOOTSTRAP_SECRET` 创建首个运营账号（仅需一次）。
+2. 在 [Supabase Dashboard](https://supabase.com/dashboard) → **Project Settings → API** 配置 **service_role** 密钥到 `.env.local`（`SUPABASE_SERVICE_ROLE_KEY`）。
+3. 通知店主使用 **`/auth/login`** 登录后台（邮箱已在创建时标为已确认，无需验证链接）。
+
+旧路径 **`/auth/admin/register`** 已下线（跳转到运营登录）。`POST /api/admin/create-restaurant` 返回 **410**，请改用 `POST /api/ops/restaurants`。
 
 建议在 Supabase → **Authentication** → **Providers → Email** 中关闭 **Allow new users to sign up**（禁止匿名 `signUp`），与上述流程一致。
 
@@ -135,7 +138,7 @@ Supabase **内置邮件**不是给公开注册用的：在未配置 **自定义 
 | `/` | 产品落地页 |
 | `/auth/login` | 登录 |
 | `/auth/register` | 提示「公开注册已关闭」（跳转登录） |
-| `/auth/admin/register` | 管理员创建店主 + 餐厅（需 `ADMIN_BOOTSTRAP_SECRET` + Service Role）；**目标态**迁移至平台运营后台 `/ops/*`，见 [`docs/platform-admin-plan.zh.md`](docs/platform-admin-plan.zh.md) |
+| `/auth/admin/register` | **已下线** — 重定向至运营后台 `/ops/login`（需 `NEXT_PUBLIC_OPS_APP_URL`） |
 | `/dashboard` | 餐厅后台概览 |
 | `/dashboard/settings/menu` | 菜单管理 |
 | `/dashboard/tables` | 桌位二维码管理 |
@@ -210,7 +213,7 @@ git push -u origin main
 
 ## 快速使用流程
 
-1. 配置 `SUPABASE_SERVICE_ROLE_KEY` 与 `ADMIN_BOOTSTRAP_SECRET` 后，在 `/auth/admin/register` 创建店主与餐厅（**过渡期**；目标态为平台运营后台 `/ops/*`，见 [`docs/platform-admin-plan.zh.md`](docs/platform-admin-plan.zh.md)）
+1. 配置 `SUPABASE_SERVICE_ROLE_KEY` 与 `ADMIN_BOOTSTRAP_SECRET`，在运营后台 `/ops/bootstrap` 创建首个运营账号，再在 `/ops/restaurants/new` 创建店主与餐厅（见 [`docs/platform-admin-plan.zh.md`](docs/platform-admin-plan.zh.md)）。
 2. 店主在 `/auth/login` 登录，在 `/dashboard/settings/menu` 添加菜品
 3. 在 `/dashboard/tables` 生成桌位二维码并打印
 4. 在 `/dashboard/settings/staff` **创建厨房 / 服务员员工账号**（每人 **`{登录名}@mesa.in`** + 初始密码；登录名全平台唯一）

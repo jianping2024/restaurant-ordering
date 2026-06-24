@@ -62,12 +62,14 @@ export function getPrintAgentGithubRepo(): string | null {
 export function getPrintAgentVersion(): string {
   const fromEnv = process.env.NEXT_PUBLIC_PRINT_AGENT_VERSION?.trim();
   if (fromEnv) return fromEnv;
-  try {
-    const versionPath = path.join(process.cwd(), 'apps/print-agent/VERSION');
-    return fs.readFileSync(versionPath, 'utf8').trim();
-  } catch {
-    return '';
+  for (const rel of ['../../apps/print-agent/VERSION', 'apps/print-agent/VERSION'] as const) {
+    try {
+      return fs.readFileSync(path.resolve(process.cwd(), rel), 'utf8').trim();
+    } catch {
+      /* try next cwd layout */
+    }
   }
+  return '';
 }
 
 function pinnedReleaseDownloadUrl(repo: string, version: string, filename: string): string {

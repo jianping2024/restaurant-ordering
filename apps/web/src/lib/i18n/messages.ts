@@ -627,11 +627,6 @@ export const MESSAGES = {
     },
     settingsHub: {
       title: '餐厅设置',
-      navJumpLabel: '设置页面',
-      groupBasics: '基础',
-      groupFeatures: '功能',
-      groupMenu: '菜单与定价',
-      groupPrint: '打印',
       helpLabel: '帮助',
       hintProfile: '餐厅名称、地址、电话；门店定位与下单距离见下方表单。厨房/楼面 PIN 在「员工管理」。',
       hintFeatures: '勾选要在后台侧栏显示的可选功能；默认关闭，按需开启。',
@@ -1405,11 +1400,6 @@ export const MESSAGES = {
     },
     settingsHub: {
       title: 'Settings',
-      navJumpLabel: 'Settings page',
-      groupBasics: 'Basics',
-      groupFeatures: 'Features',
-      groupMenu: 'Menu & pricing',
-      groupPrint: 'Printing',
       helpLabel: 'Help',
       hintProfile:
         'Name, address, phone; location and order radius are in the form below. Staff PINs are under Staff.',
@@ -2029,11 +2019,6 @@ export const MESSAGES = {
     },
     settingsHub: {
       title: 'Configuracoes',
-      navJumpLabel: 'Pagina de configuracao',
-      groupBasics: 'Basico',
-      groupFeatures: 'Funcionalidades',
-      groupMenu: 'Menu e precos',
-      groupPrint: 'Impressao',
       helpLabel: 'Ajuda',
       hintProfile:
         'Nome, morada, telefone; localizacao e distancia maxima no formulario. PINs em Funcionarios.',

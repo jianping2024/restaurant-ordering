@@ -29,7 +29,7 @@ cp .env.local.example .env.local
 supabase start          # 仅本地库需要
 npm run dev             # 本地 Docker Supabase（读 .env.local.dev）
 npm run stage           # 云端 stage 项目（读 .env.local.supabase）
-# npm run cloud         # 云端 Supabase（读 .env.local）
+npm run cloud         # 云端 Supabase（读 .env.local）
 ```
 
 访问 http://localhost:3000

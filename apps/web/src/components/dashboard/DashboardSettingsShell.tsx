@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
@@ -10,7 +9,7 @@ import {
 } from '@/lib/settings-nav';
 import { MenuSettingsGuide } from '@/components/dashboard/settings/MenuSettingsGuide';
 import { BuffetSettingsGuide } from '@/components/dashboard/settings/BuffetSettingsGuide';
-import { SettingsSubnav } from '@/components/dashboard/settings/SettingsSubnav';
+import { SettingsTabs } from '@/components/dashboard/settings/SettingsTabs';
 
 export function DashboardSettingsShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -33,9 +32,7 @@ export function DashboardSettingsShell({ children }: { children: React.ReactNode
     <>
       <header className="mb-4">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <h1 className="font-heading text-2xl sm:text-3xl text-brand-text hidden lg:block">
-            {pageTitle}
-          </h1>
+          <h1 className="font-heading text-2xl sm:text-3xl text-brand-text">{pageTitle}</h1>
           {pageHelpModal}
         </div>
         {pageSubtitle ? (
@@ -51,25 +48,7 @@ export function DashboardSettingsShell({ children }: { children: React.ReactNode
 
   return (
     <div className="w-full min-w-0 max-w-full overflow-x-hidden">
-      <nav className="mb-4 text-[13px] text-brand-text-muted" aria-label="Breadcrumb">
-        <ol className="flex flex-wrap items-center gap-1.5">
-          <li>
-            <Link href="/dashboard/settings" className="hover:text-brand-gold transition-colors">
-              {hub.title}
-            </Link>
-          </li>
-          {activeItem ? (
-            <>
-              <li aria-hidden className="opacity-50">
-                /
-              </li>
-              <li>
-                <SettingsSubnav pageTitle={pageTitle} />
-              </li>
-            </>
-          ) : null}
-        </ol>
-      </nav>
+      <SettingsTabs />
 
       <div className={`min-w-0 w-full ${wide ? '' : 'max-w-4xl'}`}>
         {narrowForm ? <div className="w-full max-w-2xl">{pageBody}</div> : pageBody}

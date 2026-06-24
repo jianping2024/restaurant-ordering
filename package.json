@@ -11,7 +11,7 @@
     "dev": "bash scripts/dev-env.sh .env.local.dev",
     "dev:ops": "bash scripts/dev-env.sh .env.local.dev ops",
     "stage": "bash scripts/dev-env.sh .env.local.supabase",
-    "cloud": "npm run dev -w @mesa/web -- --hostname 0.0.0.0 --port 3000",
+    "cloud": "bash scripts/dev-env.sh .env.local",
     "print": "bash apps/print-agent/dev/print-dev.sh rebuild",
     "printstop": "bash apps/print-agent/dev/print-dev.sh down",
     "printlog": "bash apps/print-agent/dev/print-dev.sh logs",

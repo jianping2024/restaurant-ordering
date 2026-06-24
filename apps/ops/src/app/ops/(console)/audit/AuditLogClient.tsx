@@ -14,6 +14,7 @@ type AuditRow = {
   targetType: string;
   targetId: string;
   restaurantId: string | null;
+  restaurantName: string | null;
   metadata: Record<string, unknown>;
   createdAt: string;
   actorEmail: string | null;
@@ -122,9 +123,10 @@ export default function AuditLogClient() {
                     {row.restaurantId ? (
                       <Link
                         href={`/ops/restaurants/${row.restaurantId}`}
-                        className="font-mono text-xs text-amber-400 hover:underline"
+                        className="text-amber-400 hover:underline"
+                        title={row.restaurantId}
                       >
-                        {row.restaurantId.slice(0, 8)}…
+                        {row.restaurantName || row.restaurantId.slice(0, 8) + '…'}
                       </Link>
                     ) : (
                       '—'

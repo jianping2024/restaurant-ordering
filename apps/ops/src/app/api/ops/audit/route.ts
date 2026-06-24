@@ -45,12 +45,27 @@ export async function GET(req: Request) {
     }),
   );
 
+  const restaurantIds = Array.from(
+    new Set((rows || []).map((r) => r.restaurant_id).filter(Boolean)),
+  ) as string[];
+  const restaurantNames = new Map<string, string>();
+  if (restaurantIds.length > 0) {
+    const { data: restaurants } = await admin
+      .from('restaurants')
+      .select('id, name')
+      .in('id', restaurantIds);
+    for (const row of restaurants || []) {
+      restaurantNames.set(row.id, row.name);
+    }
+  }
+
   const items = (rows || []).map((r) => ({
     id: r.id,
     action: r.action,
     targetType: r.target_type,
     targetId: r.target_id,
     restaurantId: r.restaurant_id,
+    restaurantName: r.restaurant_id ? restaurantNames.get(r.restaurant_id) ?? null : null,
     metadata: r.metadata,
     createdAt: r.created_at,
     actorEmail: r.actor_user_id ? actorEmails.get(r.actor_user_id) ?? null : null,

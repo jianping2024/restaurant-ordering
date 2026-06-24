@@ -123,7 +123,7 @@ async function main() {
     if (error) throw new Error(error.message);
   }
 
-  // --- Suspended state (run before active HTTP checks to avoid stale GET cache) ---
+  // --- Suspended state ---
   try {
     await setSuspended(true);
     const { data: verifyRow } = await admin
@@ -157,7 +157,7 @@ async function main() {
     `/api/restaurants/${slug}/customer/bill`,
   ]) {
     try {
-      const res = await fetch(`${BASE_URL}${path}?_probe=${Date.now()}`, { cache: 'no-store' });
+      const res = await fetch(`${BASE_URL}${path}`, { cache: 'no-store' });
       const json = (await res.json().catch(() => ({}))) as { error?: string };
       if (res.status === 403 && json.error === 'restaurant_suspended') {
         pass(`Suspended: GET ${path}`, '403 restaurant_suspended');

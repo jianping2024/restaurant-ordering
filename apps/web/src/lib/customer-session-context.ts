@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { unstable_noStore as noStore } from 'next/cache';
 import { isRestaurantSuspended } from '@mesa/shared';
 import type { BillSplit, Order, TableSession } from '@/types';
 import { filterOrdersForCustomerDisplay } from '@/lib/customer-orders-display';
@@ -31,6 +32,8 @@ export async function loadCustomerRestaurantGate(
   admin: AdminClient,
   slug: string,
 ): Promise<CustomerRestaurantGateResult> {
+  noStore();
+
   const { data } = await admin
     .from('restaurants')
     .select(

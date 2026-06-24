@@ -10,12 +10,16 @@ const NAV = [
   { href: '/ops/audit', label: '审计' },
 ];
 
+const ADMIN_NAV = { href: '/ops/settings/admins', label: '账号' };
+
 export function OpsShell({
   children,
   displayName,
+  role,
 }: {
   children: React.ReactNode;
   displayName: string;
+  role: 'support' | 'admin';
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -50,6 +54,18 @@ export function OpsShell({
                   </Link>
                 );
               })}
+              {role === 'admin' ? (
+                <Link
+                  href={ADMIN_NAV.href}
+                  className={
+                    pathname.startsWith(ADMIN_NAV.href)
+                      ? 'text-white'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }
+                >
+                  {ADMIN_NAV.label}
+                </Link>
+              ) : null}
             </nav>
           </div>
           <div className="flex items-center gap-3 text-sm text-zinc-400">

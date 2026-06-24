@@ -15,6 +15,7 @@ export function RestaurantDetailTabs({
   const tabs = [
     { href: base, label: '概览', exact: true },
     { href: `${base}/print`, label: '打印', exact: false },
+    { href: `${base}/staff`, label: '员工', exact: false },
   ];
 
   return (

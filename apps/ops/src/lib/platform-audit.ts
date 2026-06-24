@@ -18,6 +18,13 @@ export const PLATFORM_AUDIT_ACTION_LABELS: Record<string, string> = {
   'pairing.revoke': '吊销配对码',
   'restaurant.suspend': '暂停餐厅',
   'restaurant.resume': '恢复餐厅',
+  'restaurant.update': '更新餐厅信息',
+  'platform_admin.create': '创建运营账号',
+  'platform_admin.disable': '停用运营账号',
+  'platform_admin.enable': '启用运营账号',
+  'platform_admin.role_change': '变更运营角色',
+  'staff.disable': '停用员工账号',
+  'staff.enable': '启用员工账号',
 };
 
 export function platformAuditActionLabel(action: string): string {

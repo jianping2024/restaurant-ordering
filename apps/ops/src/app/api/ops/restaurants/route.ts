@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createRestaurantWithOwner, type PrintLocale } from '@mesa/shared';
-import { requirePlatformAdmin } from '@/lib/platform-auth';
+import { requirePlatformAdmin, requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
 
 const PAGE_SIZE = 20;
@@ -81,7 +81,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const { ctx, error, admin } = await requirePlatformAdmin();
+  const { ctx, error, admin } = await requirePlatformAdminRole('admin');
   if (error || !ctx || !admin) return error!;
 
   let body: {

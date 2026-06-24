@@ -42,12 +42,37 @@ export async function getPlatformAdmin(): Promise<PlatformAdminContext | null> {
   };
 }
 
-export async function requirePlatformAdmin() {
+type RequirePlatformAdminResult = {
+  ctx: PlatformAdminContext | null;
+  error: NextResponse | null;
+  admin: ReturnType<typeof createAdminClient> | null;
+};
+
+export async function requirePlatformAdmin(): Promise<RequirePlatformAdminResult> {
   const ctx = await getPlatformAdmin();
   if (!ctx) {
-    return { ctx: null, error: NextResponse.json({ error: 'unauthorized' }, { status: 401 }) };
+    return {
+      ctx: null,
+      error: NextResponse.json({ error: 'unauthorized' }, { status: 401 }),
+      admin: null,
+    };
   }
   return { ctx, error: null, admin: createAdminClient() };
+}
+
+export async function requirePlatformAdminRole(
+  role: 'admin',
+): Promise<RequirePlatformAdminResult> {
+  const result = await requirePlatformAdmin();
+  if (result.error || !result.ctx) return result;
+  if (result.ctx.account.role !== role) {
+    return {
+      ctx: null,
+      error: NextResponse.json({ error: 'forbidden' }, { status: 403 }),
+      admin: null,
+    };
+  }
+  return result;
 }
 
 export async function countPlatformAdmins(): Promise<number> {

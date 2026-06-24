@@ -1,15 +1,23 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import {
+  isRestaurantSuspended,
+  normalizeRestaurantFeatureFlags,
+  type PrintLocale,
+} from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getPlatformAdmin } from '@/lib/platform-auth';
 import { getTenantAppUrl } from '@/lib/tenant-app-url';
 import { RestaurantDetailActions } from './RestaurantDetailActions';
+import { RestaurantEditPanel } from './RestaurantEditPanel';
 import { RestaurantSuspensionActions } from './RestaurantSuspensionActions';
-import { isRestaurantSuspended } from '@mesa/shared';
 
 type PageProps = { params: Promise<{ id: string }> };
 
 export default async function RestaurantDetailPage({ params }: PageProps) {
   const { id } = await params;
+  const platformAdmin = await getPlatformAdmin();
+  const isAdmin = platformAdmin?.account.role === 'admin';
+
   const admin = createAdminClient();
   const { data: row } = await admin
     .from('restaurants')
@@ -25,6 +33,7 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
   const tenantUrl = getTenantAppUrl();
   const menuUrl = `${tenantUrl}/${row.slug}/menu`;
   const suspended = isRestaurantSuspended(row.suspended_at);
+  const featureFlags = normalizeRestaurantFeatureFlags(row.feature_flags);
 
   return (
     <div>
@@ -51,14 +60,18 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
           <dt className="text-zinc-500">print_locale</dt>
           <dd>{row.print_locale}</dd>
         </div>
-        <div className="sm:col-span-2">
-          <dt className="text-zinc-500">功能开关</dt>
-          <dd>
-            <pre className="mt-1 overflow-x-auto rounded bg-zinc-950 px-2 py-1 font-mono text-xs text-zinc-300">
-              {JSON.stringify(row.feature_flags ?? {}, null, 2)}
-            </pre>
-          </dd>
-        </div>
+        {row.address ? (
+          <div className="sm:col-span-2">
+            <dt className="text-zinc-500">地址</dt>
+            <dd>{row.address}</dd>
+          </div>
+        ) : null}
+        {row.phone ? (
+          <div>
+            <dt className="text-zinc-500">电话</dt>
+            <dd>{row.phone}</dd>
+          </div>
+        ) : null}
         <div>
           <dt className="text-zinc-500">创建时间</dt>
           <dd>{new Date(row.created_at).toLocaleString('zh-CN')}</dd>
@@ -73,11 +86,32 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
         </div>
       </dl>
 
-      <RestaurantSuspensionActions
-        restaurantId={row.id}
-        suspended={suspended}
-        suspensionReason={row.suspension_reason}
-      />
+      {isAdmin ? (
+        <>
+          <RestaurantSuspensionActions
+            restaurantId={row.id}
+            suspended={suspended}
+            suspensionReason={row.suspension_reason}
+          />
+          <RestaurantEditPanel
+            restaurantId={row.id}
+            initial={{
+              name: row.name,
+              slug: row.slug,
+              plan: row.plan,
+              address: row.address,
+              phone: row.phone,
+              printLocale: row.print_locale as PrintLocale,
+              featureFlags,
+            }}
+          />
+        </>
+      ) : (
+        <p className="mt-8 text-sm text-zinc-500">
+          support 账号仅可查看信息与重置密码；暂停门店、编辑元数据请使用 admin 账号。
+        </p>
+      )}
+
       <RestaurantDetailActions restaurantId={row.id} />
     </div>
   );

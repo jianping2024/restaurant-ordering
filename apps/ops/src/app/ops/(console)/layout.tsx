@@ -10,5 +10,5 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
     redirect('/ops/login');
   }
 
-  return <OpsShell displayName={admin.account.display_name}>{children}</OpsShell>;
+  return <OpsShell displayName={admin.account.display_name} role={admin.account.role}>{children}</OpsShell>;
 }

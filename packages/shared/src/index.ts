@@ -21,3 +21,22 @@ export {
   type RevokePrintAgentPairingResult,
 } from './print-agent-revoke';
 export { isRestaurantSuspended } from './restaurant-suspension';
+export {
+  RESTAURANT_FEATURE_DEFINITIONS,
+  RESTAURANT_FEATURE_MODULES,
+  getRestaurantFeatureModule,
+  groupRestaurantFeaturesByModule,
+  isDashboardKitchenShortcutEnabled,
+  isRestaurantFeatureEnabled,
+  mergeRestaurantFeatureFlags,
+  normalizeRestaurantFeatureFlags,
+  parseFeatureFlagsPatch,
+  parseFeatureFlagsRecord,
+  type ResolvedRestaurantFeatureFlags,
+  type RestaurantFeatureDefinition,
+  type RestaurantFeatureFlags,
+  type RestaurantFeatureKey,
+  type RestaurantFeatureModuleDefinition,
+  type RestaurantFeatureModuleGroup,
+  type RestaurantFeatureModuleId,
+} from './restaurant-features';

@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
-import type { BillSplit, Order } from '@/types';
+import type { Order } from '@/types';
 import { OrdersPageClient } from '@/components/dashboard/OrdersPageClient';
 import { loadOwnerDashboardTables } from '@/lib/dashboard-tables';
+import { fetchCheckoutRequestedTableIds } from '@/lib/table-checkout-pending';
 
 export default async function UnpaidOrdersPage() {
   const loaded = await loadOwnerDashboardTables();
@@ -23,16 +24,19 @@ export default async function UnpaidOrdersPage() {
     .limit(100);
 
   const openOrders = (orders || []).filter((order) => !!order.session_id && activeSessionIds.has(order.session_id));
+  const checkoutRequestedTableIds = await fetchCheckoutRequestedTableIds(
+    loaded.admin,
+    loaded.restaurant.id,
+  );
 
   return (
     <OrdersPageClient
       orders={openOrders as Order[]}
-      checkoutRequests={[] as BillSplit[]}
       restaurantId={loaded.restaurant.id}
       tables={loaded.tables}
       headingNavKey="unpaidOrders"
-      showCheckoutRequests={false}
       showCloseTable
+      initialCheckoutRequestedTableIds={checkoutRequestedTableIds}
     />
   );
 }

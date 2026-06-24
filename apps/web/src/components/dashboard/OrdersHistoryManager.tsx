@@ -29,12 +29,15 @@ import {
   orderListGuestLabelsFromLang,
   type OrderListDisplayChip,
 } from '@/lib/order-list-display';
+import { isTableCheckoutRequested } from '@/lib/table-checkout-pending';
+import { useCheckoutRequestedTableIds } from '@/lib/useCheckoutRequestedTableIds';
 
 interface Props {
   initialOrders: Order[];
   tables?: RestaurantTableRow[];
   showCloseTable?: boolean;
   restaurantId?: string;
+  initialCheckoutRequestedTableIds?: string[];
 }
 
 interface TableOption {
@@ -56,6 +59,7 @@ export function OrdersHistoryManager({
   tables = [],
   showCloseTable = false,
   restaurantId,
+  initialCheckoutRequestedTableIds = [],
 }: Props) {
   const router = useRouter();
   const { lang } = useLanguage();
@@ -76,6 +80,28 @@ export function OrdersHistoryManager({
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [pickerOpen, setPickerOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement | null>(null);
+  const checkoutRequestedTableIds = useCheckoutRequestedTableIds(
+    restaurantId,
+    showCloseTable,
+    initialCheckoutRequestedTableIds,
+  );
+
+  const notifyCheckoutLocked = () => {
+    showToast(i18n.checkoutLockedHint, 'info');
+  };
+
+  const closeConfirmCopy = useMemo(() => {
+    if (
+      checkoutCloseConfirmTableId
+      && isTableCheckoutRequested(checkoutCloseConfirmTableId, checkoutRequestedTableIds)
+    ) {
+      return {
+        title: i18n.closeTableCheckoutConfirmTitle,
+        message: i18n.closeTableCheckoutConfirmMessage,
+      };
+    }
+    return { title: i18n.closeTableConfirmTitle, message: i18n.closeTableConfirmMessage };
+  }, [checkoutCloseConfirmTableId, checkoutRequestedTableIds, i18n]);
 
   useEffect(() => {
     setOrders(initialOrders);
@@ -108,6 +134,10 @@ export function OrdersHistoryManager({
   }, [loadActiveSessions]);
 
   const openSessionOperation = (type: 'transfer' | 'merge', tableId: string) => {
+    if (isTableCheckoutRequested(tableId, checkoutRequestedTableIds)) {
+      notifyCheckoutLocked();
+      return;
+    }
     setOperationType(type);
     setSourceTableId(tableId);
     setMergeSourceTableIds(type === 'merge' ? [tableId] : []);
@@ -138,6 +168,15 @@ export function OrdersHistoryManager({
 
     if (operationType === 'transfer' && tableIdsEqual(sourceTableId, targetTableId)) {
       showToast(tablesI18n.sameTableError, 'error');
+      return;
+    }
+
+    if (selectedSources.some((tableId) => isTableCheckoutRequested(tableId, checkoutRequestedTableIds))) {
+      notifyCheckoutLocked();
+      return;
+    }
+    if (isTableCheckoutRequested(targetTableId, checkoutRequestedTableIds)) {
+      notifyCheckoutLocked();
       return;
     }
 
@@ -473,57 +512,70 @@ export function OrdersHistoryManager({
     const { tableId, displayName, orders: groupOrders } = group;
     const totalAmount = groupOrders.reduce((sum, order) => sum + order.total_amount, 0);
     const chips = buildOrderListDisplayChips(groupOrders, buffetGuestLabels);
+    const isCheckoutPending = isTableCheckoutRequested(tableId, checkoutRequestedTableIds);
+    const checkoutLockedClass = isCheckoutPending ? 'opacity-50 cursor-not-allowed' : '';
 
-    return renderListCard(
-      sessionId,
-      <>
-        <span className="font-medium text-brand-text">
-          {i18n.table} {displayName}
-        </span>
-        {groupOrders.length > 1 ? (
-          <>
-            {META_SEP}
-            <span className="text-brand-text-muted">
-              {i18n.batchesCount.replace('{n}', String(groupOrders.length))}
-            </span>
-          </>
+    return (
+      <div key={sessionId} className={ORDER_CARD_CLASS}>
+        {isCheckoutPending ? (
+          <div
+            role="status"
+            className="mb-3 rounded-xl border border-amber-500/45 bg-amber-500/12 px-3 py-2.5"
+          >
+            <p className="text-[13px] font-medium text-amber-950/95 dark:text-amber-100/95 leading-snug">
+              {i18n.checkoutPendingBanner}
+            </p>
+          </div>
         ) : null}
-        {META_SEP}
-        <span className="text-brand-text-muted">
-          {i18n.latestOrder.replace('{time}', latestOrderTime(groupOrders))}
-        </span>
-        {META_SEP}
-        <span className="text-brand-text-muted">
-          {countOrderListItems(groupOrders)} {i18n.items}
-        </span>
-        {META_SEP}
-        {renderMetaAmount(totalAmount)}
-        {renderPrintButton(() => handlePrintOrders(groupOrders, displayName))}
-        <div className="flex-1 min-w-[8px]" />
-        <button
-          type="button"
-          onClick={() => openSessionOperation('transfer', tableId)}
-          className="text-sm px-3 py-1.5 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/50 transition-colors"
-        >
-          {tablesI18n.transferAction}
-        </button>
-        <button
-          type="button"
-          onClick={() => openSessionOperation('merge', tableId)}
-          className="text-sm px-3 py-1.5 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/50 transition-colors"
-        >
-          {tablesI18n.mergeAction}
-        </button>
-        <button
-          type="button"
-          disabled={closingTable === tableId}
-          onClick={() => setCheckoutCloseConfirmTableId(tableId)}
-          className="text-sm px-3 py-1.5 rounded-lg border border-brand-border text-brand-text hover:border-brand-gold/50 hover:text-brand-gold disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          {closingTable === tableId ? i18n.closeTableOperating : i18n.closeTable}
-        </button>
-      </>,
-      chips,
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">
+          <span className="font-medium text-brand-text">
+            {i18n.table} {displayName}
+          </span>
+          {groupOrders.length > 1 ? (
+            <>
+              {META_SEP}
+              <span className="text-brand-text-muted">
+                {i18n.batchesCount.replace('{n}', String(groupOrders.length))}
+              </span>
+            </>
+          ) : null}
+          {META_SEP}
+          <span className="text-brand-text-muted">
+            {i18n.latestOrder.replace('{time}', latestOrderTime(groupOrders))}
+          </span>
+          {META_SEP}
+          <span className="text-brand-text-muted">
+            {countOrderListItems(groupOrders)} {i18n.items}
+          </span>
+          {META_SEP}
+          {renderMetaAmount(totalAmount)}
+          {renderPrintButton(() => handlePrintOrders(groupOrders, displayName))}
+          <div className="flex-1 min-w-[8px]" />
+          <button
+            type="button"
+            onClick={() => openSessionOperation('transfer', tableId)}
+            className={`text-sm px-3 py-1.5 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/50 transition-colors ${checkoutLockedClass}`}
+          >
+            {tablesI18n.transferAction}
+          </button>
+          <button
+            type="button"
+            onClick={() => openSessionOperation('merge', tableId)}
+            className={`text-sm px-3 py-1.5 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/50 transition-colors ${checkoutLockedClass}`}
+          >
+            {tablesI18n.mergeAction}
+          </button>
+          <button
+            type="button"
+            disabled={closingTable === tableId}
+            onClick={() => setCheckoutCloseConfirmTableId(tableId)}
+            className="text-sm px-3 py-1.5 rounded-lg border border-brand-border text-brand-text hover:border-brand-gold/50 hover:text-brand-gold disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            {closingTable === tableId ? i18n.closeTableOperating : i18n.closeTable}
+          </button>
+        </div>
+        {renderItemChips(chips)}
+      </div>
     );
   };
 
@@ -635,18 +687,24 @@ export function OrdersHistoryManager({
                 <div className="modal-scroll rounded-lg border border-brand-border bg-brand-bg p-2 max-h-40 overflow-y-auto space-y-1.5">
                   {activeSessions.map((session) => {
                     const checked = mergeSourceTableIds.includes(session.table_id);
+                    const checkoutLocked = isTableCheckoutRequested(session.table_id, checkoutRequestedTableIds);
                     const atMaxSources = !checked && mergeSourceTableIds.length >= maxMergeSourceCount;
+                    const disabled = atMaxSources || checkoutLocked;
                     return (
                       <label
                         key={session.id}
-                        className={`flex items-center gap-2 text-sm ${atMaxSources ? 'text-brand-text-muted' : 'text-brand-text'}`}
+                        className={`flex items-center gap-2 text-sm ${disabled ? 'text-brand-text-muted' : 'text-brand-text'}`}
                       >
                         <input
                           type="checkbox"
                           checked={checked}
-                          disabled={atMaxSources}
+                          disabled={disabled}
                           onChange={(e) => {
                             const tableId = session.table_id;
+                            if (checkoutLocked) {
+                              notifyCheckoutLocked();
+                              return;
+                            }
                             if (!e.target.checked) {
                               setMergeSourceTableIds((prev) => prev.filter((id) => id !== tableId));
                               return;
@@ -715,8 +773,8 @@ export function OrdersHistoryManager({
       <ConfirmModal
         open={checkoutCloseConfirmTableId != null}
         onClose={() => setCheckoutCloseConfirmTableId(null)}
-        title={i18n.closeTableConfirmTitle}
-        message={i18n.closeTableConfirmMessage}
+        title={closeConfirmCopy.title}
+        message={closeConfirmCopy.message}
         confirmLabel={i18n.closeTableConfirmButton}
         cancelLabel={i18n.closeTableCancel}
         variant="danger"

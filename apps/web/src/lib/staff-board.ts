@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Order } from '@/types';
 import { compareRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
+import { fetchCheckoutRequestedTableIds } from '@/lib/table-checkout-pending';
 
 export async function fetchKitchenBoard(admin: SupabaseClient, restaurantId: string) {
   const [{ data: orderRows }, { data: sessions }, { data: tableRows }] = await Promise.all([
@@ -44,7 +45,7 @@ export async function fetchKitchenBoard(admin: SupabaseClient, restaurantId: str
 }
 
 export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: string) {
-  const [{ data: sessions }, { data: rows }, checkoutTables, { data: tableRows }] = await Promise.all([
+  const [{ data: sessions }, { data: rows }, checkoutRequestedTableIds, { data: tableRows }] = await Promise.all([
     admin
       .from('table_sessions')
       .select('id, table_id')
@@ -57,11 +58,7 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
       .in('status', ['pending', 'cooking', 'done'])
       .order('updated_at', { ascending: false })
       .limit(200),
-    admin
-      .from('bill_splits')
-      .select('table_id')
-      .eq('restaurant_id', restaurantId)
-      .eq('status', 'requested'),
+    fetchCheckoutRequestedTableIds(admin, restaurantId),
     admin
       .from('restaurant_tables')
       .select('id, display_name, sort_order')
@@ -79,14 +76,6 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
     const sid = s.id as string | undefined;
     if (tid && sid) activeSessionByTableId[tid] = sid;
   }
-  const checkoutRequestedTableIds = Array.from(
-    new Set(
-      (checkoutTables.data || [])
-        .map((row) => row.table_id as string)
-        .filter(Boolean),
-    ),
-  );
-
   return {
     orders,
     activeSessionByTableId,

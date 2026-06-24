@@ -9,7 +9,7 @@ import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 
 interface Props {
   orders: Order[];
-  checkoutRequests: BillSplit[];
+  checkoutRequests?: BillSplit[];
   restaurantSlug?: string;
   restaurantId?: string;
   tables?: RestaurantTableRow[];
@@ -17,6 +17,7 @@ interface Props {
   headingNavKey?: 'orders' | 'unpaidOrders' | 'checkout';
   showCheckoutRequests?: boolean;
   showCloseTable?: boolean;
+  initialCheckoutRequestedTableIds?: string[];
 }
 
 export function OrdersPageClient({
@@ -29,6 +30,7 @@ export function OrdersPageClient({
   headingNavKey,
   showCheckoutRequests = true,
   showCloseTable = false,
+  initialCheckoutRequestedTableIds = [],
 }: Props) {
   const { lang } = useLanguage();
   const nav = getMessages(lang).nav;
@@ -45,7 +47,7 @@ export function OrdersPageClient({
 
       {showCheckoutRequests && restaurantId && (
         <CheckoutRequestsManager
-          initialRequests={checkoutRequests}
+          initialRequests={checkoutRequests ?? []}
           restaurantId={restaurantId}
           restaurantSlug={restaurantSlug}
         />
@@ -56,6 +58,7 @@ export function OrdersPageClient({
         tables={tables}
         showCloseTable={showCloseTable}
         restaurantId={restaurantId}
+        initialCheckoutRequestedTableIds={initialCheckoutRequestedTableIds}
       />
     </div>
   );

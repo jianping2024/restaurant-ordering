@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Buffet, Order, OrderItem } from '@/types';
@@ -204,6 +204,25 @@ function WaiterTableDetailInner({
     [tableOrders, tableId, selectedDisplayName, itemCodeByMenuId],
   );
 
+  const isCheckoutPending = useMemo(
+    () => checkoutRequestedTableIds.some((id) => tableIdsEqual(id, tableId)),
+    [checkoutRequestedTableIds, tableId],
+  );
+
+  const wasCheckoutPendingRef = useRef(isCheckoutPending);
+  useEffect(() => {
+    if (!wasCheckoutPendingRef.current && isCheckoutPending) {
+      showToast(t.checkoutToast.replace('{table}', selectedDisplayName), 'info');
+    }
+    wasCheckoutPendingRef.current = isCheckoutPending;
+  }, [isCheckoutPending, selectedDisplayName, t.checkoutToast]);
+
+  const notifyCheckoutLocked = useCallback(() => {
+    showToast(t.checkoutLockedHint, 'info');
+  }, [t.checkoutLockedHint]);
+
+  const checkoutLockedClass = isCheckoutPending ? 'opacity-50 cursor-not-allowed' : '';
+
   const tableBuffetAggregate = useMemo(
     () => aggregateBuffetForOrders(tableOrders),
     [tableOrders],
@@ -250,6 +269,10 @@ function WaiterTableDetailInner({
     : `/${restaurant.slug}/menu?table_id=${encodeURIComponent(tableId)}&from=waiter&return=${encodeURIComponent(waiterReturnPath)}`;
 
   const openAction = (type: 'transfer' | 'merge', sourceId: string) => {
+    if (tableIdsEqual(sourceId, tableId) && isCheckoutPending) {
+      notifyCheckoutLocked();
+      return;
+    }
     setOperationType(type);
     setSourceTable(sourceId);
     setTargetTable(null);
@@ -301,6 +324,10 @@ function WaiterTableDetailInner({
 
   const handleActionSubmit = async () => {
     if (!operationType || !sourceTable || !targetTable) return;
+    if (isCheckoutPending) {
+      notifyCheckoutLocked();
+      return;
+    }
     if (tableIdsEqual(sourceTable, targetTable)) {
       showToast(t.sameTableError, 'error');
       return;
@@ -326,7 +353,12 @@ function WaiterTableDetailInner({
           },
         );
         if (!res.ok) {
-          showToast(t.actionFailed, 'error');
+          const data = (await res.json().catch(() => ({}))) as { error?: string };
+          if (data.error === 'session_billing') {
+            notifyCheckoutLocked();
+          } else {
+            showToast(t.actionFailed, 'error');
+          }
           return;
         }
         await finishTransferOrMerge(toTable, currentOperation);
@@ -487,6 +519,10 @@ function WaiterTableDetailInner({
 
   const applyBuffetToTable = async () => {
     if (isDemo || !buffetId) return;
+    if (isCheckoutPending) {
+      notifyCheckoutLocked();
+      return;
+    }
     const buffet = activeBuffets.find((b) => b.id === buffetId);
     if (!buffet) return;
 
@@ -510,7 +546,7 @@ function WaiterTableDetailInner({
         if (res.status === 400) {
           const data = await res.json().catch(() => ({}));
           if (data.error === 'no_price_rule') showToast(t.buffetNoRule, 'error');
-          else if (data.error === 'session_billing') showToast(t.buffetBilling, 'error');
+          else if (data.error === 'session_billing') showToast(t.checkoutLockedHint, 'info');
           else showToast(t.actionFailed, 'error');
           return;
         }
@@ -578,7 +614,7 @@ function WaiterTableDetailInner({
       }
 
       if (session.status === 'billing') {
-        showToast(t.buffetBilling, 'error');
+        showToast(t.checkoutLockedHint, 'info');
         return;
       }
 
@@ -653,6 +689,10 @@ function WaiterTableDetailInner({
   };
 
   const voidItemFromWaiter = async (orderId: string, itemIdx: number) => {
+    if (isCheckoutPending) {
+      notifyCheckoutLocked();
+      return;
+    }
     try {
       const order = orders.find((row) => row.id === orderId);
       if (!order) return;
@@ -676,6 +716,11 @@ function WaiterTableDetailInner({
           },
         );
         if (res.status === 409) {
+          const data = (await res.json().catch(() => ({}))) as { error?: string };
+          if (data.error === 'session_billing') {
+            notifyCheckoutLocked();
+            return;
+          }
           showToast(t.refreshHint, 'error');
           await refresh();
           return;
@@ -770,7 +815,18 @@ function WaiterTableDetailInner({
           </span>
         </div>
 
-        {activeBuffets.length > 0 && !isDemo && (
+        {isCheckoutPending && (
+          <div
+            role="status"
+            className="mb-4 rounded-xl border border-amber-500/45 bg-amber-500/12 px-3 py-2.5"
+          >
+            <p className="text-[13px] font-medium text-amber-950/95 dark:text-amber-100/95 leading-snug">
+              {t.checkoutPendingBanner}
+            </p>
+          </div>
+        )}
+
+        {activeBuffets.length > 0 && !isDemo && !isCheckoutPending && (
           <div className="mb-4 rounded-xl border border-brand-gold/30 bg-brand-gold/8 p-3 space-y-2">
             <p className="text-[12px] font-medium text-brand-gold">{t.buffetBlock}</p>
             {tableBuffetAggregate && (
@@ -850,28 +906,48 @@ function WaiterTableDetailInner({
           <div className="space-y-3">
             <p className="text-brand-text-muted">{t.noOrdersOnTable}</p>
             <div>
-              <Link href={menuHref} className={waiterUi.btnPrimary}>
-                {t.takeOrder}
-              </Link>
+              {isCheckoutPending ? (
+                <button
+                  type="button"
+                  onClick={notifyCheckoutLocked}
+                  className={`${waiterUi.btnPrimary} ${checkoutLockedClass}`}
+                >
+                  {t.takeOrder}
+                </button>
+              ) : (
+                <Link href={menuHref} className={waiterUi.btnPrimary}>
+                  {t.takeOrder}
+                </Link>
+              )}
             </div>
           </div>
         ) : (
           <>
             <div className="flex flex-wrap items-center gap-2 mb-3">
-              <Link href={menuHref} className={`${waiterUi.btnPrimary} mr-1`}>
-                + {t.addDish}
-              </Link>
+              {isCheckoutPending ? (
+                <button
+                  type="button"
+                  onClick={notifyCheckoutLocked}
+                  className={`${waiterUi.btnPrimary} mr-1 ${checkoutLockedClass}`}
+                >
+                  + {t.addDish}
+                </button>
+              ) : (
+                <Link href={menuHref} className={`${waiterUi.btnPrimary} mr-1`}>
+                  + {t.addDish}
+                </Link>
+              )}
               <button
                 type="button"
                 onClick={() => openAction('transfer', selectedCard.tableId)}
-                className={`${waiterUi.btnSecondary} ${waiterUi.btnWarm}`}
+                className={`${waiterUi.btnSecondary} ${waiterUi.btnWarm} ${checkoutLockedClass}`}
               >
                 {t.transfer}
               </button>
               <button
                 type="button"
                 onClick={() => openAction('merge', selectedCard.tableId)}
-                className={`${waiterUi.btnSecondary} ${waiterUi.btnGhost}`}
+                className={`${waiterUi.btnSecondary} ${waiterUi.btnGhost} ${checkoutLockedClass}`}
               >
                 {t.merge}
               </button>
@@ -898,8 +974,8 @@ function WaiterTableDetailInner({
                     {line.canVoid && (
                       <button
                         type="button"
-                        onClick={() => voidItemFromWaiter(line.orderId, line.itemIdx)}
-                        className={`shrink-0 ${waiterUi.btnSecondary} ${waiterUi.btnGhost}`}
+                        onClick={() => void voidItemFromWaiter(line.orderId, line.itemIdx)}
+                        className={`shrink-0 ${waiterUi.btnSecondary} ${waiterUi.btnGhost} ${checkoutLockedClass}`}
                       >
                         {t.voidItem}
                       </button>

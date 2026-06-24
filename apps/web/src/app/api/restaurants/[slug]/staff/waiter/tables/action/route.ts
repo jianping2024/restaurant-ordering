@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
+import { tableSessionBlocksWaiterMutation, sessionBillingResponse } from '@/lib/waiter-session-guard';
 
 export const runtime = 'nodejs';
 
@@ -42,6 +43,10 @@ export async function POST(
     admin = createAdminClient();
   } catch {
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
+  }
+
+  if (await tableSessionBlocksWaiterMutation(admin, ctx.restaurant_id, fromTableId)) {
+    return sessionBillingResponse();
   }
 
   const { data: rpcResult, error } =

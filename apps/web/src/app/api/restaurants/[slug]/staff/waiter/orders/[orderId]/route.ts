@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { deriveOrderStatusFromItems } from '@/lib/order-status';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { sessionIdBlocksWaiterMutation, sessionBillingResponse } from '@/lib/waiter-session-guard';
 import type { OrderItem } from '@/types';
 
 export const runtime = 'nodejs';
@@ -44,7 +45,7 @@ export async function PATCH(
 
   const { data: existing, error: findErr } = await admin
     .from('orders')
-    .select('id, restaurant_id, updated_at')
+    .select('id, restaurant_id, updated_at, session_id')
     .eq('id', orderId)
     .maybeSingle();
 
@@ -54,6 +55,11 @@ export async function PATCH(
 
   if (existing.updated_at !== body.updated_at) {
     return NextResponse.json({ error: 'conflict' }, { status: 409 });
+  }
+
+  const sessionId = existing.session_id as string | null | undefined;
+  if (sessionId && await sessionIdBlocksWaiterMutation(admin, sessionId)) {
+    return sessionBillingResponse();
   }
 
   const { data: updated, error: updErr } = await admin

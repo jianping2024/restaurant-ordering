@@ -127,7 +127,7 @@ function WaiterBoardInner({
         <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
         <p className="text-brand-text-muted text-sm mt-1">{t.boardTitle}</p>
         {checkoutPendingCount > 0 && (
-          <p className="mt-2 text-sm font-medium text-amber-200/95">
+          <p className="mt-2 text-sm font-semibold text-amber-950">
             {t.checkoutPendingBoardSummary.replace('{n}', String(checkoutPendingCount))}
           </p>
         )}
@@ -161,7 +161,7 @@ function WaiterBoardInner({
                 <p className="font-medium text-brand-text">{t.table} {card.displayName}</p>
                 <div className="flex items-center gap-1.5 shrink-0">
                   {hasCheckoutRequest && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-100 font-medium">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-700 text-white font-semibold shadow-sm">
                       {t.checkoutPendingShort}
                     </span>
                   )}

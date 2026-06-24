@@ -1,34 +1,27 @@
 'use client';
 
-import type { BillSplit, Order } from '@/types';
+import type { Order } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import { CheckoutRequestsManager } from '@/components/dashboard/CheckoutRequestsManager';
 import { OrdersHistoryManager } from '@/components/dashboard/OrdersHistoryManager';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 
 interface Props {
   orders: Order[];
-  checkoutRequests?: BillSplit[];
-  restaurantSlug?: string;
   restaurantId?: string;
   tables?: RestaurantTableRow[];
   headingTitle?: string;
-  headingNavKey?: 'orders' | 'unpaidOrders' | 'checkout';
-  showCheckoutRequests?: boolean;
+  headingNavKey?: 'orders' | 'unpaidOrders';
   showCloseTable?: boolean;
   initialCheckoutRequestedTableIds?: string[];
 }
 
 export function OrdersPageClient({
   orders,
-  checkoutRequests,
-  restaurantSlug,
   restaurantId,
   tables,
   headingTitle,
   headingNavKey,
-  showCheckoutRequests = true,
   showCloseTable = false,
   initialCheckoutRequestedTableIds = [],
 }: Props) {
@@ -44,14 +37,6 @@ export function OrdersPageClient({
           {i18n.total} {orders.length} {i18n.records}
         </p>
       </div>
-
-      {showCheckoutRequests && restaurantId && (
-        <CheckoutRequestsManager
-          initialRequests={checkoutRequests ?? []}
-          restaurantId={restaurantId}
-          restaurantSlug={restaurantSlug}
-        />
-      )}
 
       <OrdersHistoryManager
         initialOrders={orders}

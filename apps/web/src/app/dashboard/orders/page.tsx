@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import type { BillSplit, Order } from '@/types';
+import type { Order } from '@/types';
 import { OrdersPageClient } from '@/components/dashboard/OrdersPageClient';
 import { loadOwnerDashboardTables } from '@/lib/dashboard-tables';
 
@@ -28,10 +28,8 @@ export default async function OrdersPage() {
   return (
     <OrdersPageClient
       orders={historicalOrders as Order[]}
-      checkoutRequests={[] as BillSplit[]}
       tables={loaded.tables}
       headingNavKey="orders"
-      showCheckoutRequests={false}
     />
   );
 }

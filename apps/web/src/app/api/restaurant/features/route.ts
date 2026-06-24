@@ -4,7 +4,10 @@ import {
   mergeRestaurantFeatureFlags,
   normalizeRestaurantFeatureFlags,
   parseFeatureFlagsPatch,
+  parsePrintAgentCredentialTtlDaysPatch,
+  resolvePrintAgentCredentialTtlDays,
 } from '@/lib/restaurant-features';
+import { normalizePrintAgentCloudConfig } from '@/lib/print-agent-config';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
 
@@ -25,7 +28,7 @@ export async function GET() {
 
   const { data, error } = await admin
     .from('restaurants')
-    .select('feature_flags')
+    .select('feature_flags, print_agent_config')
     .eq('id', auth.restaurantId)
     .maybeSingle();
 
@@ -36,7 +39,10 @@ export async function GET() {
     return NextResponse.json({ error: 'query_failed' }, { status: 500 });
   }
 
-  return NextResponse.json({ flags: normalizeRestaurantFeatureFlags(data?.feature_flags) });
+  return NextResponse.json({
+    flags: normalizeRestaurantFeatureFlags(data?.feature_flags),
+    credentialTtlDays: resolvePrintAgentCredentialTtlDays(data?.print_agent_config),
+  });
 }
 
 export async function PATCH(req: Request) {
@@ -53,8 +59,12 @@ export async function PATCH(req: Request) {
   }
 
   const patch = parseFeatureFlagsPatch(body);
-  if (!patch) {
-    return NextResponse.json({ error: 'invalid_flags' }, { status: 400 });
+  const credentialTtlDays = parsePrintAgentCredentialTtlDaysPatch(body);
+  if (!patch && credentialTtlDays === undefined) {
+    return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
+  }
+  if (credentialTtlDays === null) {
+    return NextResponse.json({ error: 'invalid_credential_ttl_days' }, { status: 400 });
   }
 
   let admin;
@@ -66,7 +76,7 @@ export async function PATCH(req: Request) {
 
   const { data: row, error: readError } = await admin
     .from('restaurants')
-    .select('feature_flags')
+    .select('feature_flags, print_agent_config')
     .eq('id', auth.restaurantId)
     .maybeSingle();
 
@@ -77,11 +87,24 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'query_failed' }, { status: 500 });
   }
 
-  const nextFlags = mergeRestaurantFeatureFlags(row?.feature_flags, patch);
+  const nextFlags = patch
+    ? mergeRestaurantFeatureFlags(row?.feature_flags, patch)
+    : normalizeRestaurantFeatureFlags(row?.feature_flags);
+  const nextConfig =
+    credentialTtlDays !== undefined
+      ? {
+          ...normalizePrintAgentCloudConfig(row?.print_agent_config),
+          credential_ttl_days: credentialTtlDays,
+        }
+      : undefined;
+
+  const updatePayload: { feature_flags?: typeof nextFlags; print_agent_config?: unknown } = {};
+  if (patch) updatePayload.feature_flags = nextFlags;
+  if (nextConfig) updatePayload.print_agent_config = nextConfig;
 
   const { error } = await admin
     .from('restaurants')
-    .update({ feature_flags: nextFlags })
+    .update(updatePayload)
     .eq('id', auth.restaurantId);
 
   if (error) {
@@ -91,5 +114,11 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'update_failed', message: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, flags: nextFlags });
+  return NextResponse.json({
+    ok: true,
+    flags: nextFlags,
+    credentialTtlDays: resolvePrintAgentCredentialTtlDays(
+      nextConfig ?? row?.print_agent_config,
+    ),
+  });
 }

@@ -1,3 +1,8 @@
+import {
+  PRINT_AGENT_CREDENTIAL_TTL_DAYS_DEFAULT,
+  resolvePrintAgentCredentialTtlDays,
+} from '@mesa/shared';
+
 export type TimeWindow = { start: string; end: string };
 
 export type PrintAgentScheduleConfig = {
@@ -20,6 +25,8 @@ export type PrintAgentPollConfig = {
 export type PrintAgentCloudConfig = {
   schedule?: PrintAgentScheduleConfig;
   poll?: PrintAgentPollConfig;
+  /** Agent JWT lifetime in days after claim; default 365, max 365. */
+  credential_ttl_days?: number;
 };
 
 /** Flat form used on the dashboard settings page. */
@@ -40,6 +47,7 @@ const TIME_RE = /^([01]?\d|2[0-3]):([0-5]\d)$/;
 
 export function defaultPrintAgentCloudConfig(): PrintAgentCloudConfig {
   return {
+    credential_ttl_days: PRINT_AGENT_CREDENTIAL_TTL_DAYS_DEFAULT,
     schedule: {
       timezone: 'Europe/Lisbon',
       weekday: {
@@ -138,7 +146,11 @@ export function normalizePrintAgentCloudConfig(raw: unknown): PrintAgentCloudCon
       : base.schedule;
   const poll =
     o.poll && typeof o.poll === 'object' ? (o.poll as PrintAgentPollConfig) : base.poll;
-  return { schedule, poll };
+  return {
+    schedule,
+    poll,
+    credential_ttl_days: resolvePrintAgentCredentialTtlDays(o),
+  };
 }
 
 export function validatePrintAgentCloudConfig(raw: unknown): { ok: true; config: PrintAgentCloudConfig } | { ok: false; error: string } {
@@ -146,7 +158,10 @@ export function validatePrintAgentCloudConfig(raw: unknown): { ok: true; config:
     const c = normalizePrintAgentCloudConfig(raw);
     const form = cloudConfigToForm(c);
     const out = formToCloudConfig(form);
-    return { ok: true, config: out };
+    return {
+      ok: true,
+      config: { ...out, credential_ttl_days: c.credential_ttl_days },
+    };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'invalid_config' };
   }

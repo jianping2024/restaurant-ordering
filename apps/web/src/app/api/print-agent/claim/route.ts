@@ -9,7 +9,7 @@ import {
 } from '@/lib/print-agent-claim-rate-limit';
 import { isUuid } from '@/lib/print-agent-auth';
 import { clientIpFromRequest } from '@/lib/request-client-ip';
-import { PRINT_AGENT_CREDENTIAL_TTL_SEC } from '@/lib/print-agent-credential';
+import { resolvePrintAgentCredentialTtlSec } from '@mesa/shared';
 
 export const runtime = 'nodejs';
 
@@ -104,7 +104,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'code_already_used' }, { status: 409 });
   }
 
-  const validUntil = new Date(Date.now() + PRINT_AGENT_CREDENTIAL_TTL_SEC * 1000).toISOString();
+  const { data: restRow } = await admin
+    .from('restaurants')
+    .select('print_locale, print_agent_config')
+    .eq('id', p.restaurant_id)
+    .single();
+
+  const locale = (restRow?.print_locale as 'zh' | 'en' | 'pt' | undefined) ?? 'pt';
+  const credentialTtlSec = resolvePrintAgentCredentialTtlSec(restRow?.print_agent_config);
+  const validUntil = new Date(Date.now() + credentialTtlSec * 1000).toISOString();
 
   const { error: devErr } = await admin.from('print_agent_devices').upsert(
     {
@@ -124,14 +132,6 @@ export async function POST(req: Request) {
     claimRecordFailure(ip);
     return NextResponse.json({ error: 'device_save_failed', message: devErr.message }, { status: 500 });
   }
-
-  const { data: restRow } = await admin
-    .from('restaurants')
-    .select('print_locale')
-    .eq('id', p.restaurant_id)
-    .single();
-
-  const locale = (restRow?.print_locale as 'zh' | 'en' | 'pt' | undefined) ?? 'pt';
 
   const { error: jobErr } = await admin.from('print_jobs').insert({
     restaurant_id: p.restaurant_id,
@@ -153,7 +153,7 @@ export async function POST(req: Request) {
   const agentjwt = signPrintAgentJwt(
     { restaurant_id: p.restaurant_id, device_id: deviceId },
     jwtSecret,
-    PRINT_AGENT_CREDENTIAL_TTL_SEC,
+    credentialTtlSec,
   );
 
   claimRecordSuccess(ip);

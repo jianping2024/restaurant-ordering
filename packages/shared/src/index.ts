@@ -42,6 +42,16 @@ export {
 } from './print-agent-support-snapshot';
 export { insertPlatformAdminAudit, type PlatformAdminAuditInsert } from './platform-admin-audit';
 export {
+  PRINT_AGENT_CREDENTIAL_TTL_DAYS_DEFAULT,
+  PRINT_AGENT_CREDENTIAL_TTL_DAYS_MAX,
+  PRINT_AGENT_CREDENTIAL_TTL_DAYS_MIN,
+  clampPrintAgentCredentialTtlDays,
+  parsePrintAgentCredentialTtlDaysPatch,
+  printAgentCredentialTtlSec,
+  resolvePrintAgentCredentialTtlDays,
+  resolvePrintAgentCredentialTtlSec,
+} from './print-agent-credential-ttl';
+export {
   RESTAURANT_FEATURE_DEFINITIONS,
   RESTAURANT_FEATURE_MODULES,
   getRestaurantFeatureModule,

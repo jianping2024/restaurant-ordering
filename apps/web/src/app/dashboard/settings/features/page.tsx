@@ -1,7 +1,10 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { FeatureFlagsManager } from '@/components/dashboard/FeatureFlagsManager';
-import { normalizeRestaurantFeatureFlags } from '@/lib/restaurant-features';
+import {
+  normalizeRestaurantFeatureFlags,
+  resolvePrintAgentCredentialTtlDays,
+} from '@/lib/restaurant-features';
 
 export default async function SettingsFeaturesPage() {
   const supabase = await createClient();
@@ -12,7 +15,7 @@ export default async function SettingsFeaturesPage() {
 
   const { data: restaurant } = await supabase
     .from('restaurants')
-    .select('feature_flags')
+    .select('feature_flags, print_agent_config')
     .eq('owner_id', user.id)
     .single();
 
@@ -22,6 +25,7 @@ export default async function SettingsFeaturesPage() {
     <FeatureFlagsManager
       embedded
       initialFlags={normalizeRestaurantFeatureFlags(restaurant.feature_flags)}
+      initialCredentialTtlDays={resolvePrintAgentCredentialTtlDays(restaurant.print_agent_config)}
     />
   );
 }

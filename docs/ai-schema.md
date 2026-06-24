@@ -404,6 +404,7 @@ table_sessions:
 - Operational close: `close_table_session_operational(...)` — advisory lock; locks active `bill_splits` then `table_sessions`; cancels splits, voids order lines, closes session.
 - Menu routing: `menu_categories` and `menu_items` can each map to `print_stations`.
 - Print agent flow: `print_agent_pairings` issues six-digit pairing codes; `print_agent_devices` stores paired agent state; `print_jobs` stores queued print work.
+- `restaurants.print_agent_config` JSON: `{ schedule?, poll?, credential_ttl_days? }` — agent poll/schedule; `credential_ttl_days` integer **1–365** (default **365**) sets JWT `exp` and `print_agent_devices.valid_until` on the next successful `claim` (editable in dashboard **功能管理**).
 - Platform ops (`@mesa/ops`): `platform_admin_accounts` links Mesa staff to `auth.users`; `platform_admin_audit_log` records cross-tenant actions. **No RLS policies** — accessed via service role only after session check in ops API. Restaurant suspend/resume sets `restaurants.suspended_at` + `suspension_reason` (null on resume).
 - Buffet pricing: `buffets` + `buffet_time_slots` + `buffet_calendar_overrides` + `buffet_price_rules` model time/calendar-sensitive prices.
 - Soft deletion appears only on `restaurant_tables.deleted_at` in this schema extract.

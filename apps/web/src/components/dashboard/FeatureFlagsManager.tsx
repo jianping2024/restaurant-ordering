@@ -3,9 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import { IntegerInput } from '@/components/ui/IntegerInput';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import {
+  PRINT_AGENT_CREDENTIAL_TTL_DAYS_MAX,
+  PRINT_AGENT_CREDENTIAL_TTL_DAYS_MIN,
   groupRestaurantFeaturesByModule,
   type ResolvedRestaurantFeatureFlags,
 } from '@/lib/restaurant-features';
@@ -13,13 +16,19 @@ import {
 type Props = {
   embedded?: boolean;
   initialFlags: ResolvedRestaurantFeatureFlags;
+  initialCredentialTtlDays: number;
 };
 
-export function FeatureFlagsManager({ embedded, initialFlags }: Props) {
+export function FeatureFlagsManager({
+  embedded,
+  initialFlags,
+  initialCredentialTtlDays,
+}: Props) {
   const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).featureSettings;
   const [flags, setFlags] = useState(initialFlags);
+  const [credentialTtlDays, setCredentialTtlDays] = useState(initialCredentialTtlDays);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -33,12 +42,13 @@ export function FeatureFlagsManager({ embedded, initialFlags }: Props) {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flags }),
+        body: JSON.stringify({ flags, credentialTtlDays }),
       });
 
       if (!res.ok) {
         const json = (await res.json().catch(() => ({}))) as { error?: string };
         if (json.error === 'migration_required') setError(t.migrationRequired);
+        else if (json.error === 'invalid_credential_ttl_days') setError(t.credentialTtlDaysInvalid);
         else setError(t.saveFail);
         return;
       }
@@ -93,6 +103,31 @@ export function FeatureFlagsManager({ embedded, initialFlags }: Props) {
             </div>
           </section>
         ))}
+
+        <section>
+          <h2 className="text-sm font-medium text-brand-text mb-2">{t.modulePrintAgent}</h2>
+          <div className="bg-brand-card border border-brand-border rounded-xl px-4 py-4">
+            <label className="block">
+              <span className="block text-[15px] font-medium text-brand-text">
+                {t.credentialTtlDays}
+              </span>
+              <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
+                {t.credentialTtlDaysDesc}
+              </span>
+              <div className="flex items-center gap-2">
+                <IntegerInput
+                  value={credentialTtlDays}
+                  min={PRINT_AGENT_CREDENTIAL_TTL_DAYS_MIN}
+                  max={PRINT_AGENT_CREDENTIAL_TTL_DAYS_MAX}
+                  onChange={setCredentialTtlDays}
+                  className="w-24 rounded-lg border border-brand-border bg-white/80 px-3 py-2 text-sm text-brand-text tabular-nums"
+                  aria-label={t.credentialTtlDays}
+                />
+                <span className="text-[13px] text-brand-text-muted">{t.credentialTtlDaysUnit}</span>
+              </div>
+            </label>
+          </div>
+        </section>
       </div>
 
       {error ? <p className="mt-3 text-sm text-status-danger">{error}</p> : null}

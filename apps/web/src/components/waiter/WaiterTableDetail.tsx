@@ -818,6 +818,7 @@ function WaiterTableDetailInner({
                 {t.buffetAdults}
                 <IntegerInput
                   min={0}
+                  clearZeroOnFocus
                   className="mt-0.5 block w-16 rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text"
                   value={buffetAdults}
                   onChange={setBuffetAdults}
@@ -827,6 +828,7 @@ function WaiterTableDetailInner({
                 {t.buffetChildren}
                 <IntegerInput
                   min={0}
+                  clearZeroOnFocus
                   className="mt-0.5 block w-16 rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text"
                   value={buffetChildren}
                   onChange={setBuffetChildren}

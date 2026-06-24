@@ -1,6 +1,6 @@
 'use client';
 
-import { InputHTMLAttributes } from 'react';
+import { InputHTMLAttributes, useState } from 'react';
 import { parseNonNegativeInt } from '@/lib/number-input';
 
 type IntegerInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'onChange'> & {
@@ -8,6 +8,7 @@ type IntegerInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'v
   onChange: (value: number) => void;
   min?: number;
   max?: number;
+  clearZeroOnFocus?: boolean;
 };
 
 export function IntegerInput({
@@ -16,17 +17,40 @@ export function IntegerInput({
   min = 0,
   max,
   className = '',
+  clearZeroOnFocus = false,
+  onFocus,
+  onBlur,
   ...props
 }: IntegerInputProps) {
+  const [draft, setDraft] = useState<string | null>(null);
+
   return (
     <input
       {...props}
       type="text"
       inputMode="numeric"
       autoComplete="off"
-      value={value}
+      value={clearZeroOnFocus && draft !== null ? draft : value}
+      onFocus={
+        clearZeroOnFocus
+          ? (e) => {
+              if (value === 0) setDraft('');
+              onFocus?.(e);
+            }
+          : onFocus
+      }
+      onBlur={
+        clearZeroOnFocus
+          ? (e) => {
+              setDraft(null);
+              onBlur?.(e);
+            }
+          : onBlur
+      }
       onChange={(e) => {
-        onChange(parseNonNegativeInt(e.target.value, { min, max, empty: min }));
+        const raw = e.target.value;
+        if (clearZeroOnFocus) setDraft(raw);
+        onChange(parseNonNegativeInt(raw, { min, max, empty: min }));
       }}
       className={className}
     />

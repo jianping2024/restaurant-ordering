@@ -3,7 +3,7 @@
 import { InputHTMLAttributes } from 'react';
 import { Input } from '@/components/ui/Input';
 import { buffetTimeFieldClass } from '@/components/dashboard/buffet/buffet-field-styles';
-import { normalizeHmInput } from '@/lib/number-input';
+import { formatHmDigitsWhileTyping, normalizeHmInput } from '@/lib/number-input';
 
 type TimeHmInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'onChange'> & {
   label?: string;
@@ -22,9 +22,16 @@ export function TimeHmInput({
   onBlur,
   ...props
 }: TimeHmInputProps) {
+  const normalized = normalizeHmInput(value);
+  const invalid = value.trim().length > 0 && !normalized;
+  const invalidClass = invalid ? 'border-red-400 focus:border-red-500' : '';
+
   const mergedBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const normalized = normalizeHmInput(value);
-    if (normalized) onChange(normalized);
+    if (normalized) {
+      onChange(normalized);
+    } else if (value.trim()) {
+      onChange('');
+    }
     onBlur?.(e);
   };
 
@@ -34,10 +41,10 @@ export function TimeHmInput({
     autoComplete: 'off' as const,
     placeholder: '12:00',
     maxLength: 5,
+    'aria-invalid': invalid || undefined,
     value,
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-      const v = e.target.value.replace(/[^\d:]/g, '').slice(0, 5);
-      onChange(v);
+      onChange(formatHmDigitsWhileTyping(e.target.value));
     },
     ...props,
     onBlur: mergedBlur,
@@ -47,7 +54,7 @@ export function TimeHmInput({
     const input = (
       <input
         {...inputProps}
-        className={`${buffetTimeFieldClass} ${className}`.trim()}
+        className={`${buffetTimeFieldClass} ${invalidClass} ${className}`.trim()}
       />
     );
     if (!label) return input;
@@ -62,7 +69,7 @@ export function TimeHmInput({
   return (
     <Input
       label={label}
-      className={`max-w-[7.5rem] ${className}`}
+      className={`max-w-[7.5rem] ${invalidClass} ${className}`}
       {...inputProps}
     />
   );

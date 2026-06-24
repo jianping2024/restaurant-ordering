@@ -1,17 +1,75 @@
 const TIME_RE = /^([01]?\d|2[0-3]):([0-5]\d)$/;
 
+/** Strip to at most four digits for HH:MM entry (mobile numeric keyboard). */
+function hmDigitsOnly(raw: string): string {
+  return raw.replace(/\D/g, '').slice(0, 4);
+}
+
+/**
+ * Live mask while typing digits: auto-inserts ":" and rejects digits that would
+ * make hour > 23 or minutes > 59.
+ */
+export function formatHmDigitsWhileTyping(raw: string): string {
+  let digits = hmDigitsOnly(raw);
+
+  if (digits.length >= 2) {
+    const hh = parseInt(digits.slice(0, 2), 10);
+    if (hh > 23) digits = digits.slice(0, 1);
+  }
+
+  if (digits.length === 4) {
+    const mm = parseInt(digits.slice(2, 4), 10);
+    if (mm > 59) digits = digits.slice(0, 3);
+  }
+
+  if (digits.length <= 2) return digits;
+  return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+}
+
+function normalizeHmFromDigits(digits: string): string | null {
+  if (!digits) return null;
+
+  if (digits.length === 1) {
+    const h = parseInt(digits, 10);
+    if (h > 9) return null;
+    return `0${h}:00`;
+  }
+
+  if (digits.length === 2) {
+    const h = parseInt(digits, 10);
+    if (h > 23) return null;
+    return `${digits.padStart(2, '0')}:00`;
+  }
+
+  const padded = digits.padStart(4, '0');
+  const h = padded.slice(0, -2);
+  const m = padded.slice(-2);
+  const t = `${h}:${m}`;
+  if (!TIME_RE.test(t)) return null;
+  const [hh, mm] = t.split(':');
+  return `${hh.padStart(2, '0')}:${mm}`;
+}
+
 /** Normalize HH:MM (24h) for dashboard time fields, or null if invalid. */
 export function normalizeHmInput(raw: string): string | null {
   const s = raw.trim();
-  if (/^\d{3,4}$/.test(s)) {
-    const padded = s.padStart(4, '0');
-    const h = padded.slice(0, -2);
-    const m = padded.slice(-2);
-    const t = `${h}:${m}`;
-    if (!TIME_RE.test(t)) return null;
-    const [hh, mm] = t.split(':');
-    return `${hh.padStart(2, '0')}:${mm}`;
+  if (!s) return null;
+
+  const colonPartial = s.match(/^(\d{1,2}):(\d{1,2})$/);
+  if (colonPartial) {
+    const h = parseInt(colonPartial[1]!, 10);
+    if (h > 23) return null;
+    const mPart = colonPartial[2]!;
+    const mm =
+      mPart.length === 1 ? parseInt(`${mPart}0`, 10) : parseInt(mPart, 10);
+    if (mm > 59) return null;
+    return `${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
   }
+
+  if (/^\d{1,4}$/.test(s)) {
+    return normalizeHmFromDigits(s);
+  }
+
   const t = s.slice(0, 5);
   if (!TIME_RE.test(t)) return null;
   const [h, m] = t.split(':');

@@ -28,6 +28,19 @@ export {
 } from './print-agent-revoke';
 export { isRestaurantSuspended } from './restaurant-suspension';
 export { kickStaffUserSessions, setStaffUserBanned } from './staff-user-ban';
+export { signPrintAgentJwt, verifyPrintAgentJwt, type PrintAgentJwtClaims } from './print-agent-jwt';
+export {
+  PRINT_AGENT_SUPPORT_TOKEN_TTL_SEC,
+  signPrintAgentSupportJwt,
+  verifyPrintAgentSupportJwt,
+  type PrintAgentSupportJwtClaims,
+} from './print-agent-support-jwt';
+export {
+  consumePrintAgentSupportToken,
+  loadPrintAgentSupportSnapshot,
+  type PrintAgentSupportSnapshot,
+} from './print-agent-support-snapshot';
+export { insertPlatformAdminAudit, type PlatformAdminAuditInsert } from './platform-admin-audit';
 export {
   RESTAURANT_FEATURE_DEFINITIONS,
   RESTAURANT_FEATURE_MODULES,

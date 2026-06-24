@@ -41,6 +41,12 @@ export default function PrintDevicesClient({
   const [statusFilter, setStatusFilter] = useState(status);
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [revokeTarget, setRevokeTarget] = useState<DeviceRow | null>(null);
+  const [supportToken, setSupportToken] = useState<{
+    token: string;
+    expiresAt: string;
+    deviceLabel: string;
+  } | null>(null);
+  const [issuingSupportId, setIssuingSupportId] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
@@ -60,6 +66,8 @@ export default function PrintDevicesClient({
     void load();
   }, [load]);
 
+  const deviceDisplayName = (device: DeviceRow) => device.label || device.id.slice(0, 8);
+
   const onSearch = (e: FormEvent) => {
     e.preventDefault();
     if (fixedRestaurantId) return;
@@ -67,6 +75,37 @@ export default function PrintDevicesClient({
     if (query.trim()) params.set('q', query.trim());
     if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
     router.push(`/ops/print/devices?${params}`);
+  };
+
+  const issueSupportToken = async (device: DeviceRow) => {
+    setIssuingSupportId(device.id);
+    setError('');
+    try {
+      const res = await fetch(`/api/ops/print/devices/${device.id}/support-token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ restaurantId: device.restaurantId }),
+      });
+      const json = (await res.json()) as {
+        supportToken?: string;
+        expiresAt?: string;
+        error?: string;
+      };
+      if (!res.ok || !json.supportToken || !json.expiresAt) {
+        setError(json.error || '签发失败');
+        return;
+      }
+      setSupportToken({
+        token: json.supportToken,
+        expiresAt: json.expiresAt,
+        deviceLabel: deviceDisplayName(device),
+      });
+    } catch {
+      setError('网络错误');
+    } finally {
+      setIssuingSupportId(null);
+    }
   };
 
   const runRevokeDevice = async () => {
@@ -94,8 +133,6 @@ export default function PrintDevicesClient({
       setRevokingId(null);
     }
   };
-
-  const deviceDisplayName = (device: DeviceRow) => device.label || device.id.slice(0, 8);
 
   const pageCount = Math.max(1, Math.ceil(total / 20));
   const listBase = fixedRestaurantId
@@ -200,14 +237,24 @@ export default function PrintDevicesClient({
                   </td>
                   <td className="px-3 py-2">
                     {!d.revokedAt && d.active ? (
-                      <button
-                        type="button"
-                        disabled={revokingId === d.id}
-                        onClick={() => setRevokeTarget(d)}
-                        className="text-sm text-red-400 hover:underline disabled:opacity-50"
-                      >
-                        吊销
-                      </button>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={issuingSupportId === d.id}
+                          onClick={() => void issueSupportToken(d)}
+                          className="text-sm text-amber-400 hover:underline disabled:opacity-50"
+                        >
+                          排障令牌
+                        </button>
+                        <button
+                          type="button"
+                          disabled={revokingId === d.id}
+                          onClick={() => setRevokeTarget(d)}
+                          className="text-sm text-red-400 hover:underline disabled:opacity-50"
+                        >
+                          吊销
+                        </button>
+                      </div>
                     ) : null}
                   </td>
                 </tr>
@@ -263,6 +310,43 @@ export default function PrintDevicesClient({
         confirming={revokingId != null}
         onConfirm={runRevokeDevice}
       />
+
+      {supportToken ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-lg rounded-lg border border-zinc-700 bg-zinc-900 p-5 shadow-xl">
+            <h2 className="text-lg font-medium">一次性排障令牌</h2>
+            <p className="mt-2 text-sm text-zinc-400">
+              设备「{supportToken.deviceLabel}」。令牌 15 分钟内有效，仅可使用一次；用于{' '}
+              <code className="text-xs">GET /api/print-agent/support-snapshot</code>（Bearer
+              鉴权）。不会返回 <code className="text-xs">agentjwt</code>。
+            </p>
+            <p className="mt-2 text-xs text-amber-400">
+              过期时间：{new Date(supportToken.expiresAt).toLocaleString('zh-CN')}
+            </p>
+            <textarea
+              readOnly
+              value={supportToken.token}
+              className="mt-4 h-28 w-full rounded border border-zinc-700 bg-zinc-950 p-3 font-mono text-xs text-zinc-200"
+            />
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => void navigator.clipboard.writeText(supportToken.token)}
+                className="rounded border border-zinc-600 px-3 py-2 text-sm hover:bg-zinc-800"
+              >
+                复制
+              </button>
+              <button
+                type="button"
+                onClick={() => setSupportToken(null)}
+                className="rounded bg-amber-500 px-3 py-2 text-sm font-medium text-zinc-950 hover:bg-amber-400"
+              >
+                关闭
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

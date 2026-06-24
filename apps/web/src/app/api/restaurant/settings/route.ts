@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { normalizeCountryCode } from '@mesa/shared';
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseOrderRadiusInput } from '@/lib/order-radius';
@@ -50,6 +51,17 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'order_radius_invalid' }, { status: 400 });
   }
 
+  let countryCode: string | undefined;
+  if (body.countryCode !== undefined) {
+    const normalized = normalizeCountryCode(
+      typeof body.countryCode === 'string' ? body.countryCode : '',
+    );
+    if (!normalized) {
+      return NextResponse.json({ error: 'invalid_country_code' }, { status: 400 });
+    }
+    countryCode = normalized;
+  }
+
   let admin;
   try {
     admin = createAdminClient();
@@ -64,6 +76,7 @@ export async function PATCH(req: Request) {
     geo_latitude: latitude,
     geo_longitude: longitude,
     order_radius_meters: orderRadiusMeters,
+    ...(countryCode !== undefined ? { country_code: countryCode } : {}),
   };
 
   const { error } = await admin.from('restaurants').update(update).eq('id', auth.restaurantId);

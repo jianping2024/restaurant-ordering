@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { RESTAURANT_COUNTRY_OPTIONS, type RestaurantCountryCode } from '@mesa/shared';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import type { RestaurantSettingsProfile } from '@/types';
@@ -26,6 +27,7 @@ export function SettingsForm({
     name: restaurant.name,
     address: restaurant.address || '',
     phone: restaurant.phone || '',
+    countryCode: (restaurant.country_code || 'PT') as RestaurantCountryCode,
     geo_latitude: restaurant.geo_latitude != null ? String(restaurant.geo_latitude) : '',
     geo_longitude: restaurant.geo_longitude != null ? String(restaurant.geo_longitude) : '',
     order_radius_meters: String(normalizeOrderRadiusMeters(restaurant.order_radius_meters)),
@@ -91,6 +93,7 @@ export function SettingsForm({
         name: form.name.trim(),
         address: form.address.trim(),
         phone: form.phone.trim(),
+        countryCode: form.countryCode,
         geo_latitude: form.geo_latitude.trim(),
         geo_longitude: form.geo_longitude.trim(),
         order_radius_meters: String(orderRadiusMeters),
@@ -112,7 +115,8 @@ export function SettingsForm({
               .replace('{min}', String(MIN_ORDER_RADIUS_METERS))
               .replace('{max}', String(MAX_ORDER_RADIUS_METERS)),
           );
-        } else setError(t.saveFail);
+        } else if (json.error === 'invalid_country_code') setError(t.countryCodeInvalid);
+        else setError(t.saveFail);
         return;
       }
 
@@ -164,6 +168,29 @@ export function SettingsForm({
               onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
               placeholder="+351 21 123 4567"
             />
+
+            <div>
+              <label className="text-sm text-brand-text-muted font-medium block mb-1.5">
+                {t.countryCode}
+              </label>
+              <select
+                value={form.countryCode}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    countryCode: e.target.value as RestaurantCountryCode,
+                  }))
+                }
+                className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-2.5 text-brand-text text-sm"
+              >
+                {RESTAURANT_COUNTRY_OPTIONS.map((opt) => (
+                  <option key={opt.code} value={opt.code}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[13px] text-brand-text-muted mt-1">{t.countryCodeHint}</p>
+            </div>
 
             <fieldset className="space-y-3 rounded-xl border border-brand-border/70 bg-brand-bg/40 p-4">
               <legend className="text-sm font-medium text-brand-text px-1">{t.geoSectionTitle}</legend>

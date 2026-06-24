@@ -27,6 +27,8 @@ orders (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, status: text [pen
 
 print_agent_devices (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, pairing_id: uuid FK -> print_agent_pairings.id nullable, label: text nullable, paired_at: timestamptz, valid_until: timestamptz, revoked_at: timestamptz nullable, last_seen: timestamptz nullable, routing_snapshot: jsonb nullable, agent_version: text nullable, mapped_station_count: integer nullable, last_print_at: timestamptz nullable, last_print_status: text nullable, schedule_open: boolean nullable)
 
+print_agent_support_tokens (id: uuid PK, device_id: uuid FK -> print_agent_devices.id, restaurant_id: uuid FK -> restaurants.id, actor_user_id: uuid FK -> auth.users.id, expires_at: timestamptz, consumed_at: timestamptz nullable, created_at: timestamptz)
+
 print_agent_pairings (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, code: text check six_digits, expires_at: timestamptz, consumed_at: timestamptz nullable, created_by: uuid FK -> auth.users.id nullable, created_at: timestamptz, revoked_at: timestamptz nullable)
 
 print_jobs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, type: text [order_receipt|station_ticket|pre_bill], payload: jsonb, status: text [pending|processing|done|failed], claimed_by: text nullable, attempts: integer, error_message: text nullable, created_at: timestamptz, updated_at: timestamptz, table_display: text generated_from_payload nullable, table_id: uuid generated_from_payload nullable)
@@ -90,8 +92,11 @@ print_stations.restaurant_id -> restaurants.id
 print_jobs.restaurant_id -> restaurants.id  
 print_agent_pairings.restaurant_id -> restaurants.id  
 print_agent_pairings.created_by -> auth.users.id  
-print_agent_devices.restaurant_id -> restaurants.id  
+print_agent_devices.restaurant_id -> restaurants.id
 print_agent_devices.pairing_id -> print_agent_pairings.id
+print_agent_support_tokens.device_id -> print_agent_devices.id
+print_agent_support_tokens.restaurant_id -> restaurants.id
+print_agent_support_tokens.actor_user_id -> auth.users.id
 
 platform_admin_accounts.user_id -> auth.users.id  
 platform_admin_audit_log.actor_user_id -> auth.users.id  

@@ -73,6 +73,7 @@ export interface Restaurant {
   waiter_password?: string;
   /** Ticket / station_ticket payload locale (pt = pt-PT semantics); default pt */
   print_locale?: 'zh' | 'en' | 'pt';
+  country_code?: string;
   /** Lisbon local time: Friday at/after this → weekend buffet pricing; null = off. */
   buffet_friday_weekend_from?: string | null;
   /** Owner toggles for optional product modules; see `src/lib/restaurant-features.ts`. */
@@ -93,6 +94,7 @@ export type RestaurantSettingsProfile = Pick<
   | 'geo_latitude'
   | 'geo_longitude'
   | 'order_radius_meters'
+  | 'country_code'
 >;
 
 export interface MenuItem {

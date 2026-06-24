@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { insertPlatformAdminAudit } from '@mesa/shared';
 
 export type AuditInsert = {
   actorUserId: string;
@@ -15,6 +16,8 @@ export const PLATFORM_AUDIT_ACTION_LABELS: Record<string, string> = {
   'ops.login': '运营登录',
   'ops.bootstrap_admin': 'Bootstrap 首个运营账号',
   'device.revoke': '吊销打印设备',
+  'device.support_token.issue': '签发打印排障令牌',
+  'device.support_token.consume': '使用打印排障令牌',
   'pairing.revoke': '吊销配对码',
   'restaurant.suspend': '暂停餐厅',
   'restaurant.resume': '恢复餐厅',
@@ -35,15 +38,5 @@ export async function writePlatformAudit(
   admin: SupabaseClient,
   entry: AuditInsert,
 ): Promise<void> {
-  const { error } = await admin.from('platform_admin_audit_log').insert({
-    actor_user_id: entry.actorUserId,
-    action: entry.action,
-    target_type: entry.targetType,
-    target_id: entry.targetId,
-    restaurant_id: entry.restaurantId ?? null,
-    metadata: entry.metadata ?? {},
-  });
-  if (error) {
-    console.error('platform_audit_insert_failed', error.message);
-  }
+  await insertPlatformAdminAudit(admin, entry);
 }

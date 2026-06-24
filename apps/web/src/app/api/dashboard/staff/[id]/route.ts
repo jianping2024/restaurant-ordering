@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server';
+import { kickStaffUserSessions, setStaffUserBanned } from '@mesa/shared';
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
-import {
-  kickStaffUserSessions,
-  loadOwnerRestaurantWithSlug,
-  mapStaffRow,
-  setStaffUserBanned,
-} from '@/lib/staff-dashboard-api';
+import { loadOwnerRestaurantWithSlug, mapStaffRow } from '@/lib/staff-dashboard-api';
 
 export const runtime = 'nodejs';
 

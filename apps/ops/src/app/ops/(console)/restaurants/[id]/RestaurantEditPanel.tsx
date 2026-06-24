@@ -2,9 +2,11 @@
 
 import { FormEvent, useState } from 'react';
 import {
+  RESTAURANT_COUNTRY_OPTIONS,
   RESTAURANT_FEATURE_DEFINITIONS,
   type PrintLocale,
   type ResolvedRestaurantFeatureFlags,
+  type RestaurantCountryCode,
 } from '@mesa/shared';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
@@ -17,6 +19,7 @@ type Props = {
     address: string | null;
     phone: string | null;
     printLocale: PrintLocale;
+    countryCode: RestaurantCountryCode;
     featureFlags: ResolvedRestaurantFeatureFlags;
   };
 };
@@ -33,6 +36,7 @@ export function RestaurantEditPanel({ restaurantId, initial }: Props) {
   const [address, setAddress] = useState(initial.address || '');
   const [phone, setPhone] = useState(initial.phone || '');
   const [printLocale, setPrintLocale] = useState<PrintLocale>(initial.printLocale);
+  const [countryCode, setCountryCode] = useState<RestaurantCountryCode>(initial.countryCode);
   const [flags, setFlags] = useState(initial.featureFlags);
 
   const [error, setError] = useState('');
@@ -57,6 +61,7 @@ export function RestaurantEditPanel({ restaurantId, initial }: Props) {
           address: address.trim() || null,
           phone: phone.trim() || null,
           printLocale,
+          countryCode,
           featureFlags: flags,
           confirmSlugChange: confirmSlugChange || undefined,
         }),
@@ -153,9 +158,23 @@ export function RestaurantEditPanel({ restaurantId, initial }: Props) {
             <option value="pt">pt</option>
           </select>
         </label>
+        <label className="block text-sm text-zinc-400">
+          国家/地区
+          <select
+            value={countryCode}
+            onChange={(e) => setCountryCode(e.target.value as RestaurantCountryCode)}
+            className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2"
+          >
+            {RESTAURANT_COUNTRY_OPTIONS.map((opt) => (
+              <option key={opt.code} value={opt.code}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <fieldset className="sm:col-span-2">
-          <legend className="text-sm text-zinc-400">功能开关（运营覆盖）</legend>
+          <legend className="text-sm text-zinc-400">功能开关（运营覆盖，优先于店主自助设置）</legend>
           <div className="mt-2 space-y-2">
             {RESTAURANT_FEATURE_DEFINITIONS.map((def) => (
               <label key={def.key} className="flex items-center gap-2 text-sm text-zinc-300">

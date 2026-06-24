@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { fetchUserEmailsMap } from '@/lib/ops-user-lookup';
 import { requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
 
@@ -17,21 +18,21 @@ export async function GET() {
     return NextResponse.json({ error: 'list_failed', detail: listError.message }, { status: 500 });
   }
 
-  const items = await Promise.all(
-    (rows || []).map(async (row) => {
-      const { data: user } = await admin.auth.admin.getUserById(row.user_id);
-      return {
-        id: row.id,
-        userId: row.user_id,
-        email: user?.user?.email ?? null,
-        role: row.role,
-        displayName: row.display_name,
-        disabledAt: row.disabled_at,
-        createdAt: row.created_at,
-        isSelf: row.user_id === ctx.userId,
-      };
-    }),
+  const userEmails = await fetchUserEmailsMap(
+    admin,
+    (rows || []).map((row) => row.user_id),
   );
+
+  const items = (rows || []).map((row) => ({
+    id: row.id,
+    userId: row.user_id,
+    email: userEmails.get(row.user_id) ?? null,
+    role: row.role,
+    displayName: row.display_name,
+    disabledAt: row.disabled_at,
+    createdAt: row.created_at,
+    isSelf: row.user_id === ctx.userId,
+  }));
 
   return NextResponse.json({ items });
 }

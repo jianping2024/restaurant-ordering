@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requirePlatformAdminRole } from '@/lib/platform-auth';
-import { kickStaffUserSessions, setStaffUserBanned } from '@/lib/staff-account-actions';
+import { kickStaffUserSessions, setStaffUserBanned } from '@mesa/shared';
 import { writePlatformAudit } from '@/lib/platform-audit';
 
 type RouteContext = { params: Promise<{ id: string; staffId: string }> };

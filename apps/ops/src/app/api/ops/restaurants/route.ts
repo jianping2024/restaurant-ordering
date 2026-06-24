@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createRestaurantWithOwner, type PrintLocale } from '@mesa/shared';
+import { fetchUserEmailsMap } from '@/lib/ops-user-lookup';
 import { requirePlatformAdmin, requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
 
@@ -54,23 +55,23 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'list_failed', detail: listError.message }, { status: 500 });
   }
 
-  const items = await Promise.all(
-    (rows || []).map(async (r) => {
-      const { data: owner } = await admin.auth.admin.getUserById(r.owner_id);
-      return {
-        id: r.id,
-        name: r.name,
-        slug: r.slug,
-        plan: r.plan,
-        createdAt: r.created_at,
-        ownerId: r.owner_id,
-        ownerEmail: owner?.user?.email ?? null,
-        printLocale: r.print_locale,
-        featureFlags: r.feature_flags,
-        suspendedAt: r.suspended_at,
-      };
-    }),
+  const ownerEmails = await fetchUserEmailsMap(
+    admin,
+    (rows || []).map((r) => r.owner_id),
   );
+
+  const items = (rows || []).map((r) => ({
+    id: r.id,
+    name: r.name,
+    slug: r.slug,
+    plan: r.plan,
+    createdAt: r.created_at,
+    ownerId: r.owner_id,
+    ownerEmail: ownerEmails.get(r.owner_id) ?? null,
+    printLocale: r.print_locale,
+    featureFlags: r.feature_flags,
+    suspendedAt: r.suspended_at,
+  }));
 
   return NextResponse.json({
     items,
@@ -89,6 +90,7 @@ export async function POST(req: Request) {
     email?: string;
     password?: string;
     printLocale?: PrintLocale;
+    countryCode?: string;
     slug?: string;
   };
   try {
@@ -102,6 +104,7 @@ export async function POST(req: Request) {
     email: body.email || '',
     password: body.password || '',
     printLocale: body.printLocale,
+    countryCode: body.countryCode,
     slug: body.slug,
   });
 

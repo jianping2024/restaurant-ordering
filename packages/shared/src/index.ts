@@ -7,6 +7,12 @@ export {
 } from './create-restaurant';
 export { defaultRestaurantSlug, restaurantNameToSlug } from './slug';
 export {
+  RESTAURANT_COUNTRY_OPTIONS,
+  countryCodeLabel,
+  normalizeCountryCode,
+  type RestaurantCountryCode,
+} from './country-code';
+export {
   isPrintAgentDeviceActiveInDb,
 } from './print-agent-device-active';
 export {
@@ -21,6 +27,7 @@ export {
   type RevokePrintAgentPairingResult,
 } from './print-agent-revoke';
 export { isRestaurantSuspended } from './restaurant-suspension';
+export { kickStaffUserSessions, setStaffUserBanned } from './staff-user-ban';
 export {
   RESTAURANT_FEATURE_DEFINITIONS,
   RESTAURANT_FEATURE_MODULES,

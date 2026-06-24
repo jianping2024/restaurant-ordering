@@ -3,7 +3,11 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
-import type { PrintLocale } from '@mesa/shared';
+import {
+  RESTAURANT_COUNTRY_OPTIONS,
+  type PrintLocale,
+  type RestaurantCountryCode,
+} from '@mesa/shared';
 
 export default function NewRestaurantPage() {
   const router = useRouter();
@@ -11,6 +15,7 @@ export default function NewRestaurantPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [printLocale, setPrintLocale] = useState<PrintLocale>('pt');
+  const [countryCode, setCountryCode] = useState<RestaurantCountryCode>('PT');
   const [slug, setSlug] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,6 +34,7 @@ export default function NewRestaurantPage() {
           email,
           password,
           printLocale,
+          countryCode,
           slug: slug.trim() || undefined,
         }),
       });
@@ -94,6 +100,20 @@ export default function NewRestaurantPage() {
             <option value="pt">pt</option>
             <option value="zh">zh</option>
             <option value="en">en</option>
+          </select>
+        </label>
+        <label className="block text-sm text-zinc-400">
+          国家/地区
+          <select
+            value={countryCode}
+            onChange={(e) => setCountryCode(e.target.value as RestaurantCountryCode)}
+            className="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2"
+          >
+            {RESTAURANT_COUNTRY_OPTIONS.map((opt) => (
+              <option key={opt.code} value={opt.code}>
+                {opt.label}
+              </option>
+            ))}
           </select>
         </label>
         <label className="block text-sm text-zinc-400">

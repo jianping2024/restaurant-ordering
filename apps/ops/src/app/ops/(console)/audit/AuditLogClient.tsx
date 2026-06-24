@@ -65,6 +65,8 @@ export default function AuditLogClient() {
     .filter(Boolean)
     .join('&');
 
+  const exportHref = `/api/ops/audit/export${querySuffix ? `?${querySuffix}` : ''}`;
+
   return (
     <div>
       <h1 className="text-2xl font-semibold">审计日志</h1>
@@ -92,6 +94,12 @@ export default function AuditLogClient() {
         <button type="submit" className="rounded border border-zinc-600 px-3 py-2 text-sm hover:bg-zinc-800">
           筛选
         </button>
+        <a
+          href={exportHref}
+          className="rounded border border-zinc-600 px-3 py-2 text-sm hover:bg-zinc-800"
+        >
+          导出 CSV
+        </a>
       </form>
 
       {loading ? (

@@ -1,8 +1,11 @@
 import { notFound } from 'next/navigation';
 import {
+  countryCodeLabel,
   isRestaurantSuspended,
+  normalizeCountryCode,
   normalizeRestaurantFeatureFlags,
   type PrintLocale,
+  type RestaurantCountryCode,
 } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getPlatformAdmin } from '@/lib/platform-auth';
@@ -22,7 +25,7 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
   const { data: row } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, plan, created_at, owner_id, print_locale, feature_flags, address, phone, suspended_at, suspension_reason',
+      'id, name, slug, plan, created_at, owner_id, print_locale, country_code, feature_flags, address, phone, suspended_at, suspension_reason',
     )
     .eq('id', id)
     .maybeSingle();
@@ -34,6 +37,7 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
   const menuUrl = `${tenantUrl}/${row.slug}/menu`;
   const suspended = isRestaurantSuspended(row.suspended_at);
   const featureFlags = normalizeRestaurantFeatureFlags(row.feature_flags);
+  const countryCode = (normalizeCountryCode(row.country_code ?? 'PT') ?? 'PT') as RestaurantCountryCode;
 
   return (
     <div>
@@ -59,6 +63,10 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
         <div>
           <dt className="text-zinc-500">print_locale</dt>
           <dd>{row.print_locale}</dd>
+        </div>
+        <div>
+          <dt className="text-zinc-500">国家/地区</dt>
+          <dd>{countryCodeLabel(countryCode)}</dd>
         </div>
         {row.address ? (
           <div className="sm:col-span-2">
@@ -102,6 +110,7 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
               address: row.address,
               phone: row.phone,
               printLocale: row.print_locale as PrintLocale,
+              countryCode,
               featureFlags,
             }}
           />

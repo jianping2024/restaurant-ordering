@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { normalizeCountryCode } from './country-code';
 import { defaultRestaurantSlug } from './slug';
 
 export type PrintLocale = 'zh' | 'en' | 'pt';
@@ -8,6 +9,7 @@ export type CreateRestaurantInput = {
   email: string;
   password: string;
   printLocale?: PrintLocale;
+  countryCode?: string;
   slug?: string;
 };
 
@@ -47,6 +49,10 @@ export function validateCreateRestaurantInput(input: CreateRestaurantInput): Cre
   if (!['zh', 'en', 'pt'].includes(locale)) {
     return { ok: false, error: 'invalid_print_locale', status: 400 };
   }
+  const countryCode = normalizeCountryCode(input.countryCode ?? 'PT');
+  if (!countryCode) {
+    return { ok: false, error: 'invalid_country_code', status: 400 };
+  }
   return null;
 }
 
@@ -61,6 +67,7 @@ export async function createRestaurantWithOwner(
   const mail = input.email.trim().toLowerCase();
   const pwd = input.password;
   const printLocale = input.printLocale ?? 'pt';
+  const countryCode = normalizeCountryCode(input.countryCode ?? 'PT')!;
   const slug = (input.slug || '').trim() || defaultRestaurantSlug(name);
 
   const { data: userData, error: createUserError } = await admin.auth.admin.createUser({
@@ -94,6 +101,7 @@ export async function createRestaurantWithOwner(
       slug,
       owner_id: ownerId,
       print_locale: printLocale,
+      country_code: countryCode,
     })
     .select('id')
     .single();

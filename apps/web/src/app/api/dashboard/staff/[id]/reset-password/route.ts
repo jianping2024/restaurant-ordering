@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
+import { kickStaffUserSessions } from '@mesa/shared';
 import {
-  kickStaffUserSessions,
   loadOwnerRestaurantWithSlug,
   mapStaffRow,
   staffMetadataPayload,

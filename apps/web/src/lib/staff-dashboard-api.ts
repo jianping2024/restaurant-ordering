@@ -47,24 +47,6 @@ export function mapStaffRow(row: Record<string, unknown>): RestaurantStaffAccoun
   };
 }
 
-export async function kickStaffUserSessions(admin: ReturnType<typeof createAdminClient>, userId: string) {
-  try {
-    await admin.auth.admin.signOut(userId, 'global');
-  } catch {
-    // best-effort
-  }
-}
-
-export async function setStaffUserBanned(
-  admin: ReturnType<typeof createAdminClient>,
-  userId: string,
-  banned: boolean,
-) {
-  await admin.auth.admin.updateUserById(userId, {
-    ban_duration: banned ? '876000h' : 'none',
-  });
-}
-
 export function staffMetadataPayload(
   accountId: string,
   restaurantId: string,

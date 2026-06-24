@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import {
   mergeRestaurantFeatureFlags,
+  normalizeCountryCode,
   parseFeatureFlagsRecord,
   type PrintLocale,
 } from '@mesa/shared';
@@ -29,7 +30,7 @@ export async function PATCH(req: Request, context: RouteContext) {
   const { data: existing, error: fetchError } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, plan, address, phone, print_locale, feature_flags',
+      'id, name, slug, plan, address, phone, print_locale, country_code, feature_flags',
     )
     .eq('id', id)
     .maybeSingle();
@@ -79,6 +80,17 @@ export async function PATCH(req: Request, context: RouteContext) {
     if (printLocale !== existing.print_locale) {
       updates.print_locale = printLocale;
       metadata.printLocale = { from: existing.print_locale, to: printLocale };
+    }
+  }
+
+  if (typeof body.countryCode === 'string') {
+    const countryCode = normalizeCountryCode(body.countryCode);
+    if (!countryCode) {
+      return NextResponse.json({ error: 'invalid_country_code' }, { status: 400 });
+    }
+    if (countryCode !== existing.country_code) {
+      updates.country_code = countryCode;
+      metadata.countryCode = { from: existing.country_code, to: countryCode };
     }
   }
 

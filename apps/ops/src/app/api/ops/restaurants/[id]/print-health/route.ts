@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
 import { isPrintAgentDeviceActive, isPrintAgentDeviceOnline } from '@mesa/shared';
+import { PRINT_FAIL_WINDOW_MS } from '@/lib/ops-print-summary';
 import { requirePlatformAdmin } from '@/lib/platform-auth';
 
 type RouteContext = { params: Promise<{ id: string }> };
-
-const FAILED_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 export async function GET(_req: Request, context: RouteContext) {
   const { error, admin } = await requirePlatformAdmin();
@@ -35,7 +34,7 @@ export async function GET(_req: Request, context: RouteContext) {
   }
 
   const now = Date.now();
-  const failedSince = new Date(now - FAILED_WINDOW_MS).toISOString();
+  const failedSince = new Date(now - PRINT_FAIL_WINDOW_MS).toISOString();
 
   const { count: recentFailedCount, error: failedError } = await admin
     .from('print_jobs')

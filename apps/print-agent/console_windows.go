@@ -113,28 +113,32 @@ func disableConsoleCloseButton(hwnd uintptr) {
 	_, _, _ = drawMenuBar.Call(hwnd)
 }
 
+const (
+	mbOK            = 0
+	mbYesNo         = 0x00000004
+	mbIconInfo      = 0x00000040
+	mbIconQuest     = 0x00000020
+	mbSetForeground = 0x00010000
+	mbTopmost       = 0x00040000
+	messageBoxIDYes = 6
+	messageBoxFlags = mbSetForeground | mbTopmost
+)
+
 // messageBoxOK shows a simple info dialog (tray "About").
 func messageBoxOK(title, text string) {
 	user32 := syscall.NewLazyDLL("user32.dll")
 	messageBoxW := user32.NewProc("MessageBoxW")
-	const mbOK = 0
-	const mbIconInfo = 0x40
 	tPtr, _ := syscall.UTF16PtrFromString(title)
 	mPtr, _ := syscall.UTF16PtrFromString(text)
-	_, _, _ = messageBoxW.Call(0, uintptr(unsafe.Pointer(mPtr)), uintptr(unsafe.Pointer(tPtr)), mbOK|mbIconInfo)
+	_, _, _ = messageBoxW.Call(0, uintptr(unsafe.Pointer(mPtr)), uintptr(unsafe.Pointer(tPtr)), mbOK|mbIconInfo|messageBoxFlags)
 }
 
 // messageBoxYesNo returns true if the user chose Yes.
 func messageBoxYesNo(title, text string) bool {
 	user32 := syscall.NewLazyDLL("user32.dll")
 	messageBoxW := user32.NewProc("MessageBoxW")
-	const (
-		mbYesNo     = 0x00000004
-		mbIconQuest = 0x00000020
-		idYes       = 6
-	)
 	tPtr, _ := syscall.UTF16PtrFromString(title)
 	mPtr, _ := syscall.UTF16PtrFromString(text)
-	ret, _, _ := messageBoxW.Call(0, uintptr(unsafe.Pointer(mPtr)), uintptr(unsafe.Pointer(tPtr)), mbYesNo|mbIconQuest)
-	return ret == idYes
+	ret, _, _ := messageBoxW.Call(0, uintptr(unsafe.Pointer(mPtr)), uintptr(unsafe.Pointer(tPtr)), mbYesNo|mbIconQuest|messageBoxFlags)
+	return ret == messageBoxIDYes
 }

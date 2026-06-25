@@ -32,5 +32,15 @@ while IFS= read -r f; do
   esac
 done <<<"$diff_out"
 
+# A follow-up commit may only bump print-agent VERSION while the parent commit had web
+# changes still waiting for Production — build so those changes are not skipped.
+if git rev-parse "${PREV}^" >/dev/null 2>&1; then
+  parent_web=$(git diff --name-only "${PREV}^" "$PREV" 2>/dev/null | grep -E '^apps/web/' || true)
+  if [[ -n "$parent_web" ]]; then
+    echo "vercel-ignore-web: parent commit had web changes → building"
+    exit 1
+  fi
+fi
+
 echo "vercel-ignore-web: only ops/print-agent/docs changed → skip web build"
 exit 0

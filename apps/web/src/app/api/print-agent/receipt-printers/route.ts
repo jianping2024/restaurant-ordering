@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { staffAuthFromRequestWithRoles } from '@/lib/staff-api-auth';
+import { staffAuthFromRequestWithRoles, CHECKOUT_AUTHORIZED_STAFF_ROLES } from '@/lib/staff-api-auth';
 import {
   presentReceiptPrintersForCheckout,
   type ReceiptPrinterOption,
@@ -28,7 +28,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
-  const staffCtx = await staffAuthFromRequestWithRoles(req, slug, ['waiter', 'cashier']);
+  const staffCtx = await staffAuthFromRequestWithRoles(req, slug, CHECKOUT_AUTHORIZED_STAFF_ROLES);
   let restaurantId: string | null = null;
 
   if (staffCtx) {

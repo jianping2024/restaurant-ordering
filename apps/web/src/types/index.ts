@@ -14,7 +14,7 @@ export type BillStatus = 'pending' | 'confirmed' | 'requested' | 'paid' | 'cance
 export type Language = 'pt' | 'en' | 'zh';
 export type DishFeedbackVote = 'up' | 'down';
 export type PrintStationTicketLayout = 'kitchen' | 'beverage' | 'standard';
-export type StaffAccountRole = 'kitchen' | 'waiter' | 'cashier';
+export type StaffAccountRole = 'kitchen' | 'waiter' | 'cashier' | 'frontdesk';
 
 export interface RestaurantStaffAccount {
   id: string;

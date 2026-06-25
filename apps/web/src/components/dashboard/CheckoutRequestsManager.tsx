@@ -29,6 +29,7 @@ import {
   mergeBillSplitsFromRefresh,
 } from '@/lib/checkout-request-state';
 import { formatPortugueseNif } from '@/lib/pt-nif';
+import { tableIdsEqual } from '@/lib/restaurant-tables';
 
 /** Fallback when Realtime is delayed; only runs while the tab is visible. */
 const CHECKOUT_REQUESTS_POLL_MS = 30_000;
@@ -49,9 +50,19 @@ interface Props {
   restaurantId: string;
   /** When set, fully paid checkout enqueues a thermal order_receipt print job. */
   restaurantSlug?: string;
+  /** Frontdesk: show receipt printer picker on checkout. */
+  showPrinterSettings?: boolean;
+  /** Deep link from owner waiter board: auto-open this table's checkout request. */
+  initialTableId?: string;
 }
 
-export function CheckoutRequestsManager({ initialRequests, restaurantId, restaurantSlug }: Props) {
+export function CheckoutRequestsManager({
+  initialRequests,
+  restaurantId,
+  restaurantSlug,
+  showPrinterSettings = true,
+  initialTableId,
+}: Props) {
   const [requests, setRequests] = useState<BillSplit[]>(initialRequests);
   const [processingKeys, setProcessingKeys] = useState<Set<string>>(() => new Set());
   const [discountRateById, setDiscountRateById] = useState<Record<string, number>>({});
@@ -66,19 +77,32 @@ export function CheckoutRequestsManager({ initialRequests, restaurantId, restaur
   const [soundEnabled, setSoundEnabled] = useState(true);
   const prevRequestCountRef = useRef<number | null>(null);
   const refreshSeqRef = useRef(0);
+  const deepLinkConsumedRef = useRef(false);
 
   useEffect(() => {
-    if (!restaurantSlug) return;
+    setSoundEnabled(loadCheckoutSoundEnabled());
+  }, []);
+
+  useEffect(() => {
+    if (!restaurantSlug || !showPrinterSettings) return;
     const saved = loadSavedReceiptPrinterId(restaurantSlug);
     setSelectedReceiptPrinterId(saved);
     setPrintSettingsOpen(!saved);
-    setSoundEnabled(loadCheckoutSoundEnabled());
-  }, [restaurantSlug]);
+  }, [restaurantSlug, showPrinterSettings]);
 
   useEffect(() => {
-    if (!restaurantSlug) return;
+    if (!restaurantSlug || !showPrinterSettings) return;
     saveReceiptPrinterId(restaurantSlug, selectedReceiptPrinterId);
-  }, [restaurantSlug, selectedReceiptPrinterId]);
+  }, [restaurantSlug, selectedReceiptPrinterId, showPrinterSettings]);
+
+  useEffect(() => {
+    if (!initialTableId || deepLinkConsumedRef.current) return;
+    const match = requests.find((r) => tableIdsEqual(r.table_id, initialTableId));
+    if (match) {
+      setSelectedRequestId(match.id);
+      deepLinkConsumedRef.current = true;
+    }
+  }, [initialTableId, requests]);
 
   const handleReceiptPrinterChange = (printerId: string) => {
     setSelectedReceiptPrinterId(printerId);
@@ -243,7 +267,9 @@ export function CheckoutRequestsManager({ initialRequests, restaurantId, restaur
         billSplitId: request.id,
         personIndex: rowIndex,
         discountRate: getDiscountRate(request.id),
-        ...(selectedReceiptPrinterId ? { receiptPrinterId: selectedReceiptPrinterId } : {}),
+        ...(showPrinterSettings && selectedReceiptPrinterId
+          ? { receiptPrinterId: selectedReceiptPrinterId }
+          : {}),
       });
       if (!outcome.ok) {
         showToast(
@@ -435,7 +461,7 @@ export function CheckoutRequestsManager({ initialRequests, restaurantId, restaur
           </label>
         </div>
 
-        {restaurantSlug ? (
+        {restaurantSlug && showPrinterSettings ? (
           <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
             <button
               type="button"

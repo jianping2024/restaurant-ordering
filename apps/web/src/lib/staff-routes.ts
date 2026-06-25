@@ -9,6 +9,7 @@ type WaiterRouteOptions = {
 export function staffRolePath(slug: string, role: StaffRole): string {
   if (role === 'kitchen') return `/${slug}/kitchen`;
   if (role === 'cashier') return '/dashboard/checkout';
+  if (role === 'frontdesk') return '/dashboard';
   return `/${slug}/waiter`;
 }
 
@@ -27,4 +28,9 @@ export function waiterTableHref(
   if (options.isDemo) return `/demo/waiter/${encoded}`;
   if (options.embeddedInDashboard) return `/dashboard/waiter/${encoded}`;
   return `/${slug}/waiter/${encoded}`;
+}
+
+/** Owner dashboard: open checkout for a table awaiting payment. */
+export function dashboardCheckoutTableHref(tableId: string): string {
+  return `/dashboard/checkout?table_id=${encodeURIComponent(tableId)}`;
 }

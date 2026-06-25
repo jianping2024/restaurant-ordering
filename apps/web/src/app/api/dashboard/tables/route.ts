@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { loadOwnerDashboardTables } from '@/lib/dashboard-tables';
+import { loadFrontdeskDashboardTables } from '@/lib/dashboard-tables';
 import {
   isValidTableAddCount,
   isValidTableDisplayName,
@@ -16,7 +16,7 @@ function jsonTables(tables: RestaurantTableRow[]) {
 }
 
 export async function POST(req: Request) {
-  const loaded = await loadOwnerDashboardTables();
+  const loaded = await loadFrontdeskDashboardTables();
   if ('error' in loaded) {
     return NextResponse.json({ error: loaded.error, message: loaded.message }, { status: loaded.status });
   }
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'insert_failed', message: error.message }, { status: 500 });
   }
 
-  const next = await loadOwnerDashboardTables();
+  const next = await loadFrontdeskDashboardTables();
   if ('error' in next) {
     return NextResponse.json({ error: next.error, message: next.message }, { status: next.status });
   }
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const loaded = await loadOwnerDashboardTables();
+  const loaded = await loadFrontdeskDashboardTables();
   if ('error' in loaded) {
     return NextResponse.json({ error: loaded.error, message: loaded.message }, { status: loaded.status });
   }
@@ -115,7 +115,7 @@ export async function PATCH(req: Request) {
     }
   }
 
-  const next = await loadOwnerDashboardTables();
+  const next = await loadFrontdeskDashboardTables();
   if ('error' in next) {
     return NextResponse.json({ error: next.error, message: next.message }, { status: next.status });
   }
@@ -123,7 +123,7 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const loaded = await loadOwnerDashboardTables();
+  const loaded = await loadFrontdeskDashboardTables();
   if ('error' in loaded) {
     return NextResponse.json({ error: loaded.error, message: loaded.message }, { status: loaded.status });
   }
@@ -179,7 +179,7 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: 'delete_failed', message: error.message }, { status: 500 });
   }
 
-  const next = await loadOwnerDashboardTables();
+  const next = await loadFrontdeskDashboardTables();
   if ('error' in next) {
     return NextResponse.json({ error: next.error, message: next.message }, { status: next.status });
   }

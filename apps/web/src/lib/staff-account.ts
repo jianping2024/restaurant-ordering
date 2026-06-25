@@ -1,4 +1,10 @@
-export type StaffRole = 'kitchen' | 'waiter' | 'cashier';
+export type StaffRole = 'kitchen' | 'waiter' | 'cashier' | 'frontdesk';
+
+export const STAFF_ROLES: readonly StaffRole[] = ['kitchen', 'waiter', 'cashier', 'frontdesk'];
+
+export function isStaffRole(role: string): role is StaffRole {
+  return (STAFF_ROLES as readonly string[]).includes(role);
+}
 
 export const STAFF_EMAIL_DOMAIN = 'mesa.in';
 
@@ -66,7 +72,8 @@ export function suggestLoginNameFromDisplay(
     .replace(/[^a-z0-9]+/g, '')
     .slice(0, 24);
 
-  const tag = role === 'waiter' ? 'w' : role === 'cashier' ? 'c' : 'k';
+  const tag =
+    role === 'waiter' ? 'w' : role === 'cashier' ? 'c' : role === 'frontdesk' ? 'f' : 'k';
   let candidate =
     latin.length >= 3
       ? latin
@@ -145,7 +152,7 @@ export type StaffUserMetadata = {
 export function parseStaffUserMetadata(meta: Record<string, unknown> | undefined): StaffUserMetadata | null {
   if (!meta || meta.account_type !== 'staff') return null;
   const staff_role = meta.staff_role;
-  if (staff_role !== 'kitchen' && staff_role !== 'waiter' && staff_role !== 'cashier') {
+  if (typeof staff_role !== 'string' || !isStaffRole(staff_role)) {
     return null;
   }
   if (typeof meta.restaurant_id !== 'string' || typeof meta.staff_account_id !== 'string') return null;

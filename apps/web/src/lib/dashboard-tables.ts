@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { loadOwnerRestaurantWithSlug } from '@/lib/staff-dashboard-api';
+import { loadFrontdeskOperationalContext } from '@/lib/dashboard-access';
 import {
   sortTableGroups,
   type RestaurantTableGroup,
@@ -7,9 +7,9 @@ import {
 } from '@/lib/restaurant-table-groups';
 import { sortRestaurantTables, type RestaurantTable, type RestaurantTableRow } from '@/lib/restaurant-tables';
 
-export type OwnerDashboardTables =
+export type FrontdeskDashboardTables =
   | {
-      admin: Exclude<Awaited<ReturnType<typeof loadOwnerRestaurantWithSlug>>, { error: string }>['admin'];
+      admin: SupabaseClient;
       restaurant: { id: string; name: string; slug: string; owner_id: string };
       tables: RestaurantTableRow[];
       groups: RestaurantTableGroup[];
@@ -51,21 +51,33 @@ async function loadRestaurantTableGroups(
   };
 }
 
-export async function loadOwnerDashboardTables(): Promise<OwnerDashboardTables> {
-  const loaded = await loadOwnerRestaurantWithSlug();
-  if ('error' in loaded) return loaded;
+export async function loadFrontdeskDashboardTables(): Promise<FrontdeskDashboardTables> {
+  const ctx = await loadFrontdeskOperationalContext();
+  if ('error' in ctx) {
+    return { error: ctx.error, status: ctx.status };
+  }
 
-  const { data, error } = await loaded.admin
+  const { data: restaurant, error: restaurantError } = await ctx.admin
+    .from('restaurants')
+    .select('id, name, slug, owner_id')
+    .eq('id', ctx.restaurantId)
+    .maybeSingle();
+
+  if (restaurantError || !restaurant) {
+    return { error: 'restaurant_not_found', status: 404, message: restaurantError?.message };
+  }
+
+  const { data, error } = await ctx.admin
     .from('restaurant_tables')
     .select('id, restaurant_id, display_name, sort_order, deleted_at, created_at')
-    .eq('restaurant_id', loaded.restaurant.id)
+    .eq('restaurant_id', ctx.restaurantId)
     .is('deleted_at', null);
 
   if (error) {
     return { error: 'tables_query_failed', status: 500, message: error.message };
   }
 
-  const groupData = await loadRestaurantTableGroups(loaded.admin, loaded.restaurant.id);
+  const groupData = await loadRestaurantTableGroups(ctx.admin, ctx.restaurantId);
   if ('error' in groupData) {
     return {
       error: groupData.error,
@@ -79,8 +91,8 @@ export async function loadOwnerDashboardTables(): Promise<OwnerDashboardTables> 
   );
 
   return {
-    admin: loaded.admin,
-    restaurant: loaded.restaurant,
+    admin: ctx.admin,
+    restaurant: restaurant as { id: string; name: string; slug: string; owner_id: string },
     tables,
     groups: groupData.groups,
     members: groupData.members,

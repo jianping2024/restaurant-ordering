@@ -38,7 +38,7 @@ import {
   type WaiterBoardSection,
 } from '@/lib/restaurant-table-groups';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
-import { waiterTableHref } from '@/lib/staff-routes';
+import { waiterTableHref, dashboardCheckoutTableHref } from '@/lib/staff-routes';
 import {
   loadWaiterBoardCollapsedSectionIds,
   saveWaiterBoardCollapsedSectionIds,
@@ -86,6 +86,7 @@ function WaiterTableCardLink({
   nowMs,
   lang,
   pinned = false,
+  ownerCheckoutLink = false,
 }: {
   card: WaiterTableCardData;
   href: string;
@@ -95,6 +96,7 @@ function WaiterTableCardLink({
   nowMs: number;
   lang: 'zh' | 'en' | 'pt';
   pinned?: boolean;
+  ownerCheckoutLink?: boolean;
 }) {
   const t = WAITER_TEXT[lang];
   const session = sessionMetaByTableId[card.tableId];
@@ -121,7 +123,9 @@ function WaiterTableCardLink({
     labels: {
       guestCount: t.guestCount,
       sessionAmount: t.sessionAmount,
-      checkoutPendingSubtitle: t.checkoutPendingSubtitle,
+      checkoutPendingSubtitle: ownerCheckoutLink
+        ? t.checkoutOwnerCollectAction
+        : t.checkoutPendingSubtitle,
       clickToView: t.clickToView,
     },
   });
@@ -374,8 +378,27 @@ function WaiterBoardInner({
     [tables, effectiveSessionMetaByTableId, checkoutRequestedTableIds],
   );
 
-  const detailHref = (tableId: string) =>
-    waiterTableHref(restaurant.slug, tableId, { isDemo, embeddedInDashboard });
+  const tableHref = (tableId: string) => {
+    if (embeddedInDashboard) {
+      const boardState = classifyWaiterTableBoardState(
+        tableId,
+        effectiveSessionMetaByTableId,
+        checkoutRequestedTableIds,
+      );
+      if (boardState === 'checkout') {
+        return dashboardCheckoutTableHref(tableId);
+      }
+    }
+    return waiterTableHref(restaurant.slug, tableId, { isDemo, embeddedInDashboard });
+  };
+
+  const isOwnerCheckoutLink = (tableId: string) =>
+    embeddedInDashboard &&
+    classifyWaiterTableBoardState(
+      tableId,
+      effectiveSessionMetaByTableId,
+      checkoutRequestedTableIds,
+    ) === 'checkout';
 
   const filterLabel = (filter: WaiterBoardFilter) => {
     if (filter === 'all') return t.filterAll;
@@ -388,13 +411,14 @@ function WaiterBoardInner({
     <WaiterTableCardLink
       key={pinned ? `pinned-${card.tableId}` : card.tableId}
       card={card}
-      href={detailHref(card.tableId)}
+      href={tableHref(card.tableId)}
       checkoutRequestedTableIds={checkoutRequestedTableIds}
       checkoutRequestedAtByTableId={checkoutRequestedAtByTableId}
       sessionMetaByTableId={effectiveSessionMetaByTableId}
       nowMs={nowMs}
       lang={lang}
       pinned={pinned}
+      ownerCheckoutLink={isOwnerCheckoutLink(card.tableId)}
     />
   );
 

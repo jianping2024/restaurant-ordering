@@ -1,6 +1,13 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { isCashierCheckoutPath, isCashierStaffUser } from '@/lib/dashboard-access';
+import {
+  isCashierCheckoutPath,
+  isCashierStaffUser,
+  isDashboardSettingsPath,
+  isFrontdeskOperationalPath,
+  isFrontdeskStaffUser,
+  isOwnerDashboardUser,
+} from '@/lib/dashboard-access';
 
 // Middleware 中使用的 Supabase 客户端
 export async function updateSession(request: NextRequest) {
@@ -39,12 +46,34 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && pathname.startsWith('/dashboard')) {
-    const isCashier = await isCashierStaffUser(
-      supabase,
-      user.id,
-      user.user_metadata as Record<string, unknown>,
-    );
-    if (isCashier) {
+    const userMetadata = user.user_metadata as Record<string, unknown>;
+    const isOwner = await isOwnerDashboardUser(supabase, user.id);
+    const isFrontdesk = await isFrontdeskStaffUser(supabase, user.id, userMetadata);
+    const isCashier = await isCashierStaffUser(supabase, user.id, userMetadata);
+
+    if (isOwner) {
+      if (pathname === '/dashboard' || pathname === '/dashboard/') {
+        const url = request.nextUrl.clone();
+        url.pathname = '/dashboard/settings';
+        return NextResponse.redirect(url);
+      }
+      if (!isDashboardSettingsPath(pathname)) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/dashboard/settings';
+        return NextResponse.redirect(url);
+      }
+    } else if (isFrontdesk) {
+      if (isDashboardSettingsPath(pathname)) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/dashboard';
+        return NextResponse.redirect(url);
+      }
+      if (!isFrontdeskOperationalPath(pathname)) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/dashboard';
+        return NextResponse.redirect(url);
+      }
+    } else if (isCashier) {
       if (pathname === '/dashboard' || pathname === '/dashboard/') {
         const url = request.nextUrl.clone();
         url.pathname = '/dashboard/checkout';

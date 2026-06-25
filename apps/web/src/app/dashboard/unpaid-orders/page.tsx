@@ -1,11 +1,11 @@
 import { notFound } from 'next/navigation';
 import type { Order } from '@/types';
 import { OrdersPageClient } from '@/components/dashboard/OrdersPageClient';
-import { loadOwnerDashboardTables } from '@/lib/dashboard-tables';
+import { loadFrontdeskDashboardTables } from '@/lib/dashboard-tables';
 import { fetchCheckoutRequestedTableIds } from '@/lib/table-checkout-pending';
 
 export default async function UnpaidOrdersPage() {
-  const loaded = await loadOwnerDashboardTables();
+  const loaded = await loadFrontdeskDashboardTables();
   if ('error' in loaded) notFound();
 
   const { data: activeSessions } = await loaded.admin

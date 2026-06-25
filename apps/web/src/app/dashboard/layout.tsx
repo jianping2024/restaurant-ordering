@@ -40,7 +40,8 @@ export default async function DashboardLayout({
       ? await loadPrintAgentDevicesNeedingRenewal(access.restaurant.id)
       : [];
   const showSuspensionBanner =
-    access.mode === 'owner' && isRestaurantSuspended(access.restaurant.suspended_at);
+    (access.mode === 'owner' || access.mode === 'frontdesk') &&
+    isRestaurantSuspended(access.restaurant.suspended_at);
 
   return (
     <div className="min-h-screen bg-brand-bg flex">

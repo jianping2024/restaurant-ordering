@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { loadFrontdeskOperationalContext } from '@/lib/dashboard-access';
 import type { Order } from '@/types';
 import { DashboardPageClient } from '@/components/dashboard/DashboardPageClient';
 import { getServerLanguage } from '@/lib/i18n.server';
@@ -6,54 +6,56 @@ import { formatOrderDateTime, formatOverviewDate } from '@/lib/format-dashboard-
 
 // 数据概览（数据服务端获取，文案与 LanguageProvider 同步）
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const ctx = await loadFrontdeskOperationalContext();
+  if ('error' in ctx) return null;
 
-  const { data: restaurant } = await supabase
+  const { data: restaurant } = await ctx.admin
     .from('restaurants')
     .select('*')
-    .eq('owner_id', user!.id)
+    .eq('id', ctx.restaurantId)
     .single();
 
   if (!restaurant) return null;
 
+  const admin = ctx.admin;
+
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
-  const { data: todayOrders } = await supabase
+  const { data: todayOrders } = await admin
     .from('orders')
     .select('*')
     .eq('restaurant_id', restaurant.id)
     .gte('created_at', todayStart.toISOString());
 
-  const { data: allOrders } = await supabase
+  const { data: allOrders } = await admin
     .from('orders')
     .select('*')
     .eq('restaurant_id', restaurant.id)
     .order('created_at', { ascending: false })
     .limit(10);
 
-  const { count: menuCount } = await supabase
+  const { count: menuCount } = await admin
     .from('menu_items')
     .select('*', { count: 'exact', head: true })
     .eq('restaurant_id', restaurant.id);
 
   const sinceIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  const { data: feedbackSessions } = await supabase
+  const { data: feedbackSessions } = await admin
     .from('feedback_sessions')
     .select('session_id, completed_at')
     .eq('restaurant_id', restaurant.id)
     .gte('created_at', sinceIso);
 
-  const { data: billedSplits } = await supabase
+  const { data: billedSplits } = await admin
     .from('bill_splits')
     .select('session_id')
     .eq('restaurant_id', restaurant.id)
     .gte('created_at', sinceIso)
     .not('session_id', 'is', null);
 
-  const { data: dishFeedbackRows } = await supabase
+  const { data: dishFeedbackRows } = await admin
     .from('dish_feedback')
     .select('menu_item_id, vote, reasons, menu_items(name_pt, name_en, name_zh)')
     .eq('restaurant_id', restaurant.id)

@@ -86,6 +86,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
   const roleLabel = (role: StaffAccountRole) => {
     if (role === 'kitchen') return t.roleKitchen;
     if (role === 'cashier') return t.roleCashier;
+    if (role === 'frontdesk') return t.roleFrontdesk;
     return t.roleWaiter;
   };
 
@@ -238,8 +239,10 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
         </p>
       ) : null}
 
-      <div className="mb-4">
-        <button
+      <p className="text-[12px] text-brand-text-muted mb-4">{t.emailHint}</p>
+
+      <div className="mb-4 flex justify-end">
+        <Button
           type="button"
           onClick={() => {
             loginNameTouchedRef.current = false;
@@ -247,13 +250,10 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
             setCreateError('');
             setCreateOpen(true);
           }}
-          className="text-[13px] font-medium text-brand-gold hover:underline"
         >
           + {t.add}
-        </button>
+        </Button>
       </div>
-
-      <p className="text-[12px] text-brand-text-muted mb-3">{t.emailHint}</p>
 
       <div className="rounded-2xl border border-brand-border bg-brand-card overflow-hidden">
         {staff.length === 0 ? (
@@ -419,6 +419,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
               <option value="kitchen">{t.roleKitchen}</option>
               <option value="waiter">{t.roleWaiter}</option>
               <option value="cashier">{t.roleCashier}</option>
+              <option value="frontdesk">{t.roleFrontdesk}</option>
             </select>
           </div>
           <Input

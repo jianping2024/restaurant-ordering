@@ -5,7 +5,7 @@ import { loadWaiterBoardInitial } from '@/lib/staff-board';
 
 export default async function DashboardWaiterPage() {
   const access = await loadDashboardAccess();
-  if (access.mode !== 'owner') {
+  if (access.mode !== 'frontdesk') {
     redirect('/dashboard');
   }
 

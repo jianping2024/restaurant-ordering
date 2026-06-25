@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+import { describe, it } from 'node:test';
+import {
+  isCashierCheckoutPath,
+  isDashboardSettingsPath,
+  isFrontdeskOperationalPath,
+} from './dashboard-paths';
+import { isStaffRole } from './staff-account';
+
+describe('isDashboardSettingsPath', () => {
+  it('matches settings root and nested routes', () => {
+    assert.equal(isDashboardSettingsPath('/dashboard/settings'), true);
+    assert.equal(isDashboardSettingsPath('/dashboard/settings/staff'), true);
+    assert.equal(isDashboardSettingsPath('/dashboard/checkout'), false);
+  });
+});
+
+describe('isCashierCheckoutPath', () => {
+  it('matches checkout routes only', () => {
+    assert.equal(isCashierCheckoutPath('/dashboard/checkout'), true);
+    assert.equal(isCashierCheckoutPath('/dashboard/checkout/foo'), true);
+    assert.equal(isCashierCheckoutPath('/dashboard/orders'), false);
+  });
+});
+
+describe('isFrontdeskOperationalPath', () => {
+  it('allows operational dashboard routes except settings', () => {
+    assert.equal(isFrontdeskOperationalPath('/dashboard'), true);
+    assert.equal(isFrontdeskOperationalPath('/dashboard/tables'), true);
+    assert.equal(isFrontdeskOperationalPath('/dashboard/waiter'), true);
+    assert.equal(isFrontdeskOperationalPath('/dashboard/settings'), false);
+    assert.equal(isFrontdeskOperationalPath('/dashboard/settings/menu'), false);
+    assert.equal(isFrontdeskOperationalPath('/auth/login'), false);
+  });
+});
+
+describe('isStaffRole', () => {
+  it('accepts known staff roles only', () => {
+    assert.equal(isStaffRole('kitchen'), true);
+    assert.equal(isStaffRole('waiter'), true);
+    assert.equal(isStaffRole('cashier'), true);
+    assert.equal(isStaffRole('frontdesk'), true);
+    assert.equal(isStaffRole('owner'), false);
+    assert.equal(isStaffRole(''), false);
+  });
+});

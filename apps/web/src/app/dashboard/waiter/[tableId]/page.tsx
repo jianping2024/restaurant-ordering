@@ -13,7 +13,7 @@ interface Props {
 
 export default async function DashboardWaiterTablePage({ params }: Props) {
   const access = await loadDashboardAccess();
-  if (access.mode !== 'owner') {
+  if (access.mode !== 'frontdesk') {
     redirect('/dashboard');
   }
 

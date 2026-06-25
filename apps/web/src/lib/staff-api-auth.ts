@@ -4,6 +4,8 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import type { StaffRole } from '@/lib/staff-account';
 
+export const CHECKOUT_AUTHORIZED_STAFF_ROLES: StaffRole[] = ['waiter', 'cashier', 'frontdesk'];
+
 export type StaffAuthContext = {
   restaurant_id: string;
   slug: string;

@@ -13,10 +13,19 @@ import type { DashboardAccessMode } from '@/lib/dashboard-access';
 import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 
 const ownerNavItems = [
+  {
+    href: '/dashboard/settings',
+    key: 'settings',
+    icon: '⚙️',
+    exact: false,
+    matchPrefix: '/dashboard/settings',
+  },
+] as const;
+
+const frontdeskNavItems = [
   { href: '/dashboard/checkout', key: 'checkout', icon: '💳', exact: false },
   { href: '/dashboard/unpaid-orders', key: 'unpaidOrders', icon: '🧾', exact: false },
   { href: '/dashboard/orders', key: 'orders', icon: '📋', exact: false },
-  { href: '/dashboard/settings', key: 'settings', icon: '⚙️', exact: false, matchPrefix: '/dashboard/settings' },
   { href: '/dashboard', key: 'overview', icon: '📊', exact: true },
   { href: '/dashboard/tables', key: 'tables', icon: '🪑', exact: false },
 ] as const;
@@ -37,11 +46,19 @@ export function DashboardNav({
   const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).nav;
-  const navItems = accessMode === 'cashier' ? cashierNavItems : ownerNavItems;
+  const navItems =
+    accessMode === 'cashier'
+      ? cashierNavItems
+      : accessMode === 'frontdesk'
+        ? frontdeskNavItems
+        : ownerNavItems;
+  const showOperationalShortcuts = accessMode === 'frontdesk';
   const [mobileOpen, setMobileOpen] = useState(false);
   const [checkoutRequestCount, setCheckoutRequestCount] = useState(0);
 
   useEffect(() => {
+    if (accessMode === 'owner') return;
+
     const supabase = createClient();
     let cancelled = false;
 
@@ -78,7 +95,7 @@ export function DashboardNav({
       cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [restaurant.id]);
+  }, [accessMode, restaurant.id]);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -183,7 +200,7 @@ export function DashboardNav({
         })}
       </nav>
 
-      {accessMode === 'owner' ? (
+      {showOperationalShortcuts ? (
         <div className="px-4 py-3 border-t border-brand-border">
           {kitchenShortcutEnabled ? (
             <a

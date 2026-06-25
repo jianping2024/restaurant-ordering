@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
 import type { Order } from '@/types';
 import { OrdersPageClient } from '@/components/dashboard/OrdersPageClient';
-import { loadOwnerDashboardTables } from '@/lib/dashboard-tables';
+import { loadFrontdeskDashboardTables } from '@/lib/dashboard-tables';
 
 export default async function OrdersPage() {
-  const loaded = await loadOwnerDashboardTables();
+  const loaded = await loadFrontdeskDashboardTables();
   if ('error' in loaded) notFound();
 
   const { data: orders } = await loaded.admin

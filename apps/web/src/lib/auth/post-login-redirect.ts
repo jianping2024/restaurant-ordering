@@ -2,17 +2,13 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isRestaurantSuspended } from '@mesa/shared';
 import { staffRolePath } from '@/lib/staff-routes';
-import { parseStaffUserMetadata, type StaffRole } from '@/lib/staff-account';
+import { parseStaffUserMetadata, isStaffRole, type StaffRole } from '@/lib/staff-account';
 
 export type PostLoginRedirect =
-  | { kind: 'owner'; path: '/dashboard' }
+  | { kind: 'owner'; path: '/dashboard/settings' }
   | { kind: 'onboarding'; path: '/dashboard' }
   | { kind: 'staff'; path: string; mustChangePassword: boolean; slug: string; role: StaffRole }
   | { kind: 'staff_error'; code: 'disabled' | 'incomplete' | 'restaurant_suspended' };
-
-function isStaffRole(role: string): role is StaffRole {
-  return role === 'kitchen' || role === 'waiter' || role === 'cashier';
-}
 
 /** Resolve landing path after server-side sign-in (owner before staff). */
 export async function resolvePostLoginRedirect(
@@ -33,7 +29,7 @@ export async function resolvePostLoginRedirect(
   }
 
   if (ownedRestaurant) {
-    return { kind: 'owner', path: '/dashboard' };
+    return { kind: 'owner', path: '/dashboard/settings' };
   }
 
   const { data: account, error: staffError } = await supabase

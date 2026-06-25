@@ -3,6 +3,7 @@ import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
 import {
   staffPasswordValid,
   validateLoginName,
+  isStaffRole,
   type StaffUserMetadata,
 } from '@/lib/staff-account';
 import type { StaffAccountRole, RestaurantStaffAccount } from '@/types';
@@ -73,7 +74,7 @@ export function validateStaffCreateBody(body: Record<string, unknown>) {
   if (!display_name) return { error: 'display_name_required' as const };
   const login = validateLoginName(loginRaw);
   if (!login.ok) return { error: `login_name_${login.code}` as const };
-  if (role !== 'kitchen' && role !== 'waiter' && role !== 'cashier') {
+  if (!isStaffRole(String(role))) {
     return { error: 'invalid_role' as const };
   }
   if (!staffPasswordValid(password)) return { error: 'password_too_short' as const };

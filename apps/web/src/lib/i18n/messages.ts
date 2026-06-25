@@ -674,7 +674,7 @@ export const MESSAGES = {
       helpLabel: '帮助',
       hintProfile: '餐厅名称、地址、电话；门店定位与下单距离见下方表单。厨房/楼面 PIN 在「员工管理」。',
       hintFeatures: '勾选要在后台侧栏显示的可选功能；默认关闭，按需开启。',
-      hintStaff: '为厨房、服务员、收银员创建独立账号（登录名@mesa.in）。登录名全平台唯一。',
+      hintStaff: '为厨房、服务员、收银员与前台创建独立账号（登录名@mesa.in）。登录名全平台唯一。',
       hintMenu: '先建分类与菜品，在「出品档口」Tab 定义窗口并绑定；打印机配对见「打印助手」。',
       hintBuffet: '配置自助餐方案、时段与节假日价格规则；与菜单分类独立，用于按人/时段计价。',
       hintPrintAssistant: '下载打印助手、配对打印机、查看打印队列。档口在菜单管理里配置，configure 将档口映射到本机打印机。',
@@ -687,7 +687,7 @@ export const MESSAGES = {
     },
     staffSettings: {
       title: '员工账号',
-      desc: '为厨房、服务员与收银员创建独立登录（邮箱格式：登录名@mesa.in）。',
+      desc: '为厨房、服务员、收银员与前台创建独立登录（邮箱格式：登录名@mesa.in）。',
       add: '新增员工',
       empty: '暂无员工账号',
       emailHint:
@@ -700,6 +700,7 @@ export const MESSAGES = {
       roleKitchen: '厨房',
       roleWaiter: '服务员',
       roleCashier: '收银员',
+      roleFrontdesk: '前台',
       statusActive: '启用',
       statusDisabled: '停用',
       fieldDisplayName: '显示名',
@@ -1460,7 +1461,7 @@ export const MESSAGES = {
       hintProfile:
         'Name, address, phone; location and order radius are in the form below. Staff PINs are under Staff.',
       hintFeatures: 'Enable optional shortcuts in the dashboard sidebar; off by default until you turn them on.',
-      hintStaff: 'Create kitchen, waiter, and cashier logins (login_name@mesa.in). Login names are unique platform-wide.',
+      hintStaff: 'Create kitchen, waiter, cashier, and front-desk logins (login_name@mesa.in). Login names are unique platform-wide.',
       hintMenu:
         'Categories, dishes, and print stations (stations tab). Pair physical printers under Print assistant.',
       hintBuffet: 'Buffet plans, time slots, and holiday price rules. Separate from menu categories; used for per-guest pricing.',
@@ -1474,7 +1475,7 @@ export const MESSAGES = {
     },
     staffSettings: {
       title: 'Staff accounts',
-      desc: 'Kitchen, waiter, and cashier logins (email: login_name@mesa.in).',
+      desc: 'Kitchen, waiter, cashier, and front-desk logins (email: login_name@mesa.in).',
       add: 'Add staff',
       empty: 'No staff accounts yet',
       emailHint: 'Staff email is login_name@mesa.in. Login names are unique platform-wide.',
@@ -1486,6 +1487,7 @@ export const MESSAGES = {
       roleKitchen: 'Kitchen',
       roleWaiter: 'Waiter',
       roleCashier: 'Cashier',
+      roleFrontdesk: 'Front desk',
       statusActive: 'Active',
       statusDisabled: 'Disabled',
       fieldDisplayName: 'Display name',
@@ -2089,7 +2091,7 @@ export const MESSAGES = {
       hintProfile:
         'Nome, morada, telefone; localizacao e distancia maxima no formulario. PINs em Funcionarios.',
       hintFeatures: 'Ative atalhos opcionais no menu lateral; desligados por defeito.',
-      hintStaff: 'Contas de cozinha, sala e caixa (login_name@mesa.in). Nome de login unico na plataforma.',
+      hintStaff: 'Contas de cozinha, sala, caixa e recepcao (login_name@mesa.in). Nome de login unico na plataforma.',
       hintMenu:
         'Categorias, pratos e estacoes (separador Estacoes). Emparelhe impressoras em Assistente de impressao.',
       hintBuffet: 'Planos buffet, horarios e precos em feriados. Separado das categorias do menu.',
@@ -2103,7 +2105,7 @@ export const MESSAGES = {
     },
     staffSettings: {
       title: 'Contas da equipa',
-      desc: 'Logins de cozinha, sala e caixa (email: login_name@mesa.in).',
+      desc: 'Logins de cozinha, sala, caixa e recepcao (email: login_name@mesa.in).',
       add: 'Adicionar',
       empty: 'Sem contas de equipa',
       emailHint: 'Email: login_name@mesa.in; nome de login unico em toda a plataforma.',
@@ -2115,6 +2117,7 @@ export const MESSAGES = {
       roleKitchen: 'Cozinha',
       roleWaiter: 'Sala',
       roleCashier: 'Caixa',
+      roleFrontdesk: 'Recepcao',
       statusActive: 'Ativo',
       statusDisabled: 'Desativado',
       fieldDisplayName: 'Nome visivel',

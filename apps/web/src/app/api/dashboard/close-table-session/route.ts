@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { loadOwnerDashboardTables } from '@/lib/dashboard-tables';
+import { loadFrontdeskDashboardTables } from '@/lib/dashboard-tables';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { closeTableSessionWithCheckoutGuard } from '@/lib/table-session-close-guards';
 import { parseCloseConfirmFromBody } from '@/lib/close-table-session-ui';
@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/server';
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
-  const loaded = await loadOwnerDashboardTables();
+  const loaded = await loadFrontdeskDashboardTables();
   if ('error' in loaded) {
     return NextResponse.json({ error: loaded.error, message: loaded.message }, { status: loaded.status });
   }

@@ -8,6 +8,37 @@ export type WaiterTableSessionMeta = {
   status: 'open' | 'billing';
 };
 
+export type WaiterBoardFilter = 'all' | 'checkout' | 'dining' | 'idle';
+
+export type WaiterTableBoardState = 'checkout' | 'dining' | 'idle';
+
+export function classifyWaiterTableBoardState(
+  tableId: string,
+  sessionMetaByTableId: Record<string, WaiterTableSessionMeta>,
+  checkoutRequestedTableIds: readonly string[],
+): WaiterTableBoardState {
+  const session = sessionMetaByTableId[tableId];
+  const isCheckoutPending =
+    isTableCheckoutRequested(tableId, checkoutRequestedTableIds) || session?.status === 'billing';
+  if (isCheckoutPending) return 'checkout';
+  if (session) return 'dining';
+  return 'idle';
+}
+
+export function filterWaiterBoardTableIds(
+  tableIds: readonly string[],
+  filter: WaiterBoardFilter,
+  sessionMetaByTableId: Record<string, WaiterTableSessionMeta>,
+  checkoutRequestedTableIds: readonly string[],
+): string[] {
+  if (filter === 'all') return [...tableIds];
+  return tableIds.filter(
+    (tableId) =>
+      classifyWaiterTableBoardState(tableId, sessionMetaByTableId, checkoutRequestedTableIds) ===
+      filter,
+  );
+}
+
 export type WaiterBoardStats = {
   total: number;
   idle: number;
@@ -84,6 +115,7 @@ export function formatSessionDurationHm(
 
 export function buildWaiterTableCardSubtitle(input: {
   guestCount: number;
+  sessionTotal: number;
   session: WaiterTableSessionMeta | undefined;
   hasCheckoutRequest: boolean;
   lang: UILanguage;
@@ -91,6 +123,7 @@ export function buildWaiterTableCardSubtitle(input: {
   nowMs: number;
   labels: {
     guestCount: string;
+    sessionAmount: string;
     checkoutPendingSubtitle: string;
     clickToView: string;
   };
@@ -107,6 +140,11 @@ export function buildWaiterTableCardSubtitle(input: {
       input.nowMs,
     );
     if (duration) parts.push(duration);
+  }
+  if (input.sessionTotal > 0) {
+    parts.push(
+      input.labels.sessionAmount.replace('{amount}', input.sessionTotal.toFixed(2)),
+    );
   }
   if (parts.length > 0) return parts.join(' · ');
   if (input.hasCheckoutRequest) return input.labels.checkoutPendingSubtitle;

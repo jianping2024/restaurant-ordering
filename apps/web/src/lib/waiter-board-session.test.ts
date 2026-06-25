@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   activeSessionIdByTableIdFromMeta,
+  classifyWaiterTableBoardState,
   computeWaiterBoardStats,
+  filterWaiterBoardTableIds,
   formatSessionDurationHm,
 } from './waiter-board-session';
 
@@ -58,5 +60,52 @@ describe('computeWaiterBoardStats', () => {
       open: 1,
       checkoutPending: 2,
     });
+  });
+});
+
+describe('classifyWaiterTableBoardState', () => {
+  const t1 = '550e8400-e29b-41d4-a716-446655440001';
+  const t2 = '550e8400-e29b-41d4-a716-446655440002';
+  const meta = {
+    [t2]: { sessionId: 's2', openedAt: '2026-01-01T10:00:00.000Z', status: 'open' as const },
+  };
+
+  it('returns checkout when checkout requested', () => {
+    assert.equal(classifyWaiterTableBoardState(t1, meta, [t1]), 'checkout');
+  });
+
+  it('returns dining for open session without checkout', () => {
+    assert.equal(classifyWaiterTableBoardState(t2, meta, []), 'dining');
+  });
+
+  it('returns idle when no session', () => {
+    assert.equal(classifyWaiterTableBoardState(t1, meta, []), 'idle');
+  });
+});
+
+describe('filterWaiterBoardTableIds', () => {
+  const ids = [
+    '550e8400-e29b-41d4-a716-446655440001',
+    '550e8400-e29b-41d4-a716-446655440002',
+    '550e8400-e29b-41d4-a716-446655440003',
+  ];
+  const meta = {
+    [ids[1]]: {
+      sessionId: 's2',
+      openedAt: '2026-01-01T10:00:00.000Z',
+      status: 'open' as const,
+    },
+    [ids[2]]: {
+      sessionId: 's3',
+      openedAt: '2026-01-01T10:00:00.000Z',
+      status: 'billing' as const,
+    },
+  };
+
+  it('filters by board state', () => {
+    assert.deepEqual(filterWaiterBoardTableIds(ids, 'all', meta, []), ids);
+    assert.deepEqual(filterWaiterBoardTableIds(ids, 'dining', meta, []), [ids[1]]);
+    assert.deepEqual(filterWaiterBoardTableIds(ids, 'checkout', meta, []), [ids[2]]);
+    assert.deepEqual(filterWaiterBoardTableIds(ids, 'idle', meta, []), [ids[0]]);
   });
 });

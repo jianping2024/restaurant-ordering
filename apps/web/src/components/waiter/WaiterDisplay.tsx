@@ -15,15 +15,18 @@ import { getMessages } from '@/lib/i18n/messages';
 import {
   activeSessionIdByTableIdFromMeta,
   buildWaiterTableCardSubtitle,
+  classifyWaiterTableBoardState,
   computeWaiterBoardStats,
   demoSessionMetaFromOrders,
+  filterWaiterBoardTableIds,
+  type WaiterBoardFilter,
+  type WaiterTableBoardState,
 } from '@/lib/waiter-board-session';
 import {
   checkoutRequestedAtForTable,
   isTableCheckoutRequested,
 } from '@/lib/table-checkout-pending';
 import {
-  buildTableGroupNameByTableId,
   buildWaiterBoardSections,
   isWaiterTableCheckoutPending,
   sortWaiterTableCards,
@@ -38,6 +41,26 @@ interface Props {
   isDemo?: boolean;
 }
 
+const BOARD_FILTERS: WaiterBoardFilter[] = ['all', 'checkout', 'dining', 'idle'];
+
+const STATUS_STYLES: Record<
+  WaiterTableBoardState,
+  { card: string; badge: string }
+> = {
+  checkout: {
+    card: 'border-amber-500/55 bg-amber-500/12 shadow-md shadow-amber-900/10 hover:border-amber-500/80',
+    badge: 'bg-amber-700 text-white',
+  },
+  dining: {
+    card: 'border-emerald-500/50 bg-emerald-500/10 shadow-sm shadow-emerald-900/5 hover:border-emerald-500/75',
+    badge: 'bg-emerald-700 text-white',
+  },
+  idle: {
+    card: 'border-brand-border bg-brand-card shadow-sm shadow-black/5 hover:border-brand-gold/50',
+    badge: 'bg-brand-border text-brand-text-muted',
+  },
+};
+
 function WaiterTableCardLink({
   card,
   href,
@@ -46,8 +69,7 @@ function WaiterTableCardLink({
   sessionMetaByTableId,
   nowMs,
   lang,
-  compact = false,
-  groupName,
+  pinned = false,
 }: {
   card: WaiterTableCardData;
   href: string;
@@ -56,16 +78,25 @@ function WaiterTableCardLink({
   sessionMetaByTableId: Record<string, import('@/lib/waiter-board-session').WaiterTableSessionMeta>;
   nowMs: number;
   lang: 'zh' | 'en' | 'pt';
-  compact?: boolean;
-  groupName?: string;
+  pinned?: boolean;
 }) {
   const t = WAITER_TEXT[lang];
   const session = sessionMetaByTableId[card.tableId];
-  const hasOrderActivity = card.orderLines.length > 0 || card.hasBuffet;
   const hasCheckoutRequest = isTableCheckoutRequested(card.tableId, checkoutRequestedTableIds);
-  const isActive = !!session || hasOrderActivity || hasCheckoutRequest;
+  const boardState = classifyWaiterTableBoardState(
+    card.tableId,
+    sessionMetaByTableId,
+    checkoutRequestedTableIds,
+  );
+  const statusLabel =
+    boardState === 'checkout'
+      ? t.checkoutPendingShort
+      : boardState === 'dining'
+        ? t.statusDining
+        : t.inactive;
   const subtitle = buildWaiterTableCardSubtitle({
     guestCount: card.guestCount,
+    sessionTotal: card.sessionTotal,
     session,
     hasCheckoutRequest,
     lang,
@@ -73,62 +104,70 @@ function WaiterTableCardLink({
     nowMs,
     labels: {
       guestCount: t.guestCount,
+      sessionAmount: t.sessionAmount,
       checkoutPendingSubtitle: t.checkoutPendingSubtitle,
       clickToView: t.clickToView,
     },
   });
-
-  const cardClass = hasCheckoutRequest
-    ? 'border-amber-500/50 bg-amber-500/10 shadow-sm shadow-amber-900/8 hover:border-amber-500/75 hover:shadow-amber-900/15'
-    : isActive
-      ? 'border-emerald-500/45 bg-emerald-500/10 shadow-sm shadow-emerald-900/5 hover:border-emerald-500/70 hover:shadow-emerald-900/12'
-      : 'border-brand-border bg-brand-card shadow-sm shadow-black/5 hover:border-brand-gold/50 hover:shadow-black/10';
-
-  const dotClass = hasCheckoutRequest
-    ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.85)]'
-    : isActive
-      ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.85)]'
-      : 'bg-brand-text-muted/55';
+  const styles = STATUS_STYLES[boardState];
 
   return (
     <Link
       href={href}
-      className={`group rounded-xl border text-left block transition-all duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg ${cardClass} ${
-        compact ? 'px-3 py-2 min-w-[7.5rem]' : 'px-3 py-2'
+      className={`group rounded-xl border text-left block transition-all duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg px-3 py-2.5 ${styles.card} ${
+        pinned ? 'ring-2 ring-amber-500/35' : ''
       }`}
     >
-      <div className="flex items-center justify-between gap-1">
-        <p className={`font-medium text-brand-text ${compact ? 'text-sm' : ''}`}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="font-medium text-brand-text">
           {t.table} {card.displayName}
         </p>
-        {!compact ? (
-          <div className="flex items-center gap-1.5 shrink-0">
-            {hasCheckoutRequest && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-700 text-white font-semibold shadow-sm">
-                {t.checkoutPendingShort}
-              </span>
-            )}
-            <span
-              title={t.tableLight}
-              className={`inline-flex h-2.5 w-2.5 rounded-full ${dotClass}`}
-            />
-            {!isActive && (
-              <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-brand-border text-brand-text-muted">
-                {t.inactive}
-              </span>
-            )}
-          </div>
-        ) : null}
+        <span
+          className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${styles.badge}`}
+        >
+          {statusLabel}
+        </span>
       </div>
-      {compact && groupName ? (
-        <p className="text-[11px] text-brand-text-muted mt-0.5">{groupName}</p>
-      ) : null}
-      {!compact ? (
-        <p className="text-[12px] text-brand-text-muted mt-1 transition-colors group-hover:text-brand-gold">
-          {subtitle}
-        </p>
-      ) : null}
+      <p className="text-[12px] text-brand-text-muted mt-1 transition-colors group-hover:text-brand-gold">
+        {subtitle}
+      </p>
     </Link>
+  );
+}
+
+function BoardKpiCard({
+  active,
+  count,
+  label,
+  hint,
+  tone,
+  onClick,
+}: {
+  active: boolean;
+  count: number;
+  label: string;
+  hint?: string;
+  tone: 'amber' | 'emerald' | 'neutral';
+  onClick: () => void;
+}) {
+  const toneClass =
+    tone === 'amber'
+      ? 'border-amber-500/45 bg-amber-500/10 text-amber-950'
+      : tone === 'emerald'
+        ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-950'
+        : 'border-brand-border bg-brand-card text-brand-text';
+  const activeClass = active ? 'ring-2 ring-brand-gold/50 shadow-md' : '';
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-xl border px-4 py-3 text-left min-w-[6.5rem] flex-1 transition-all hover:shadow-sm ${toneClass} ${activeClass}`}
+    >
+      <p className="text-2xl font-semibold tabular-nums leading-none">{count}</p>
+      <p className="text-[13px] font-medium mt-1.5">{label}</p>
+      {hint ? <p className="text-[11px] opacity-80 mt-0.5">{hint}</p> : null}
+    </button>
   );
 }
 
@@ -169,6 +208,7 @@ function WaiterBoardInner({
     [effectiveSessionMetaByTableId],
   );
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const [boardFilter, setBoardFilter] = useState<WaiterBoardFilter>('all');
 
   useEffect(() => {
     const timer = setInterval(() => setNowMs(Date.now()), 60_000);
@@ -190,11 +230,6 @@ function WaiterBoardInner({
     }
   }, [checkoutRequestedTableIds, tables, t.checkoutToast]);
 
-  const groupNameByTableId = useMemo(
-    () => buildTableGroupNameByTableId(groups, members),
-    [groups, members],
-  );
-
   const cardByTableId = useMemo(() => {
     const map = new Map<string, WaiterTableCardData>();
     for (const table of tables) {
@@ -204,7 +239,7 @@ function WaiterBoardInner({
     return map;
   }, [tables, orders, activeSessionByTableId]);
 
-  const checkoutQuickCards = useMemo(() => {
+  const checkoutPinnedCards = useMemo(() => {
     const pendingTables = tables.filter((table) =>
       isWaiterTableCheckoutPending(
         table.id,
@@ -221,12 +256,12 @@ function WaiterBoardInner({
       checkoutRequestedTableIds,
       effectiveSessionMetaByTableId,
     );
-  }, [
-    tables,
-    cardByTableId,
-    checkoutRequestedTableIds,
-    effectiveSessionMetaByTableId,
-  ]);
+  }, [tables, cardByTableId, checkoutRequestedTableIds, effectiveSessionMetaByTableId]);
+
+  const checkoutPinnedTableIds = useMemo(
+    () => new Set(checkoutPinnedCards.map((card) => card.tableId)),
+    [checkoutPinnedCards],
+  );
 
   const boardSections = useMemo(
     () => buildWaiterBoardSections(groups, members, tables, tableGroupsI18n.ungrouped),
@@ -246,8 +281,41 @@ function WaiterBoardInner({
   const detailHref = (tableId: string) =>
     (isDemo ? `/demo/waiter/${encodeURIComponent(tableId)}` : `/${restaurant.slug}/waiter/${encodeURIComponent(tableId)}`);
 
+  const filterLabel = (filter: WaiterBoardFilter) => {
+    if (filter === 'all') return t.filterAll;
+    if (filter === 'checkout') return t.filterCheckout;
+    if (filter === 'dining') return t.filterDining;
+    return t.filterIdle;
+  };
+
+  const renderTableCard = (card: WaiterTableCardData, pinned = false) => (
+    <WaiterTableCardLink
+      key={pinned ? `pinned-${card.tableId}` : card.tableId}
+      card={card}
+      href={detailHref(card.tableId)}
+      checkoutRequestedTableIds={checkoutRequestedTableIds}
+      checkoutRequestedAtByTableId={checkoutRequestedAtByTableId}
+      sessionMetaByTableId={effectiveSessionMetaByTableId}
+      nowMs={nowMs}
+      lang={lang}
+      pinned={pinned}
+    />
+  );
+
+  const visibleSectionTableIds = (tableIds: string[]) => {
+    const filtered = filterWaiterBoardTableIds(
+      tableIds,
+      boardFilter === 'all' ? 'all' : boardFilter,
+      effectiveSessionMetaByTableId,
+      checkoutRequestedTableIds,
+    );
+    if (boardFilter !== 'all') return filtered;
+    return filtered.filter((id) => !checkoutPinnedTableIds.has(id));
+  };
+
   const renderSectionCards = (tableIds: string[]) => {
-    const cards = tableIds
+    const visibleIds = visibleSectionTableIds(tableIds);
+    const cards = visibleIds
       .map((id) => cardByTableId.get(id))
       .filter((card): card is WaiterTableCardData => !!card);
     const sorted = sortWaiterTableCards(
@@ -256,20 +324,10 @@ function WaiterBoardInner({
       checkoutRequestedTableIds,
       effectiveSessionMetaByTableId,
     );
-    return sorted.map((card) => (
-      <WaiterTableCardLink
-        key={card.tableId}
-        card={card}
-        href={detailHref(card.tableId)}
-        checkoutRequestedTableIds={checkoutRequestedTableIds}
-        checkoutRequestedAtByTableId={checkoutRequestedAtByTableId}
-        sessionMetaByTableId={effectiveSessionMetaByTableId}
-        nowMs={nowMs}
-        lang={lang}
-        groupName={groupNameByTableId[card.tableId]}
-      />
-    ));
+    return sorted.map((card) => renderTableCard(card));
   };
+
+  const showCheckoutPinned = boardFilter === 'all' && checkoutPinnedCards.length > 0;
 
   return (
     <div className="min-h-screen bg-brand-bg p-4">
@@ -302,58 +360,85 @@ function WaiterBoardInner({
         <StaffRoleToolbar exitLabel={exitLabel} onSignOut={handleSignOut} />
         <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
         <p className="text-brand-text-muted text-sm mt-1">{t.boardTitle}</p>
-        <div className="mt-3 flex flex-wrap gap-2 text-[12px]">
-          <span className="rounded-full border border-brand-border bg-brand-card px-2.5 py-1 text-brand-text-muted">
-            {t.statsTotal.replace('{n}', String(boardStats.total))}
-          </span>
-          <span className="rounded-full border border-brand-border bg-brand-card px-2.5 py-1 text-brand-text-muted">
-            {t.statsIdle.replace('{n}', String(boardStats.idle))}
-          </span>
-          <span className="rounded-full border border-emerald-500/35 bg-emerald-500/10 px-2.5 py-1 text-emerald-900">
-            {t.statsOpen.replace('{n}', String(boardStats.open))}
-          </span>
-          <span className="rounded-full border border-amber-500/35 bg-amber-500/10 px-2.5 py-1 text-amber-950">
-            {t.statsCheckout.replace('{n}', String(boardStats.checkoutPending))}
-          </span>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <BoardKpiCard
+            active={boardFilter === 'checkout'}
+            count={boardStats.checkoutPending}
+            label={t.filterCheckout}
+            hint={t.kpiCheckoutHint}
+            tone="amber"
+            onClick={() => setBoardFilter('checkout')}
+          />
+          <BoardKpiCard
+            active={boardFilter === 'dining'}
+            count={boardStats.open}
+            label={t.filterDining}
+            tone="emerald"
+            onClick={() => setBoardFilter('dining')}
+          />
+          <BoardKpiCard
+            active={boardFilter === 'idle'}
+            count={boardStats.idle}
+            label={t.filterIdle}
+            tone="neutral"
+            onClick={() => setBoardFilter('idle')}
+          />
         </div>
-        {boardStats.checkoutPending > 0 && (
-          <p className="mt-2 text-sm font-semibold text-amber-950">
-            {t.checkoutPendingBoardSummary.replace('{n}', String(boardStats.checkoutPending))}
-          </p>
-        )}
+
+        <div className="mt-3 flex flex-wrap gap-1.5" role="tablist" aria-label={t.boardTitle}>
+          {BOARD_FILTERS.map((filter) => {
+            const active = boardFilter === filter;
+            return (
+              <button
+                key={filter}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setBoardFilter(filter)}
+                className={`text-[12px] rounded-full px-3 py-1 border transition-colors ${
+                  active
+                    ? 'border-brand-gold/50 bg-brand-gold/15 text-brand-text font-medium'
+                    : 'border-brand-border bg-brand-card text-brand-text-muted hover:text-brand-text'
+                }`}
+              >
+                {filterLabel(filter)}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {checkoutQuickCards.length > 0 ? (
-        <section className="mb-6" aria-label={tableGroupsI18n.checkoutQuickTitle}>
-          <h2 className="text-sm font-semibold text-amber-950 mb-2">{tableGroupsI18n.checkoutQuickTitle}</h2>
-          <div className="flex flex-wrap gap-2">
-            {checkoutQuickCards.map((card) => (
-              <WaiterTableCardLink
-                key={`quick-${card.tableId}`}
-                card={card}
-                href={detailHref(card.tableId)}
-                checkoutRequestedTableIds={checkoutRequestedTableIds}
-                checkoutRequestedAtByTableId={checkoutRequestedAtByTableId}
-                sessionMetaByTableId={effectiveSessionMetaByTableId}
-                nowMs={nowMs}
-                lang={lang}
-                compact
-                groupName={groupNameByTableId[card.tableId]}
-              />
-            ))}
+      {showCheckoutPinned ? (
+        <section
+          className="mb-6 rounded-2xl border-2 border-amber-500/40 bg-amber-500/8 p-4 shadow-sm shadow-amber-900/5"
+          aria-label={t.checkoutPinnedTitle}
+        >
+          <div className="mb-3">
+            <h2 className="text-sm font-semibold text-amber-950">{t.checkoutPinnedTitle}</h2>
+            <p className="text-[12px] text-amber-900/85 mt-0.5">
+              {t.checkoutPendingBoardSummary.replace('{n}', String(checkoutPinnedCards.length))}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {checkoutPinnedCards.map((card) => renderTableCard(card, true))}
           </div>
         </section>
       ) : null}
 
       <div className="space-y-6">
-        {boardSections.map((section) => (
-          <section key={section.id}>
-            <h2 className="text-sm font-medium text-brand-gold mb-3">{section.title}</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
-              {renderSectionCards(section.tableIds)}
-            </div>
-          </section>
-        ))}
+        {boardSections.map((section) => {
+          const visibleIds = visibleSectionTableIds(section.tableIds);
+          if (visibleIds.length === 0) return null;
+          return (
+            <section key={section.id}>
+              <h2 className="text-sm font-medium text-brand-gold mb-3">{section.title}</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                {renderSectionCards(section.tableIds)}
+              </div>
+            </section>
+          );
+        })}
       </div>
     </div>
   );

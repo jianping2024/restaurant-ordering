@@ -1,4 +1,5 @@
 import type { Order } from '@/types';
+import { sumLineTotals } from '@/lib/cart-totals';
 import { aggregateBuffetForOrders } from '@/lib/buffet-order';
 import { guestCountFromTableOrders } from '@/lib/table-guest-count';
 import { formatOrderItemListLabel } from '@/lib/order-list-display';
@@ -20,6 +21,7 @@ export interface WaiterTableCardData {
   orderLines: WaiterOrderLine[];
   hasBuffet: boolean;
   guestCount: number;
+  sessionTotal: number;
   updatedAt: string;
 }
 
@@ -36,6 +38,7 @@ export function buildWaiterTableCard(
     orderLines: [],
     hasBuffet: false,
     guestCount: 0,
+    sessionTotal: 0,
     updatedAt: '',
   };
 
@@ -100,5 +103,19 @@ export function buildWaiterTableCard(
   }
 
   current.orderLines = [...buffetLines, ...menuLines];
+  current.sessionTotal = sumActiveOrderItemsTotal(orders);
   return current;
+}
+
+/** Sum non-voided line totals across session orders for the waiter board. */
+export function sumActiveOrderItemsTotal(orders: Order[]): number {
+  let total = 0;
+  for (const order of orders) {
+    const activeItems = order.items.filter((item) => {
+      const status = normalizeOrderItemStatus(item, order.status);
+      return status !== 'voided';
+    });
+    total += sumLineTotals(activeItems);
+  }
+  return total;
 }

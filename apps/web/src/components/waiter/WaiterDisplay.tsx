@@ -285,19 +285,19 @@ function WaiterBoardInner({
   const [boardFilter, setBoardFilter] = useState<WaiterBoardFilter>('all');
   const [tableSearch, setTableSearch] = useState('');
   const [collapsedSectionIds, setCollapsedSectionIds] = useState<Set<string>>(() => new Set());
-  const collapsedPrefsLoadedRef = useRef(false);
+  const [collapsedPrefsHydrated, setCollapsedPrefsHydrated] = useState(false);
 
   useEffect(() => {
-    collapsedPrefsLoadedRef.current = false;
+    setCollapsedPrefsHydrated(false);
     const saved = loadWaiterBoardCollapsedSectionIds(restaurant.id);
     setCollapsedSectionIds(saved ?? new Set());
-    collapsedPrefsLoadedRef.current = true;
+    setCollapsedPrefsHydrated(true);
   }, [restaurant.id]);
 
   useEffect(() => {
-    if (!collapsedPrefsLoadedRef.current) return;
+    if (!collapsedPrefsHydrated) return;
     saveWaiterBoardCollapsedSectionIds(restaurant.id, collapsedSectionIds);
-  }, [restaurant.id, collapsedSectionIds]);
+  }, [restaurant.id, collapsedSectionIds, collapsedPrefsHydrated]);
 
   useEffect(() => {
     const timer = setInterval(() => setNowMs(Date.now()), 60_000);
@@ -461,11 +461,6 @@ function WaiterBoardInner({
     });
   };
 
-  const isSectionExpanded = (sectionId: string, visibleCount: number) => {
-    if (tableSearchTrimmed && visibleCount > 0) return true;
-    return !collapsedSectionIds.has(sectionId);
-  };
-
   const hasVisibleBoardContent = useMemo(() => {
     if (showCheckoutPinned) return true;
     return boardSections.some(
@@ -566,7 +561,8 @@ function WaiterBoardInner({
 
         <div className="mt-2 relative">
           <input
-            type="search"
+            type="text"
+            role="searchbox"
             value={tableSearch}
             onChange={(e) => setTableSearch(e.target.value)}
             placeholder={t.searchTablesPlaceholder}
@@ -613,7 +609,7 @@ function WaiterBoardInner({
       <div className="space-y-6">
         {boardSections.map((section) => {
           const visibleIds = visibleBoardTableIds(section.tableIds);
-          const expanded = isSectionExpanded(section.id, visibleIds.length);
+          const expanded = !collapsedSectionIds.has(section.id);
           return (
             <WaiterBoardSectionBlock
               key={section.id}

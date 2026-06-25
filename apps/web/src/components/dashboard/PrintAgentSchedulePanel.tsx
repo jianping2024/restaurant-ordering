@@ -171,6 +171,12 @@ export function PrintAgentSchedulePanel({
         </summary>
         <div className="mt-4 space-y-6">
           <p className="text-[12px] text-brand-text-muted leading-relaxed max-w-2xl">{t.schedulePollIntro}</p>
+          <p
+            className="max-w-2xl rounded-xl border border-brand-border/80 bg-brand-bg/60 px-3.5 py-2.5 text-[12px] leading-relaxed text-brand-text-muted"
+            role="note"
+          >
+            {t.schedulePollRecommended}
+          </p>
 
           <PollIntervalField
             label={t.scheduleAfterPrint}

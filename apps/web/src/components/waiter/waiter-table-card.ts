@@ -1,5 +1,6 @@
 import type { Order } from '@/types';
 import { aggregateBuffetForOrders } from '@/lib/buffet-order';
+import { guestCountFromTableOrders } from '@/lib/table-guest-count';
 import { formatOrderItemListLabel } from '@/lib/order-list-display';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
@@ -18,6 +19,7 @@ export interface WaiterTableCardData {
   displayName: string;
   orderLines: WaiterOrderLine[];
   hasBuffet: boolean;
+  guestCount: number;
   updatedAt: string;
 }
 
@@ -33,11 +35,13 @@ export function buildWaiterTableCard(
     displayName,
     orderLines: [],
     hasBuffet: false,
+    guestCount: 0,
     updatedAt: '',
   };
 
   const buffetSummary = aggregateBuffetForOrders(orders);
   current.hasBuffet = buffetSummary != null;
+  current.guestCount = guestCountFromTableOrders(orders);
 
   const buffetLines: WaiterOrderLine[] = [];
   const menuLines: WaiterOrderLine[] = [];

@@ -3,10 +3,13 @@
 import type { Order } from '@/types';
 import { compareRestaurantTables, sortRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
 
+import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
+
 type WaiterBoardResponse = {
   orders?: Order[];
-  activeSessionByTableId?: Record<string, string>;
+  sessionMetaByTableId?: Record<string, WaiterTableSessionMeta>;
   checkoutRequestedTableIds?: string[];
+  checkoutRequestedAtByTableId?: Record<string, string>;
   tables?: RestaurantTableRow[];
 };
 
@@ -29,8 +32,9 @@ export async function fetchWaiterBoardClient(slug: string) {
   );
   return {
     orders: board.orders || [],
-    activeSessionByTableId: board.activeSessionByTableId ?? {},
+    sessionMetaByTableId: board.sessionMetaByTableId ?? {},
     checkoutRequestedTableIds: board.checkoutRequestedTableIds || [],
+    checkoutRequestedAtByTableId: board.checkoutRequestedAtByTableId ?? {},
     tables: sortRestaurantTables(board.tables || []),
   };
 }

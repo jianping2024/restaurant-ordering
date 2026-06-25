@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Order } from '@/types';
 import { compareRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
-import { fetchCheckoutRequestedTableIds } from '@/lib/table-checkout-pending';
+import { fetchCheckoutRequestedBoard } from '@/lib/table-checkout-pending';
+import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 
 export async function fetchKitchenBoard(admin: SupabaseClient, restaurantId: string) {
   const [{ data: orderRows }, { data: sessions }, { data: tableRows }] = await Promise.all([
@@ -45,10 +46,10 @@ export async function fetchKitchenBoard(admin: SupabaseClient, restaurantId: str
 }
 
 export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: string) {
-  const [{ data: sessions }, { data: rows }, checkoutRequestedTableIds, { data: tableRows }] = await Promise.all([
+  const [{ data: sessions }, { data: rows }, checkoutRequested, { data: tableRows }] = await Promise.all([
     admin
       .from('table_sessions')
-      .select('id, table_id')
+      .select('id, table_id, opened_at, status')
       .eq('restaurant_id', restaurantId)
       .in('status', ['open', 'billing']),
     admin
@@ -58,7 +59,7 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
       .in('status', ['pending', 'cooking', 'done'])
       .order('updated_at', { ascending: false })
       .limit(200),
-    fetchCheckoutRequestedTableIds(admin, restaurantId),
+    fetchCheckoutRequestedBoard(admin, restaurantId),
     admin
       .from('restaurant_tables')
       .select('id, display_name, sort_order')
@@ -70,16 +71,30 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
   const orders = ((rows || []) as Order[]).filter(
     (o) => !o.session_id || activeIds.has(o.session_id as string),
   );
-  const activeSessionByTableId: Record<string, string> = {};
+  const sessionMetaByTableId: Record<string, WaiterTableSessionMeta> = {};
   for (const s of sessions || []) {
     const tid = s.table_id as string | undefined;
     const sid = s.id as string | undefined;
-    if (tid && sid) activeSessionByTableId[tid] = sid;
+    const openedAt = s.opened_at as string | undefined;
+    const status = s.status as string | undefined;
+    if (
+      tid &&
+      sid &&
+      openedAt &&
+      (status === 'open' || status === 'billing')
+    ) {
+      sessionMetaByTableId[tid] = {
+        sessionId: sid,
+        openedAt,
+        status,
+      };
+    }
   }
   return {
     orders,
-    activeSessionByTableId,
-    checkoutRequestedTableIds,
+    sessionMetaByTableId,
+    checkoutRequestedTableIds: checkoutRequested.tableIds,
+    checkoutRequestedAtByTableId: checkoutRequested.atByTableId,
     tables: (tableRows || []) as RestaurantTableRow[],
   };
 }

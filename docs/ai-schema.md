@@ -42,6 +42,8 @@ platform_admin_accounts (id: uuid PK, user_id: uuid unique FK -> auth.users.id, 
 platform_admin_audit_log (id: uuid PK, actor_user_id: uuid FK -> auth.users.id nullable, action: text, target_type: text, target_id: text, restaurant_id: uuid FK -> restaurants.id nullable, metadata: jsonb default {}, created_at: timestamptz)
 
 restaurant_tables (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, display_name: text length 1..16, sort_order: integer, deleted_at: timestamptz nullable, created_at: timestamptz)
+restaurant_table_groups (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name: text length 1..32 unique per restaurant, remarks: text nullable, sort_order: integer, created_at: timestamptz)
+restaurant_table_group_members (group_id: uuid FK -> restaurant_table_groups.id, table_id: uuid FK -> restaurant_tables.id, restaurant_id: uuid FK -> restaurants.id; PK (group_id, table_id); UNIQUE (restaurant_id, table_id))
 
 restaurants (id: uuid PK, name: text, slug: text unique, owner_id: uuid FK -> auth.users.id, logo_url: text nullable, address: text nullable, phone: text nullable, plan: text [free|pro], kitchen_password: text, waiter_password: text, geo_latitude: double precision nullable, geo_longitude: double precision nullable, print_locale: text [zh|en|pt], country_code: char(2) not null default PT, print_agent_config: jsonb, feature_flags: jsonb default {}, kitchen_password_version: integer, waiter_password_version: integer, order_radius_meters: integer range 10..10000, buffet_friday_weekend_from: time nullable, suspended_at: timestamptz nullable, suspension_reason: text nullable, created_at: timestamptz)
 

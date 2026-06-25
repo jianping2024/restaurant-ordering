@@ -1,8 +1,11 @@
 'use client';
 
 import type { Order } from '@/types';
+import type {
+  RestaurantTableGroup,
+  RestaurantTableGroupMember,
+} from '@/lib/restaurant-table-groups';
 import { compareRestaurantTables, sortRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
-
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 
 type WaiterBoardResponse = {
@@ -11,6 +14,8 @@ type WaiterBoardResponse = {
   checkoutRequestedTableIds?: string[];
   checkoutRequestedAtByTableId?: Record<string, string>;
   tables?: RestaurantTableRow[];
+  groups?: RestaurantTableGroup[];
+  members?: RestaurantTableGroupMember[];
 };
 
 type KitchenBoardResponse = {
@@ -36,6 +41,8 @@ export async function fetchWaiterBoardClient(slug: string) {
     checkoutRequestedTableIds: board.checkoutRequestedTableIds || [],
     checkoutRequestedAtByTableId: board.checkoutRequestedAtByTableId ?? {},
     tables: sortRestaurantTables(board.tables || []),
+    groups: board.groups || [],
+    members: board.members || [],
   };
 }
 

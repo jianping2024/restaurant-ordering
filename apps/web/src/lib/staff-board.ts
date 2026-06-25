@@ -1,5 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Order } from '@/types';
+import {
+  sortTableGroups,
+  type RestaurantTableGroup,
+  type RestaurantTableGroupMember,
+} from '@/lib/restaurant-table-groups';
 import { compareRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import { fetchCheckoutRequestedBoard } from '@/lib/table-checkout-pending';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
@@ -46,7 +51,14 @@ export async function fetchKitchenBoard(admin: SupabaseClient, restaurantId: str
 }
 
 export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: string) {
-  const [{ data: sessions }, { data: rows }, checkoutRequested, { data: tableRows }] = await Promise.all([
+  const [
+    { data: sessions },
+    { data: rows },
+    checkoutRequested,
+    { data: tableRows },
+    { data: groupRows },
+    { data: memberRows },
+  ] = await Promise.all([
     admin
       .from('table_sessions')
       .select('id, table_id, opened_at, status')
@@ -65,6 +77,16 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
       .select('id, display_name, sort_order')
       .eq('restaurant_id', restaurantId)
       .is('deleted_at', null),
+    admin
+      .from('restaurant_table_groups')
+      .select('id, restaurant_id, name, remarks, sort_order, created_at')
+      .eq('restaurant_id', restaurantId)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true }),
+    admin
+      .from('restaurant_table_group_members')
+      .select('group_id, table_id, restaurant_id')
+      .eq('restaurant_id', restaurantId),
   ]);
 
   const activeIds = new Set((sessions || []).map((s) => s.id as string));
@@ -96,5 +118,7 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
     checkoutRequestedTableIds: checkoutRequested.tableIds,
     checkoutRequestedAtByTableId: checkoutRequested.atByTableId,
     tables: (tableRows || []) as RestaurantTableRow[],
+    groups: sortTableGroups((groupRows || []) as RestaurantTableGroup[]),
+    members: (memberRows || []) as RestaurantTableGroupMember[],
   };
 }

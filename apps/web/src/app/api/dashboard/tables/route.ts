@@ -163,6 +163,12 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: 'table_has_active_session' }, { status: 409 });
   }
 
+  await loaded.admin
+    .from('restaurant_table_group_members')
+    .delete()
+    .eq('table_id', tableId)
+    .eq('restaurant_id', loaded.restaurant.id);
+
   const { error } = await loaded.admin
     .from('restaurant_tables')
     .update({ deleted_at: new Date().toISOString() })

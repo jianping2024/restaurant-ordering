@@ -5,11 +5,15 @@ import { createClient } from '@/lib/supabase/client';
 import type { Order } from '@/types';
 import { fetchWaiterBoardClient } from '@/lib/staff-board-client';
 import { useRestaurantRealtimeRefresh } from '@/lib/use-restaurant-realtime-refresh';
-import type { RestaurantTableRow } from '@/lib/restaurant-tables';
+import type {
+  RestaurantTableGroup,
+  RestaurantTableGroupMember,
+} from '@/lib/restaurant-table-groups';
 import {
   activeSessionIdByTableIdFromMeta,
   type WaiterTableSessionMeta,
 } from '@/lib/waiter-board-session';
+import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 
 export function useWaiterOrders(
   restaurant: { id: string; slug: string },
@@ -29,6 +33,8 @@ export function useWaiterOrders(
     Record<string, string>
   >({});
   const [tables, setTables] = useState<RestaurantTableRow[]>(initialTables);
+  const [groups, setGroups] = useState<RestaurantTableGroup[]>([]);
+  const [members, setMembers] = useState<RestaurantTableGroupMember[]>([]);
   const [tablesLoaded, setTablesLoaded] = useState(initialTables.length > 0);
   const supabase = useMemo(() => createClient(), []);
   const activeSessionByTableId = useMemo(
@@ -44,6 +50,8 @@ export function useWaiterOrders(
     setCheckoutRequestedTableIds(board.checkoutRequestedTableIds);
     setCheckoutRequestedAtByTableId(board.checkoutRequestedAtByTableId);
     setTables(board.tables);
+    setGroups(board.groups);
+    setMembers(board.members);
     setTablesLoaded(true);
     return board;
   }, [enabled, restaurant.slug]);
@@ -65,6 +73,8 @@ export function useWaiterOrders(
     sessionMetaByTableId,
     checkoutRequestedAtByTableId,
     tables,
+    groups,
+    members,
     tablesLoaded,
     refresh,
     supabase,

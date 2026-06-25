@@ -1,8 +1,15 @@
 import { notFound } from 'next/navigation';
 import { TablesManager } from '@/components/dashboard/TablesManager';
 import { loadOwnerDashboardTables } from '@/lib/dashboard-tables';
+import { parseTablesManagerTab } from '@/lib/tables-manager-tab-preference';
 
-export default async function TablesPage() {
+interface Props {
+  searchParams: Promise<{ tab?: string }>;
+}
+
+export default async function TablesPage({ searchParams }: Props) {
+  const { tab } = await searchParams;
+  const initialTab = parseTablesManagerTab(tab);
   const loaded = await loadOwnerDashboardTables();
   if ('error' in loaded) {
     notFound();
@@ -12,6 +19,9 @@ export default async function TablesPage() {
     <TablesManager
       restaurant={loaded.restaurant}
       initialTables={loaded.tables}
+      initialGroups={loaded.groups}
+      initialMembers={loaded.members}
+      initialTab={initialTab}
     />
   );
 }

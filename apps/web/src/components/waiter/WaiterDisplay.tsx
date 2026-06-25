@@ -8,9 +8,10 @@ import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
 import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticatedShell';
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
-import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
+import { buildWaiterTableCard, type WaiterTableCardData } from '@/components/waiter/waiter-table-card';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import { showToast } from '@/components/ui/Toast';
+import { getMessages } from '@/lib/i18n/messages';
 import {
   activeSessionIdByTableIdFromMeta,
   buildWaiterTableCardSubtitle,
@@ -22,10 +23,12 @@ import {
   isTableCheckoutRequested,
 } from '@/lib/table-checkout-pending';
 import {
-  compareRestaurantTables,
-  tableIdsEqual,
-  type RestaurantTableRow,
-} from '@/lib/restaurant-tables';
+  buildTableGroupNameByTableId,
+  buildWaiterBoardSections,
+  isWaiterTableCheckoutPending,
+  sortWaiterTableCards,
+} from '@/lib/restaurant-table-groups';
+import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -33,6 +36,100 @@ interface Props {
   initialOrders?: Order[];
   initialCheckoutRequestedTableIds?: string[];
   isDemo?: boolean;
+}
+
+function WaiterTableCardLink({
+  card,
+  href,
+  checkoutRequestedTableIds,
+  checkoutRequestedAtByTableId,
+  sessionMetaByTableId,
+  nowMs,
+  lang,
+  compact = false,
+  groupName,
+}: {
+  card: WaiterTableCardData;
+  href: string;
+  checkoutRequestedTableIds: string[];
+  checkoutRequestedAtByTableId: Record<string, string>;
+  sessionMetaByTableId: Record<string, import('@/lib/waiter-board-session').WaiterTableSessionMeta>;
+  nowMs: number;
+  lang: 'zh' | 'en' | 'pt';
+  compact?: boolean;
+  groupName?: string;
+}) {
+  const t = WAITER_TEXT[lang];
+  const session = sessionMetaByTableId[card.tableId];
+  const hasOrderActivity = card.orderLines.length > 0 || card.hasBuffet;
+  const hasCheckoutRequest = isTableCheckoutRequested(card.tableId, checkoutRequestedTableIds);
+  const isActive = !!session || hasOrderActivity || hasCheckoutRequest;
+  const subtitle = buildWaiterTableCardSubtitle({
+    guestCount: card.guestCount,
+    session,
+    hasCheckoutRequest,
+    lang,
+    checkoutRequestedAt: checkoutRequestedAtForTable(card.tableId, checkoutRequestedAtByTableId),
+    nowMs,
+    labels: {
+      guestCount: t.guestCount,
+      checkoutPendingSubtitle: t.checkoutPendingSubtitle,
+      clickToView: t.clickToView,
+    },
+  });
+
+  const cardClass = hasCheckoutRequest
+    ? 'border-amber-500/50 bg-amber-500/10 shadow-sm shadow-amber-900/8 hover:border-amber-500/75 hover:shadow-amber-900/15'
+    : isActive
+      ? 'border-emerald-500/45 bg-emerald-500/10 shadow-sm shadow-emerald-900/5 hover:border-emerald-500/70 hover:shadow-emerald-900/12'
+      : 'border-brand-border bg-brand-card shadow-sm shadow-black/5 hover:border-brand-gold/50 hover:shadow-black/10';
+
+  const dotClass = hasCheckoutRequest
+    ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.85)]'
+    : isActive
+      ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.85)]'
+      : 'bg-brand-text-muted/55';
+
+  return (
+    <Link
+      href={href}
+      className={`group rounded-xl border text-left block transition-all duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg ${cardClass} ${
+        compact ? 'px-3 py-2 min-w-[7.5rem]' : 'px-3 py-2'
+      }`}
+    >
+      <div className="flex items-center justify-between gap-1">
+        <p className={`font-medium text-brand-text ${compact ? 'text-sm' : ''}`}>
+          {t.table} {card.displayName}
+        </p>
+        {!compact ? (
+          <div className="flex items-center gap-1.5 shrink-0">
+            {hasCheckoutRequest && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-700 text-white font-semibold shadow-sm">
+                {t.checkoutPendingShort}
+              </span>
+            )}
+            <span
+              title={t.tableLight}
+              className={`inline-flex h-2.5 w-2.5 rounded-full ${dotClass}`}
+            />
+            {!isActive && (
+              <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-brand-border text-brand-text-muted">
+                {t.inactive}
+              </span>
+            )}
+          </div>
+        ) : null}
+      </div>
+      {compact && groupName ? (
+        <p className="text-[11px] text-brand-text-muted mt-0.5">{groupName}</p>
+      ) : null}
+      {!compact ? (
+        <p className="text-[12px] text-brand-text-muted mt-1 transition-colors group-hover:text-brand-gold">
+          {subtitle}
+        </p>
+      ) : null}
+    </Link>
+  );
 }
 
 function WaiterBoardInner({
@@ -46,12 +143,15 @@ function WaiterBoardInner({
 }: Props & { handleSignOut: () => void; exitLabel: string }) {
   const { lang } = useLanguage();
   const t = WAITER_TEXT[lang];
+  const tableGroupsI18n = getMessages(lang).tableGroups;
   const {
     orders,
     checkoutRequestedTableIds,
     sessionMetaByTableId,
     checkoutRequestedAtByTableId,
     tables,
+    groups,
+    members,
   } = useWaiterOrders(
     restaurant,
     initialOrders,
@@ -90,27 +190,48 @@ function WaiterBoardInner({
     }
   }, [checkoutRequestedTableIds, tables, t.checkoutToast]);
 
-  const allTableCards = useMemo(() => {
-    return tables
-      .map((table) => {
-        const view = ordersForWaiterTableView(table.id, orders, activeSessionByTableId);
-        return buildWaiterTableCard(table.id, table.display_name, view);
-      })
-      .sort((a, b) => {
-        const aCheckout = isTableCheckoutRequested(a.tableId, checkoutRequestedTableIds) ? 1 : 0;
-        const bCheckout = isTableCheckoutRequested(b.tableId, checkoutRequestedTableIds) ? 1 : 0;
-        if (aCheckout !== bCheckout) return bCheckout - aCheckout;
+  const groupNameByTableId = useMemo(
+    () => buildTableGroupNameByTableId(groups, members),
+    [groups, members],
+  );
 
-        const aActive = a.orderLines.length > 0 || a.hasBuffet ? 1 : 0;
-        const bActive = b.orderLines.length > 0 || b.hasBuffet ? 1 : 0;
-        if (aActive !== bActive) return bActive - aActive;
+  const cardByTableId = useMemo(() => {
+    const map = new Map<string, WaiterTableCardData>();
+    for (const table of tables) {
+      const view = ordersForWaiterTableView(table.id, orders, activeSessionByTableId);
+      map.set(table.id, buildWaiterTableCard(table.id, table.display_name, view));
+    }
+    return map;
+  }, [tables, orders, activeSessionByTableId]);
 
-        const ta = tables.find((row) => row.id === a.tableId);
-        const tb = tables.find((row) => row.id === b.tableId);
-        if (ta && tb) return compareRestaurantTables(ta, tb);
-        return a.displayName.localeCompare(b.displayName, undefined, { numeric: true });
-      });
-  }, [tables, orders, activeSessionByTableId, checkoutRequestedTableIds]);
+  const checkoutQuickCards = useMemo(() => {
+    const pendingTables = tables.filter((table) =>
+      isWaiterTableCheckoutPending(
+        table.id,
+        checkoutRequestedTableIds,
+        effectiveSessionMetaByTableId[table.id],
+      ),
+    );
+    const cards = pendingTables
+      .map((table) => cardByTableId.get(table.id))
+      .filter((card): card is WaiterTableCardData => !!card);
+    return sortWaiterTableCards(
+      cards,
+      tables,
+      checkoutRequestedTableIds,
+      effectiveSessionMetaByTableId,
+    );
+  }, [
+    tables,
+    cardByTableId,
+    checkoutRequestedTableIds,
+    effectiveSessionMetaByTableId,
+  ]);
+
+  const boardSections = useMemo(
+    () => buildWaiterBoardSections(groups, members, tables, tableGroupsI18n.ungrouped),
+    [groups, members, tables, tableGroupsI18n.ungrouped],
+  );
 
   const boardStats = useMemo(
     () =>
@@ -125,13 +246,36 @@ function WaiterBoardInner({
   const detailHref = (tableId: string) =>
     (isDemo ? `/demo/waiter/${encodeURIComponent(tableId)}` : `/${restaurant.slug}/waiter/${encodeURIComponent(tableId)}`);
 
+  const renderSectionCards = (tableIds: string[]) => {
+    const cards = tableIds
+      .map((id) => cardByTableId.get(id))
+      .filter((card): card is WaiterTableCardData => !!card);
+    const sorted = sortWaiterTableCards(
+      cards,
+      tables,
+      checkoutRequestedTableIds,
+      effectiveSessionMetaByTableId,
+    );
+    return sorted.map((card) => (
+      <WaiterTableCardLink
+        key={card.tableId}
+        card={card}
+        href={detailHref(card.tableId)}
+        checkoutRequestedTableIds={checkoutRequestedTableIds}
+        checkoutRequestedAtByTableId={checkoutRequestedAtByTableId}
+        sessionMetaByTableId={effectiveSessionMetaByTableId}
+        nowMs={nowMs}
+        lang={lang}
+        groupName={groupNameByTableId[card.tableId]}
+      />
+    ));
+  };
+
   return (
     <div className="min-h-screen bg-brand-bg p-4">
       {isDemo && (
         <div className="mb-4 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3">
-          <p className="text-[13px] text-brand-text">
-            {t.step}
-          </p>
+          <p className="text-[13px] text-brand-text">{t.step}</p>
           <div className="mt-2 flex flex-wrap gap-2">
             <Link
               href="/demo/menu"
@@ -179,72 +323,37 @@ function WaiterBoardInner({
         )}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
-        {allTableCards.map((card) => {
-          const session = effectiveSessionMetaByTableId[card.tableId];
-          const hasOrderActivity = card.orderLines.length > 0 || card.hasBuffet;
-          const hasCheckoutRequest = isTableCheckoutRequested(card.tableId, checkoutRequestedTableIds);
-          const isActive = !!session || hasOrderActivity || hasCheckoutRequest;
-          const subtitle = buildWaiterTableCardSubtitle({
-            guestCount: card.guestCount,
-            session,
-            hasCheckoutRequest,
-            lang,
-            checkoutRequestedAt: checkoutRequestedAtForTable(
-              card.tableId,
-              checkoutRequestedAtByTableId,
-            ),
-            nowMs,
-            labels: {
-              guestCount: t.guestCount,
-              checkoutPendingSubtitle: t.checkoutPendingSubtitle,
-              clickToView: t.clickToView,
-            },
-          });
+      {checkoutQuickCards.length > 0 ? (
+        <section className="mb-6" aria-label={tableGroupsI18n.checkoutQuickTitle}>
+          <h2 className="text-sm font-semibold text-amber-950 mb-2">{tableGroupsI18n.checkoutQuickTitle}</h2>
+          <div className="flex flex-wrap gap-2">
+            {checkoutQuickCards.map((card) => (
+              <WaiterTableCardLink
+                key={`quick-${card.tableId}`}
+                card={card}
+                href={detailHref(card.tableId)}
+                checkoutRequestedTableIds={checkoutRequestedTableIds}
+                checkoutRequestedAtByTableId={checkoutRequestedAtByTableId}
+                sessionMetaByTableId={effectiveSessionMetaByTableId}
+                nowMs={nowMs}
+                lang={lang}
+                compact
+                groupName={groupNameByTableId[card.tableId]}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
-          const cardClass = hasCheckoutRequest
-            ? 'border-amber-500/50 bg-amber-500/10 shadow-sm shadow-amber-900/8 hover:border-amber-500/75 hover:shadow-amber-900/15'
-            : isActive
-              ? 'border-emerald-500/45 bg-emerald-500/10 shadow-sm shadow-emerald-900/5 hover:border-emerald-500/70 hover:shadow-emerald-900/12'
-              : 'border-brand-border bg-brand-card shadow-sm shadow-black/5 hover:border-brand-gold/50 hover:shadow-black/10';
-
-          const dotClass = hasCheckoutRequest
-            ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.85)]'
-            : isActive
-              ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.85)]'
-              : 'bg-brand-text-muted/55';
-
-          return (
-            <Link
-              key={card.tableId}
-              href={detailHref(card.tableId)}
-              className={`group rounded-xl border px-3 py-2 text-left block transition-all duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg ${cardClass}`}
-            >
-              <div className="flex items-center justify-between gap-1">
-                <p className="font-medium text-brand-text">{t.table} {card.displayName}</p>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {hasCheckoutRequest && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-700 text-white font-semibold shadow-sm">
-                      {t.checkoutPendingShort}
-                    </span>
-                  )}
-                  <span
-                    title={t.tableLight}
-                    className={`inline-flex h-2.5 w-2.5 rounded-full ${dotClass}`}
-                  />
-                  {!isActive && (
-                    <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-brand-border text-brand-text-muted">
-                      {t.inactive}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <p className="text-[12px] text-brand-text-muted mt-1 transition-colors group-hover:text-brand-gold">
-                {subtitle}
-              </p>
-            </Link>
-          );
-        })}
+      <div className="space-y-6">
+        {boardSections.map((section) => (
+          <section key={section.id}>
+            <h2 className="text-sm font-medium text-brand-gold mb-3">{section.title}</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
+              {renderSectionCards(section.tableIds)}
+            </div>
+          </section>
+        ))}
       </div>
     </div>
   );

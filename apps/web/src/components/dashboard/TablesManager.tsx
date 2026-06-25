@@ -1,14 +1,23 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { IntegerInput } from '@/components/ui/IntegerInput';
+import { BuffetSettingsTabs } from '@/components/dashboard/buffet/BuffetSettingsTabs';
+import { TableGroupsManager } from '@/components/dashboard/TableGroupsManager';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { showToast } from '@/components/ui/Toast';
+import {
+  buildTableGroupNameByTableId,
+  sortTablesForGroupPrint,
+  type RestaurantTableGroup,
+  type RestaurantTableGroupMember,
+} from '@/lib/restaurant-table-groups';
 import {
   RESTAURANT_TABLE_LIST_MAX,
   isValidTableDisplayName,
@@ -17,10 +26,20 @@ import {
   isValidTableAddCount,
   type RestaurantTableRow,
 } from '@/lib/restaurant-tables';
+import {
+  loadSavedTablesManagerTab,
+  saveTablesManagerTab,
+  TABLES_MANAGER_DEFAULT_TAB,
+  tablesManagerPath,
+  type TablesManagerTab,
+} from '@/lib/tables-manager-tab-preference';
 
 interface TablesManagerProps {
   restaurant: { id: string; slug: string; name: string };
   initialTables: RestaurantTableRow[];
+  initialGroups: RestaurantTableGroup[];
+  initialMembers: RestaurantTableGroupMember[];
+  initialTab?: TablesManagerTab;
 }
 
 type TablesApiResponse = {
@@ -56,11 +75,23 @@ async function requestDashboardTables(
   return sortRestaurantTables(data.tables);
 }
 
-export function TablesManager({ restaurant, initialTables }: TablesManagerProps) {
+export function TablesManager({
+  restaurant,
+  initialTables,
+  initialGroups,
+  initialMembers,
+  initialTab = TABLES_MANAGER_DEFAULT_TAB,
+}: TablesManagerProps) {
+  const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).tables;
+  const tg = getMessages(lang).tableGroups;
   const tPrint = getMessages(lang).printStations;
   const supabase = createClient();
+
+  const [activeTab, setActiveTab] = useState<TablesManagerTab>(initialTab);
+  const [groups, setGroups] = useState<RestaurantTableGroup[]>(initialGroups);
+  const [members, setMembers] = useState<RestaurantTableGroupMember[]>(initialMembers);
 
   const [tables, setTables] = useState<RestaurantTableRow[]>(() => sortRestaurantTables(initialTables));
   const [savedTables, setSavedTables] = useState<RestaurantTableRow[]>(() => sortRestaurantTables(initialTables));
@@ -75,6 +106,41 @@ export function TablesManager({ restaurant, initialTables }: TablesManagerProps)
   const [deleteTarget, setDeleteTarget] = useState<RestaurantTableRow | null>(null);
   const [deleting, setDeleting] = useState(false);
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+  const groupNameByTableId = useMemo(
+    () => buildTableGroupNameByTableId(groups, members),
+    [groups, members],
+  );
+
+  useEffect(() => {
+    const saved = loadSavedTablesManagerTab(restaurant.id) ?? initialTab;
+    setActiveTab(saved);
+  }, [restaurant.id, initialTab]);
+
+  const handleTabChange = useCallback(
+    (tab: TablesManagerTab) => {
+      setActiveTab(tab);
+      saveTablesManagerTab(restaurant.id, tab);
+      router.replace(tablesManagerPath(tab), { scroll: false });
+    },
+    [restaurant.id, router],
+  );
+
+  const handleGroupsChange = useCallback(
+    (nextGroups: RestaurantTableGroup[], nextMembers: RestaurantTableGroupMember[]) => {
+      setGroups(nextGroups);
+      setMembers(nextMembers);
+    },
+    [],
+  );
+
+  const managerTabs = useMemo(
+    () => [
+      { id: 'tables', label: tg.tabTables },
+      { id: 'groups', label: tg.tabGroups },
+    ],
+    [tg.tabGroups, tg.tabTables],
+  );
 
   const dirty = useMemo(() => {
     if (tables.length !== savedTables.length) return true;
@@ -158,7 +224,8 @@ export function TablesManager({ restaurant, initialTables }: TablesManagerProps)
             .item { text-align: center; page-break-inside: avoid; border: 1px solid #ddd; padding: 20px 16px; border-radius: 8px; }
             .item img { width: ${single ? '200px' : '150px'}; height: ${single ? '200px' : '150px'}; }
             .item-single { padding: 28px 24px; max-width: 320px; margin: 0 auto; }
-            .table-no-large { font-size: 42px; font-weight: 700; margin: 0 0 16px; line-height: 1.1; letter-spacing: 0.02em; }
+            .table-no-large { font-size: 42px; font-weight: 700; margin: 0 0 8px; line-height: 1.1; letter-spacing: 0.02em; }
+            .group-name { font-size: 18px; margin: 0 0 16px; color: #666; }
             h2 { font-size: 13px; margin: 14px 0 0; color: #444; font-weight: normal; }
             @media print { .no-print { display: none; } }
           </style>
@@ -168,9 +235,11 @@ export function TablesManager({ restaurant, initialTables }: TablesManagerProps)
           <div class="grid">
             ${printable.map((row) => {
               const qrSrc = qrCodes[row.id];
+              const groupName = groupNameByTableId[row.id];
               return `
               <div class="item${single ? ' item-single' : ''}">
                 <p class="table-no-large">${escapeHtml(row.display_name)}</p>
+                ${groupName ? `<p class="group-name">${escapeHtml(groupName)}</p>` : ''}
                 <img src="${qrSrc}" alt="${escapeHtml(`${t.table} ${row.display_name}`)}" />
                 <h2>${escapeHtml(restaurant.name)}</h2>
               </div>
@@ -183,7 +252,8 @@ export function TablesManager({ restaurant, initialTables }: TablesManagerProps)
     win.document.close();
   };
 
-  const printAll = () => printTables(tables);
+  const printAll = () =>
+    printTables(sortTablesForGroupPrint(tables, groups, members));
 
   const printTable = (table: RestaurantTableRow) => printTables([table]);
 
@@ -333,9 +403,29 @@ export function TablesManager({ restaurant, initialTables }: TablesManagerProps)
     <div>
       <div className="mb-6">
         <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
-        <p className="text-brand-text-muted text-sm mt-1">{t.desc}</p>
+        <p className="text-brand-text-muted text-sm mt-1">
+          {activeTab === 'groups' ? tg.pageDesc : t.desc}
+        </p>
       </div>
 
+      <div className="mb-6">
+        <BuffetSettingsTabs
+          tabs={managerTabs}
+          activeId={activeTab}
+          onChange={(id) => handleTabChange(id as TablesManagerTab)}
+        />
+      </div>
+
+      {activeTab === 'groups' ? (
+        <TableGroupsManager
+          restaurantId={restaurant.id}
+          tables={tables}
+          initialGroups={groups}
+          initialMembers={members}
+          onGroupsChange={handleGroupsChange}
+        />
+      ) : (
+        <>
       <div className="bg-brand-card border border-brand-border rounded-2xl p-6 mb-6">
         <div className="flex flex-col gap-4">
           <div className="min-w-0">
@@ -424,6 +514,9 @@ export function TablesManager({ restaurant, initialTables }: TablesManagerProps)
                 className="w-full max-w-[5.5rem] mx-auto rounded-lg bg-brand-card border border-brand-border px-2 py-1.5 text-center text-brand-gold font-heading text-lg focus:outline-none focus:border-brand-gold/40 mb-3"
                 aria-label={`${t.tableNumberLabel} ${table.display_name}`}
               />
+              {groupNameByTableId[table.id] ? (
+                <p className="text-[12px] text-brand-text-muted mb-2">{groupNameByTableId[table.id]}</p>
+              ) : null}
               {qrCodes[table.id] ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -506,6 +599,8 @@ export function TablesManager({ restaurant, initialTables }: TablesManagerProps)
           </div>
         </div>
       </div>
+        </>
+      )}
 
       <Modal
         open={!!deleteTarget}

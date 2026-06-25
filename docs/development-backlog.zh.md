@@ -18,6 +18,8 @@
 | 关台语义 | [`table-session-close.zh.md`](./table-session-close.zh.md) |
 | 结账并发确认 | [`checkout-confirm-payment-race.zh.md`](./checkout-confirm-payment-race.zh.md) |
 | 本地私有化部署 | [`local-on-premise-deployment-plan.md`](./local-on-premise-deployment-plan.md) |
+| **Supabase → Postgres（全平台）** | [`supabase-to-postgres-migration.zh.md`](./supabase-to-postgres-migration.zh.md) |
+| **SaaS 云平台选型** | [`saas-hosting-alternatives.zh.md`](./saas-hosting-alternatives.zh.md) |
 | 转台 / 并台 | [`table-transfer-merge-plan.zh.md`](./table-transfer-merge-plan.zh.md) |
 | 自助餐周五晚周末价 | [`friday-evening-weekend-plan.md`](./friday-evening-weekend-plan.md) |
 
@@ -30,7 +32,7 @@
 | **P0** | 对外上线硬门槛 / 安全 | 打印代理吊销 RLS 验收、实机 ESC/POS 定稿 |
 | **P1** | 核心产品闭环收尾 | 结账 RPC 生产验收、关台 Phase 5 回归上线 |
 | **P2** | 扩展与运营增强 | 运营后台商业化、单档重打、USB 实机验收 |
-| **P3** | 中长期 / 单独立项 | 本地私有化、Stripe 计费、GDPR |
+| **P3** | 中长期 / 单独立项 | Postgres 全平台迁移、本地私有化、Stripe 计费、GDPR |
 
 ```mermaid
 flowchart LR
@@ -212,15 +214,17 @@ flowchart LR
 
 ## 5. 本地私有化部署（[`local-on-premise-deployment-plan.md`](./local-on-premise-deployment-plan.md)）
 
-**独立大项**；与当前 Vercel + Supabase Cloud 主线并行，**不建议与首期打印代理上线混排**。
+**独立大项**；与 **SaaS 云端共用同一 Postgres-only 架构**（见 [`supabase-to-postgres-migration.zh.md`](./supabase-to-postgres-migration.zh.md) §1.0）。**不建议与首期打印代理上线混排**。
 
 | 阶段 | 内容 | 预估 |
 |------|------|------|
 | **0** | 产品决策、支持矩阵、验收清单定稿 | ~1 周 |
-| **1** | 单机生产栈（Windows 客户侧 Docker/WSL2 + Supabase 栈产品化） | ~2–3 周 |
+| **1** | 单机生产栈（Windows + Docker/WSL2 + **Postgres + Next.js**，非 Supabase 栈） | ~2–3 周 |
 | **2** | 备份与可观测性 | ~2 周 |
 | **3** | 签名升级系统 | ~2–3 周 |
 | **4** | 试点与运营 | ~4 周 |
+
+**前置**：完成迁移方案阶段 0–7（schema、API、Auth、Realtime、Storage、CI）后，私有化阶段 1 才进入客户交付形态。
 
 §13 上线验收清单（断网营业、重启恢复、TCP 9100、备份恢复、升级回滚等）**全部待勾**。
 
@@ -234,7 +238,7 @@ flowchart LR
 | **2** | 业务发布门禁 | 30–40（结账验收 + 关台 Phase 5） |
 | **3** | 运营后台 QA + P2 | 41–51 |
 | **4** | 打印 P2 + 体验 | 10–29 |
-| **5** | 私有化 / 商业化 | 52–55，§5 全阶段 |
+| **5** | Postgres 迁移 + 私有化 / 商业化 | [`supabase-to-postgres-migration.zh.md`](./supabase-to-postgres-migration.zh.md) 阶段 0–8，§5 全阶段 |
 
 ---
 

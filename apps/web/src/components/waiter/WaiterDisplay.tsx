@@ -40,6 +40,10 @@ import {
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import { waiterTableHref, dashboardCheckoutTableHref } from '@/lib/staff-routes';
 import {
+  formatCheckoutPinnedSectionTitle,
+  isWaiterBoardTableCardClickable,
+} from '@/lib/waiter-board-permissions';
+import {
   loadWaiterBoardCollapsedSectionIds,
   saveWaiterBoardCollapsedSectionIds,
 } from '@/lib/waiter-board-section-preference';
@@ -77,7 +81,7 @@ const STATUS_STYLES: Record<
   },
 };
 
-function WaiterTableCardLink({
+function WaiterTableCard({
   card,
   href,
   checkoutRequestedTableIds,
@@ -86,7 +90,8 @@ function WaiterTableCardLink({
   nowMs,
   lang,
   pinned = false,
-  ownerCheckoutLink = false,
+  frontdeskCheckoutLink = false,
+  clickable = true,
 }: {
   card: WaiterTableCardData;
   href: string;
@@ -96,7 +101,8 @@ function WaiterTableCardLink({
   nowMs: number;
   lang: 'zh' | 'en' | 'pt';
   pinned?: boolean;
-  ownerCheckoutLink?: boolean;
+  frontdeskCheckoutLink?: boolean;
+  clickable?: boolean;
 }) {
   const t = WAITER_TEXT[lang];
   const session = sessionMetaByTableId[card.tableId];
@@ -123,21 +129,23 @@ function WaiterTableCardLink({
     labels: {
       guestCount: t.guestCount,
       sessionAmount: t.sessionAmount,
-      checkoutPendingSubtitle: ownerCheckoutLink
+      checkoutPendingSubtitle: frontdeskCheckoutLink
         ? t.checkoutOwnerCollectAction
         : t.checkoutPendingSubtitle,
       clickToView: t.clickToView,
     },
   });
   const styles = STATUS_STYLES[boardState];
+  const cardClassName = `rounded-xl border text-left block px-3 py-2.5 ${styles.card} ${
+    pinned ? 'ring-2 ring-amber-500/35' : ''
+  } ${
+    clickable
+      ? 'group transition-all duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg'
+      : 'cursor-default'
+  }`;
 
-  return (
-    <Link
-      href={href}
-      className={`group rounded-xl border text-left block transition-all duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg px-3 py-2.5 ${styles.card} ${
-        pinned ? 'ring-2 ring-amber-500/35' : ''
-      }`}
-    >
+  const cardBody = (
+    <>
       <div className="flex items-center justify-between gap-2">
         <p className="font-medium text-brand-text">
           {t.table} {card.displayName}
@@ -148,9 +156,23 @@ function WaiterTableCardLink({
           {statusLabel}
         </span>
       </div>
-      <p className="text-[12px] text-brand-text-muted mt-1 transition-colors group-hover:text-brand-gold">
+      <p
+        className={`text-[12px] text-brand-text-muted mt-1 ${
+          clickable ? 'transition-colors group-hover:text-brand-gold' : ''
+        }`}
+      >
         {subtitle}
       </p>
+    </>
+  );
+
+  if (!clickable) {
+    return <div className={cardClassName}>{cardBody}</div>;
+  }
+
+  return (
+    <Link href={href} className={cardClassName}>
+      {cardBody}
     </Link>
   );
 }
@@ -392,13 +414,23 @@ function WaiterBoardInner({
     return waiterTableHref(restaurant.slug, tableId, { isDemo, embeddedInDashboard });
   };
 
-  const isOwnerCheckoutLink = (tableId: string) =>
+  const isFrontdeskCheckoutLink = (tableId: string) =>
     embeddedInDashboard &&
     classifyWaiterTableBoardState(
       tableId,
       effectiveSessionMetaByTableId,
       checkoutRequestedTableIds,
     ) === 'checkout';
+
+  const isTableCardClickable = (tableId: string) =>
+    isWaiterBoardTableCardClickable(
+      embeddedInDashboard,
+      classifyWaiterTableBoardState(
+        tableId,
+        effectiveSessionMetaByTableId,
+        checkoutRequestedTableIds,
+      ),
+    );
 
   const filterLabel = (filter: WaiterBoardFilter) => {
     if (filter === 'all') return t.filterAll;
@@ -408,7 +440,7 @@ function WaiterBoardInner({
   };
 
   const renderTableCard = (card: WaiterTableCardData, pinned = false) => (
-    <WaiterTableCardLink
+    <WaiterTableCard
       key={pinned ? `pinned-${card.tableId}` : card.tableId}
       card={card}
       href={tableHref(card.tableId)}
@@ -418,7 +450,8 @@ function WaiterBoardInner({
       nowMs={nowMs}
       lang={lang}
       pinned={pinned}
-      ownerCheckoutLink={isOwnerCheckoutLink(card.tableId)}
+      frontdeskCheckoutLink={isFrontdeskCheckoutLink(card.tableId)}
+      clickable={isTableCardClickable(card.tableId)}
     />
   );
 
@@ -613,16 +646,18 @@ function WaiterBoardInner({
       {showCheckoutPinned ? (
         <section
           className="mb-6 rounded-2xl border-2 border-amber-500/40 bg-amber-500/8 p-4 shadow-sm shadow-amber-900/5"
-          aria-label={t.checkoutPinnedTitle}
+          aria-label={formatCheckoutPinnedSectionTitle(
+            visibleCheckoutPinnedCards.length,
+            t.checkoutPinnedTitleWithCount,
+          )}
         >
           <div className="mb-3">
-            <h2 className="text-sm font-semibold text-amber-950">{t.checkoutPinnedTitle}</h2>
-            <p className="text-[12px] text-amber-900/85 mt-0.5">
-              {t.checkoutPendingBoardSummary.replace(
-                '{n}',
-                String(visibleCheckoutPinnedCards.length),
+            <h2 className="text-sm font-semibold text-amber-950">
+              {formatCheckoutPinnedSectionTitle(
+                visibleCheckoutPinnedCards.length,
+                t.checkoutPinnedTitleWithCount,
               )}
-            </p>
+            </h2>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {visibleCheckoutPinnedCards.map((card) => renderTableCard(card, true))}

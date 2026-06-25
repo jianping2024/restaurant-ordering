@@ -4,11 +4,19 @@ import { loadDashboardAccess } from '@/lib/dashboard-access';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { loadWaiterTableInitial } from '@/lib/staff-board';
+import { dashboardCheckoutTableHref } from '@/lib/staff-routes';
 import { createClient } from '@/lib/supabase/server';
 import type { Buffet } from '@/types';
 
 interface Props {
   params: Promise<{ tableId: string }>;
+}
+
+function isFrontdeskCheckoutPendingTable(
+  detail: Awaited<ReturnType<typeof loadWaiterTableInitial>> | null,
+): boolean {
+  if (!detail) return false;
+  return detail.checkoutRequested || detail.sessionMeta?.status === 'billing';
 }
 
 export default async function DashboardWaiterTablePage({ params }: Props) {
@@ -32,6 +40,10 @@ export default async function DashboardWaiterTablePage({ params }: Props) {
       .order('name'),
     loadWaiterTableInitial(restaurant.id, tableId).catch(() => null),
   ]);
+
+  if (isFrontdeskCheckoutPendingTable(detail)) {
+    redirect(dashboardCheckoutTableHref(tableId));
+  }
 
   const menuItemIds = distinctMenuItemIdsFromOrders(detail?.orders ?? []);
   let itemCodeByMenuId: Record<string, string> = {};

@@ -30,6 +30,7 @@ import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime
 import { fetchWaiterTableActionTargetsClient } from '@/lib/staff-board-client';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import { waiterBoardHref, waiterTableHref } from '@/lib/staff-routes';
+import { requestDashboardCheckoutRequest } from '@/lib/request-dashboard-checkout-request';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import {
   interpretCloseTableSessionResponse,
@@ -102,6 +103,7 @@ function WaiterTableDetailInner({
   const [operating, setOperating] = useState(false);
   const [closingTable, setClosingTable] = useState<string | null>(null);
   const [checkoutCloseConfirmTableId, setCheckoutCloseConfirmTableId] = useState<string | null>(null);
+  const [callingBill, setCallingBill] = useState(false);
   const activeBuffets = useMemo(() => initialBuffets.filter((b) => b.is_active), [initialBuffets]);
   const [buffetId, setBuffetId] = useState<string>(() => activeBuffets[0]?.id || '');
   const [buffetAdults, setBuffetAdults] = useState(2);
@@ -497,18 +499,18 @@ function WaiterTableDetailInner({
     setClosingTable(closeTableId);
     try {
       if (!isDemo) {
-        const res = await fetch(
-          `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/waiter/sessions/close`,
-          {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              table_id: closeTableId,
-              confirm_close: confirmClose,
-            }),
-          },
-        );
+        const closeUrl = embeddedInDashboard
+          ? '/api/dashboard/close-table-session'
+          : `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/waiter/sessions/close`;
+        const res = await fetch(closeUrl, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            table_id: closeTableId,
+            confirm_close: confirmClose,
+          }),
+        });
         const data = (await res.json().catch(() => ({}))) as { error?: string; ok?: boolean };
         const next = interpretCloseTableSessionResponse(res.status, data);
         if (next.action === 'no_session') {
@@ -569,6 +571,33 @@ function WaiterTableDetailInner({
   const requestCloseTable = (closeTableId: string) => {
     setCheckoutCloseConfirmTableId(closeTableId);
   };
+
+  const handleCallBill = async () => {
+    if (isDemo || !embeddedInDashboard || isCheckoutPending) return;
+    if (selectedCard.orderLines.length === 0 && !selectedCard.hasBuffet) {
+      showToast(t.noOrdersOnTable, 'info');
+      return;
+    }
+    setCallingBill(true);
+    try {
+      const result = await requestDashboardCheckoutRequest(tableId);
+      if (!result.ok) {
+        if (result.error === 'session_billing') showToast(t.checkoutLockedHint, 'info');
+        else showToast(t.actionFailed, 'error');
+        return;
+      }
+      await refresh();
+      showToast(t.callBillSuccess, 'success');
+    } catch {
+      showToast(t.actionFailed, 'error');
+    } finally {
+      setCallingBill(false);
+    }
+  };
+
+  const showFrontdeskCloseTable = embeddedInDashboard;
+  const showFrontdeskCallBill =
+    embeddedInDashboard && !isCheckoutPending && (selectedCard.orderLines.length > 0 || selectedCard.hasBuffet);
 
   const applyBuffetToTable = async () => {
     if (isDemo || !buffetId) return;
@@ -1018,14 +1047,26 @@ function WaiterTableDetailInner({
               >
                 {t.merge}
               </button>
-              <button
-                type="button"
-                onClick={() => requestCloseTable(selectedCard.tableId)}
-                disabled={closingTable === selectedCard.tableId}
-                className={`${waiterUi.btnSecondary} ${waiterUi.btnDanger} disabled:opacity-50`}
-              >
-                {closingTable === selectedCard.tableId ? t.closeTableOperating : t.closeTable}
-              </button>
+              {showFrontdeskCallBill ? (
+                <button
+                  type="button"
+                  onClick={() => void handleCallBill()}
+                  disabled={callingBill}
+                  className={`${waiterUi.btnSecondary} ${waiterUi.btnWarm} disabled:opacity-50`}
+                >
+                  {callingBill ? t.callBillOperating : t.callBill}
+                </button>
+              ) : null}
+              {showFrontdeskCloseTable ? (
+                <button
+                  type="button"
+                  onClick={() => requestCloseTable(selectedCard.tableId)}
+                  disabled={closingTable === selectedCard.tableId}
+                  className={`${waiterUi.btnSecondary} ${waiterUi.btnDanger} disabled:opacity-50`}
+                >
+                  {closingTable === selectedCard.tableId ? t.closeTableOperating : t.closeTable}
+                </button>
+              ) : null}
             </div>
 
             {selectedCard.orderLines.length > 0 && (

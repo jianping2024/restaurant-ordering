@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { WaiterTableDetail } from '@/components/waiter/WaiterTableDetail';
 import type { Buffet } from '@/types';
@@ -6,9 +6,17 @@ import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { staffAuthForPage } from '@/lib/staff-api-auth';
 import { loadWaiterTableInitial } from '@/lib/staff-board';
+import { waiterBoardHref } from '@/lib/staff-routes';
 
 interface Props {
   params: Promise<{ slug: string; tableId: string }>;
+}
+
+function isWaiterCheckoutPendingTable(
+  detail: Awaited<ReturnType<typeof loadWaiterTableInitial>> | null,
+): boolean {
+  if (!detail) return false;
+  return detail.checkoutRequested || detail.sessionMeta?.status === 'billing';
 }
 
 export default async function WaiterTablePage({ params }: Props) {
@@ -38,6 +46,10 @@ export default async function WaiterTablePage({ params }: Props) {
       ? loadWaiterTableInitial(auth.restaurant_id, tableId).catch(() => null)
       : Promise.resolve(null),
   ]);
+
+  if (auth && isWaiterCheckoutPendingTable(detail)) {
+    redirect(waiterBoardHref(slug));
+  }
 
   const menuItemIds = distinctMenuItemIdsFromOrders(detail?.orders ?? []);
   let itemCodeByMenuId: Record<string, string> = {};

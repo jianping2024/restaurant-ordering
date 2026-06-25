@@ -91,6 +91,47 @@ export function buildTableGroupNameByTableId(
   return out;
 }
 
+export function buildTableGroupIdByTableId(
+  members: RestaurantTableGroupMember[],
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const member of members) {
+    out[member.table_id] = member.group_id;
+  }
+  return out;
+}
+
+/** Assign-picker order: ungrouped → current group → other groups (by group name, then table sort). */
+export function sortTablesForGroupAssignPicker(
+  tables: RestaurantTableRow[],
+  groups: RestaurantTableGroup[],
+  members: RestaurantTableGroupMember[],
+  editingGroupId: string | null,
+): RestaurantTableRow[] {
+  const groupIdByTable = buildTableGroupIdByTableId(members);
+  const groupNameById = new Map(groups.map((g) => [g.id, g.name]));
+
+  const bucket = (tableId: string): number => {
+    const gid = groupIdByTable[tableId];
+    if (!gid) return 0;
+    if (editingGroupId && gid === editingGroupId) return 1;
+    return 2;
+  };
+
+  return [...tables].sort((a, b) => {
+    const ba = bucket(a.id);
+    const bb = bucket(b.id);
+    if (ba !== bb) return ba - bb;
+    if (ba === 2) {
+      const ga = groupNameById.get(groupIdByTable[a.id]!) ?? '';
+      const gb = groupNameById.get(groupIdByTable[b.id]!) ?? '';
+      const nameCmp = ga.localeCompare(gb, undefined, { sensitivity: 'base' });
+      if (nameCmp !== 0) return nameCmp;
+    }
+    return compareRestaurantTables(a, b);
+  });
+}
+
 export function groupTableIdsByGroupId(
   members: RestaurantTableGroupMember[],
 ): Record<string, string[]> {

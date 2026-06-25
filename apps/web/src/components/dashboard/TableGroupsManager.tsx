@@ -9,10 +9,13 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { isPostgresUniqueViolation } from '@/lib/menu-code-uniqueness';
 import {
+  buildTableGroupIdByTableId,
+  buildTableGroupNameByTableId,
   groupTableIdsByGroupId,
   isValidTableGroupName,
   normalizeTableGroupName,
   sortTableGroups,
+  sortTablesForGroupAssignPicker,
   TABLE_GROUP_REMARKS_MAX_LEN,
   type RestaurantTableGroup,
   type RestaurantTableGroupMember,
@@ -61,6 +64,24 @@ export function TableGroupsManager({
   const sortedTables = useMemo(() => sortRestaurantTables(tables), [tables]);
   const tableIdsByGroup = useMemo(() => groupTableIdsByGroupId(members), [members]);
   const tableById = useMemo(() => new Map(sortedTables.map((row) => [row.id, row])), [sortedTables]);
+  const groupIdByTableId = useMemo(() => buildTableGroupIdByTableId(members), [members]);
+  const groupNameByTableId = useMemo(
+    () => buildTableGroupNameByTableId(groups, members),
+    [groups, members],
+  );
+
+  const assignPickerTables = useMemo(
+    () => sortTablesForGroupAssignPicker(sortedTables, groups, members, editing?.id ?? null),
+    [sortedTables, groups, members, editing?.id],
+  );
+
+  const assignStatusLabel = (tableId: string) => {
+    const groupId = groupIdByTableId[tableId];
+    if (!groupId) return t.assignUngrouped;
+    if (editing?.id === groupId) return t.assignInThisGroup;
+    const name = groupNameByTableId[tableId];
+    return name ? t.assignInGroup.replace('{name}', name) : t.assignUngrouped;
+  };
 
   const publish = (nextGroups: RestaurantTableGroup[], nextMembers: RestaurantTableGroupMember[]) => {
     const sorted = sortTableGroups(nextGroups);
@@ -351,23 +372,41 @@ export function TableGroupsManager({
           <div>
             <p className="text-[13px] text-brand-text-muted mb-2">{t.assignTables}</p>
             <div className="max-h-48 overflow-y-auto rounded-lg border border-brand-border divide-y divide-brand-border/60">
-              {sortedTables.length === 0 ? (
+              {assignPickerTables.length === 0 ? (
                 <p className="px-4 py-3 text-sm text-brand-text-muted">{t.noTables}</p>
               ) : (
-                sortedTables.map((table) => (
-                  <label
-                    key={table.id}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm cursor-pointer hover:bg-brand-bg/60"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={form.tableIds.includes(table.id)}
-                      onChange={() => toggleTable(table.id)}
-                      className="rounded border-brand-border"
-                    />
-                    <span className="text-brand-text">{table.display_name}</span>
-                  </label>
-                ))
+                assignPickerTables.map((table) => {
+                  const checked = form.tableIds.includes(table.id);
+                  const currentGroupId = groupIdByTableId[table.id];
+                  const otherGroupName =
+                    checked && currentGroupId && currentGroupId !== editing?.id
+                      ? groupNameByTableId[table.id]
+                      : null;
+                  return (
+                    <label
+                      key={table.id}
+                      className="flex items-start gap-3 px-4 py-2.5 text-sm cursor-pointer hover:bg-brand-bg/60"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleTable(table.id)}
+                        className="rounded border-brand-border mt-0.5 shrink-0"
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="text-brand-text font-medium">{table.display_name}</span>
+                        <span className="text-[12px] text-brand-text-muted block mt-0.5">
+                          {assignStatusLabel(table.id)}
+                        </span>
+                        {otherGroupName ? (
+                          <span className="text-[11px] text-amber-800/90 block mt-1">
+                            {t.assignMoveHint.replace('{name}', otherGroupName)}
+                          </span>
+                        ) : null}
+                      </span>
+                    </label>
+                  );
+                })
               )}
             </div>
           </div>

@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  buildTableGroupIdByTableId,
   buildTableGroupNameByTableId,
   buildWaiterBoardSections,
   isValidTableGroupName,
+  sortTablesForGroupAssignPicker,
   sortTablesForGroupPrint,
   sortWaiterTableCards,
 } from './restaurant-table-groups';
@@ -105,6 +107,30 @@ describe('sortWaiterTableCards', () => {
   });
 });
 
+describe('sortTablesForGroupAssignPicker', () => {
+  it('orders ungrouped, current group, then other groups', () => {
+    const extra = { id: 't4', display_name: 'C-01', sort_order: 4 };
+    const ordered = sortTablesForGroupAssignPicker(
+      [...tables, extra],
+      groups,
+      members,
+      'g1',
+    );
+    assert.equal(ordered[0].id, 't4');
+    assert.ok(['t1', 't2'].includes(ordered[1].id));
+    assert.equal(ordered[ordered.length - 1].id, 't3');
+  });
+});
+
+describe('buildTableGroupIdByTableId', () => {
+  it('maps table ids to group ids', () => {
+    assert.deepEqual(buildTableGroupIdByTableId(members), {
+      t1: 'g1',
+      t2: 'g1',
+      t3: 'g2',
+    });
+  });
+});
 describe('sortTablesForGroupPrint', () => {
   it('orders tables by group sort then table sort', () => {
     const ordered = sortTablesForGroupPrint(tables, groups, members);

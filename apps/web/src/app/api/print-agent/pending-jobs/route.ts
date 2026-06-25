@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyActiveAgentBearer } from '@/lib/print-agent-auth';
-import { expireStalePrintJobs } from '@/lib/expire-stale-print-jobs';
 import { printJobMaxAgeCutoffIso } from '@/lib/print-job-max-age';
 import {
   filterPrintJobsByRestaurant,
@@ -11,7 +10,7 @@ import {
 
 export const runtime = 'nodejs';
 
-/** Agent: pending jobs for JWT restaurant only (created within 10 minutes). Stale jobs are failed on each poll. */
+/** Agent: pending jobs for JWT restaurant only (created within 10 minutes). Stale expiry runs on cron. */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
@@ -38,11 +37,6 @@ export async function GET(req: Request) {
   const ctx = await verifyActiveAgentBearer(req, admin);
   if (!ctx) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  }
-
-  const { error: expireErr } = await expireStalePrintJobs(admin, ctx.restaurant_id);
-  if (expireErr) {
-    return NextResponse.json({ error: 'expire_stale_failed', message: expireErr }, { status: 500 });
   }
 
   const cutoff = printJobMaxAgeCutoffIso();

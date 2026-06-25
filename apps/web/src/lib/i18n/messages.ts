@@ -504,12 +504,14 @@ export const MESSAGES = {
       scheduleTitle: '营业时间与拉取策略',
       scheduleSubtitle:
         '保存后，打印助手在下次启动时会从 Mesa 拉取并覆盖本机 config 中的 schedule / poll（打印机地址仍用本机配置）。运行中不会反复拉取。',
+      scheduleApplyNote:
+        '拉取间隔可按本店调整（淡季默认 20 秒）。保存后须重启收银机上的 Mesa 打印助手才会生效：托盘图标右键 → 退出，再从开始菜单重新打开。',
       scheduleTimezone: '时区',
       scheduleLunch: '午市（每天）',
       scheduleDinner: '晚市（每天）',
       schedulePollAdvanced: '高级：拉取间隔',
       schedulePollIntro:
-        '打印助手按场景自动选间隔：打完一整批后；服务器暂无任务但可能还有单；长时间无单。',
+        '打印助手按场景自动选间隔：打完一整批后；服务器暂无任务但可能还有单；长时间无单。下列秒数均可按店保存，见页顶说明。',
       schedulePollEmptyQueue: '服务器返回「暂无任务」时',
       scheduleAfterPrint: '打完一整批后，再等（秒）',
       scheduleAfterPrintHint:
@@ -521,7 +523,8 @@ export const MESSAGES = {
       scheduleWarmAfterHint:
         '从最后一次打印或拉到任务起算。默认 1800 = 30 分钟；超过后改用「淡季」间隔。',
       scheduleIdle: '淡季 · 每隔多少秒问一次',
-      scheduleIdleHint: '超过「仍可能有单」时长且一直无任务时，放慢轮询以节省 API 请求。',
+      scheduleIdleHint:
+        '超过「仍可能有单」时长且一直无任务时使用。默认 20 秒，可填 3–120。数值越小厨房单越快、API 请求越多；数值越大更省流量但可能多等几秒。',
       scheduleSave: '保存',
       scheduleSaved: '已保存。请重启店内打印助手后生效。',
       scheduleErrPrefix: '保存失败：',
@@ -1402,12 +1405,14 @@ export const MESSAGES = {
       scheduleTitle: 'Hours & polling',
       scheduleSubtitle:
         'Saved settings are fetched once when the print agent starts (overrides local schedule/poll; printer addresses stay on the PC). Not polled while running.',
+      scheduleApplyNote:
+        'Intervals are per restaurant (quiet-period default 20 sec). After saving, restart the in-store Mesa Print Agent: tray icon → Exit, then open Mesa Print Agent from the Start menu again.',
       scheduleTimezone: 'Timezone',
       scheduleLunch: 'Lunch (every day)',
       scheduleDinner: 'Dinner (every day)',
       schedulePollAdvanced: 'Advanced: fetch intervals',
       schedulePollIntro:
-        'The agent picks an interval by situation: after a full batch; empty queue but orders may still arrive; long quiet period.',
+        'The agent picks an interval by situation: after a full batch; empty queue but orders may still arrive; long quiet period. All seconds below are saved per restaurant—see the note at the top.',
       schedulePollEmptyQueue: 'When the server returns no jobs',
       scheduleAfterPrint: 'After a full batch, wait (sec)',
       scheduleAfterPrintHint:
@@ -1419,7 +1424,8 @@ export const MESSAGES = {
       scheduleWarmAfterHint:
         'Counted from the last print or fetch. Default 1800 = 30 minutes; after that, the “quiet period” interval applies.',
       scheduleIdle: 'Quiet period · ask every (sec)',
-      scheduleIdleHint: 'When there has been no activity longer than the keep window, poll slower to save API calls.',
+      scheduleIdleHint:
+        'When there has been no activity longer than the keep window. Default 20 sec, range 3–120. Lower = faster kitchen tickets and more API calls; higher = fewer calls but a few seconds more wait.',
       scheduleSave: 'Save',
       scheduleSaved: 'Saved. Restart the in-store print agent to apply.',
       scheduleErrPrefix: 'Save failed: ',
@@ -2027,12 +2033,14 @@ export const MESSAGES = {
       scheduleTitle: 'Horario e polling',
       scheduleSubtitle:
         'Ao guardar, o agente aplica na proxima arrancada (substitui schedule/poll local; impressoras ficam no PC). Nao ha polling de configuracao em execucao.',
+      scheduleApplyNote:
+        'Intervalos por restaurante (periodo calmo: 20 s por defeito). Apos guardar, reinicie o Mesa Print Agent na loja: icone na bandeja → Sair, depois abra de novo no menu Iniciar.',
       scheduleTimezone: 'Fuso horario',
       scheduleLunch: 'Almoco (todos os dias)',
       scheduleDinner: 'Jantar (todos os dias)',
       schedulePollAdvanced: 'Avancado: intervalos de pedido',
       schedulePollIntro:
-        'O agente escolhe o intervalo: apos um lote completo; fila vazia mas podem chegar pedidos; longo periodo calmo.',
+        'O agente escolhe o intervalo: apos um lote completo; fila vazia mas podem chegar pedidos; longo periodo calmo. Os segundos abaixo guardam-se por restaurante — veja a nota no topo.',
       schedulePollEmptyQueue: 'Quando o servidor nao tem tarefas',
       scheduleAfterPrint: 'Apos o lote completo, esperar (seg)',
       scheduleAfterPrintHint:
@@ -2044,7 +2052,8 @@ export const MESSAGES = {
       scheduleWarmAfterHint:
         'Desde a ultima impressao ou pedido. Padrao 1800 = 30 min; depois aplica o intervalo «calmo».',
       scheduleIdle: 'Periodo calmo · perguntar a cada (seg)',
-      scheduleIdleHint: 'Sem atividade ha mais tempo que a janela acima: polling mais lento para poupar pedidos API.',
+      scheduleIdleHint:
+        'Sem atividade ha mais tempo que a janela acima. Padrao 20 s, intervalo 3–120. Valores menores: cozinha mais rapida e mais pedidos API; maiores: menos trafego mas alguns segundos a mais.',
       scheduleSave: 'Guardar',
       scheduleSaved: 'Guardado. Reinicie o agente na loja para aplicar.',
       scheduleErrPrefix: 'Erro: ',

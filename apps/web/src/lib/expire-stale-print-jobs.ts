@@ -7,7 +7,6 @@ import {
 /** Mark overdue pending/processing jobs failed so the agent will not print them. */
 export async function expireStalePrintJobs(
   admin: SupabaseClient,
-  restaurantId: string,
 ): Promise<{ expiredCount: number; error: string | null }> {
   const cutoff = printJobMaxAgeCutoffIso();
   const { data, error } = await admin
@@ -16,7 +15,6 @@ export async function expireStalePrintJobs(
       status: 'failed',
       error_message: PRINT_JOB_EXPIRED_ERROR_MESSAGE,
     })
-    .eq('restaurant_id', restaurantId)
     .in('status', ['pending', 'processing'])
     .lt('created_at', cutoff)
     .select('id');

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { calcByItemSplitResults } from '@/lib/bill-split-by-item';
@@ -13,6 +13,7 @@ import { formatPortugueseNif, normalizePortugueseNif, validatePortugueseNif } fr
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { requestCustomerBillContext } from '@/lib/request-customer-context';
+import { useCustomerContextPoll } from '@/lib/use-customer-context-poll';
 import { requestOrderReceiptPrint } from '@/lib/request-order-receipt-print';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
@@ -149,23 +150,17 @@ export function BillPage({
     setLiveOrders(orders);
   }, [orders]);
 
-  useEffect(() => {
-    if (!sessionId) return;
-    let cancelled = false;
-    const fetchSessionOrders = async () => {
-      const data = await requestCustomerBillContext(restaurant.slug, tableId);
-      if (cancelled || !data) return;
-      setLiveOrders((data.orders || []) as Order[]);
-    };
+  const fetchSessionOrders = useCallback(async () => {
+    const data = await requestCustomerBillContext(restaurant.slug, tableId);
+    if (!data) return;
+    setLiveOrders((data.orders || []) as Order[]);
+  }, [restaurant.slug, tableId]);
 
-    void fetchSessionOrders();
-    const interval = window.setInterval(() => void fetchSessionOrders(), 5000);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(interval);
-    };
-  }, [restaurant.slug, tableId, sessionId]);
+  useCustomerContextPoll({
+    enabled: !!sessionId,
+    hasActiveSession: true,
+    onPoll: fetchSessionOrders,
+  });
 
   // 结账金额按本餐次“实际已下单菜品”计算，不限制菜品状态。
   const allItems = liveOrders.flatMap(o => o.items

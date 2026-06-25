@@ -17,7 +17,7 @@ type pollConfig struct {
 
 func defaultPollConfig() pollConfig {
 	return pollConfig{
-		IdleIntervalSec:       10,
+		IdleIntervalSec:       20,
 		BusyIntervalSec:       5,
 		AfterPrintIntervalSec: 5,
 		WarmIntervalSec:       5,

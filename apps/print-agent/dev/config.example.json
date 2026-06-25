@@ -17,7 +17,7 @@
     }
   },
   "poll": {
-    "idle_interval_sec": 10,
+    "idle_interval_sec": 20,
     "busy_interval_sec": 5,
     "after_print_interval_sec": 5,
     "warm_interval_sec": 5,

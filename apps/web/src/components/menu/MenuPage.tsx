@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type {
@@ -25,6 +25,7 @@ import { autoEnqueueStationTicketsAfterSubmit } from '@/lib/auto-enqueue-station
 import { normalizeOrderRadiusMeters } from '@/lib/order-radius';
 import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
 import { requestCustomerSessionContext } from '@/lib/request-customer-context';
+import { useCustomerContextPoll } from '@/lib/use-customer-context-poll';
 
 const LANG_FLAGS: Record<Language, string> = { pt: '🇵🇹', en: '🇬🇧', zh: '🇨🇳' };
 const LANG_LABELS: Record<Language, string> = { pt: 'PT', en: 'EN', zh: '中' };
@@ -117,30 +118,22 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
     localStorage.setItem('mesa-lang', l);
   };
 
-  // 加载本桌当前餐次及订单；订阅后厨/服务员对订单、会话的更新，同步菜品状态
-  useEffect(() => {
-    if (isDemo) return;
-    let cancelled = false;
+  const loadSessionAndOrders = useCallback(async () => {
+    const data = await requestCustomerSessionContext(restaurant.slug, tableId);
+    if (!data) return;
+    setActiveSession((data.active_session as TableSession | null) || null);
+    if (!data.active_session) {
+      setRecentOrders([]);
+      return;
+    }
+    setRecentOrders((data.recent_orders || []) as Order[]);
+  }, [restaurant.slug, tableId]);
 
-    const loadSessionAndOrders = async () => {
-      const data = await requestCustomerSessionContext(restaurant.slug, tableId);
-      if (cancelled || !data) return;
-      setActiveSession((data.active_session as TableSession | null) || null);
-      if (!data.active_session) {
-        setRecentOrders([]);
-        return;
-      }
-      setRecentOrders((data.recent_orders || []) as Order[]);
-    };
-
-    void loadSessionAndOrders();
-    const interval = window.setInterval(() => void loadSessionAndOrders(), 5000);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(interval);
-    };
-  }, [isDemo, restaurant.slug, tableId]);
+  useCustomerContextPoll({
+    enabled: !isDemo,
+    hasActiveSession: !!activeSession,
+    onPoll: loadSessionAndOrders,
+  });
 
   // 当前分类菜品
   const topCategories = menuCategories.filter((c) => !c.parent_id && c.active).sort((a, b) => a.sort_order - b.sort_order);
@@ -417,8 +410,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
       });
 
       if (sessionId) {
-        const latest = await requestCustomerSessionContext(restaurant.slug, tableId);
-        setRecentOrders((latest?.recent_orders || []) as Order[]);
+        await loadSessionAndOrders();
       }
       setLatestBatchId(appendData.batch_id);
       setTimeout(() => setLatestBatchId(null), 15000);

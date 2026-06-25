@@ -72,7 +72,7 @@ Config path: `~/.config/mesa-print-agent/config.json` (Windows: `%USERPROFILE%\.
     }
   },
   "poll": {
-    "idle_interval_sec": 10,
+    "idle_interval_sec": 20,
     "busy_interval_sec": 5,
     "after_print_interval_sec": 5,
     "warm_interval_sec": 5,
@@ -106,11 +106,13 @@ While **inside** schedule:
 | **after_print** | After the whole fetched batch is printed | `after_print_interval_sec` (default 5s) before next `pending-jobs` pull |
 | **busy** | Failed to claim job (`processing`) | `busy_interval_sec` (default 5s) |
 | **warm** | No pending jobs, but printed or saw pending within `warm_after_activity_sec` | 5s |
-| **idle** | Open hours, no recent activity | 10s |
+| **idle** | Open hours, no recent activity | 20s |
 
 While **outside** schedule: sleep `closed_check_sec` (default 60s), no HTTP polls.
 
-**Job max age:** `GET /api/print-agent/pending-jobs` only returns `pending` rows **newer than 20 minutes**; older `pending`/`processing` rows are marked `failed` on each poll. The agent also skips expired jobs defensively. Reconnecting after days offline will **not** replay old kitchen tickets (use dashboard **Retry** if you need a reprint).
+**Dashboard overrides:** Owners can edit lunch/dinner hours and poll seconds under **Dashboard → Print assistant** (saved to `restaurants.print_agent_config`). The agent fetches this once at **startup** via `GET /api/print-agent/runtime-config`; it is **not** hot-reloaded while running—restart the tray agent after saving. Quiet-period (`idle_interval_sec`) default is **20s**, allowed range **3–120**; lower values print sooner but use more API traffic.
+
+**Job max age:** `GET /api/print-agent/pending-jobs` only returns `pending` rows **newer than 10 minutes**. Older `pending`/`processing` rows are marked `failed` by a **server cron (every 5 minutes)** and defensively skipped by the agent. Reconnecting after days offline will **not** replay old kitchen tickets (use dashboard **Retry** if you need a reprint).
 
 Set `poll.fixed_interval_sec` to disable dynamic tiers and use a single interval (legacy behaviour).
 

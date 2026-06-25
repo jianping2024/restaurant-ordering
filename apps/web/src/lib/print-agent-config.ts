@@ -58,7 +58,7 @@ export function defaultPrintAgentCloudConfig(): PrintAgentCloudConfig {
       },
     },
     poll: {
-      idle_interval_sec: 10,
+      idle_interval_sec: 20,
       busy_interval_sec: 5,
       after_print_interval_sec: 5,
       warm_interval_sec: 5,
@@ -91,7 +91,7 @@ export function cloudConfigToForm(raw: unknown): PrintAgentSettingsForm {
     dinnerEnd: dinner.end,
     afterPrintIntervalSec: poll.after_print_interval_sec ?? 5,
     warmIntervalSec: poll.warm_interval_sec ?? 5,
-    idleIntervalSec: poll.idle_interval_sec ?? 10,
+    idleIntervalSec: poll.idle_interval_sec ?? 20,
     warmAfterActivitySec: poll.warm_after_activity_sec ?? 1800,
     closedCheckSec: poll.closed_check_sec ?? 60,
   };
@@ -120,7 +120,7 @@ export function formToCloudConfig(form: PrintAgentSettingsForm): PrintAgentCloud
       },
     },
     poll: {
-      idle_interval_sec: clampSec(form.idleIntervalSec, 3, 120, 10),
+      idle_interval_sec: clampSec(form.idleIntervalSec, 3, 120, 20),
       busy_interval_sec: 5,
       after_print_interval_sec: clampSec(form.afterPrintIntervalSec, 0, 60, 5),
       warm_interval_sec: clampSec(form.warmIntervalSec, 2, 60, 5),

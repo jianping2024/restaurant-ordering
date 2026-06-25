@@ -102,6 +102,12 @@ export function PrintAgentSchedulePanel({
       <div>
         <h2 className="font-heading text-lg text-brand-text">{t.scheduleTitle}</h2>
         <p className="text-[13px] text-brand-text-muted mt-1 max-w-2xl leading-relaxed">{t.scheduleSubtitle}</p>
+        <p
+          className="mt-3 max-w-2xl rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-3.5 py-2.5 text-[12px] leading-relaxed text-brand-text"
+          role="note"
+        >
+          {t.scheduleApplyNote}
+        </p>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
@@ -210,7 +216,14 @@ export function PrintAgentSchedulePanel({
       </details>
 
       {errLabel && <p className="text-[13px] text-red-600">{errLabel}</p>}
-      {saved && <p className="text-[13px] mesa-text-success">{t.scheduleSaved}</p>}
+      {saved && (
+        <p
+          className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3.5 py-2.5 text-[13px] leading-relaxed text-emerald-900 dark:text-emerald-100"
+          role="status"
+        >
+          {t.scheduleSaved}
+        </p>
+      )}
 
       <div className="flex flex-wrap items-center gap-2 pt-1">
         <button

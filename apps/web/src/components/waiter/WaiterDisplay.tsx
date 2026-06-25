@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import type { Order } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -19,6 +19,8 @@ import {
   computeWaiterBoardStats,
   demoSessionMetaFromOrders,
   filterWaiterBoardTableIds,
+  filterWaiterBoardTableIdsBySearch,
+  tableMatchesWaiterBoardSearch,
   type WaiterBoardFilter,
   type WaiterTableBoardState,
 } from '@/lib/waiter-board-session';
@@ -33,6 +35,11 @@ import {
 } from '@/lib/restaurant-table-groups';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import { waiterTableHref } from '@/lib/staff-routes';
+import {
+  loadWaiterBoardCollapsedSectionIds,
+  saveWaiterBoardCollapsedSectionIds,
+} from '@/lib/waiter-board-section-preference';
+import type { WaiterBoardSection } from '@/lib/restaurant-table-groups';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -173,6 +180,55 @@ function BoardKpiCard({
   );
 }
 
+function WaiterBoardSectionBlock({
+  section,
+  visibleTableIds,
+  expanded,
+  onToggle,
+  sectionTableCountLabel,
+  children,
+}: {
+  section: WaiterBoardSection;
+  visibleTableIds: string[];
+  expanded: boolean;
+  onToggle: () => void;
+  sectionTableCountLabel: string;
+  children: ReactNode;
+}) {
+  if (visibleTableIds.length === 0) return null;
+
+  return (
+    <section>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={expanded}
+        className="w-full flex items-center gap-2 mb-3 text-left group rounded-lg -mx-1 px-1 py-0.5 hover:bg-brand-card/60 transition-colors"
+      >
+        <span
+          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-brand-border/60 bg-brand-bg/60 text-brand-text-muted text-[10px] transition-transform ${
+            expanded ? 'rotate-180' : ''
+          }`}
+          aria-hidden
+        >
+          ▼
+        </span>
+        <h2 className="text-sm font-medium text-brand-gold flex-1 min-w-0 truncate">
+          {section.title}
+        </h2>
+        <span className="text-[12px] text-brand-text-muted shrink-0 tabular-nums">
+          {sectionTableCountLabel}
+        </span>
+      </button>
+      {expanded ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
+          {children}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function WaiterBoardInner({
   restaurant,
   tables: tablesProp = [],
@@ -212,6 +268,21 @@ function WaiterBoardInner({
   );
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [boardFilter, setBoardFilter] = useState<WaiterBoardFilter>('all');
+  const [tableSearch, setTableSearch] = useState('');
+  const [collapsedSectionIds, setCollapsedSectionIds] = useState<Set<string>>(() => new Set());
+  const collapsedPrefsLoadedRef = useRef(false);
+
+  useEffect(() => {
+    collapsedPrefsLoadedRef.current = false;
+    const saved = loadWaiterBoardCollapsedSectionIds(restaurant.id);
+    setCollapsedSectionIds(saved ?? new Set());
+    collapsedPrefsLoadedRef.current = true;
+  }, [restaurant.id]);
+
+  useEffect(() => {
+    if (!collapsedPrefsLoadedRef.current) return;
+    saveWaiterBoardCollapsedSectionIds(restaurant.id, collapsedSectionIds);
+  }, [restaurant.id, collapsedSectionIds]);
 
   useEffect(() => {
     const timer = setInterval(() => setNowMs(Date.now()), 60_000);
@@ -271,6 +342,13 @@ function WaiterBoardInner({
     [groups, members, tables, tableGroupsI18n.ungrouped],
   );
 
+  const displayNameByTableId = useMemo(
+    () => new Map(tables.map((table) => [table.id, table.display_name])),
+    [tables],
+  );
+
+  const tableSearchTrimmed = tableSearch.trim();
+
   const boardStats = useMemo(
     () =>
       computeWaiterBoardStats(
@@ -305,19 +383,8 @@ function WaiterBoardInner({
     />
   );
 
-  const visibleSectionTableIds = (tableIds: string[]) => {
-    const filtered = filterWaiterBoardTableIds(
-      tableIds,
-      boardFilter === 'all' ? 'all' : boardFilter,
-      effectiveSessionMetaByTableId,
-      checkoutRequestedTableIds,
-    );
-    if (boardFilter !== 'all') return filtered;
-    return filtered.filter((id) => !checkoutPinnedTableIds.has(id));
-  };
-
   const renderSectionCards = (tableIds: string[]) => {
-    const visibleIds = visibleSectionTableIds(tableIds);
+    const visibleIds = visibleBoardTableIds(tableIds);
     const cards = visibleIds
       .map((id) => cardByTableId.get(id))
       .filter((card): card is WaiterTableCardData => !!card);
@@ -330,7 +397,70 @@ function WaiterBoardInner({
     return sorted.map((card) => renderTableCard(card));
   };
 
-  const showCheckoutPinned = boardFilter === 'all' && checkoutPinnedCards.length > 0;
+  const sectionTableCountLabel = (count: number) =>
+    t.sectionTableCount.replace('{n}', String(count));
+
+  const visibleCheckoutPinnedCards = useMemo(() => {
+    if (!tableSearchTrimmed) return checkoutPinnedCards;
+    return checkoutPinnedCards.filter((card) =>
+      tableMatchesWaiterBoardSearch(card.displayName, tableSearchTrimmed),
+    );
+  }, [checkoutPinnedCards, tableSearchTrimmed]);
+
+  const showCheckoutPinned = boardFilter === 'all' && visibleCheckoutPinnedCards.length > 0;
+
+  const visibleBoardTableIds = useCallback(
+    (tableIds: readonly string[]) => {
+      const byStatus = filterWaiterBoardTableIds(
+        tableIds,
+        boardFilter === 'all' ? 'all' : boardFilter,
+        effectiveSessionMetaByTableId,
+        checkoutRequestedTableIds,
+      );
+      const withoutPinned =
+        boardFilter === 'all'
+          ? byStatus.filter((id) => !checkoutPinnedTableIds.has(id))
+          : byStatus;
+      return filterWaiterBoardTableIdsBySearch(
+        withoutPinned,
+        displayNameByTableId,
+        tableSearchTrimmed,
+      );
+    },
+    [
+      boardFilter,
+      effectiveSessionMetaByTableId,
+      checkoutRequestedTableIds,
+      checkoutPinnedTableIds,
+      displayNameByTableId,
+      tableSearchTrimmed,
+    ],
+  );
+
+  const toggleSectionCollapsed = (sectionId: string) => {
+    setCollapsedSectionIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(sectionId)) next.delete(sectionId);
+      else next.add(sectionId);
+      return next;
+    });
+  };
+
+  const isSectionExpanded = (sectionId: string, visibleCount: number) => {
+    if (tableSearchTrimmed && visibleCount > 0) return true;
+    return !collapsedSectionIds.has(sectionId);
+  };
+
+  const hasVisibleBoardContent = useMemo(() => {
+    if (showCheckoutPinned) return true;
+    return boardSections.some(
+      (section) => visibleBoardTableIds(section.tableIds).length > 0,
+    );
+  }, [
+    showCheckoutPinned,
+    boardSections,
+    visibleBoardTableIds,
+  ]);
 
   return (
     <div className={embeddedInDashboard ? '' : 'min-h-screen bg-brand-bg p-4'}>
@@ -418,7 +548,32 @@ function WaiterBoardInner({
             );
           })}
         </div>
+
+        <div className="mt-2 relative">
+          <input
+            type="search"
+            value={tableSearch}
+            onChange={(e) => setTableSearch(e.target.value)}
+            placeholder={t.searchTablesPlaceholder}
+            aria-label={t.searchTables}
+            className="w-full bg-brand-card border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-gold/40 pr-9"
+          />
+          {tableSearch ? (
+            <button
+              type="button"
+              onClick={() => setTableSearch('')}
+              aria-label={t.clearSearch}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-text text-lg leading-none px-1"
+            >
+              ×
+            </button>
+          ) : null}
+        </div>
       </div>
+
+      {tableSearchTrimmed && !hasVisibleBoardContent ? (
+        <p className="text-sm text-brand-text-muted mb-6">{t.searchTablesEmpty}</p>
+      ) : null}
 
       {showCheckoutPinned ? (
         <section
@@ -428,26 +583,33 @@ function WaiterBoardInner({
           <div className="mb-3">
             <h2 className="text-sm font-semibold text-amber-950">{t.checkoutPinnedTitle}</h2>
             <p className="text-[12px] text-amber-900/85 mt-0.5">
-              {t.checkoutPendingBoardSummary.replace('{n}', String(checkoutPinnedCards.length))}
+              {t.checkoutPendingBoardSummary.replace(
+                '{n}',
+                String(visibleCheckoutPinnedCards.length),
+              )}
             </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {checkoutPinnedCards.map((card) => renderTableCard(card, true))}
+            {visibleCheckoutPinnedCards.map((card) => renderTableCard(card, true))}
           </div>
         </section>
       ) : null}
 
       <div className="space-y-6">
         {boardSections.map((section) => {
-          const visibleIds = visibleSectionTableIds(section.tableIds);
-          if (visibleIds.length === 0) return null;
+          const visibleIds = visibleBoardTableIds(section.tableIds);
+          const expanded = isSectionExpanded(section.id, visibleIds.length);
           return (
-            <section key={section.id}>
-              <h2 className="text-sm font-medium text-brand-gold mb-3">{section.title}</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
-                {renderSectionCards(section.tableIds)}
-              </div>
-            </section>
+            <WaiterBoardSectionBlock
+              key={section.id}
+              section={section}
+              visibleTableIds={visibleIds}
+              expanded={expanded}
+              onToggle={() => toggleSectionCollapsed(section.id)}
+              sectionTableCountLabel={sectionTableCountLabel(visibleIds.length)}
+            >
+              {renderSectionCards(section.tableIds)}
+            </WaiterBoardSectionBlock>
           );
         })}
       </div>

@@ -5,7 +5,9 @@ import {
   classifyWaiterTableBoardState,
   computeWaiterBoardStats,
   filterWaiterBoardTableIds,
+  filterWaiterBoardTableIdsBySearch,
   formatSessionDurationHm,
+  tableMatchesWaiterBoardSearch,
 } from './waiter-board-session';
 
 describe('formatSessionDurationHm', () => {
@@ -107,5 +109,39 @@ describe('filterWaiterBoardTableIds', () => {
     assert.deepEqual(filterWaiterBoardTableIds(ids, 'dining', meta, []), [ids[1]]);
     assert.deepEqual(filterWaiterBoardTableIds(ids, 'checkout', meta, []), [ids[2]]);
     assert.deepEqual(filterWaiterBoardTableIds(ids, 'idle', meta, []), [ids[0]]);
+  });
+});
+
+describe('tableMatchesWaiterBoardSearch', () => {
+  it('matches display name case-insensitively', () => {
+    assert.equal(tableMatchesWaiterBoardSearch('A-12', 'a-1'), true);
+    assert.equal(tableMatchesWaiterBoardSearch('包间 3', '包间'), true);
+    assert.equal(tableMatchesWaiterBoardSearch('A-12', 'b'), false);
+    assert.equal(tableMatchesWaiterBoardSearch('A-12', ''), true);
+    assert.equal(tableMatchesWaiterBoardSearch('A-12', '   '), true);
+  });
+});
+
+describe('filterWaiterBoardTableIdsBySearch', () => {
+  const nameById = new Map([
+    ['t1', 'A-01'],
+    ['t2', 'B-02'],
+    ['t3', '包间 1'],
+  ]);
+
+  it('returns all ids when query is empty', () => {
+    assert.deepEqual(filterWaiterBoardTableIdsBySearch(['t1', 't2'], nameById, ''), [
+      't1',
+      't2',
+    ]);
+  });
+
+  it('filters by display name substring', () => {
+    assert.deepEqual(filterWaiterBoardTableIdsBySearch(['t1', 't2', 't3'], nameById, 'b'), [
+      't2',
+    ]);
+    assert.deepEqual(filterWaiterBoardTableIdsBySearch(['t1', 't2', 't3'], nameById, '包间'), [
+      't3',
+    ]);
   });
 });

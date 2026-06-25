@@ -39,6 +39,26 @@ export function filterWaiterBoardTableIds(
   );
 }
 
+/** Case-insensitive substring match on table display name (same pattern as menu dish search). */
+export function tableMatchesWaiterBoardSearch(displayName: string, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  return displayName.toLowerCase().includes(q);
+}
+
+export function filterWaiterBoardTableIdsBySearch(
+  tableIds: readonly string[],
+  displayNameByTableId: ReadonlyMap<string, string>,
+  query: string,
+): string[] {
+  const q = query.trim();
+  if (!q) return [...tableIds];
+  return tableIds.filter((tableId) => {
+    const displayName = displayNameByTableId.get(tableId);
+    return displayName !== undefined && tableMatchesWaiterBoardSearch(displayName, q);
+  });
+}
+
 export type WaiterBoardStats = {
   total: number;
   idle: number;

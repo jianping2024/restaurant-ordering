@@ -28,6 +28,7 @@ import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
+import { waiterBoardHref, waiterTableHref } from '@/lib/staff-routes';
 import {
   interpretCloseTableSessionResponse,
 } from '@/lib/close-table-session-ui';
@@ -42,6 +43,7 @@ interface Props {
   displayName?: string;
   isDemo?: boolean;
   itemCodeByMenuId?: Record<string, string>;
+  embeddedInDashboard?: boolean;
 }
 
 function WaiterTableDetailInner({
@@ -54,6 +56,7 @@ function WaiterTableDetailInner({
   displayName = '',
   isDemo = false,
   itemCodeByMenuId = {},
+  embeddedInDashboard = false,
   handleSignOut,
   exitLabel,
 }: Props & { handleSignOut: () => void; exitLabel: string }) {
@@ -260,10 +263,12 @@ function WaiterTableDetailInner({
   const sourceTableLabel =
     configuredTables.find((row) => row.id === sourceTable)?.display_name ?? sourceTable ?? '';
 
-  const boardHref = isDemo ? '/demo/waiter' : `/${restaurant.slug}/waiter`;
-  const waiterReturnPath = isDemo
-    ? `/demo/waiter/${encodeURIComponent(tableId)}`
-    : `/${restaurant.slug}/waiter/${encodeURIComponent(tableId)}`;
+  const routeOptions = useMemo(
+    () => ({ isDemo, embeddedInDashboard }),
+    [isDemo, embeddedInDashboard],
+  );
+  const boardHref = waiterBoardHref(restaurant.slug, routeOptions);
+  const waiterReturnPath = waiterTableHref(restaurant.slug, tableId, routeOptions);
   const menuHref = isDemo
     ? `/demo/menu?table_id=${encodeURIComponent(tableId)}&from=waiter&return=${encodeURIComponent(waiterReturnPath)}`
     : `/${restaurant.slug}/menu?table_id=${encodeURIComponent(tableId)}&from=waiter&return=${encodeURIComponent(waiterReturnPath)}`;
@@ -297,12 +302,9 @@ function WaiterTableDetailInner({
 
   const goToTableDetail = useCallback(
     (targetTableId: string) => {
-      const href = isDemo
-        ? `/demo/waiter/${encodeURIComponent(targetTableId)}`
-        : `/${restaurant.slug}/waiter/${encodeURIComponent(targetTableId)}`;
-      router.replace(href);
+      router.replace(waiterTableHref(restaurant.slug, targetTableId, routeOptions));
     },
-    [isDemo, restaurant.slug, router],
+    [routeOptions, restaurant.slug, router],
   );
 
   const finishTransferOrMerge = useCallback(
@@ -425,8 +427,10 @@ function WaiterTableDetailInner({
 
   if (!isDemo && tablesLoaded && !selectedTable) {
     return (
-      <div className="min-h-screen bg-brand-bg p-4">
-        <StaffRoleToolbar exitLabel={exitLabel} onSignOut={handleSignOut} />
+      <div className={embeddedInDashboard ? '' : 'min-h-screen bg-brand-bg p-4'}>
+        {!embeddedInDashboard ? (
+          <StaffRoleToolbar exitLabel={exitLabel} onSignOut={handleSignOut} />
+        ) : null}
         <div className="mt-6 rounded-xl border border-brand-border bg-brand-card p-4 text-sm text-brand-text-muted">
           {t.noOrdersOnTable}
         </div>
@@ -757,7 +761,7 @@ function WaiterTableDetailInner({
   };
 
   return (
-    <div className="min-h-screen bg-brand-bg p-4">
+    <div className={embeddedInDashboard ? '' : 'min-h-screen bg-brand-bg p-4'}>
       {isDemo && (
         <div className="mb-4 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3">
           <p className="text-[13px] text-brand-text">
@@ -787,22 +791,36 @@ function WaiterTableDetailInner({
       )}
 
       <div className="mb-6">
-        <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
+        <div className={`flex flex-wrap justify-between items-center gap-2 ${embeddedInDashboard ? '' : 'mb-3'}`}>
           <Link
             href={boardHref}
             className={waiterUi.navLink}
           >
             ← {t.backToBoard}
           </Link>
-          <StaffRoleToolbar exitLabel={exitLabel} onSignOut={handleSignOut} className="mb-0" />
+          {!embeddedInDashboard ? (
+            <StaffRoleToolbar exitLabel={exitLabel} onSignOut={handleSignOut} className="mb-0" />
+          ) : null}
         </div>
-        <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
-        <p className="text-brand-text-muted text-sm mt-1">{t.boardTitle}</p>
+        {!embeddedInDashboard ? (
+          <>
+            <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
+            <p className="text-brand-text-muted text-sm mt-1">{t.boardTitle}</p>
+          </>
+        ) : (
+          <h1 className="font-heading text-2xl text-brand-gold mt-2">
+            {t.detailsTitle} · {t.table} {selectedCard.displayName}
+          </h1>
+        )}
       </div>
 
       <div className="rounded-2xl p-4 border border-brand-border/50 bg-brand-card shadow-sm shadow-black/5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-heading text-2xl text-brand-text">{t.detailsTitle} - {t.table} {selectedCard.displayName}</h2>
+          {!embeddedInDashboard ? (
+            <h2 className="font-heading text-2xl text-brand-text">{t.detailsTitle} - {t.table} {selectedCard.displayName}</h2>
+          ) : (
+            <h2 className="font-heading text-lg text-brand-text">{t.boardTitle}</h2>
+          )}
           <span className="text-[13px] text-brand-text-muted">
             {selectedCard.updatedAt
               ? new Date(selectedCard.updatedAt).toLocaleString(locale, {
@@ -1063,7 +1081,16 @@ function WaiterTableDetailInner({
 }
 
 export function WaiterTableDetail(props: Props) {
-  const { restaurant, isDemo } = props;
+  const { restaurant, isDemo, embeddedInDashboard } = props;
+  if (embeddedInDashboard) {
+    return (
+      <WaiterTableDetailInner
+        {...props}
+        handleSignOut={() => {}}
+        exitLabel=""
+      />
+    );
+  }
   return (
     <WaiterAuthenticatedShell restaurant={restaurant} isDemo={isDemo}>
       {({ handleSignOut, exitLabel }) => (

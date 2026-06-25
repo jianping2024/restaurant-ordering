@@ -91,6 +91,8 @@ export function DashboardNav({
     setMobileOpen(false);
   };
 
+  const waiterBoardActive = pathname.startsWith('/dashboard/waiter');
+
   return (
     <>
       {/* Mobile top bar */}
@@ -194,15 +196,18 @@ export function DashboardNav({
               {t.viewKitchen}
             </a>
           ) : null}
-          <a
-            href={`/${restaurant.slug}/waiter`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2 text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
+          <Link
+            href="/dashboard/waiter"
+            onClick={handleGo}
+            className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
+              waiterBoardActive
+                ? 'text-brand-gold font-medium'
+                : 'text-brand-text-muted hover:text-brand-gold'
+            }`}
           >
             <span>🛎️</span>
             {t.viewWaiter}
-          </a>
+          </Link>
         </div>
       ) : null}
 

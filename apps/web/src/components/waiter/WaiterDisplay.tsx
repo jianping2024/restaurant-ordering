@@ -32,6 +32,7 @@ import {
   sortWaiterTableCards,
 } from '@/lib/restaurant-table-groups';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
+import { waiterTableHref } from '@/lib/staff-routes';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -39,6 +40,7 @@ interface Props {
   initialOrders?: Order[];
   initialCheckoutRequestedTableIds?: string[];
   isDemo?: boolean;
+  embeddedInDashboard?: boolean;
 }
 
 const BOARD_FILTERS: WaiterBoardFilter[] = ['all', 'checkout', 'dining', 'idle'];
@@ -177,6 +179,7 @@ function WaiterBoardInner({
   initialOrders = [],
   initialCheckoutRequestedTableIds = [],
   isDemo = false,
+  embeddedInDashboard = false,
   handleSignOut,
   exitLabel,
 }: Props & { handleSignOut: () => void; exitLabel: string }) {
@@ -279,7 +282,7 @@ function WaiterBoardInner({
   );
 
   const detailHref = (tableId: string) =>
-    (isDemo ? `/demo/waiter/${encodeURIComponent(tableId)}` : `/${restaurant.slug}/waiter/${encodeURIComponent(tableId)}`);
+    waiterTableHref(restaurant.slug, tableId, { isDemo, embeddedInDashboard });
 
   const filterLabel = (filter: WaiterBoardFilter) => {
     if (filter === 'all') return t.filterAll;
@@ -330,7 +333,7 @@ function WaiterBoardInner({
   const showCheckoutPinned = boardFilter === 'all' && checkoutPinnedCards.length > 0;
 
   return (
-    <div className="min-h-screen bg-brand-bg p-4">
+    <div className={embeddedInDashboard ? '' : 'min-h-screen bg-brand-bg p-4'}>
       {isDemo && (
         <div className="mb-4 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3">
           <p className="text-[13px] text-brand-text">{t.step}</p>
@@ -357,9 +360,17 @@ function WaiterBoardInner({
         </div>
       )}
       <div className="mb-6">
-        <StaffRoleToolbar exitLabel={exitLabel} onSignOut={handleSignOut} />
-        <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
-        <p className="text-brand-text-muted text-sm mt-1">{t.boardTitle}</p>
+        {!embeddedInDashboard ? (
+          <StaffRoleToolbar exitLabel={exitLabel} onSignOut={handleSignOut} />
+        ) : null}
+        {!embeddedInDashboard ? (
+          <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
+        ) : (
+          <h1 className="font-heading text-2xl text-brand-gold">{t.boardTitle}</h1>
+        )}
+        {!embeddedInDashboard ? (
+          <p className="text-brand-text-muted text-sm mt-1">{t.boardTitle}</p>
+        ) : null}
 
         <div className="mt-4 flex flex-wrap gap-2">
           <BoardKpiCard
@@ -445,7 +456,16 @@ function WaiterBoardInner({
 }
 
 export function WaiterDisplay(props: Props) {
-  const { restaurant, isDemo } = props;
+  const { restaurant, isDemo, embeddedInDashboard } = props;
+  if (embeddedInDashboard) {
+    return (
+      <WaiterBoardInner
+        {...props}
+        handleSignOut={() => {}}
+        exitLabel=""
+      />
+    );
+  }
   return (
     <WaiterAuthenticatedShell restaurant={restaurant} isDemo={isDemo}>
       {({ handleSignOut, exitLabel }) => (

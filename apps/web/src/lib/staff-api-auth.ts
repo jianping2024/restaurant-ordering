@@ -111,6 +111,14 @@ export async function staffAuthFromRequest(
   };
 }
 
+/** Server Component / page loader — same rules as {@link staffAuthFromRequest}. */
+export async function staffAuthForPage(
+  slug: string,
+  role: StaffRole,
+): Promise<StaffAuthContext | null> {
+  return staffAuthFromRequest(new Request('https://mesa.local'), slug, role);
+}
+
 /** Owner or staff with one of the given roles for this restaurant slug. */
 export async function staffAuthFromRequestWithRoles(
   req: Request,

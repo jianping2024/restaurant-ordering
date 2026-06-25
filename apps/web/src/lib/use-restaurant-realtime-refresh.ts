@@ -14,6 +14,7 @@ export function useRestaurantRealtimeRefresh(
   enabled: boolean,
   onRefresh: () => void,
   debounceMs = 1200,
+  skipInitialRefresh = false,
 ) {
   const onRefreshRef = useRef(onRefresh);
   onRefreshRef.current = onRefresh;
@@ -35,7 +36,7 @@ export function useRestaurantRealtimeRefresh(
 
     const subscribe = () => {
       if (channel) return;
-      onRefreshRef.current();
+      if (!skipInitialRefresh) onRefreshRef.current();
       channel = supabase
         .channel(channelKey)
         .on(
@@ -94,5 +95,5 @@ export function useRestaurantRealtimeRefresh(
       unsubscribe();
       document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [channelKey, debounceMs, enabled, restaurantId, supabase]);
+  }, [channelKey, debounceMs, enabled, restaurantId, skipInitialRefresh, supabase]);
 }

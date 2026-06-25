@@ -23,6 +23,7 @@ import {
   tableMatchesWaiterBoardSearch,
   type WaiterBoardFilter,
   type WaiterTableBoardState,
+  type WaiterTableSessionMeta,
 } from '@/lib/waiter-board-session';
 import {
   checkoutRequestedAtForTable,
@@ -32,6 +33,9 @@ import {
   buildWaiterBoardSections,
   isWaiterTableCheckoutPending,
   sortWaiterTableCards,
+  type RestaurantTableGroup,
+  type RestaurantTableGroupMember,
+  type WaiterBoardSection,
 } from '@/lib/restaurant-table-groups';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import { waiterTableHref } from '@/lib/staff-routes';
@@ -39,13 +43,16 @@ import {
   loadWaiterBoardCollapsedSectionIds,
   saveWaiterBoardCollapsedSectionIds,
 } from '@/lib/waiter-board-section-preference';
-import type { WaiterBoardSection } from '@/lib/restaurant-table-groups';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
   tables?: RestaurantTableRow[];
   initialOrders?: Order[];
   initialCheckoutRequestedTableIds?: string[];
+  initialSessionMetaByTableId?: Record<string, WaiterTableSessionMeta>;
+  initialCheckoutRequestedAtByTableId?: Record<string, string>;
+  initialGroups?: RestaurantTableGroup[];
+  initialMembers?: RestaurantTableGroupMember[];
   isDemo?: boolean;
   embeddedInDashboard?: boolean;
 }
@@ -234,6 +241,10 @@ function WaiterBoardInner({
   tables: tablesProp = [],
   initialOrders = [],
   initialCheckoutRequestedTableIds = [],
+  initialSessionMetaByTableId = {},
+  initialCheckoutRequestedAtByTableId = {},
+  initialGroups = [],
+  initialMembers = [],
   isDemo = false,
   embeddedInDashboard = false,
   handleSignOut,
@@ -256,6 +267,10 @@ function WaiterBoardInner({
     initialCheckoutRequestedTableIds,
     tablesProp,
     !isDemo,
+    initialSessionMetaByTableId,
+    initialCheckoutRequestedAtByTableId,
+    initialGroups,
+    initialMembers,
   );
 
   const effectiveSessionMetaByTableId = useMemo(

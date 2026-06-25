@@ -22,22 +22,32 @@ import { IntegerInput } from '@/components/ui/IntegerInput';
 import { showToast } from '@/components/ui/Toast';
 import { deriveOrderStatusFromItems } from '@/lib/order-status';
 import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticatedShell';
-import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
+import { useWaiterTableDetail } from '@/components/waiter/useWaiterTableDetail';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
+import { fetchWaiterTableActionTargetsClient } from '@/lib/staff-board-client';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import { waiterBoardHref, waiterTableHref } from '@/lib/staff-routes';
+import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import {
   interpretCloseTableSessionResponse,
 } from '@/lib/close-table-session-ui';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
+  /** Demo only — all configured tables for transfer/merge UI. */
   tables?: RestaurantTableRow[];
+  /** Demo only — full demo order set. */
   initialOrders?: Order[];
-  initialCheckoutRequestedTableIds?: string[];
+  initialTableDetail?: {
+    table?: RestaurantTableRow | null;
+    orders?: Order[];
+    sessionMeta?: WaiterTableSessionMeta | null;
+    checkoutRequested?: boolean;
+    checkoutRequestedAt?: string | null;
+  };
   initialBuffets?: Buffet[];
   tableId: string;
   displayName?: string;
@@ -48,9 +58,9 @@ interface Props {
 
 function WaiterTableDetailInner({
   restaurant,
-  tables: tablesProp = [],
+  tables: demoTablesProp = [],
   initialOrders = [],
-  initialCheckoutRequestedTableIds = [],
+  initialTableDetail,
   initialBuffets = [],
   tableId,
   displayName = '',
@@ -64,25 +74,31 @@ function WaiterTableDetailInner({
   const { lang } = useLanguage();
   const locale = UI_LOCALE_BY_LANG[lang];
   const t = WAITER_TEXT[lang];
+  const initialDetail = initialTableDetail?.table ? initialTableDetail : null;
   const {
+    table: selectedTable,
     orders,
     refresh,
     supabase,
-    tables,
-    tablesLoaded,
+    detailLoaded,
     activeSessionByTableId,
-    checkoutRequestedTableIds,
-  } = useWaiterOrders(
+    checkoutRequested: isCheckoutPending,
+    demoTables,
+  } = useWaiterTableDetail(
     restaurant,
-    initialOrders,
-    initialCheckoutRequestedTableIds,
-    tablesProp,
+    tableId,
+    initialDetail,
     !isDemo,
+    isDemo,
+    demoTablesProp,
+    initialOrders,
   );
 
   const [operationType, setOperationType] = useState<'transfer' | 'merge' | null>(null);
   const [sourceTable, setSourceTable] = useState<string | null>(null);
   const [targetTable, setTargetTable] = useState<string | null>(null);
+  const [actionTargets, setActionTargets] = useState<RestaurantTableRow[]>([]);
+  const [actionTargetsLoading, setActionTargetsLoading] = useState(false);
   const [operating, setOperating] = useState(false);
   const [closingTable, setClosingTable] = useState<string | null>(null);
   const [checkoutCloseConfirmTableId, setCheckoutCloseConfirmTableId] = useState<string | null>(null);
@@ -190,26 +206,16 @@ function WaiterTableDetailInner({
     }
   }, [activeBuffets, buffetId]);
 
-  const configuredTables = useMemo(() => tables, [tables]);
-  const selectedTable = useMemo(
-    () => configuredTables.find((row) => tableIdsEqual(row.id, tableId)) || null,
-    [configuredTables, tableId],
-  );
   const selectedDisplayName = selectedTable?.display_name || displayName;
 
-  const tableOrders = useMemo(
-    () => ordersForWaiterTableView(tableId, orders, activeSessionByTableId),
-    [tableId, orders, activeSessionByTableId],
-  );
+  const tableOrders = useMemo(() => {
+    if (isDemo) return orders;
+    return ordersForWaiterTableView(tableId, orders, activeSessionByTableId);
+  }, [activeSessionByTableId, isDemo, orders, tableId]);
 
   const selectedCard = useMemo(
     () => buildWaiterTableCard(tableId, selectedDisplayName, tableOrders, itemCodeByMenuId),
     [tableOrders, tableId, selectedDisplayName, itemCodeByMenuId],
-  );
-
-  const isCheckoutPending = useMemo(
-    () => checkoutRequestedTableIds.some((id) => tableIdsEqual(id, tableId)),
-    [checkoutRequestedTableIds, tableId],
   );
 
   const wasCheckoutPendingRef = useRef(isCheckoutPending);
@@ -238,30 +244,40 @@ function WaiterTableDetailInner({
     setBuffetChildren(tableBuffetAggregate.children);
   }, [tableBuffetAggregate]);
 
-  const activeTableIds = useMemo(() => {
-    return configuredTables
+  const demoActiveTableIds = useMemo(() => {
+    if (!isDemo) return [] as string[];
+    return demoTables
       .filter((table) => {
-        const view = ordersForWaiterTableView(table.id, orders, activeSessionByTableId);
+        const view = ordersForWaiterTableView(table.id, initialOrders, activeSessionByTableId);
         const c = buildWaiterTableCard(table.id, table.display_name, view, itemCodeByMenuId);
         return c.orderLines.length > 0 || c.hasBuffet;
       })
-      .map((t) => t.id);
-  }, [configuredTables, orders, activeSessionByTableId, itemCodeByMenuId]);
+      .map((row) => row.id);
+  }, [activeSessionByTableId, demoTables, initialOrders, isDemo, itemCodeByMenuId]);
 
-  const targetCandidates = operationType === 'transfer'
-    ? configuredTables.filter(
-        (table) =>
-          !activeTableIds.includes(table.id) &&
-          (!sourceTable || !tableIdsEqual(table.id, sourceTable)),
-      )
-    : configuredTables.filter(
-        (table) =>
-          activeTableIds.includes(table.id) &&
-          (!sourceTable || !tableIdsEqual(table.id, sourceTable)),
-      );
+  const demoTargetCandidates = useMemo(() => {
+    if (!isDemo || !operationType || !sourceTable) return [] as RestaurantTableRow[];
+    return operationType === 'transfer'
+      ? demoTables.filter(
+          (table) =>
+            !demoActiveTableIds.includes(table.id) &&
+            !tableIdsEqual(table.id, sourceTable),
+        )
+      : demoTables.filter(
+          (table) =>
+            demoActiveTableIds.includes(table.id) &&
+            !tableIdsEqual(table.id, sourceTable),
+        );
+  }, [demoActiveTableIds, demoTables, isDemo, operationType, sourceTable]);
+
+  const targetCandidates = isDemo ? demoTargetCandidates : actionTargets;
 
   const sourceTableLabel =
-    configuredTables.find((row) => row.id === sourceTable)?.display_name ?? sourceTable ?? '';
+    (isDemo ? demoTables : actionTargets)
+      .find((row) => tableIdsEqual(row.id, sourceTable ?? ''))?.display_name
+    ?? selectedTable?.display_name
+    ?? sourceTable
+    ?? '';
 
   const routeOptions = useMemo(
     () => ({ isDemo, embeddedInDashboard }),
@@ -281,24 +297,28 @@ function WaiterTableDetailInner({
     setOperationType(type);
     setSourceTable(sourceId);
     setTargetTable(null);
+    setActionTargets([]);
+    if (isDemo) return;
+
+    setActionTargetsLoading(true);
+    void fetchWaiterTableActionTargetsClient(restaurant.slug, tableId, type)
+      .then(setActionTargets)
+      .catch(() => {
+        showToast(t.actionFailed, 'error');
+        setOperationType(null);
+        setSourceTable(null);
+      })
+      .finally(() => setActionTargetsLoading(false));
   };
 
   const closeAction = () => {
     setOperationType(null);
     setSourceTable(null);
     setTargetTable(null);
+    setActionTargets([]);
+    setActionTargetsLoading(false);
     setOperating(false);
   };
-
-  const tableDisplayName = useCallback(
-    (id: string) => {
-      const row =
-        configuredTables.find((r) => tableIdsEqual(r.id, id)) ??
-        tables.find((r) => tableIdsEqual(r.id, id));
-      return row?.display_name ?? id;
-    },
-    [configuredTables, tables],
-  );
 
   const goToTableDetail = useCallback(
     (targetTableId: string) => {
@@ -308,20 +328,17 @@ function WaiterTableDetailInner({
   );
 
   const finishTransferOrMerge = useCallback(
-    async (targetTableId: string, operation: 'transfer' | 'merge') => {
-      const board = await refresh();
-      const label =
-        board?.tables.find((row) => tableIdsEqual(row.id, targetTableId))?.display_name
-        ?? tableDisplayName(targetTableId);
+    async (targetTableId: string, operation: 'transfer' | 'merge', targetLabel: string) => {
+      await refresh();
       const toastText =
         operation === 'transfer'
-          ? t.transferDone.replace('{table}', label)
-          : t.mergeDone.replace('{table}', label);
+          ? t.transferDone.replace('{table}', targetLabel)
+          : t.mergeDone.replace('{table}', targetLabel);
       closeAction();
       showToast(toastText, 'success');
       goToTableDetail(targetTableId);
     },
-    [refresh, tableDisplayName, t.transferDone, t.mergeDone, goToTableDetail],
+    [refresh, t.transferDone, t.mergeDone, goToTableDetail],
   );
 
   const handleActionSubmit = async () => {
@@ -363,7 +380,11 @@ function WaiterTableDetailInner({
           }
           return;
         }
-        await finishTransferOrMerge(toTable, currentOperation);
+        await finishTransferOrMerge(
+          toTable,
+          currentOperation,
+          targetCandidates.find((row) => tableIdsEqual(row.id, toTable))?.display_name ?? toTable,
+        );
         return;
       }
 
@@ -400,7 +421,11 @@ function WaiterTableDetailInner({
         return;
       }
 
-      await finishTransferOrMerge(toTable, currentOperation);
+      await finishTransferOrMerge(
+        toTable,
+        currentOperation,
+        targetCandidates.find((row) => tableIdsEqual(row.id, toTable))?.display_name ?? toTable,
+      );
     } catch {
       showToast(t.actionFailed, 'error');
     } finally {
@@ -413,9 +438,7 @@ function WaiterTableDetailInner({
     if (!pendingTableId) {
       return { title: t.closeTableConfirmTitle, message: t.closeTableConfirmMessage };
     }
-    const hasCheckoutRequest = checkoutRequestedTableIds.some((id) =>
-      tableIdsEqual(id, pendingTableId),
-    );
+    const hasCheckoutRequest = tableIdsEqual(pendingTableId, tableId) && isCheckoutPending;
     if (hasCheckoutRequest) {
       return {
         title: t.closeTableCheckoutConfirmTitle,
@@ -423,9 +446,35 @@ function WaiterTableDetailInner({
       };
     }
     return { title: t.closeTableConfirmTitle, message: t.closeTableConfirmMessage };
-  }, [checkoutCloseConfirmTableId, checkoutRequestedTableIds, t]);
+  }, [checkoutCloseConfirmTableId, isCheckoutPending, tableId, t]);
 
-  if (!isDemo && tablesLoaded && !selectedTable) {
+  if (!isDemo && !detailLoaded) {
+    return (
+      <div className={embeddedInDashboard ? '' : 'min-h-screen bg-brand-bg p-4'}>
+        <div className="mb-6">
+          <Link href={boardHref} className={waiterUi.navLink}>
+            ← {t.backToBoard}
+          </Link>
+          {embeddedInDashboard ? (
+            <h1 className="font-heading text-2xl text-brand-gold mt-2">
+              {t.detailsTitle} · {t.table} …
+            </h1>
+          ) : null}
+        </div>
+        <div
+          className="rounded-2xl border border-brand-border/50 bg-brand-card/70 p-6 animate-pulse"
+          aria-busy="true"
+          aria-label={t.tableDetailLoading}
+        >
+          <div className="h-5 w-48 rounded bg-brand-border/60 mb-4" />
+          <div className="h-24 rounded bg-brand-border/40" />
+        </div>
+        <p className="text-sm text-brand-text-muted mt-3">{t.tableDetailLoading}</p>
+      </div>
+    );
+  }
+
+  if (!isDemo && detailLoaded && !selectedTable) {
     return (
       <div className={embeddedInDashboard ? '' : 'min-h-screen bg-brand-bg p-4'}>
         {!embeddedInDashboard ? (
@@ -1029,9 +1078,12 @@ function WaiterTableDetailInner({
             <select
               value={targetTable ?? ''}
               onChange={(e) => setTargetTable(e.target.value || null)}
-              className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
+              disabled={actionTargetsLoading}
+              className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40 disabled:opacity-60"
             >
-              <option value="">--</option>
+              <option value="">
+                {actionTargetsLoading ? t.tableDetailLoading : '--'}
+              </option>
               {targetCandidates.map((table) => (
                 <option key={table.id} value={table.id}>
                   {t.table} {table.display_name}

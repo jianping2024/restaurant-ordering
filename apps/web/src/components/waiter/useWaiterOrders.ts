@@ -21,21 +21,26 @@ export function useWaiterOrders(
   initialCheckoutRequestedTableIds: string[],
   initialTables: RestaurantTableRow[],
   enabled: boolean,
+  initialSessionMetaByTableId: Record<string, WaiterTableSessionMeta> = {},
+  initialCheckoutRequestedAtByTableId: Record<string, string> = {},
+  initialGroups: RestaurantTableGroup[] = [],
+  initialMembers: RestaurantTableGroupMember[] = [],
 ) {
+  const hasInitialBoard = initialTables.length > 0;
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [checkoutRequestedTableIds, setCheckoutRequestedTableIds] = useState<string[]>(
     initialCheckoutRequestedTableIds,
   );
   const [sessionMetaByTableId, setSessionMetaByTableId] = useState<
     Record<string, WaiterTableSessionMeta>
-  >({});
+  >(initialSessionMetaByTableId);
   const [checkoutRequestedAtByTableId, setCheckoutRequestedAtByTableId] = useState<
     Record<string, string>
-  >({});
+  >(initialCheckoutRequestedAtByTableId);
   const [tables, setTables] = useState<RestaurantTableRow[]>(initialTables);
-  const [groups, setGroups] = useState<RestaurantTableGroup[]>([]);
-  const [members, setMembers] = useState<RestaurantTableGroupMember[]>([]);
-  const [tablesLoaded, setTablesLoaded] = useState(initialTables.length > 0);
+  const [groups, setGroups] = useState<RestaurantTableGroup[]>(initialGroups);
+  const [members, setMembers] = useState<RestaurantTableGroupMember[]>(initialMembers);
+  const [boardLoaded, setBoardLoaded] = useState(hasInitialBoard);
   const supabase = useMemo(() => createClient(), []);
   const activeSessionByTableId = useMemo(
     () => activeSessionIdByTableIdFromMeta(sessionMetaByTableId),
@@ -52,7 +57,7 @@ export function useWaiterOrders(
     setTables(board.tables);
     setGroups(board.groups);
     setMembers(board.members);
-    setTablesLoaded(true);
+    setBoardLoaded(true);
     return board;
   }, [enabled, restaurant.slug]);
 
@@ -63,6 +68,7 @@ export function useWaiterOrders(
     enabled,
     refresh,
     1200,
+    hasInitialBoard,
   );
 
   return {
@@ -75,7 +81,7 @@ export function useWaiterOrders(
     tables,
     groups,
     members,
-    tablesLoaded,
+    boardLoaded,
     refresh,
     supabase,
   };

@@ -6,6 +6,7 @@ import type {
   RestaurantTableGroupMember,
 } from '@/lib/restaurant-table-groups';
 import { compareRestaurantTables, sortRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
+import type { WaiterTableDetailData } from '@/lib/staff-board';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 
 type WaiterBoardResponse = {
@@ -44,6 +45,40 @@ export async function fetchWaiterBoardClient(slug: string) {
     groups: board.groups || [],
     members: board.members || [],
   };
+}
+
+/** Single-table waiter detail via authenticated staff API. */
+export async function fetchWaiterTableDetailClient(
+  slug: string,
+  tableId: string,
+): Promise<WaiterTableDetailData> {
+  const detail = await fetchStaffBoard<WaiterTableDetailData>(
+    `/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/tables/${encodeURIComponent(tableId)}`,
+  );
+  return {
+    table: detail.table ?? null,
+    sessionMeta: detail.sessionMeta ?? null,
+    orders: detail.orders || [],
+    checkoutRequested: !!detail.checkoutRequested,
+    checkoutRequestedAt: detail.checkoutRequestedAt ?? null,
+  };
+}
+
+/** Transfer/merge target tables for one source table. */
+export async function fetchWaiterTableActionTargetsClient(
+  slug: string,
+  tableId: string,
+  operation: 'transfer' | 'merge',
+): Promise<RestaurantTableRow[]> {
+  const url = new URL(
+    `/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/tables/${encodeURIComponent(tableId)}/action-targets`,
+    window.location.origin,
+  );
+  url.searchParams.set('operation', operation);
+  const res = await fetch(url.toString(), { credentials: 'include' });
+  if (!res.ok) throw new Error('staff_table_targets_fetch_failed');
+  const data = (await res.json()) as { tables?: RestaurantTableRow[] };
+  return sortRestaurantTables(data.tables || []);
 }
 
 /** Kitchen active board via authenticated staff API. */

@@ -8,6 +8,7 @@ import {
   type PrintLocale,
   type RestaurantCountryCode,
 } from '@mesa/shared';
+import { PasswordInput } from '@mesa/ui';
 
 export default function NewRestaurantPage() {
   const router = useRouter();
@@ -79,17 +80,16 @@ export default function NewRestaurantPage() {
             className="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2"
           />
         </label>
-        <label className="block text-sm text-zinc-400">
-          初始密码（至少 6 位）
-          <input
-            type="password"
-            required
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2"
-          />
-        </label>
+        <PasswordInput
+          variant="zinc"
+          label="初始密码（至少 6 位）"
+          labelClassName="block text-sm text-zinc-400"
+          required
+          minLength={6}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          inputClassName="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 pr-10"
+        />
         <label className="block text-sm text-zinc-400">
           打印语言
           <select

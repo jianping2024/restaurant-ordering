@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, Suspense, useState } from 'react';
+import { PasswordInput } from '@mesa/ui';
 
 function OpsLoginForm() {
   const router = useRouter();
@@ -60,16 +61,14 @@ function OpsLoginForm() {
           className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-white"
         />
       </label>
-      <label className="mt-4 block text-sm text-zinc-400">
-        密码
-        <input
-          type="password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-white"
-        />
-      </label>
+      <PasswordInput
+        variant="zinc"
+        label="密码"
+        labelClassName="mt-4 block text-sm text-zinc-400"
+        required
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
       <button
         type="submit"
         disabled={loading}

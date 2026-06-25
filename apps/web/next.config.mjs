@@ -12,7 +12,7 @@ try {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['@mesa/shared'],
+  transpilePackages: ['@mesa/shared', '@mesa/ui'],
   ...(printAgentVersion
     ? { env: { NEXT_PUBLIC_PRINT_AGENT_VERSION: printAgentVersion } }
     : {}),

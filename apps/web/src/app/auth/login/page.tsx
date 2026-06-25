@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { PasswordInput } from '@mesa/ui';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages } from '@/lib/i18n/messages';
@@ -99,9 +100,8 @@ export default function LoginPage() {
               autoComplete="email"
               disabled={loading}
             />
-            <Input
+            <PasswordInput
               label={t.password}
-              type="password"
               placeholder="••••••••"
               value={password}
               onChange={e => setPassword(e.target.value)}

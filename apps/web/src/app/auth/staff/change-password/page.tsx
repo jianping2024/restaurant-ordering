@@ -8,7 +8,7 @@ import { staffRolePath } from '@/lib/staff-routes';
 import { staffSignOut } from '@/lib/staff-auth-client';
 import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { PasswordInput } from '@mesa/ui';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 
@@ -122,27 +122,24 @@ export default function StaffChangePasswordPage() {
         <h1 className="font-heading text-3xl text-brand-gold text-center mb-2">{t.changeTitle}</h1>
         <p className="text-brand-text-muted text-sm text-center mb-6">{t.changeSubtitle}</p>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
+          <PasswordInput
             label={t.password}
-            type="password"
             autoComplete="current-password"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             required
             disabled={loading}
           />
-          <Input
+          <PasswordInput
             label={t.newPassword}
-            type="password"
             autoComplete="new-password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
             disabled={loading}
           />
-          <Input
+          <PasswordInput
             label={t.confirmPassword}
-            type="password"
             autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}

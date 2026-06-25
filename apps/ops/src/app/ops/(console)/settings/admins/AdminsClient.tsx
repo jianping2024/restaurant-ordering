@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { PasswordInput } from '@mesa/ui';
 
 type AdminRow = {
   id: string;
@@ -115,17 +116,16 @@ export default function AdminsClient() {
               className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2"
             />
           </label>
-          <label className="block text-sm text-zinc-400">
-            初始密码（至少 8 位）
-            <input
-              type="password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2"
-            />
-          </label>
+          <PasswordInput
+            variant="zinc"
+            label="初始密码（至少 8 位）"
+            labelClassName="block text-sm text-zinc-400"
+            required
+            minLength={8}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            inputClassName="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2 pr-10"
+          />
           <label className="block text-sm text-zinc-400">
             显示名称
             <input

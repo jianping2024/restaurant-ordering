@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { PasswordInput } from '@mesa/ui';
 import { Modal } from '@/components/ui/Modal';
 import type { RestaurantStaffAccount, StaffAccountRole } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -422,9 +423,8 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
               <option value="frontdesk">{t.roleFrontdesk}</option>
             </select>
           </div>
-          <Input
+          <PasswordInput
             label={t.fieldPassword}
-            type="password"
             value={createForm.password}
             onChange={(e) => setCreateForm((f) => ({ ...f, password: e.target.value }))}
             disabled={createSaving}
@@ -453,9 +453,8 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
       >
         <>
           <p className="text-sm text-brand-text-muted mb-3">{t.resetPasswordHint}</p>
-          <Input
+          <PasswordInput
             label={t.fieldPassword}
-            type="password"
             value={resetPassword}
             onChange={(e) => setResetPassword(e.target.value)}
           />

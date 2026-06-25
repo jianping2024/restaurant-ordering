@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { composeStaffEmail } from '@/lib/staff-account';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { PasswordInput } from '@mesa/ui';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
@@ -121,9 +122,8 @@ export function StaffLoginForm({ mode, slug, restaurantName, expectedRole }: Pro
               disabled={loading}
               placeholder={mode === 'global' ? t.emailPlaceholder : t.loginNamePlaceholder}
             />
-            <Input
+            <PasswordInput
               label={t.password}
-              type="password"
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

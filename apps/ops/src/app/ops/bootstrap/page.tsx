@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
+import { PasswordInput } from '@mesa/ui';
 
 export default function OpsBootstrapPage() {
   const router = useRouter();
@@ -57,16 +58,14 @@ export default function OpsBootstrapPage() {
         </p>
         {error ? <p className="mt-4 text-sm text-red-400">{error}</p> : null}
         {success ? <p className="mt-4 text-sm text-emerald-400">{success}</p> : null}
-        <label className="mt-4 block text-sm text-zinc-400">
-          管理员密钥
-          <input
-            type="password"
-            required
-            value={adminSecret}
-            onChange={(e) => setAdminSecret(e.target.value)}
-            className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-white"
-          />
-        </label>
+        <PasswordInput
+          variant="zinc"
+          label="管理员密钥"
+          labelClassName="mt-4 block text-sm text-zinc-400"
+          required
+          value={adminSecret}
+          onChange={(e) => setAdminSecret(e.target.value)}
+        />
         <label className="mt-4 block text-sm text-zinc-400">
           显示名称
           <input
@@ -86,17 +85,15 @@ export default function OpsBootstrapPage() {
             className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-white"
           />
         </label>
-        <label className="mt-4 block text-sm text-zinc-400">
-          初始密码（至少 8 位）
-          <input
-            type="password"
-            required
-            minLength={8}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-white"
-          />
-        </label>
+        <PasswordInput
+          variant="zinc"
+          label="初始密码（至少 8 位）"
+          labelClassName="mt-4 block text-sm text-zinc-400"
+          required
+          minLength={8}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
         <button
           type="submit"
           disabled={loading}

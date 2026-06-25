@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { isNightlyAutoCloseDue } from '@/lib/auto-close-active-sessions';
+import { expireStalePrintJobs } from '@/lib/expire-stale-print-jobs';
 import { executeNightlyAutoClose } from '@/lib/run-nightly-auto-close';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyCronSecret } from '@/lib/verify-cron-secret';
 
 export const runtime = 'nodejs';
@@ -22,9 +24,16 @@ export async function GET(req: Request) {
   }
 
   try {
+    const admin = createAdminClient();
+    const { expiredCount, error: expireError } = await expireStalePrintJobs(admin);
+    if (expireError) {
+      console.error('[mesa nightly-auto-close] expire stale print jobs failed:', expireError);
+    }
+
     const { closedCount, dateKey } = await executeNightlyAutoClose();
-    console.info('[mesa nightly-auto-close] cron closed sessions:', closedCount, dateKey);
-    return NextResponse.json({ ok: true, closedCount, dateKey });
+    const expiredPrintJobs = expireError ? 0 : expiredCount;
+    console.info('[mesa nightly-auto-close] cron:', { closedCount, dateKey, expiredPrintJobs });
+    return NextResponse.json({ ok: true, closedCount, dateKey, expiredPrintJobs });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'unknown_error';
     console.error('[mesa nightly-auto-close] cron failed:', e);

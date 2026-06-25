@@ -6,10 +6,6 @@
   "ignoreCommand": "bash ../../scripts/vercel-ignore-web.sh",
   "crons": [
     {
-      "path": "/api/cron/expire-stale-print-jobs",
-      "schedule": "*/5 * * * *"
-    },
-    {
       "path": "/api/cron/nightly-close-sessions",
       "schedule": "0 4 * * *"
     },

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { maybeExpireStalePrintJobs } from '@/lib/expire-stale-print-jobs';
 import { verifyActiveAgentBearer } from '@/lib/print-agent-auth';
 import { printJobMaxAgeCutoffIso } from '@/lib/print-job-max-age';
 import {
@@ -10,7 +11,7 @@ import {
 
 export const runtime = 'nodejs';
 
-/** Agent: pending jobs for JWT restaurant only (created within 10 minutes). Stale expiry runs on cron. */
+/** Agent: pending jobs for JWT restaurant only (created within 10 minutes). Stale expiry is throttled on poll (Hobby cron is daily-only). */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
@@ -38,6 +39,8 @@ export async function GET(req: Request) {
   if (!ctx) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
+
+  await maybeExpireStalePrintJobs(admin);
 
   const cutoff = printJobMaxAgeCutoffIso();
   const { data: rows, error } = await admin

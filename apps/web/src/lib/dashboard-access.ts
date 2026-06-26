@@ -226,3 +226,26 @@ export async function loadFrontdeskOperationalContext(options?: {
 
   return { admin, restaurantId: restaurant.id as string };
 }
+
+/** Server-side admin context for `/dashboard` overview (owner or frontdesk). */
+export async function loadOverviewDashboardContext(): Promise<FrontdeskOperationalContext> {
+  const access = await loadDashboardAccess();
+  if (access.mode === 'unauthenticated') {
+    return { error: 'unauthorized', status: 401 };
+  }
+  if (access.mode === 'access_error' || access.mode === 'onboarding' || access.mode === 'cashier') {
+    return { error: 'forbidden', status: 403 };
+  }
+  if (access.mode === 'frontdesk') {
+    return loadFrontdeskOperationalContext();
+  }
+
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return { error: 'server_misconfigured', status: 503 };
+  }
+
+  return { admin, restaurantId: access.restaurant.id };
+}

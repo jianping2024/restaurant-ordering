@@ -22,9 +22,10 @@ describe('isOwnerDashboardPath', () => {
     assert.equal(isOwnerDashboardPath('/dashboard/settings'), true);
     assert.equal(isOwnerDashboardPath('/dashboard/settings/staff'), true);
     assert.equal(isOwnerDashboardPath('/dashboard/abnormal-operations'), true);
+    assert.equal(isOwnerDashboardPath('/dashboard/value-analytics'), true);
     assert.equal(isOwnerOperationalPath('/dashboard/abnormal-operations'), true);
+    assert.equal(isOwnerDashboardPath('/dashboard'), true);
     assert.equal(isOwnerDashboardPath('/dashboard/checkout'), false);
-    assert.equal(isOwnerDashboardPath('/dashboard'), false);
   });
 });
 

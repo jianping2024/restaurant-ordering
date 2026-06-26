@@ -13,6 +13,7 @@ import type { DashboardAccessMode } from '@/lib/dashboard-access';
 import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 
 const ownerNavItems = [
+  { href: '/dashboard', key: 'overview', icon: '📊', exact: true },
   {
     href: '/dashboard/value-analytics',
     key: 'valueAnalytics',

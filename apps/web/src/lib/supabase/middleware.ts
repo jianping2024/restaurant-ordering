@@ -53,11 +53,6 @@ export async function updateSession(request: NextRequest) {
     const isCashier = await isCashierStaffUser(supabase, user.id, userMetadata);
 
     if (isOwner) {
-      if (pathname === '/dashboard' || pathname === '/dashboard/') {
-        const url = request.nextUrl.clone();
-        url.pathname = '/dashboard/settings';
-        return NextResponse.redirect(url);
-      }
       if (!isOwnerDashboardPath(pathname)) {
         const url = request.nextUrl.clone();
         url.pathname = '/dashboard/settings';

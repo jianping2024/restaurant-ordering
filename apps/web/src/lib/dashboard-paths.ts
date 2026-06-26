@@ -12,8 +12,16 @@ export function isOwnerOperationalPath(pathname: string): boolean {
   );
 }
 
+export function isOwnerOverviewPath(pathname: string): boolean {
+  return pathname === '/dashboard' || pathname === '/dashboard/';
+}
+
 export function isOwnerDashboardPath(pathname: string): boolean {
-  return isDashboardSettingsPath(pathname) || isOwnerOperationalPath(pathname);
+  return (
+    isOwnerOverviewPath(pathname) ||
+    isDashboardSettingsPath(pathname) ||
+    isOwnerOperationalPath(pathname)
+  );
 }
 
 export function isCashierCheckoutPath(pathname: string): boolean {

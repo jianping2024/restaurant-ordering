@@ -1,4 +1,4 @@
-import { loadFrontdeskOperationalContext } from '@/lib/dashboard-access';
+import { loadOverviewDashboardContext } from '@/lib/dashboard-access';
 import type { Order } from '@/types';
 import { DashboardPageClient } from '@/components/dashboard/DashboardPageClient';
 import { getServerLanguage } from '@/lib/i18n.server';
@@ -6,7 +6,7 @@ import { formatOrderDateTime, formatOverviewDate } from '@/lib/format-dashboard-
 
 // 数据概览（数据服务端获取，文案与 LanguageProvider 同步）
 export default async function DashboardPage() {
-  const ctx = await loadFrontdeskOperationalContext();
+  const ctx = await loadOverviewDashboardContext();
   if ('error' in ctx) return null;
 
   const { data: restaurant } = await ctx.admin

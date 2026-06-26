@@ -17,7 +17,7 @@ export function DashboardSettingsShell({ children }: { children: React.ReactNode
   const hub = getMessages(lang).settingsHub;
   const activeItem = getActiveSettingsNavItem(pathname);
   const pageTitle = activeItem ? hub[activeItem.labelKey] : hub.title;
-  const pageSubtitle = activeItem ? hub[activeItem.hintKey] : '';
+  const pageSubtitle = activeItem?.hintKey ? hub[activeItem.hintKey] : '';
   const pageHelpModal =
     activeItem?.id === 'menu' ? (
       <MenuSettingsGuide />

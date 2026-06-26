@@ -223,7 +223,6 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
       {!embedded && (
         <div className="mb-6">
           <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
-          <p className="text-brand-text-muted text-sm mt-1">{t.desc}</p>
         </div>
       )}
 
@@ -239,8 +238,6 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
           {banner.text}
         </p>
       ) : null}
-
-      <p className="text-[12px] text-brand-text-muted mb-4">{t.emailHint}</p>
 
       <div className="mb-4 flex justify-end">
         <Button

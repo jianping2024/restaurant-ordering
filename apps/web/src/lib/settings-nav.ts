@@ -17,7 +17,6 @@ export type SettingsHubLabelKey =
 export type SettingsHubHintKey =
   | 'hintProfile'
   | 'hintFeatures'
-  | 'hintStaff'
   | 'hintMenu'
   | 'hintBuffet'
   | 'hintPrintAssistant';
@@ -26,7 +25,7 @@ export type SettingsNavItem = {
   id: SettingsNavId;
   href: string;
   labelKey: SettingsHubLabelKey;
-  hintKey: SettingsHubHintKey;
+  hintKey?: SettingsHubHintKey;
   icon: string;
   isActive: (pathname: string) => boolean;
 };
@@ -45,7 +44,6 @@ export const SETTINGS_NAV_TABS: SettingsNavItem[] = [
     id: 'staff',
     href: '/dashboard/settings/staff',
     labelKey: 'tabStaff',
-    hintKey: 'hintStaff',
     icon: '👥',
     isActive: (pathname) => pathname.startsWith('/dashboard/settings/staff'),
   },

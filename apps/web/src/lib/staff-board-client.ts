@@ -55,6 +55,10 @@ export async function fetchWaiterTableDetailClient(
   const detail = await fetchStaffBoard<WaiterTableDetailData>(
     `/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/tables/${encodeURIComponent(tableId)}`,
   );
+  return normalizeWaiterTableDetail(detail);
+}
+
+function normalizeWaiterTableDetail(detail: WaiterTableDetailData): WaiterTableDetailData {
   return {
     table: detail.table ?? null,
     sessionMeta: detail.sessionMeta ?? null,
@@ -62,6 +66,47 @@ export async function fetchWaiterTableDetailClient(
     checkoutRequested: !!detail.checkoutRequested,
     checkoutRequestedAt: detail.checkoutRequestedAt ?? null,
   };
+}
+
+type WaiterBuffetOpenResponse = {
+  ok?: boolean;
+  detail?: WaiterTableDetailData;
+  error?: string;
+};
+
+/** Open table (buffet); returns refreshed table detail when successful. */
+export async function postWaiterBuffetOpenClient(
+  slug: string,
+  body: {
+    table_id: string;
+    buffet_id: string;
+    adult_count: number;
+    child_count: number;
+  },
+): Promise<WaiterTableDetailData> {
+  const res = await fetch(
+    `/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/buffet`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    },
+  );
+  const data = (await res.json().catch(() => ({}))) as WaiterBuffetOpenResponse;
+  if (!res.ok) {
+    const err = new Error(data.error || 'buffet_open_failed') as Error & {
+      status?: number;
+      code?: string;
+    };
+    err.status = res.status;
+    err.code = data.error;
+    throw err;
+  }
+  if (!data.detail) {
+    throw new Error('buffet_open_missing_detail');
+  }
+  return normalizeWaiterTableDetail(data.detail);
 }
 
 /** Transfer/merge target tables for one source table. */

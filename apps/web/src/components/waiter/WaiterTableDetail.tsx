@@ -6,9 +6,15 @@ import { useRouter } from 'next/navigation';
 import type { Buffet, Order } from '@/types';
 import {
   aggregateBuffetForOrders,
+  buildBuffetBaseLine,
   formatBuffetSummaryLine,
+  parseResolvedBuffetPriceRpcRow,
   type ResolvedBuffetPriceRow,
 } from '@/lib/buffet-order';
+import {
+  applyBuffetOpenOptimisticToOrders,
+  OPTIMISTIC_OPEN_SESSION_ID,
+} from '@/lib/buffet-open-table';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
@@ -24,14 +30,13 @@ import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
-import { fetchWaiterTableActionTargetsClient } from '@/lib/staff-board-client';
+import { fetchWaiterTableActionTargetsClient, postWaiterBuffetOpenClient } from '@/lib/staff-board-client';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import { waiterBoardHref, waiterTableHref } from '@/lib/staff-routes';
 import { requestDashboardCheckoutRequest } from '@/lib/request-dashboard-checkout-request';
+import type { WaiterTableDetailData } from '@/lib/staff-board';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
-import {
-  interpretCloseTableSessionResponse,
-} from '@/lib/close-table-session-ui';
+import { interpretCloseTableSessionResponse } from '@/lib/close-table-session-ui';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -77,6 +82,9 @@ function WaiterTableDetailInner({
     table: selectedTable,
     orders,
     refresh,
+    applyDetail,
+    sessionMeta,
+    checkoutRequestedAt,
     supabase,
     detailLoaded,
     activeSessionByTableId,
@@ -122,13 +130,7 @@ function WaiterTableDetailInner({
         if (!silent) setBuffetResolved(null);
         return;
       }
-      const resolvedRow = Array.isArray(priceRows) ? priceRows[0] : priceRows;
-      setBuffetResolved({
-        adult_price: resolvedRow?.adult_price != null ? Number(resolvedRow.adult_price) : null,
-        child_price: resolvedRow?.child_price != null ? Number(resolvedRow.child_price) : null,
-        rule_id: resolvedRow?.rule_id ?? null,
-        time_slot_id: resolvedRow?.time_slot_id ?? null,
-      });
+      setBuffetResolved(parseResolvedBuffetPriceRpcRow(priceRows));
     },
     [isDemo, buffetId, restaurant.id, supabase],
   );
@@ -230,6 +232,17 @@ function WaiterTableDetailInner({
   }, [t.checkoutLockedHint]);
 
   const checkoutLockedClass = isCheckoutPending ? 'opacity-50 cursor-not-allowed' : '';
+
+  const currentTableDetail = useCallback(
+    (): WaiterTableDetailData => ({
+      table: selectedTable,
+      orders,
+      sessionMeta,
+      checkoutRequested: isCheckoutPending,
+      checkoutRequestedAt,
+    }),
+    [checkoutRequestedAt, isCheckoutPending, orders, selectedTable, sessionMeta],
+  );
 
   const tableBuffetAggregate = useMemo(
     () => aggregateBuffetForOrders(tableOrders),
@@ -597,47 +610,73 @@ function WaiterTableDetailInner({
     embeddedInDashboard && !isCheckoutPending && (selectedCard.orderLines.length > 0 || selectedCard.hasBuffet);
 
   const applyBuffetToTable = async () => {
-    if (!buffetId) return;
+    if (!buffetId || !buffetResolved) return;
     if (isCheckoutPending) {
       notifyCheckoutLocked();
       return;
     }
 
+    const buffet = activeBuffets.find((b) => b.id === buffetId);
+    if (!buffet) return;
+
+    const line = buildBuffetBaseLine({
+      buffet,
+      adultCount: buffetAdults,
+      childCount: buffetChildren,
+      resolved: buffetResolved,
+    });
+    if (!line) {
+      showToast(t.buffetNoRule, 'error');
+      return;
+    }
+
+    const rollbackDetail = currentTableDetail();
+
+    const optimisticSessionId = sessionMeta?.sessionId ?? OPTIMISTIC_OPEN_SESSION_ID;
+    applyDetail({
+      ...rollbackDetail,
+      sessionMeta: sessionMeta ?? {
+        sessionId: optimisticSessionId,
+        openedAt: new Date().toISOString(),
+        status: 'open',
+      },
+      orders: applyBuffetOpenOptimisticToOrders(orders, {
+        tableId,
+        displayName: selectedDisplayName,
+        line,
+        restaurantId: restaurant.id,
+        sessionId: optimisticSessionId,
+      }),
+    });
+
     setBuffetSubmitting(true);
     try {
-      const res = await fetch(
-        `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/waiter/buffet`,
-        {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            table_id: tableId,
-            buffet_id: buffetId,
-            adult_count: buffetAdults,
-            child_count: buffetChildren,
-          }),
-        },
-      );
-      if (res.status === 400) {
-        const data = await res.json().catch(() => ({}));
-        if (data.error === 'no_price_rule') showToast(t.buffetNoRule, 'error');
-        else if (data.error === 'session_billing') showToast(t.checkoutLockedHint, 'info');
-        else showToast(t.actionFailed, 'error');
+      const detail = await postWaiterBuffetOpenClient(restaurant.slug, {
+        table_id: tableId,
+        buffet_id: buffetId,
+        adult_count: buffetAdults,
+        child_count: buffetChildren,
+      });
+      applyDetail(detail);
+      showToast(t.actionSuccess, 'success');
+    } catch (err) {
+      const apiErr = err as Error & { status?: number; code?: string };
+      if (apiErr.status === 409 && apiErr.code === 'session_billing') {
+        applyDetail(rollbackDetail);
+        showToast(t.checkoutLockedHint, 'info');
         return;
       }
-      if (res.status === 409) {
+      if (apiErr.status === 409) {
         await refresh();
         showToast(t.refreshHint, 'error');
         return;
       }
-      if (!res.ok) {
-        showToast(t.actionFailed, 'error');
+      if (apiErr.status === 400 && apiErr.code === 'no_price_rule') {
+        applyDetail(rollbackDetail);
+        showToast(t.buffetNoRule, 'error');
         return;
       }
-      await refresh();
-      showToast(t.actionSuccess, 'success');
-    } catch {
+      applyDetail(rollbackDetail);
       showToast(t.actionFailed, 'error');
     } finally {
       setBuffetSubmitting(false);

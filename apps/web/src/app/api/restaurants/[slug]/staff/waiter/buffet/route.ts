@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
-import { buildBuffetBaseLine } from '@/lib/buffet-order';
-import { applyBuffetOpenToSession } from '@/lib/buffet-open-table';
+import { buildBuffetBaseLine, parseResolvedBuffetPriceRpcRow } from '@/lib/buffet-order';
+import { applyBuffetOpenToSession, mapToBuffetSessionOrders } from '@/lib/buffet-open-table';
+import { fetchWaiterTableDetail } from '@/lib/staff-board';
 import { createAdminClient } from '@/lib/supabase/admin';
-import type { Order, OrderItem } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
-import { ensureOpenTableSession } from '@/lib/table-session-open';
+import { findActiveTableSession, openTableSessionIfAbsent } from '@/lib/table-session-open';
 
 export const runtime = 'nodejs';
 
@@ -51,71 +51,76 @@ export async function POST(
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
-  const { data: tableRow } = await admin
-    .from('restaurant_tables')
-    .select('id, display_name')
-    .eq('restaurant_id', ctx.restaurant_id)
-    .eq('id', tableId)
-    .is('deleted_at', null)
-    .maybeSingle();
+  const at = new Date().toISOString();
+  const [
+    { data: tableRow },
+    { data: buffet, error: buffetErr },
+    { data: priceRows, error: priceError },
+    existingSession,
+  ] = await Promise.all([
+    admin
+      .from('restaurant_tables')
+      .select('id, display_name')
+      .eq('restaurant_id', ctx.restaurant_id)
+      .eq('id', tableId)
+      .is('deleted_at', null)
+      .maybeSingle(),
+    admin
+      .from('buffets')
+      .select('id, name')
+      .eq('id', buffetId)
+      .eq('restaurant_id', ctx.restaurant_id)
+      .eq('is_active', true)
+      .maybeSingle(),
+    admin.rpc('resolve_buffet_prices', {
+      p_restaurant_id: ctx.restaurant_id,
+      p_buffet_id: buffetId,
+      p_at: at,
+    }),
+    findActiveTableSession(admin, ctx.restaurant_id, tableId),
+  ]);
 
   if (!tableRow) {
     return NextResponse.json({ error: 'table_not_available' }, { status: 400 });
   }
 
-  const displayName = tableRow.display_name as string;
-
-  const { data: buffet, error: bErr } = await admin
-    .from('buffets')
-    .select('id, name')
-    .eq('id', buffetId)
-    .eq('restaurant_id', ctx.restaurant_id)
-    .eq('is_active', true)
-    .maybeSingle();
-
-  if (bErr || !buffet) {
+  if (buffetErr || !buffet) {
     return NextResponse.json({ error: 'buffet_not_found' }, { status: 404 });
   }
-
-  const { data: priceRows, error: priceError } = await admin.rpc('resolve_buffet_prices', {
-    p_restaurant_id: ctx.restaurant_id,
-    p_buffet_id: buffetId,
-    p_at: new Date().toISOString(),
-  });
 
   if (priceError) {
     return NextResponse.json({ error: 'price_resolve_failed', message: priceError.message }, { status: 500 });
   }
 
-  const resolvedRow = Array.isArray(priceRows) ? priceRows[0] : priceRows;
-  const resolved = {
-    adult_price: resolvedRow?.adult_price != null ? Number(resolvedRow.adult_price) : null,
-    child_price: resolvedRow?.child_price != null ? Number(resolvedRow.child_price) : null,
-    rule_id: resolvedRow?.rule_id ?? null,
-    time_slot_id: resolvedRow?.time_slot_id ?? null,
-  };
-
+  const displayName = tableRow.display_name as string;
   const line = buildBuffetBaseLine({
     buffet,
     adultCount,
     childCount,
-    resolved,
+    resolved: parseResolvedBuffetPriceRpcRow(priceRows),
   });
 
   if (!line) {
     return NextResponse.json({ error: 'no_price_rule' }, { status: 400 });
   }
 
-  const ensured = await ensureOpenTableSession(admin, {
-    restaurant_id: ctx.restaurant_id,
-    table_id: tableId,
-    opened_by_user_id: ctx.user_id,
-  });
+  const ensured = await openTableSessionIfAbsent(
+    admin,
+    {
+      restaurant_id: ctx.restaurant_id,
+      table_id: tableId,
+      opened_by_user_id: ctx.user_id,
+    },
+    existingSession,
+  );
   if (!ensured.session) {
-    return NextResponse.json({ error: 'session_create_failed', message: ensured.error }, { status: 500 });
+    return NextResponse.json(
+      { error: 'session_create_failed', message: ensured.error },
+      { status: 500 },
+    );
   }
-  const session = ensured.session;
 
+  const session = ensured.session;
   if (session.status === 'billing') {
     return NextResponse.json({ error: 'session_billing' }, { status: 409 });
   }
@@ -141,14 +146,7 @@ export async function POST(
     tableId,
     displayName,
     line,
-    sessionOrders: (sessionOrders || []).map((row) => ({
-      id: row.id as string,
-      items: (row.items || []) as OrderItem[],
-      updated_at: row.updated_at as string,
-      table_id: row.table_id as string,
-      created_at: row.created_at as string,
-      status: row.status as Order['status'],
-    })),
+    sessionOrders: mapToBuffetSessionOrders(sessionOrders || []),
   });
 
   if (!applied.ok) {
@@ -161,5 +159,6 @@ export async function POST(
     );
   }
 
-  return NextResponse.json({ ok: true });
+  const detail = await fetchWaiterTableDetail(admin, ctx.restaurant_id, tableId);
+  return NextResponse.json({ ok: true, detail });
 }

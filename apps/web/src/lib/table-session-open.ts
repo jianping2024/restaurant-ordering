@@ -3,6 +3,12 @@ import type { SessionStatus } from '@/types';
 
 export type TableSessionRef = { id: string; status: SessionStatus };
 
+type OpenSessionParams = {
+  restaurant_id: string;
+  table_id: string;
+  opened_by_user_id: string;
+};
+
 export async function findActiveTableSession(
   admin: SupabaseClient,
   restaurantId: string,
@@ -22,18 +28,10 @@ export async function findActiveTableSession(
   return (data as TableSessionRef | null) ?? null;
 }
 
-/** Return the active session for a table, creating one when absent. */
-export async function ensureOpenTableSession(
+async function insertOpenTableSession(
   admin: SupabaseClient,
-  params: {
-    restaurant_id: string;
-    table_id: string;
-    opened_by_user_id: string;
-  },
+  params: OpenSessionParams,
 ): Promise<{ session: TableSessionRef | null; error: string | null }> {
-  const existing = await findActiveTableSession(admin, params.restaurant_id, params.table_id);
-  if (existing) return { session: existing, error: null };
-
   const { data, error } = await admin
     .from('table_sessions')
     .insert({
@@ -49,4 +47,23 @@ export async function ensureOpenTableSession(
     return { session: null, error: error?.message ?? 'session_create_failed' };
   }
   return { session: data as TableSessionRef, error: null };
+}
+
+/** Use a pre-fetched active session or insert a new open session. */
+export async function openTableSessionIfAbsent(
+  admin: SupabaseClient,
+  params: OpenSessionParams,
+  existing: TableSessionRef | null,
+): Promise<{ session: TableSessionRef | null; error: string | null }> {
+  if (existing) return { session: existing, error: null };
+  return insertOpenTableSession(admin, params);
+}
+
+/** Return the active session for a table, creating one when absent. */
+export async function ensureOpenTableSession(
+  admin: SupabaseClient,
+  params: OpenSessionParams,
+): Promise<{ session: TableSessionRef | null; error: string | null }> {
+  const existing = await findActiveTableSession(admin, params.restaurant_id, params.table_id);
+  return openTableSessionIfAbsent(admin, params, existing);
 }

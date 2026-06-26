@@ -104,6 +104,23 @@ export interface ResolvedBuffetPriceRow {
   time_slot_id: string | null;
 }
 
+/** Normalize `resolve_buffet_prices` RPC row (array or single object). */
+export function parseResolvedBuffetPriceRpcRow(priceRows: unknown): ResolvedBuffetPriceRow {
+  const resolvedRow = Array.isArray(priceRows) ? priceRows[0] : priceRows;
+  const row = resolvedRow as {
+    adult_price?: unknown;
+    child_price?: unknown;
+    rule_id?: string | null;
+    time_slot_id?: string | null;
+  } | null;
+  return {
+    adult_price: row?.adult_price != null ? Number(row.adult_price) : null,
+    child_price: row?.child_price != null ? Number(row.child_price) : null,
+    rule_id: row?.rule_id ?? null,
+    time_slot_id: row?.time_slot_id ?? null,
+  };
+}
+
 export function buildBuffetBaseLine(params: {
   buffet: Pick<Buffet, 'id' | 'name'>;
   adultCount: number;

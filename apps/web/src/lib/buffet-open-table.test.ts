@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import type { OrderItem } from '@/types';
+import type { Order, OrderItem } from '@/types';
 import {
   aggregateBuffetForOrders,
   buildBuffetBaseLine,
@@ -8,6 +8,7 @@ import {
   mergeBuffetLineOntoOrderItems,
 } from '@/lib/buffet-order';
 import {
+  applyBuffetOpenOptimisticToOrders,
   applyBuffetOpenToSession,
   pickLatestTableOrder,
   type BuffetSessionOrder,
@@ -338,5 +339,59 @@ describe('applyBuffetOpenToSession', () => {
     assert.equal(activeBuffet.length, 1);
     assert.equal(activeBuffet[0].adult_count, 4);
     assert.equal(activeBuffet[0].child_count, 1);
+  });
+});
+
+describe('applyBuffetOpenOptimisticToOrders', () => {
+  it('appends buffet on empty table for instant UI', () => {
+    const line = buffetLine(2, 1, '2026-01-01T11:00:00.000Z', 50);
+    const next = applyBuffetOpenOptimisticToOrders([], {
+      tableId: TABLE_1,
+      displayName: 'A1',
+      line,
+      restaurantId: 'r1',
+      sessionId: 's-new',
+    });
+    assert.equal(next.length, 1);
+    assert.equal(next[0].items.length, 1);
+    assert.equal(next[0].total_amount, 50);
+    assert.equal(aggregateBuffetForOrders(next)?.adults, 2);
+  });
+
+  it('replaces buffet on carrier while keeping menu lines', () => {
+    const menuItem = {
+      id: 'menu-1',
+      name: 'Soup',
+      name_pt: 'Sopa',
+      qty: 1,
+      price: 10,
+      emoji: '🍲',
+      item_status: 'cooking' as const,
+    };
+    const prevBuffet = buffetLine(2, 0, '2026-01-01T10:00:00.000Z', 40);
+    const existing: Order = {
+      id: 'order-1',
+      restaurant_id: 'r1',
+      session_id: 's1',
+      table_id: TABLE_1,
+      display_name: 'A1',
+      status: 'cooking',
+      items: [menuItem, prevBuffet],
+      total_amount: 50,
+      created_at: '2026-01-01T10:00:00.000Z',
+      updated_at: '2026-01-01T10:00:00.000Z',
+    };
+    const line = buffetLine(3, 0, '2026-01-01T11:00:00.000Z', 60);
+    const next = applyBuffetOpenOptimisticToOrders([existing], {
+      tableId: TABLE_1,
+      displayName: 'A1',
+      line,
+      restaurantId: 'r1',
+      sessionId: 's1',
+    });
+    assert.equal(next.length, 1);
+    assert.deepEqual(next[0].items.filter((i) => i.kind !== 'buffet_base'), [menuItem]);
+    assert.equal(next[0].status, 'cooking');
+    assert.equal(aggregateBuffetForOrders(next)?.adults, 3);
   });
 });

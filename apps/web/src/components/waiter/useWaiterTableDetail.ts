@@ -101,12 +101,14 @@ export function useWaiterTableDetail(
   return {
     table: resolvedTable,
     orders: resolvedOrders,
+    sessionMeta,
     sessionMetaByTableId,
     activeSessionByTableId,
     checkoutRequested,
     checkoutRequestedAt,
     detailLoaded,
     refresh,
+    applyDetail,
     supabase,
     demoTables: isDemo ? demoTables : [],
   };

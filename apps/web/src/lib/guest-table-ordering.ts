@@ -1,7 +1,7 @@
 import type { Order, TableSession } from '@/types';
 import { aggregateBuffetForOrders } from '@/lib/buffet-order';
 
-/** Guest may order menu items only after waiter posted buffet (active buffet_base on open session). */
+/** Menu ordering (guest or waiter) requires open session + active buffet_base (开台优先). */
 export function guestOrderingEnabled(
   session: Pick<TableSession, 'status'> | null | undefined,
   sessionOrders: Order[],

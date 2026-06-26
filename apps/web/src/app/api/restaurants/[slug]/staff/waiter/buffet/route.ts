@@ -3,7 +3,7 @@ import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
 import { buildBuffetBaseLine } from '@/lib/buffet-order';
 import { applyBuffetOpenToSession } from '@/lib/buffet-open-table';
 import { createAdminClient } from '@/lib/supabase/admin';
-import type { OrderItem } from '@/types';
+import type { Order, OrderItem } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { ensureOpenTableSession } from '@/lib/table-session-open';
 
@@ -124,7 +124,7 @@ export async function POST(
 
   const { data: sessionOrders, error: sessionOrdersErr } = await admin
     .from('orders')
-    .select('id, items, updated_at, table_id, created_at')
+    .select('id, items, updated_at, table_id, created_at, status')
     .eq('session_id', sessionId)
     .in('status', ['pending', 'cooking', 'done']);
 
@@ -147,6 +147,7 @@ export async function POST(
       updated_at: row.updated_at as string,
       table_id: row.table_id as string,
       created_at: row.created_at as string,
+      status: row.status as Order['status'],
     })),
   });
 

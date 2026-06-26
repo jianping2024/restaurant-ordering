@@ -14,7 +14,7 @@ import type { OrderItem } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
 import type { Order } from '@/types';
-import { ensureOpenTableSession, findActiveTableSession } from '@/lib/table-session-open';
+import { findActiveTableSession } from '@/lib/table-session-open';
 
 export const runtime = 'nodejs';
 
@@ -126,42 +126,29 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     }
   }
 
-  let session = await findActiveTableSession(admin, rid, tableId);
+  if (waiterFlow && !staffOrderFlow) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
 
-  if (!staffOrderFlow) {
-    if (!session) {
-      return NextResponse.json({ error: 'buffet_required' }, { status: 403 });
-    }
-    if (session.status === 'billing') {
-      return NextResponse.json({ error: 'session_billing' }, { status: 409 });
-    }
-    const { data: sessionOrders, error: buffetCheckErr } = await admin
-      .from('orders')
-      .select('*')
-      .eq('restaurant_id', rid)
-      .eq('session_id', session.id)
-      .in('status', ['pending', 'cooking', 'done']);
-    if (buffetCheckErr) {
-      return NextResponse.json({ error: 'order_query_failed' }, { status: 500 });
-    }
-    if (!guestOrderingEnabled(session, (sessionOrders || []) as Order[])) {
-      return NextResponse.json({ error: 'buffet_required' }, { status: 403 });
-    }
-  } else {
-    if (!session) {
-      const ensured = await ensureOpenTableSession(admin, {
-        restaurant_id: rid,
-        table_id: tableId,
-        opened_by_user_id: staffOrderFlow.user_id,
-      });
-      if (!ensured.session) {
-        return NextResponse.json({ error: 'session_create_failed' }, { status: 500 });
-      }
-      session = ensured.session;
-    }
-    if (session.status === 'billing') {
-      return NextResponse.json({ error: 'session_billing' }, { status: 409 });
-    }
+  const session = await findActiveTableSession(admin, rid, tableId);
+  if (!session) {
+    return NextResponse.json({ error: 'buffet_required' }, { status: 403 });
+  }
+  if (session.status === 'billing') {
+    return NextResponse.json({ error: 'session_billing' }, { status: 409 });
+  }
+
+  const { data: sessionOrders, error: buffetCheckErr } = await admin
+    .from('orders')
+    .select('*')
+    .eq('restaurant_id', rid)
+    .eq('session_id', session.id)
+    .in('status', ['pending', 'cooking', 'done']);
+  if (buffetCheckErr) {
+    return NextResponse.json({ error: 'order_query_failed' }, { status: 500 });
+  }
+  if (!guestOrderingEnabled(session, (sessionOrders || []) as Order[])) {
+    return NextResponse.json({ error: 'buffet_required' }, { status: 403 });
   }
 
   const sessionId = session!.id as string;

@@ -193,7 +193,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
     () => guestOrderingEnabled(activeSession, recentOrders),
     [activeSession, recentOrders],
   );
-  const canPlaceMenuOrders = isDemo || !!returnToWaiterHref || guestCanOrder;
+  const canPlaceMenuOrders = isDemo || guestCanOrder;
   const guestOrderingHints = useMemo(() => {
     const messages = MENU_PAGE_MESSAGES[lang];
     if (activeSession?.status === 'billing') {
@@ -567,7 +567,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
         )}
       </header>
 
-      {!isDemo && !returnToWaiterHref && activeSession && !guestCanOrder && (
+      {!isDemo && !guestCanOrder && (
         <div className="mx-4 mt-3 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3 text-[13px] text-brand-text">
           {guestOrderingHints.banner}
         </div>

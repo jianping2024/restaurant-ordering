@@ -873,39 +873,24 @@ function WaiterTableDetailInner({
         )}
 
         {selectedCard.orderLines.length === 0 && !selectedCard.hasBuffet ? (
-          <div className="space-y-3">
-            <p className="text-brand-text-muted">{t.noOrdersOnTable}</p>
-            <div>
-              {isCheckoutPending ? (
-                <button
-                  type="button"
-                  onClick={notifyCheckoutLocked}
-                  className={`${waiterUi.btnPrimary} ${checkoutLockedClass}`}
-                >
-                  {t.takeOrder}
-                </button>
-              ) : (
-                <Link href={menuHref} className={waiterUi.btnPrimary}>
-                  {t.takeOrder}
-                </Link>
-              )}
-            </div>
-          </div>
+          <p className="text-brand-text-muted">{t.buffetNeedOpen}</p>
         ) : (
           <>
             <div className="flex flex-wrap items-center gap-2 mb-3">
-              {isCheckoutPending ? (
-                <button
-                  type="button"
-                  onClick={notifyCheckoutLocked}
-                  className={`${waiterUi.btnPrimary} mr-1 ${checkoutLockedClass}`}
-                >
-                  + {t.addDish}
-                </button>
-              ) : (
-                <Link href={menuHref} className={`${waiterUi.btnPrimary} mr-1`}>
-                  + {t.addDish}
-                </Link>
+              {selectedCard.hasBuffet && (
+                isCheckoutPending ? (
+                  <button
+                    type="button"
+                    onClick={notifyCheckoutLocked}
+                    className={`${waiterUi.btnPrimary} mr-1 ${checkoutLockedClass}`}
+                  >
+                    + {t.addDish}
+                  </button>
+                ) : (
+                  <Link href={menuHref} className={`${waiterUi.btnPrimary} mr-1`}>
+                    + {t.addDish}
+                  </Link>
+                )
               )}
               <button
                 type="button"

@@ -43,6 +43,7 @@ function orderRow(
   items: OrderItem[],
   createdAt: string,
   updatedAt = createdAt,
+  status: BuffetSessionOrder['status'] = 'done',
 ): BuffetSessionOrder {
   return {
     id,
@@ -50,6 +51,7 @@ function orderRow(
     items,
     created_at: createdAt,
     updated_at: updatedAt,
+    status,
   };
 }
 
@@ -256,5 +258,85 @@ describe('applyBuffetOpenToSession', () => {
     assert.equal(result.ok, true);
     assert.ok(updateIds.includes('order-other'));
     assert.ok(updateIds.includes('order-carrier'));
+  });
+
+  it('re-opening buffet changes only buffet lines, total, and leaves menu + status intact', async () => {
+    const tableId = TABLE_1;
+    const menuItem: OrderItem = {
+      id: 'menu-1',
+      name: 'Soup',
+      name_pt: 'Sopa',
+      qty: 2,
+      price: 12,
+      emoji: '🍲',
+      item_status: 'cooking',
+    };
+    const prevBuffet = buffetLine(2, 0, '2026-01-01T10:00:00.000Z', 40);
+    const carrier = orderRow(
+      'order-1',
+      tableId,
+      [menuItem, prevBuffet],
+      '2026-01-01T10:00:00.000Z',
+      'ts-v1',
+      'cooking',
+    );
+    const next = buffetLine(4, 1, '2026-01-01T11:00:00.000Z', 90);
+
+    let updatePayload: { items: OrderItem[]; total_amount: number; status: string } | null = null;
+    const admin = {
+      from(table: string) {
+        assert.equal(table, 'orders');
+        return {
+          update(payload: { items: OrderItem[]; total_amount: number; status: string }) {
+            updatePayload = payload;
+            return {
+              eq(col: string, val: string) {
+                assert.equal(col, 'id');
+                assert.equal(val, 'order-1');
+                return {
+                  eq(col2: string, val2: string) {
+                    assert.equal(col2, 'updated_at');
+                    assert.equal(val2, 'ts-v1');
+                    return {
+                      select() {
+                        return {
+                          maybeSingle: async () => ({ data: { id: 'order-1' }, error: null }),
+                        };
+                      },
+                    };
+                  },
+                };
+              },
+            };
+          },
+          insert() {
+            throw new Error('insert should not run');
+          },
+        };
+      },
+    };
+
+    const result = await applyBuffetOpenToSession(admin as never, {
+      restaurantId: 'r1',
+      sessionId: 's1',
+      tableId,
+      displayName: 'A1',
+      line: next,
+      sessionOrders: [carrier],
+    });
+
+    assert.equal(result.ok, true);
+    assert.ok(updatePayload);
+    const menuLines = updatePayload!.items.filter((i) => i.kind !== 'buffet_base');
+    assert.equal(menuLines.length, 1);
+    assert.deepEqual(menuLines[0], menuItem);
+    assert.equal(updatePayload!.status, 'cooking');
+    assert.equal(updatePayload!.total_amount, 114);
+    const activeBuffet = updatePayload!.items.filter(
+      (i) => i.kind === 'buffet_base' && i.item_status !== 'voided',
+    );
+    assert.equal(activeBuffet.length, 1);
+    assert.equal(activeBuffet[0].adult_count, 4);
+    assert.equal(activeBuffet[0].child_count, 1);
   });
 });

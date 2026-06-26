@@ -1,8 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { OrderItem } from '@/types';
+import type { Order, OrderItem } from '@/types';
 import { mergeBuffetLineOntoOrderItems, voidActiveBuffetBaseLines } from '@/lib/buffet-order';
 import { sumLineTotals } from '@/lib/cart-totals';
-import { deriveOrderStatusFromItems } from '@/lib/order-status';
+import { isBuffetBaseItem } from '@/lib/order-items';
+import { deriveOrderStatusFromItems, normalizeOrderItemStatus } from '@/lib/order-status';
 import { tableIdsEqual } from '@/lib/restaurant-tables';
 
 export type BuffetSessionOrder = {
@@ -11,6 +12,7 @@ export type BuffetSessionOrder = {
   updated_at: string;
   table_id: string;
   created_at: string;
+  status: Order['status'];
 };
 
 export type ApplyBuffetOpenResult =
@@ -30,6 +32,21 @@ export function pickLatestTableOrder(
 
 function buffetLinesChanged(before: OrderItem[], after: OrderItem[]): boolean {
   return JSON.stringify(before) !== JSON.stringify(after);
+}
+
+function menuItemsSnapshot(items: OrderItem[]): OrderItem[] {
+  return items.filter((item) => !isBuffetBaseItem(item));
+}
+
+function menuItemsUnchanged(before: OrderItem[], after: OrderItem[]): boolean {
+  return JSON.stringify(menuItemsSnapshot(before)) === JSON.stringify(menuItemsSnapshot(after));
+}
+
+function activeLineTotal(items: OrderItem[], orderStatus: Order['status']): number {
+  const active = items.filter(
+    (item) => normalizeOrderItemStatus(item, orderStatus) !== 'voided',
+  );
+  return sumLineTotals(active);
 }
 
 /**
@@ -57,7 +74,7 @@ export async function applyBuffetOpenToSession(
     const voidedItems = voidActiveBuffetBaseLines(prevItems);
     if (!buffetLinesChanged(prevItems, voidedItems)) continue;
 
-    const voidedTotal = sumLineTotals(voidedItems);
+    const voidedTotal = activeLineTotal(voidedItems, order.status);
     const { error } = await admin
       .from('orders')
       .update({ items: voidedItems, total_amount: voidedTotal })
@@ -69,9 +86,12 @@ export async function applyBuffetOpenToSession(
   }
 
   if (carrier) {
-    const mergedItems = mergeBuffetLineOntoOrderItems(carrier.items || [], line);
-    const total = sumLineTotals(mergedItems);
-    const nextStatus = deriveOrderStatusFromItems(mergedItems);
+    const priorItems = carrier.items || [];
+    const mergedItems = mergeBuffetLineOntoOrderItems(priorItems, line);
+    const total = activeLineTotal(mergedItems, carrier.status);
+    const nextStatus = menuItemsUnchanged(priorItems, mergedItems)
+      ? carrier.status
+      : deriveOrderStatusFromItems(mergedItems);
 
     const { data, error } = await admin
       .from('orders')

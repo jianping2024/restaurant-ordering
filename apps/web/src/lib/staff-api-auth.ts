@@ -124,7 +124,7 @@ export async function staffAuthForPage(
   return staffAuthFromRequest(new Request('https://mesa.local'), slug, role);
 }
 
-/** Owner, waiter, or frontdesk staff opening a table (buffet line / staff order flow). */
+/** Owner, waiter, or frontdesk — open table, waiter board/detail, transfer/merge, order edits. */
 export async function openTableAuthFromRequest(
   req: Request,
   slug: string,

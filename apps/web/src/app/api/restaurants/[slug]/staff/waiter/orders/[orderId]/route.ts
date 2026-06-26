@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { staffAuthFromRequest } from '@/lib/staff-api-auth';
+import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
 import { deriveOrderStatusFromItems } from '@/lib/order-status';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sessionIdBlocksWaiterMutation, sessionBillingResponse } from '@/lib/waiter-session-guard';
@@ -17,7 +17,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'missing_params' }, { status: 400 });
   }
 
-  const ctx = await staffAuthFromRequest(req, slug, 'waiter');
+  const ctx = await openTableAuthFromRequest(req, slug);
   if (!ctx) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }

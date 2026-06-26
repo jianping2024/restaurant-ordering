@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { staffAuthFromRequest } from '@/lib/staff-api-auth';
+import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
 import { tableSessionBlocksWaiterMutation, sessionBillingResponse } from '@/lib/waiter-session-guard';
@@ -15,7 +15,7 @@ export async function POST(
     return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
   }
 
-  const ctx = await staffAuthFromRequest(req, slug, 'waiter');
+  const ctx = await openTableAuthFromRequest(req, slug);
   if (!ctx) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }

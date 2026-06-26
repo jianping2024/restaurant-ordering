@@ -97,7 +97,6 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [submitSuccessText, setSubmitSuccessText] = useState('');
   const [demoToast, setDemoToast] = useState(false);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [activeSession, setActiveSession] = useState<TableSession | null>(null);
@@ -293,7 +292,6 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
 
     if (isDemo) {
       if (isWaiterFlow) {
-        setSubmitSuccessText(t.orderSuccess);
         finishSuccessfulSubmit();
         return;
       }
@@ -389,8 +387,6 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
         batch_id?: string;
         enqueue_token?: string;
         session_id?: string;
-        had_done_before?: boolean;
-        is_first_order?: boolean;
       };
 
       if (!appendRes.ok) {
@@ -413,10 +409,6 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
         showToast(t.submitFailed, 'error');
         return;
       }
-
-      if (appendData.is_first_order) setSubmitSuccessText(t.firstOrderSuccess);
-      else if (appendData.had_done_before) setSubmitSuccessText(t.reOpenOrderSuccess);
-      else setSubmitSuccessText(t.addOnOrderSuccess);
 
       const enqueuePromise = autoEnqueueStationTicketsAfterSubmit({
         slug: restaurant.slug,
@@ -501,8 +493,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-brand-card border border-emerald-500/35 rounded-2xl p-8 text-center mx-4">
             <div className="text-5xl mb-4">✅</div>
-            <h2 className="font-heading text-2xl text-brand-text mb-2">{submitSuccessText || t.orderSuccess}</h2>
-            <p className="text-brand-text-muted text-sm">{t.orderReceived}</p>
+            <h2 className="font-heading text-2xl text-brand-text">{t.orderSuccess}</h2>
           </div>
         </div>
       )}

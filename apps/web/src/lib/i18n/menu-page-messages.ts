@@ -8,10 +8,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   billCta: string;
   billDisabledHint: string;
   orderSuccess: string;
-  orderReceived: string;
-  firstOrderSuccess: string;
-  addOnOrderSuccess: string;
-  reOpenOrderSuccess: string;
   newTag: string;
   demoMode: string;
   freeSignup: string;
@@ -43,10 +39,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     billCta: 'Ir para conta',
     billDisabledHint: 'Esta mesa esta em processo de fechamento. Nao e possivel adicionar novos pratos agora.',
     orderSuccess: 'Pedido enviado!',
-    orderReceived: 'A cozinha recebeu seu pedido. Aguarde um momento...',
-    firstOrderSuccess: 'Pedido enviado com sucesso!',
-    addOnOrderSuccess: 'Adicao enviada com sucesso!',
-    reOpenOrderSuccess: 'Novo pedido enviado para esta mesa!',
     newTag: 'NOVO',
     demoMode: 'Modo demo · os dados sao apenas ilustrativos, o pedido nao sera enviado',
     freeSignup: 'Login do dono',
@@ -79,10 +71,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     billCta: 'Go to bill',
     billDisabledHint: 'This table is currently in checkout. Adding new dishes is temporarily unavailable.',
     orderSuccess: 'Order placed!',
-    orderReceived: 'The kitchen has received your order. Please wait a moment...',
-    firstOrderSuccess: 'Order placed successfully!',
-    addOnOrderSuccess: 'Additional items sent successfully!',
-    reOpenOrderSuccess: 'New round sent for this table!',
     newTag: 'NEW',
     demoMode: 'Demo mode · data is for display only, orders are not submitted',
     freeSignup: 'Owner login',
@@ -115,10 +103,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     billCta: '去结账',
     billDisabledHint: '当前餐次正在结账，暂时不能加菜',
     orderSuccess: '下单成功！',
-    orderReceived: '厨房已收到您的订单，请稍候...',
-    firstOrderSuccess: '下单成功！',
-    addOnOrderSuccess: '加单成功，厨房已收到',
-    reOpenOrderSuccess: '本桌新一轮加单已发送',
     newTag: '新加',
     demoMode: '演示模式 · 数据仅供展示，订单不会真实提交',
     freeSignup: '店主登录',

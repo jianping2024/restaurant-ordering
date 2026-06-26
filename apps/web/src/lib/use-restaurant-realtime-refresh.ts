@@ -5,6 +5,7 @@ import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Supabase Realtime (WebSocket): refresh when orders / sessions / bills change.
+ * Also refreshes once when the channel subscribes (mount or tab visible again).
  * Unsubscribes while the tab is hidden or on unmount — no background polling.
  */
 export function useRestaurantRealtimeRefresh(
@@ -14,7 +15,6 @@ export function useRestaurantRealtimeRefresh(
   enabled: boolean,
   onRefresh: () => void,
   debounceMs = 1200,
-  skipInitialRefresh = false,
 ) {
   const onRefreshRef = useRef(onRefresh);
   onRefreshRef.current = onRefresh;
@@ -36,7 +36,8 @@ export function useRestaurantRealtimeRefresh(
 
     const subscribe = () => {
       if (channel) return;
-      if (!skipInitialRefresh) onRefreshRef.current();
+      // Always reconcile client state on subscribe (mount / tab visible). SSR seed is for first paint only.
+      onRefreshRef.current();
       channel = supabase
         .channel(channelKey)
         .on(
@@ -95,5 +96,5 @@ export function useRestaurantRealtimeRefresh(
       unsubscribe();
       document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [channelKey, debounceMs, enabled, restaurantId, skipInitialRefresh, supabase]);
+  }, [channelKey, debounceMs, enabled, restaurantId, supabase]);
 }

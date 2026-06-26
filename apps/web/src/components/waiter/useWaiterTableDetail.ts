@@ -22,6 +22,13 @@ type InitialDetail = {
   checkoutRequestedAt?: string | null;
 };
 
+/**
+ * Table detail client state.
+ *
+ * Production orders come from `fetchWaiterTableDetail` already scoped to the active
+ * session (or legacy null-session rows). Do not re-filter with `ordersForWaiterTableView`
+ * here — that helper is for the multi-table board payload only.
+ */
 export function useWaiterTableDetail(
   restaurant: { id: string; slug: string },
   tableId: string,
@@ -31,9 +38,8 @@ export function useWaiterTableDetail(
   demoTables: RestaurantTableRow[] = [],
   demoOrders: Order[] = [],
 ) {
-  const hasInitialDetail = !!initial?.table;
   const [table, setTable] = useState<RestaurantTableRow | null>(initial?.table ?? null);
-  const [orders, setOrders] = useState<Order[]>(
+  const [orderRows, setOrderRows] = useState<Order[]>(
     isDemo ? demoOrders : (initial?.orders ?? []),
   );
   const [sessionMeta, setSessionMeta] = useState<WaiterTableSessionMeta | null>(
@@ -43,7 +49,7 @@ export function useWaiterTableDetail(
   const [checkoutRequestedAt, setCheckoutRequestedAt] = useState<string | null>(
     initial?.checkoutRequestedAt ?? null,
   );
-  const [detailLoaded, setDetailLoaded] = useState(hasInitialDetail || isDemo);
+  const [detailLoaded, setDetailLoaded] = useState(!!initial?.table || isDemo);
   const supabase = useMemo(() => createClient(), []);
 
   const demoSessionMetaByTableId = useMemo(
@@ -64,7 +70,7 @@ export function useWaiterTableDetail(
 
   const applyDetail = useCallback((detail: WaiterTableDetailData) => {
     setTable(detail.table);
-    setOrders(detail.orders);
+    setOrderRows(detail.orders);
     setSessionMeta(detail.sessionMeta);
     setCheckoutRequested(detail.checkoutRequested);
     setCheckoutRequestedAt(detail.checkoutRequestedAt);
@@ -85,7 +91,6 @@ export function useWaiterTableDetail(
     enabled,
     refresh,
     1200,
-    hasInitialDetail,
   );
 
   const resolvedTable = useMemo(() => {
@@ -93,14 +98,14 @@ export function useWaiterTableDetail(
     return table;
   }, [demoTables, isDemo, table, tableId]);
 
-  const resolvedOrders = useMemo(() => {
-    if (!isDemo) return orders;
+  const orders = useMemo(() => {
+    if (!isDemo) return orderRows;
     return ordersForWaiterTableView(tableId, demoOrders, activeSessionByTableId);
-  }, [activeSessionByTableId, demoOrders, isDemo, orders, tableId]);
+  }, [activeSessionByTableId, demoOrders, isDemo, orderRows, tableId]);
 
   return {
     table: resolvedTable,
-    orders: resolvedOrders,
+    orders,
     sessionMeta,
     sessionMetaByTableId,
     activeSessionByTableId,

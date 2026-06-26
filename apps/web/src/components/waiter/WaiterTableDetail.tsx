@@ -223,14 +223,9 @@ function WaiterTableDetailInner({
 
   const selectedDisplayName = selectedTable?.display_name || displayName;
 
-  const tableOrders = useMemo(() => {
-    if (isDemo) return orders;
-    return ordersForWaiterTableView(tableId, orders, activeSessionByTableId);
-  }, [activeSessionByTableId, isDemo, orders, tableId]);
-
   const selectedCard = useMemo(
-    () => buildWaiterTableCard(tableId, selectedDisplayName, tableOrders, itemCodeByMenuId),
-    [tableOrders, tableId, selectedDisplayName, itemCodeByMenuId],
+    () => buildWaiterTableCard(tableId, selectedDisplayName, orders, itemCodeByMenuId),
+    [orders, tableId, selectedDisplayName, itemCodeByMenuId],
   );
 
   const wasCheckoutPendingRef = useRef(isCheckoutPending);
@@ -259,8 +254,8 @@ function WaiterTableDetailInner({
   );
 
   const tableBuffetAggregate = useMemo(
-    () => aggregateBuffetForOrders(tableOrders),
-    [tableOrders],
+    () => aggregateBuffetForOrders(orders),
+    [orders],
   );
 
   const persistedBuffetId = tableBuffetAggregate?.buffetId;
@@ -606,7 +601,7 @@ function WaiterTableDetailInner({
 
     if (!selectedBuffet) return;
 
-    if (isBuffetGuestCountsUnchanged(tableOrders, buffetId, buffetAdults, buffetChildren)) {
+    if (isBuffetGuestCountsUnchanged(orders, buffetId, buffetAdults, buffetChildren)) {
       showToast(t.buffetGuestCountsUnchanged, 'info');
       return;
     }
@@ -632,11 +627,6 @@ function WaiterTableDetailInner({
     const optimisticSessionId = sessionMeta?.sessionId ?? OPTIMISTIC_OPEN_SESSION_ID;
     applyDetail({
       ...rollbackDetail,
-      sessionMeta: sessionMeta ?? {
-        sessionId: optimisticSessionId,
-        openedAt: new Date().toISOString(),
-        status: 'open',
-      },
       orders: applyBuffetOpenOptimisticToOrders(orders, {
         tableId,
         displayName: selectedDisplayName,

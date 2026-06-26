@@ -54,6 +54,8 @@ async function loadTableOrdersForSession(
   tableId: string,
   sessionId: string | null,
 ): Promise<Order[]> {
+  // Contract: table detail consumers treat this list as authoritative for the detail view.
+  // The waiter board uses the full-restaurant order list + ordersForWaiterTableView per table.
   if (sessionId) {
     const { data } = await admin
       .from('orders')

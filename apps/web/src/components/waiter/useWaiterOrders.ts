@@ -68,7 +68,6 @@ export function useWaiterOrders(
     enabled,
     refresh,
     1200,
-    hasInitialBoard,
   );
 
   return {

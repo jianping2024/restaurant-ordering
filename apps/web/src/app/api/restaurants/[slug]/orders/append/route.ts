@@ -17,6 +17,7 @@ import type { OrderItem } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
 import type { Order } from '@/types';
+import { insertOpenTableSession } from '@/lib/table-session-open';
 
 export const runtime = 'nodejs';
 
@@ -161,20 +162,15 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     }
   } else {
     if (!session?.id) {
-      const { data: created, error: csErr } = await admin
-        .from('table_sessions')
-        .insert({
-          restaurant_id: rid,
-          table_id: tableId,
-          status: 'open',
-          opened_by_user_id: staffOrderFlow.user_id,
-        })
-        .select('id, status')
-        .single();
-      if (csErr || !created) {
+      const created = await insertOpenTableSession(admin, {
+        restaurant_id: rid,
+        table_id: tableId,
+        opened_by_user_id: staffOrderFlow.user_id,
+      });
+      if (!created.data) {
         return NextResponse.json({ error: 'session_create_failed' }, { status: 500 });
       }
-      session = created;
+      session = created.data;
     }
     if (session.status === 'billing') {
       return NextResponse.json({ error: 'session_billing' }, { status: 409 });

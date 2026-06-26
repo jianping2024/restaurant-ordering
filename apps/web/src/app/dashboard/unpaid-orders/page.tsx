@@ -4,22 +4,19 @@ import { OrdersPageClient } from '@/components/dashboard/OrdersPageClient';
 import { loadFrontdeskDashboardTables } from '@/lib/dashboard-tables';
 import { fetchCheckoutRequestedTableIds } from '@/lib/table-checkout-pending';
 import { resolveOpenedByNameBySessionId } from '@/lib/session-opener-display';
+import { loadActiveSessionsWithOpener } from '@/lib/table-session-open';
 
 export default async function UnpaidOrdersPage() {
   const loaded = await loadFrontdeskDashboardTables();
   if ('error' in loaded) notFound();
 
-  const { data: activeSessions } = await loaded.admin
-    .from('table_sessions')
-    .select('id, opened_by_user_id')
-    .eq('restaurant_id', loaded.restaurant.id)
-    .in('status', ['open', 'billing']);
+  const activeSessions = await loadActiveSessionsWithOpener(loaded.admin, loaded.restaurant.id);
 
-  const activeSessionIds = new Set((activeSessions || []).map((row) => row.id));
+  const activeSessionIds = new Set(activeSessions.map((row) => row.id));
   const openedByNameBySessionId = await resolveOpenedByNameBySessionId(
     loaded.admin,
     loaded.restaurant.id,
-    (activeSessions || []) as { id: string; opened_by_user_id: string | null }[],
+    activeSessions,
   );
 
   const { data: orders } = await loaded.admin

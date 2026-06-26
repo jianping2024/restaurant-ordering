@@ -10,6 +10,7 @@ import { sumLineTotals } from '@/lib/cart-totals';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { OrderItem } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { insertOpenTableSession } from '@/lib/table-session-open';
 
 export const runtime = 'nodejs';
 
@@ -121,20 +122,15 @@ export async function POST(
     .maybeSingle();
 
   if (!session?.id) {
-    const { data: createdSession, error: csErr } = await admin
-      .from('table_sessions')
-      .insert({
-        restaurant_id: ctx.restaurant_id,
-        table_id: tableId,
-        status: 'open',
-        opened_by_user_id: ctx.user_id,
-      })
-      .select('id, status')
-      .single();
-    if (csErr || !createdSession) {
-      return NextResponse.json({ error: 'session_create_failed' }, { status: 500 });
+    const created = await insertOpenTableSession(admin, {
+      restaurant_id: ctx.restaurant_id,
+      table_id: tableId,
+      opened_by_user_id: ctx.user_id,
+    });
+    if (!created.data) {
+      return NextResponse.json({ error: 'session_create_failed', message: created.error }, { status: 500 });
     }
-    session = createdSession;
+    session = created.data;
   }
 
   if (session.status === 'billing') {

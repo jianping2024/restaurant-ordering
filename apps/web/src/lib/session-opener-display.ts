@@ -1,15 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-
-export type SessionOpenerRow = {
-  id: string;
-  opened_by_user_id: string | null;
-};
+import type { ActiveSessionOpenerRow } from './table-session-open';
 
 /** session_id → staff display_name for active-order cards. */
 export async function resolveOpenedByNameBySessionId(
   admin: SupabaseClient,
   restaurantId: string,
-  sessions: SessionOpenerRow[],
+  sessions: ActiveSessionOpenerRow[],
 ): Promise<Record<string, string>> {
   const userIds = Array.from(
     new Set(

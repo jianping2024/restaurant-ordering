@@ -7,6 +7,7 @@ import type { Buffet, Order } from '@/types';
 import {
   aggregateBuffetForOrders,
   buildBuffetBaseLine,
+  formatBuffetPricePreviewLine,
   formatBuffetSummaryLine,
   isBuffetGuestCountsUnchanged,
   normalizeBuffetGuestCounts,
@@ -862,23 +863,18 @@ function WaiterTableDetailInner({
                 {formatBuffetSummaryLine(tableBuffetAggregate)}
               </p>
             )}
-            <div className="rounded-lg border border-brand-border/50 bg-brand-bg/60 px-2.5 py-2 space-y-1">
-              <p className="text-[11px] font-medium text-brand-text-muted">{t.buffetPreview}</p>
+            <div className="rounded-lg border border-brand-border/50 bg-brand-bg/60 px-2.5 py-2">
               {buffetPriceLoading ? (
                 <p className="text-[12px] text-brand-text-muted">{t.buffetPriceLoading}</p>
               ) : buffetPriceDisplay.ok ? (
-                <>
-                  <p className="text-[13px] text-brand-text">
-                    {t.buffetPriceAdult.replace('{price}', buffetPriceDisplay.ap.toFixed(2))}
-                  </p>
-                  <p className="text-[13px] text-brand-text">
-                    {t.buffetPriceChild.replace('{price}', buffetPriceDisplay.cp.toFixed(2))}
-                  </p>
-                  <p className="text-[13px] text-brand-gold font-medium pt-1 border-t border-brand-border/40">
-                    {t.buffetPriceSubtotal.replace('{total}', buffetPriceDisplay.sub.toFixed(2))}
-                  </p>
-                  <p className="text-[10px] text-brand-text-muted leading-snug pt-1">{t.buffetPriceNearestNote}</p>
-                </>
+                <p className="text-[13px] leading-snug text-brand-text">
+                  {formatBuffetPricePreviewLine(
+                    t.buffetPricePreviewLine,
+                    buffetPriceDisplay.ap,
+                    buffetPriceDisplay.cp,
+                    buffetPriceDisplay.sub,
+                  )}
+                </p>
               ) : (
                 <p className="text-[12px] mesa-text-warning">{t.buffetNoRule}</p>
               )}

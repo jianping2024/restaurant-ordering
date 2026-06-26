@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import {
   buildBuffetBaseLine,
   formatBuffetGuestCountsOptional,
+  formatBuffetPricePreviewLine,
   isBuffetGuestCountsUnchanged,
 } from '@/lib/buffet-order';
 import type { Order } from '@/types';
@@ -79,5 +80,17 @@ describe('formatBuffetGuestCountsOptional', () => {
 
   it('returns empty when both are zero', () => {
     assert.equal(formatBuffetGuestCountsOptional(0, 0, labels), '');
+  });
+});
+
+describe('formatBuffetPricePreviewLine', () => {
+  it('interpolates adult, child, and total prices', () => {
+    const line = formatBuffetPricePreviewLine(
+      '成人 {adultPrice} €/人 · 儿童 {childPrice} €/人 · 合计约 {total} €',
+      14.5,
+      8.5,
+      60.5,
+    );
+    assert.equal(line, '成人 14.50 €/人 · 儿童 8.50 €/人 · 合计约 60.50 €');
   });
 });

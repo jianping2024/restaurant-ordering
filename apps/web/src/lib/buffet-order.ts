@@ -107,6 +107,19 @@ export function formatBuffetSummaryLine(
   return `🍽️ ${summary.name} · ${formatBuffetHeadcountLabel(summary.adults, summary.children)} · €${summary.amount.toFixed(2)}`;
 }
 
+/** Interpolate open-table price preview (`buffetPricePreviewLine` i18n template). */
+export function formatBuffetPricePreviewLine(
+  template: string,
+  adultPrice: number,
+  childPrice: number,
+  total: number,
+): string {
+  return template
+    .replace('{adultPrice}', adultPrice.toFixed(2))
+    .replace('{childPrice}', childPrice.toFixed(2))
+    .replace('{total}', total.toFixed(2));
+}
+
 /** Buffet headcount label; omits adult/child segments when count is zero. */
 export function formatBuffetGuestCountsOptional(
   adults: number,

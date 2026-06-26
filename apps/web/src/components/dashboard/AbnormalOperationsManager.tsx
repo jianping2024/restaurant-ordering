@@ -53,11 +53,6 @@ function detectDatePreset(startDate: string, endDate: string, today: string): Da
   return 'custom';
 }
 
-function formatDisplayDate(isoDate: string, locale: string) {
-  const [y, m, d] = isoDate.split('-').map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString(locale);
-}
-
 function typeLabel(
   t: ReturnType<typeof getMessages>['abnormalOps'],
   type: AbnormalOperationType,
@@ -80,61 +75,6 @@ function statusLabel(
   if (status === 'CONFIRMED') return t.statusConfirmed;
   if (status === 'IGNORED') return t.statusIgnored;
   return t.statusPending;
-}
-
-function typeFilterLabel(
-  t: ReturnType<typeof getMessages>['abnormalOps'],
-  type: Filters['type'],
-) {
-  if (!type) return t.filterAllTypes;
-  return typeLabel(t, type);
-}
-
-function riskFilterLabel(
-  t: ReturnType<typeof getMessages>['abnormalOps'],
-  riskLevel: Filters['riskLevel'],
-) {
-  if (!riskLevel) return t.filterAllRisks;
-  if (riskLevel === 'HIGH') return t.statsHighRisk;
-  return riskLabel(t, riskLevel);
-}
-
-function statusFilterLabel(
-  t: ReturnType<typeof getMessages>['abnormalOps'],
-  status: Filters['status'],
-) {
-  if (!status) return t.filterAllStatuses;
-  return statusLabel(t, status);
-}
-
-function dateFilterLabel(
-  t: ReturnType<typeof getMessages>['abnormalOps'],
-  filters: Pick<Filters, 'startDate' | 'endDate'>,
-  today: string,
-  locale: string,
-) {
-  const preset = detectDatePreset(filters.startDate, filters.endDate, today);
-  if (preset === 'today') return t.presetToday;
-  if (preset === 'last7') return t.presetLast7;
-  if (preset === 'last30') return t.presetLast30;
-  if (filters.startDate === filters.endDate) {
-    return formatDisplayDate(filters.startDate, locale);
-  }
-  return `${formatDisplayDate(filters.startDate, locale)} ${t.dateRangeSeparator} ${formatDisplayDate(filters.endDate, locale)}`;
-}
-
-function buildFilterSummary(
-  t: ReturnType<typeof getMessages>['abnormalOps'],
-  filters: Filters,
-  today: string,
-  locale: string,
-) {
-  return [
-    dateFilterLabel(t, filters, today, locale),
-    typeFilterLabel(t, filters.type),
-    riskFilterLabel(t, filters.riskLevel),
-    statusFilterLabel(t, filters.status),
-  ].join(t.filterSummarySeparator);
 }
 
 const COMPACT_SELECT_CLASS =
@@ -231,7 +171,6 @@ export function AbnormalOperationsManager() {
   };
 
   const activeDatePreset = detectDatePreset(filters.startDate, filters.endDate, today);
-  const filterSummary = buildFilterSummary(t, filters, today, locale);
   const recordCount = data?.total ?? 0;
 
   const applyDatePreset = (preset: Exclude<DatePreset, 'custom'>) => {
@@ -487,11 +426,6 @@ export function AbnormalOperationsManager() {
               </div>
             </div>
           ) : null}
-
-          <p className="mt-2 text-[12px] text-brand-text-muted/90">
-            {t.filterCurrentLabel}
-            {filterSummary}
-          </p>
         </div>
 
         {loading ? (

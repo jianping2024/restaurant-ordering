@@ -3,6 +3,7 @@ import type { Order } from '@/types';
 import { OrdersPageClient } from '@/components/dashboard/OrdersPageClient';
 import { loadFrontdeskDashboardTables } from '@/lib/dashboard-tables';
 import { fetchCheckoutRequestedTableIds } from '@/lib/table-checkout-pending';
+import { resolveOpenedByNameBySessionId } from '@/lib/session-opener-display';
 
 export default async function UnpaidOrdersPage() {
   const loaded = await loadFrontdeskDashboardTables();
@@ -10,11 +11,16 @@ export default async function UnpaidOrdersPage() {
 
   const { data: activeSessions } = await loaded.admin
     .from('table_sessions')
-    .select('id')
+    .select('id, opened_by_user_id')
     .eq('restaurant_id', loaded.restaurant.id)
     .in('status', ['open', 'billing']);
 
   const activeSessionIds = new Set((activeSessions || []).map((row) => row.id));
+  const openedByNameBySessionId = await resolveOpenedByNameBySessionId(
+    loaded.admin,
+    loaded.restaurant.id,
+    (activeSessions || []) as { id: string; opened_by_user_id: string | null }[],
+  );
 
   const { data: orders } = await loaded.admin
     .from('orders')
@@ -37,6 +43,7 @@ export default async function UnpaidOrdersPage() {
       headingNavKey="unpaidOrders"
       showCloseTable
       initialCheckoutRequestedTableIds={checkoutRequestedTableIds}
+      openedByNameBySessionId={openedByNameBySessionId}
     />
   );
 }

@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
-import { staffAuthFromRequest } from '@/lib/staff-api-auth';
+import {
+  OPEN_TABLE_AUTHORIZED_STAFF_ROLES,
+  staffAuthFromRequestWithRoles,
+} from '@/lib/staff-api-auth';
 import { buildBuffetBaseLine, voidActiveBuffetBaseLines } from '@/lib/buffet-order';
 import { tableIdsEqual } from '@/lib/restaurant-tables';
 import { deriveOrderStatusFromItems } from '@/lib/order-status';
@@ -19,7 +22,7 @@ export async function POST(
     return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
   }
 
-  const ctx = await staffAuthFromRequest(req, slug, 'waiter');
+  const ctx = await staffAuthFromRequestWithRoles(req, slug, OPEN_TABLE_AUTHORIZED_STAFF_ROLES);
   if (!ctx) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
@@ -124,6 +127,7 @@ export async function POST(
         restaurant_id: ctx.restaurant_id,
         table_id: tableId,
         status: 'open',
+        opened_by_user_id: ctx.user_id,
       })
       .select('id, status')
       .single();

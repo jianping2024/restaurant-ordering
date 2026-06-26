@@ -14,6 +14,7 @@ interface Props {
   headingNavKey?: 'orders' | 'unpaidOrders';
   showCloseTable?: boolean;
   initialCheckoutRequestedTableIds?: string[];
+  openedByNameBySessionId?: Record<string, string>;
 }
 
 export function OrdersPageClient({
@@ -24,6 +25,7 @@ export function OrdersPageClient({
   headingNavKey,
   showCloseTable = false,
   initialCheckoutRequestedTableIds = [],
+  openedByNameBySessionId = {},
 }: Props) {
   const { lang } = useLanguage();
   const nav = getMessages(lang).nav;
@@ -44,6 +46,7 @@ export function OrdersPageClient({
         showCloseTable={showCloseTable}
         restaurantId={restaurantId}
         initialCheckoutRequestedTableIds={initialCheckoutRequestedTableIds}
+        openedByNameBySessionId={openedByNameBySessionId}
       />
     </div>
   );

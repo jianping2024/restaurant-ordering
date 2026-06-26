@@ -38,6 +38,7 @@ interface Props {
   showCloseTable?: boolean;
   restaurantId?: string;
   initialCheckoutRequestedTableIds?: string[];
+  openedByNameBySessionId?: Record<string, string>;
 }
 
 interface TableOption {
@@ -60,6 +61,7 @@ export function OrdersHistoryManager({
   showCloseTable = false,
   restaurantId,
   initialCheckoutRequestedTableIds = [],
+  openedByNameBySessionId = {},
 }: Props) {
   const router = useRouter();
   const { lang } = useLanguage();
@@ -514,6 +516,7 @@ export function OrdersHistoryManager({
     const chips = buildOrderListDisplayChips(groupOrders, buffetGuestLabels);
     const isCheckoutPending = isTableCheckoutRequested(tableId, checkoutRequestedTableIds);
     const checkoutLockedClass = isCheckoutPending ? 'opacity-50 cursor-not-allowed' : '';
+    const openerLabel = openedByNameBySessionId[sessionId] ?? null;
 
     return (
       <div key={sessionId} className={ORDER_CARD_CLASS}>
@@ -531,6 +534,14 @@ export function OrdersHistoryManager({
           <span className="font-medium text-brand-text">
             {i18n.table} {displayName}
           </span>
+          {openerLabel ? (
+            <>
+              {META_SEP}
+              <span className="text-brand-text-muted">
+                {i18n.openedBy.replace('{name}', openerLabel)}
+              </span>
+            </>
+          ) : null}
           {groupOrders.length > 1 ? (
             <>
               {META_SEP}

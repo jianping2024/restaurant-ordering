@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
-import { staffAuthFromRequest } from '@/lib/staff-api-auth';
+import {
+  OPEN_TABLE_AUTHORIZED_STAFF_ROLES,
+  staffAuthFromRequestWithRoles,
+} from '@/lib/staff-api-auth';
 import { distanceMeters } from '@/lib/geo-distance';
 import { normalizeOrderRadiusMeters } from '@/lib/order-radius';
 import { orderEnqueueSecret, signOrderEnqueueToken } from '@/lib/order-enqueue-token';
@@ -83,7 +86,9 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
 
   const rid = loaded.restaurant.id;
   const waiterFlow = body.waiter_flow === true;
-  const staffWaiter = waiterFlow ? await staffAuthFromRequest(req, slug, 'waiter') : null;
+  const staffOrderFlow = waiterFlow
+    ? await staffAuthFromRequestWithRoles(req, slug, OPEN_TABLE_AUTHORIZED_STAFF_ROLES)
+    : null;
 
   const { data: tableRow, error: tableErr } = await admin
     .from('restaurant_tables')
@@ -102,7 +107,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   if (
     restaurant.geo_latitude != null &&
     restaurant.geo_longitude != null &&
-    !staffWaiter
+    !staffOrderFlow
   ) {
     const lat = Number(body.latitude);
     const lon = Number(body.longitude);
@@ -135,7 +140,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     .limit(1)
     .maybeSingle();
 
-  if (!staffWaiter) {
+  if (!staffOrderFlow) {
     if (!session?.id) {
       return NextResponse.json({ error: 'buffet_required' }, { status: 403 });
     }
@@ -162,6 +167,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
           restaurant_id: rid,
           table_id: tableId,
           status: 'open',
+          opened_by_user_id: staffOrderFlow.user_id,
         })
         .select('id, status')
         .single();

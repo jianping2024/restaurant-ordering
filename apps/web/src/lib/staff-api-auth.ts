@@ -6,6 +6,9 @@ import type { StaffRole } from '@/lib/staff-account';
 
 export const CHECKOUT_AUTHORIZED_STAFF_ROLES: StaffRole[] = ['waiter', 'cashier', 'frontdesk'];
 
+/** Waiter board + frontdesk dashboard: open table (buffet line) and staff order flow. */
+export const OPEN_TABLE_AUTHORIZED_STAFF_ROLES: StaffRole[] = ['waiter', 'frontdesk'];
+
 export type StaffAuthContext = {
   restaurant_id: string;
   slug: string;

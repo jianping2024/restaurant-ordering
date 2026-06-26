@@ -12,7 +12,7 @@ import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 
 interface Props {
   tableId: string;
-  /** When true, first confirm uses checkout-specific copy. */
+  /** When true, open the unpaid-close reason dialog directly (checkout page). */
   isCheckoutPending?: boolean;
   onClosed?: () => void;
   className?: string;
@@ -39,15 +39,21 @@ export function CloseTableSessionAction({
   const [unpaidCloseReasonOpen, setUnpaidCloseReasonOpen] = useState(false);
   const [unpaidCloseReasonError, setUnpaidCloseReasonError] = useState<string | null>(null);
 
-  const closeConfirmCopy = useMemo(() => {
-    if (isCheckoutPending) {
-      return {
-        title: i18n.closeTableCheckoutConfirmTitle,
-        message: i18n.closeTableCheckoutConfirmMessage,
-      };
-    }
-    return { title: i18n.closeTableConfirmTitle, message: i18n.closeTableConfirmMessage };
-  }, [isCheckoutPending, i18n]);
+  const closeConfirmCopy = useMemo(
+    () => ({
+      title: i18n.closeTableConfirmTitle,
+      message: i18n.closeTableConfirmMessage,
+    }),
+    [i18n],
+  );
+
+  const unpaidCloseReasonMessage = useMemo(
+    () =>
+      isCheckoutPending
+        ? i18n.closeTableUnpaidReasonMessageCheckout
+        : i18n.closeTableUnpaidReasonMessage,
+    [isCheckoutPending, i18n],
+  );
 
   const handleCloseTable = async (
     closeTableId: string,
@@ -80,7 +86,11 @@ export function CloseTableSessionAction({
         return;
       }
       if (next.action === 'confirm_close') {
-        setConfirmOpen(true);
+        if (isCheckoutPending) {
+          setUnpaidCloseReasonOpen(true);
+        } else {
+          setConfirmOpen(true);
+        }
         return;
       }
       if (next.action === 'reason_required') {
@@ -124,7 +134,13 @@ export function CloseTableSessionAction({
       <button
         type="button"
         disabled={disabled || isClosing}
-        onClick={() => setConfirmOpen(true)}
+        onClick={() => {
+          if (isCheckoutPending) {
+            setUnpaidCloseReasonOpen(true);
+            return;
+          }
+          setConfirmOpen(true);
+        }}
         className={className}
       >
         {isClosing ? i18n.closeTableOperating : i18n.closeTable}
@@ -150,7 +166,7 @@ export function CloseTableSessionAction({
           setUnpaidCloseReasonError(null);
         }}
         title={i18n.closeTableUnpaidReasonTitle}
-        message={i18n.closeTableUnpaidReasonMessage}
+        message={unpaidCloseReasonMessage}
         reasonLabel={i18n.closeTableUnpaidReasonLabel}
         detailLabel={i18n.closeTableUnpaidReasonDetailLabel}
         detailPlaceholder={i18n.closeTableUnpaidReasonDetailPlaceholder}

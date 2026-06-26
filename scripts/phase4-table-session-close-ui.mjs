@@ -24,30 +24,31 @@ function assertNotContains(name, text, pattern, pass) {
 
 function main() {
   const pass = [];
-  const waiter = read('src/components/waiter/WaiterTableDetail.tsx');
-  const owner = read('src/components/dashboard/OrdersHistoryManager.tsx');
-  const waiterMsg = read('src/components/waiter/waiter-messages.ts');
-  const messages = read('src/lib/i18n/messages.ts');
-  const uiLib = read('src/lib/close-table-session-ui.ts');
+  const waiter = read('apps/web/src/components/waiter/WaiterTableDetail.tsx');
+  const owner = read('apps/web/src/components/dashboard/OrdersHistoryManager.tsx');
+  const closeAction = read('apps/web/src/components/dashboard/CloseTableSessionAction.tsx');
+  const messages = read('apps/web/src/lib/i18n/messages.ts');
+  const uiLib = read('apps/web/src/lib/close-table-session-ui.ts');
 
-  assertContains('waiter ConfirmModal', waiter, /ConfirmModal/, pass);
-  assertContains('waiter confirm_close body', waiter, /confirm_close/, pass);
+  assertContains('waiter CloseTableSessionAction', waiter, /CloseTableSessionAction/, pass);
+  assertContains('waiter isCheckoutPending prop', waiter, /isCheckoutPending=\{isCheckoutPending\}/, pass);
   assertNotContains('waiter shouldPromptCheckoutCloseConfirm', waiter, /shouldPromptCheckoutCloseConfirm/, pass);
   assertNotContains('waiter kitchen canCloseTableCard block', waiter, /canCloseTableCard/, pass);
 
-  assertContains('owner ConfirmModal', owner, /ConfirmModal/, pass);
-  assertContains('owner confirm_close body', owner, /confirm_close/, pass);
-  assertContains('owner opens modal before POST', owner, /setCheckoutCloseConfirmTableId\(tableId\)/, pass);
+  assertContains('owner CloseTableSessionAction', owner, /CloseTableSessionAction/, pass);
+  assertContains('owner isCheckoutPending prop', owner, /isCheckoutPending=\{isTableCheckoutRequested/, pass);
   assertNotContains('owner kitchen canClose block', owner, /card\.cooking > 0 \|\| card\.ready > 0/, pass);
   assertNotContains('owner force_reason (old phase3)', owner, /force_reason/, pass);
+  assertNotContains('owner legacy checkout close modal state', owner, /setCheckoutCloseConfirmTableId/, pass);
 
-  for (const lang of ['zh', 'en', 'pt']) {
-    assertContains(`waiter i18n ${lang} confirm title`, waiterMsg, new RegExp(`${lang}:[\\s\\S]*closeTableCheckoutConfirmTitle`), pass);
+  assertContains('close action skips generic confirm when checkout pending', closeAction, /if \(isCheckoutPending\) \{[\s\S]*setUnpaidCloseReasonOpen\(true\)/, pass);
+  assertContains('close action unpaid checkout message key', closeAction, /closeTableUnpaidReasonMessageCheckout/, pass);
+
+  for (const key of ['closeTableConfirmTitle', 'closeTableConfirmMessage', 'closeTableUnpaidReasonMessageCheckout', 'closeTableConfirmButton', 'closeTableCancel']) {
+    assertContains(`orderHistory i18n ${key}`, messages, new RegExp(`${key}:`), pass);
   }
 
-  for (const key of ['closeTableConfirmTitle', 'closeTableConfirmMessage', 'closeTableConfirmButton', 'closeTableCancel']) {
-    assertContains(`orderHistory i18n ${key} zh`, messages, new RegExp(`${key}:`), pass);
-  }
+  assertNotContains('legacy checkout-only confirm title in orderHistory zh', messages, /closeTableCheckoutConfirmTitle:/, pass);
 
   assertContains('ui lib interpretCloseTableSessionResponse', uiLib, /interpretCloseTableSessionResponse/, pass);
   assertNotContains('ui lib shouldPromptCheckoutCloseConfirm', uiLib, /shouldPromptCheckoutCloseConfirm/, pass);
@@ -57,9 +58,9 @@ function main() {
     date: new Date().toISOString(),
     phase4_scope: {
       changes: [
-        '409 checkout_confirm_required → ConfirmModal (waiter + owner)',
-        'confirm_checkout_close:true on modal confirm',
-        'Waiter proactive modal when checkoutRequestedTableIds includes table',
+        'Checkout-pending close opens unpaid-close reason dialog directly',
+        'confirm_close:true on reason dialog confirm',
+        'Shared CloseTableSessionAction for waiter + owner',
         'Shared interpretCloseTableSessionResponse for response handling',
         'Removed kitchen-based close button disable',
       ],

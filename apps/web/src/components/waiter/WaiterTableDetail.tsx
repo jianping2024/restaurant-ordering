@@ -468,15 +468,13 @@ function WaiterTableDetailInner({
     }
   };
 
-  const demoCloseConfirmCopy = useMemo(() => {
-    if (demoCloseConfirmTableId && isCheckoutPending) {
-      return {
-        title: t.closeTableCheckoutConfirmTitle,
-        message: t.closeTableCheckoutConfirmMessage,
-      };
-    }
-    return { title: t.closeTableConfirmTitle, message: t.closeTableConfirmMessage };
-  }, [demoCloseConfirmTableId, isCheckoutPending, t]);
+  const demoCloseConfirmCopy = useMemo(
+    () => ({
+      title: t.closeTableConfirmTitle,
+      message: t.closeTableConfirmMessage,
+    }),
+    [t],
+  );
 
   if (!isDemo && !detailLoaded) {
     return (
@@ -992,7 +990,13 @@ function WaiterTableDetailInner({
                 isDemo ? (
                   <button
                     type="button"
-                    onClick={() => setDemoCloseConfirmTableId(selectedCard.tableId)}
+                    onClick={() => {
+                      if (isCheckoutPending) {
+                        void closeDemoTable(selectedCard.tableId);
+                        return;
+                      }
+                      setDemoCloseConfirmTableId(selectedCard.tableId);
+                    }}
                     disabled={closingDemoTable === selectedCard.tableId}
                     className={`${waiterUi.btnSecondary} ${waiterUi.btnDanger} disabled:opacity-50`}
                   >

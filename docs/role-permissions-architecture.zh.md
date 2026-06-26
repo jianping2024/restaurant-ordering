@@ -1,6 +1,6 @@
 # 店内权限模块 — 架构方案（待确认）
 
-> **状态**：架构评审稿，**确认前不写代码**  
+> **状态**：架构已锁定（**2026-06-26** 与计划书同步修订 §3.4–§3.5、§6.3）  
 > **产品细则**：见 [`role-permissions-plan.zh.md`](./role-permissions-plan.zh.md)（角色命名、能力清单、DB、UI 路径）  
 > **策略**：全新落地，不双轨、不兼容旧硬编码（计划书 §0.6）
 
@@ -69,7 +69,7 @@ Owner nav preferences        → 体验边界：只影响侧栏，不进入 requ
 
 **职责**：模块内唯一「字典」。
 
-- `PERMISSIONS`：key → 元数据（group、labelKey、dangerous）
+- `PERMISSIONS`：key → 元数据（`group`、`labelKey`、`dangerous`、`ownerOnly`、`requires`）
 - `NAV_ITEMS`、`ROUTE_PERMISSIONS`、`API_ROUTE_PERMISSIONS`：引用 key，不重复字符串
 - `ROLE_TEMPLATES`、`OWNER_NAV_CATALOG`、`OWNER_NAV_DEFAULT`
 
@@ -218,18 +218,38 @@ Middleware **不**为 owner 做 capability 拒绝（计划书 §4.1.4）。
 | `dashboard-paths.ts` | 删除；由 `registry.ROUTE_PERMISSIONS` 替代 |
 | `DashboardNav` 三套数组 | 删除；用 `NAV_ITEMS` + `resolveOwnerNavItems` |
 | `loadFrontdeskOperationalContext` | 迁至 `operational-context.ts`，接受 `Principal` |
+| `print-agent-dashboard-auth.getOwnerRestaurantId` | 删除；`requirePermission` + `print_agent.manage` / `settings.*` |
+| `staff-dashboard-api.loadOwnerRestaurantWithSlug` | 同上（`settings.staff.manage` 等） |
+| `dashboard-access.isActiveStaffRole` metadata 回退 | 删除；`loadPrincipal` 仅信 DB（计划书 §4.2） |
 
-### 3.5 DB 与解析分层（第二期，结构预留、实现可后做）
+### 3.5 DB 与解析分层
 
 ```text
 resolveCapabilities(staff, ctx):
   base = ROLE_TEMPLATES[staff.role]
-  merged = applyRows(base, restaurant_role_permissions)  // 纯函数，可单测
+  merged = mergeOverrides(base, restaurant_role_permissions rows)
   optional: applyStaffOverrides(merged, staff_overrides)  // P4
   return Set(merged)
 ```
 
-**不在第一期引入**：缓存层、Redis、事件总线。服务端可用 `React cache()` 或请求内 memo 即可。
+**`mergeOverrides`（计划书 §10.2）**：
+
+- 稀疏行：`granted: true` 加入集合，`granted: false` 从集合移除。
+- 无覆盖行 → 纯 `ROLE_TEMPLATES`。
+- `ownerOnly` key：写入 API 拒绝；解析时忽略误写入行。
+- `restaurants.permissions_version`：角色权限 PATCH 时递增；`requirePermission` 对比 session 缓存版本，过期则 403。
+
+**鉴权分层（勿混）**：
+
+| 层 | 机制 |
+|----|------|
+| 店内 Dashboard / staff API | `requirePermission` + `Principal` |
+| Print Agent 设备拉任务 | Print Agent JWT（**不**走 `print_agent.manage`） |
+| 顾客下单 / enqueue token | 现有顾客会话，不在 registry |
+
+**缓存**：解析结果可 memo 60s；`permissions_version` 变更须立即使旧 session 失效（不等 TTL）。
+
+**不在第一期引入**：Redis、事件总线。服务端可用 `React cache()` 或请求内 memo。
 
 ### 3.6 可测试性设计
 
@@ -244,8 +264,9 @@ registry 完整性测试示例约束（写进测试即可，非新框架）：
 
 - 每个 `ROUTE_PERMISSIONS` 的值 ∈ `PERMISSIONS`
 - 每个 `API_ROUTE_PERMISSIONS` 的值 ∈ `PERMISSIONS`
-- 每个 `ROLE_TEMPLATES` 的非 `*` 项 ∈ `PERMISSIONS`
+- 每个 `ROLE_TEMPLATES` 的非 `*` 项 ∈ `PERMISSIONS`，且非 `ownerOnly`
 - `OWNER_NAV_CATALOG` ⊆ 合法 nav permission
+- `ownerOnly` key ∉ 任何 `ROLE_TEMPLATES` 员工条目
 
 ### 3.7 扩展新权限（运维约定）
 
@@ -322,11 +343,18 @@ M1–M3 可在一次 PR 系列内完成，只要**不保留双轨**。
 Principal =
   | { kind: 'owner', restaurantId, userId }
   | { kind: 'staff', restaurantId, userId, role: StaffRole, staffAccountId }
-  | null（未登录）
+  | null（未登录 / 停用 / 无效）
 ```
 
 **谁用**：`dashboard/layout`、`middleware`、需要先知道「店主还是前台」的 Server Component。  
 **不做**：不判断「能不能结账」——那是 B 的事。
+
+**实施必守（计划书 §4.2）**：
+
+- Owner 判定优先于 staff 行（`owner_id`）。
+- Staff 仅当 `restaurant_staff_accounts.disabled_at IS NULL`。
+- **禁止** `user_metadata.staff_role` 参与鉴权（删除现网 metadata 回退）。
+- `suspended_at` 不在此函数处理；写操作由 `loadOperationalContext({ requireWritable: true })` 拦截。
 
 ---
 
@@ -351,7 +379,7 @@ Principal =
 |------|------|
 | `Request` + 一个 key（如 `'checkout.confirm_payment'`） | `{ principal, capabilities }` **或** `NextResponse` 错误 |
 
-内部顺序：`loadPrincipal` → `resolveCapabilities` → `can(caps, key)`。
+内部顺序：`loadPrincipal` → `resolveCapabilities` → `can(caps, key)` →（可选）校验 `permissions_version`。
 
 **谁用**：几乎所有 `apps/web/src/app/api/**` 写操作/敏感读。  
 **示例**：
@@ -418,6 +446,7 @@ if (auth instanceof NextResponse) return auth;
 
 - `restaurant_role_permissions`
 - `restaurants.owner_nav_preferences`（或独立列）
+- `restaurants.permissions_version`（integer，默认 0）
 
 配置页 UI 仍可后做：表先存在，店主暂时只享受 `ROLE_TEMPLATES` + `OWNER_NAV_DEFAULT`，员工权限由代码默认矩阵生效，直到 `/settings/roles` 上线。
 
@@ -433,13 +462,15 @@ if (auth instanceof NextResponse) return auth;
 | 运营（部分） | `dashboard.checkout.view`、`dashboard.tables.view`、`dashboard.unpaid_orders.view`（实现时可微调） |
 | **不含** | 概览、订单历史、内嵌服务员看板、厨房快捷（需店主在「我的导航」里自行打开） |
 
-与「catalog 全选」相比：默认更克制，符合「店主以配置为主、运营入口按需打开」。
+与「catalog 全选」相比：默认更克制，符合「店主以配置为主、运营入口按需打开」。  
+**登录落地页**仍为 `/dashboard/settings`（与侧栏默认含运营项不矛盾，见计划书 §13）。
+
+**`frontdesk` 默认模板**：须含 `dashboard.waiter_board.view`（现网内嵌服务员看板）；不含 `floor.waiter_board.view`（楼面独立页）。见计划书 §6。
 
 ---
 
-确认 #2、#4、#5 后，将更新本文状态为「架构已锁定」，再进入实现。
-
-> **2026-06**：§6 已全部确认，架构已锁定；权限实现待单独开工。
+> **2026-06**：§6 已全部确认，架构已锁定。  
+> **2026-06-26**：对照现网代码审查，计划书 §4.2 / §7.3 / §10.2 / §11 / §13 与本文 §3.4–§3.5 / §6.3 已同步修订。
 
 ---
 
@@ -449,6 +480,6 @@ if (auth instanceof NextResponse) return auth;
 |------|------|
 | `role-permissions-plan.zh.md` | 产品、角色命名、能力清单、UI 路径、DB DDL |
 | **本文** | 架构：变与不变、模式、目录、依赖、测试、确认项 |
-| `ai-schema.md` | 表结构（M4 时更新） |
+| `ai-schema.md` | 表结构（M1 migration 时更新：`owner_nav_preferences`、`restaurant_role_permissions`、`permissions_version`） |
 
 确认 §6 后，实现顺序：**registry → resolve/can → principal/require → 替换调用方 → 删旧代码 → 单测**。

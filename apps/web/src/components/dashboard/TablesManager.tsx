@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/Button';
@@ -105,6 +105,7 @@ export function TablesManager({
   const [occupiedTableIds, setOccupiedTableIds] = useState<Set<string>>(new Set());
   const [deleteTarget, setDeleteTarget] = useState<RestaurantTableRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const openCreateGroupRef = useRef<(() => void) | null>(null);
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
   const groupNameByTableId = useMemo(
@@ -397,23 +398,31 @@ export function TablesManager({
     }
   };
 
+  const registerOpenCreateGroup = useCallback((openCreate: () => void) => {
+    openCreateGroupRef.current = openCreate;
+  }, []);
+
   const qrReady = tables.length > 0 && tables.every((row) => qrCodes[row.id]);
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
-        <p className="text-brand-text-muted text-sm mt-1">
-          {activeTab === 'groups' ? tg.pageDesc : t.desc}
-        </p>
-      </div>
+      <h1 className="font-heading text-3xl text-brand-text mb-4">{t.title}</h1>
 
-      <div className="mb-6">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <BuffetSettingsTabs
           tabs={managerTabs}
           activeId={activeTab}
           onChange={(id) => handleTabChange(id as TablesManagerTab)}
         />
+        {activeTab === 'groups' ? (
+          <Button
+            type="button"
+            onClick={() => openCreateGroupRef.current?.()}
+            className="w-full sm:w-auto shrink-0"
+          >
+            + {tg.add}
+          </Button>
+        ) : null}
       </div>
 
       {activeTab === 'groups' ? (
@@ -423,6 +432,8 @@ export function TablesManager({
           initialGroups={groups}
           initialMembers={members}
           onGroupsChange={handleGroupsChange}
+          onRegisterOpenCreate={registerOpenCreateGroup}
+          hideAddButton
         />
       ) : (
         <>

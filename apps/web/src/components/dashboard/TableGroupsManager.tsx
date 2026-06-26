@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -36,6 +36,9 @@ interface Props {
   initialGroups: RestaurantTableGroup[];
   initialMembers: RestaurantTableGroupMember[];
   onGroupsChange: (groups: RestaurantTableGroup[], members: RestaurantTableGroupMember[]) => void;
+  /** When set, parent renders the primary add action in the page toolbar. */
+  onRegisterOpenCreate?: (openCreate: () => void) => void;
+  hideAddButton?: boolean;
 }
 
 export function TableGroupsManager({
@@ -44,6 +47,8 @@ export function TableGroupsManager({
   initialGroups,
   initialMembers,
   onGroupsChange,
+  onRegisterOpenCreate,
+  hideAddButton = false,
 }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).tableGroups;
@@ -97,12 +102,16 @@ export function TableGroupsManager({
       .filter((name): name is string => !!name);
   };
 
-  const openCreate = () => {
+  const openCreate = useCallback(() => {
     setEditing(null);
     setForm(defaultForm());
     setFormError('');
     setModalOpen(true);
-  };
+  }, []);
+
+  useEffect(() => {
+    onRegisterOpenCreate?.(openCreate);
+  }, [onRegisterOpenCreate, openCreate]);
 
   const openEdit = (group: RestaurantTableGroup) => {
     setEditing(group);
@@ -259,11 +268,13 @@ export function TableGroupsManager({
     <div>
       {error ? <p className="mesa-alert-danger text-sm px-4 py-2 mb-4">{error}</p> : null}
 
-      <div className="mb-4 flex justify-end">
-        <Button type="button" onClick={openCreate} className="w-full sm:w-auto">
-          + {t.add}
-        </Button>
-      </div>
+      {!hideAddButton ? (
+        <div className="mb-4 flex justify-end">
+          <Button type="button" onClick={openCreate} className="w-full sm:w-auto">
+            + {t.add}
+          </Button>
+        </div>
+      ) : null}
 
       {groups.length === 0 ? (
         <div className="bg-brand-card border border-brand-border rounded-2xl p-10 text-center">
@@ -278,7 +289,7 @@ export function TableGroupsManager({
             <thead>
               <tr className="border-b border-brand-border text-left text-brand-text-muted">
                 <th className="px-4 py-3 font-medium">{t.colName}</th>
-                <th className="px-4 py-3 font-medium">{t.colRemarks}</th>
+                <th className="hidden md:table-cell px-4 py-3 font-medium">{t.colRemarks}</th>
                 <th className="px-4 py-3 font-medium">{t.colTables}</th>
                 <th className="px-4 py-3 font-medium text-right w-[14rem]">{t.colActions}</th>
               </tr>
@@ -289,16 +300,29 @@ export function TableGroupsManager({
                 return (
                   <tr key={row.id} className="border-b border-brand-border/80 last:border-0">
                     <td className="px-4 py-3 font-medium text-brand-text">{row.name}</td>
-                    <td className="px-4 py-3 text-brand-text-muted max-w-[12rem] truncate">
+                    <td className="hidden md:table-cell px-4 py-3 text-brand-text-muted max-w-[12rem] truncate">
                       {row.remarks || '—'}
                     </td>
-                    <td className="px-4 py-3 text-[13px] text-brand-text-muted">
-                      {labels.length === 0
-                        ? t.tablesEmpty
-                        : t.tablesSummary.replace('{count}', String(labels.length))}
-                      {labels.length > 0 ? (
-                        <p className="mt-1 text-[12px] truncate max-w-[16rem]">{labels.join(', ')}</p>
-                      ) : null}
+                    <td className="px-4 py-3">
+                      {labels.length === 0 ? (
+                        <span className="text-[13px] text-brand-text-muted">{t.tablesEmpty}</span>
+                      ) : (
+                        <div className="space-y-1.5">
+                          <span className="text-[12px] text-brand-text-muted">
+                            {t.tablesSummary.replace('{count}', String(labels.length))}
+                          </span>
+                          <div className="flex flex-wrap gap-1">
+                            {labels.map((name, labelIndex) => (
+                              <span
+                                key={`${row.id}-${labelIndex}`}
+                                className="inline-flex rounded-md border border-brand-border/70 bg-brand-bg/80 px-1.5 py-0.5 text-[11px] text-brand-text tabular-nums"
+                              >
+                                {name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap items-center justify-end gap-1.5">

@@ -4,7 +4,7 @@ export const WAITER_TEXT = {
     openCustomer: '打开顾客视图',
     openKitchen: '打开后厨视图',
     backHub: '返回演示首页',
-    boardTitle: '服务员出餐观察看板',
+    boardTitle: '楼面看板',
     inactive: '空闲',
     clickToView: '点击查看',
     detailsTitle: '桌台详情',

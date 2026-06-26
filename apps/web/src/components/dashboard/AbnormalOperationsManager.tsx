@@ -171,7 +171,6 @@ export function AbnormalOperationsManager() {
   };
 
   const activeDatePreset = detectDatePreset(filters.startDate, filters.endDate, today);
-  const recordCount = data?.total ?? 0;
 
   const applyDatePreset = (preset: Exclude<DatePreset, 'custom'>) => {
     const next =
@@ -266,48 +265,41 @@ export function AbnormalOperationsManager() {
         </Button>
       </header>
 
-      {stats ? (
-        <div className="mb-4 rounded-xl border border-brand-border bg-brand-card px-4 py-2.5">
-          <p className="text-[12px] text-brand-text-muted mb-1">{t.statsOverview}</p>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px]">
-            <span>
-              <span className="text-brand-text-muted">{t.statsTotal}</span>{' '}
-              <span className="font-medium text-brand-text">{stats.total_count}</span>
-            </span>
-            <span className="text-brand-border/80 hidden sm:inline" aria-hidden>
-              ｜
-            </span>
-            <span>
-              <span className="text-brand-text-muted">{t.statsHighRisk}</span>{' '}
-              <span className="font-medium text-brand-text">{stats.high_risk_count}</span>
-            </span>
-            <span className="text-brand-border/80 hidden sm:inline" aria-hidden>
-              ｜
-            </span>
-            <span>
-              <span className="text-brand-text-muted">{t.statsAmountImpact}</span>{' '}
-              <span className="font-semibold text-brand-gold">
-                €{stats.amount_impact_sum.toFixed(2)}
-              </span>
-            </span>
-            <span className="text-brand-border/80 hidden sm:inline" aria-hidden>
-              ｜
-            </span>
-            <span>
-              <span className="text-brand-text-muted">{t.statsPending}</span>{' '}
-              <span className="font-medium text-brand-text">{stats.pending_count}</span>
-            </span>
-          </div>
-        </div>
-      ) : null}
-
       <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
         <div className="px-4 pt-3 pb-2 border-b border-brand-border/70">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 mb-2.5">
             <h2 className="text-sm font-medium text-brand-text">{t.tableTitle}</h2>
-            <p className="text-[13px] text-brand-text-muted">
-              {t.recordCount.replace('{n}', String(recordCount))}
-            </p>
+            {stats ? (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px]">
+                <span>
+                  <span className="text-brand-text-muted">{t.statsTotal}</span>{' '}
+                  <span className="font-medium text-brand-text">{stats.total_count}</span>
+                </span>
+                <span className="text-brand-border/80 hidden sm:inline" aria-hidden>
+                  ｜
+                </span>
+                <span>
+                  <span className="text-brand-text-muted">{t.statsHighRisk}</span>{' '}
+                  <span className="font-medium text-brand-text">{stats.high_risk_count}</span>
+                </span>
+                <span className="text-brand-border/80 hidden sm:inline" aria-hidden>
+                  ｜
+                </span>
+                <span>
+                  <span className="text-brand-text-muted">{t.statsAmountImpact}</span>{' '}
+                  <span className="font-semibold text-brand-gold">
+                    €{stats.amount_impact_sum.toFixed(2)}
+                  </span>
+                </span>
+                <span className="text-brand-border/80 hidden sm:inline" aria-hidden>
+                  ｜
+                </span>
+                <span>
+                  <span className="text-brand-text-muted">{t.statsPending}</span>{' '}
+                  <span className="font-medium text-brand-text">{stats.pending_count}</span>
+                </span>
+              </div>
+            ) : null}
           </div>
 
           <div className="flex flex-wrap items-center gap-2">

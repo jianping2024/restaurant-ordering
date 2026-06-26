@@ -24,28 +24,52 @@ function activeBuffetBaseLines(orders: Order[]): OrderItem[] {
   return lines;
 }
 
-export function aggregateBuffetForOrders(
-  orders: Order[],
-): { buffetId: string; name: string; adults: number; children: number; amount: number } | null {
+/** Newest active buffet_base line across session orders (headcount + amount authority). */
+export function latestActiveBuffetBaseLine(orders: Order[]): OrderItem | null {
   const active = activeBuffetBaseLines(orders);
   if (active.length === 0) return null;
 
   const buffetIds = new Set(active.map((l) => l.buffet_id).filter(Boolean) as string[]);
   if (buffetIds.size > 1) return null;
 
-  const buffetId = active[0].buffet_id as string;
-  let adults = 0;
-  let children = 0;
-  let amount = 0;
-  const name = active[0].name || active[0].name_pt || 'Buffet';
-
+  let best: OrderItem | null = null;
+  let bestAt = '';
   for (const line of active) {
-    adults += line.adult_count ?? 0;
-    children += line.child_count ?? 0;
-    amount += line.price * (line.qty ?? 1);
+    const at = line.added_at || '';
+    if (!best || at >= bestAt) {
+      best = line;
+      bestAt = at;
+    }
   }
+  return best;
+}
 
-  return { buffetId, name, adults, children, amount };
+/** Append a new buffet_base after voiding prior active buffet lines on the same order. */
+export function mergeBuffetLineOntoOrderItems(
+  existingItems: OrderItem[],
+  newLine: OrderItem,
+): OrderItem[] {
+  return [...voidActiveBuffetBaseLines(existingItems), newLine];
+}
+
+export function aggregateBuffetForOrders(
+  orders: Order[],
+): { buffetId: string; name: string; adults: number; children: number; amount: number } | null {
+  const line = latestActiveBuffetBaseLine(orders);
+  if (!line?.buffet_id) return null;
+
+  const name = line.name || line.name_pt || 'Buffet';
+  const adults = line.adult_count ?? 0;
+  const children = line.child_count ?? 0;
+  const amount = line.price * (line.qty ?? 1);
+
+  return {
+    buffetId: line.buffet_id,
+    name,
+    adults,
+    children,
+    amount,
+  };
 }
 
 /** Compact adult/child headcount, e.g. A7 C3 (matches waiter buffet summary). */

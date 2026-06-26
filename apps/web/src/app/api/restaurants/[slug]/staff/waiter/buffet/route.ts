@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
 import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
-import { buildBuffetBaseLine, voidActiveBuffetBaseLines } from '@/lib/buffet-order';
-import { tableIdsEqual } from '@/lib/restaurant-tables';
-import { deriveOrderStatusFromItems } from '@/lib/order-status';
-import { sumLineTotals } from '@/lib/cart-totals';
+import { buildBuffetBaseLine } from '@/lib/buffet-order';
+import { applyBuffetOpenToSession } from '@/lib/buffet-open-table';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { OrderItem } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
@@ -137,58 +135,29 @@ export async function POST(
     );
   }
 
-  for (const order of sessionOrders || []) {
-    const prevItems = (order.items || []) as OrderItem[];
-    const voidedItems = voidActiveBuffetBaseLines(prevItems);
-    const changed = JSON.stringify(voidedItems) !== JSON.stringify(prevItems);
-    if (!changed) continue;
-    const voidedTotal = sumLineTotals(voidedItems);
-    const { error: voidErr } = await admin
-      .from('orders')
-      .update({ items: voidedItems, total_amount: voidedTotal })
-      .eq('id', order.id);
-    if (voidErr) {
-      return NextResponse.json({ error: 'void_buffet_failed', message: voidErr.message }, { status: 500 });
-    }
-  }
+  const applied = await applyBuffetOpenToSession(admin, {
+    restaurantId: ctx.restaurant_id,
+    sessionId,
+    tableId,
+    displayName,
+    line,
+    sessionOrders: (sessionOrders || []).map((row) => ({
+      id: row.id as string,
+      items: (row.items || []) as OrderItem[],
+      updated_at: row.updated_at as string,
+      table_id: row.table_id as string,
+      created_at: row.created_at as string,
+    })),
+  });
 
-  const tableOrders = (sessionOrders || [])
-    .filter((o) => tableIdsEqual(o.table_id as string, tableId))
-    .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
-  const openOrder = tableOrders[0] ?? null;
-
-  const carrierItems = voidActiveBuffetBaseLines((openOrder?.items || []) as OrderItem[]);
-  const mergedItems: OrderItem[] = [...carrierItems, line];
-  const total = sumLineTotals(mergedItems);
-  const nextStatus = deriveOrderStatusFromItems(mergedItems);
-
-  if (openOrder?.id) {
-    const { error: updErr } = await admin
-      .from('orders')
-      .update({
-        items: mergedItems,
-        total_amount: total,
-        status: nextStatus,
-      })
-      .eq('id', openOrder.id)
-      .eq('updated_at', openOrder.updated_at);
-
-    if (updErr) {
+  if (!applied.ok) {
+    if (applied.code === 'conflict') {
       return NextResponse.json({ error: 'conflict' }, { status: 409 });
     }
-  } else {
-    const { error: insErr } = await admin.from('orders').insert({
-      restaurant_id: ctx.restaurant_id,
-      session_id: sessionId,
-      table_id: tableId,
-      display_name: displayName,
-      status: nextStatus,
-      items: mergedItems,
-      total_amount: total,
-    });
-    if (insErr) {
-      return NextResponse.json({ error: 'insert_failed', message: insErr.message }, { status: 500 });
-    }
+    return NextResponse.json(
+      { error: applied.code, message: applied.message },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ ok: true });

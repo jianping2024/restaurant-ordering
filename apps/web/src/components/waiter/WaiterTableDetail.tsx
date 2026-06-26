@@ -3,13 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { Buffet, Order, OrderItem } from '@/types';
-import { sumLineTotals } from '@/lib/cart-totals';
+import type { Buffet, Order } from '@/types';
 import {
   aggregateBuffetForOrders,
-  buildBuffetBaseLine,
   formatBuffetSummaryLine,
-  voidActiveBuffetBaseLines,
   type ResolvedBuffetPriceRow,
 } from '@/lib/buffet-order';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
@@ -600,167 +597,44 @@ function WaiterTableDetailInner({
     embeddedInDashboard && !isCheckoutPending && (selectedCard.orderLines.length > 0 || selectedCard.hasBuffet);
 
   const applyBuffetToTable = async () => {
-    if (isDemo || !buffetId) return;
+    if (!buffetId) return;
     if (isCheckoutPending) {
       notifyCheckoutLocked();
       return;
     }
-    const buffet = activeBuffets.find((b) => b.id === buffetId);
-    if (!buffet) return;
 
     setBuffetSubmitting(true);
     try {
-      if (!isDemo) {
-        const res = await fetch(
-          `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/waiter/buffet`,
-          {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              table_id: tableId,
-              buffet_id: buffetId,
-              adult_count: buffetAdults,
-              child_count: buffetChildren,
-            }),
-          },
-        );
-        if (res.status === 400) {
-          const data = await res.json().catch(() => ({}));
-          if (data.error === 'no_price_rule') showToast(t.buffetNoRule, 'error');
-          else if (data.error === 'session_billing') showToast(t.checkoutLockedHint, 'info');
-          else showToast(t.actionFailed, 'error');
-          return;
-        }
-        if (!res.ok) {
-          showToast(t.actionFailed, 'error');
-          return;
-        }
-        await refresh();
-        showToast(t.actionSuccess, 'success');
+      const res = await fetch(
+        `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/waiter/buffet`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            table_id: tableId,
+            buffet_id: buffetId,
+            adult_count: buffetAdults,
+            child_count: buffetChildren,
+          }),
+        },
+      );
+      if (res.status === 400) {
+        const data = await res.json().catch(() => ({}));
+        if (data.error === 'no_price_rule') showToast(t.buffetNoRule, 'error');
+        else if (data.error === 'session_billing') showToast(t.checkoutLockedHint, 'info');
+        else showToast(t.actionFailed, 'error');
         return;
       }
-
-      const { data: priceRows, error: priceError } = await supabase.rpc('resolve_buffet_prices', {
-        p_restaurant_id: restaurant.id,
-        p_buffet_id: buffetId,
-        p_at: new Date().toISOString(),
-      });
-      if (priceError) {
+      if (res.status === 409) {
+        await refresh();
+        showToast(t.refreshHint, 'error');
+        return;
+      }
+      if (!res.ok) {
         showToast(t.actionFailed, 'error');
         return;
       }
-      const resolvedRow = Array.isArray(priceRows) ? priceRows[0] : priceRows;
-      const resolved = {
-        adult_price: resolvedRow?.adult_price != null ? Number(resolvedRow.adult_price) : null,
-        child_price: resolvedRow?.child_price != null ? Number(resolvedRow.child_price) : null,
-        rule_id: resolvedRow?.rule_id ?? null,
-        time_slot_id: resolvedRow?.time_slot_id ?? null,
-      };
-      const line = buildBuffetBaseLine({
-        buffet,
-        adultCount: buffetAdults,
-        childCount: buffetChildren,
-        resolved,
-      });
-      if (!line) {
-        showToast(t.buffetNoRule, 'error');
-        return;
-      }
-
-      let { data: session } = await supabase
-        .from('table_sessions')
-        .select('id, status')
-        .eq('restaurant_id', restaurant.id)
-        .eq('table_id', tableId)
-        .in('status', ['open', 'billing'])
-        .order('opened_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (!session?.id) {
-        const { data: createdSession, error: csErr } = await supabase
-          .from('table_sessions')
-          .insert({
-            restaurant_id: restaurant.id,
-            table_id: tableId,
-            status: 'open',
-          })
-          .select('id, status')
-          .single();
-        if (csErr || !createdSession) {
-          showToast(t.buffetNeedOpen, 'error');
-          return;
-        }
-        session = createdSession;
-      }
-
-      if (session.status === 'billing') {
-        showToast(t.checkoutLockedHint, 'info');
-        return;
-      }
-
-      const sessionId = session.id as string;
-
-      const { data: sessionOrders } = await supabase
-        .from('orders')
-        .select('id, items, updated_at, table_id, created_at')
-        .eq('session_id', sessionId)
-        .in('status', ['pending', 'cooking', 'done']);
-
-      for (const order of sessionOrders || []) {
-        const prevItems = (order.items || []) as OrderItem[];
-        const voidedItems = voidActiveBuffetBaseLines(prevItems);
-        if (JSON.stringify(voidedItems) === JSON.stringify(prevItems)) continue;
-        const voidedTotal = sumLineTotals(voidedItems);
-        await supabase
-          .from('orders')
-          .update({ items: voidedItems, total_amount: voidedTotal })
-          .eq('id', order.id);
-      }
-
-      const tableOrders = (sessionOrders || [])
-        .filter((o) => tableIdsEqual(o.table_id as string, tableId))
-        .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
-      const openOrder = tableOrders[0] ?? null;
-
-      const mergedItems: OrderItem[] = [
-        ...voidActiveBuffetBaseLines((openOrder?.items || []) as OrderItem[]),
-        line,
-      ];
-      const total = sumLineTotals(mergedItems);
-      const nextStatus = deriveOrderStatusFromItems(mergedItems);
-
-      if (openOrder?.id) {
-        const { error: updErr } = await supabase
-          .from('orders')
-          .update({
-            items: mergedItems,
-            total_amount: total,
-            status: nextStatus,
-          })
-          .eq('id', openOrder.id)
-          .eq('updated_at', openOrder.updated_at);
-        if (updErr) {
-          showToast(t.refreshHint, 'error');
-          return;
-        }
-      } else {
-        const { error: insErr } = await supabase.from('orders').insert({
-          restaurant_id: restaurant.id,
-          session_id: sessionId,
-          table_id: tableId,
-          display_name: displayName,
-          status: nextStatus,
-          items: mergedItems,
-          total_amount: total,
-        });
-        if (insErr) {
-          showToast(t.actionFailed, 'error');
-          return;
-        }
-      }
-
       await refresh();
       showToast(t.actionSuccess, 'success');
     } catch {

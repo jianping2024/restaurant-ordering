@@ -139,6 +139,8 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 
 ### 提交流程（`submitOrder`）
 
+**列表步进器**：`MenuItemCard` 在 `qty > 0` 时显示 `CartQtyStepper`（`− / n / +`），仅改本地 `cart`；`qty = 0` 时显示「+ 加入」。与 `CartDrawer` 共用 `CartQtyStepper` + `bumpCartItem` / `updateQty`。**已下单**区为服务端 `recent_orders`，不可在菜单页删减。
+
 **顾客流**（`!returnToWaiterHref`）：
 
 ```
@@ -198,6 +200,7 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 | 职责 | 模块 |
 |------|------|
 | 菜单 UI + 唯一 submit | `components/menu/MenuPage.tsx` |
+| 列表 / 抽屉数量步进器 | `components/menu/CartQtyStepper.tsx` |
 | 顾客菜单路由 | `app/[slug]/menu/page.tsx` |
 | 加菜门禁（开台） | `lib/guest-table-ordering.ts` → `guestOrderingEnabled` |
 | 购物车解析 + 服务端定价 | `lib/resolve-append-cart-items.ts` |

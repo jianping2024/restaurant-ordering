@@ -4,6 +4,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   table: string;
   noItems: string;
   orderedTitle: string;
+  orderedSubmittedHint: string;
   noOrders: string;
   billCta: string;
   billDisabledHint: string;
@@ -35,6 +36,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     table: 'Mesa',
     noItems: 'Sem pratos nesta categoria',
     orderedTitle: 'Seus pedidos',
+    orderedSubmittedHint: 'Pratos ja enviados: peca ao staff para alterar.',
     noOrders: 'Nenhum pedido enviado ainda',
     billCta: 'Ir para conta',
     billDisabledHint: 'Esta mesa esta em processo de fechamento. Nao e possivel adicionar novos pratos agora.',
@@ -67,6 +69,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     table: 'Table',
     noItems: 'No items in this category',
     orderedTitle: 'Your orders',
+    orderedSubmittedHint: 'Submitted items can only be changed by staff.',
     noOrders: 'No orders submitted yet',
     billCta: 'Go to bill',
     billDisabledHint: 'This table is currently in checkout. Adding new dishes is temporarily unavailable.',
@@ -99,6 +102,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     table: '桌号',
     noItems: '此分类暂无菜品',
     orderedTitle: '已下单',
+    orderedSubmittedHint: '已提交的菜品如需修改，请联系服务员',
     noOrders: '还没有提交订单',
     billCta: '去结账',
     billDisabledHint: '当前餐次正在结账，暂时不能加菜',

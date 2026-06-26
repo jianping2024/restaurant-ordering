@@ -202,42 +202,47 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
     return { banner: messages.waitingForBuffet, action: messages.buffetRequired };
   }, [activeSession?.status, lang]);
 
-  // 加入购物车
-  const addToCart = (item: MenuItem) => {
+  const updateQty = (menuItemId: string, qty: number) => {
+    const n = Number(qty);
+    if (!Number.isFinite(n) || n <= 0) {
+      setCart((prev) => prev.filter((c) => c.menuItemId !== menuItemId));
+    } else {
+      setCart((prev) =>
+        prev.map((c) => (c.menuItemId === menuItemId ? { ...c, qty: n } : c)),
+      );
+    }
+  };
+
+  // 列表步进器 / 抽屉共用：仅改本地 cart，提交仍走 submitOrder → orders/append
+  const bumpCartItem = (item: MenuItem, delta: number) => {
     if (!canPlaceMenuOrders) {
       showToast(guestOrderingHints.action, 'info');
       return;
     }
-    setCart(prev => {
-      const existing = prev.find(c => c.menuItemId === item.id);
-      if (existing) {
-        return prev.map(c =>
-          c.menuItemId === item.id
-            ? { ...c, price: coerceCartPrice(c.price), qty: coerceCartQty(c.qty) + 1 }
-            : c);
-      }
-      return [...prev, {
-        menuItemId: item.id,
-        name_pt: item.name_pt,
-        name_en: item.name_en,
-        name_zh: item.name_zh,
-        price: coerceCartPrice(item.price),
-        emoji: item.emoji,
-        qty: 1,
-        note: '',
-        notePresetKeys: item.note_preset_keys || [],
-      }];
-    });
-  };
-
-  // 更新数量
-  const updateQty = (menuItemId: string, qty: number) => {
-    const n = Number(qty);
-    if (!Number.isFinite(n) || n <= 0) {
-      setCart(prev => prev.filter(c => c.menuItemId !== menuItemId));
-    } else {
-      setCart(prev => prev.map(c => (c.menuItemId === menuItemId ? { ...c, qty: n } : c)));
+    const current = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
+    const next = current + delta;
+    if (next <= 0) {
+      updateQty(item.id, 0);
+      return;
     }
+    if (current === 0) {
+      setCart((prev) => [
+        ...prev,
+        {
+          menuItemId: item.id,
+          name_pt: item.name_pt,
+          name_en: item.name_en,
+          name_zh: item.name_zh,
+          price: coerceCartPrice(item.price),
+          emoji: item.emoji,
+          qty: next,
+          note: '',
+          notePresetKeys: item.note_preset_keys || [],
+        },
+      ]);
+      return;
+    }
+    updateQty(item.id, next);
   };
 
   // 更新备注
@@ -581,7 +586,10 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
       {/* 本桌已下单记录 */}
       <section className="px-4 pt-4">
         <div className="bg-brand-card border border-brand-border rounded-2xl p-4">
-          <h2 className="font-heading text-lg text-brand-gold mb-3">{t.orderedTitle}</h2>
+          <h2 className="font-heading text-lg text-brand-gold mb-1">{t.orderedTitle}</h2>
+          {recentOrders.length > 0 && (
+            <p className="text-brand-text-muted text-[12px] mb-3">{t.orderedSubmittedHint}</p>
+          )}
           {recentOrders.length === 0 ? (
             <p className="text-brand-text-muted text-sm">{t.noOrders}</p>
           ) : (
@@ -644,7 +652,8 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
               item={item}
               lang={lang}
               cartQty={coerceCartQty(cart.find(c => c.menuItemId === item.id)?.qty)}
-              onAdd={() => addToCart(item)}
+              onIncrement={() => bumpCartItem(item, 1)}
+              onDecrement={() => bumpCartItem(item, -1)}
             />
           ))
         )}

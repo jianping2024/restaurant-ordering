@@ -2,15 +2,17 @@
 
 import Image from 'next/image';
 import type { MenuItem, Language } from '@/types';
+import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 
 interface Props {
   item: MenuItem;
   lang: Language;
   cartQty: number;
-  onAdd: () => void;
+  onIncrement: () => void;
+  onDecrement: () => void;
 }
 
-export function MenuItemCard({ item, lang, cartQty, onAdd }: Props) {
+export function MenuItemCard({ item, lang, cartQty, onIncrement, onDecrement }: Props) {
   const name = (lang === 'zh' && item.name_zh) || (lang === 'en' && item.name_en) || item.name_pt;
   const desc = lang === 'zh'
     ? (item.description_zh || item.description_en || item.description_pt)
@@ -18,16 +20,15 @@ export function MenuItemCard({ item, lang, cartQty, onAdd }: Props) {
       ? (item.description_en || item.description_pt)
       : item.description_pt;
   const actionText = {
-    zh: { added: '已加入', add: '+ 加入', soldOut: '已售完' },
-    en: { added: 'Added', add: '+ Add', soldOut: 'Sold out' },
-    pt: { added: 'Adicionado', add: '+ Adicionar', soldOut: 'Esgotado' },
+    zh: { add: '+ 加入', soldOut: '已售完' },
+    en: { add: '+ Add', soldOut: 'Sold out' },
+    pt: { add: '+ Adicionar', soldOut: 'Esgotado' },
   }[lang];
 
   return (
     <div className={`bg-brand-card border rounded-2xl p-4 flex gap-4 ${
       item.available ? 'border-brand-border' : 'border-brand-border opacity-50'
     }`}>
-      {/* 图片或 Emoji */}
       <div className="flex-shrink-0 w-16 h-16 bg-brand-border rounded-xl overflow-hidden flex items-center justify-center text-3xl relative">
         {item.image_url ? (
           <Image
@@ -42,7 +43,6 @@ export function MenuItemCard({ item, lang, cartQty, onAdd }: Props) {
         )}
       </div>
 
-      {/* 信息 */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
@@ -56,21 +56,22 @@ export function MenuItemCard({ item, lang, cartQty, onAdd }: Props) {
           <span className="text-brand-gold font-semibold">€{item.price.toFixed(2)}</span>
 
           {item.available ? (
-            <button
-              onClick={onAdd}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all ${
-                cartQty > 0
-                  ? 'bg-brand-gold text-brand-on-gold font-semibold'
-                  : 'bg-brand-border text-brand-text hover:bg-brand-gold/20'
-              }`}
-            >
-              {cartQty > 0 && (
-                <span className="bg-brand-bg text-brand-gold w-4 h-4 rounded-full text-[13px] flex items-center justify-center">
-                  {cartQty}
-                </span>
-              )}
-              {cartQty > 0 ? actionText.added : actionText.add}
-            </button>
+            cartQty > 0 ? (
+              <CartQtyStepper
+                qty={cartQty}
+                onDecrement={onDecrement}
+                onIncrement={onIncrement}
+                variant="menu"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={onIncrement}
+                className="px-3 py-1.5 rounded-lg text-sm bg-brand-border text-brand-text hover:bg-brand-gold/20 transition-all"
+              >
+                {actionText.add}
+              </button>
+            )
           ) : (
             <span className="text-brand-muted text-[13px] px-3 py-1.5 bg-brand-border rounded-lg">
               {actionText.soldOut}

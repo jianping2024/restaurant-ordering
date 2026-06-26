@@ -9,6 +9,7 @@ import {
   type NotePresetGroup,
 } from '@/lib/note-presets';
 import { lineTotal, sumLineTotals } from '@/lib/cart-totals';
+import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 
 const DRAWER_TEXT: Record<Language, { title: string; total: string; submit: string; notePlaceholder: string }> = {
   zh: {
@@ -104,30 +105,18 @@ export function CartDrawer({
                     <p className="text-brand-gold text-[13px]">€{lineTotal(item).toFixed(2)}</p>
                   </div>
                 </div>
-                {/* 数量控制 */}
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const q = Number(item.qty);
-                      onUpdateQty(item.menuItemId, (Number.isFinite(q) ? q : 0) - 1);
-                    }}
-                    className="w-7 h-7 rounded-full bg-brand-border text-brand-text flex items-center justify-center hover:bg-brand-gold/20"
-                  >
-                    −
-                  </button>
-                  <span className="text-brand-text text-sm w-4 text-center">{item.qty}</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const q = Number(item.qty);
-                      onUpdateQty(item.menuItemId, (Number.isFinite(q) ? q : 0) + 1);
-                    }}
-                    className="w-7 h-7 rounded-full bg-brand-border text-brand-text flex items-center justify-center hover:bg-brand-gold/20"
-                  >
-                    +
-                  </button>
-                </div>
+                <CartQtyStepper
+                  qty={item.qty}
+                  onDecrement={() => {
+                    const q = Number(item.qty);
+                    onUpdateQty(item.menuItemId, (Number.isFinite(q) ? q : 0) - 1);
+                  }}
+                  onIncrement={() => {
+                    const q = Number(item.qty);
+                    onUpdateQty(item.menuItemId, (Number.isFinite(q) ? q : 0) + 1);
+                  }}
+                  variant="drawer"
+                />
               </div>
 
               {/* 备注输入 */}

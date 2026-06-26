@@ -9,6 +9,7 @@ import {
   buildBuffetBaseLine,
   formatBuffetSummaryLine,
   isBuffetGuestCountsUnchanged,
+  normalizeBuffetGuestCounts,
   parseResolvedBuffetPriceRpcRow,
   type ResolvedBuffetPriceRow,
 } from '@/lib/buffet-order';
@@ -196,8 +197,7 @@ function WaiterTableDetailInner({
     const ap = Number(r.adult_price);
     const cp = Number(r.child_price);
     if (!Number.isFinite(ap) || !Number.isFinite(cp)) return { ok: false as const };
-    const adults = Math.max(0, Math.floor(buffetAdults));
-    const children = Math.max(0, Math.floor(buffetChildren));
+    const { adults, children } = normalizeBuffetGuestCounts(buffetAdults, buffetChildren);
     return { ok: true as const, ap, cp, sub: adults * ap + children * cp };
   }, [buffetResolved, buffetAdults, buffetChildren]);
 
@@ -250,12 +250,23 @@ function WaiterTableDetailInner({
     [tableOrders],
   );
 
+  const persistedBuffetId = tableBuffetAggregate?.buffetId;
+  const persistedBuffetAdults = tableBuffetAggregate?.adults;
+  const persistedBuffetChildren = tableBuffetAggregate?.children;
+
+  /** Sync form when persisted headcount changes — not on every orders refresh (object identity). */
   useEffect(() => {
-    if (!tableBuffetAggregate) return;
-    setBuffetId(tableBuffetAggregate.buffetId);
-    setBuffetAdults(tableBuffetAggregate.adults);
-    setBuffetChildren(tableBuffetAggregate.children);
-  }, [tableBuffetAggregate]);
+    if (
+      persistedBuffetId === undefined ||
+      persistedBuffetAdults === undefined ||
+      persistedBuffetChildren === undefined
+    ) {
+      return;
+    }
+    setBuffetId(persistedBuffetId);
+    setBuffetAdults(persistedBuffetAdults);
+    setBuffetChildren(persistedBuffetChildren);
+  }, [persistedBuffetId, persistedBuffetAdults, persistedBuffetChildren]);
 
   const demoActiveTableIds = useMemo(() => {
     if (!isDemo) return [] as string[];

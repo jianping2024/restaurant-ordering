@@ -177,17 +177,7 @@ export function applyBuffetOpenOptimisticToOrders(
   orders: Order[],
   params: BuffetOpenParams,
 ): Order[] {
-  const plan = planBuffetOpenWrites(
-    orders.map((order) => ({
-      id: order.id,
-      items: order.items || [],
-      updated_at: order.updated_at,
-      table_id: order.table_id,
-      created_at: order.created_at,
-      status: order.status,
-    })),
-    params,
-  );
+  const plan = planBuffetOpenWrites(mapToBuffetSessionOrders(orders), params);
   const now = new Date().toISOString();
   const next: Order[] = [...orders];
 

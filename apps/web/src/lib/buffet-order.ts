@@ -12,7 +12,7 @@ export function voidActiveBuffetBaseLines(items: OrderItem[]): OrderItem[] {
   });
 }
 
-function activeBuffetBaseLines(orders: Order[]): OrderItem[] {
+function activeBuffetBaseLines(orders: Array<Pick<Order, 'items' | 'status'>>): OrderItem[] {
   const lines: OrderItem[] = [];
   for (const order of orders) {
     for (const item of order.items) {
@@ -25,7 +25,7 @@ function activeBuffetBaseLines(orders: Order[]): OrderItem[] {
 }
 
 /** Newest active buffet_base line across session orders (headcount + amount authority). */
-export function latestActiveBuffetBaseLine(orders: Order[]): OrderItem | null {
+export function latestActiveBuffetBaseLine(orders: Array<Pick<Order, 'items' | 'status'>>): OrderItem | null {
   const active = activeBuffetBaseLines(orders);
   if (active.length === 0) return null;
 
@@ -53,7 +53,7 @@ export function mergeBuffetLineOntoOrderItems(
 }
 
 export function aggregateBuffetForOrders(
-  orders: Order[],
+  orders: Array<Pick<Order, 'items' | 'status'>>,
 ): { buffetId: string; name: string; adults: number; children: number; amount: number } | null {
   const line = latestActiveBuffetBaseLine(orders);
   if (!line?.buffet_id) return null;
@@ -90,7 +90,7 @@ export function isBuffetGuestCountsUnchanged(
   adultCount: number,
   childCount: number,
 ): boolean {
-  const agg = aggregateBuffetForOrders(orders as Order[]);
+  const agg = aggregateBuffetForOrders(orders);
   if (!agg) return false;
   const { adults, children } = normalizeBuffetGuestCounts(adultCount, childCount);
   return agg.buffetId === buffetId && agg.adults === adults && agg.children === children;

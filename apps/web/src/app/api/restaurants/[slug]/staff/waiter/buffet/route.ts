@@ -4,7 +4,6 @@ import { buildBuffetBaseLine, isBuffetGuestCountsUnchanged, normalizeBuffetGuest
 import { applyBuffetOpenToSession, mapToBuffetSessionOrders } from '@/lib/buffet-open-table';
 import { fetchWaiterTableDetail } from '@/lib/staff-board';
 import { createAdminClient } from '@/lib/supabase/admin';
-import type { Order } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { findActiveTableSession, openTableSessionIfAbsent } from '@/lib/table-session-open';
 
@@ -119,7 +118,7 @@ export async function POST(
   }
 
   const sessionOrders = mapToBuffetSessionOrders(sessionOrderRows || []);
-  const unchanged = isBuffetGuestCountsUnchanged(sessionOrders as Order[], buffetId, adultCount, childCount);
+  const unchanged = isBuffetGuestCountsUnchanged(sessionOrders, buffetId, adultCount, childCount);
 
   if (!unchanged) {
     const { data: priceRows, error: priceError } = await admin.rpc('resolve_buffet_prices', {

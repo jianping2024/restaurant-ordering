@@ -36,7 +36,7 @@ type Filters = {
   page: number;
 };
 
-type DatePreset = 'today' | 'last7' | 'last30' | 'custom';
+type DatePreset = 'today' | 'last7' | 'last30';
 
 const DEFAULT_FILTERS = (today: string): Omit<Filters, 'page'> => ({
   startDate: today,
@@ -46,11 +46,15 @@ const DEFAULT_FILTERS = (today: string): Omit<Filters, 'page'> => ({
   status: '',
 });
 
-function detectDatePreset(startDate: string, endDate: string, today: string): DatePreset {
+function detectDatePreset(
+  startDate: string,
+  endDate: string,
+  today: string,
+): DatePreset | null {
   if (startDate === today && endDate === today) return 'today';
   if (startDate === addCalendarDays(today, -6) && endDate === today) return 'last7';
   if (startDate === addCalendarDays(today, -29) && endDate === today) return 'last30';
-  return 'custom';
+  return null;
 }
 
 function typeLabel(
@@ -115,7 +119,6 @@ export function AbnormalOperationsManager() {
   const [ownerNoteDraft, setOwnerNoteDraft] = useState('');
   const [patching, setPatching] = useState(false);
   const [refreshCooldownSec, setRefreshCooldownSec] = useState(0);
-  const [customDateOpen, setCustomDateOpen] = useState(false);
   const lastRefreshAtRef = useRef(0);
 
   useEffect(() => {
@@ -172,24 +175,18 @@ export function AbnormalOperationsManager() {
 
   const activeDatePreset = detectDatePreset(filters.startDate, filters.endDate, today);
 
-  const applyDatePreset = (preset: Exclude<DatePreset, 'custom'>) => {
+  const applyDatePreset = (preset: DatePreset) => {
     const next =
       preset === 'today'
         ? { startDate: today, endDate: today }
         : preset === 'last7'
           ? { startDate: addCalendarDays(today, -6), endDate: today }
           : { startDate: addCalendarDays(today, -29), endDate: today };
-    setCustomDateOpen(false);
     setFilters((prev) => ({ ...prev, ...next, page: 1 }));
-  };
-
-  const openCustomDate = () => {
-    setCustomDateOpen(true);
   };
 
   const resetFilters = () => {
     const defaults = DEFAULT_FILTERS(today);
-    setCustomDateOpen(false);
     setFilters((prev) => ({ ...prev, ...defaults, page: 1 }));
   };
 
@@ -325,13 +322,6 @@ export function AbnormalOperationsManager() {
               >
                 {t.presetLast30}
               </button>
-              <button
-                type="button"
-                onClick={openCustomDate}
-                className={presetBtnClass(activeDatePreset === 'custom' || customDateOpen)}
-              >
-                {t.presetCustom}
-              </button>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 ml-auto">
@@ -392,32 +382,6 @@ export function AbnormalOperationsManager() {
               </button>
             </div>
           </div>
-
-          {customDateOpen ? (
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span className="text-[12px] text-brand-text-muted">{t.filterDateRange}</span>
-              <div className="inline-flex flex-wrap items-center gap-2 rounded-md border border-brand-border bg-brand-bg px-2 py-1">
-                <input
-                  type="date"
-                  value={filters.startDate}
-                  max={filters.endDate}
-                  onChange={(e) => updateFilter('startDate', e.target.value)}
-                  className="bg-transparent text-[13px] text-brand-text focus:outline-none"
-                  aria-label={t.filterStart}
-                />
-                <span className="text-brand-text-muted text-[13px]">{t.dateRangeSeparator}</span>
-                <input
-                  type="date"
-                  value={filters.endDate}
-                  min={filters.startDate}
-                  max={today}
-                  onChange={(e) => updateFilter('endDate', e.target.value)}
-                  className="bg-transparent text-[13px] text-brand-text focus:outline-none"
-                  aria-label={t.filterEnd}
-                />
-              </div>
-            </div>
-          ) : null}
         </div>
 
         {loading ? (

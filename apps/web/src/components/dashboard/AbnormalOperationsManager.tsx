@@ -36,6 +36,30 @@ type Filters = {
   page: number;
 };
 
+type DatePreset = 'today' | 'last7' | 'last30' | 'custom';
+
+type AdvancedDraft = Omit<Filters, 'page'>;
+
+const DEFAULT_ADVANCED_DRAFT = (today: string): AdvancedDraft => ({
+  startDate: today,
+  endDate: today,
+  type: '',
+  riskLevel: '',
+  status: '',
+});
+
+function detectDatePreset(startDate: string, endDate: string, today: string): DatePreset {
+  if (startDate === today && endDate === today) return 'today';
+  if (startDate === addCalendarDays(today, -6) && endDate === today) return 'last7';
+  if (startDate === addCalendarDays(today, -29) && endDate === today) return 'last30';
+  return 'custom';
+}
+
+function formatDisplayDate(isoDate: string, locale: string) {
+  const [y, m, d] = isoDate.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(locale);
+}
+
 function typeLabel(
   t: ReturnType<typeof getMessages>['abnormalOps'],
   type: AbnormalOperationType,
@@ -59,6 +83,66 @@ function statusLabel(
   if (status === 'IGNORED') return t.statusIgnored;
   return t.statusPending;
 }
+
+function typeFilterLabel(
+  t: ReturnType<typeof getMessages>['abnormalOps'],
+  type: Filters['type'],
+) {
+  if (!type) return t.filterAllTypes;
+  return typeLabel(t, type);
+}
+
+function riskFilterLabel(
+  t: ReturnType<typeof getMessages>['abnormalOps'],
+  riskLevel: Filters['riskLevel'],
+) {
+  if (!riskLevel) return t.filterAllRisks;
+  if (riskLevel === 'HIGH') return t.statsHighRisk;
+  return riskLabel(t, riskLevel);
+}
+
+function statusFilterLabel(
+  t: ReturnType<typeof getMessages>['abnormalOps'],
+  status: Filters['status'],
+) {
+  if (!status) return t.filterAllStatuses;
+  return statusLabel(t, status);
+}
+
+function dateFilterLabel(
+  t: ReturnType<typeof getMessages>['abnormalOps'],
+  filters: Pick<Filters, 'startDate' | 'endDate'>,
+  today: string,
+  locale: string,
+) {
+  const preset = detectDatePreset(filters.startDate, filters.endDate, today);
+  if (preset === 'today') return t.presetToday;
+  if (preset === 'last7') return t.presetLast7;
+  if (preset === 'last30') return t.presetLast30;
+  if (filters.startDate === filters.endDate) {
+    return formatDisplayDate(filters.startDate, locale);
+  }
+  return `${formatDisplayDate(filters.startDate, locale)} ${t.dateRangeSeparator} ${formatDisplayDate(filters.endDate, locale)}`;
+}
+
+function buildFilterSummary(
+  t: ReturnType<typeof getMessages>['abnormalOps'],
+  filters: Filters,
+  today: string,
+  locale: string,
+) {
+  return [
+    dateFilterLabel(t, filters, today, locale),
+    typeFilterLabel(t, filters.type),
+    riskFilterLabel(t, filters.riskLevel),
+    statusFilterLabel(t, filters.status),
+  ].join(' · ');
+}
+
+const FILTER_SELECT_CLASS =
+  'w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-sm';
+const PRESET_BTN_BASE =
+  'text-sm px-3 py-1.5 rounded-lg border transition-colors whitespace-nowrap';
 
 function riskBadgeClass(risk: AbnormalRiskLevel) {
   if (risk === 'HIGH') return 'mesa-badge-danger';
@@ -93,6 +177,10 @@ export function AbnormalOperationsManager() {
   const [ownerNoteDraft, setOwnerNoteDraft] = useState('');
   const [patching, setPatching] = useState(false);
   const [refreshCooldownSec, setRefreshCooldownSec] = useState(0);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [advancedDraft, setAdvancedDraft] = useState<AdvancedDraft>(() =>
+    DEFAULT_ADVANCED_DRAFT(today),
+  );
   const lastRefreshAtRef = useRef(0);
 
   useEffect(() => {
@@ -147,6 +235,69 @@ export function AbnormalOperationsManager() {
     void load();
   };
 
+  const activeDatePreset = detectDatePreset(filters.startDate, filters.endDate, today);
+  const filterSummary = buildFilterSummary(t, filters, today, locale);
+  const hasNonDefaultFilters =
+    activeDatePreset !== 'today' ||
+    filters.type !== '' ||
+    filters.riskLevel !== '' ||
+    filters.status !== '';
+
+  const applyDatePreset = (preset: Exclude<DatePreset, 'custom'>) => {
+    const next =
+      preset === 'today'
+        ? { startDate: today, endDate: today }
+        : preset === 'last7'
+          ? { startDate: addCalendarDays(today, -6), endDate: today }
+          : { startDate: addCalendarDays(today, -29), endDate: today };
+    setFilters((prev) => ({ ...prev, ...next, page: 1 }));
+    if (advancedOpen) {
+      setAdvancedDraft((prev) => ({ ...prev, ...next }));
+    }
+  };
+
+  const openAdvanced = () => {
+    setAdvancedDraft({
+      startDate: filters.startDate,
+      endDate: filters.endDate,
+      type: filters.type,
+      riskLevel: filters.riskLevel,
+      status: filters.status,
+    });
+    setAdvancedOpen(true);
+  };
+
+  const toggleAdvanced = () => {
+    if (advancedOpen) {
+      setAdvancedOpen(false);
+      return;
+    }
+    openAdvanced();
+  };
+
+  const applyAdvancedDraft = () => {
+    setFilters((prev) => ({ ...prev, ...advancedDraft, page: 1 }));
+  };
+
+  const resetAdvancedDraft = () => {
+    const defaults = DEFAULT_ADVANCED_DRAFT(today);
+    setAdvancedDraft(defaults);
+    setFilters((prev) => ({ ...prev, ...defaults, page: 1 }));
+  };
+
+  const clearAllFilters = () => {
+    const defaults = DEFAULT_ADVANCED_DRAFT(today);
+    setFilters((prev) => ({ ...prev, ...defaults, page: 1 }));
+    setAdvancedDraft(defaults);
+  };
+
+  const presetBtnClass = (active: boolean) =>
+    `${PRESET_BTN_BASE} ${
+      active
+        ? 'border-brand-gold bg-brand-gold/10 text-brand-text'
+        : 'border-brand-border text-brand-text-muted hover:border-brand-gold/40 hover:text-brand-text'
+    }`;
+
   const openDetail = (row: AbnormalOperationRow) => {
     setSelected(row);
     setOwnerNoteDraft(row.owner_note ?? '');
@@ -188,20 +339,9 @@ export function AbnormalOperationsManager() {
 
   return (
     <div className="max-w-6xl">
-      <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
-          <p className="text-sm text-brand-text-muted mt-2">{t.subtitle}</p>
-        </div>
-        <Button
-          variant="outline"
-          onClick={handleRefresh}
-          disabled={loading || refreshCooldownSec > 0}
-        >
-          {refreshCooldownSec > 0
-            ? t.refreshCooldown.replace('{n}', String(refreshCooldownSec))
-            : t.refresh}
-        </Button>
+      <header className="mb-6">
+        <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
+        <p className="text-sm text-brand-text-muted mt-2">{t.subtitle}</p>
       </header>
 
       {stats ? (
@@ -226,111 +366,180 @@ export function AbnormalOperationsManager() {
         </div>
       ) : null}
 
-      <div className="bg-brand-card border border-brand-border rounded-xl p-4 mb-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-        <label className="text-sm">
-          <span className="text-brand-text-muted text-[13px] block mb-1">{t.filterStart}</span>
-          <input
-            type="date"
-            value={filters.startDate}
-            max={filters.endDate}
-            onChange={(e) =>
-              setFilters((prev) => ({ ...prev, startDate: e.target.value, page: 1 }))
-            }
-            className="w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-sm"
-          />
-        </label>
-        <label className="text-sm">
-          <span className="text-brand-text-muted text-[13px] block mb-1">{t.filterEnd}</span>
-          <input
-            type="date"
-            value={filters.endDate}
-            min={filters.startDate}
-            max={today}
-            onChange={(e) =>
-              setFilters((prev) => ({ ...prev, endDate: e.target.value, page: 1 }))
-            }
-            className="w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-sm"
-          />
-        </label>
-        <div className="flex items-end gap-2 md:col-span-2">
-          <button
-            type="button"
-            onClick={() =>
-              setFilters((prev) => ({ ...prev, startDate: today, endDate: today, page: 1 }))
-            }
-            className="text-sm px-3 py-2 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text"
-          >
-            {t.presetToday}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              const start = addCalendarDays(today, -6);
-              setFilters((prev) => ({ ...prev, startDate: start, endDate: today, page: 1 }));
-            }}
-            className="text-sm px-3 py-2 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text"
-          >
-            {t.presetLast7}
-          </button>
+      <div className="mb-4 space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => applyDatePreset('today')}
+              className={presetBtnClass(activeDatePreset === 'today')}
+            >
+              {t.presetToday}
+            </button>
+            <button
+              type="button"
+              onClick={() => applyDatePreset('last7')}
+              className={presetBtnClass(activeDatePreset === 'last7')}
+            >
+              {t.presetLast7}
+            </button>
+            <button
+              type="button"
+              onClick={() => applyDatePreset('last30')}
+              className={presetBtnClass(activeDatePreset === 'last30')}
+            >
+              {t.presetLast30}
+            </button>
+            <button
+              type="button"
+              onClick={openAdvanced}
+              className={presetBtnClass(activeDatePreset === 'custom')}
+            >
+              {t.presetCustom}
+            </button>
+          </div>
+
+          <p className="text-[13px] text-brand-text-muted min-w-0 flex-1 basis-[200px]">
+            <span className="text-brand-text-muted/80">{t.filterCurrentLabel}</span>
+            <span className="text-brand-text">{filterSummary}</span>
+          </p>
+
+          <div className="flex flex-wrap items-center gap-2 ml-auto">
+            {hasNonDefaultFilters ? (
+              <button
+                type="button"
+                onClick={clearAllFilters}
+                className="text-[13px] text-brand-text-muted hover:text-brand-text whitespace-nowrap"
+              >
+                {t.clearFilters}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={toggleAdvanced}
+              className={`${PRESET_BTN_BASE} border-brand-border text-brand-text-muted hover:border-brand-gold/40 hover:text-brand-text`}
+              aria-expanded={advancedOpen}
+            >
+              {t.advancedFilter}
+              <span className="ml-1 text-[11px]" aria-hidden>
+                {advancedOpen ? '▲' : '▼'}
+              </span>
+            </button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={loading || refreshCooldownSec > 0}
+            >
+              {refreshCooldownSec > 0
+                ? t.refreshCooldown.replace('{n}', String(refreshCooldownSec))
+                : t.refresh}
+            </Button>
+          </div>
         </div>
-        <label className="text-sm">
-          <span className="text-brand-text-muted text-[13px] block mb-1">{t.filterType}</span>
-          <select
-            value={filters.type}
-            onChange={(e) =>
-              setFilters((prev) => ({
-                ...prev,
-                type: e.target.value as Filters['type'],
-                page: 1,
-              }))
-            }
-            className="w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-sm"
-          >
-            <option value="">{t.filterAll}</option>
-            <option value="DISCOUNT_APPLIED">{t.typeDiscount}</option>
-            <option value="ITEM_DELETED">{t.typeItemDeleted}</option>
-            <option value="UNPAID_TABLE_CLOSED">{t.typeUnpaidClose}</option>
-          </select>
-        </label>
-        <label className="text-sm">
-          <span className="text-brand-text-muted text-[13px] block mb-1">{t.filterRisk}</span>
-          <select
-            value={filters.riskLevel}
-            onChange={(e) =>
-              setFilters((prev) => ({
-                ...prev,
-                riskLevel: e.target.value as Filters['riskLevel'],
-                page: 1,
-              }))
-            }
-            className="w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-sm"
-          >
-            <option value="">{t.filterAll}</option>
-            <option value="HIGH">{t.riskHigh}</option>
-            <option value="MEDIUM">{t.riskMedium}</option>
-            <option value="LOW">{t.riskLow}</option>
-          </select>
-        </label>
-        <label className="text-sm md:col-span-2">
-          <span className="text-brand-text-muted text-[13px] block mb-1">{t.filterStatus}</span>
-          <select
-            value={filters.status}
-            onChange={(e) =>
-              setFilters((prev) => ({
-                ...prev,
-                status: e.target.value as Filters['status'],
-                page: 1,
-              }))
-            }
-            className="w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-sm"
-          >
-            <option value="">{t.filterAll}</option>
-            <option value="PENDING">{t.statusPending}</option>
-            <option value="CONFIRMED">{t.statusConfirmed}</option>
-            <option value="IGNORED">{t.statusIgnored}</option>
-          </select>
-        </label>
+
+        {advancedOpen ? (
+          <div className="rounded-xl border border-brand-border/80 bg-brand-card/60 px-4 py-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="sm:col-span-2 lg:col-span-4">
+                <span className="text-brand-text-muted text-[13px] block mb-1.5">
+                  {t.filterDateRange}
+                </span>
+                <div className="flex flex-wrap items-center gap-2 rounded-lg border border-brand-border bg-brand-bg px-3 py-2">
+                  <input
+                    type="date"
+                    value={advancedDraft.startDate}
+                    max={advancedDraft.endDate}
+                    onChange={(e) =>
+                      setAdvancedDraft((prev) => ({ ...prev, startDate: e.target.value }))
+                    }
+                    className="min-w-0 flex-1 bg-transparent text-sm text-brand-text focus:outline-none"
+                    aria-label={t.filterStart}
+                  />
+                  <span className="text-brand-text-muted text-sm shrink-0">
+                    {t.dateRangeSeparator}
+                  </span>
+                  <input
+                    type="date"
+                    value={advancedDraft.endDate}
+                    min={advancedDraft.startDate}
+                    max={today}
+                    onChange={(e) =>
+                      setAdvancedDraft((prev) => ({ ...prev, endDate: e.target.value }))
+                    }
+                    className="min-w-0 flex-1 bg-transparent text-sm text-brand-text focus:outline-none"
+                    aria-label={t.filterEnd}
+                  />
+                </div>
+              </div>
+              <label className="text-sm">
+                <span className="text-brand-text-muted text-[13px] block mb-1">{t.filterType}</span>
+                <select
+                  value={advancedDraft.type}
+                  onChange={(e) =>
+                    setAdvancedDraft((prev) => ({
+                      ...prev,
+                      type: e.target.value as AdvancedDraft['type'],
+                    }))
+                  }
+                  className={FILTER_SELECT_CLASS}
+                >
+                  <option value="">{t.filterAll}</option>
+                  <option value="DISCOUNT_APPLIED">{t.typeDiscount}</option>
+                  <option value="ITEM_DELETED">{t.typeItemDeleted}</option>
+                  <option value="UNPAID_TABLE_CLOSED">{t.typeUnpaidClose}</option>
+                </select>
+              </label>
+              <label className="text-sm">
+                <span className="text-brand-text-muted text-[13px] block mb-1">{t.filterRisk}</span>
+                <select
+                  value={advancedDraft.riskLevel}
+                  onChange={(e) =>
+                    setAdvancedDraft((prev) => ({
+                      ...prev,
+                      riskLevel: e.target.value as AdvancedDraft['riskLevel'],
+                    }))
+                  }
+                  className={FILTER_SELECT_CLASS}
+                >
+                  <option value="">{t.filterAll}</option>
+                  <option value="HIGH">{t.riskHigh}</option>
+                  <option value="MEDIUM">{t.riskMedium}</option>
+                  <option value="LOW">{t.riskLow}</option>
+                </select>
+              </label>
+              <label className="text-sm sm:col-span-2 lg:col-span-1">
+                <span className="text-brand-text-muted text-[13px] block mb-1">{t.filterStatus}</span>
+                <select
+                  value={advancedDraft.status}
+                  onChange={(e) =>
+                    setAdvancedDraft((prev) => ({
+                      ...prev,
+                      status: e.target.value as AdvancedDraft['status'],
+                    }))
+                  }
+                  className={FILTER_SELECT_CLASS}
+                >
+                  <option value="">{t.filterAll}</option>
+                  <option value="PENDING">{t.statusPending}</option>
+                  <option value="CONFIRMED">{t.statusConfirmed}</option>
+                  <option value="IGNORED">{t.statusIgnored}</option>
+                </select>
+              </label>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2 justify-end">
+              <Button variant="outline" size="sm" onClick={resetAdvancedDraft}>
+                {t.filterReset}
+              </Button>
+              <Button size="sm" onClick={applyAdvancedDraft}>
+                {t.filterApply}
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </div>
+
+      <h2 className="text-sm font-medium text-brand-text mb-2">{t.tableTitle}</h2>
 
       <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
         {loading ? (

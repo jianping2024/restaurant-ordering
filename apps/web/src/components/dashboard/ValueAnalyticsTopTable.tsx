@@ -21,9 +21,9 @@ export function ValueAnalyticsTopTable<T extends { rank: number }>({
   footer,
 }: Props<T>) {
   return (
-    <section className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-brand-border">
-        <h2 className="text-[15px] font-medium text-brand-text">{title}</h2>
+    <section className="bg-brand-card border border-brand-border rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
+      <div className="px-5 sm:px-6 py-4 border-b border-brand-border">
+        <h2 className="font-heading text-lg text-brand-gold">{title}</h2>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -66,7 +66,7 @@ export function ValueAnalyticsTopTable<T extends { rank: number }>({
           </tbody>
         </table>
       </div>
-      {footer ? <div className="px-4 py-3 border-t border-brand-border">{footer}</div> : null}
+      {footer ? <div className="px-5 sm:px-6 py-3 border-t border-brand-border mt-auto">{footer}</div> : null}
     </section>
   );
 }

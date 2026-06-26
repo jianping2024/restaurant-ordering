@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type {
   AnalyticsRange,
   StockReferenceItem,
@@ -51,8 +51,75 @@ function isOverviewEmpty(data: ValueOverviewResponse): boolean {
   return !trendHasValue && topsEmpty;
 }
 
-const RANGE_BTN =
-  'text-[13px] px-3 py-1.5 rounded-md border transition-colors whitespace-nowrap';
+function formatMoney(value: number): string {
+  return `€${value.toFixed(2)}`;
+}
+
+const PRESET_BTN_BASE =
+  'text-[13px] px-2.5 py-1 rounded-md border transition-colors whitespace-nowrap';
+
+function presetBtnClass(active: boolean) {
+  return `${PRESET_BTN_BASE} ${
+    active
+      ? 'border-brand-gold bg-brand-gold/10 text-brand-text'
+      : 'border-brand-border text-brand-text-muted hover:border-brand-gold/40 hover:text-brand-text'
+  }`;
+}
+
+function StateCard({ children }: { children: ReactNode }) {
+  return (
+    <div className="bg-brand-card border border-brand-border rounded-2xl px-6 py-14 sm:py-16 text-center shadow-sm">
+      {children}
+    </div>
+  );
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-[92px] rounded-2xl border border-brand-border bg-brand-card animate-pulse"
+          />
+        ))}
+      </div>
+      <div className="grid lg:grid-cols-2 gap-4">
+        <div className="h-[300px] rounded-2xl border border-brand-border bg-brand-card animate-pulse" />
+        <div className="h-[300px] rounded-2xl border border-brand-border bg-brand-card animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+type KpiItem = {
+  label: string;
+  value: string;
+  hint?: string;
+  color?: string;
+};
+
+function ValueAnalyticsKpiGrid({ items }: { items: KpiItem[] }) {
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {items.map((item) => (
+        <div
+          key={item.label}
+          className="bg-brand-card border border-brand-border rounded-2xl p-5 sm:p-6 shadow-sm"
+        >
+          <p className="text-brand-text-muted text-[13px] mb-2">{item.label}</p>
+          <p className={`font-heading text-xl sm:text-2xl ${item.color ?? 'text-brand-text'}`}>
+            {item.value}
+          </p>
+          {item.hint ? (
+            <p className="text-[12px] text-brand-text-muted mt-1.5 truncate">{item.hint}</p>
+          ) : null}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function ValueAnalyticsPageClient() {
   const { lang } = useLanguage();
@@ -104,150 +171,188 @@ export function ValueAnalyticsPageClient() {
     [data],
   );
 
-  const formatMoney = (value: number) => `€${value.toFixed(2)}`;
+  const kpiItems = useMemo((): KpiItem[] => {
+    if (!data) return [];
+
+    const totalRevenue = data.revenueTrend.reduce((sum, point) => sum + point.revenue, 0);
+    const totalGuests = data.customerTrend.reduce((sum, point) => sum + point.customerCount, 0);
+    const dayCount = data.revenueTrend.length || 1;
+    const avgDaily = totalRevenue / dayCount;
+    const topItem = data.topConsumedItems[0];
+
+    return [
+      {
+        label: t.kpiTotalRevenue,
+        value: formatMoney(totalRevenue),
+        color: 'text-brand-gold',
+      },
+      {
+        label: t.kpiTotalGuests,
+        value: String(totalGuests),
+        color: 'text-brand-text',
+      },
+      {
+        label: t.kpiAvgDailyRevenue,
+        value: formatMoney(avgDaily),
+        color: 'text-brand-text',
+      },
+      {
+        label: t.kpiTopConsumed,
+        value: topItem ? localizedName(topItem, lang) : t.kpiNoData,
+        hint: topItem ? `${topItem.consumedQuantity} ×` : undefined,
+        color: 'text-brand-text',
+      },
+    ];
+  }, [data, lang, t]);
+
+  const tooltipLabels = useMemo(
+    () => ({
+      total: t.tooltipTotal,
+      adults: t.tooltipAdults,
+      children: t.tooltipChildren,
+    }),
+    [t],
+  );
 
   if (state === 'forbidden') {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-16 text-center text-brand-text-muted">
-        {t.forbidden}
+      <div className="max-w-6xl">
+        <StateCard>
+          <p className="text-brand-text-muted">{t.forbidden}</p>
+        </StateCard>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-heading text-brand-text">{t.title}</h1>
-        <p className="text-[15px] text-brand-text-muted">{t.subtitle}</p>
+    <div className="max-w-6xl">
+      <header className="mb-5">
+        <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
+        <p className="text-sm text-brand-text-muted mt-2">{t.subtitle}</p>
       </header>
 
-      <div className="flex gap-2">
-        <button
-          type="button"
-          className={`${RANGE_BTN} ${
-            range === '7d'
-              ? 'border-brand-gold text-brand-gold bg-brand-gold/10'
-              : 'border-brand-border text-brand-text-muted hover:text-brand-text'
-          }`}
-          onClick={() => setRange('7d')}
-        >
-          {t.range7d}
-        </button>
-        <button
-          type="button"
-          className={`${RANGE_BTN} ${
-            range === '30d'
-              ? 'border-brand-gold text-brand-gold bg-brand-gold/10'
-              : 'border-brand-border text-brand-text-muted hover:text-brand-text'
-          }`}
-          onClick={() => setRange('30d')}
-        >
-          {t.range30d}
-        </button>
+      <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden mb-5 shadow-sm">
+        <div className="px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-medium text-brand-text">{t.filterTitle}</h2>
+          <div className="flex flex-wrap items-center gap-1">
+            <button
+              type="button"
+              className={presetBtnClass(range === '7d')}
+              onClick={() => setRange('7d')}
+            >
+              {t.range7d}
+            </button>
+            <button
+              type="button"
+              className={presetBtnClass(range === '30d')}
+              onClick={() => setRange('30d')}
+            >
+              {t.range30d}
+            </button>
+          </div>
+        </div>
       </div>
 
-      {state === 'loading' ? (
-        <p className="text-brand-text-muted py-12 text-center">{t.loading}</p>
-      ) : null}
+      {state === 'loading' ? <LoadingSkeleton /> : null}
 
       {state === 'error' ? (
-        <div className="text-center py-12 space-y-3">
-          <p className="text-brand-text-muted">{t.error}</p>
+        <StateCard>
+          <p className="text-brand-text-muted mb-4">{t.error}</p>
           <Button type="button" onClick={() => void load()}>
             {t.retry}
           </Button>
-        </div>
+        </StateCard>
       ) : null}
 
       {state === 'empty' ? (
-        <p className="text-brand-text-muted py-12 text-center">{t.empty}</p>
+        <StateCard>
+          <p className="text-brand-text-muted">{t.empty}</p>
+        </StateCard>
       ) : null}
 
       {state === 'success' && data ? (
-        <div className="space-y-6">
-          <ValueAnalyticsTrendChart
-            title={t.revenueTrend}
-            data={revenuePoints}
-            yAxisLabel={t.revenueAxis}
-            valueFormatter={formatMoney}
-            variant="revenue"
-            tooltipLabels={{
-              total: t.tooltipTotal,
-              adults: t.tooltipAdults,
-              children: t.tooltipChildren,
-            }}
-          />
+        <div className="space-y-5">
+          <ValueAnalyticsKpiGrid items={kpiItems} />
 
-          <ValueAnalyticsTrendChart
-            title={t.customerTrend}
-            data={customerPoints}
-            yAxisLabel={t.customerAxis}
-            valueFormatter={(value) => String(value)}
-            variant="customer"
-            tooltipLabels={{
-              total: t.tooltipTotal,
-              adults: t.tooltipAdults,
-              children: t.tooltipChildren,
-            }}
-          />
+          <div className="grid lg:grid-cols-2 gap-4">
+            <ValueAnalyticsTrendChart
+              title={t.revenueTrend}
+              data={revenuePoints}
+              yAxisLabel={t.revenueAxis}
+              valueFormatter={formatMoney}
+              variant="revenue"
+              tooltipLabels={tooltipLabels}
+            />
 
-          <ValueAnalyticsTopTable<TopConsumedItem>
-            title={t.topConsumed}
-            rows={data.topConsumedItems}
-            columns={[
-              { key: 'rank', header: t.colRank },
-              {
-                key: 'namePt',
-                header: t.colItem,
-                render: (row) => localizedName(row, lang),
-              },
-              {
-                key: 'categoryPt',
-                header: t.colCategory,
-                render: (row) => localizedCategory(row, lang),
-              },
-              {
-                key: 'consumedQuantity',
-                header: t.colQuantity,
-                align: 'right',
-              },
-              {
-                key: 'amount',
-                header: t.colAmount,
-                align: 'right',
-                render: (row) => formatMoney(row.amount),
-              },
-            ]}
-          />
+            <ValueAnalyticsTrendChart
+              title={t.customerTrend}
+              data={customerPoints}
+              yAxisLabel={t.customerAxis}
+              valueFormatter={(value) => String(value)}
+              variant="customer"
+              tooltipLabels={tooltipLabels}
+            />
+          </div>
 
-          <ValueAnalyticsTopTable<StockReferenceItem>
-            title={t.stockReference}
-            rows={data.stockReferenceItems}
-            columns={[
-              { key: 'rank', header: t.colRank },
-              {
-                key: 'namePt',
-                header: t.colItem,
-                render: (row) => localizedName(row, lang),
-              },
-              {
-                key: 'categoryPt',
-                header: t.colCategory,
-                render: (row) => localizedCategory(row, lang),
-              },
-              {
-                key: 'consumedQuantity7d',
-                header: t.colQuantity7d,
-                align: 'right',
-              },
-              {
-                key: 'tag',
-                header: t.colTag,
-                render: () => t.tagStock,
-              },
-            ]}
-            footer={<p className="text-[13px] text-brand-text-muted">{t.stockDisclaimer}</p>}
-          />
+          <div className="grid xl:grid-cols-2 gap-4">
+            <ValueAnalyticsTopTable<TopConsumedItem>
+              title={t.topConsumed}
+              rows={data.topConsumedItems}
+              columns={[
+                { key: 'rank', header: t.colRank },
+                {
+                  key: 'namePt',
+                  header: t.colItem,
+                  render: (row) => localizedName(row, lang),
+                },
+                {
+                  key: 'categoryPt',
+                  header: t.colCategory,
+                  render: (row) => localizedCategory(row, lang),
+                },
+                {
+                  key: 'consumedQuantity',
+                  header: t.colQuantity,
+                  align: 'right',
+                },
+                {
+                  key: 'amount',
+                  header: t.colAmount,
+                  align: 'right',
+                  render: (row) => formatMoney(row.amount),
+                },
+              ]}
+            />
+
+            <ValueAnalyticsTopTable<StockReferenceItem>
+              title={t.stockReference}
+              rows={data.stockReferenceItems}
+              columns={[
+                { key: 'rank', header: t.colRank },
+                {
+                  key: 'namePt',
+                  header: t.colItem,
+                  render: (row) => localizedName(row, lang),
+                },
+                {
+                  key: 'categoryPt',
+                  header: t.colCategory,
+                  render: (row) => localizedCategory(row, lang),
+                },
+                {
+                  key: 'consumedQuantity7d',
+                  header: t.colQuantity7d,
+                  align: 'right',
+                },
+                {
+                  key: 'tag',
+                  header: t.colTag,
+                  render: () => t.tagStock,
+                },
+              ]}
+              footer={<p className="text-[13px] text-brand-text-muted">{t.stockDisclaimer}</p>}
+            />
+          </div>
         </div>
       ) : null}
     </div>

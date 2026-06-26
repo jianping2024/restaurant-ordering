@@ -96,9 +96,9 @@ export function ValueAnalyticsTrendChart({
   tooltipLabels,
 }: Props) {
   return (
-    <section className="bg-brand-card border border-brand-border rounded-xl p-4">
-      <h2 className="text-[15px] font-medium text-brand-text mb-4">{title}</h2>
-      <div className="h-[240px] w-full">
+    <section className="bg-brand-card border border-brand-border rounded-2xl p-5 sm:p-6 shadow-sm h-full">
+      <h2 className="font-heading text-lg text-brand-gold mb-4">{title}</h2>
+      <div className="h-[220px] sm:h-[240px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-brand-border" />

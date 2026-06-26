@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
-import { buildBuffetBaseLine, parseResolvedBuffetPriceRpcRow } from '@/lib/buffet-order';
+import { buildBuffetBaseLine, isBuffetHeadcountUnchanged, parseResolvedBuffetPriceRpcRow } from '@/lib/buffet-order';
 import { applyBuffetOpenToSession, mapToBuffetSessionOrders } from '@/lib/buffet-open-table';
 import { fetchWaiterTableDetail } from '@/lib/staff-board';
 import { createAdminClient } from '@/lib/supabase/admin';
+import type { Order } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { findActiveTableSession, openTableSessionIfAbsent } from '@/lib/table-session-open';
 
@@ -51,13 +52,7 @@ export async function POST(
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
-  const at = new Date().toISOString();
-  const [
-    { data: tableRow },
-    { data: buffet, error: buffetErr },
-    { data: priceRows, error: priceError },
-    existingSession,
-  ] = await Promise.all([
+  const [{ data: tableRow }, { data: buffet, error: buffetErr }, existingSession] = await Promise.all([
     admin
       .from('restaurant_tables')
       .select('id, display_name')
@@ -72,11 +67,6 @@ export async function POST(
       .eq('restaurant_id', ctx.restaurant_id)
       .eq('is_active', true)
       .maybeSingle(),
-    admin.rpc('resolve_buffet_prices', {
-      p_restaurant_id: ctx.restaurant_id,
-      p_buffet_id: buffetId,
-      p_at: at,
-    }),
     findActiveTableSession(admin, ctx.restaurant_id, tableId),
   ]);
 
@@ -88,21 +78,7 @@ export async function POST(
     return NextResponse.json({ error: 'buffet_not_found' }, { status: 404 });
   }
 
-  if (priceError) {
-    return NextResponse.json({ error: 'price_resolve_failed', message: priceError.message }, { status: 500 });
-  }
-
   const displayName = tableRow.display_name as string;
-  const line = buildBuffetBaseLine({
-    buffet,
-    adultCount,
-    childCount,
-    resolved: parseResolvedBuffetPriceRpcRow(priceRows),
-  });
-
-  if (!line) {
-    return NextResponse.json({ error: 'no_price_rule' }, { status: 400 });
-  }
 
   const ensured = await openTableSessionIfAbsent(
     admin,
@@ -127,7 +103,7 @@ export async function POST(
 
   const sessionId = session.id as string;
 
-  const { data: sessionOrders, error: sessionOrdersErr } = await admin
+  const { data: sessionOrderRows, error: sessionOrdersErr } = await admin
     .from('orders')
     .select('id, items, updated_at, table_id, created_at, status')
     .eq('session_id', sessionId)
@@ -140,25 +116,51 @@ export async function POST(
     );
   }
 
-  const applied = await applyBuffetOpenToSession(admin, {
-    restaurantId: ctx.restaurant_id,
-    sessionId,
-    tableId,
-    displayName,
-    line,
-    sessionOrders: mapToBuffetSessionOrders(sessionOrders || []),
-  });
+  const sessionOrders = mapToBuffetSessionOrders(sessionOrderRows || []);
+  const unchanged = isBuffetHeadcountUnchanged(sessionOrders as Order[], buffetId, adultCount, childCount);
 
-  if (!applied.ok) {
-    if (applied.code === 'conflict') {
-      return NextResponse.json({ error: 'conflict' }, { status: 409 });
+  if (!unchanged) {
+    const { data: priceRows, error: priceError } = await admin.rpc('resolve_buffet_prices', {
+      p_restaurant_id: ctx.restaurant_id,
+      p_buffet_id: buffetId,
+      p_at: new Date().toISOString(),
+    });
+
+    if (priceError) {
+      return NextResponse.json({ error: 'price_resolve_failed', message: priceError.message }, { status: 500 });
     }
-    return NextResponse.json(
-      { error: applied.code, message: applied.message },
-      { status: 500 },
-    );
+
+    const line = buildBuffetBaseLine({
+      buffet,
+      adultCount,
+      childCount,
+      resolved: parseResolvedBuffetPriceRpcRow(priceRows),
+    });
+
+    if (!line) {
+      return NextResponse.json({ error: 'no_price_rule' }, { status: 400 });
+    }
+
+    const applied = await applyBuffetOpenToSession(admin, {
+      restaurantId: ctx.restaurant_id,
+      sessionId,
+      tableId,
+      displayName,
+      line,
+      sessionOrders,
+    });
+
+    if (!applied.ok) {
+      if (applied.code === 'conflict') {
+        return NextResponse.json({ error: 'conflict' }, { status: 409 });
+      }
+      return NextResponse.json(
+        { error: applied.code, message: applied.message },
+        { status: 500 },
+      );
+    }
   }
 
   const detail = await fetchWaiterTableDetail(admin, ctx.restaurant_id, tableId);
-  return NextResponse.json({ ok: true, detail });
+  return NextResponse.json({ ok: true, detail, ...(unchanged ? { unchanged: true } : {}) });
 }

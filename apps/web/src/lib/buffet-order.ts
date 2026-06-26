@@ -72,6 +72,20 @@ export function aggregateBuffetForOrders(
   };
 }
 
+/** True when active buffet headcount and type match the open-table request (no DB write needed). */
+export function isBuffetHeadcountUnchanged(
+  orders: Array<Pick<Order, 'items' | 'status'>>,
+  buffetId: string,
+  adultCount: number,
+  childCount: number,
+): boolean {
+  const agg = aggregateBuffetForOrders(orders as Order[]);
+  if (!agg) return false;
+  const adults = Math.max(0, Math.floor(adultCount));
+  const children = Math.max(0, Math.floor(childCount));
+  return agg.buffetId === buffetId && agg.adults === adults && agg.children === children;
+}
+
 /** Compact adult/child headcount, e.g. A7 C3 (matches waiter buffet summary). */
 export function formatBuffetHeadcountLabel(adults: number, children: number): string {
   return `A${adults} C${children}`;

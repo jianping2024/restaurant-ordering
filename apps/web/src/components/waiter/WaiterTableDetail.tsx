@@ -8,6 +8,7 @@ import {
   aggregateBuffetForOrders,
   buildBuffetBaseLine,
   formatBuffetSummaryLine,
+  isBuffetHeadcountUnchanged,
   parseResolvedBuffetPriceRpcRow,
   type ResolvedBuffetPriceRow,
 } from '@/lib/buffet-order';
@@ -610,7 +611,7 @@ function WaiterTableDetailInner({
     embeddedInDashboard && !isCheckoutPending && (selectedCard.orderLines.length > 0 || selectedCard.hasBuffet);
 
   const applyBuffetToTable = async () => {
-    if (!buffetId || !buffetResolved) return;
+    if (!buffetId) return;
     if (isCheckoutPending) {
       notifyCheckoutLocked();
       return;
@@ -618,6 +619,16 @@ function WaiterTableDetailInner({
 
     const buffet = activeBuffets.find((b) => b.id === buffetId);
     if (!buffet) return;
+
+    if (isBuffetHeadcountUnchanged(tableOrders, buffetId, buffetAdults, buffetChildren)) {
+      showToast(t.buffetHeadcountUnchanged, 'info');
+      return;
+    }
+
+    if (!buffetResolved) {
+      showToast(t.buffetNoRule, 'error');
+      return;
+    }
 
     const line = buildBuffetBaseLine({
       buffet,

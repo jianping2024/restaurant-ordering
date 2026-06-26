@@ -675,7 +675,7 @@ export const MESSAGES = {
       hintFeatures: '勾选要在后台侧栏显示的可选功能；默认关闭，按需开启。',
       hintMenu: '先建分类与菜品，在「出品档口」Tab 定义窗口并绑定；打印机配对见「打印助手」。',
       hintBuffet: '配置自助餐方案、时段与节假日价格规则；与菜单分类独立，用于按人/时段计价。',
-      hintPrintAssistant: '下载打印助手、配对打印机、查看打印队列。档口在菜单管理里配置，configure 将档口映射到本机打印机。',
+      hintPrintAssistant: '下载打印助手并配对打印机。档口在菜单管理里配置，configure 将档口映射到本机打印机。',
       tabProfile: '基本资料',
       tabFeatures: '功能管理',
       tabStaff: '员工管理',
@@ -1558,7 +1558,7 @@ export const MESSAGES = {
       hintMenu:
         'Categories, dishes, and print stations (stations tab). Pair physical printers under Print assistant.',
       hintBuffet: 'Buffet plans, time slots, and holiday price rules. Separate from menu categories; used for per-guest pricing.',
-      hintPrintAssistant: 'Download the print agent, pair printers, and view the job queue. Configure stations in Menu; map printers via configure.',
+      hintPrintAssistant: 'Download the print agent and pair printers. Configure stations in Menu; map printers via configure.',
       tabProfile: 'Profile',
       tabFeatures: 'Features',
       tabStaff: 'Staff',
@@ -2249,7 +2249,7 @@ export const MESSAGES = {
       hintMenu:
         'Categorias, pratos e estacoes (separador Estacoes). Emparelhe impressoras em Assistente de impressao.',
       hintBuffet: 'Planos buffet, horarios e precos em feriados. Separado das categorias do menu.',
-      hintPrintAssistant: 'Descarregar o agente, emparelhar impressoras e ver a fila. Estacoes no Menu; mapeamento no configure.',
+      hintPrintAssistant: 'Descarregar o agente e emparelhar impressoras. Estacoes no Menu; mapeamento no configure.',
       tabProfile: 'Dados',
       tabFeatures: 'Funcionalidades',
       tabStaff: 'Equipa',

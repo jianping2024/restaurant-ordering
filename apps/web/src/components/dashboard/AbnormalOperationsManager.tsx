@@ -21,6 +21,7 @@ import {
   addCalendarDays,
   calendarDateInTimezone,
 } from '@/lib/abnormal-operations';
+import { mergePatchedAbnormalOperationRow } from '@/lib/abnormal-operations/list-patch-merge';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 
 const REFRESH_COOLDOWN_MS = 60_000;
@@ -161,6 +162,7 @@ export function AbnormalOperationsManager() {
     owner_note?: string | null;
   }) => {
     if (!selected) return;
+    const previous = selected;
     setPatching(true);
     const result = await patchAbnormalOperationClient(selected.id, patch);
     setPatching(false);
@@ -169,7 +171,16 @@ export function AbnormalOperationsManager() {
       return;
     }
     closeDetail();
-    void load();
+    setData((prev) =>
+      prev
+        ? mergePatchedAbnormalOperationRow(
+            prev,
+            previous,
+            result.row,
+            debouncedFilters.status,
+          )
+        : prev,
+    );
   };
 
   const stats = data?.stats;

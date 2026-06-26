@@ -5,8 +5,6 @@ import {
   defaultPrintAgentCloudConfig,
   normalizePrintAgentCloudConfig,
 } from '@/lib/print-agent-config';
-import type { PrintJobSummary } from '@/types';
-import { PrintJobsQueuePanel } from '@/components/dashboard/PrintJobsQueuePanel';
 import { PrintAgentDownloadPanel } from '@/components/dashboard/PrintAgentDownloadPanel';
 import {
   findLatestPublishedPrintAgentRelease,
@@ -54,17 +52,6 @@ export default async function PrintAssistantSettingsPage() {
     /* use defaults */
   }
 
-  const { data: jobRows, error: jobsError, count: jobsCount } = await supabase
-    .from('print_jobs')
-    .select('id, type, status, created_at, error_message, table_display, table_id', { count: 'exact' })
-    .eq('restaurant_id', rid)
-    .order('created_at', { ascending: false })
-    .range(0, 9);
-
-  const initialJobs: PrintJobSummary[] = jobsError
-    ? []
-    : ((jobRows || []) as PrintJobSummary[]);
-
   const siteOrigin = getSiteOrigin();
   const downloadUrls = siteOrigin ? getPrintAgentDownloadUrls(siteOrigin) : null;
   const printAgentVersion = getPrintAgentVersion();
@@ -90,7 +77,6 @@ export default async function PrintAssistantSettingsPage() {
         recommendedVersion={printAgentVersion || ''}
       />
       <PrintAgentPairingPanel />
-      <PrintJobsQueuePanel initialJobs={initialJobs} initialTotal={jobsError ? 0 : jobsCount || 0} />
       {downloadUrls ? (
         <PrintAgentDownloadPanel
           urls={downloadUrls}

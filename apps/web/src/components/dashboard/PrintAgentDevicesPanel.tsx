@@ -59,13 +59,14 @@ export function PrintAgentDevicesPanel({
         method: 'POST',
         credentials: 'include',
       });
-      const json = (await res.json()) as { error?: string };
+      const json = (await res.json()) as { error?: string; id?: string };
       if (!res.ok) {
         setError(json.error || 'revoke_failed');
         return;
       }
+      const revokedId = json.id ?? target.id;
       setRevokeTarget(null);
-      await refresh();
+      setDevices((prev) => prev.filter((d) => d.id !== revokedId));
     } catch {
       setError('network');
     } finally {

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -24,7 +23,6 @@ export function FeatureFlagsManager({
   initialFlags,
   initialCredentialTtlDays,
 }: Props) {
-  const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).featureSettings;
   const [flags, setFlags] = useState(initialFlags);
@@ -45,16 +43,23 @@ export function FeatureFlagsManager({
         body: JSON.stringify({ flags, credentialTtlDays }),
       });
 
+      const json = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        flags?: ResolvedRestaurantFeatureFlags;
+        credentialTtlDays?: number;
+      };
+
       if (!res.ok) {
-        const json = (await res.json().catch(() => ({}))) as { error?: string };
         if (json.error === 'migration_required') setError(t.migrationRequired);
         else if (json.error === 'invalid_credential_ttl_days') setError(t.credentialTtlDaysInvalid);
         else setError(t.saveFail);
         return;
       }
 
+      if (json.flags) setFlags(json.flags);
+      if (json.credentialTtlDays != null) setCredentialTtlDays(json.credentialTtlDays);
+
       setSuccess(true);
-      router.refresh();
       setTimeout(() => setSuccess(false), 3000);
     } catch {
       setError(t.saveFail);

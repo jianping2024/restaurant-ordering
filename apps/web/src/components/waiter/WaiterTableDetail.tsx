@@ -311,6 +311,7 @@ function WaiterTableDetailInner({
     () => ({ isDemo, embeddedInDashboard }),
     [isDemo, embeddedInDashboard],
   );
+  const pageShellClass = embeddedInDashboard ? '' : 'min-h-screen bg-brand-bg p-4';
   const boardHref = waiterBoardHref(restaurant.slug, routeOptions);
   const menuHref = waiterMenuHref(restaurant.slug, tableId, routeOptions);
 
@@ -475,7 +476,7 @@ function WaiterTableDetailInner({
 
   if (!isDemo && !detailLoaded) {
     return (
-      <div className={embeddedInDashboard ? '' : 'min-h-screen bg-brand-bg p-4'}>
+      <div className={pageShellClass}>
         <div className="mb-6">
           <Link href={boardHref} className={waiterUi.navLink}>
             ← {t.backToBoard}
@@ -486,22 +487,30 @@ function WaiterTableDetailInner({
             </h1>
           ) : null}
         </div>
-        <div
-          className="rounded-2xl border border-brand-border/50 bg-brand-card/70 p-6 animate-pulse"
-          aria-busy="true"
-          aria-label={t.tableDetailLoading}
-        >
-          <div className="h-5 w-48 rounded bg-brand-border/60 mb-4" />
-          <div className="h-24 rounded bg-brand-border/40" />
-        </div>
-        <p className="text-sm text-brand-text-muted mt-3">{t.tableDetailLoading}</p>
+        {embeddedInDashboard ? (
+          <p className="text-sm text-brand-text-muted" aria-busy="true">
+            {t.tableDetailLoading}
+          </p>
+        ) : (
+          <>
+            <div
+              className="rounded-2xl border border-brand-border/50 bg-brand-card/70 p-6 animate-pulse"
+              aria-busy="true"
+              aria-label={t.tableDetailLoading}
+            >
+              <div className="h-5 w-48 rounded bg-brand-border/60 mb-4" />
+              <div className="h-24 rounded bg-brand-border/40" />
+            </div>
+            <p className="text-sm text-brand-text-muted mt-3">{t.tableDetailLoading}</p>
+          </>
+        )}
       </div>
     );
   }
 
   if (!isDemo && detailLoaded && !selectedTable) {
     return (
-      <div className={embeddedInDashboard ? '' : 'min-h-screen bg-brand-bg p-4'}>
+      <div className={pageShellClass}>
         {!embeddedInDashboard ? (
           <StaffRoleToolbar exitLabel={exitLabel} onSignOut={handleSignOut} />
         ) : null}
@@ -773,8 +782,17 @@ function WaiterTableDetailInner({
     }
   };
 
+  const tableUpdatedLabel = selectedCard.updatedAt
+    ? new Date(selectedCard.updatedAt).toLocaleString(locale, {
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+    : '-';
+
   return (
-    <div className={embeddedInDashboard ? '' : 'min-h-screen bg-brand-bg p-4'}>
+    <div className={pageShellClass}>
       {isDemo && (
         <div className="mb-4 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3">
           <p className="text-[13px] text-brand-text">
@@ -821,30 +839,30 @@ function WaiterTableDetailInner({
             <p className="text-brand-text-muted text-sm mt-1">{t.boardTitle}</p>
           </>
         ) : (
-          <h1 className="font-heading text-2xl text-brand-gold mt-2">
-            {t.detailsTitle} · {t.table} {selectedCard.displayName}
-          </h1>
+          <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h1 className="font-heading text-2xl text-brand-gold">
+              {t.detailsTitle} · {t.table} {selectedCard.displayName}
+            </h1>
+            <span className="text-[13px] text-brand-text-muted tabular-nums">{tableUpdatedLabel}</span>
+          </div>
         )}
       </div>
 
-      <div className="rounded-2xl p-4 border border-brand-border/50 bg-brand-card shadow-sm shadow-black/5">
-        <div className="flex items-center justify-between mb-3">
-          {!embeddedInDashboard ? (
-            <h2 className="font-heading text-2xl text-brand-text">{t.detailsTitle} - {t.table} {selectedCard.displayName}</h2>
-          ) : (
-            <h2 className="font-heading text-lg text-brand-text">{t.boardTitle}</h2>
-          )}
-          <span className="text-[13px] text-brand-text-muted">
-            {selectedCard.updatedAt
-              ? new Date(selectedCard.updatedAt).toLocaleString(locale, {
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-              })
-              : '-'}
-          </span>
-        </div>
+      <div
+        className={
+          embeddedInDashboard
+            ? 'space-y-4'
+            : 'rounded-2xl p-4 border border-brand-border/50 bg-brand-card shadow-sm shadow-black/5'
+        }
+      >
+        {!embeddedInDashboard ? (
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-heading text-2xl text-brand-text">
+              {t.detailsTitle} - {t.table} {selectedCard.displayName}
+            </h2>
+            <span className="text-[13px] text-brand-text-muted tabular-nums">{tableUpdatedLabel}</span>
+          </div>
+        ) : null}
 
         {isCheckoutPending && (
           <div

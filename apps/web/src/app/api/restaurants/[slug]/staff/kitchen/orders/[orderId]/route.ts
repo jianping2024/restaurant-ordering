@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { loadStaffAuditActor } from '@/lib/audit';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
-import { deriveOrderStatusFromItems } from '@/lib/order-status';
+import { patchOrderItemsWithVoidAudit } from '@/lib/order-item-void/patch-order-items.service';
 import { createAdminClient } from '@/lib/supabase/admin';
-import type { OrderItem } from '@/types';
+import type { Order, OrderItem } from '@/types';
 
 export const runtime = 'nodejs';
 
@@ -21,7 +22,12 @@ export async function PATCH(
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
-  let body: { items?: unknown; updated_at?: unknown };
+  let body: {
+    items?: unknown;
+    updated_at?: unknown;
+    void_reason?: unknown;
+    void_reason_detail?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
@@ -40,7 +46,9 @@ export async function PATCH(
     }
   }
 
-  const nextStatus = deriveOrderStatusFromItems(items);
+  const voidReason = typeof body.void_reason === 'string' ? body.void_reason : null;
+  const voidReasonDetail =
+    typeof body.void_reason_detail === 'string' ? body.void_reason_detail : null;
 
   let admin;
   try {
@@ -51,7 +59,7 @@ export async function PATCH(
 
   const { data: existing, error: findErr } = await admin
     .from('orders')
-    .select('id, restaurant_id, updated_at')
+    .select('id, restaurant_id, updated_at, session_id, table_id, display_name, items, status')
     .eq('id', orderId)
     .maybeSingle();
 
@@ -63,20 +71,43 @@ export async function PATCH(
     return NextResponse.json({ error: 'conflict' }, { status: 409 });
   }
 
-  const { data: updated, error: updErr } = await admin
-    .from('orders')
-    .update({
-      items,
-      status: nextStatus,
-    })
-    .eq('id', orderId)
-    .eq('updated_at', body.updated_at)
-    .select('id, items, status, updated_at, table_id, display_name, session_id, created_at, restaurant_id, total_amount')
-    .maybeSingle();
+  const actor = await loadStaffAuditActor(admin, {
+    restaurantId: ctx.restaurant_id,
+    userId: ctx.user_id,
+    role: ctx.role,
+  });
 
-  if (updErr || !updated) {
-    return NextResponse.json({ error: 'conflict' }, { status: 409 });
+  const result = await patchOrderItemsWithVoidAudit({
+    admin,
+    restaurantId: ctx.restaurant_id,
+    actor,
+    orderId,
+    existing: {
+      items: (existing.items || []) as OrderItem[],
+      updated_at: existing.updated_at as string,
+      session_id: existing.session_id as string | null,
+      table_id: existing.table_id as string | null,
+      display_name: existing.display_name as string | null,
+      status: existing.status as Order['status'],
+    },
+    nextItems: items,
+    voidReason,
+    voidReasonDetail,
+  });
+
+  if (!result.ok) {
+    if (
+      result.code === 'reason_required' ||
+      result.code === 'invalid_reason' ||
+      result.code === 'reason_detail_required'
+    ) {
+      return NextResponse.json({ error: result.code }, { status: 400 });
+    }
+    if (result.code === 'conflict') {
+      return NextResponse.json({ error: 'conflict' }, { status: 409 });
+    }
+    return NextResponse.json({ error: result.code }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, order: updated });
+  return NextResponse.json({ ok: true, order: result.order });
 }

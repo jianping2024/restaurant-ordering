@@ -8,6 +8,9 @@ export {
 } from '@/lib/audit/reasons';
 export {
   frontdeskAuditActor,
+  loadStaffAuditActor,
   ownerAuditActor,
   resolveOwnerOperatorName,
+  staffAuditActor,
 } from '@/lib/audit/resolve-actor';
+export { VOID_ITEM_REASONS } from '@/lib/audit/reasons';

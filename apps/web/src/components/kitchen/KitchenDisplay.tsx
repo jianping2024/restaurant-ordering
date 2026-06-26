@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client';
 import type { Order, OrderItemStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
+import { voidItemReasonOptions } from '@/lib/void-item-reason-labels';
 import { deriveOrderStatusFromItems, itemsEveryVoided, normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { StaffAuthenticatedShell, type StaffShellContext } from '@/components/staff/StaffAuthenticatedShell';
@@ -78,12 +80,17 @@ function KitchenDisplayInner({
 }: Props & StaffShellContext) {
   const { lang } = useLanguage();
   const t = getMessages(lang).kitchen;
+  const orderHistoryI18n = getMessages(lang).orderHistory;
+  const voidItemReasonOptionsList = useMemo(() => voidItemReasonOptions(lang), [lang]);
   const demoText = KITCHEN_DEMO_TEXT[lang];
   const locale = UI_LOCALE_BY_LANG[lang];
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [activeTableIds, setActiveTableIds] = useState<string[]>(initialActiveTableIds);
   const [tableMetaById, setTableMetaById] = useState<Map<string, RestaurantTableRow>>(new Map());
   const [updateConflict, setUpdateConflict] = useState(false);
+  const [pendingVoid, setPendingVoid] = useState<{ order: Order; itemIdx: number } | null>(null);
+  const [voidReasonError, setVoidReasonError] = useState<string | null>(null);
+  const [voidingItem, setVoidingItem] = useState(false);
   const prevOrderIds = useRef<Set<string>>(new Set(initialOrders.map((o) => o.id)));
   const supabase = createClient(); // demo realtime only
 
@@ -153,6 +160,12 @@ function KitchenDisplayInner({
 
   // 更新菜品级状态，并同步订单总状态（pending/cooking/done）
   const updateItemStatus = async (order: Order, itemIdx: number, nextStatus: OrderItemStatus) => {
+    if (nextStatus === 'voided' && !isDemo) {
+      setVoidReasonError(null);
+      setPendingVoid({ order, itemIdx });
+      return;
+    }
+
     setUpdateConflict(false);
     const nextItems = order.items.map((item, idx) => {
       if (idx !== itemIdx) return item;
@@ -213,6 +226,65 @@ function KitchenDisplayInner({
     }
 
     throw new Error('kitchen_update_failed');
+  };
+
+  const performKitchenVoid = async (reason: string, detail: string) => {
+    if (!pendingVoid) return;
+    const { order, itemIdx } = pendingVoid;
+    setVoidingItem(true);
+    setVoidReasonError(null);
+    setUpdateConflict(false);
+    try {
+      const nextItems = order.items.map((item, idx) => {
+        if (idx !== itemIdx) return item;
+        return {
+          ...item,
+          item_status: 'voided' as const,
+          voided_at: new Date().toISOString(),
+          void_reason: reason,
+        };
+      });
+
+      const res = await fetch(
+        `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/kitchen/orders/${order.id}`,
+        {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: nextItems,
+            updated_at: order.updated_at,
+            void_reason: reason,
+            void_reason_detail: detail || undefined,
+          }),
+        },
+      );
+
+      if (res.ok) {
+        setPendingVoid(null);
+        await refreshKitchenBoard();
+        return;
+      }
+
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (res.status === 400 && data.error === 'reason_detail_required') {
+        setVoidReasonError(orderHistoryI18n.voidItemReasonDetailRequired);
+        return;
+      }
+      if (res.status === 400 && (data.error === 'reason_required' || data.error === 'invalid_reason')) {
+        setVoidReasonError(orderHistoryI18n.voidItemReasonRequired);
+        return;
+      }
+      if (res.status === 409) {
+        setUpdateConflict(true);
+        await refreshKitchenBoard();
+        return;
+      }
+
+      throw new Error('kitchen_update_failed');
+    } finally {
+      setVoidingItem(false);
+    }
   };
 
   useRestaurantRealtimeRefresh(
@@ -297,6 +369,29 @@ function KitchenDisplayInner({
         </div>
       )}
 
+      <ReasonConfirmDialog
+        open={pendingVoid != null}
+        onClose={() => {
+          setPendingVoid(null);
+          setVoidReasonError(null);
+        }}
+        title={orderHistoryI18n.voidItemReasonTitle}
+        message={orderHistoryI18n.voidItemReasonMessage}
+        reasonLabel={orderHistoryI18n.voidItemReasonLabel}
+        detailLabel={orderHistoryI18n.voidItemReasonDetailLabel}
+        detailPlaceholder={orderHistoryI18n.voidItemReasonDetailPlaceholder}
+        confirmLabel={t.voidItem}
+        cancelLabel={orderHistoryI18n.closeTableCancel}
+        reasonRequiredError={orderHistoryI18n.voidItemReasonRequired}
+        detailRequiredError={orderHistoryI18n.voidItemReasonDetailRequired}
+        reasons={voidItemReasonOptionsList}
+        reasonGroup="void_item"
+        confirming={voidingItem}
+        externalError={voidReasonError}
+        onConfirm={async (reason, detail) => {
+          await performKitchenVoid(reason, detail);
+        }}
+      />
     </div>
   );
 }

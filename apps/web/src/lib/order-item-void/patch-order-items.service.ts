@@ -1,0 +1,124 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { AUDIT_EVENT, recordAudit } from '@/lib/audit';
+import type { ItemDeletedAuditContext } from '@/lib/audit/builders/item-deleted';
+import { itemLineAmount } from '@/lib/audit/builders/item-deleted';
+import type { AuditActor } from '@/lib/audit/types';
+import { detectNewlyVoidedItems } from '@/lib/order-item-void/detect-newly-voided';
+import { validateVoidItemReason } from '@/lib/order-item-void/validate-void-reason';
+import { deriveOrderStatusFromItems } from '@/lib/order-status';
+import type { Order, OrderItem } from '@/types';
+
+export type PatchOrderItemsInput = {
+  admin: SupabaseClient;
+  restaurantId: string;
+  actor: AuditActor;
+  orderId: string;
+  existing: {
+    items: OrderItem[];
+    updated_at: string;
+    session_id?: string | null;
+    table_id?: string | null;
+    display_name?: string | null;
+    status?: Order['status'];
+  };
+  nextItems: OrderItem[];
+  voidReason?: string | null;
+  voidReasonDetail?: string | null;
+};
+
+export type PatchOrderItemsResult =
+  | { ok: true; order: Order }
+  | {
+      ok: false;
+      code:
+        | 'conflict'
+        | 'reason_required'
+        | 'invalid_reason'
+        | 'reason_detail_required'
+        | 'update_failed';
+    };
+
+function applyVoidReasonToItems(
+  items: OrderItem[],
+  newlyVoidedIndexes: number[],
+  reason: string,
+): OrderItem[] {
+  if (newlyVoidedIndexes.length === 0) return items;
+  return items.map((item, index) =>
+    newlyVoidedIndexes.includes(index) ? { ...item, void_reason: reason } : item,
+  );
+}
+
+function toAuditContext(
+  order: Pick<Order, 'id' | 'session_id' | 'table_id' | 'display_name'>,
+  row: ReturnType<typeof detectNewlyVoidedItems>[number],
+): ItemDeletedAuditContext {
+  return {
+    orderId: order.id,
+    sessionId: order.session_id ?? null,
+    tableId: order.table_id ?? null,
+    tableName: order.display_name ?? null,
+    itemIndex: row.itemIndex,
+    itemId: row.before.id,
+    itemName: row.before.name,
+    itemStatusBefore: row.statusBefore,
+    qty: row.before.qty,
+    lineAmount: itemLineAmount(row.before),
+  };
+}
+
+export async function patchOrderItemsWithVoidAudit(
+  input: PatchOrderItemsInput,
+): Promise<PatchOrderItemsResult> {
+  const newlyVoided = detectNewlyVoidedItems(
+    input.existing.items,
+    input.nextItems,
+    input.existing.status ?? 'pending',
+  );
+
+  const reasonValidation = validateVoidItemReason(
+    newlyVoided,
+    input.voidReason,
+    input.voidReasonDetail,
+  );
+  if (!reasonValidation.ok) {
+    return { ok: false, code: reasonValidation.code };
+  }
+
+  const trimmedReason = input.voidReason?.trim() ?? '';
+  const trimmedDetail = input.voidReasonDetail?.trim() || null;
+  const itemsToSave = applyVoidReasonToItems(
+    input.nextItems,
+    newlyVoided.map((row) => row.itemIndex),
+    trimmedReason,
+  );
+  const nextStatus = deriveOrderStatusFromItems(itemsToSave);
+
+  const { data: updated, error: updErr } = await input.admin
+    .from('orders')
+    .update({ items: itemsToSave, status: nextStatus })
+    .eq('id', input.orderId)
+    .eq('restaurant_id', input.restaurantId)
+    .eq('updated_at', input.existing.updated_at)
+    .select('*')
+    .maybeSingle();
+
+  if (updErr || !updated) {
+    return { ok: false, code: 'conflict' };
+  }
+
+  if (newlyVoided.length > 0 && trimmedReason) {
+    const orderRow = updated as Order;
+    for (const row of newlyVoided) {
+      await recordAudit(input.admin, AUDIT_EVENT.ITEM_DELETED, {
+        restaurantId: input.restaurantId,
+        actor: input.actor,
+        context: toAuditContext(orderRow, row),
+        reason: trimmedReason,
+        reasonDetail: trimmedDetail,
+      });
+    }
+  }
+
+  return { ok: true, order: updated as Order };
+}

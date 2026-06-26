@@ -30,6 +30,7 @@ import {
 } from '@/lib/checkout-request-state';
 import { formatPortugueseNif } from '@/lib/pt-nif';
 import { tableIdsEqual } from '@/lib/restaurant-tables';
+import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
 
 /** Fallback when Realtime is delayed; only runs while the tab is visible. */
 const CHECKOUT_REQUESTS_POLL_MS = 30_000;
@@ -52,6 +53,8 @@ interface Props {
   restaurantSlug?: string;
   /** Frontdesk: show receipt printer picker on checkout. */
   showPrinterSettings?: boolean;
+  /** Owner or frontdesk may force-close unpaid tables from checkout. */
+  canCloseTable?: boolean;
   /** Deep link from owner waiter board: auto-open this table's checkout request. */
   initialTableId?: string;
 }
@@ -61,6 +64,7 @@ export function CheckoutRequestsManager({
   restaurantId,
   restaurantSlug,
   showPrinterSettings = true,
+  canCloseTable = false,
   initialTableId,
 }: Props) {
   const [requests, setRequests] = useState<BillSplit[]>(initialRequests);
@@ -425,6 +429,19 @@ export function CheckoutRequestsManager({
           </div>
         </div>
       )}
+      {canCloseTable ? (
+        <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-brand-border/50 pt-4">
+          <CloseTableSessionAction
+            tableId={selectedRequest.table_id}
+            isCheckoutPending
+            onClosed={() => {
+              setSelectedRequestId(null);
+              void refreshCheckoutRequests();
+            }}
+            className="text-sm font-medium px-4 py-2 rounded-lg border border-red-500/40 text-red-600 dark:text-red-300 hover:bg-red-500/10 disabled:opacity-50 transition-colors"
+          />
+        </div>
+      ) : null}
     </div>
   ) : null;
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
-import { requiresAbnormalReasonDetail } from '@/lib/audit/reasons';
+import { requiresAbnormalReasonDetail, type AbnormalReasonGroup } from '@/lib/audit/reasons';
 
 export type ReasonOption = { value: string; label: string };
 
@@ -20,6 +20,8 @@ export interface ReasonConfirmDialogProps {
   reasonRequiredError: string;
   detailRequiredError: string;
   reasons: ReasonOption[];
+  reasonGroup?: AbnormalReasonGroup;
+  voidItemWasServed?: boolean;
   onConfirm: (reason: string, detail: string) => void | Promise<void>;
   confirming?: boolean;
   externalError?: string | null;
@@ -38,6 +40,8 @@ export function ReasonConfirmDialog({
   reasonRequiredError,
   detailRequiredError,
   reasons,
+  reasonGroup = 'unpaid_close',
+  voidItemWasServed = false,
   onConfirm,
   confirming = false,
   externalError = null,
@@ -55,7 +59,7 @@ export function ReasonConfirmDialog({
   }, [open]);
 
   const needsDetail = reason
-    ? requiresAbnormalReasonDetail('unpaid_close', reason)
+    ? requiresAbnormalReasonDetail(reasonGroup, reason, { voidItemWasServed })
     : false;
 
   const handleConfirm = () => {

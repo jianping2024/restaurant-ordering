@@ -8,6 +8,7 @@ interface Props {
   restaurantId: string;
   restaurantSlug: string;
   showPrinterSettings?: boolean;
+  canCloseTable?: boolean;
   initialTableId?: string;
 }
 
@@ -16,6 +17,7 @@ export function CheckoutRequestsPageClient({
   restaurantId,
   restaurantSlug,
   showPrinterSettings,
+  canCloseTable,
   initialTableId,
 }: Props) {
   return (
@@ -24,6 +26,7 @@ export function CheckoutRequestsPageClient({
       restaurantId={restaurantId}
       restaurantSlug={restaurantSlug}
       showPrinterSettings={showPrinterSettings}
+      canCloseTable={canCloseTable}
       initialTableId={initialTableId}
     />
   );

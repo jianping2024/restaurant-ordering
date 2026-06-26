@@ -39,8 +39,8 @@ import { waiterBoardHref, waiterTableHref, waiterMenuHref } from '@/lib/staff-ro
 import { requestDashboardCheckoutRequest } from '@/lib/request-dashboard-checkout-request';
 import type { WaiterTableDetailData } from '@/lib/staff-board';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
-import { interpretCloseTableSessionResponse } from '@/lib/close-table-session-ui';
-import { unpaidCloseReasonOptions } from '@/lib/unpaid-close-reason-labels';
+import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
+import { voidItemReasonOptions } from '@/lib/void-item-reason-labels';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -82,7 +82,7 @@ function WaiterTableDetailInner({
   const locale = UI_LOCALE_BY_LANG[lang];
   const t = WAITER_TEXT[lang];
   const orderHistoryI18n = getMessages(lang).orderHistory;
-  const unpaidCloseReasonOptionsList = useMemo(() => unpaidCloseReasonOptions(lang), [lang]);
+  const voidItemReasonOptionsList = useMemo(() => voidItemReasonOptions(lang), [lang]);
   const initialDetail = initialTableDetail?.table ? initialTableDetail : null;
   const {
     table: selectedTable,
@@ -112,10 +112,13 @@ function WaiterTableDetailInner({
   const [actionTargets, setActionTargets] = useState<RestaurantTableRow[]>([]);
   const [actionTargetsLoading, setActionTargetsLoading] = useState(false);
   const [operating, setOperating] = useState(false);
-  const [closingTable, setClosingTable] = useState<string | null>(null);
-  const [checkoutCloseConfirmTableId, setCheckoutCloseConfirmTableId] = useState<string | null>(null);
-  const [unpaidCloseReasonTableId, setUnpaidCloseReasonTableId] = useState<string | null>(null);
-  const [unpaidCloseReasonError, setUnpaidCloseReasonError] = useState<string | null>(null);
+  const [closingDemoTable, setClosingDemoTable] = useState<string | null>(null);
+  const [demoCloseConfirmTableId, setDemoCloseConfirmTableId] = useState<string | null>(null);
+  const [pendingVoidItem, setPendingVoidItem] = useState<{ orderId: string; itemIdx: number } | null>(
+    null,
+  );
+  const [voidReasonError, setVoidReasonError] = useState<string | null>(null);
+  const [voidingItem, setVoidingItem] = useState(false);
   const [callingBill, setCallingBill] = useState(false);
   const activeBuffets = useMemo(() => initialBuffets.filter((b) => b.is_active), [initialBuffets]);
   const [buffetId, setBuffetId] = useState<string>(() => activeBuffets[0]?.id || '');
@@ -465,20 +468,15 @@ function WaiterTableDetailInner({
     }
   };
 
-  const closeConfirmCopy = useMemo(() => {
-    const pendingTableId = checkoutCloseConfirmTableId;
-    if (!pendingTableId) {
-      return { title: t.closeTableConfirmTitle, message: t.closeTableConfirmMessage };
-    }
-    const hasCheckoutRequest = tableIdsEqual(pendingTableId, tableId) && isCheckoutPending;
-    if (hasCheckoutRequest) {
+  const demoCloseConfirmCopy = useMemo(() => {
+    if (demoCloseConfirmTableId && isCheckoutPending) {
       return {
         title: t.closeTableCheckoutConfirmTitle,
         message: t.closeTableCheckoutConfirmMessage,
       };
     }
     return { title: t.closeTableConfirmTitle, message: t.closeTableConfirmMessage };
-  }, [checkoutCloseConfirmTableId, isCheckoutPending, tableId, t]);
+  }, [demoCloseConfirmTableId, isCheckoutPending, t]);
 
   if (!isDemo && !detailLoaded) {
     return (
@@ -533,72 +531,9 @@ function WaiterTableDetailInner({
     );
   }
 
-  const closeTableFromWaiter = async (
-    closeTableId: string,
-    confirmClose = false,
-    closeReason?: string,
-    closeReasonDetail?: string,
-  ) => {
-    setClosingTable(closeTableId);
-    setUnpaidCloseReasonError(null);
+  const closeDemoTable = async (closeTableId: string) => {
+    setClosingDemoTable(closeTableId);
     try {
-      if (!isDemo) {
-        const closeUrl = embeddedInDashboard
-          ? '/api/dashboard/close-table-session'
-          : `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/waiter/sessions/close`;
-        const res = await fetch(closeUrl, {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            table_id: closeTableId,
-            confirm_close: confirmClose,
-            ...(closeReason ? { close_reason: closeReason } : {}),
-            ...(closeReasonDetail ? { close_reason_detail: closeReasonDetail } : {}),
-          }),
-        });
-        const data = (await res.json().catch(() => ({}))) as {
-          error?: string;
-          ok?: boolean;
-          message?: string;
-        };
-        const next = interpretCloseTableSessionResponse(res.status, data);
-        if (next.action === 'no_session') {
-          showToast(t.closeTableNoSession, 'error');
-          return;
-        }
-        if (next.action === 'confirm_close') {
-          setCheckoutCloseConfirmTableId(closeTableId);
-          return;
-        }
-        if (embeddedInDashboard && next.action === 'reason_required') {
-          setUnpaidCloseReasonTableId(closeTableId);
-          return;
-        }
-        if (embeddedInDashboard && next.action === 'forbidden') {
-          showToast(next.message ?? orderHistoryI18n.closeTableForbidden, 'error');
-          return;
-        }
-        if (embeddedInDashboard && next.action === 'invalid_reason') {
-          setUnpaidCloseReasonError(orderHistoryI18n.closeTableUnpaidReasonRequired);
-          setUnpaidCloseReasonTableId(closeTableId);
-          return;
-        }
-        if (embeddedInDashboard && next.action === 'reason_detail_required') {
-          setUnpaidCloseReasonError(orderHistoryI18n.closeTableUnpaidReasonDetailRequired);
-          setUnpaidCloseReasonTableId(closeTableId);
-          return;
-        }
-        if (next.action === 'error') {
-          showToast(t.actionFailed, 'error');
-          return;
-        }
-        setUnpaidCloseReasonTableId(null);
-        await refresh();
-        showToast(t.actionSuccess, 'success');
-        return;
-      }
-
       const { data: session, error: findError } = await supabase
         .from('table_sessions')
         .select('id')
@@ -633,12 +568,8 @@ function WaiterTableDetailInner({
     } catch {
       showToast(t.actionFailed, 'error');
     } finally {
-      setClosingTable(null);
+      setClosingDemoTable(null);
     }
-  };
-
-  const requestCloseTable = (closeTableId: string) => {
-    setCheckoutCloseConfirmTableId(closeTableId);
   };
 
   const handleCallBill = async () => {
@@ -751,11 +682,20 @@ function WaiterTableDetailInner({
     }
   };
 
-  const voidItemFromWaiter = async (orderId: string, itemIdx: number) => {
+  const requestVoidItem = (orderId: string, itemIdx: number) => {
     if (isCheckoutPending) {
       notifyCheckoutLocked();
       return;
     }
+    setVoidReasonError(null);
+    setPendingVoidItem({ orderId, itemIdx });
+  };
+
+  const performVoidItem = async (reason: string, detail: string) => {
+    if (!pendingVoidItem) return;
+    const { orderId, itemIdx } = pendingVoidItem;
+    setVoidingItem(true);
+    setVoidReasonError(null);
     try {
       const order = orders.find((row) => row.id === orderId);
       if (!order) return;
@@ -765,6 +705,7 @@ function WaiterTableDetailInner({
           ...item,
           item_status: 'voided' as const,
           voided_at: new Date().toISOString(),
+          void_reason: reason,
         };
       });
 
@@ -775,11 +716,16 @@ function WaiterTableDetailInner({
             method: 'PATCH',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items: nextItems, updated_at: order.updated_at }),
+            body: JSON.stringify({
+              items: nextItems,
+              updated_at: order.updated_at,
+              void_reason: reason,
+              void_reason_detail: detail || undefined,
+            }),
           },
         );
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
         if (res.status === 409) {
-          const data = (await res.json().catch(() => ({}))) as { error?: string };
           if (data.error === 'session_billing') {
             notifyCheckoutLocked();
             return;
@@ -788,10 +734,23 @@ function WaiterTableDetailInner({
           await refresh();
           return;
         }
+        if (res.status === 400 && data.error === 'reason_required') {
+          setVoidReasonError(orderHistoryI18n.voidItemReasonRequired);
+          return;
+        }
+        if (res.status === 400 && data.error === 'invalid_reason') {
+          setVoidReasonError(orderHistoryI18n.voidItemReasonRequired);
+          return;
+        }
+        if (res.status === 400 && data.error === 'reason_detail_required') {
+          setVoidReasonError(orderHistoryI18n.voidItemReasonDetailRequired);
+          return;
+        }
         if (!res.ok) {
           showToast(t.actionFailed, 'error');
           return;
         }
+        setPendingVoidItem(null);
         await refresh();
         showToast(t.voidedLabel, 'success');
         return;
@@ -812,10 +771,13 @@ function WaiterTableDetailInner({
         return;
       }
 
+      setPendingVoidItem(null);
       await refresh();
       showToast(t.voidedLabel, 'success');
     } catch {
       showToast(t.actionFailed, 'error');
+    } finally {
+      setVoidingItem(false);
     }
   };
 
@@ -1027,14 +989,25 @@ function WaiterTableDetailInner({
                 </button>
               ) : null}
               {showFrontdeskCloseTable ? (
-                <button
-                  type="button"
-                  onClick={() => requestCloseTable(selectedCard.tableId)}
-                  disabled={closingTable === selectedCard.tableId}
-                  className={`${waiterUi.btnSecondary} ${waiterUi.btnDanger} disabled:opacity-50`}
-                >
-                  {closingTable === selectedCard.tableId ? t.closeTableOperating : t.closeTable}
-                </button>
+                isDemo ? (
+                  <button
+                    type="button"
+                    onClick={() => setDemoCloseConfirmTableId(selectedCard.tableId)}
+                    disabled={closingDemoTable === selectedCard.tableId}
+                    className={`${waiterUi.btnSecondary} ${waiterUi.btnDanger} disabled:opacity-50`}
+                  >
+                    {closingDemoTable === selectedCard.tableId ? t.closeTableOperating : t.closeTable}
+                  </button>
+                ) : (
+                  <CloseTableSessionAction
+                    tableId={selectedCard.tableId}
+                    isCheckoutPending={isCheckoutPending}
+                    onClosed={() => {
+                      void refresh();
+                    }}
+                    className={`${waiterUi.btnSecondary} ${waiterUi.btnDanger} disabled:opacity-50`}
+                  />
+                )
               ) : null}
             </div>
 
@@ -1051,7 +1024,7 @@ function WaiterTableDetailInner({
                     {line.canVoid && (
                       <button
                         type="button"
-                        onClick={() => void voidItemFromWaiter(line.orderId, line.itemIdx)}
+                        onClick={() => requestVoidItem(line.orderId, line.itemIdx)}
                         className={`shrink-0 ${waiterUi.btnSecondary} ${waiterUi.btnGhost} ${checkoutLockedClass}`}
                       >
                         {t.voidItem}
@@ -1122,48 +1095,47 @@ function WaiterTableDetailInner({
           </button>
         </div>
       </Modal>
-      <ConfirmModal
-        open={checkoutCloseConfirmTableId != null}
-        onClose={() => setCheckoutCloseConfirmTableId(null)}
-        title={closeConfirmCopy.title}
-        message={closeConfirmCopy.message}
-        confirmLabel={t.closeTableConfirmButton}
-        cancelLabel={t.closeTableCancel}
-        variant="danger"
-        confirming={closingTable === checkoutCloseConfirmTableId}
-        onConfirm={async () => {
-          if (!checkoutCloseConfirmTableId) return;
-          const tableId = checkoutCloseConfirmTableId;
-          setCheckoutCloseConfirmTableId(null);
-          await closeTableFromWaiter(tableId, true);
-        }}
-      />
-      {embeddedInDashboard ? (
-        <ReasonConfirmDialog
-          open={unpaidCloseReasonTableId != null}
-          onClose={() => {
-            setUnpaidCloseReasonTableId(null);
-            setUnpaidCloseReasonError(null);
-          }}
-          title={orderHistoryI18n.closeTableUnpaidReasonTitle}
-          message={orderHistoryI18n.closeTableUnpaidReasonMessage}
-          reasonLabel={orderHistoryI18n.closeTableUnpaidReasonLabel}
-          detailLabel={orderHistoryI18n.closeTableUnpaidReasonDetailLabel}
-          detailPlaceholder={orderHistoryI18n.closeTableUnpaidReasonDetailPlaceholder}
-          confirmLabel={orderHistoryI18n.closeTableConfirmButton}
-          cancelLabel={orderHistoryI18n.closeTableCancel}
-          reasonRequiredError={orderHistoryI18n.closeTableUnpaidReasonRequired}
-          detailRequiredError={orderHistoryI18n.closeTableUnpaidReasonDetailRequired}
-          reasons={unpaidCloseReasonOptionsList}
-          confirming={closingTable === unpaidCloseReasonTableId}
-          externalError={unpaidCloseReasonError}
-          onConfirm={async (reason, detail) => {
-            if (!unpaidCloseReasonTableId) return;
-            const tableId = unpaidCloseReasonTableId;
-            await closeTableFromWaiter(tableId, true, reason, detail);
+      {isDemo ? (
+        <ConfirmModal
+          open={demoCloseConfirmTableId != null}
+          onClose={() => setDemoCloseConfirmTableId(null)}
+          title={demoCloseConfirmCopy.title}
+          message={demoCloseConfirmCopy.message}
+          confirmLabel={t.closeTableConfirmButton}
+          cancelLabel={t.closeTableCancel}
+          variant="danger"
+          confirming={closingDemoTable === demoCloseConfirmTableId}
+          onConfirm={async () => {
+            if (!demoCloseConfirmTableId) return;
+            const closeTableId = demoCloseConfirmTableId;
+            setDemoCloseConfirmTableId(null);
+            await closeDemoTable(closeTableId);
           }}
         />
       ) : null}
+      <ReasonConfirmDialog
+        open={pendingVoidItem != null}
+        onClose={() => {
+          setPendingVoidItem(null);
+          setVoidReasonError(null);
+        }}
+        title={orderHistoryI18n.voidItemReasonTitle}
+        message={orderHistoryI18n.voidItemReasonMessage}
+        reasonLabel={orderHistoryI18n.voidItemReasonLabel}
+        detailLabel={orderHistoryI18n.voidItemReasonDetailLabel}
+        detailPlaceholder={orderHistoryI18n.voidItemReasonDetailPlaceholder}
+        confirmLabel={t.voidItem}
+        cancelLabel={t.closeTableCancel}
+        reasonRequiredError={orderHistoryI18n.voidItemReasonRequired}
+        detailRequiredError={orderHistoryI18n.voidItemReasonDetailRequired}
+        reasons={voidItemReasonOptionsList}
+        reasonGroup="void_item"
+        confirming={voidingItem}
+        externalError={voidReasonError}
+        onConfirm={async (reason, detail) => {
+          await performVoidItem(reason, detail);
+        }}
+      />
     </div>
   );
 }

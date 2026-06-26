@@ -7,10 +7,10 @@ import type { Buffet, Order } from '@/types';
 import {
   aggregateBuffetForOrders,
   buildBuffetBaseLine,
-  formatBuffetPricePreviewLine,
+  formatBuffetPriceTemplate,
   isBuffetGuestCountsUnchanged,
-  normalizeBuffetGuestCounts,
   parseResolvedBuffetPriceRpcRow,
+  resolveBuffetOpenPricePreview,
   type ResolvedBuffetPriceRow,
 } from '@/lib/buffet-order';
 import {
@@ -23,7 +23,7 @@ import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
 import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { IntegerInput } from '@/components/ui/IntegerInput';
+import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { showToast } from '@/components/ui/Toast';
 import { deriveOrderStatusFromItems } from '@/lib/order-status';
 import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticatedShell';
@@ -113,6 +113,10 @@ function WaiterTableDetailInner({
   const [callingBill, setCallingBill] = useState(false);
   const activeBuffets = useMemo(() => initialBuffets.filter((b) => b.is_active), [initialBuffets]);
   const [buffetId, setBuffetId] = useState<string>(() => activeBuffets[0]?.id || '');
+  const selectedBuffet = useMemo(
+    () => activeBuffets.find((b) => b.id === buffetId) ?? activeBuffets[0] ?? null,
+    [activeBuffets, buffetId],
+  );
   const [buffetAdults, setBuffetAdults] = useState(2);
   const [buffetChildren, setBuffetChildren] = useState(0);
   const [buffetSubmitting, setBuffetSubmitting] = useState(false);
@@ -191,15 +195,15 @@ function WaiterTableDetailInner({
     };
   }, [isDemo, buffetId, refreshBuffetPrices]);
 
-  const buffetPriceDisplay = useMemo(() => {
-    const r = buffetResolved;
-    if (!r || r.adult_price == null || r.child_price == null) return { ok: false as const };
-    const ap = Number(r.adult_price);
-    const cp = Number(r.child_price);
-    if (!Number.isFinite(ap) || !Number.isFinite(cp)) return { ok: false as const };
-    const { adults, children } = normalizeBuffetGuestCounts(buffetAdults, buffetChildren);
-    return { ok: true as const, ap, cp, sub: adults * ap + children * cp };
-  }, [buffetResolved, buffetAdults, buffetChildren]);
+  const buffetPriceDisplay = useMemo(
+    () => resolveBuffetOpenPricePreview(buffetResolved, buffetAdults, buffetChildren),
+    [buffetResolved, buffetAdults, buffetChildren],
+  );
+
+  const bumpBuffetCount = (which: 'adults' | 'children', delta: number) => {
+    const setter = which === 'adults' ? setBuffetAdults : setBuffetChildren;
+    setter((n) => Math.max(0, n + delta));
+  };
 
   useEffect(() => {
     if (activeBuffets.length === 0) return;
@@ -625,8 +629,7 @@ function WaiterTableDetailInner({
       return;
     }
 
-    const buffet = activeBuffets.find((b) => b.id === buffetId);
-    if (!buffet) return;
+    if (!selectedBuffet) return;
 
     if (isBuffetGuestCountsUnchanged(tableOrders, buffetId, buffetAdults, buffetChildren)) {
       showToast(t.buffetGuestCountsUnchanged, 'info');
@@ -639,7 +642,7 @@ function WaiterTableDetailInner({
     }
 
     const line = buildBuffetBaseLine({
-      buffet,
+      buffet: selectedBuffet,
       adultCount: buffetAdults,
       childCount: buffetChildren,
       resolved: buffetResolved,
@@ -855,68 +858,76 @@ function WaiterTableDetailInner({
         )}
 
         {activeBuffets.length > 0 && !isDemo && !isCheckoutPending && (
-          <div className="mb-4 rounded-xl border border-brand-gold/30 bg-brand-gold/8 p-3 space-y-2">
-            <p className="text-[12px] font-medium text-brand-gold">{t.buffetBlock}</p>
-            <div className="rounded-lg border border-brand-border/50 bg-brand-bg/60 px-2.5 py-2">
-              {buffetPriceLoading ? (
-                <p className="text-[12px] text-brand-text-muted">{t.buffetPriceLoading}</p>
-              ) : buffetPriceDisplay.ok ? (
-                <p className="text-[13px] leading-snug text-brand-text">
-                  {formatBuffetPricePreviewLine(
-                    t.buffetPricePreviewLine,
-                    buffetPriceDisplay.ap,
-                    buffetPriceDisplay.cp,
-                    buffetPriceDisplay.sub,
-                  )}
-                </p>
-              ) : (
-                <p className="text-[12px] mesa-text-warning">{t.buffetNoRule}</p>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-2 items-end">
-              <label className="text-[11px] text-brand-text-muted">
-                {t.buffetPick}
-                <select
-                  value={buffetId}
-                  onChange={(e) => setBuffetId(e.target.value)}
-                  className="mt-0.5 block rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text"
-                >
-                  {activeBuffets.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="text-[11px] text-brand-text-muted">
-                {t.buffetAdults}
-                <IntegerInput
-                  min={0}
-                  clearZeroOnFocus
-                  className="mt-0.5 block w-16 rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text"
-                  value={buffetAdults}
-                  onChange={setBuffetAdults}
-                />
-              </label>
-              <label className="text-[11px] text-brand-text-muted">
-                {t.buffetChildren}
-                <IntegerInput
-                  min={0}
-                  clearZeroOnFocus
-                  className="mt-0.5 block w-16 rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text"
-                  value={buffetChildren}
-                  onChange={setBuffetChildren}
-                />
-              </label>
-              <button
-                type="button"
-                onClick={() => void applyBuffetToTable()}
-                disabled={buffetSubmitting}
-                className={waiterUi.btnBuffet}
+          <div className="mb-4 rounded-xl border border-brand-gold/30 bg-brand-gold/8 p-3.5 space-y-3">
+            <p className="text-[14px] font-semibold text-brand-gold">{t.buffetBlock}</p>
+
+            {activeBuffets.length === 1 ? (
+              <p className="text-[15px] font-medium text-brand-text leading-snug">{selectedBuffet?.name}</p>
+            ) : (
+              <select
+                value={buffetId}
+                onChange={(e) => setBuffetId(e.target.value)}
+                aria-label={t.buffetBlock}
+                className="block w-full rounded-lg bg-brand-bg border border-brand-border px-2.5 py-2 text-[15px] font-medium text-brand-text"
               >
-                {buffetSubmitting ? '…' : t.buffetApply}
-              </button>
+                {activeBuffets.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {buffetPriceLoading ? (
+              <p className="text-[13px] text-brand-text-muted">{t.buffetPriceLoading}</p>
+            ) : buffetPriceDisplay.ok ? (
+              <p className="text-[13px] leading-snug text-brand-text-muted">
+                {formatBuffetPriceTemplate(t.buffetPriceRatesLine, {
+                  adultPrice: buffetPriceDisplay.adultPrice,
+                  childPrice: buffetPriceDisplay.childPrice,
+                })}
+              </p>
+            ) : (
+              <p className="text-[13px] mesa-text-warning">{t.buffetNoRule}</p>
+            )}
+
+            <div className="flex flex-wrap gap-x-8 gap-y-3">
+              <div className="flex items-center gap-3">
+                <span className="text-[13px] text-brand-text min-w-[2rem]">{t.buffetAdults}</span>
+                <CartQtyStepper
+                  variant="drawer"
+                  qty={buffetAdults}
+                  onDecrement={() => bumpBuffetCount('adults', -1)}
+                  onIncrement={() => bumpBuffetCount('adults', 1)}
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-[13px] text-brand-text min-w-[2rem]">{t.buffetChildren}</span>
+                <CartQtyStepper
+                  variant="drawer"
+                  qty={buffetChildren}
+                  onDecrement={() => bumpBuffetCount('children', -1)}
+                  onIncrement={() => bumpBuffetCount('children', 1)}
+                />
+              </div>
             </div>
+
+            {buffetPriceDisplay.ok && (
+              <p className="text-[15px] font-semibold text-brand-text tabular-nums">
+                {formatBuffetPriceTemplate(t.buffetEstimatedTotal, {
+                  total: buffetPriceDisplay.subtotal,
+                })}
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={() => void applyBuffetToTable()}
+              disabled={buffetSubmitting || buffetPriceLoading || !buffetPriceDisplay.ok}
+              className={`${waiterUi.btnPrimary} w-full justify-center disabled:opacity-50`}
+            >
+              {buffetSubmitting ? '…' : t.buffetConfirm}
+            </button>
           </div>
         )}
 

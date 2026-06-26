@@ -2,9 +2,11 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   buildBuffetBaseLine,
+  computeBuffetSubtotal,
   formatBuffetGuestCountsOptional,
-  formatBuffetPricePreviewLine,
+  formatBuffetPriceTemplate,
   isBuffetGuestCountsUnchanged,
+  resolveBuffetOpenPricePreview,
 } from '@/lib/buffet-order';
 import type { Order } from '@/types';
 
@@ -83,14 +85,41 @@ describe('formatBuffetGuestCountsOptional', () => {
   });
 });
 
-describe('formatBuffetPricePreviewLine', () => {
-  it('interpolates adult, child, and total prices', () => {
-    const line = formatBuffetPricePreviewLine(
-      '成人 {adultPrice} €/人 · 儿童 {childPrice} €/人 · 合计约 {total} €',
-      14.5,
-      8.5,
-      60.5,
+describe('formatBuffetPriceTemplate', () => {
+  it('interpolates per-person rates', () => {
+    const line = formatBuffetPriceTemplate('成人 €{adultPrice}/人 · 儿童 €{childPrice}/人', {
+      adultPrice: 14.5,
+      childPrice: 8.5,
+    });
+    assert.equal(line, '成人 €14.50/人 · 儿童 €8.50/人');
+  });
+
+  it('interpolates estimated total', () => {
+    const line = formatBuffetPriceTemplate('预计合计：€{total}', { total: 69 });
+    assert.equal(line, '预计合计：€69.00');
+  });
+});
+
+describe('computeBuffetSubtotal / resolveBuffetOpenPricePreview', () => {
+  it('computes subtotal from headcount and unit prices', () => {
+    assert.equal(computeBuffetSubtotal(3, 3, 14.5, 8.5), 69);
+  });
+
+  it('resolves open-table preview from RPC row', () => {
+    const preview = resolveBuffetOpenPricePreview(resolved, 3, 3);
+    assert.deepEqual(preview, {
+      ok: true,
+      adultPrice: 20,
+      childPrice: 10,
+      subtotal: 90,
+    });
+  });
+
+  it('returns not ok when prices are missing', () => {
+    assert.deepEqual(resolveBuffetOpenPricePreview(null, 2, 0), { ok: false });
+    assert.deepEqual(
+      resolveBuffetOpenPricePreview({ ...resolved, adult_price: null }, 2, 0),
+      { ok: false },
     );
-    assert.equal(line, '成人 14.50 €/人 · 儿童 8.50 €/人 · 合计约 60.50 €');
   });
 });

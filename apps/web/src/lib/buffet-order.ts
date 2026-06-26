@@ -96,22 +96,58 @@ export function isBuffetGuestCountsUnchanged(
   return agg.buffetId === buffetId && agg.adults === adults && agg.children === children;
 }
 
-/** Compact adult/child headcount, e.g. A7 C3 (matches waiter buffet summary). */
+/** Compact adult/child headcount, e.g. A7 C3. */
 export function formatBuffetHeadcountLabel(adults: number, children: number): string {
   return `A${adults} C${children}`;
 }
 
-/** Interpolate open-table price preview (`buffetPricePreviewLine` i18n template). */
-export function formatBuffetPricePreviewLine(
-  template: string,
+/** Interpolate € placeholders in waiter buffet open-table copy. */
+export function formatBuffetPriceTemplate(template: string, values: Record<string, number>): string {
+  return Object.entries(values).reduce(
+    (out, [key, value]) => out.replaceAll(`{${key}}`, value.toFixed(2)),
+    template,
+  );
+}
+
+export type BuffetOpenPricePreview =
+  | { ok: true; adultPrice: number; childPrice: number; subtotal: number }
+  | { ok: false };
+
+function parseBuffetUnitPrices(
+  resolved: ResolvedBuffetPriceRow,
+): { adultPrice: number; childPrice: number } | null {
+  if (resolved.adult_price == null || resolved.child_price == null) return null;
+  const adultPrice = Number(resolved.adult_price);
+  const childPrice = Number(resolved.child_price);
+  if (!Number.isFinite(adultPrice) || !Number.isFinite(childPrice)) return null;
+  return { adultPrice, childPrice };
+}
+
+export function computeBuffetSubtotal(
+  adultCount: number,
+  childCount: number,
   adultPrice: number,
   childPrice: number,
-  total: number,
-): string {
-  return template
-    .replace('{adultPrice}', adultPrice.toFixed(2))
-    .replace('{childPrice}', childPrice.toFixed(2))
-    .replace('{total}', total.toFixed(2));
+): number {
+  const { adults, children } = normalizeBuffetGuestCounts(adultCount, childCount);
+  return adults * adultPrice + children * childPrice;
+}
+
+/** Resolved slot prices + estimated subtotal for the open-table form. */
+export function resolveBuffetOpenPricePreview(
+  resolved: ResolvedBuffetPriceRow | null,
+  adultCount: number,
+  childCount: number,
+): BuffetOpenPricePreview {
+  if (!resolved) return { ok: false };
+  const prices = parseBuffetUnitPrices(resolved);
+  if (!prices) return { ok: false };
+  return {
+    ok: true,
+    adultPrice: prices.adultPrice,
+    childPrice: prices.childPrice,
+    subtotal: computeBuffetSubtotal(adultCount, childCount, prices.adultPrice, prices.childPrice),
+  };
 }
 
 /** Buffet headcount label; omits adult/child segments when count is zero. */
@@ -157,12 +193,15 @@ export function buildBuffetBaseLine(params: {
   childCount: number;
   resolved: ResolvedBuffetPriceRow;
 }): OrderItem | null {
-  const ap = params.resolved.adult_price;
-  const cp = params.resolved.child_price;
-  if (!Number.isFinite(Number(ap)) || !Number.isFinite(Number(cp))) return null;
+  const prices = parseBuffetUnitPrices(params.resolved);
+  if (!prices) return null;
   const { adults, children } = normalizeBuffetGuestCounts(params.adultCount, params.childCount);
-
-  const lineTotal = adults * Number(ap) + children * Number(cp);
+  const lineTotal = computeBuffetSubtotal(
+    params.adultCount,
+    params.childCount,
+    prices.adultPrice,
+    prices.childPrice,
+  );
   const addedAt = new Date().toISOString();
 
   return {
@@ -177,8 +216,8 @@ export function buildBuffetBaseLine(params: {
     buffet_id: params.buffet.id,
     adult_count: adults,
     child_count: children,
-    adult_unit_price: Number(ap),
-    child_unit_price: Number(cp),
+    adult_unit_price: prices.adultPrice,
+    child_unit_price: prices.childPrice,
     price_rule_id: params.resolved.rule_id || undefined,
     added_at: addedAt,
     batch_id: '__buffet__',

@@ -6,7 +6,9 @@ export function isDashboardSettingsPath(pathname: string): boolean {
 export function isOwnerOperationalPath(pathname: string): boolean {
   return (
     pathname === '/dashboard/abnormal-operations' ||
-    pathname.startsWith('/dashboard/abnormal-operations/')
+    pathname.startsWith('/dashboard/abnormal-operations/') ||
+    pathname === '/dashboard/value-analytics' ||
+    pathname.startsWith('/dashboard/value-analytics/')
   );
 }
 

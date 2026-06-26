@@ -479,12 +479,9 @@ export async function getValueOverview(
 }
 ```
 
-### 4.6 索引与迁移
+### 4.6 索引与迁移（V1 纳入）
 
-**V1 开发流程**：
-
-1. 在 stage 库对 Step 1 查询 `EXPLAIN ANALYZE`。
-2. 若 `Seq Scan` on `table_sessions` 且 rows > 10k，追加迁移：
+**决策（2026-06-26）**：项目尚未投入生产，迁移成本低；`table_sessions` 按 `restaurant_id + closed_at` 范围查询是对 analytics 的主路径，**V1 直接加 partial index**，不等待 EXPLAIN 再决定。
 
 ```sql
 -- supabase/migrations/YYYYMMDDHHMMSS_table_sessions_closed_at_analytics.sql
@@ -493,7 +490,9 @@ CREATE INDEX IF NOT EXISTS idx_table_sessions_restaurant_closed_at
   WHERE status = 'closed';
 ```
 
-3. 同步更新 `docs/ai-schema.md` Indexes 段。
+实现时仍可对 Step 1 查询跑一次 `EXPLAIN ANALYZE` 留档，但不作为是否建索引的门禁。
+
+同步更新 `docs/ai-schema.md` Indexes 段。
 
 **不建** `orders(completed_at)` 索引（列不存在）。
 
@@ -821,7 +820,7 @@ node --import tsx --test apps/web/src/lib/analytics/analytics.service.test.ts
 | # | 项 | 建议 | 影响 |
 |---|-----|------|------|
 | 1 | recharts 依赖 | 批准安装 | 前端实现方式 |
-| 2 | 索引迁移 | EXPLAIN 后决定 | 首版是否带迁移 |
+| 2 | 索引迁移 | **V1 纳入**（`idx_table_sessions_restaurant_closed_at`） | 已确认 |
 | 3 | API rate limit | V1 可省略 | 防刷 |
 | 4 | URL 同步 `?range=` | V1 可省略 | 分享深链 |
 

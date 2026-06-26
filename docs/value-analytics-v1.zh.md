@@ -346,7 +346,7 @@ apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx
 - `idx_orders_session` → `(session_id)`
 - `idx_table_sessions_status` → `(restaurant_id, status)`
 
-**建议新增**（若 EXPLAIN 显示范围扫描慢）：
+**V1 新增**（已确认：未投产，迁移成本低；直接优化 analytics 主查询）：
 
 ```sql
 CREATE INDEX idx_table_sessions_restaurant_closed_at
@@ -354,7 +354,7 @@ CREATE INDEX idx_table_sessions_restaurant_closed_at
   WHERE status = 'closed';
 ```
 
-原 PRD 的 `orders(restaurant_id, status, completedAt)` **不适用**（无 `completed_at`）。开发前用 EXPLAIN 验证，避免重复索引。
+原 PRD 的 `orders(restaurant_id, status, completedAt)` **不适用**（无 `completed_at`）。实现时可选跑 `EXPLAIN` 留档，不作为门禁。
 
 ---
 

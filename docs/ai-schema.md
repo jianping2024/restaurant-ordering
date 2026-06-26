@@ -306,6 +306,7 @@ table_sessions:
 
 - idx_table_sessions_merge_into: btree(merge_into_session_id)
 - idx_table_sessions_restaurant_table_id: btree(restaurant_id, table_id)
+- idx_table_sessions_restaurant_closed_at: btree(restaurant_id, closed_at DESC) WHERE status = 'closed'
 - idx_table_sessions_status: btree(restaurant_id, status)
 - table_sessions_pkey: PK btree(id)
 - uniq_active_table_session: unique btree(restaurant_id, table_id) WHERE status = ANY (ARRAY['open'::text, 'billing'::text])

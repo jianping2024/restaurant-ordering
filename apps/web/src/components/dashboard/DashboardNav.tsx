@@ -14,6 +14,12 @@ import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 
 const ownerNavItems = [
   {
+    href: '/dashboard/value-analytics',
+    key: 'valueAnalytics',
+    icon: '📈',
+    exact: false,
+  },
+  {
     href: '/dashboard/abnormal-operations',
     key: 'abnormalOps',
     icon: '⚠️',

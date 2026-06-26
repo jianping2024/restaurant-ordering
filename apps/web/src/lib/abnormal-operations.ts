@@ -1,11 +1,13 @@
 export * from '@/lib/abnormal-operations/types';
 export {
-  compareAbnormalOperations,
-  parseAbnormalOperationsDateRange,
-  calendarDateInTimezone,
   addCalendarDays,
+  calendarDateInTimezone,
   daysBetweenInclusive,
   lisbonDayStartUtcIso,
+} from '@/lib/lisbon-calendar';
+export {
+  compareAbnormalOperations,
+  parseAbnormalOperationsDateRange,
   riskLevelForVoidedItem,
   riskLevelForDiscountRate,
   listAbnormalOperations,

@@ -5,7 +5,6 @@
 import { readFileSync } from 'fs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
-const WEB = `${ROOT}/apps/web/src`;
 
 function read(rel) {
   return readFileSync(`${ROOT}/${rel}`, 'utf8');
@@ -32,6 +31,7 @@ function main() {
   assertContains('manager refresh cooldown', mgr, /60|cooldown/i, pass);
   assertContains('manager detail modal', mgr, /ConfirmModal|modal|detail/i, pass);
   assertContains('manager confirm ignore', mgr, /CONFIRMED|IGNORED/, pass);
+  assertContains('manager closes detail after patch', mgr, /closeDetail\(\)/, pass);
   assertContains('i18n abnormalOps zh', messages, /abnormalOps:/, pass);
   assertContains('GET route owner context', getRoute, /loadOwnerAbnormalOperationsContext/, pass);
   assertContains('GET route rate limit', getRoute, /abnormalOperationsListRateLimitCheck/, pass);

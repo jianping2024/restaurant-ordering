@@ -151,6 +151,11 @@ export function AbnormalOperationsManager() {
     setOwnerNoteDraft(row.owner_note ?? '');
   };
 
+  const closeDetail = useCallback(() => {
+    setSelected(null);
+    setOwnerNoteDraft('');
+  }, []);
+
   const applyPatch = async (patch: {
     status?: AbnormalOperationStatus;
     owner_note?: string | null;
@@ -163,8 +168,7 @@ export function AbnormalOperationsManager() {
       showToast(t.actionFailed, 'error');
       return;
     }
-    setSelected(result.row);
-    setOwnerNoteDraft(result.row.owner_note ?? '');
+    closeDetail();
     void load();
   };
 
@@ -319,7 +323,7 @@ export function AbnormalOperationsManager() {
 
       <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
         {loading ? (
-          <p className="p-8 text-center text-brand-text-muted text-sm">{t.saving}</p>
+          <p className="p-8 text-center text-brand-text-muted text-sm">{t.loading}</p>
         ) : !data?.items.length ? (
           <p className="p-12 text-center text-brand-text-muted">{t.empty}</p>
         ) : (
@@ -405,7 +409,7 @@ export function AbnormalOperationsManager() {
 
       <Modal
         open={selected != null}
-        onClose={() => setSelected(null)}
+        onClose={closeDetail}
         title={t.detailTitle}
         size="md"
       >
@@ -474,7 +478,7 @@ export function AbnormalOperationsManager() {
                   })
                 }
               >
-                {patching ? t.saving : t.saveNote}
+                {t.saveNote}
               </Button>
             </div>
           </div>

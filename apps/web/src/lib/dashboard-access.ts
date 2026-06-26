@@ -9,6 +9,8 @@ export {
   isCashierCheckoutPath,
   isDashboardSettingsPath,
   isFrontdeskOperationalPath,
+  isOwnerDashboardPath,
+  isOwnerOperationalPath,
 } from '@/lib/dashboard-paths';
 
 export type DashboardAccessMode = 'owner' | 'cashier' | 'frontdesk';

@@ -11,6 +11,7 @@ import { recordDiscountAppliedAuditIfNeeded } from '@/lib/checkout-discount/reco
 import { patchOrderItemsWithVoidAudit } from '@/lib/order-item-void/patch-order-items.service';
 import { closeTableSessionManual } from '@/lib/table-session/close-table-session.service';
 import type { OrderItem } from '@/types';
+import { ownerAuditActor, staffAuditActor } from '@/lib/audit/resolve-actor';
 
 type Check = { id: string; expect: string; pass: boolean; actual?: unknown };
 
@@ -187,8 +188,8 @@ async function main() {
 
   const restaurantId = rest.id;
   const ownerId = rest.owner_id as string;
-  const ownerActor = { userId: ownerId, displayName: 'P5 Owner', role: 'owner' as const };
-  const waiterActor = { userId: ownerId, displayName: 'P5 Waiter', role: 'waiter' as const };
+  const ownerActor = ownerAuditActor(ownerId, 'P5 Owner');
+  const waiterActor = staffAuditActor(ownerId, 'P5 Waiter', 'waiter');
   const checks: Check[] = [];
 
   // Schema probe

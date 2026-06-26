@@ -4,6 +4,8 @@ import {
   isCashierCheckoutPath,
   isDashboardSettingsPath,
   isFrontdeskOperationalPath,
+  isOwnerDashboardPath,
+  isOwnerOperationalPath,
 } from './dashboard-paths';
 import { isStaffRole } from './staff-account';
 
@@ -12,6 +14,17 @@ describe('isDashboardSettingsPath', () => {
     assert.equal(isDashboardSettingsPath('/dashboard/settings'), true);
     assert.equal(isDashboardSettingsPath('/dashboard/settings/staff'), true);
     assert.equal(isDashboardSettingsPath('/dashboard/checkout'), false);
+  });
+});
+
+describe('isOwnerDashboardPath', () => {
+  it('allows settings and abnormal operations for owner', () => {
+    assert.equal(isOwnerDashboardPath('/dashboard/settings'), true);
+    assert.equal(isOwnerDashboardPath('/dashboard/settings/staff'), true);
+    assert.equal(isOwnerDashboardPath('/dashboard/abnormal-operations'), true);
+    assert.equal(isOwnerOperationalPath('/dashboard/abnormal-operations'), true);
+    assert.equal(isOwnerDashboardPath('/dashboard/checkout'), false);
+    assert.equal(isOwnerDashboardPath('/dashboard'), false);
   });
 });
 

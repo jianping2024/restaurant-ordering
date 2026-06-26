@@ -6,6 +6,7 @@ import {
   isDashboardSettingsPath,
   isFrontdeskOperationalPath,
   isFrontdeskStaffUser,
+  isOwnerDashboardPath,
   isOwnerDashboardUser,
 } from '@/lib/dashboard-access';
 
@@ -57,7 +58,7 @@ export async function updateSession(request: NextRequest) {
         url.pathname = '/dashboard/settings';
         return NextResponse.redirect(url);
       }
-      if (!isDashboardSettingsPath(pathname)) {
+      if (!isOwnerDashboardPath(pathname)) {
         const url = request.nextUrl.clone();
         url.pathname = '/dashboard/settings';
         return NextResponse.redirect(url);

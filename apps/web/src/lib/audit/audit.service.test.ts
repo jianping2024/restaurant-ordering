@@ -138,4 +138,24 @@ describe('recordAudit', () => {
     assert.equal(result.operationLogId, 'log-1');
     assert.equal(result.abnormalOperationId, 'abn-1');
   });
+
+  it('inserts operation log only for abnormal confirmed', async () => {
+    const admin = mockAdmin({});
+    const result = await recordAudit(admin, AUDIT_EVENT.ABNORMAL_CONFIRMED, {
+      restaurantId: 'rest-1',
+      actor,
+      context: {
+        abnormalOperationId: 'abn-2',
+        abnormalType: 'DISCOUNT_APPLIED',
+        previousStatus: 'PENDING',
+        nextStatus: 'CONFIRMED',
+        previousOwnerNote: null,
+        nextOwnerNote: null,
+      },
+      reason: 'DISCOUNT_APPLIED',
+    });
+
+    assert.equal(result.operationLogId, 'log-1');
+    assert.equal(result.abnormalOperationId, undefined);
+  });
 });

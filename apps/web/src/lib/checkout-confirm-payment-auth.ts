@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { loadStaffAuditActor, ownerAuditActor, resolveOwnerOperatorName } from '@/lib/audit';
+import { loadStaffAuditActor } from '@/lib/audit';
+import { loadOwnerDashboardAuditActor } from '@/lib/audit/load-owner-dashboard-actor';
 import type { AuditActor } from '@/lib/audit/types';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
@@ -64,13 +65,18 @@ export async function authorizeCheckoutConfirmPayment(
     return { error: 'unauthorized', status: 401 };
   }
 
+  const ownerActor = await loadOwnerDashboardAuditActor({
+    id: rest.id as string,
+    name: (rest.name as string) || '',
+  });
+  if (!ownerActor) {
+    return { error: 'unauthorized', status: 401 };
+  }
+
   return {
     admin,
     restaurantId: rest.id as string,
     printLocale: rest.print_locale as string | null,
-    actor: ownerAuditActor(
-      user.id,
-      resolveOwnerOperatorName((rest.name as string) || '', user.email),
-    ),
+    actor: ownerActor.actor,
   };
 }

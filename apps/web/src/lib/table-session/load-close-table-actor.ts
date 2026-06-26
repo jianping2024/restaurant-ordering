@@ -4,9 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import { isRestaurantSuspended } from '@mesa/shared';
 import {
   frontdeskAuditActor,
-  ownerAuditActor,
-  resolveOwnerOperatorName,
 } from '@/lib/audit';
+import { loadOwnerDashboardAuditActor } from '@/lib/audit/load-owner-dashboard-actor';
 import type { AuditActor } from '@/lib/audit/types';
 import { loadDashboardAccess, loadFrontdeskOperationalContext } from '@/lib/dashboard-access';
 
@@ -39,22 +38,16 @@ export async function loadCloseTableSessionActor(options?: {
       return { error: 'server_misconfigured', status: 503 };
     }
 
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const ownerActor = await loadOwnerDashboardAuditActor(access.restaurant);
+    if (!ownerActor) {
       return { error: 'unauthorized', status: 401 };
     }
 
     return {
       admin,
       restaurantId: access.restaurant.id,
-      userId: user.id,
-      actor: ownerAuditActor(
-        user.id,
-        resolveOwnerOperatorName(access.restaurant.name, user.email),
-      ),
+      userId: ownerActor.userId,
+      actor: ownerActor.actor,
       closedReason: 'owner_closed',
     };
   }

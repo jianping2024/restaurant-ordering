@@ -1,3 +1,8 @@
+import {
+  abnormalConfirmedDefinition,
+  abnormalIgnoredDefinition,
+  abnormalNoteAddedDefinition,
+} from '@/lib/audit/builders/abnormal-owner-action';
 import { discountAppliedDefinition } from '@/lib/audit/builders/discount-applied';
 import { itemDeletedDefinition } from '@/lib/audit/builders/item-deleted';
 import { unpaidTableClosedDefinition } from '@/lib/audit/builders/unpaid-table-closed';
@@ -9,30 +14,9 @@ const REGISTRY: Record<AuditEventKey, AuditEventDefinition<any>> = {
   [AUDIT_EVENT.UNPAID_TABLE_CLOSED]: unpaidTableClosedDefinition,
   [AUDIT_EVENT.ITEM_DELETED]: itemDeletedDefinition,
   [AUDIT_EVENT.DISCOUNT_APPLIED]: discountAppliedDefinition,
-  [AUDIT_EVENT.ABNORMAL_CONFIRMED]: {
-    actionType: AUDIT_EVENT.ABNORMAL_CONFIRMED,
-    entityType: 'abnormal_operation',
-    createsAbnormal: false,
-    build: () => {
-      throw new Error('ABNORMAL_CONFIRMED audit not registered for P1');
-    },
-  },
-  [AUDIT_EVENT.ABNORMAL_IGNORED]: {
-    actionType: AUDIT_EVENT.ABNORMAL_IGNORED,
-    entityType: 'abnormal_operation',
-    createsAbnormal: false,
-    build: () => {
-      throw new Error('ABNORMAL_IGNORED audit not registered for P1');
-    },
-  },
-  [AUDIT_EVENT.ABNORMAL_NOTE_ADDED]: {
-    actionType: AUDIT_EVENT.ABNORMAL_NOTE_ADDED,
-    entityType: 'abnormal_operation',
-    createsAbnormal: false,
-    build: () => {
-      throw new Error('ABNORMAL_NOTE_ADDED audit not registered for P1');
-    },
-  },
+  [AUDIT_EVENT.ABNORMAL_CONFIRMED]: abnormalConfirmedDefinition,
+  [AUDIT_EVENT.ABNORMAL_IGNORED]: abnormalIgnoredDefinition,
+  [AUDIT_EVENT.ABNORMAL_NOTE_ADDED]: abnormalNoteAddedDefinition,
 };
 
 export function getAuditEventDefinition(key: AuditEventKey): AuditEventDefinition<unknown> | null {

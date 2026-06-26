@@ -20,9 +20,10 @@ import {
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
-import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import { UI_LOCALE_BY_LANG, getMessages } from '@/lib/i18n/messages';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { showToast } from '@/components/ui/Toast';
 import { deriveOrderStatusFromItems } from '@/lib/order-status';
@@ -39,6 +40,7 @@ import { requestDashboardCheckoutRequest } from '@/lib/request-dashboard-checkou
 import type { WaiterTableDetailData } from '@/lib/staff-board';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import { interpretCloseTableSessionResponse } from '@/lib/close-table-session-ui';
+import { unpaidCloseReasonOptions } from '@/lib/unpaid-close-reason-labels';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -79,6 +81,8 @@ function WaiterTableDetailInner({
   const { lang } = useLanguage();
   const locale = UI_LOCALE_BY_LANG[lang];
   const t = WAITER_TEXT[lang];
+  const orderHistoryI18n = getMessages(lang).orderHistory;
+  const unpaidCloseReasonOptionsList = useMemo(() => unpaidCloseReasonOptions(lang), [lang]);
   const initialDetail = initialTableDetail?.table ? initialTableDetail : null;
   const {
     table: selectedTable,
@@ -110,6 +114,8 @@ function WaiterTableDetailInner({
   const [operating, setOperating] = useState(false);
   const [closingTable, setClosingTable] = useState<string | null>(null);
   const [checkoutCloseConfirmTableId, setCheckoutCloseConfirmTableId] = useState<string | null>(null);
+  const [unpaidCloseReasonTableId, setUnpaidCloseReasonTableId] = useState<string | null>(null);
+  const [unpaidCloseReasonError, setUnpaidCloseReasonError] = useState<string | null>(null);
   const [callingBill, setCallingBill] = useState(false);
   const activeBuffets = useMemo(() => initialBuffets.filter((b) => b.is_active), [initialBuffets]);
   const [buffetId, setBuffetId] = useState<string>(() => activeBuffets[0]?.id || '');
@@ -527,8 +533,14 @@ function WaiterTableDetailInner({
     );
   }
 
-  const closeTableFromWaiter = async (closeTableId: string, confirmClose = false) => {
+  const closeTableFromWaiter = async (
+    closeTableId: string,
+    confirmClose = false,
+    closeReason?: string,
+    closeReasonDetail?: string,
+  ) => {
     setClosingTable(closeTableId);
+    setUnpaidCloseReasonError(null);
     try {
       if (!isDemo) {
         const closeUrl = embeddedInDashboard
@@ -541,9 +553,15 @@ function WaiterTableDetailInner({
           body: JSON.stringify({
             table_id: closeTableId,
             confirm_close: confirmClose,
+            ...(closeReason ? { close_reason: closeReason } : {}),
+            ...(closeReasonDetail ? { close_reason_detail: closeReasonDetail } : {}),
           }),
         });
-        const data = (await res.json().catch(() => ({}))) as { error?: string; ok?: boolean };
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+          ok?: boolean;
+          message?: string;
+        };
         const next = interpretCloseTableSessionResponse(res.status, data);
         if (next.action === 'no_session') {
           showToast(t.closeTableNoSession, 'error');
@@ -553,10 +571,29 @@ function WaiterTableDetailInner({
           setCheckoutCloseConfirmTableId(closeTableId);
           return;
         }
+        if (embeddedInDashboard && next.action === 'reason_required') {
+          setUnpaidCloseReasonTableId(closeTableId);
+          return;
+        }
+        if (embeddedInDashboard && next.action === 'forbidden') {
+          showToast(next.message ?? orderHistoryI18n.closeTableForbidden, 'error');
+          return;
+        }
+        if (embeddedInDashboard && next.action === 'invalid_reason') {
+          setUnpaidCloseReasonError(orderHistoryI18n.closeTableUnpaidReasonRequired);
+          setUnpaidCloseReasonTableId(closeTableId);
+          return;
+        }
+        if (embeddedInDashboard && next.action === 'reason_detail_required') {
+          setUnpaidCloseReasonError(orderHistoryI18n.closeTableUnpaidReasonDetailRequired);
+          setUnpaidCloseReasonTableId(closeTableId);
+          return;
+        }
         if (next.action === 'error') {
           showToast(t.actionFailed, 'error');
           return;
         }
+        setUnpaidCloseReasonTableId(null);
         await refresh();
         showToast(t.actionSuccess, 'success');
         return;
@@ -1101,6 +1138,32 @@ function WaiterTableDetailInner({
           await closeTableFromWaiter(tableId, true);
         }}
       />
+      {embeddedInDashboard ? (
+        <ReasonConfirmDialog
+          open={unpaidCloseReasonTableId != null}
+          onClose={() => {
+            setUnpaidCloseReasonTableId(null);
+            setUnpaidCloseReasonError(null);
+          }}
+          title={orderHistoryI18n.closeTableUnpaidReasonTitle}
+          message={orderHistoryI18n.closeTableUnpaidReasonMessage}
+          reasonLabel={orderHistoryI18n.closeTableUnpaidReasonLabel}
+          detailLabel={orderHistoryI18n.closeTableUnpaidReasonDetailLabel}
+          detailPlaceholder={orderHistoryI18n.closeTableUnpaidReasonDetailPlaceholder}
+          confirmLabel={orderHistoryI18n.closeTableConfirmButton}
+          cancelLabel={orderHistoryI18n.closeTableCancel}
+          reasonRequiredError={orderHistoryI18n.closeTableUnpaidReasonRequired}
+          detailRequiredError={orderHistoryI18n.closeTableUnpaidReasonDetailRequired}
+          reasons={unpaidCloseReasonOptionsList}
+          confirming={closingTable === unpaidCloseReasonTableId}
+          externalError={unpaidCloseReasonError}
+          onConfirm={async (reason, detail) => {
+            if (!unpaidCloseReasonTableId) return;
+            const tableId = unpaidCloseReasonTableId;
+            await closeTableFromWaiter(tableId, true, reason, detail);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

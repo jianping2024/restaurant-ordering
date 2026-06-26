@@ -1,27 +1,24 @@
 import { NextResponse } from 'next/server';
-import { loadFrontdeskDashboardTables } from '@/lib/dashboard-tables';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
-import { closeTableSessionWithCheckoutGuard } from '@/lib/table-session-close-guards';
 import { parseCloseConfirmFromBody } from '@/lib/close-table-session-ui';
-import { createClient } from '@/lib/supabase/server';
+import { loadCloseTableSessionActor } from '@/lib/table-session/load-close-table-actor';
+import { closeTableSessionManual } from '@/lib/table-session/close-table-session.service';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
-  const loaded = await loadFrontdeskDashboardTables();
-  if ('error' in loaded) {
-    return NextResponse.json({ error: loaded.error, message: loaded.message }, { status: loaded.status });
+  const actorCtx = await loadCloseTableSessionActor({ requireWritable: true });
+  if ('error' in actorCtx) {
+    return NextResponse.json({ error: actorCtx.error }, { status: actorCtx.status });
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  }
-
-  let body: { table_id?: unknown; confirm_close?: unknown; confirm_checkout_close?: unknown };
+  let body: {
+    table_id?: unknown;
+    confirm_close?: unknown;
+    confirm_checkout_close?: unknown;
+    close_reason?: unknown;
+    close_reason_detail?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
@@ -33,16 +30,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
   }
 
-  const result = await closeTableSessionWithCheckoutGuard(
-    loaded.admin,
-    loaded.restaurant.id,
+  const unpaidReason = typeof body.close_reason === 'string' ? body.close_reason : null;
+  const unpaidReasonDetail =
+    typeof body.close_reason_detail === 'string' ? body.close_reason_detail : null;
+
+  const result = await closeTableSessionManual({
+    admin: actorCtx.admin,
+    restaurantId: actorCtx.restaurantId,
+    userId: actorCtx.userId,
+    actor: actorCtx.actor,
+    closedReason: actorCtx.closedReason,
     tableId,
-    'owner_closed',
-    {
-      confirm_close: parseCloseConfirmFromBody(body),
-      closed_by_user_id: user.id,
-    },
-  );
+    confirmClose: parseCloseConfirmFromBody(body),
+    unpaidReason,
+    unpaidReasonDetail,
+  });
 
   if (!result.ok) {
     if (result.code === 'no_session') {
@@ -52,6 +54,23 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: result.code, session_id: result.session_id, reasons: result.reasons },
         { status: 409 },
+      );
+    }
+    if (result.code === 'forbidden') {
+      return NextResponse.json({ error: result.code, message: result.message }, { status: 403 });
+    }
+    if (
+      result.code === 'reason_required' ||
+      result.code === 'invalid_reason' ||
+      result.code === 'reason_detail_required'
+    ) {
+      return NextResponse.json(
+        {
+          error: result.code,
+          session_id: result.session_id,
+          is_unpaid_close: result.code === 'reason_required' ? true : undefined,
+        },
+        { status: 400 },
       );
     }
     return NextResponse.json({ error: result.code, message: result.message }, { status: 500 });

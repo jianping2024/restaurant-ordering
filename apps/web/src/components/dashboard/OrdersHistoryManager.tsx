@@ -18,6 +18,7 @@ import {
 } from '@/lib/restaurant-tables';
 import { showToast } from '@/components/ui/Toast';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { createClient } from '@/lib/supabase/client';
@@ -31,6 +32,7 @@ import {
 } from '@/lib/order-list-display';
 import { isTableCheckoutRequested } from '@/lib/table-checkout-pending';
 import { useCheckoutRequestedTableIds } from '@/lib/useCheckoutRequestedTableIds';
+import { unpaidCloseReasonOptions } from '@/lib/unpaid-close-reason-labels';
 
 interface Props {
   initialOrders: Order[];
@@ -72,6 +74,8 @@ export function OrdersHistoryManager({
   const [orders, setOrders] = useState(initialOrders);
   const [closingTable, setClosingTable] = useState<string | null>(null);
   const [checkoutCloseConfirmTableId, setCheckoutCloseConfirmTableId] = useState<string | null>(null);
+  const [unpaidCloseReasonTableId, setUnpaidCloseReasonTableId] = useState<string | null>(null);
+  const [unpaidCloseReasonError, setUnpaidCloseReasonError] = useState<string | null>(null);
   const [activeSessions, setActiveSessions] = useState<ActiveSessionRow[]>([]);
   const [operationType, setOperationType] = useState<'transfer' | 'merge' | null>(null);
   const [sourceTableId, setSourceTableId] = useState<string | null>(null);
@@ -436,9 +440,17 @@ export function OrdersHistoryManager({
     printWindow.document.close();
   };
 
-  const handleCloseTable = async (closeTableId: string, confirmClose = false) => {
+  const unpaidCloseReasonOptionsList = useMemo(() => unpaidCloseReasonOptions(lang), [lang]);
+
+  const handleCloseTable = async (
+    closeTableId: string,
+    confirmClose = false,
+    closeReason?: string,
+    closeReasonDetail?: string,
+  ) => {
     if (!restaurantId) return;
     setClosingTable(closeTableId);
+    setUnpaidCloseReasonError(null);
     try {
       const res = await fetch('/api/dashboard/close-table-session', {
         method: 'POST',
@@ -447,9 +459,15 @@ export function OrdersHistoryManager({
         body: JSON.stringify({
           table_id: closeTableId,
           confirm_close: confirmClose,
+          ...(closeReason ? { close_reason: closeReason } : {}),
+          ...(closeReasonDetail ? { close_reason_detail: closeReasonDetail } : {}),
         }),
       });
-      const data = (await res.json().catch(() => ({}))) as { error?: string; ok?: boolean };
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        ok?: boolean;
+        message?: string;
+      };
       const next = interpretCloseTableSessionResponse(res.status, data);
       if (next.action === 'no_session') {
         showToast(i18n.closeTableNoSession, 'error');
@@ -459,10 +477,29 @@ export function OrdersHistoryManager({
         setCheckoutCloseConfirmTableId(closeTableId);
         return;
       }
+      if (next.action === 'reason_required') {
+        setUnpaidCloseReasonTableId(closeTableId);
+        return;
+      }
+      if (next.action === 'forbidden') {
+        showToast(next.message ?? i18n.closeTableForbidden, 'error');
+        return;
+      }
+      if (next.action === 'invalid_reason') {
+        setUnpaidCloseReasonError(i18n.closeTableUnpaidReasonRequired);
+        setUnpaidCloseReasonTableId(closeTableId);
+        return;
+      }
+      if (next.action === 'reason_detail_required') {
+        setUnpaidCloseReasonError(i18n.closeTableUnpaidReasonDetailRequired);
+        setUnpaidCloseReasonTableId(closeTableId);
+        return;
+      }
       if (next.action === 'error') {
         showToast(i18n.closeTableFailed, 'error');
         return;
       }
+      setUnpaidCloseReasonTableId(null);
       showToast(i18n.closeTableSuccess, 'success');
       router.refresh();
     } catch {
@@ -795,6 +832,30 @@ export function OrdersHistoryManager({
           const tableId = checkoutCloseConfirmTableId;
           setCheckoutCloseConfirmTableId(null);
           await handleCloseTable(tableId, true);
+        }}
+      />
+      <ReasonConfirmDialog
+        open={unpaidCloseReasonTableId != null}
+        onClose={() => {
+          setUnpaidCloseReasonTableId(null);
+          setUnpaidCloseReasonError(null);
+        }}
+        title={i18n.closeTableUnpaidReasonTitle}
+        message={i18n.closeTableUnpaidReasonMessage}
+        reasonLabel={i18n.closeTableUnpaidReasonLabel}
+        detailLabel={i18n.closeTableUnpaidReasonDetailLabel}
+        detailPlaceholder={i18n.closeTableUnpaidReasonDetailPlaceholder}
+        confirmLabel={i18n.closeTableConfirmButton}
+        cancelLabel={i18n.closeTableCancel}
+        reasonRequiredError={i18n.closeTableUnpaidReasonRequired}
+        detailRequiredError={i18n.closeTableUnpaidReasonDetailRequired}
+        reasons={unpaidCloseReasonOptionsList}
+        confirming={closingTable === unpaidCloseReasonTableId}
+        externalError={unpaidCloseReasonError}
+        onConfirm={async (reason, detail) => {
+          if (!unpaidCloseReasonTableId) return;
+          const tableId = unpaidCloseReasonTableId;
+          await handleCloseTable(tableId, true, reason, detail);
         }}
       />
     </div>

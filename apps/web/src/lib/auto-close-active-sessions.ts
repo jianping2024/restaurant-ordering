@@ -13,7 +13,7 @@ export function isNightlyAutoCloseDue(now = new Date()): boolean {
 
 /**
  * Nightly cutover: same operational close as waiter/owner (cancel unpaid splits, void lines, close session).
- * Does NOT use closeTableSessionWithCheckoutGuard — intentionally bypasses checkout confirm (05:00 Lisbon).
+ * Does NOT use manual close RPC — intentionally bypasses checkout confirm (05:00 Lisbon).
  * Processes each open/billing table row once.
  */
 export async function closeAllOpenBillingSessions(admin: SupabaseClient): Promise<{ closedCount: number }> {

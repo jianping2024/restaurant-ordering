@@ -30,6 +30,28 @@ describe('interpretCloseTableSessionResponse', () => {
     );
   });
 
+  it('maps reason_required to reason_required', () => {
+    assert.deepEqual(interpretCloseTableSessionResponse(400, { error: 'reason_required' }), {
+      action: 'reason_required',
+    });
+  });
+
+  it('maps forbidden to forbidden with message', () => {
+    assert.deepEqual(
+      interpretCloseTableSessionResponse(403, { error: 'forbidden', message: 'nope' }),
+      { action: 'forbidden', message: 'nope' },
+    );
+  });
+
+  it('maps invalid_reason and reason_detail_required', () => {
+    assert.deepEqual(interpretCloseTableSessionResponse(400, { error: 'invalid_reason' }), {
+      action: 'invalid_reason',
+    });
+    assert.deepEqual(interpretCloseTableSessionResponse(400, { error: 'reason_detail_required' }), {
+      action: 'reason_detail_required',
+    });
+  });
+
   it('maps other failures to error', () => {
     assert.deepEqual(interpretCloseTableSessionResponse(500, { error: 'update_failed' }), {
       action: 'error',

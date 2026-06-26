@@ -1,13 +1,19 @@
-/** UI handling for POST close-table-session / waiter sessions close responses. */
+/** UI handling for POST close-table-session responses. */
 
 export type CloseTableSessionApiBody = {
   error?: string;
   ok?: boolean;
+  is_unpaid_close?: boolean;
+  message?: string;
 };
 
 export type CloseTableSessionUiAction =
   | { action: 'success' }
   | { action: 'confirm_close' }
+  | { action: 'reason_required' }
+  | { action: 'forbidden'; message?: string }
+  | { action: 'invalid_reason' }
+  | { action: 'reason_detail_required' }
   | { action: 'no_session' }
   | { action: 'error' };
 
@@ -20,6 +26,18 @@ export function interpretCloseTableSessionResponse(
   }
   if (status === 404 || body.error === 'no_session') {
     return { action: 'no_session' };
+  }
+  if (status === 403 || body.error === 'forbidden') {
+    return { action: 'forbidden', message: body.message };
+  }
+  if (status === 400 && body.error === 'reason_required') {
+    return { action: 'reason_required' };
+  }
+  if (status === 400 && body.error === 'invalid_reason') {
+    return { action: 'invalid_reason' };
+  }
+  if (status === 400 && body.error === 'reason_detail_required') {
+    return { action: 'reason_detail_required' };
   }
   if (
     status === 409 &&

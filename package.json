@@ -23,7 +23,7 @@
     "build:all": "npm run build -w @mesa/web && npm run build -w @mesa/ops",
     "start": "npm run start -w @mesa/web",
     "lint": "npm run lint -w @mesa/web && npm run lint -w @mesa/ops",
-    "test:unit": "cd apps/web && node --import tsx --test src/lib/resolve-append-cart-items.test.ts src/lib/checkout-confirm-payment.test.ts src/lib/table-session-close-guards.test.ts src/lib/close-table-session-ui.test.ts src/lib/bill-split-by-item.test.ts src/lib/order-receipt-enqueue.test.ts",
+    "test:unit": "cd apps/web && node --import tsx --test src/lib/resolve-append-cart-items.test.ts src/lib/checkout-confirm-payment.test.ts src/lib/close-table-session-ui.test.ts src/lib/bill-split-by-item.test.ts src/lib/order-receipt-enqueue.test.ts src/lib/abnormal-operations.test.ts src/lib/audit/audit.service.test.ts src/lib/table-session/close-table-session.service.test.ts",
     "push": "bash scripts/push-to-main.sh"
   },
   "devDependencies": {

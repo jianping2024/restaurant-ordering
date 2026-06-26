@@ -5,6 +5,10 @@ SQL source of truth: `supabase/migrations/20240101000000_initial_schema.sql` (sq
 
 ## Tables
 
+abnormal_operations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, type: text [DISCOUNT_APPLIED|ITEM_DELETED|UNPAID_TABLE_CLOSED], risk_level: text [LOW|MEDIUM|HIGH], status: text [PENDING|CONFIRMED|IGNORED] default PENDING, order_id: uuid FK -> orders.id nullable, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id nullable, table_name: text nullable, operator_id: uuid FK -> auth.users.id, operator_name: text, operator_role: text, amount_impact: numeric default 0, reason: text, reason_detail: text nullable, before_data: jsonb default {}, after_data: jsonb default {}, owner_note: text nullable, confirmed_by: uuid FK -> auth.users.id nullable, confirmed_at: timestamptz nullable, source_action_id: uuid FK -> operation_logs.id nullable, created_at: timestamptz, updated_at: timestamptz)
+
+operation_logs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, action_type: text, entity_type: text, entity_id: uuid, operator_id: uuid FK -> auth.users.id, operator_name: text, operator_role: text, before_data: jsonb default {}, after_data: jsonb default {}, reason: text nullable, reason_detail: text nullable, ip_address: text nullable, device_info: text nullable, created_at: timestamptz)
+
 bill_splits (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, order_ids: uuid[], split_mode: text [even|by_item|custom], persons: jsonb, result: jsonb, total_amount: numeric, status: text [pending|confirmed|requested|paid|cancelled], created_at: timestamptz, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id, display_name: text, customer_nif: text nullable)
 
 buffet_calendar_overrides (restaurant_id: uuid PK FK -> restaurants.id, on_date: date PK, kind: text [holiday|special])
@@ -50,6 +54,13 @@ restaurants (id: uuid PK, name: text, slug: text unique, owner_id: uuid FK -> au
 table_sessions (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, status: text [open|billing|closed], opened_at: timestamptz, closed_at: timestamptz nullable, merge_into_session_id: uuid FK -> table_sessions.id nullable, closed_reason: text nullable, closed_by_user_id: uuid FK -> auth.users.id nullable, opened_by_user_id: uuid FK -> auth.users.id nullable, table_id: uuid FK -> restaurant_tables.id)
 
 ## Relationships
+
+abnormal_operations.restaurant_id -> restaurants.id  
+abnormal_operations.order_id -> orders.id  
+abnormal_operations.session_id -> table_sessions.id  
+abnormal_operations.table_id -> restaurant_tables.id  
+abnormal_operations.operator_id -> auth.users.id  
+abnormal_operations.confirmed_by -> auth.users.id
 
 restaurants.owner_id -> auth.users.id
 
@@ -120,6 +131,8 @@ restaurants_public — security definer view; public menu/geo fields for custome
 | `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index, discount_rate?)` | authenticated, service_role | SECURITY DEFINER checkout; advisory lock per session; rejects `cancelled` splits; not anon |
 | `upsert_bill_split_request(restaurant_id, session_id, table_id, display_name, order_ids, split_mode, persons, result, total_amount, customer_nif)` | authenticated, service_role | Atomic checkout request; merges `paid` under lock; not anon |
 | `close_table_session_operational(restaurant_id, table_id, closed_reason, closed_by_user_id?)` | authenticated, service_role | Atomic operational close: cancel splits, void orders, close session; not anon |
+| `compute_session_payment_gap(restaurant_id, session_id)` | authenticated, service_role | Returns payable/paid/gap + `is_unpaid_close` for an active session |
+| `close_table_session_manual(restaurant_id, table_id, operator_user_id, closed_reason, confirm_close, unpaid_reason?, unpaid_reason_detail?)` | authenticated, service_role | Owner/frontdesk manual close; validates unpaid reason; returns audit snapshot (audit rows written in app via `recordAudit`) |
 | `transfer_table_session(restaurant_id, from_table_id, to_table_id)` | authenticated, service_role | Move open session between tables |
 | `merge_table_sessions(restaurant_id, source_table_id, target_table_id)` | authenticated, service_role | Merge two table sessions |
 | `merge_multiple_table_sessions(restaurant_id, source_table_ids[], target_table_id)` | authenticated, service_role | Multi-source merge |
@@ -159,6 +172,17 @@ restaurants.order_radius_meters: 10..10000
 table_sessions.status: open | billing | closed
 
 ## Indexes
+
+abnormal_operations:
+
+- abnormal_operations_pkey: PK btree(id)
+- idx_abnormal_operations_restaurant_created: btree(restaurant_id, created_at DESC)
+- idx_abnormal_operations_restaurant_status: btree(restaurant_id, status)
+
+operation_logs:
+
+- operation_logs_pkey: PK btree(id)
+- idx_operation_logs_restaurant_created: btree(restaurant_id, created_at DESC)
 
 bill_splits:
 
@@ -293,6 +317,16 @@ Common helpers:
 - Owner access usually means `restaurant_id IN (SELECT restaurants.id FROM restaurants WHERE restaurants.owner_id = auth.uid())` or `owner_id = auth.uid()`.
 - Staff access uses `is_active_restaurant_staff(restaurant_id[, roles])`, `auth_staff_restaurant_ids()`, or `auth_owned_restaurant_ids()`.
 - Several policies use role `{public}` but still rely on `auth.uid()` inside the predicate; treat these as auth-dependent owner checks, not necessarily anonymous write access.
+
+abnormal_operations:
+
+- SELECT: authenticated owner by restaurant ownership.
+- UPDATE: authenticated owner by restaurant ownership, with matching `WITH CHECK`.
+- INSERT: service role only (route handlers via admin client); no authenticated INSERT policy.
+
+operation_logs:
+
+- RLS enabled; no authenticated SELECT/INSERT/UPDATE policies (service role writes only via admin client in P1).
 
 bill_splits:
 

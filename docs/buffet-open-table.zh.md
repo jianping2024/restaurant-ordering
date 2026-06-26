@@ -12,7 +12,9 @@
 
 1. **开台优先**：未开台（无 active `buffet_base`）时，客人与服务员均不可加菜（`guestOrderingEnabled` / `orders/append`）。
 2. **改人数**：仅更新自助餐行与金额；**不得**改动已有 `menu` 行或厨房状态（`planBuffetOpenWrites`）。
-3. **无变化 = no-op**：当前 active 自助餐的 `buffet_id`、成人数、儿童数与请求一致 → **不计价、不写库**；返回当前桌台详情即可。
+3. **无变化 = no-op**：当前 active 自助餐的 `buffet_id`、**成人数**、**儿童数**（分别比较，**不是**成人+儿童总人数）与请求一致 → **不计价、不写库**；返回当前桌台详情即可。
+
+示例：`A2 C1` 与 `A3 C0` 总人数同为 3，但**必须重算**（成人价/儿童价不同）。
 
 ---
 
@@ -26,7 +28,7 @@
          → 拉 session 内 orders 一次
          → mapToBuffetSessionOrders（只映射一次，全程复用）
 
-② 判   isBuffetHeadcountUnchanged(sessionOrders, buffet_id, adults, children)
+② 判   isBuffetGuestCountsUnchanged(sessionOrders, buffet_id, adults, children)
          true  → 跳到 ④（unchanged: true）
          false → 继续 ③
 
@@ -47,11 +49,11 @@
 
 ## 客户端（服务员桌台）
 
-1. 点击「开台」前：`isBuffetHeadcountUnchanged(tableOrders, …)` → 未变则 toast，**不发请求**。
+1. 点击「开台」前：`isBuffetGuestCountsUnchanged(tableOrders, …)` → 未变则 toast，**不发请求**。
 2. 有变化：`applyBuffetOpenOptimisticToOrders` 乐观更新 → `postWaiterBuffetOpenClient` → `applyDetail(detail)` 与服务端对齐；**不再**单独 `refresh()` 桌台详情。
 3. 失败：回滚乐观状态；409 冲突时 `refresh()`。
 
-判定函数与服务器共用：`isBuffetHeadcountUnchanged`（`apps/web/src/lib/buffet-order.ts`）。
+判定函数与服务器共用：`isBuffetGuestCountsUnchanged`（`apps/web/src/lib/buffet-order.ts`）。
 
 ---
 
@@ -59,7 +61,7 @@
 
 | 职责 | 模块 |
 |------|------|
-| 人数是否变化 | `isBuffetHeadcountUnchanged` |
+| 成人/儿童是否变化（分项，非总人数） | `isBuffetGuestCountsUnchanged` |
 | 写计划（纯函数） | `planBuffetOpenWrites` |
 | DB 持久化 | `applyBuffetOpenToSession` |
 | 乐观 UI | `applyBuffetOpenOptimisticToOrders` |

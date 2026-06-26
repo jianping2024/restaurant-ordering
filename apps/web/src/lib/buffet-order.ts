@@ -72,8 +72,19 @@ export function aggregateBuffetForOrders(
   };
 }
 
-/** True when active buffet headcount and type match the open-table request (no DB write needed). */
-export function isBuffetHeadcountUnchanged(
+/** Non-negative integer adult/child counts for buffet open-table and pricing. */
+export function normalizeBuffetGuestCounts(
+  adultCount: number,
+  childCount: number,
+): { adults: number; children: number } {
+  return {
+    adults: Math.max(0, Math.floor(adultCount)),
+    children: Math.max(0, Math.floor(childCount)),
+  };
+}
+
+/** True when buffet type and adult/child counts match (compared separately, not as a total). */
+export function isBuffetGuestCountsUnchanged(
   orders: Array<Pick<Order, 'items' | 'status'>>,
   buffetId: string,
   adultCount: number,
@@ -81,8 +92,7 @@ export function isBuffetHeadcountUnchanged(
 ): boolean {
   const agg = aggregateBuffetForOrders(orders as Order[]);
   if (!agg) return false;
-  const adults = Math.max(0, Math.floor(adultCount));
-  const children = Math.max(0, Math.floor(childCount));
+  const { adults, children } = normalizeBuffetGuestCounts(adultCount, childCount);
   return agg.buffetId === buffetId && agg.adults === adults && agg.children === children;
 }
 
@@ -104,8 +114,7 @@ export function formatBuffetGuestCountsOptional(
   templates: { adults: string; children: string },
 ): string {
   const parts: string[] = [];
-  const a = Math.max(0, Math.floor(adults));
-  const c = Math.max(0, Math.floor(children));
+  const { adults: a, children: c } = normalizeBuffetGuestCounts(adults, children);
   if (a > 0) parts.push(templates.adults.replace('{n}', String(a)));
   if (c > 0) parts.push(templates.children.replace('{n}', String(c)));
   return parts.join(' · ');
@@ -144,8 +153,7 @@ export function buildBuffetBaseLine(params: {
   const ap = params.resolved.adult_price;
   const cp = params.resolved.child_price;
   if (!Number.isFinite(Number(ap)) || !Number.isFinite(Number(cp))) return null;
-  const adults = Math.max(0, Math.floor(params.adultCount));
-  const children = Math.max(0, Math.floor(params.childCount));
+  const { adults, children } = normalizeBuffetGuestCounts(params.adultCount, params.childCount);
 
   const lineTotal = adults * Number(ap) + children * Number(cp);
   const addedAt = new Date().toISOString();

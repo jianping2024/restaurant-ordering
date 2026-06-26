@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
-import { buildBuffetBaseLine, isBuffetHeadcountUnchanged, parseResolvedBuffetPriceRpcRow } from '@/lib/buffet-order';
+import { buildBuffetBaseLine, isBuffetGuestCountsUnchanged, normalizeBuffetGuestCounts, parseResolvedBuffetPriceRpcRow } from '@/lib/buffet-order';
 import { applyBuffetOpenToSession, mapToBuffetSessionOrders } from '@/lib/buffet-open-table';
 import { fetchWaiterTableDetail } from '@/lib/staff-board';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -38,8 +38,10 @@ export async function POST(
 
   const tableId = parseTableIdParam(body.table_id);
   const buffetId = typeof body.buffet_id === 'string' ? body.buffet_id : '';
-  const adultCount = Math.max(0, Math.floor(Number(body.adult_count) || 0));
-  const childCount = Math.max(0, Math.floor(Number(body.child_count) || 0));
+  const { adults: adultCount, children: childCount } = normalizeBuffetGuestCounts(
+    Number(body.adult_count) || 0,
+    Number(body.child_count) || 0,
+  );
 
   if (!tableId || !buffetId) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
@@ -117,7 +119,7 @@ export async function POST(
   }
 
   const sessionOrders = mapToBuffetSessionOrders(sessionOrderRows || []);
-  const unchanged = isBuffetHeadcountUnchanged(sessionOrders as Order[], buffetId, adultCount, childCount);
+  const unchanged = isBuffetGuestCountsUnchanged(sessionOrders as Order[], buffetId, adultCount, childCount);
 
   if (!unchanged) {
     const { data: priceRows, error: priceError } = await admin.rpc('resolve_buffet_prices', {

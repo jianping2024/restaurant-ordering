@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import {
   buildBuffetBaseLine,
   formatBuffetGuestCountsOptional,
-  isBuffetHeadcountUnchanged,
+  isBuffetGuestCountsUnchanged,
 } from '@/lib/buffet-order';
 import type { Order } from '@/types';
 
@@ -38,19 +38,29 @@ function orderWithBuffet(adults: number, children: number): Order {
   };
 }
 
-describe('isBuffetHeadcountUnchanged', () => {
+describe('isBuffetGuestCountsUnchanged', () => {
   it('is false when table has no active buffet', () => {
-    assert.equal(isBuffetHeadcountUnchanged([], buffetA.id, 2, 0), false);
+    assert.equal(isBuffetGuestCountsUnchanged([], buffetA.id, 2, 0), false);
   });
 
-  it('is true when buffet type and headcount match', () => {
+  it('is true when buffet type and adult/child counts match', () => {
     const orders = [orderWithBuffet(2, 1)];
-    assert.equal(isBuffetHeadcountUnchanged(orders, buffetA.id, 2, 1), true);
+    assert.equal(isBuffetGuestCountsUnchanged(orders, buffetA.id, 2, 1), true);
   });
 
   it('is false when adult count differs', () => {
     const orders = [orderWithBuffet(2, 1)];
-    assert.equal(isBuffetHeadcountUnchanged(orders, buffetA.id, 3, 1), false);
+    assert.equal(isBuffetGuestCountsUnchanged(orders, buffetA.id, 3, 1), false);
+  });
+
+  it('is false when child count differs', () => {
+    const orders = [orderWithBuffet(2, 1)];
+    assert.equal(isBuffetGuestCountsUnchanged(orders, buffetA.id, 2, 0), false);
+  });
+
+  it('is false when total matches but adult/child split differs', () => {
+    const orders = [orderWithBuffet(2, 1)];
+    assert.equal(isBuffetGuestCountsUnchanged(orders, buffetA.id, 3, 0), false);
   });
 });
 

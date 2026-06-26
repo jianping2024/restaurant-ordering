@@ -8,7 +8,7 @@ import {
   aggregateBuffetForOrders,
   buildBuffetBaseLine,
   formatBuffetSummaryLine,
-  isBuffetHeadcountUnchanged,
+  isBuffetGuestCountsUnchanged,
   parseResolvedBuffetPriceRpcRow,
   type ResolvedBuffetPriceRow,
 } from '@/lib/buffet-order';
@@ -620,8 +620,8 @@ function WaiterTableDetailInner({
     const buffet = activeBuffets.find((b) => b.id === buffetId);
     if (!buffet) return;
 
-    if (isBuffetHeadcountUnchanged(tableOrders, buffetId, buffetAdults, buffetChildren)) {
-      showToast(t.buffetHeadcountUnchanged, 'info');
+    if (isBuffetGuestCountsUnchanged(tableOrders, buffetId, buffetAdults, buffetChildren)) {
+      showToast(t.buffetGuestCountsUnchanged, 'info');
       return;
     }
 

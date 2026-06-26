@@ -38,9 +38,7 @@ type Filters = {
 
 type DatePreset = 'today' | 'last7' | 'last30' | 'custom';
 
-type AdvancedDraft = Omit<Filters, 'page'>;
-
-const DEFAULT_ADVANCED_DRAFT = (today: string): AdvancedDraft => ({
+const DEFAULT_FILTERS = (today: string): Omit<Filters, 'page'> => ({
   startDate: today,
   endDate: today,
   type: '',
@@ -136,13 +134,13 @@ function buildFilterSummary(
     typeFilterLabel(t, filters.type),
     riskFilterLabel(t, filters.riskLevel),
     statusFilterLabel(t, filters.status),
-  ].join(' · ');
+  ].join(t.filterSummarySeparator);
 }
 
-const FILTER_SELECT_CLASS =
-  'w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-sm';
+const COMPACT_SELECT_CLASS =
+  'rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-[13px] text-brand-text';
 const PRESET_BTN_BASE =
-  'text-sm px-3 py-1.5 rounded-lg border transition-colors whitespace-nowrap';
+  'text-[13px] px-2.5 py-1 rounded-md border transition-colors whitespace-nowrap';
 
 function riskBadgeClass(risk: AbnormalRiskLevel) {
   if (risk === 'HIGH') return 'mesa-badge-danger';
@@ -177,10 +175,7 @@ export function AbnormalOperationsManager() {
   const [ownerNoteDraft, setOwnerNoteDraft] = useState('');
   const [patching, setPatching] = useState(false);
   const [refreshCooldownSec, setRefreshCooldownSec] = useState(0);
-  const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [advancedDraft, setAdvancedDraft] = useState<AdvancedDraft>(() =>
-    DEFAULT_ADVANCED_DRAFT(today),
-  );
+  const [customDateOpen, setCustomDateOpen] = useState(false);
   const lastRefreshAtRef = useRef(0);
 
   useEffect(() => {
@@ -237,11 +232,7 @@ export function AbnormalOperationsManager() {
 
   const activeDatePreset = detectDatePreset(filters.startDate, filters.endDate, today);
   const filterSummary = buildFilterSummary(t, filters, today, locale);
-  const hasNonDefaultFilters =
-    activeDatePreset !== 'today' ||
-    filters.type !== '' ||
-    filters.riskLevel !== '' ||
-    filters.status !== '';
+  const recordCount = data?.total ?? 0;
 
   const applyDatePreset = (preset: Exclude<DatePreset, 'custom'>) => {
     const next =
@@ -250,45 +241,25 @@ export function AbnormalOperationsManager() {
         : preset === 'last7'
           ? { startDate: addCalendarDays(today, -6), endDate: today }
           : { startDate: addCalendarDays(today, -29), endDate: today };
+    setCustomDateOpen(false);
     setFilters((prev) => ({ ...prev, ...next, page: 1 }));
-    if (advancedOpen) {
-      setAdvancedDraft((prev) => ({ ...prev, ...next }));
-    }
   };
 
-  const openAdvanced = () => {
-    setAdvancedDraft({
-      startDate: filters.startDate,
-      endDate: filters.endDate,
-      type: filters.type,
-      riskLevel: filters.riskLevel,
-      status: filters.status,
-    });
-    setAdvancedOpen(true);
+  const openCustomDate = () => {
+    setCustomDateOpen(true);
   };
 
-  const toggleAdvanced = () => {
-    if (advancedOpen) {
-      setAdvancedOpen(false);
-      return;
-    }
-    openAdvanced();
-  };
-
-  const applyAdvancedDraft = () => {
-    setFilters((prev) => ({ ...prev, ...advancedDraft, page: 1 }));
-  };
-
-  const resetAdvancedDraft = () => {
-    const defaults = DEFAULT_ADVANCED_DRAFT(today);
-    setAdvancedDraft(defaults);
+  const resetFilters = () => {
+    const defaults = DEFAULT_FILTERS(today);
+    setCustomDateOpen(false);
     setFilters((prev) => ({ ...prev, ...defaults, page: 1 }));
   };
 
-  const clearAllFilters = () => {
-    const defaults = DEFAULT_ADVANCED_DRAFT(today);
-    setFilters((prev) => ({ ...prev, ...defaults, page: 1 }));
-    setAdvancedDraft(defaults);
+  const updateFilter = <K extends keyof Omit<Filters, 'page'>>(
+    key: K,
+    value: Omit<Filters, 'page'>[K],
+  ) => {
+    setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
   };
 
   const presetBtnClass = (active: boolean) =>
@@ -339,150 +310,109 @@ export function AbnormalOperationsManager() {
 
   return (
     <div className="max-w-6xl">
-      <header className="mb-6">
-        <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
-        <p className="text-sm text-brand-text-muted mt-2">{t.subtitle}</p>
+      <header className="mb-5 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
+          <p className="text-sm text-brand-text-muted mt-2">{t.subtitle}</p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={loading || refreshCooldownSec > 0}
+        >
+          {refreshCooldownSec > 0
+            ? t.refreshCooldown.replace('{n}', String(refreshCooldownSec))
+            : t.refresh}
+        </Button>
       </header>
 
       {stats ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          {[
-            { label: t.statsTotal, value: String(stats.total_count) },
-            { label: t.statsHighRisk, value: String(stats.high_risk_count) },
-            {
-              label: t.statsAmountImpact,
-              value: `€${stats.amount_impact_sum.toFixed(2)}`,
-            },
-            { label: t.statsPending, value: String(stats.pending_count) },
-          ].map((card) => (
-            <div
-              key={card.label}
-              className="rounded-xl border border-brand-border bg-brand-card px-4 py-3"
-            >
-              <p className="text-[13px] text-brand-text-muted">{card.label}</p>
-              <p className="text-xl font-semibold text-brand-text mt-1">{card.value}</p>
-            </div>
-          ))}
+        <div className="mb-4 rounded-xl border border-brand-border bg-brand-card px-4 py-2.5">
+          <p className="text-[12px] text-brand-text-muted mb-1">{t.statsOverview}</p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px]">
+            <span>
+              <span className="text-brand-text-muted">{t.statsTotal}</span>{' '}
+              <span className="font-medium text-brand-text">{stats.total_count}</span>
+            </span>
+            <span className="text-brand-border/80 hidden sm:inline" aria-hidden>
+              ｜
+            </span>
+            <span>
+              <span className="text-brand-text-muted">{t.statsHighRisk}</span>{' '}
+              <span className="font-medium text-brand-text">{stats.high_risk_count}</span>
+            </span>
+            <span className="text-brand-border/80 hidden sm:inline" aria-hidden>
+              ｜
+            </span>
+            <span>
+              <span className="text-brand-text-muted">{t.statsAmountImpact}</span>{' '}
+              <span className="font-semibold text-brand-gold">
+                €{stats.amount_impact_sum.toFixed(2)}
+              </span>
+            </span>
+            <span className="text-brand-border/80 hidden sm:inline" aria-hidden>
+              ｜
+            </span>
+            <span>
+              <span className="text-brand-text-muted">{t.statsPending}</span>{' '}
+              <span className="font-medium text-brand-text">{stats.pending_count}</span>
+            </span>
+          </div>
         </div>
       ) : null}
 
-      <div className="mb-4 space-y-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => applyDatePreset('today')}
-              className={presetBtnClass(activeDatePreset === 'today')}
-            >
-              {t.presetToday}
-            </button>
-            <button
-              type="button"
-              onClick={() => applyDatePreset('last7')}
-              className={presetBtnClass(activeDatePreset === 'last7')}
-            >
-              {t.presetLast7}
-            </button>
-            <button
-              type="button"
-              onClick={() => applyDatePreset('last30')}
-              className={presetBtnClass(activeDatePreset === 'last30')}
-            >
-              {t.presetLast30}
-            </button>
-            <button
-              type="button"
-              onClick={openAdvanced}
-              className={presetBtnClass(activeDatePreset === 'custom')}
-            >
-              {t.presetCustom}
-            </button>
+      <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
+        <div className="px-4 pt-3 pb-2 border-b border-brand-border/70">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+            <h2 className="text-sm font-medium text-brand-text">{t.tableTitle}</h2>
+            <p className="text-[13px] text-brand-text-muted">
+              {t.recordCount.replace('{n}', String(recordCount))}
+            </p>
           </div>
 
-          <p className="text-[13px] text-brand-text-muted min-w-0 flex-1 basis-[200px]">
-            <span className="text-brand-text-muted/80">{t.filterCurrentLabel}</span>
-            <span className="text-brand-text">{filterSummary}</span>
-          </p>
-
-          <div className="flex flex-wrap items-center gap-2 ml-auto">
-            {hasNonDefaultFilters ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1">
               <button
                 type="button"
-                onClick={clearAllFilters}
-                className="text-[13px] text-brand-text-muted hover:text-brand-text whitespace-nowrap"
+                onClick={() => applyDatePreset('today')}
+                className={presetBtnClass(activeDatePreset === 'today')}
               >
-                {t.clearFilters}
+                {t.presetToday}
               </button>
-            ) : null}
-            <button
-              type="button"
-              onClick={toggleAdvanced}
-              className={`${PRESET_BTN_BASE} border-brand-border text-brand-text-muted hover:border-brand-gold/40 hover:text-brand-text`}
-              aria-expanded={advancedOpen}
-            >
-              {t.advancedFilter}
-              <span className="ml-1 text-[11px]" aria-hidden>
-                {advancedOpen ? '▲' : '▼'}
-              </span>
-            </button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={loading || refreshCooldownSec > 0}
-            >
-              {refreshCooldownSec > 0
-                ? t.refreshCooldown.replace('{n}', String(refreshCooldownSec))
-                : t.refresh}
-            </Button>
-          </div>
-        </div>
+              <button
+                type="button"
+                onClick={() => applyDatePreset('last7')}
+                className={presetBtnClass(activeDatePreset === 'last7')}
+              >
+                {t.presetLast7}
+              </button>
+              <button
+                type="button"
+                onClick={() => applyDatePreset('last30')}
+                className={presetBtnClass(activeDatePreset === 'last30')}
+              >
+                {t.presetLast30}
+              </button>
+              <button
+                type="button"
+                onClick={openCustomDate}
+                className={presetBtnClass(activeDatePreset === 'custom' || customDateOpen)}
+              >
+                {t.presetCustom}
+              </button>
+            </div>
 
-        {advancedOpen ? (
-          <div className="rounded-xl border border-brand-border/80 bg-brand-card/60 px-4 py-3">
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="sm:col-span-2 lg:col-span-4">
-                <span className="text-brand-text-muted text-[13px] block mb-1.5">
-                  {t.filterDateRange}
-                </span>
-                <div className="flex flex-wrap items-center gap-2 rounded-lg border border-brand-border bg-brand-bg px-3 py-2">
-                  <input
-                    type="date"
-                    value={advancedDraft.startDate}
-                    max={advancedDraft.endDate}
-                    onChange={(e) =>
-                      setAdvancedDraft((prev) => ({ ...prev, startDate: e.target.value }))
-                    }
-                    className="min-w-0 flex-1 bg-transparent text-sm text-brand-text focus:outline-none"
-                    aria-label={t.filterStart}
-                  />
-                  <span className="text-brand-text-muted text-sm shrink-0">
-                    {t.dateRangeSeparator}
-                  </span>
-                  <input
-                    type="date"
-                    value={advancedDraft.endDate}
-                    min={advancedDraft.startDate}
-                    max={today}
-                    onChange={(e) =>
-                      setAdvancedDraft((prev) => ({ ...prev, endDate: e.target.value }))
-                    }
-                    className="min-w-0 flex-1 bg-transparent text-sm text-brand-text focus:outline-none"
-                    aria-label={t.filterEnd}
-                  />
-                </div>
-              </div>
-              <label className="text-sm">
-                <span className="text-brand-text-muted text-[13px] block mb-1">{t.filterType}</span>
+            <div className="flex flex-wrap items-center gap-2 ml-auto">
+              <label className="inline-flex items-center gap-1 text-[13px] text-brand-text-muted">
+                <span>{t.filterType}</span>
                 <select
-                  value={advancedDraft.type}
+                  value={filters.type}
                   onChange={(e) =>
-                    setAdvancedDraft((prev) => ({
-                      ...prev,
-                      type: e.target.value as AdvancedDraft['type'],
-                    }))
+                    updateFilter('type', e.target.value as Filters['type'])
                   }
-                  className={FILTER_SELECT_CLASS}
+                  className={COMPACT_SELECT_CLASS}
+                  aria-label={t.filterType}
                 >
                   <option value="">{t.filterAll}</option>
                   <option value="DISCOUNT_APPLIED">{t.typeDiscount}</option>
@@ -490,17 +420,15 @@ export function AbnormalOperationsManager() {
                   <option value="UNPAID_TABLE_CLOSED">{t.typeUnpaidClose}</option>
                 </select>
               </label>
-              <label className="text-sm">
-                <span className="text-brand-text-muted text-[13px] block mb-1">{t.filterRisk}</span>
+              <label className="inline-flex items-center gap-1 text-[13px] text-brand-text-muted">
+                <span>{t.filterRisk}</span>
                 <select
-                  value={advancedDraft.riskLevel}
+                  value={filters.riskLevel}
                   onChange={(e) =>
-                    setAdvancedDraft((prev) => ({
-                      ...prev,
-                      riskLevel: e.target.value as AdvancedDraft['riskLevel'],
-                    }))
+                    updateFilter('riskLevel', e.target.value as Filters['riskLevel'])
                   }
-                  className={FILTER_SELECT_CLASS}
+                  className={COMPACT_SELECT_CLASS}
+                  aria-label={t.filterRisk}
                 >
                   <option value="">{t.filterAll}</option>
                   <option value="HIGH">{t.riskHigh}</option>
@@ -508,17 +436,15 @@ export function AbnormalOperationsManager() {
                   <option value="LOW">{t.riskLow}</option>
                 </select>
               </label>
-              <label className="text-sm sm:col-span-2 lg:col-span-1">
-                <span className="text-brand-text-muted text-[13px] block mb-1">{t.filterStatus}</span>
+              <label className="inline-flex items-center gap-1 text-[13px] text-brand-text-muted">
+                <span>{t.filterStatus}</span>
                 <select
-                  value={advancedDraft.status}
+                  value={filters.status}
                   onChange={(e) =>
-                    setAdvancedDraft((prev) => ({
-                      ...prev,
-                      status: e.target.value as AdvancedDraft['status'],
-                    }))
+                    updateFilter('status', e.target.value as Filters['status'])
                   }
-                  className={FILTER_SELECT_CLASS}
+                  className={COMPACT_SELECT_CLASS}
+                  aria-label={t.filterStatus}
                 >
                   <option value="">{t.filterAll}</option>
                   <option value="PENDING">{t.statusPending}</option>
@@ -526,74 +452,109 @@ export function AbnormalOperationsManager() {
                   <option value="IGNORED">{t.statusIgnored}</option>
                 </select>
               </label>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2 justify-end">
-              <Button variant="outline" size="sm" onClick={resetAdvancedDraft}>
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="text-[13px] px-2 py-1 rounded-md border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 whitespace-nowrap"
+              >
                 {t.filterReset}
-              </Button>
-              <Button size="sm" onClick={applyAdvancedDraft}>
-                {t.filterApply}
-              </Button>
+              </button>
             </div>
           </div>
-        ) : null}
-      </div>
 
-      <h2 className="text-sm font-medium text-brand-text mb-2">{t.tableTitle}</h2>
+          {customDateOpen ? (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className="text-[12px] text-brand-text-muted">{t.filterDateRange}</span>
+              <div className="inline-flex flex-wrap items-center gap-2 rounded-md border border-brand-border bg-brand-bg px-2 py-1">
+                <input
+                  type="date"
+                  value={filters.startDate}
+                  max={filters.endDate}
+                  onChange={(e) => updateFilter('startDate', e.target.value)}
+                  className="bg-transparent text-[13px] text-brand-text focus:outline-none"
+                  aria-label={t.filterStart}
+                />
+                <span className="text-brand-text-muted text-[13px]">{t.dateRangeSeparator}</span>
+                <input
+                  type="date"
+                  value={filters.endDate}
+                  min={filters.startDate}
+                  max={today}
+                  onChange={(e) => updateFilter('endDate', e.target.value)}
+                  className="bg-transparent text-[13px] text-brand-text focus:outline-none"
+                  aria-label={t.filterEnd}
+                />
+              </div>
+            </div>
+          ) : null}
 
-      <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
+          <p className="mt-2 text-[12px] text-brand-text-muted/90">
+            {t.filterCurrentLabel}
+            {filterSummary}
+          </p>
+        </div>
+
         {loading ? (
-          <p className="p-8 text-center text-brand-text-muted text-sm">{t.loading}</p>
+          <p className="px-4 py-6 text-center text-brand-text-muted text-sm">{t.loading}</p>
         ) : !data?.items.length ? (
-          <p className="p-12 text-center text-brand-text-muted">{t.empty}</p>
+          <p className="px-4 py-10 text-center text-brand-text-muted text-sm">{t.empty}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-brand-border text-brand-text-muted text-left">
-                  <th className="px-4 py-3 font-medium">{t.colTime}</th>
-                  <th className="px-4 py-3 font-medium">{t.colType}</th>
-                  <th className="px-4 py-3 font-medium">{t.colTable}</th>
-                  <th className="px-4 py-3 font-medium">{t.colOperator}</th>
-                  <th className="px-4 py-3 font-medium">{t.colAmount}</th>
-                  <th className="px-4 py-3 font-medium">{t.colRisk}</th>
-                  <th className="px-4 py-3 font-medium">{t.colStatus}</th>
+                <tr className="border-b border-brand-border text-brand-text-muted text-left text-[13px]">
+                  <th className="px-4 py-2 font-medium">{t.colTime}</th>
+                  <th className="px-4 py-2 font-medium">{t.colType}</th>
+                  <th className="px-4 py-2 font-medium">{t.colTable}</th>
+                  <th className="px-4 py-2 font-medium">{t.colOperator}</th>
+                  <th className="px-4 py-2 font-medium">{t.colAmount}</th>
+                  <th className="px-4 py-2 font-medium">{t.colRisk}</th>
+                  <th className="px-4 py-2 font-medium">{t.colStatus}</th>
+                  <th className="px-4 py-2 font-medium">{t.colAction}</th>
                 </tr>
               </thead>
               <tbody>
                 {data.items.map((row) => (
                   <tr
                     key={row.id}
-                    className="border-b border-brand-border/60 hover:bg-brand-border/20 cursor-pointer"
-                    onClick={() => openDetail(row)}
+                    className="border-b border-brand-border/60 hover:bg-brand-border/15"
                   >
-                    <td className="px-4 py-3 whitespace-nowrap text-brand-text-muted">
+                    <td className="px-4 py-2 whitespace-nowrap text-brand-text-muted text-[13px]">
                       {new Date(row.created_at).toLocaleString(locale)}
                     </td>
-                    <td className="px-4 py-3">{typeLabel(t, row.type)}</td>
-                    <td className="px-4 py-3">{row.table_name ?? '—'}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-2 text-[13px]">{typeLabel(t, row.type)}</td>
+                    <td className="px-4 py-2 text-[13px]">{row.table_name ?? '—'}</td>
+                    <td className="px-4 py-2 text-[13px]">
                       {row.operator_name}
                       <span className="text-brand-text-muted text-[12px] ml-1">
                         ({row.operator_role})
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-brand-gold">
+                    <td className="px-4 py-2 text-brand-gold font-medium text-[13px]">
                       €{Number(row.amount_impact).toFixed(2)}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-2">
                       <span
                         className={`text-[11px] px-2 py-0.5 rounded-full ${riskBadgeClass(row.risk_level)}`}
                       >
                         {riskLabel(t, row.risk_level)}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-2">
                       <span
                         className={`text-[11px] px-2 py-0.5 rounded-full ${statusBadgeClass(row.status)}`}
                       >
                         {statusLabel(t, row.status)}
                       </span>
+                    </td>
+                    <td className="px-4 py-2">
+                      <button
+                        type="button"
+                        onClick={() => openDetail(row)}
+                        className="text-[13px] text-brand-gold hover:underline whitespace-nowrap"
+                      >
+                        {t.viewDetail}
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -601,31 +562,33 @@ export function AbnormalOperationsManager() {
             </table>
           </div>
         )}
-      </div>
 
-      {data && data.total > data.pageSize ? (
-        <div className="mt-4 flex items-center justify-between gap-3">
-          <p className="text-sm text-brand-text-muted">
-            {t.pageInfo.replace('{page}', String(data.page)).replace('{total}', String(data.total))}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              disabled={data.page <= 1 || loading}
-              onClick={() => setFilters((prev) => ({ ...prev, page: prev.page - 1 }))}
-            >
-              {t.pagePrev}
-            </Button>
-            <Button
-              variant="outline"
-              disabled={data.page >= totalPages || loading}
-              onClick={() => setFilters((prev) => ({ ...prev, page: prev.page + 1 }))}
-            >
-              {t.pageNext}
-            </Button>
+        {data && data.total > data.pageSize ? (
+          <div className="px-4 py-3 border-t border-brand-border/70 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[13px] text-brand-text-muted">
+              {t.pageInfo.replace('{page}', String(data.page)).replace('{total}', String(data.total))}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={data.page <= 1 || loading}
+                onClick={() => setFilters((prev) => ({ ...prev, page: prev.page - 1 }))}
+              >
+                {t.pagePrev}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={data.page >= totalPages || loading}
+                onClick={() => setFilters((prev) => ({ ...prev, page: prev.page + 1 }))}
+              >
+                {t.pageNext}
+              </Button>
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
 
       <Modal
         open={selected != null}

@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
-import {
-  OPEN_TABLE_AUTHORIZED_STAFF_ROLES,
-  staffAuthFromRequestWithRoles,
-} from '@/lib/staff-api-auth';
+import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
 import { distanceMeters } from '@/lib/geo-distance';
 import { normalizeOrderRadiusMeters } from '@/lib/order-radius';
 import { orderEnqueueSecret, signOrderEnqueueToken } from '@/lib/order-enqueue-token';
@@ -17,7 +14,7 @@ import type { OrderItem } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
 import type { Order } from '@/types';
-import { insertOpenTableSession } from '@/lib/table-session-open';
+import { ensureOpenTableSession, findActiveTableSession } from '@/lib/table-session-open';
 
 export const runtime = 'nodejs';
 
@@ -87,9 +84,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
 
   const rid = loaded.restaurant.id;
   const waiterFlow = body.waiter_flow === true;
-  const staffOrderFlow = waiterFlow
-    ? await staffAuthFromRequestWithRoles(req, slug, OPEN_TABLE_AUTHORIZED_STAFF_ROLES)
-    : null;
+  const staffOrderFlow = waiterFlow ? await openTableAuthFromRequest(req, slug) : null;
 
   const { data: tableRow, error: tableErr } = await admin
     .from('restaurant_tables')
@@ -131,18 +126,10 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     }
   }
 
-  let { data: session } = await admin
-    .from('table_sessions')
-    .select('id, status')
-    .eq('restaurant_id', rid)
-    .eq('table_id', tableId)
-    .in('status', ['open', 'billing'])
-    .order('opened_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  let session = await findActiveTableSession(admin, rid, tableId);
 
   if (!staffOrderFlow) {
-    if (!session?.id) {
+    if (!session) {
       return NextResponse.json({ error: 'buffet_required' }, { status: 403 });
     }
     if (session.status === 'billing') {
@@ -161,16 +148,16 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
       return NextResponse.json({ error: 'buffet_required' }, { status: 403 });
     }
   } else {
-    if (!session?.id) {
-      const created = await insertOpenTableSession(admin, {
+    if (!session) {
+      const ensured = await ensureOpenTableSession(admin, {
         restaurant_id: rid,
         table_id: tableId,
         opened_by_user_id: staffOrderFlow.user_id,
       });
-      if (!created.data) {
+      if (!ensured.session) {
         return NextResponse.json({ error: 'session_create_failed' }, { status: 500 });
       }
-      session = created.data;
+      session = ensured.session;
     }
     if (session.status === 'billing') {
       return NextResponse.json({ error: 'session_billing' }, { status: 409 });

@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
-import {
-  OPEN_TABLE_AUTHORIZED_STAFF_ROLES,
-  staffAuthFromRequestWithRoles,
-} from '@/lib/staff-api-auth';
+import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
 import { buildBuffetBaseLine, voidActiveBuffetBaseLines } from '@/lib/buffet-order';
 import { tableIdsEqual } from '@/lib/restaurant-tables';
 import { deriveOrderStatusFromItems } from '@/lib/order-status';
@@ -10,7 +7,7 @@ import { sumLineTotals } from '@/lib/cart-totals';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { OrderItem } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
-import { insertOpenTableSession } from '@/lib/table-session-open';
+import { ensureOpenTableSession } from '@/lib/table-session-open';
 
 export const runtime = 'nodejs';
 
@@ -23,7 +20,7 @@ export async function POST(
     return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
   }
 
-  const ctx = await staffAuthFromRequestWithRoles(req, slug, OPEN_TABLE_AUTHORIZED_STAFF_ROLES);
+  const ctx = await openTableAuthFromRequest(req, slug);
   if (!ctx) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
@@ -111,27 +108,15 @@ export async function POST(
     return NextResponse.json({ error: 'no_price_rule' }, { status: 400 });
   }
 
-  let { data: session } = await admin
-    .from('table_sessions')
-    .select('id, status')
-    .eq('restaurant_id', ctx.restaurant_id)
-    .eq('table_id', tableId)
-    .in('status', ['open', 'billing'])
-    .order('opened_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!session?.id) {
-    const created = await insertOpenTableSession(admin, {
-      restaurant_id: ctx.restaurant_id,
-      table_id: tableId,
-      opened_by_user_id: ctx.user_id,
-    });
-    if (!created.data) {
-      return NextResponse.json({ error: 'session_create_failed', message: created.error }, { status: 500 });
-    }
-    session = created.data;
+  const ensured = await ensureOpenTableSession(admin, {
+    restaurant_id: ctx.restaurant_id,
+    table_id: tableId,
+    opened_by_user_id: ctx.user_id,
+  });
+  if (!ensured.session) {
+    return NextResponse.json({ error: 'session_create_failed', message: ensured.error }, { status: 500 });
   }
+  const session = ensured.session;
 
   if (session.status === 'billing') {
     return NextResponse.json({ error: 'session_billing' }, { status: 409 });

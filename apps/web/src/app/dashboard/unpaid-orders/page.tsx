@@ -3,14 +3,16 @@ import type { Order } from '@/types';
 import { OrdersPageClient } from '@/components/dashboard/OrdersPageClient';
 import { loadFrontdeskDashboardTables } from '@/lib/dashboard-tables';
 import { fetchCheckoutRequestedTableIds } from '@/lib/table-checkout-pending';
-import { resolveOpenedByNameBySessionId } from '@/lib/session-opener-display';
-import { loadActiveSessionsWithOpener } from '@/lib/table-session-open';
+import {
+  loadActiveSessionOpeners,
+  resolveOpenedByNameBySessionId,
+} from '@/lib/session-opener-display';
 
 export default async function UnpaidOrdersPage() {
   const loaded = await loadFrontdeskDashboardTables();
   if ('error' in loaded) notFound();
 
-  const activeSessions = await loadActiveSessionsWithOpener(loaded.admin, loaded.restaurant.id);
+  const activeSessions = await loadActiveSessionOpeners(loaded.admin, loaded.restaurant.id);
 
   const activeSessionIds = new Set(activeSessions.map((row) => row.id));
   const openedByNameBySessionId = await resolveOpenedByNameBySessionId(

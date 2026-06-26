@@ -1,29 +1,92 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { insertOpenTableSession } from './table-session-open';
+import { ensureOpenTableSession } from './table-session-open';
 
-test('insertOpenTableSession retries without opener when column is missing', async () => {
+test('ensureOpenTableSession returns existing active session', async () => {
   let insertCalls = 0;
   const admin = {
     from(table: string) {
       assert.equal(table, 'table_sessions');
       return {
-        insert(payload: Record<string, unknown>) {
+        select() {
+          return this;
+        },
+        eq() {
+          return this;
+        },
+        in() {
+          return this;
+        },
+        order() {
+          return this;
+        },
+        limit() {
+          return this;
+        },
+        maybeSingle() {
+          return Promise.resolve({
+            data: { id: 'sess-existing', status: 'open' },
+            error: null,
+          });
+        },
+        insert() {
           insertCalls += 1;
-          const hasOpener = 'opened_by_user_id' in payload;
+          throw new Error('should not insert when session exists');
+        },
+      };
+    },
+  };
+
+  const result = await ensureOpenTableSession(admin as never, {
+    restaurant_id: 'r1',
+    table_id: 't1',
+    opened_by_user_id: 'u1',
+  });
+
+  assert.equal(insertCalls, 0);
+  assert.deepEqual(result.session, { id: 'sess-existing', status: 'open' });
+  assert.equal(result.error, null);
+});
+
+test('ensureOpenTableSession creates session with opener when none exists', async () => {
+  let sawInsert = false;
+  const admin = {
+    from(table: string) {
+      assert.equal(table, 'table_sessions');
+      return {
+        select() {
+          return this;
+        },
+        eq() {
+          return this;
+        },
+        in() {
+          return this;
+        },
+        order() {
+          return this;
+        },
+        limit() {
+          return this;
+        },
+        maybeSingle() {
+          return Promise.resolve({ data: null, error: null });
+        },
+        insert(payload: Record<string, unknown>) {
+          sawInsert = true;
+          assert.deepEqual(payload, {
+            restaurant_id: 'r1',
+            table_id: 't1',
+            status: 'open',
+            opened_by_user_id: 'u1',
+          });
           return {
             select() {
               return this;
             },
             single() {
-              if (hasOpener) {
-                return Promise.resolve({
-                  data: null,
-                  error: { code: '42703', message: 'column opened_by_user_id does not exist' },
-                });
-              }
               return Promise.resolve({
-                data: { id: 'sess-1', status: 'open' },
+                data: { id: 'sess-new', status: 'open' },
                 error: null,
               });
             },
@@ -33,13 +96,13 @@ test('insertOpenTableSession retries without opener when column is missing', asy
     },
   };
 
-  const result = await insertOpenTableSession(admin as never, {
+  const result = await ensureOpenTableSession(admin as never, {
     restaurant_id: 'r1',
     table_id: 't1',
     opened_by_user_id: 'u1',
   });
 
-  assert.equal(insertCalls, 2);
-  assert.deepEqual(result.data, { id: 'sess-1', status: 'open' });
+  assert.equal(sawInsert, true);
+  assert.deepEqual(result.session, { id: 'sess-new', status: 'open' });
   assert.equal(result.error, null);
 });

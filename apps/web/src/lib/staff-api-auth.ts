@@ -6,7 +6,7 @@ import type { StaffRole } from '@/lib/staff-account';
 
 export const CHECKOUT_AUTHORIZED_STAFF_ROLES: StaffRole[] = ['waiter', 'cashier', 'frontdesk'];
 
-/** Waiter board + frontdesk dashboard: open table (buffet line) and staff order flow. */
+/** Waiter + frontdesk staff; restaurant owner also passes via {@link staffAuthFromRequest} owner fallback. */
 export const OPEN_TABLE_AUTHORIZED_STAFF_ROLES: StaffRole[] = ['waiter', 'frontdesk'];
 
 export type StaffAuthContext = {
@@ -122,6 +122,14 @@ export async function staffAuthForPage(
   role: StaffRole,
 ): Promise<StaffAuthContext | null> {
   return staffAuthFromRequest(new Request('https://mesa.local'), slug, role);
+}
+
+/** Owner, waiter, or frontdesk staff opening a table (buffet line / staff order flow). */
+export async function openTableAuthFromRequest(
+  req: Request,
+  slug: string,
+): Promise<StaffAuthContext | null> {
+  return staffAuthFromRequestWithRoles(req, slug, OPEN_TABLE_AUTHORIZED_STAFF_ROLES);
 }
 
 /** Owner or staff with one of the given roles for this restaurant slug. */

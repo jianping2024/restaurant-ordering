@@ -859,8 +859,6 @@ function WaiterTableDetailInner({
 
         {activeBuffets.length > 0 && !isDemo && !isCheckoutPending && (
           <div className="mb-4 rounded-xl border border-brand-gold/30 bg-brand-gold/8 p-3.5 space-y-3">
-            <p className="text-[14px] font-semibold text-brand-gold">{t.buffetBlock}</p>
-
             {activeBuffets.length === 1 ? (
               <p className="text-[15px] font-medium text-brand-text leading-snug">{selectedBuffet?.name}</p>
             ) : (
@@ -931,9 +929,7 @@ function WaiterTableDetailInner({
           </div>
         )}
 
-        {selectedCard.orderLines.length === 0 && !selectedCard.hasBuffet ? (
-          <p className="text-brand-text-muted">{t.buffetNeedOpen}</p>
-        ) : (
+        {(selectedCard.orderLines.length > 0 || selectedCard.hasBuffet) && (
           <>
             <div className="flex flex-wrap items-center gap-2 mb-3">
               {selectedCard.hasBuffet && (

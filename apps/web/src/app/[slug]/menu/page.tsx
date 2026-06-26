@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { RestaurantMaintenancePage } from '@/components/customer/RestaurantMaintenancePage';
 import { loadCustomerRestaurantGate, resolveCustomerTableContext } from '@/lib/customer-session-context';
 import { MenuPage } from '@/components/menu/MenuPage';
+import { resolveWaiterMenuReturnHref } from '@/lib/staff-routes';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -50,11 +51,7 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
     .eq('active', true)
     .order('sort_order');
 
-  const defaultWaiterPath = `/${slug}/waiter`;
-  const returnToWaiterHref =
-    from === 'waiter'
-      ? (returnPath && returnPath.startsWith(defaultWaiterPath) ? returnPath : defaultWaiterPath)
-      : null;
+  const returnToWaiterHref = resolveWaiterMenuReturnHref(from, returnPath, slug);
 
   return (
     <MenuPage

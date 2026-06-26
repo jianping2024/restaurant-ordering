@@ -30,7 +30,55 @@ export function waiterTableHref(
   return `/${slug}/waiter/${encoded}`;
 }
 
+/** Waiter board → menu link for assisted ordering (`from=waiter` + encoded return path). */
+export function waiterMenuHref(
+  slug: string,
+  tableId: string,
+  options: WaiterRouteOptions = {},
+): string {
+  const menuBase = options.isDemo ? '/demo/menu' : `/${slug}/menu`;
+  const params = new URLSearchParams({
+    table_id: tableId,
+    from: 'waiter',
+    return: waiterTableHref(slug, tableId, options),
+  });
+  return `${menuBase}?${params.toString()}`;
+}
+
 /** Owner dashboard: open checkout for a table awaiting payment. */
 export function dashboardCheckoutTableHref(tableId: string): string {
   return `/dashboard/checkout?table_id=${encodeURIComponent(tableId)}`;
+}
+
+function isSafeInternalReturnPath(path: string): boolean {
+  return path.startsWith('/') && !path.startsWith('//') && !path.includes('://');
+}
+
+/** Menu/bill waiter return links — allow slug, dashboard, and demo waiter boards only. */
+export function resolveWaiterMenuReturnHref(
+  from: string | undefined,
+  returnPath: string | undefined,
+  slug: string,
+  options: WaiterRouteOptions = {},
+): string | null {
+  if (from !== 'waiter') return null;
+
+  const defaultHref = waiterBoardHref(slug, options);
+  if (!returnPath || !isSafeInternalReturnPath(returnPath)) return defaultHref;
+
+  const allowedPrefixes = [
+    waiterBoardHref(slug),
+    waiterBoardHref(slug, { embeddedInDashboard: true }),
+    waiterBoardHref(slug, { isDemo: true }),
+  ];
+
+  if (
+    allowedPrefixes.some(
+      (prefix) => returnPath === prefix || returnPath.startsWith(`${prefix}/`),
+    )
+  ) {
+    return returnPath;
+  }
+
+  return defaultHref;
 }

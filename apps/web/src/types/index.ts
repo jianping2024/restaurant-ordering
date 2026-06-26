@@ -178,7 +178,7 @@ export interface AppendCartLineInput {
   note?: string;
 }
 
-/** Request body for guest/waiter order append (see guest-order-append-price-trust.zh.md). */
+/** Request body for guest/waiter order append (see menu-order-append-price-trust.zh.md). */
 export interface OrdersAppendRequestBody {
   table_id: string;
   items: AppendCartLineInput[];

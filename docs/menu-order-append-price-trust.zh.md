@@ -1,5 +1,6 @@
-# Guest `orders/append` 价格信任边界修复
+# 菜单加单：价格信任边界
 
+> **主契约**：[`menu-order-append.zh.md`](menu-order-append.zh.md)  
 > **风险等级**：High  
 > **状态**：阶段 0–5 已完成；阶段 6（发布/兼容说明）待运维  
 > **关联路由**：`POST /api/restaurants/{slug}/orders/append`  
@@ -261,7 +262,7 @@ Content-Type: application/json
 
 | 文件 | 阶段 |
 |------|------|
-| `docs/guest-order-append-price-trust.zh.md` | 本文 |
+| `docs/menu-order-append-price-trust.zh.md` | 本文 |
 | `src/types/index.ts` (`AppendCartLineInput` 等) | 1 ✅ |
 | `src/lib/resolve-append-cart-items.ts` | 2 ✅ |
 | `src/lib/resolve-append-cart-items.test.ts` | 2 ✅ |

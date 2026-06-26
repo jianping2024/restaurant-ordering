@@ -1,6 +1,7 @@
 import { MenuPage } from '@/components/menu/MenuPage';
 import { DEMO_RESTAURANT, DEMO_TABLES, demoTableByDisplayName } from '@/lib/demo-data';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { resolveWaiterMenuReturnHref } from '@/lib/staff-routes';
 import type { MenuCategory, MenuItem } from '@/types';
 
 interface Props {
@@ -41,11 +42,9 @@ export default async function DemoMenuPage({ searchParams }: Props) {
   const defaultTable = demoTableByDisplayName('5') ?? DEMO_TABLES[4]!;
   const tableId = parseTableIdParam(tableIdParam) ?? defaultTable.id;
   const table = DEMO_TABLES.find((t) => t.id === tableId) ?? defaultTable;
-  const defaultWaiterPath = '/demo/waiter';
-  const returnToWaiterHref =
-    from === 'waiter'
-      ? (returnPath && returnPath.startsWith(defaultWaiterPath) ? returnPath : defaultWaiterPath)
-      : null;
+  const returnToWaiterHref = resolveWaiterMenuReturnHref(from, returnPath, DEMO_RESTAURANT.slug, {
+    isDemo: true,
+  });
 
   return (
     <MenuPage

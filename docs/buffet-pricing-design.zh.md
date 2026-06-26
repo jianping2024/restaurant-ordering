@@ -51,7 +51,7 @@
 
 **当前实现（与代码一致，见 `docs/table-session-close.zh.md` 旁路说明与 `src/lib/guest-table-ordering.ts`）：**
 
-- **顾客扫码点菜**：在服务员完成「自助餐入账」（`POST .../staff/waiter/buffet`）且该餐次存在**未作废的 `buffet_base` 行**之前，**不能**通过 `orders/append` 下单；服务端返回 `buffet_required`，菜单页展示等待提示。
+- **顾客扫码点菜**：在服务员完成「自助餐入账」（`POST .../staff/waiter/buffet`）且该餐次存在**未作废的 `buffet_base` 行**之前，**不能**通过 `orders/append` 下单；服务端返回 `buffet_required`，菜单页展示等待提示。加单管道见 [`menu-order-append.zh.md`](menu-order-append.zh.md)。
 - **服务员代点**（菜单 `waiter_flow`）或 **演示模式** 不受此限制。
 - **人数与金额**：成人/儿童可为 **0**（含 0 人、0 € 入账仅用于开台激活）；须仍有有效价格规则（单价可为 0）。
 
@@ -140,7 +140,7 @@
 ### 5.1 推荐流程
 
 1. 开台 / 会话开始（现有能力）。**实现契约**（单管道、no-op、一次返回 detail）见 [`buffet-open-table.zh.md`](buffet-open-table.zh.md)。
-2. **纯点餐**：员工或顾客点菜品 → 仅产生 `menu_item` 类行。
+2. **纯点餐**：员工或顾客点菜品 → 仅产生 `menu_item` 类行。**实现契约**见 [`menu-order-append.zh.md`](menu-order-append.zh.md)。
 3. **选自助餐**：
    - 顾客可发起申请（可选）；
    - **员工确认**成人人数、儿童人数（及可选年龄段规则）；

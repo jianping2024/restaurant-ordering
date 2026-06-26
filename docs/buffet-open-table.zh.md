@@ -4,13 +4,13 @@
 
 开台（服务员录入 `buffet_base` 人头费）是**加菜前置步骤**。实现须 **简洁、安全、高效**：一条管道、一个出口，禁止按「修 bug 顺序」叠分支。
 
-产品规则见 [`buffet-pricing-design.zh.md`](buffet-pricing-design.zh.md) §2；计价 RPC 见同文档 §4。
+产品规则见 [`buffet-pricing-design.zh.md`](buffet-pricing-design.zh.md) §2；计价 RPC 见同文档 §4。加菜管道见 [`menu-order-append.zh.md`](menu-order-append.zh.md)。
 
 ---
 
 ## 业务规则（锁定）
 
-1. **开台优先**：未开台（无 active `buffet_base`）时，客人与服务员均不可加菜（`guestOrderingEnabled` / `orders/append`）。
+1. **开台优先**：未开台（无 active `buffet_base`）时，客人与服务员均不可加菜（`guestOrderingEnabled` / `orders/append`）。加菜管道见 [`menu-order-append.zh.md`](menu-order-append.zh.md)。
 2. **改人数**：仅更新自助餐行与金额；**不得**改动已有 `menu` 行或厨房状态（`planBuffetOpenWrites`）。
 3. **无变化 = no-op**：当前 active 自助餐的 `buffet_id`、**成人数**、**儿童数**（分别比较，**不是**成人+儿童总人数）与请求一致 → **不计价、不写库**；返回当前桌台详情即可。
 
@@ -67,7 +67,7 @@
 | 乐观 UI | `applyBuffetOpenOptimisticToOrders` |
 | API 路由 | `staff/waiter/buffet/route.ts` |
 | Session 创建 | `openTableSessionIfAbsent`（并行读已有 session 后按需 insert） |
-| 加菜门禁 | `guestOrderingEnabled` + `orders/append` |
+| 加菜门禁 | `guestOrderingEnabled` + [`menu-order-append.zh.md`](menu-order-append.zh.md) |
 
 ---
 

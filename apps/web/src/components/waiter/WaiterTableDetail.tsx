@@ -34,7 +34,7 @@ import { waiterUi } from '@/components/waiter/waiter-ui';
 import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
 import { fetchWaiterTableActionTargetsClient, postWaiterBuffetOpenClient } from '@/lib/staff-board-client';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
-import { waiterBoardHref, waiterTableHref } from '@/lib/staff-routes';
+import { waiterBoardHref, waiterTableHref, waiterMenuHref } from '@/lib/staff-routes';
 import { requestDashboardCheckoutRequest } from '@/lib/request-dashboard-checkout-request';
 import type { WaiterTableDetailData } from '@/lib/staff-board';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
@@ -308,10 +308,7 @@ function WaiterTableDetailInner({
     [isDemo, embeddedInDashboard],
   );
   const boardHref = waiterBoardHref(restaurant.slug, routeOptions);
-  const waiterReturnPath = waiterTableHref(restaurant.slug, tableId, routeOptions);
-  const menuHref = isDemo
-    ? `/demo/menu?table_id=${encodeURIComponent(tableId)}&from=waiter&return=${encodeURIComponent(waiterReturnPath)}`
-    : `/${restaurant.slug}/menu?table_id=${encodeURIComponent(tableId)}&from=waiter&return=${encodeURIComponent(waiterReturnPath)}`;
+  const menuHref = waiterMenuHref(restaurant.slug, tableId, routeOptions);
 
   const openAction = (type: 'transfer' | 'merge', sourceId: string) => {
     if (tableIdsEqual(sourceId, tableId) && isCheckoutPending) {

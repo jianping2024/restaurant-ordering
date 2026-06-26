@@ -89,6 +89,7 @@ const WAITER_RETURN_REDIRECT_MS = 1200;
 
 export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displayName, isDemo, returnToWaiterHref }: Props) {
   const router = useRouter();
+  const isWaiterFlow = !!returnToWaiterHref;
   const [lang, setLang] = useState<Language>(() => getClientLanguage() as Language);
   const [activeTopCategory, setActiveTopCategory] = useState<string>('Pratos');
   const [activeSubpath, setActiveSubpath] = useState<string>('');
@@ -259,10 +260,28 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
   }, { totalItemCount: 0 });
   const pageBottomPaddingClass =
     totalQty > 0
-      ? (returnToWaiterHref ? 'pb-52' : 'pb-28')
-      : (returnToWaiterHref ? 'pb-24' : 'pb-16');
+      ? (isWaiterFlow ? 'pb-52' : 'pb-28')
+      : (isWaiterFlow ? 'pb-24' : 'pb-16');
   // 只要本桌本餐次有下单记录，即可随时进入结账页。
   const canGoBill = !!activeSession && totalItemCount > 0;
+
+  const finishSuccessfulSubmit = useCallback(
+    (batchId?: string) => {
+      if (batchId) {
+        setLatestBatchId(batchId);
+        setTimeout(() => setLatestBatchId(null), 15000);
+      }
+      setCart([]);
+      setCartOpen(false);
+      setSubmitted(true);
+      if (isWaiterFlow && returnToWaiterHref) {
+        setTimeout(() => router.push(returnToWaiterHref), WAITER_RETURN_REDIRECT_MS);
+      } else {
+        setTimeout(() => setSubmitted(false), 3000);
+      }
+    },
+    [isWaiterFlow, returnToWaiterHref, router],
+  );
 
   // 提交订单
   const submitOrder = async () => {
@@ -273,14 +292,13 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
     }
 
     if (isDemo) {
-      setCart([]);
-      setCartOpen(false);
-      if (returnToWaiterHref) {
-        setSubmitted(true);
+      if (isWaiterFlow) {
         setSubmitSuccessText(t.orderSuccess);
-        setTimeout(() => router.push(returnToWaiterHref), WAITER_RETURN_REDIRECT_MS);
+        finishSuccessfulSubmit();
         return;
       }
+      setCart([]);
+      setCartOpen(false);
       setDemoToast(true);
       setTimeout(() => setDemoToast(false), 3500);
       return;
@@ -292,7 +310,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
       let latitude: number | undefined;
       let longitude: number | undefined;
 
-      if (restaurant.geo_latitude != null && restaurant.geo_longitude != null && !returnToWaiterHref) {
+      if (restaurant.geo_latitude != null && restaurant.geo_longitude != null && !isWaiterFlow) {
         let position: GeolocationPosition;
         try {
           position = await getBrowserLocation();
@@ -361,7 +379,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
           items,
           latitude,
           longitude,
-          waiter_flow: !!returnToWaiterHref,
+          waiter_flow: isWaiterFlow,
         }),
       });
 
@@ -400,29 +418,25 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
       else if (appendData.had_done_before) setSubmitSuccessText(t.reOpenOrderSuccess);
       else setSubmitSuccessText(t.addOnOrderSuccess);
 
-      await autoEnqueueStationTicketsAfterSubmit({
+      const enqueuePromise = autoEnqueueStationTicketsAfterSubmit({
         slug: restaurant.slug,
         orderId: savedOrderId,
         batchId: appendData.batch_id,
         enqueueToken: appendData.enqueue_token,
-        waiterFlow: !!returnToWaiterHref,
+        waiterFlow: isWaiterFlow,
         lang,
       });
 
-      if (sessionId) {
-        await loadSessionAndOrders();
-      }
-      setLatestBatchId(appendData.batch_id);
-      setTimeout(() => setLatestBatchId(null), 15000);
-
-      setCart([]);
-      setCartOpen(false);
-      setSubmitted(true);
-      if (returnToWaiterHref) {
-        setTimeout(() => router.push(returnToWaiterHref), WAITER_RETURN_REDIRECT_MS);
+      if (isWaiterFlow) {
+        void enqueuePromise;
       } else {
-        setTimeout(() => setSubmitted(false), 3000);
+        await enqueuePromise;
+        if (sessionId) {
+          await loadSessionAndOrders();
+        }
       }
+
+      finishSuccessfulSubmit(appendData.batch_id);
     } catch (error) {
       if (process.env.NODE_ENV !== 'production') {
         // Keep dev diagnostics without exposing raw errors to guests.
@@ -647,7 +661,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
 
       {totalQty > 0 ? (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-30 space-y-2">
-          {returnToWaiterHref && (
+          {isWaiterFlow && returnToWaiterHref && (
             <Link
               href={returnToWaiterHref}
               className="block text-center rounded-xl py-2 text-sm border border-brand-gold/35 bg-brand-gold/12 text-brand-gold hover:bg-brand-gold/18 transition-colors"
@@ -669,7 +683,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
           </button>
         </div>
       ) : (
-        returnToWaiterHref && (
+        isWaiterFlow && returnToWaiterHref && (
           <div className="fixed left-1/2 -translate-x-1/2 z-20 w-[calc(100%-2rem)] max-w-mobile bottom-4">
             <Link
               href={returnToWaiterHref}

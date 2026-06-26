@@ -9,6 +9,7 @@ import {
   resolveCustomerTableContext,
 } from '@/lib/customer-session-context';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
+import { resolveWaiterMenuReturnHref } from '@/lib/staff-routes';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -39,9 +40,11 @@ export default async function BillRoute({ params, searchParams }: Props) {
   });
   if (!tableContext) notFound();
 
+  const waiterReturnHref = resolveWaiterMenuReturnHref(from, returnPath, slug);
+
   if (!tableContext.activeSession) {
-    if (from === 'waiter') {
-      redirect(returnPath || `/${slug}/waiter`);
+    if (waiterReturnHref) {
+      redirect(waiterReturnHref);
     }
     redirect(`/${slug}/menu?table_id=${encodeURIComponent(tableContext.tableId)}`);
   }
@@ -87,7 +90,7 @@ export default async function BillRoute({ params, searchParams }: Props) {
       orders={orders}
       sessionId={tableContext.activeSession.id}
       existingSplit={existingSplit}
-      returnPath={from === 'waiter' ? (returnPath || `/${slug}/waiter`) : null}
+      returnPath={waiterReturnHref}
       initialFeedbackSubmitted={initialFeedbackSubmitted}
       initialFeedbackSkipped={initialFeedbackSkipped}
       itemCodeByMenuId={itemCodeByMenuId}

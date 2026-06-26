@@ -32,6 +32,13 @@ import {
   siblingCategoryHasDuplicateCode,
 } from '@/lib/menu-code-uniqueness';
 import {
+  DEFAULT_MENU_VAT_RATE,
+  isAllowedMenuVatRate,
+  MENU_VAT_RATE_OPTIONS,
+  normalizeMenuVatRate,
+  parseMenuVatRate,
+} from '@/lib/menu-vat-rate';
+import {
   collectCategorySubtreeIds,
   getMenuCategoryLabel,
   itemMatchesSearch,
@@ -73,6 +80,7 @@ type ItemForm = {
   description_pt: string;
   description_en: string;
   price: string;
+  vat_rate: string;
   category_id: string;
   item_code: string;
   print_station_id: string;
@@ -88,6 +96,7 @@ const defaultItemForm: ItemForm = {
   description_pt: '',
   description_en: '',
   price: '',
+  vat_rate: String(DEFAULT_MENU_VAT_RATE),
   category_id: '',
   item_code: '',
   print_station_id: '',
@@ -466,6 +475,7 @@ export function MenuManager({
       description_pt: item.description_pt || '',
       description_en: item.description_en || '',
       price: String(item.price),
+      vat_rate: String(normalizeMenuVatRate(item.vat_rate)),
       category_id: item.category_id || '',
       item_code: item.item_code || '',
       print_station_id: item.print_station_id ?? '',
@@ -500,6 +510,10 @@ export function MenuManager({
   const saveItem = async () => {
     if (!itemForm.name_pt.trim()) return setItemError(t.ptNameRequired);
     if (!itemForm.price || Number.isNaN(Number(itemForm.price))) return setItemError(t.validPrice);
+    const vatRate = parseMenuVatRate(itemForm.vat_rate);
+    if (vatRate === null || !isAllowedMenuVatRate(vatRate)) {
+      return setItemError(t.vatRateRequired);
+    }
     if (!itemForm.category_id) return setItemError(t.categoryRequired);
     const selectedCategoryRow = categories.find((c) => c.id === itemForm.category_id);
     if (!selectedCategoryRow) return setItemError(t.categoryRequired);
@@ -524,6 +538,7 @@ export function MenuManager({
       description_pt: itemForm.description_pt.trim() || null,
       description_en: itemForm.description_en.trim() || null,
       price: Number(itemForm.price),
+      vat_rate: vatRate,
       category_id: selectedCategoryRow.id,
       category: selectedCategoryRow.name_pt,
       category_en: selectedCategoryRow.name_en || selectedCategoryRow.name_pt,
@@ -1384,6 +1399,9 @@ export function MenuManager({
                       <span className="text-brand-gold font-medium text-sm tabular-nums whitespace-nowrap">
                         EUR{item.price.toFixed(2)}
                       </span>
+                      <span className="text-brand-text-muted text-xs tabular-nums whitespace-nowrap hidden sm:inline">
+                        {t.vatRateShort.replace('{rate}', String(normalizeMenuVatRate(item.vat_rate)))}
+                      </span>
                       <button
                         type="button"
                         onClick={() => toggleItemAvailable(item)}
@@ -1516,25 +1534,41 @@ export function MenuManager({
               placeholder="12.50"
             />
             <div>
-              <label className="text-sm text-brand-text-muted font-medium block mb-1.5">{t.category}</label>
+              <label className="text-sm text-brand-text-muted font-medium block mb-1.5">{t.vatRate}</label>
               <select
-                value={itemForm.category_id}
-                onChange={(e) => setItemForm((f) => ({ ...f, category_id: e.target.value }))}
+                value={itemForm.vat_rate}
+                onChange={(e) => setItemForm((f) => ({ ...f, vat_rate: e.target.value }))}
                 className="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
               >
-                <option value="">{t.category}</option>
-                {groupedCategoryOptions.map(({ top, children }) => (
-                  <optgroup key={top.id} label={getCategoryLabel(top)}>
-                    <option value={top.id}>{getCategoryLabel(top)}</option>
-                    {children.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {`${'\u00A0\u00A0'.repeat(Math.max(0, c.depth - 1))}${c.depth > 0 ? '▸ ' : ''}${getCategoryLabel(c)}`}
-                      </option>
-                    ))}
-                  </optgroup>
+                {MENU_VAT_RATE_OPTIONS.map((rate) => (
+                  <option key={rate} value={String(rate)}>
+                    {t.vatRateOption.replace('{rate}', String(rate))}
+                  </option>
                 ))}
               </select>
+              <p className="text-[12px] text-brand-text-muted mt-1">{t.vatRateHint}</p>
             </div>
+          </div>
+
+          <div>
+            <label className="text-sm text-brand-text-muted font-medium block mb-1.5">{t.category}</label>
+            <select
+              value={itemForm.category_id}
+              onChange={(e) => setItemForm((f) => ({ ...f, category_id: e.target.value }))}
+              className="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+            >
+              <option value="">{t.category}</option>
+              {groupedCategoryOptions.map(({ top, children }) => (
+                <optgroup key={top.id} label={getCategoryLabel(top)}>
+                  <option value={top.id}>{getCategoryLabel(top)}</option>
+                  {children.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {`${'\u00A0\u00A0'.repeat(Math.max(0, c.depth - 1))}${c.depth > 0 ? '▸ ' : ''}${getCategoryLabel(c)}`}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
           </div>
 
           <div>

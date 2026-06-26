@@ -11,5 +11,5 @@ export default async function AbnormalOperationsPage() {
     notFound();
   }
 
-  return <AbnormalOperationsManager />;
+  return <AbnormalOperationsManager restaurantSlug={access.restaurant.slug} />;
 }

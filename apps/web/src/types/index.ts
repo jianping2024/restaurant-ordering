@@ -107,6 +107,8 @@ export interface MenuItem {
   description_en?: string;
   description_zh?: string;
   price: number;
+  /** VAT / IVA rate in percent (e.g. 23 for 23%). */
+  vat_rate: number;
   category: Category;
   category_id?: string | null;
   /** Optional code (max 10) for thermal ticket prefix. */

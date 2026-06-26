@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { Button } from '@/components/ui/Button';
@@ -10,7 +11,10 @@ import {
   patchAbnormalOperationClient,
 } from '@/lib/abnormal-operations/client-api';
 import type { AbnormalOperationsListResult } from '@/lib/abnormal-operations/owner-query';
-import { abnormalOperationReasonLabel } from '@/lib/abnormal-operations/reason-display';
+import {
+  abnormalOperationTableHref,
+  formatAbnormalOperationReasonText,
+} from '@/lib/abnormal-operations/reason-display';
 import type {
   AbnormalOperationRow,
   AbnormalOperationStatus,
@@ -98,7 +102,20 @@ function statusBadgeClass(status: AbnormalOperationStatus) {
   return 'mesa-badge-warning';
 }
 
-export function AbnormalOperationsManager() {
+function ReasonCell({ text }: { text: string }) {
+  if (!text) return <span className="text-brand-text-muted">—</span>;
+  return (
+    <span className="block max-w-[10rem] truncate text-[13px] text-brand-text" title={text}>
+      {text}
+    </span>
+  );
+}
+
+type Props = {
+  restaurantSlug: string;
+};
+
+export function AbnormalOperationsManager({ restaurantSlug }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).abnormalOps;
   const locale = UI_LOCALE_BY_LANG[lang];
@@ -396,15 +413,20 @@ export function AbnormalOperationsManager() {
                   <th className="px-4 py-2 font-medium">{t.colTime}</th>
                   <th className="px-4 py-2 font-medium">{t.colType}</th>
                   <th className="px-4 py-2 font-medium">{t.colTable}</th>
-                  <th className="px-4 py-2 font-medium">{t.colOperator}</th>
-                  <th className="px-4 py-2 font-medium">{t.colAmount}</th>
                   <th className="px-4 py-2 font-medium">{t.colRisk}</th>
                   <th className="px-4 py-2 font-medium">{t.colStatus}</th>
+                  <th className="px-4 py-2 font-medium">{t.colAmount}</th>
+                  <th className="px-4 py-2 font-medium">{t.colReason}</th>
+                  <th className="px-4 py-2 font-medium">{t.colOperator}</th>
                   <th className="px-4 py-2 font-medium">{t.colAction}</th>
                 </tr>
               </thead>
               <tbody>
-                {data.items.map((row) => (
+                {data.items.map((row) => {
+                  const reasonText = formatAbnormalOperationReasonText(lang, row);
+                  const tableOrdersHref = abnormalOperationTableHref(restaurantSlug, row);
+
+                  return (
                   <tr
                     key={row.id}
                     className="border-b border-brand-border/60 hover:bg-brand-border/15"
@@ -413,15 +435,17 @@ export function AbnormalOperationsManager() {
                       {new Date(row.created_at).toLocaleString(locale)}
                     </td>
                     <td className="px-4 py-2 text-[13px]">{typeLabel(t, row.type)}</td>
-                    <td className="px-4 py-2 text-[13px]">{row.table_name ?? '—'}</td>
                     <td className="px-4 py-2 text-[13px]">
-                      {row.operator_name}
-                      <span className="text-brand-text-muted text-[12px] ml-1">
-                        ({row.operator_role})
-                      </span>
-                    </td>
-                    <td className="px-4 py-2 text-brand-gold font-medium text-[13px]">
-                      €{Number(row.amount_impact).toFixed(2)}
+                      {tableOrdersHref ? (
+                        <Link
+                          href={tableOrdersHref}
+                          className="text-brand-gold hover:underline whitespace-nowrap"
+                        >
+                          {row.table_name ?? '—'}
+                        </Link>
+                      ) : (
+                        row.table_name ?? '—'
+                      )}
                     </td>
                     <td className="px-4 py-2">
                       <span
@@ -437,17 +461,40 @@ export function AbnormalOperationsManager() {
                         {statusLabel(t, row.status)}
                       </span>
                     </td>
+                    <td className="px-4 py-2 text-brand-gold font-medium text-[13px]">
+                      €{Number(row.amount_impact).toFixed(2)}
+                    </td>
+                    <td className="px-4 py-2 max-w-[10rem]">
+                      <ReasonCell text={reasonText} />
+                    </td>
+                    <td className="px-4 py-2 text-[13px]">
+                      {row.operator_name}
+                      <span className="text-brand-text-muted text-[12px] ml-1">
+                        ({row.operator_role})
+                      </span>
+                    </td>
                     <td className="px-4 py-2">
-                      <button
-                        type="button"
-                        onClick={() => openDetail(row)}
-                        className="text-[13px] text-brand-gold hover:underline whitespace-nowrap"
-                      >
-                        {t.viewDetail}
-                      </button>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <button
+                          type="button"
+                          onClick={() => openDetail(row)}
+                          className="text-[13px] text-brand-gold hover:underline whitespace-nowrap"
+                        >
+                          {t.viewDetail}
+                        </button>
+                        {tableOrdersHref ? (
+                          <Link
+                            href={tableOrdersHref}
+                            className="text-[13px] text-brand-text-muted hover:text-brand-gold hover:underline whitespace-nowrap"
+                          >
+                            {t.viewTableOrders}
+                          </Link>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -493,10 +540,21 @@ export function AbnormalOperationsManager() {
                 <p className="text-brand-text-muted text-[13px]">{t.colType}</p>
                 <p className="text-brand-text">{typeLabel(t, selected.type)}</p>
               </div>
-              <div>
-                <p className="text-brand-text-muted text-[13px]">{t.colTable}</p>
-                <p className="text-brand-text">{selected.table_name ?? '—'}</p>
-              </div>
+            <div>
+              <p className="text-brand-text-muted text-[13px]">{t.colTable}</p>
+              <p className="text-brand-text">
+                {selected.table_id ? (
+                  <Link
+                    href={abnormalOperationTableHref(restaurantSlug, selected)!}
+                    className="text-brand-gold hover:underline"
+                  >
+                    {selected.table_name ?? '—'}
+                  </Link>
+                ) : (
+                  selected.table_name ?? '—'
+                )}
+              </p>
+            </div>
               <div>
                 <p className="text-brand-text-muted text-[13px]">{t.colOperator}</p>
                 <p className="text-brand-text">
@@ -511,12 +569,19 @@ export function AbnormalOperationsManager() {
             <div>
               <p className="text-brand-text-muted text-[13px]">{t.reason}</p>
               <p className="text-brand-text">
-                {abnormalOperationReasonLabel(lang, selected.type, selected.reason)}
+                {formatAbnormalOperationReasonText(lang, selected)}
               </p>
-              {selected.reason_detail ? (
-                <p className="text-brand-text-muted mt-1">{selected.reason_detail}</p>
-              ) : null}
             </div>
+            {selected.table_id ? (
+              <div>
+                <Link
+                  href={abnormalOperationTableHref(restaurantSlug, selected)!}
+                  className="text-sm text-brand-gold hover:underline"
+                >
+                  {t.viewTableOrders}
+                </Link>
+              </div>
+            ) : null}
             <label className="block">
               <span className="text-brand-text-muted text-[13px] block mb-1">{t.ownerNote}</span>
               <textarea

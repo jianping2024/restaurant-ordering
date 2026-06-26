@@ -8,7 +8,6 @@ import {
   aggregateBuffetForOrders,
   buildBuffetBaseLine,
   formatBuffetPricePreviewLine,
-  formatBuffetSummaryLine,
   isBuffetGuestCountsUnchanged,
   normalizeBuffetGuestCounts,
   parseResolvedBuffetPriceRpcRow,
@@ -858,11 +857,6 @@ function WaiterTableDetailInner({
         {activeBuffets.length > 0 && !isDemo && !isCheckoutPending && (
           <div className="mb-4 rounded-xl border border-brand-gold/30 bg-brand-gold/8 p-3 space-y-2">
             <p className="text-[12px] font-medium text-brand-gold">{t.buffetBlock}</p>
-            {tableBuffetAggregate && (
-              <p className="text-[13px] text-brand-text">
-                {formatBuffetSummaryLine(tableBuffetAggregate)}
-              </p>
-            )}
             <div className="rounded-lg border border-brand-border/50 bg-brand-bg/60 px-2.5 py-2">
               {buffetPriceLoading ? (
                 <p className="text-[12px] text-brand-text-muted">{t.buffetPriceLoading}</p>

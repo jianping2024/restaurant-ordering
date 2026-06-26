@@ -101,12 +101,6 @@ export function formatBuffetHeadcountLabel(adults: number, children: number): st
   return `A${adults} C${children}`;
 }
 
-export function formatBuffetSummaryLine(
-  summary: { name: string; adults: number; children: number; amount: number },
-): string {
-  return `🍽️ ${summary.name} · ${formatBuffetHeadcountLabel(summary.adults, summary.children)} · €${summary.amount.toFixed(2)}`;
-}
-
 /** Interpolate open-table price preview (`buffetPricePreviewLine` i18n template). */
 export function formatBuffetPricePreviewLine(
   template: string,

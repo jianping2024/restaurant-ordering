@@ -40,7 +40,7 @@ import { requestDashboardCheckoutRequest } from '@/lib/request-dashboard-checkou
 import type { WaiterTableDetailData } from '@/lib/staff-board';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
-import { voidItemReasonOptions } from '@/lib/void-item-reason-labels';
+import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -82,7 +82,7 @@ function WaiterTableDetailInner({
   const locale = UI_LOCALE_BY_LANG[lang];
   const t = WAITER_TEXT[lang];
   const orderHistoryI18n = getMessages(lang).orderHistory;
-  const voidItemReasonOptionsList = useMemo(() => voidItemReasonOptions(lang), [lang]);
+  const voidItemReasonOptionsList = useMemo(() => abnormalReasonOptions(lang, 'void_item'), [lang]);
   const initialDetail = initialTableDetail?.table ? initialTableDetail : null;
   const {
     table: selectedTable,

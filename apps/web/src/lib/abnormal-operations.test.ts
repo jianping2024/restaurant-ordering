@@ -6,6 +6,7 @@ import {
   compareAbnormalOperations,
   daysBetweenInclusive,
   parseAbnormalOperationsDateRange,
+  riskLevelForDiscountRate,
   riskLevelForVoidedItem,
   canTransitionAbnormalStatus,
 } from './abnormal-operations';
@@ -21,6 +22,14 @@ describe('riskLevelForVoidedItem', () => {
     assert.equal(riskLevelForVoidedItem('pending'), 'LOW');
     assert.equal(riskLevelForVoidedItem('cooking'), 'MEDIUM');
     assert.equal(riskLevelForVoidedItem('done'), 'HIGH');
+  });
+});
+
+describe('riskLevelForDiscountRate', () => {
+  it('maps discount rate to risk levels', () => {
+    assert.equal(riskLevelForDiscountRate(5), 'LOW');
+    assert.equal(riskLevelForDiscountRate(15), 'MEDIUM');
+    assert.equal(riskLevelForDiscountRate(35), 'HIGH');
   });
 });
 

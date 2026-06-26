@@ -68,6 +68,13 @@ export function riskLevelForVoidedItem(
   return 'LOW';
 }
 
+export function riskLevelForDiscountRate(discountRate: number): AbnormalRiskLevel {
+  const rate = Math.min(100, Math.max(0, discountRate));
+  if (rate >= 30) return 'HIGH';
+  if (rate >= 10) return 'MEDIUM';
+  return 'LOW';
+}
+
 export function calendarDateInTimezone(date: Date, timeZone = DASHBOARD_DISPLAY_TZ): string {
   return new Intl.DateTimeFormat('en-CA', {
     timeZone,

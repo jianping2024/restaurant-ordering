@@ -2,6 +2,7 @@ export { recordAudit } from '@/lib/audit/audit.service';
 export { AUDIT_EVENT } from '@/lib/audit/types';
 export type { AuditActor, RecordAuditResult } from '@/lib/audit/types';
 export {
+  DISCOUNT_REASONS,
   isValidAbnormalReason,
   requiresAbnormalReasonDetail,
   UNPAID_CLOSE_REASONS,

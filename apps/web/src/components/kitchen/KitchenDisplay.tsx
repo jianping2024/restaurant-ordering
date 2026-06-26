@@ -7,7 +7,7 @@ import type { Order, OrderItemStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
-import { voidItemReasonOptions } from '@/lib/void-item-reason-labels';
+import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 import { deriveOrderStatusFromItems, itemsEveryVoided, normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { StaffAuthenticatedShell, type StaffShellContext } from '@/components/staff/StaffAuthenticatedShell';
@@ -81,7 +81,7 @@ function KitchenDisplayInner({
   const { lang } = useLanguage();
   const t = getMessages(lang).kitchen;
   const orderHistoryI18n = getMessages(lang).orderHistory;
-  const voidItemReasonOptionsList = useMemo(() => voidItemReasonOptions(lang), [lang]);
+  const voidItemReasonOptionsList = useMemo(() => abnormalReasonOptions(lang, 'void_item'), [lang]);
   const demoText = KITCHEN_DEMO_TEXT[lang];
   const locale = UI_LOCALE_BY_LANG[lang];
   const [orders, setOrders] = useState<Order[]>(initialOrders);

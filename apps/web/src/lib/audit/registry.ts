@@ -1,3 +1,4 @@
+import { discountAppliedDefinition } from '@/lib/audit/builders/discount-applied';
 import { itemDeletedDefinition } from '@/lib/audit/builders/item-deleted';
 import { unpaidTableClosedDefinition } from '@/lib/audit/builders/unpaid-table-closed';
 import type { AuditEventDefinition } from '@/lib/audit/types';
@@ -7,14 +8,7 @@ import { AUDIT_EVENT, type AuditEventKey } from '@/lib/audit/types';
 const REGISTRY: Record<AuditEventKey, AuditEventDefinition<any>> = {
   [AUDIT_EVENT.UNPAID_TABLE_CLOSED]: unpaidTableClosedDefinition,
   [AUDIT_EVENT.ITEM_DELETED]: itemDeletedDefinition,
-  [AUDIT_EVENT.DISCOUNT_APPLIED]: {
-    actionType: AUDIT_EVENT.DISCOUNT_APPLIED,
-    entityType: 'bill_split',
-    createsAbnormal: true,
-    build: () => {
-      throw new Error('DISCOUNT_APPLIED audit not registered for P1');
-    },
-  },
+  [AUDIT_EVENT.DISCOUNT_APPLIED]: discountAppliedDefinition,
   [AUDIT_EVENT.ABNORMAL_CONFIRMED]: {
     actionType: AUDIT_EVENT.ABNORMAL_CONFIRMED,
     entityType: 'abnormal_operation',

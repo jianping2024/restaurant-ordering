@@ -116,4 +116,26 @@ describe('recordAudit', () => {
     assert.equal(result.abnormalOperationId, undefined);
     assert.ok(result.warnings.some((warning) => warning.includes('abnormal_operation_insert_failed')));
   });
+
+  it('inserts operation log and abnormal row for discount applied', async () => {
+    const admin = mockAdmin({});
+    const result = await recordAudit(admin, AUDIT_EVENT.DISCOUNT_APPLIED, {
+      restaurantId: 'rest-1',
+      actor,
+      context: {
+        billSplitId: 'split-1',
+        sessionId: 'sess-1',
+        tableId: 'table-1',
+        tableName: 'B2',
+        originalTotal: 80,
+        discountRate: 10,
+        discountAmount: 8,
+        finalTotal: 72,
+      },
+      reason: 'owner_approved',
+    });
+
+    assert.equal(result.operationLogId, 'log-1');
+    assert.equal(result.abnormalOperationId, 'abn-1');
+  });
 });

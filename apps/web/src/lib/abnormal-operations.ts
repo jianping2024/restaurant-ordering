@@ -7,6 +7,7 @@ export {
   daysBetweenInclusive,
   lisbonDayStartUtcIso,
   riskLevelForVoidedItem,
+  riskLevelForDiscountRate,
   listAbnormalOperations,
   getAbnormalOperationById,
   canTransitionAbnormalStatus,

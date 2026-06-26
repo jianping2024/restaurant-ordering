@@ -1,10 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   AUDIT_EVENT,
-  isValidAbnormalReason,
   recordAudit,
-  requiresAbnormalReasonDetail,
 } from '@/lib/audit';
+import { validateRequiredAbnormalReason } from '@/lib/audit/validate-abnormal-reason';
 import type { UnpaidTableClosedAuditContext } from '@/lib/audit/builders/unpaid-table-closed';
 import type { AuditActor } from '@/lib/audit/types';
 import { auditMoney } from '@/lib/audit/money';
@@ -49,11 +48,10 @@ function validateUnpaidCloseReason(
 ): CloseTableSessionServiceResult | null {
   const trimmed = reason?.trim() ?? '';
   if (!trimmed) return null;
-  if (!isValidAbnormalReason('unpaid_close', trimmed)) {
-    return { ok: false, code: 'invalid_reason' };
-  }
-  if (requiresAbnormalReasonDetail('unpaid_close', trimmed) && !reasonDetail?.trim()) {
-    return { ok: false, code: 'reason_detail_required' };
+
+  const validation = validateRequiredAbnormalReason('unpaid_close', reason, reasonDetail);
+  if (!validation.ok) {
+    return { ok: false, code: validation.code };
   }
   return null;
 }

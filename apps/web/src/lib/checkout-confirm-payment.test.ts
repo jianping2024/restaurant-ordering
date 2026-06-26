@@ -160,6 +160,18 @@ describe('confirmBillSplitPayment', () => {
     assert.equal(r.code, 'bill_update_failed');
   });
 
+  it('requires discount reason before RPC when rate > 0', async () => {
+    const r = await confirmBillSplitPayment({
+      ...baseParams,
+      discountRate: 10,
+      admin: mockAdminRpc({ ok: true }),
+    });
+    assert.equal(r.ok, false);
+    if (r.ok) return;
+    assert.equal(r.status, 400);
+    assert.equal(r.code, 'reason_required');
+  });
+
   it('returns success payload from RPC without printing when flags false', async () => {
     const r = await confirmBillSplitPayment({
       ...baseParams,

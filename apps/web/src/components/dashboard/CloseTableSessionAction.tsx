@@ -8,7 +8,7 @@ import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
 import { showToast } from '@/components/ui/Toast';
 import { interpretCloseTableSessionResponse } from '@/lib/close-table-session-ui';
 import { getMessages } from '@/lib/i18n/messages';
-import { unpaidCloseReasonOptions } from '@/lib/unpaid-close-reason-labels';
+import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 
 interface Props {
   tableId: string;
@@ -29,7 +29,10 @@ export function CloseTableSessionAction({
   const router = useRouter();
   const { lang } = useLanguage();
   const i18n = getMessages(lang).orderHistory;
-  const unpaidCloseReasonOptionsList = useMemo(() => unpaidCloseReasonOptions(lang), [lang]);
+  const unpaidCloseReasonOptionsList = useMemo(
+    () => abnormalReasonOptions(lang, 'unpaid_close'),
+    [lang],
+  );
 
   const [closingTable, setClosingTable] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);

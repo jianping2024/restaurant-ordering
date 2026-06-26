@@ -1,61 +1,9 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { staffAuthFromRequestWithRoles, CHECKOUT_AUTHORIZED_STAFF_ROLES } from '@/lib/staff-api-auth';
+import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
 import { confirmBillSplitPayment } from '@/lib/checkout-confirm-payment';
-import {
-  resolveReceiptPrinterId,
-} from '@/lib/restaurant-receipt-printers-server';
+import { resolveReceiptPrinterId } from '@/lib/restaurant-receipt-printers-server';
 
 export const runtime = 'nodejs';
-
-async function authorizeRestaurant(slug: string, req: Request) {
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return { error: NextResponse.json({ error: 'server_misconfigured' }, { status: 503 }) };
-  }
-
-  const staffCtx = await staffAuthFromRequestWithRoles(req, slug, CHECKOUT_AUTHORIZED_STAFF_ROLES);
-  if (staffCtx) {
-    const { data: rest } = await admin
-      .from('restaurants')
-      .select('print_locale')
-      .eq('id', staffCtx.restaurant_id)
-      .single();
-    return {
-      admin,
-      restaurantId: staffCtx.restaurant_id,
-      printLocale: rest?.print_locale ?? null,
-    };
-  }
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return { error: NextResponse.json({ error: 'unauthorized' }, { status: 401 }) };
-  }
-
-  const { data: rest } = await admin
-    .from('restaurants')
-    .select('id, print_locale')
-    .eq('slug', slug)
-    .eq('owner_id', user.id)
-    .maybeSingle();
-
-  if (!rest) {
-    return { error: NextResponse.json({ error: 'unauthorized' }, { status: 401 }) };
-  }
-
-  return {
-    admin,
-    restaurantId: rest.id as string,
-    printLocale: rest.print_locale as string | null,
-  };
-}
 
 export async function POST(
   req: Request,
@@ -70,6 +18,8 @@ export async function POST(
     bill_split_id?: unknown;
     person_index?: unknown;
     discount_rate?: unknown;
+    discount_reason?: unknown;
+    discount_reason_detail?: unknown;
     receipt_printer_id?: unknown;
   };
   try {
@@ -93,11 +43,18 @@ export async function POST(
       ? body.discount_rate
       : 0;
 
+  const discountReason =
+    typeof body.discount_reason === 'string' ? body.discount_reason : null;
+  const discountReasonDetail =
+    typeof body.discount_reason_detail === 'string' ? body.discount_reason_detail : null;
+
   const receiptPrinterIdRaw =
     typeof body.receipt_printer_id === 'string' ? body.receipt_printer_id.trim() : '';
 
-  const auth = await authorizeRestaurant(slug, req);
-  if ('error' in auth && auth.error) return auth.error;
+  const auth = await authorizeCheckoutConfirmPayment(slug, req);
+  if ('error' in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
 
   const receiptPrinterId = await resolveReceiptPrinterId(
     auth.admin,
@@ -116,6 +73,9 @@ export async function POST(
     billSplitId,
     personIndex,
     discountRate,
+    discountReason,
+    discountReasonDetail,
+    actor: auth.actor,
     receiptPrinterId: receiptPrinterId ?? undefined,
   });
 

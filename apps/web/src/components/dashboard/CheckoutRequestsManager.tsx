@@ -8,7 +8,9 @@ import { IntegerInput } from '@/components/ui/IntegerInput';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import type { BillSplit, Order } from '@/types';
 import { showToast } from '@/components/ui/Toast';
+import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
 import { normalizeSplitRows } from '@/lib/checkout-confirm-payment';
+import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
 import {
   checkoutLinesFromOrders,
@@ -70,8 +72,17 @@ export function CheckoutRequestsManager({
   const [requests, setRequests] = useState<BillSplit[]>(initialRequests);
   const [processingKeys, setProcessingKeys] = useState<Set<string>>(() => new Set());
   const [discountRateById, setDiscountRateById] = useState<Record<string, number>>({});
+  const [pendingDiscountConfirm, setPendingDiscountConfirm] = useState<{
+    request: BillSplit;
+    rowIndex: number;
+  } | null>(null);
+  const [discountReasonError, setDiscountReasonError] = useState<string | null>(null);
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
+  const discountReasonOptionsList = useMemo(
+    () => abnormalReasonOptions(lang, 'discount'),
+    [lang],
+  );
   const locale = UI_LOCALE_BY_LANG[lang];
   const supabase = useMemo(() => createClient(), []);
   const [selectedLines, setSelectedLines] = useState<CheckoutDisplayLine[]>([]);
@@ -254,7 +265,12 @@ export function CheckoutRequestsManager({
 
   const hasConfirmedPerson = (request: BillSplit) => (request.result || []).some((row) => !!row.paid);
 
-  const handleConfirmPersonPaid = async (request: BillSplit, rowIndex: number) => {
+  const submitConfirmPersonPaid = async (
+    request: BillSplit,
+    rowIndex: number,
+    discountReason?: string,
+    discountReasonDetail?: string,
+  ) => {
     const discountedRows = getDiscountedSplitResult(request);
     const row = discountedRows[rowIndex];
     if (!row || row.paid) return;
@@ -265,17 +281,36 @@ export function CheckoutRequestsManager({
 
     const personKey = checkoutPersonKey(request.id, rowIndex);
     setProcessingKeys((prev) => new Set(prev).add(personKey));
+    setDiscountReasonError(null);
     try {
+      const rate = getDiscountRate(request.id);
       const outcome = await requestCheckoutConfirmPayment({
         slug: restaurantSlug,
         billSplitId: request.id,
         personIndex: rowIndex,
-        discountRate: getDiscountRate(request.id),
+        discountRate: rate,
+        ...(rate > 0 && discountReason
+          ? { discountReason, discountReasonDetail: discountReasonDetail || undefined }
+          : {}),
         ...(showPrinterSettings && selectedReceiptPrinterId
           ? { receiptPrinterId: selectedReceiptPrinterId }
           : {}),
       });
       if (!outcome.ok) {
+        if (
+          rate > 0 &&
+          (outcome.error === 'reason_required' ||
+            outcome.error === 'invalid_reason' ||
+            outcome.error === 'reason_detail_required')
+        ) {
+          setDiscountReasonError(
+            outcome.error === 'reason_detail_required'
+              ? t.discountReasonDetailRequired
+              : t.discountReasonRequired,
+          );
+          setPendingDiscountConfirm({ request, rowIndex });
+          return;
+        }
         showToast(
           outcome.error === 'already_paid' ? t.paid : '操作失败，请重试',
           'error',
@@ -283,6 +318,7 @@ export function CheckoutRequestsManager({
         return;
       }
 
+      setPendingDiscountConfirm(null);
       setRequests((prev) =>
         outcome.all_paid
           ? prev.filter((r) => r.id !== request.id)
@@ -297,6 +333,16 @@ export function CheckoutRequestsManager({
         return next;
       });
     }
+  };
+
+  const handleConfirmPersonPaid = (request: BillSplit, rowIndex: number) => {
+    const rate = getDiscountRate(request.id);
+    if (rate > 0) {
+      setDiscountReasonError(null);
+      setPendingDiscountConfirm({ request, rowIndex });
+      return;
+    }
+    void submitConfirmPersonPaid(request, rowIndex);
   };
 
   const pendingLabel = t.pendingBadge.replace('{n}', String(requests.length));
@@ -556,6 +602,37 @@ export function CheckoutRequestsManager({
           ))}
         </div>
       )}
+      <ReasonConfirmDialog
+        open={pendingDiscountConfirm != null}
+        onClose={() => {
+          setPendingDiscountConfirm(null);
+          setDiscountReasonError(null);
+        }}
+        title={t.discountReasonTitle}
+        message={t.discountReasonMessage}
+        reasonLabel={t.discountReasonLabel}
+        detailLabel={t.discountReasonDetailLabel}
+        detailPlaceholder={t.discountReasonDetailPlaceholder}
+        confirmLabel={t.confirmOnePaid}
+        cancelLabel={t.backToList}
+        reasonRequiredError={t.discountReasonRequired}
+        detailRequiredError={t.discountReasonDetailRequired}
+        reasons={discountReasonOptionsList}
+        reasonGroup="discount"
+        confirming={
+          pendingDiscountConfirm
+            ? processingKeys.has(
+                checkoutPersonKey(pendingDiscountConfirm.request.id, pendingDiscountConfirm.rowIndex),
+              )
+            : false
+        }
+        externalError={discountReasonError}
+        onConfirm={async (reason, detail) => {
+          if (!pendingDiscountConfirm) return;
+          const { request, rowIndex } = pendingDiscountConfirm;
+          await submitConfirmPersonPaid(request, rowIndex, reason, detail);
+        }}
+      />
     </div>
   );
 }

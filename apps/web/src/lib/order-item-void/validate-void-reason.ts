@@ -1,12 +1,8 @@
-import {
-  isValidAbnormalReason,
-  requiresAbnormalReasonDetail,
-} from '@/lib/audit/reasons';
+import { validateRequiredAbnormalReason } from '@/lib/audit/validate-abnormal-reason';
+import type { AbnormalReasonValidationResult } from '@/lib/audit/validate-abnormal-reason';
 import type { NewlyVoidedItem } from '@/lib/order-item-void/detect-newly-voided';
 
-export type VoidReasonValidationResult =
-  | { ok: true }
-  | { ok: false; code: 'reason_required' | 'invalid_reason' | 'reason_detail_required' };
+export type VoidReasonValidationResult = AbnormalReasonValidationResult;
 
 export function validateVoidItemReason(
   newlyVoided: NewlyVoidedItem[],
@@ -17,22 +13,7 @@ export function validateVoidItemReason(
     return { ok: true };
   }
 
-  const trimmedReason = reason?.trim() ?? '';
-  if (!trimmedReason) {
-    return { ok: false, code: 'reason_required' };
-  }
-  if (!isValidAbnormalReason('void_item', trimmedReason)) {
-    return { ok: false, code: 'invalid_reason' };
-  }
-
-  const needsDetail = newlyVoided.some((row) =>
-    requiresAbnormalReasonDetail('void_item', trimmedReason, {
-      voidItemWasServed: row.statusBefore === 'done',
-    }),
-  );
-  if (needsDetail && !reasonDetail?.trim()) {
-    return { ok: false, code: 'reason_detail_required' };
-  }
-
-  return { ok: true };
+  return validateRequiredAbnormalReason('void_item', reason, reasonDetail, {
+    voidItemWasServed: newlyVoided.some((row) => row.statusBefore === 'done'),
+  });
 }

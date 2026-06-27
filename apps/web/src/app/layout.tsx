@@ -6,13 +6,7 @@ import { LanguageProvider } from '@/components/providers/LanguageProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { ToastContainer } from '@/components/ui/Toast';
 import { getServerLanguage } from '@/lib/i18n.server';
-import type { UILanguage } from '@/lib/i18n';
-
-const HTML_LANG_BY_UI: Record<UILanguage, string> = {
-  zh: 'zh-Hans',
-  en: 'en',
-  pt: 'pt',
-};
+import { HTML_LANG_BY_UI } from '@/lib/i18n';
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],

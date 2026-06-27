@@ -103,23 +103,25 @@ describe('buildFeedbackInsights', () => {
   });
 
   it('shows full panel when feedback sessions exist', () => {
-    const insights = buildFeedbackInsights(
-      [{ session_id: 's1', completed_at: '2026-06-27T12:00:00.000Z' }],
-      [{ session_id: 's1' }],
-      [
-        {
-          menu_item_id: 'd1',
-          vote: 'down',
-          reasons: ['cold'],
-          menu_items: { name_zh: '鱼', name_pt: 'Peixe', name_en: 'Fish' },
-        },
-      ],
-      'zh',
-    );
-    assert.equal(insights.hasSufficientData, true);
-    assert.equal(insights.topIssues.length, 1);
-    assert.equal(insights.topIssues[0]?.dish_name, '鱼');
-    assert.equal(insights.actionableRate, 1);
+    const rows = [
+      {
+        menu_item_id: 'd1',
+        vote: 'down',
+        reasons: ['cold'],
+        menu_items: { name_zh: '鱼', name_pt: 'Peixe', name_en: 'Fish' },
+      },
+    ];
+    const sessions = [{ session_id: 's1', completed_at: '2026-06-27T12:00:00.000Z' }];
+    const billed = [{ session_id: 's1' }];
+
+    const insightsZh = buildFeedbackInsights(sessions, billed, rows, 'zh');
+    const insightsEn = buildFeedbackInsights(sessions, billed, rows, 'en');
+
+    assert.equal(insightsZh.hasSufficientData, true);
+    assert.equal(insightsZh.topIssues.length, 1);
+    assert.equal(insightsZh.topIssues[0]?.dish_name, '鱼');
+    assert.equal(insightsEn.topIssues[0]?.dish_name, 'Fish');
+    assert.equal(insightsZh.actionableRate, 1);
   });
 });
 

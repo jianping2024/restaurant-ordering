@@ -1,7 +1,7 @@
 'use client';
 
-import { createContext, useContext, useMemo, useState } from 'react';
-import { DEFAULT_UI_LANG, setClientLanguage, type UILanguage } from '@/lib/i18n';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { DEFAULT_UI_LANG, HTML_LANG_BY_UI, setClientLanguage, type UILanguage } from '@/lib/i18n';
 
 interface LanguageContextValue {
   lang: UILanguage;
@@ -22,6 +22,10 @@ export function LanguageProvider({
   initialLang: UILanguage;
 }) {
   const [lang, setLangState] = useState<UILanguage>(initialLang);
+
+  useEffect(() => {
+    document.documentElement.lang = HTML_LANG_BY_UI[lang];
+  }, [lang]);
 
   const value = useMemo(
     () => ({

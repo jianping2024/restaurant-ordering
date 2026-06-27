@@ -107,6 +107,20 @@ type DishFeedbackRow = {
   menu_items?: MenuNameRow | MenuNameRow[] | null;
 };
 
+export type DashboardOverviewFeedbackInputs = {
+  feedbackSessions: FeedbackSessionRow[];
+  billedSplits: BilledSplitRow[];
+  dishFeedbackRows: DishFeedbackRow[];
+};
+
+export type DashboardOverviewData = {
+  todayOrders: Order[];
+  recentOrders: Order[];
+  pendingActions: DashboardPendingActions;
+  todayKpis: DashboardTodayKpis;
+  feedbackInputs: DashboardOverviewFeedbackInputs;
+};
+
 function feedbackLookbackIso(now = new Date()): string {
   return new Date(now.getTime() - DASHBOARD_FEEDBACK_LOOKBACK_MS).toISOString();
 }
@@ -233,16 +247,8 @@ export function pendingActionsTotal(actions: DashboardPendingActions): number {
 export async function loadDashboardOverviewData(
   admin: SupabaseClient,
   restaurantId: string,
-  lang: UILanguage,
   now = new Date(),
-): Promise<{
-  todayOrders: Order[];
-  recentOrders: Order[];
-  pendingActions: DashboardPendingActions;
-  todayKpis: DashboardTodayKpis;
-  topItems: DashboardTopItem[];
-  feedback: DashboardFeedbackInsights;
-}> {
+): Promise<DashboardOverviewData> {
   const sinceIso = feedbackLookbackIso(now);
   const todayIso = todayStartIso(now);
 
@@ -320,12 +326,10 @@ export async function loadDashboardOverviewData(
       pendingPrint: pendingPrintCount ?? 0,
     },
     todayKpis: computeTodayKpis(orders),
-    topItems: buildTodayTopSellingItems(orders, lang),
-    feedback: buildFeedbackInsights(
-      (feedbackSessions || []) as FeedbackSessionRow[],
-      (billedSplits || []) as BilledSplitRow[],
-      (dishFeedbackRows || []) as DishFeedbackRow[],
-      lang,
-    ),
+    feedbackInputs: {
+      feedbackSessions: (feedbackSessions || []) as FeedbackSessionRow[],
+      billedSplits: (billedSplits || []) as BilledSplitRow[],
+      dishFeedbackRows: (dishFeedbackRows || []) as DishFeedbackRow[],
+    },
   };
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import type { Order, OrderStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
@@ -7,23 +8,22 @@ import { FeedbackInsightsPanel } from '@/components/dashboard/FeedbackInsightsPa
 import { DashboardTopSellingPanel } from '@/components/dashboard/DashboardTopSellingPanel';
 import { aggregateBuffetForOrders, formatBuffetGuestCountsOptional } from '@/lib/buffet-order';
 import { orderListGuestLabelsFromLang } from '@/lib/order-list-display';
+import { formatOrderDateTime, formatOverviewDate } from '@/lib/format-dashboard-date';
 import {
+  buildFeedbackInsights,
+  buildTodayTopSellingItems,
   pendingActionsTotal,
-  type DashboardFeedbackInsights,
+  type DashboardOverviewFeedbackInputs,
   type DashboardPendingActions,
   type DashboardTodayKpis,
-  type DashboardTopItem,
 } from '@/lib/dashboard-overview';
 
-export type DashboardRecentOrder = Order & { createdAtLabel: string };
-
 interface Props {
-  overviewDateLabel: string;
+  todayOrders: Order[];
   todayKpis: DashboardTodayKpis;
   pendingActions: DashboardPendingActions;
-  topItems: DashboardTopItem[];
-  recentOrders: DashboardRecentOrder[];
-  feedback: DashboardFeedbackInsights;
+  recentOrders: Order[];
+  feedbackInputs: DashboardOverviewFeedbackInputs;
 }
 
 function orderStatusBadgeClass(status: OrderStatus): string {
@@ -32,17 +32,32 @@ function orderStatusBadgeClass(status: OrderStatus): string {
 }
 
 export function DashboardPageClient({
-  overviewDateLabel,
+  todayOrders,
   todayKpis,
   pendingActions,
-  topItems,
   recentOrders,
-  feedback,
+  feedbackInputs,
 }: Props) {
   const { lang } = useLanguage();
   const i18n = getMessages(lang).dashboard;
   const orderI18n = getMessages(lang).orderHistory;
   const guestLabels = orderListGuestLabelsFromLang(lang);
+
+  const overviewDateLabel = useMemo(() => formatOverviewDate(lang), [lang]);
+  const topItems = useMemo(
+    () => buildTodayTopSellingItems(todayOrders, lang),
+    [todayOrders, lang],
+  );
+  const feedback = useMemo(
+    () =>
+      buildFeedbackInsights(
+        feedbackInputs.feedbackSessions,
+        feedbackInputs.billedSplits,
+        feedbackInputs.dishFeedbackRows,
+        lang,
+      ),
+    [feedbackInputs, lang],
+  );
 
   const orderStatusLabel = (status: OrderStatus): string => {
     if (status === 'done') return orderI18n.done;
@@ -217,7 +232,7 @@ export function DashboardPageClient({
                         </span>
                       </div>
                       <p className="text-[13px] text-brand-text-muted mt-0.5">
-                        {order.createdAtLabel}
+                        {formatOrderDateTime(lang, order.created_at)}
                         {guests ? <span className="ml-2">{guests}</span> : null}
                       </p>
                     </div>

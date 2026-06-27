@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import type { UILanguage } from '@/lib/i18n';
-import { useRouter } from 'next/navigation';
 
 const OPTIONS: { id: UILanguage; label: string; menuLabel: string }[] = [
   { id: 'zh', label: '中', menuLabel: '中文' },
@@ -18,7 +17,6 @@ interface LanguageSwitcherProps {
 
 export function LanguageSwitcher({ compact = false, variant = 'inline' }: LanguageSwitcherProps) {
   const { lang, setLang } = useLanguage();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -43,7 +41,6 @@ export function LanguageSwitcher({ compact = false, variant = 'inline' }: Langua
       return;
     }
     setLang(optionId);
-    router.refresh();
     setOpen(false);
   };
 

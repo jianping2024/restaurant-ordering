@@ -1,10 +1,8 @@
 import { loadOverviewDashboardContext } from '@/lib/dashboard-access';
 import { DashboardPageClient } from '@/components/dashboard/DashboardPageClient';
-import { getServerLanguage } from '@/lib/i18n.server';
-import { formatOrderDateTime, formatOverviewDate } from '@/lib/format-dashboard-date';
 import { loadDashboardOverviewData } from '@/lib/dashboard-overview';
 
-// 数据概览（数据服务端获取，文案与 LanguageProvider 同步）
+// 数据概览：服务端只加载业务数据，展示文案与格式化由客户端 LanguageProvider 驱动
 export default async function DashboardPage() {
   const ctx = await loadOverviewDashboardContext();
   if ('error' in ctx) return null;
@@ -17,20 +15,15 @@ export default async function DashboardPage() {
 
   if (!restaurant) return null;
 
-  const lang = getServerLanguage();
-  const overview = await loadDashboardOverviewData(ctx.admin, restaurant.id, lang);
+  const overview = await loadDashboardOverviewData(ctx.admin, restaurant.id);
 
   return (
     <DashboardPageClient
-      overviewDateLabel={formatOverviewDate(lang)}
+      todayOrders={overview.todayOrders}
       todayKpis={overview.todayKpis}
       pendingActions={overview.pendingActions}
-      topItems={overview.topItems}
-      recentOrders={overview.recentOrders.map((order) => ({
-        ...order,
-        createdAtLabel: formatOrderDateTime(lang, order.created_at),
-      }))}
-      feedback={overview.feedback}
+      recentOrders={overview.recentOrders}
+      feedbackInputs={overview.feedbackInputs}
     />
   );
 }

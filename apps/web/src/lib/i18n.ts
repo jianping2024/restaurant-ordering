@@ -5,6 +5,12 @@ export const DEFAULT_UI_LANG: UILanguage = 'zh';
 
 export const SUPPORTED_UI_LANGS: UILanguage[] = ['zh', 'en', 'pt'];
 
+export const HTML_LANG_BY_UI: Record<UILanguage, string> = {
+  zh: 'zh-Hans',
+  en: 'en',
+  pt: 'pt',
+};
+
 export function isUILanguage(value: string | null | undefined): value is UILanguage {
   return !!value && SUPPORTED_UI_LANGS.includes(value as UILanguage);
 }

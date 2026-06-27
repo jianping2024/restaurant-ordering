@@ -14,6 +14,9 @@ import (
 const escposWidth = 48
 const escposTabWidth = 4 // one tab stop for category group headers on station slips
 
+// Line spacing (ESC 3 n, dots) for 2×2 menu block — default ~30 dots is tight for double-height glyphs.
+const escposLineSpacingMenu2x2 byte = 50
+
 // Top: no extra LF — most printers already feed after ESC @ init.
 // Bottom: 2× single-height "restaurant" row before cut (visible pad only).
 const (
@@ -362,6 +365,14 @@ func (w *escposWriter) lf() {
 	w.content.WriteByte('\n')
 }
 
+func (w *escposWriter) setLineSpacingDots(dots byte) {
+	w.content.Write([]byte{0x1B, 0x33, dots})
+}
+
+func (w *escposWriter) defaultLineSpacing() {
+	w.content.Write([]byte{0x1B, 0x32}) // ESC 2
+}
+
 func (w *escposWriter) writeResetPrintMode(out *bytes.Buffer) {
 	out.Write([]byte{0x1B, 0x61, 0})
 	out.Write([]byte{0x1D, 0x21, 0})
@@ -519,6 +530,7 @@ func (w *escposWriter) writeStationSlipHeader(p jobPayload, lab ticketLabels) {
 func (w *escposWriter) writeStationMenuLines(lines []jobLine) {
 	const enlarged = true
 	w.setPrintMode(enlarged, false)
+	w.setLineSpacingDots(escposLineSpacingMenu2x2)
 	cols := escposCols(enlarged)
 	tab := escposCategoryTab(enlarged)
 
@@ -548,6 +560,7 @@ func (w *escposWriter) writeStationMenuLines(lines []jobLine) {
 	}
 
 	w.setPrintMode(false, false)
+	w.defaultLineSpacing()
 }
 
 func (w *escposWriter) writeStationSlipFooter(p jobPayload, lab ticketLabels) {

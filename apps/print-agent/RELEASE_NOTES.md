@@ -2,6 +2,12 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.30
+
+**厨房单菜单行距**
+
+- 2×2 菜单块行距略加大（ESC/POS 行距），分类/菜名/数量行不再贴得过密；页眉页脚不变。
+
 ## 0.3.29
 
 **修复托盘「打印机设置」保存无反应**

@@ -143,7 +143,6 @@ export async function submitWholeTableCheckoutRequest(
   admin: SupabaseClient,
   restaurantId: string,
   tableId: string,
-  payerLabel: string,
 ): Promise<CheckoutRequestResult> {
   const { data: session, error: sessionErr } = await admin
     .from('table_sessions')
@@ -185,6 +184,6 @@ export async function submitWholeTableCheckoutRequest(
     admin,
     restaurantId,
     tableId,
-    wholeTableCheckoutPayload(total, payerLabel),
+    wholeTableCheckoutPayload(total),
   );
 }

@@ -39,6 +39,7 @@ import {
 import { useCheckoutBillPrintCooldown } from '@/lib/use-checkout-bill-print-cooldown';
 import { formatPortugueseNif } from '@/lib/pt-nif';
 import { tableIdsEqual } from '@/lib/restaurant-tables';
+import { localizeSplitPersonName } from '@/lib/split-person-label';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
 
 /** Fallback when Realtime is delayed; only runs while the tab is visible. */
@@ -493,7 +494,7 @@ export function CheckoutRequestsManager({
             {getDiscountedSplitResult(selectedRequest).map((row, idx) => (
               <div key={`${selectedRequest.id}-${idx}`} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
-                  <span className="text-brand-text">{row.name}</span>
+                  <span className="text-brand-text">{localizeSplitPersonName(row.name, lang)}</span>
                   {row.paid && <span className="text-[11px] px-2 py-0.5 rounded-full mesa-badge-success">{t.paid}</span>}
                 </div>
                 <div className="flex items-center gap-2">

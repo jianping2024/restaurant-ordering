@@ -15,6 +15,7 @@ import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { requestCustomerBillContext } from '@/lib/request-customer-context';
 import { useCustomerContextPoll } from '@/lib/use-customer-context-poll';
 import { requestOrderReceiptPrintQuiet } from '@/lib/request-order-receipt-print';
+import { localizeSplitPersonName } from '@/lib/split-person-label';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import type { BillSplit, DishFeedbackVote, Order, OrderItem, SplitMode, SplitResult } from '@/types';
@@ -518,7 +519,7 @@ export function BillPage({
               {results.map((r, i) => (
                 <div key={i} className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-brand-text text-sm">{r.name}</span>
+                    <span className="text-brand-text text-sm">{localizeSplitPersonName(r.name, lang)}</span>
                     {r.paid && (
                       <span className="text-[11px] px-2 py-0.5 rounded-full mesa-badge-success">
                         {lang === 'zh' ? '已收款' : lang === 'en' ? 'Paid' : 'Pago'}
@@ -851,11 +852,11 @@ export function BillPage({
                     onClick={() => startInlineRename(i)}
                     className="text-brand-text text-sm hover:text-brand-gold transition-colors"
                   >
-                    {r.name}
+                    {localizeSplitPersonName(r.name, lang)}
                   </button>
                 )
               ) : (
-                <span className="text-brand-text text-sm">{r.name}</span>
+                <span className="text-brand-text text-sm">{localizeSplitPersonName(r.name, lang)}</span>
               )}
               {splitMode === 'custom' ? (
                 i === customAmounts.length - 1 ? (

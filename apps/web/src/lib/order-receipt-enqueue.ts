@@ -341,6 +341,7 @@ export async function enqueueReceiptPrint(
       ? receiptPayerNameForPrint(
           payerName,
           personIndex != null && personIndex >= 0 ? personIndex : 0,
+          printLocale,
         )
       : undefined;
 

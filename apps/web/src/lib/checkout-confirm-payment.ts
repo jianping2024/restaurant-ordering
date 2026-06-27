@@ -185,7 +185,7 @@ export async function confirmBillSplitPayment(params: {
       tableId,
       tableDisplayName,
       variant: 'split_payment',
-      payerName: receiptPayerNameForPrint(payload.row_name ?? '', personIndex),
+      payerName: receiptPayerNameForPrint(payload.row_name ?? '', personIndex, printLocale),
       personAmount: rowAmount,
       amountPaid: rowAmount,
       paymentMethod: 'Cash',

@@ -1,3 +1,4 @@
+import { WHOLE_TABLE_PAYER_KEY } from '@/lib/split-person-label';
 import type { SplitMode, SplitPerson, SplitResult } from '@/types';
 
 export type CheckoutRequestPayload = {
@@ -7,11 +8,8 @@ export type CheckoutRequestPayload = {
   customerNif?: string | null;
 };
 
-export function wholeTableCheckoutPayload(
-  total: number,
-  payerLabel: string,
-): CheckoutRequestPayload {
-  const name = payerLabel.trim().slice(0, 80) || 'Table';
+export function wholeTableCheckoutPayload(total: number): CheckoutRequestPayload {
+  const name = WHOLE_TABLE_PAYER_KEY;
   return {
     splitMode: 'custom',
     persons: [{ name }],

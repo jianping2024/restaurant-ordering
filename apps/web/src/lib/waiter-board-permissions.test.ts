@@ -5,6 +5,7 @@ import {
   isWaiterBoardTableCardClickable,
 } from './waiter-board-permissions';
 import { wholeTableCheckoutPayload } from './checkout-request-payload';
+import { WHOLE_TABLE_PAYER_KEY } from './split-person-label';
 
 describe('isWaiterBoardTableCardClickable', () => {
   it('allows frontdesk to click checkout tables', () => {
@@ -36,10 +37,10 @@ describe('formatCheckoutPinnedSectionTitle', () => {
 
 describe('wholeTableCheckoutPayload', () => {
   it('builds a single-payer custom split for the session total', () => {
-    assert.deepEqual(wholeTableCheckoutPayload(34, '整桌'), {
+    assert.deepEqual(wholeTableCheckoutPayload(34), {
       splitMode: 'custom',
-      persons: [{ name: '整桌' }],
-      result: [{ name: '整桌', amount: 34 }],
+      persons: [{ name: WHOLE_TABLE_PAYER_KEY }],
+      result: [{ name: WHOLE_TABLE_PAYER_KEY, amount: 34 }],
       customerNif: null,
     });
   });

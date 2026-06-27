@@ -5,8 +5,6 @@ import { parseTableIdParam } from '@/lib/restaurant-tables';
 
 export const runtime = 'nodejs';
 
-const WHOLE_TABLE_PAYER_LABEL = '整桌';
-
 export async function POST(req: Request) {
   const ctx = await loadFrontdeskOperationalContext({ requireWritable: true });
   if ('error' in ctx) {
@@ -25,12 +23,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
   }
 
-  const result = await submitWholeTableCheckoutRequest(
-    ctx.admin,
-    ctx.restaurantId,
-    tableId,
-    WHOLE_TABLE_PAYER_LABEL,
-  );
+  const result = await submitWholeTableCheckoutRequest(ctx.admin, ctx.restaurantId, tableId);
 
   if (!result.ok) {
     return NextResponse.json(

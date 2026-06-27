@@ -9,7 +9,7 @@ import {
   createMenuItem,
   deleteMenuItem,
   parseMenuItemBody,
-  swapMenuItemOrder,
+  moveMenuItemOrder,
   updateMenuItem,
 } from '@/lib/dashboard-menu-server';
 
@@ -54,15 +54,18 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  if (body.action === 'swap_order') {
-    if (typeof body.item_id_a !== 'string' || typeof body.item_id_b !== 'string') {
+  if (body.action === 'move_order') {
+    if (typeof body.item_id !== 'string') {
       return NextResponse.json({ error: 'invalid_item_id' }, { status: 400 });
     }
-    const result = await swapMenuItemOrder(
+    if (body.direction !== -1 && body.direction !== 1) {
+      return NextResponse.json({ error: 'invalid_direction' }, { status: 400 });
+    }
+    const result = await moveMenuItemOrder(
       ctx.admin,
       ctx.restaurantId,
-      body.item_id_a,
-      body.item_id_b,
+      body.item_id,
+      body.direction,
     );
     if ('error' in result) return menuApiError(result);
     return NextResponse.json({ ok: true });

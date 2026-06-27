@@ -52,11 +52,11 @@ export async function updateTableGroupClient(input: {
   });
 }
 
-export async function swapTableGroupOrderClient(groupIdA: string, groupIdB: string) {
+export async function moveTableGroupOrderClient(groupId: string, direction: -1 | 1) {
   return request<TableGroupsResponse>('/api/dashboard/table-groups', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'swap_order', group_id_a: groupIdA, group_id_b: groupIdB }),
+    body: JSON.stringify({ action: 'move_order', group_id: groupId, direction }),
   });
 }
 

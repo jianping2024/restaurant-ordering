@@ -1,5 +1,5 @@
 import type { MenuItem } from '@/types';
-import { compareSortOrder } from '@/lib/sort-order';
+import { compareSortOrderThenCreatedAt } from '@/lib/sort-order';
 
 /** Stable scope key for menu_items.sort_order (null = uncategorized). */
 export function menuItemSortScope(categoryId: string | null | undefined): string | null {
@@ -21,5 +21,5 @@ export function canReorderVisibleMenuItems(items: readonly MenuItem[], searchQue
 }
 
 export function compareMenuItemsForDisplay(a: MenuItem, b: MenuItem): number {
-  return compareSortOrder(a, b) || a.created_at.localeCompare(b.created_at);
+  return compareSortOrderThenCreatedAt(a, b);
 }

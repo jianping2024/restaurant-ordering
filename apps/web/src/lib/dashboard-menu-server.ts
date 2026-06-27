@@ -16,8 +16,8 @@ import {
   parseMenuVatRate,
 } from '@/lib/menu-vat-rate';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
-import { nextSortOrder } from '@/lib/sort-order';
-import { menuItemsShareSortScope } from '@/lib/menu-item-order';
+import { nextSortOrder, sortBySortOrderThenCreatedAt, type SortOrderMoveDirection } from '@/lib/sort-order';
+import { persistAdjacentSortOrderMove } from '@/lib/sort-order-persist';
 import type { MenuCategory, MenuItem, PrintStation, PrintStationTicketLayout } from '@/types';
 
 const ALLOWED_IMAGE_MIME = new Set([
@@ -443,52 +443,59 @@ export async function createMenuItem(
   return { item: data as MenuItem };
 }
 
-export async function swapMenuItemOrder(
+export async function moveMenuItemOrder(
   admin: SupabaseClient,
   restaurantId: string,
-  itemIdA: string,
-  itemIdB: string,
+  itemId: string,
+  direction: SortOrderMoveDirection,
 ): Promise<{ ok: true } | MenuMutationError> {
-  const idA = parseTableIdParam(itemIdA);
-  const idB = parseTableIdParam(itemIdB);
-  if (!idA || !idB) {
+  const id = parseTableIdParam(itemId);
+  if (!id) {
     return { error: 'invalid_item_id', status: 400 };
   }
 
-  const { data: rows, error: listError } = await admin
+  const { data: item, error: itemError } = await admin
     .from('menu_items')
-    .select('id, sort_order, category_id')
+    .select('id, sort_order, category_id, created_at')
+    .eq('id', id)
     .eq('restaurant_id', restaurantId)
-    .in('id', [idA, idB]);
-  if (listError) {
-    return { error: 'menu_items_query_failed', message: listError.message, status: 500 };
+    .maybeSingle();
+  if (itemError) {
+    return { error: 'menu_items_query_failed', message: itemError.message, status: 500 };
   }
-  if (!rows || rows.length !== 2) {
+  if (!item) {
     return { error: 'item_not_found', status: 404 };
   }
 
-  const a = rows.find((row) => row.id === idA)!;
-  const b = rows.find((row) => row.id === idB)!;
-  if (!menuItemsShareSortScope(a, b)) {
-    return { error: 'reorder_scope_mismatch', status: 400 };
+  let siblingsQuery = admin
+    .from('menu_items')
+    .select('id, sort_order, category_id, created_at')
+    .eq('restaurant_id', restaurantId);
+  siblingsQuery = item.category_id
+    ? siblingsQuery.eq('category_id', item.category_id)
+    : siblingsQuery.is('category_id', null);
+
+  const { data: siblings, error: siblingsError } = await siblingsQuery;
+  if (siblingsError) {
+    return { error: 'menu_items_query_failed', message: siblingsError.message, status: 500 };
   }
 
-  const { error: e1 } = await admin
-    .from('menu_items')
-    .update({ sort_order: b.sort_order })
-    .eq('id', idA)
-    .eq('restaurant_id', restaurantId);
-  if (e1) {
-    return { error: 'update_failed', message: e1.message, status: 500 };
+  const ordered = sortBySortOrderThenCreatedAt(siblings ?? []);
+  const index = ordered.findIndex((row) => row.id === id);
+  if (index < 0) {
+    return { error: 'item_not_found', status: 404 };
   }
 
-  const { error: e2 } = await admin
-    .from('menu_items')
-    .update({ sort_order: a.sort_order })
-    .eq('id', idB)
-    .eq('restaurant_id', restaurantId);
-  if (e2) {
-    return { error: 'update_failed', message: e2.message, status: 500 };
+  const neighborIndex = index + direction;
+  if (neighborIndex < 0 || neighborIndex >= ordered.length) {
+    return { error: 'move_out_of_range', status: 400 };
+  }
+
+  const a = ordered[index];
+  const b = ordered[neighborIndex];
+  const persisted = await persistAdjacentSortOrderMove(admin, 'menu_items', restaurantId, a, b, direction);
+  if ('error' in persisted) {
+    return { error: persisted.error, message: persisted.message, status: 500 };
   }
 
   return { ok: true };
@@ -754,48 +761,43 @@ export async function updatePrintStation(
   return { station: data as PrintStation };
 }
 
-export async function swapPrintStationOrder(
+export async function movePrintStationOrder(
   admin: SupabaseClient,
   restaurantId: string,
-  stationIdA: string,
-  stationIdB: string,
+  stationId: string,
+  direction: SortOrderMoveDirection,
 ): Promise<{ ok: true } | MenuMutationError> {
-  const idA = parseTableIdParam(stationIdA);
-  const idB = parseTableIdParam(stationIdB);
-  if (!idA || !idB) {
+  const id = parseTableIdParam(stationId);
+  if (!id) {
     return { error: 'invalid_station_id', status: 400 };
   }
 
   const { data: rows, error: listError } = await admin
     .from('print_stations')
-    .select('id, sort_order')
-    .eq('restaurant_id', restaurantId)
-    .in('id', [idA, idB]);
+    .select('id, sort_order, created_at')
+    .eq('restaurant_id', restaurantId);
   if (listError) {
     return { error: 'print_stations_query_failed', message: listError.message, status: 500 };
   }
-  if (!rows || rows.length !== 2) {
+
+  const ordered = sortBySortOrderThenCreatedAt(rows ?? []);
+  const index = ordered.findIndex((row) => row.id === id);
+  if (index < 0) {
     return { error: 'station_not_found', status: 404 };
   }
 
-  const a = rows.find((row) => row.id === idA)!;
-  const b = rows.find((row) => row.id === idB)!;
-  const { error: e1 } = await admin
-    .from('print_stations')
-    .update({ sort_order: b.sort_order })
-    .eq('id', idA)
-    .eq('restaurant_id', restaurantId);
-  if (e1) {
-    return { error: 'update_failed', message: e1.message, status: 500 };
+  const neighborIndex = index + direction;
+  if (neighborIndex < 0 || neighborIndex >= ordered.length) {
+    return { error: 'move_out_of_range', status: 400 };
   }
-  const { error: e2 } = await admin
-    .from('print_stations')
-    .update({ sort_order: a.sort_order })
-    .eq('id', idB)
-    .eq('restaurant_id', restaurantId);
-  if (e2) {
-    return { error: 'update_failed', message: e2.message, status: 500 };
+
+  const a = ordered[index];
+  const b = ordered[neighborIndex];
+  const persisted = await persistAdjacentSortOrderMove(admin, 'print_stations', restaurantId, a, b, direction);
+  if ('error' in persisted) {
+    return { error: persisted.error, message: persisted.message, status: 500 };
   }
+
   return { ok: true };
 }
 

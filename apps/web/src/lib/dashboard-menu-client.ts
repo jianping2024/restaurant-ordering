@@ -198,11 +198,11 @@ export async function batchSetMenuItemsAvailableClient(itemIds: string[], availa
   });
 }
 
-export async function swapMenuItemOrderClient(itemIdA: string, itemIdB: string) {
+export async function moveMenuItemOrderClient(itemId: string, direction: -1 | 1) {
   return request<{ ok: true }>('/api/dashboard/menu/items', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'swap_order', item_id_a: itemIdA, item_id_b: itemIdB }),
+    body: JSON.stringify({ action: 'move_order', item_id: itemId, direction }),
   });
 }
 
@@ -235,11 +235,11 @@ export async function updatePrintStationClient(stationId: string, input: PrintSt
   });
 }
 
-export async function swapPrintStationOrderClient(stationIdA: string, stationIdB: string) {
+export async function movePrintStationOrderClient(stationId: string, direction: -1 | 1) {
   return request<{ ok: true }>('/api/dashboard/menu/print-stations', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'swap_order', station_id_a: stationIdA, station_id_b: stationIdB }),
+    body: JSON.stringify({ action: 'move_order', station_id: stationId, direction }),
   });
 }
 

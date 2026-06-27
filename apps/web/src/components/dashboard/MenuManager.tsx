@@ -45,6 +45,7 @@ import {
   canReorderVisibleMenuItems,
   compareMenuItemsForDisplay,
 } from '@/lib/menu-item-order';
+import { applyAdjacentSortOrderMove } from '@/lib/sort-order';
 import { categoryCodePathFromLeaf, normalizeMenuItemCode } from '@/lib/menu-print-label';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import { PrintStationsManager } from '@/components/dashboard/PrintStationsManager';
@@ -67,7 +68,7 @@ import {
   mapMenuCategoryApiError,
   mapMenuItemApiError,
   setMenuItemImageClient,
-  swapMenuItemOrderClient,
+  moveMenuItemOrderClient,
   updateMenuCategoryClient,
   updateMenuItemClient,
 } from '@/lib/dashboard-menu-client';
@@ -651,18 +652,12 @@ export function MenuManager({
     const a = visibleItems[index];
     const b = visibleItems[j];
     setDishListError('');
-    const result = await swapMenuItemOrderClient(a.id, b.id);
+    const result = await moveMenuItemOrderClient(a.id, dir);
     if (!result.ok) {
       setDishListError(mapMenuItemApiError(result.error, result.message, t));
       return;
     }
-    setItems((prev) =>
-      prev.map((item) => {
-        if (item.id === a.id) return { ...item, sort_order: b.sort_order };
-        if (item.id === b.id) return { ...item, sort_order: a.sort_order };
-        return item;
-      }),
-    );
+    setItems((prev) => applyAdjacentSortOrderMove(prev, a.id, b.id, dir));
   };
 
   const createCategory = async (parentId: string | null) => {

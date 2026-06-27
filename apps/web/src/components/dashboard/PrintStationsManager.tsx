@@ -11,9 +11,10 @@ import { countPrintStationBindings, getPrintStationDisplayName } from '@/lib/pri
 import {
   createPrintStationClient,
   deletePrintStationClient,
-  swapPrintStationOrderClient,
+  movePrintStationOrderClient,
   updatePrintStationClient,
 } from '@/lib/dashboard-menu-client';
+import { applyAdjacentSortOrderMove, compareSortOrderThenCreatedAt } from '@/lib/sort-order';
 
 const SELECT_FIELD =
   'w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50';
@@ -171,19 +172,14 @@ export function PrintStationsManager({
     const a = stations[index];
     const b = stations[j];
     setError('');
-    const result = await swapPrintStationOrderClient(a.id, b.id);
+    const result = await movePrintStationOrderClient(a.id, dir);
     if (!result.ok) {
       setError(t.saveFail);
       return;
     }
-    setStations((prev) => {
-      const copy = prev.map((s) => ({ ...s }));
-      const sa = copy[index];
-      const sb = copy[j];
-      copy[index] = { ...sa, sort_order: sb.sort_order };
-      copy[j] = { ...sb, sort_order: sa.sort_order };
-      return [...copy].sort((x, y) => x.sort_order - y.sort_order || x.created_at.localeCompare(y.created_at));
-    });
+    setStations((prev) =>
+      [...applyAdjacentSortOrderMove(prev, a.id, b.id, dir)].sort(compareSortOrderThenCreatedAt),
+    );
   };
 
   const runDelete = async () => {

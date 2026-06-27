@@ -10,7 +10,7 @@ import {
   createTableGroupClient,
   deleteTableGroupClient,
   mapTableGroupApiError,
-  swapTableGroupOrderClient,
+  moveTableGroupOrderClient,
   updateTableGroupClient,
 } from '@/lib/dashboard-table-groups-client';
 import {
@@ -180,9 +180,8 @@ export function TableGroupsManager({
     const j = index + dir;
     if (j < 0 || j >= groups.length) return;
     const a = groups[index];
-    const b = groups[j];
     setError('');
-    const result = await swapTableGroupOrderClient(a.id, b.id);
+    const result = await moveTableGroupOrderClient(a.id, dir);
     if (!result.ok) {
       setError(mapTableGroupApiError(result.error, result.message, t));
       return;

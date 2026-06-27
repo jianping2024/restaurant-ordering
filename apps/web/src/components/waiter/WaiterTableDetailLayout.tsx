@@ -22,10 +22,30 @@ import type { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 
 type WaiterCopy = (typeof WAITER_TEXT)[keyof typeof WAITER_TEXT];
 
-const buffetGridClass =
-  'grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 xl:items-center xl:gap-0';
-const buffetCellClass =
-  'min-w-0 xl:border-l xl:border-brand-border/50 xl:px-4 xl:first:border-l-0 xl:first:pl-0 xl:last:pr-0';
+/** Five equal desktop columns between symmetric card padding; stacks on narrow viewports. */
+const buffetStripClass =
+  'grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4 xl:grid-cols-5 xl:items-stretch xl:gap-0';
+const buffetSectionClass =
+  'flex min-w-0 flex-col justify-center xl:border-l xl:border-brand-border/50 xl:px-4 xl:first:border-l-0';
+
+function BuffetPanelSection({
+  children,
+  className = '',
+  wideOnSm = false,
+}: {
+  children: ReactNode;
+  className?: string;
+  /** Span full row on sm (buffet info + save); single column on xl strip. */
+  wideOnSm?: boolean;
+}) {
+  return (
+    <div
+      className={`${buffetSectionClass}${wideOnSm ? ' sm:col-span-2 xl:col-span-1' : ''}${className ? ` ${className}` : ''}`}
+    >
+      {children}
+    </div>
+  );
+}
 
 export function WaiterCheckoutPendingBanner({ message }: { message: string }) {
   return (
@@ -68,7 +88,7 @@ function BuffetGuestCounter({
   onIncrement: () => void;
 }) {
   return (
-    <div className="flex items-center justify-center gap-3 sm:justify-start xl:justify-center">
+    <div className="flex items-center justify-start gap-3 xl:justify-center">
       <span className="text-[13px] text-brand-text min-w-[2rem]">{label}</span>
       <CartQtyStepper variant="drawer" qty={qty} onDecrement={onDecrement} onIncrement={onIncrement} />
     </div>
@@ -118,9 +138,9 @@ export function WaiterTableBuffetPanel({
   const saveDisabled = buffetSubmitting || buffetPriceLoading || !buffetPriceDisplay.ok;
 
   return (
-    <div className={`${waiterUi.cardSurface} p-4`}>
-      <div className={buffetGridClass}>
-        <div className={`${buffetCellClass} sm:col-span-2 xl:col-span-1`}>
+    <div className={`${waiterUi.cardSurface} px-4 py-4`}>
+      <div className={buffetStripClass}>
+        <BuffetPanelSection wideOnSm>
           {activeBuffets.length === 1 ? (
             <p className="text-[15px] font-semibold text-brand-text leading-snug">{selectedBuffet?.name}</p>
           ) : (
@@ -138,27 +158,27 @@ export function WaiterTableBuffetPanel({
             </select>
           )}
           <BuffetPriceMeta t={t} buffetPriceLoading={buffetPriceLoading} buffetPriceDisplay={buffetPriceDisplay} />
-        </div>
+        </BuffetPanelSection>
 
-        <div className={buffetCellClass}>
+        <BuffetPanelSection>
           <BuffetGuestCounter
             label={t.buffetAdults}
             qty={buffetAdults}
             onDecrement={() => onBumpCount('adults', -1)}
             onIncrement={() => onBumpCount('adults', 1)}
           />
-        </div>
+        </BuffetPanelSection>
 
-        <div className={buffetCellClass}>
+        <BuffetPanelSection>
           <BuffetGuestCounter
             label={t.buffetChildren}
             qty={buffetChildren}
             onDecrement={() => onBumpCount('children', -1)}
             onIncrement={() => onBumpCount('children', 1)}
           />
-        </div>
+        </BuffetPanelSection>
 
-        <div className={`${buffetCellClass} flex items-center justify-center xl:justify-center`}>
+        <BuffetPanelSection className="items-center">
           {buffetPriceDisplay.ok ? (
             <p className="text-[15px] font-semibold text-brand-gold-dark tabular-nums text-center">
               {formatBuffetPriceTemplate(t.buffetEstimatedTotal, {
@@ -166,19 +186,19 @@ export function WaiterTableBuffetPanel({
               })}
             </p>
           ) : null}
-        </div>
+        </BuffetPanelSection>
 
-        <div className={`${buffetCellClass} sm:col-span-2 xl:col-span-1`}>
+        <BuffetPanelSection wideOnSm className="items-center">
           <button
             type="button"
             onClick={onSave}
             disabled={saveDisabled}
-            className={`${waiterUi.btnActionPrimary} w-full justify-center whitespace-nowrap disabled:opacity-50 xl:w-auto xl:ml-auto`}
+            className={`${waiterUi.btnActionPrimary} w-full justify-center whitespace-nowrap disabled:opacity-50 sm:max-w-none xl:w-auto`}
           >
             <WaiterTableIcon className={waiterUi.iconPanel} />
             {buffetSubmitting ? '…' : buffetActionLabel}
           </button>
-        </div>
+        </BuffetPanelSection>
       </div>
     </div>
   );

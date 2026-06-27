@@ -470,7 +470,6 @@ export function CheckoutRequestsManager({
               setSelectedRequestId(null);
               void refreshCheckoutRequests();
             }}
-            className="text-sm font-medium px-4 py-2 rounded-lg border border-red-500/40 text-red-600 dark:text-red-300 hover:bg-red-500/10 disabled:opacity-50 transition-colors"
           />
         </div>
       ) : null}

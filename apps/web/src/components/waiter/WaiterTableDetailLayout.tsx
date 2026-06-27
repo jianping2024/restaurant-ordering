@@ -16,40 +16,33 @@ import {
 } from '@/components/waiter/waiter-table-detail-icons';
 import { WaiterOrderQtyMinus } from '@/components/waiter/WaiterOrderQtyMinus';
 import type { WaiterOrderLine } from '@/components/waiter/waiter-table-card';
-import { waiterUi } from '@/components/waiter/waiter-ui';
 import type { WAITER_TEXT } from '@/components/waiter/waiter-messages';
-import { Button, ButtonLink, buttonIcon } from '@/components/ui/Button';
+import {
+  buffetStripSectionClass,
+  buttonIcon,
+  WaiterDetailCard,
+  waiterDetailLayout,
+  WaiterTablePrimaryButton,
+  WaiterTablePrimaryLink,
+  WaiterTableSecondaryButton,
+} from '@/components/waiter/waiter-table-detail-ui';
 
 type WaiterCopy = (typeof WAITER_TEXT)[keyof typeof WAITER_TEXT];
 
-/** Shared horizontal inset for stacked waiter detail cards. */
-const waiterCardPx = 'px-4';
-const waiterCardBodyPy = 'py-4';
-const waiterCardInset = `${waiterCardPx} ${waiterCardBodyPy}`;
-/** Full-width on phone; intrinsic width from sm up. */
-const waiterActionBtnLayout = 'w-full justify-center sm:w-auto';
-/** Save / continue / close — same action size and desktop width. */
-const waiterPrimaryActionBtn = `${waiterActionBtnLayout} whitespace-nowrap sm:max-w-none xl:w-auto`;
-
-/** Five equal desktop columns between symmetric card padding; stacks on narrow viewports. */
-const buffetStripClass =
-  'grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4 xl:grid-cols-5 xl:items-stretch xl:gap-0';
-const buffetSectionClass =
-  'flex min-w-0 flex-col justify-center xl:border-l xl:border-brand-border/50 xl:px-4 xl:first:border-l-0';
-
 function BuffetPanelSection({
   children,
+  edge,
   className = '',
   wideOnSm = false,
 }: {
   children: ReactNode;
+  edge: 'start' | 'mid' | 'end';
   className?: string;
-  /** Span full row on sm (buffet info + save); single column on xl strip. */
   wideOnSm?: boolean;
 }) {
   return (
     <div
-      className={`${buffetSectionClass}${wideOnSm ? ' sm:col-span-2 xl:col-span-1' : ''}${className ? ` ${className}` : ''}`}
+      className={`${buffetStripSectionClass(edge, className)}${wideOnSm ? ' sm:col-span-2 xl:col-span-1' : ''}`}
     >
       {children}
     </div>
@@ -147,71 +140,65 @@ export function WaiterTableBuffetPanel({
   const saveDisabled = buffetSubmitting || buffetPriceLoading || !buffetPriceDisplay.ok;
 
   return (
-    <div className={`${waiterUi.cardSurface} ${waiterCardInset}`}>
-      <div className={buffetStripClass}>
-        <BuffetPanelSection wideOnSm className="xl:pl-0">
-          {activeBuffets.length === 1 ? (
-            <p className="text-[15px] font-semibold text-brand-text leading-snug">{selectedBuffet?.name}</p>
-          ) : (
-            <select
-              value={buffetId}
-              onChange={(e) => onBuffetIdChange(e.target.value)}
-              aria-label={t.buffetBlock}
-              className="block w-full rounded-lg bg-brand-bg border border-brand-border px-2.5 py-2 text-[15px] font-semibold text-brand-text"
-            >
-              {activeBuffets.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          )}
-          <BuffetPriceMeta t={t} buffetPriceLoading={buffetPriceLoading} buffetPriceDisplay={buffetPriceDisplay} />
-        </BuffetPanelSection>
+    <WaiterDetailCard>
+      <div className={waiterDetailLayout.cardBody}>
+        <div className={waiterDetailLayout.buffetStrip}>
+          <BuffetPanelSection edge="start" wideOnSm>
+            {activeBuffets.length === 1 ? (
+              <p className="text-[15px] font-semibold text-brand-text leading-snug">{selectedBuffet?.name}</p>
+            ) : (
+              <select
+                value={buffetId}
+                onChange={(e) => onBuffetIdChange(e.target.value)}
+                aria-label={t.buffetBlock}
+                className="block w-full rounded-lg bg-brand-bg border border-brand-border px-2.5 py-2 text-[15px] font-semibold text-brand-text"
+              >
+                {activeBuffets.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            <BuffetPriceMeta t={t} buffetPriceLoading={buffetPriceLoading} buffetPriceDisplay={buffetPriceDisplay} />
+          </BuffetPanelSection>
 
-        <BuffetPanelSection>
-          <BuffetGuestCounter
-            label={t.buffetAdults}
-            qty={buffetAdults}
-            onDecrement={() => onBumpCount('adults', -1)}
-            onIncrement={() => onBumpCount('adults', 1)}
-          />
-        </BuffetPanelSection>
+          <BuffetPanelSection edge="mid">
+            <BuffetGuestCounter
+              label={t.buffetAdults}
+              qty={buffetAdults}
+              onDecrement={() => onBumpCount('adults', -1)}
+              onIncrement={() => onBumpCount('adults', 1)}
+            />
+          </BuffetPanelSection>
 
-        <BuffetPanelSection>
-          <BuffetGuestCounter
-            label={t.buffetChildren}
-            qty={buffetChildren}
-            onDecrement={() => onBumpCount('children', -1)}
-            onIncrement={() => onBumpCount('children', 1)}
-          />
-        </BuffetPanelSection>
+          <BuffetPanelSection edge="mid">
+            <BuffetGuestCounter
+              label={t.buffetChildren}
+              qty={buffetChildren}
+              onDecrement={() => onBumpCount('children', -1)}
+              onIncrement={() => onBumpCount('children', 1)}
+            />
+          </BuffetPanelSection>
 
-        <BuffetPanelSection className="items-center">
-          {buffetPriceDisplay.ok ? (
-            <p className="text-[15px] font-semibold text-brand-gold-dark tabular-nums text-center">
-              {formatBuffetPriceTemplate(t.buffetEstimatedTotal, {
-                total: buffetPriceDisplay.subtotal,
-              })}
-            </p>
-          ) : null}
-        </BuffetPanelSection>
+          <BuffetPanelSection edge="mid" className="items-center">
+            {buffetPriceDisplay.ok ? (
+              <p className="text-[15px] font-semibold text-brand-gold-dark tabular-nums text-center">
+                {formatBuffetPriceTemplate(t.buffetEstimatedTotal, {
+                  total: buffetPriceDisplay.subtotal,
+                })}
+              </p>
+            ) : null}
+          </BuffetPanelSection>
 
-        <BuffetPanelSection wideOnSm className="items-center xl:items-end xl:pr-0">
-          <Button
-            type="button"
-            variant="gold"
-            size="action"
-            onClick={onSave}
-            disabled={saveDisabled}
-            className={waiterPrimaryActionBtn}
-          >
-            <WaiterTableIcon className={buttonIcon.sm} />
-            {buffetSubmitting ? '…' : buffetActionLabel}
-          </Button>
-        </BuffetPanelSection>
+          <BuffetPanelSection edge="end" wideOnSm>
+            <WaiterTablePrimaryButton onClick={onSave} disabled={saveDisabled} icon={<WaiterTableIcon className={buttonIcon.sm} />}>
+              {buffetSubmitting ? '…' : buffetActionLabel}
+            </WaiterTablePrimaryButton>
+          </BuffetPanelSection>
+        </div>
       </div>
-    </div>
+    </WaiterDetailCard>
   );
 }
 
@@ -230,52 +217,16 @@ function ContinueOrderingControl({
 
   if (checkoutLocked) {
     return (
-      <Button
-        type="button"
-        variant="gold"
-        size="action"
-        onClick={onCheckoutLocked}
-        className={waiterPrimaryActionBtn}
-      >
-        {icon}
+      <WaiterTablePrimaryButton type="button" onClick={onCheckoutLocked} icon={icon}>
         {label}
-      </Button>
+      </WaiterTablePrimaryButton>
     );
   }
 
   return (
-    <ButtonLink href={menuHref} variant="gold" size="action" className={waiterPrimaryActionBtn}>
-      {icon}
+    <WaiterTablePrimaryLink href={menuHref} icon={icon}>
       {label}
-    </ButtonLink>
-  );
-}
-
-function ToolbarSecondaryButton({
-  onClick,
-  label,
-  icon,
-  locked = false,
-  disabled = false,
-}: {
-  onClick: () => void;
-  label: string;
-  icon: ReactNode;
-  locked?: boolean;
-  disabled?: boolean;
-}) {
-  return (
-    <Button
-      type="button"
-      variant="soft"
-      size="action"
-      onClick={onClick}
-      disabled={disabled || locked}
-      className={waiterActionBtnLayout}
-    >
-      {icon}
-      {label}
-    </Button>
+    </WaiterTablePrimaryLink>
   );
 }
 
@@ -306,17 +257,15 @@ function ToolbarCloseTableControl({
 
   if (isDemo) {
     return (
-      <Button
+      <WaiterTablePrimaryButton
         type="button"
         variant="close"
-        size="action"
         onClick={onDemoCloseClick}
         disabled={closingDemoTable}
-        className={waiterPrimaryActionBtn}
+        icon={closeIcon}
       >
-        {closeIcon}
         {closingDemoTable ? closeOperatingLabel : closeLabel}
-      </Button>
+      </WaiterTablePrimaryButton>
     );
   }
 
@@ -327,7 +276,7 @@ function ToolbarCloseTableControl({
       onClosed={onTableClosed}
       variant="close"
       size="action"
-      className={waiterPrimaryActionBtn}
+      className={waiterDetailLayout.primaryAction}
       leadingIcon={closeIcon}
     />
   );
@@ -369,49 +318,57 @@ export function WaiterTableOccupiedToolbar({
   onTableClosed,
 }: OccupiedToolbarProps) {
   return (
-    <div className={`${waiterUi.cardSurface} ${waiterCardInset}`}>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
-          <ContinueOrderingControl
-            menuHref={menuHref}
-            label={t.continueOrdering}
-            checkoutLocked={isCheckoutPending}
-            onCheckoutLocked={onCheckoutLocked}
-          />
-          <ToolbarSecondaryButton
-            onClick={onTransfer}
-            label={t.transfer}
-            icon={<WaiterTransferIcon className={buttonIcon.sm} />}
-            locked={isCheckoutPending}
-          />
-          <ToolbarSecondaryButton
-            onClick={onMerge}
-            label={t.merge}
-            icon={<WaiterMergeIcon className={buttonIcon.sm} />}
-            locked={isCheckoutPending}
-          />
-          {showCallBill ? (
-            <ToolbarSecondaryButton
-              onClick={onCallBill}
-              label={callingBill ? t.callBillOperating : t.callBill}
-              icon={<WaiterBillIcon className={buttonIcon.sm} />}
-              disabled={callingBill}
+    <WaiterDetailCard>
+      <div className={waiterDetailLayout.cardBody}>
+        <div className={waiterDetailLayout.occupiedToolbarRow}>
+          <div className={waiterDetailLayout.occupiedToolbarCluster}>
+            <ContinueOrderingControl
+              menuHref={menuHref}
+              label={t.continueOrdering}
+              checkoutLocked={isCheckoutPending}
+              onCheckoutLocked={onCheckoutLocked}
             />
-          ) : null}
+            <WaiterTableSecondaryButton
+              type="button"
+              onClick={onTransfer}
+              disabled={isCheckoutPending}
+              icon={<WaiterTransferIcon className={buttonIcon.sm} />}
+            >
+              {t.transfer}
+            </WaiterTableSecondaryButton>
+            <WaiterTableSecondaryButton
+              type="button"
+              onClick={onMerge}
+              disabled={isCheckoutPending}
+              icon={<WaiterMergeIcon className={buttonIcon.sm} />}
+            >
+              {t.merge}
+            </WaiterTableSecondaryButton>
+            {showCallBill ? (
+              <WaiterTableSecondaryButton
+                type="button"
+                onClick={onCallBill}
+                disabled={callingBill}
+                icon={<WaiterBillIcon className={buttonIcon.sm} />}
+              >
+                {callingBill ? t.callBillOperating : t.callBill}
+              </WaiterTableSecondaryButton>
+            ) : null}
+          </div>
+          <ToolbarCloseTableControl
+            tableId={tableId}
+            isCheckoutPending={isCheckoutPending}
+            showCloseTable={showCloseTable}
+            isDemo={isDemo}
+            closingDemoTable={closingDemoTable}
+            closeLabel={t.closeTable}
+            closeOperatingLabel={t.closeTableOperating}
+            onDemoCloseClick={onDemoCloseClick}
+            onTableClosed={onTableClosed}
+          />
         </div>
-        <ToolbarCloseTableControl
-          tableId={tableId}
-          isCheckoutPending={isCheckoutPending}
-          showCloseTable={showCloseTable}
-          isDemo={isDemo}
-          closingDemoTable={closingDemoTable}
-          closeLabel={t.closeTable}
-          closeOperatingLabel={t.closeTableOperating}
-          onDemoCloseClick={onDemoCloseClick}
-          onTableClosed={onTableClosed}
-        />
       </div>
-    </div>
+    </WaiterDetailCard>
   );
 }
 
@@ -435,12 +392,12 @@ export function WaiterTableOrderedItemsPanel({
   if (lines.length === 0) return null;
 
   return (
-    <div className={`${waiterUi.cardSurface} overflow-hidden`}>
-      <div className={`flex items-center gap-2 border-b border-brand-border/40 ${waiterCardPx} py-3`}>
+    <WaiterDetailCard className="overflow-hidden">
+      <div className={waiterDetailLayout.sectionHeader}>
         <WaiterClocheIcon className={`${buttonIcon.md} text-brand-gold`} />
         <h2 className="text-[15px] font-semibold text-brand-text">{title}</h2>
       </div>
-      <div className={`space-y-2 ${waiterCardPx} py-3`}>
+      <div className={waiterDetailLayout.sectionBody}>
         {lines.map((line) => (
           <div key={`${line.orderId}-${line.itemIdx}`} className="flex items-center justify-between gap-2">
             <p className="text-sm text-brand-text truncate min-w-0 flex-1">
@@ -466,6 +423,6 @@ export function WaiterTableOrderedItemsPanel({
           </div>
         ))}
       </div>
-    </div>
+    </WaiterDetailCard>
   );
 }

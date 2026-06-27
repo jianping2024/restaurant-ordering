@@ -34,6 +34,7 @@ import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import { waiterUi } from '@/components/waiter/waiter-ui';
+import { Button } from '@/components/ui/Button';
 import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
 import { postWaiterDecrementOrderItemClient } from '@/lib/waiter-decrement-order-item-client';
 import { fetchWaiterTableActionTargetsClient, postWaiterBuffetOpenClient } from '@/lib/staff-board-client';
@@ -940,23 +941,20 @@ function WaiterTableDetailInner({
           </div>
         </div>
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={closeAction}
-            className={`${waiterUi.btnSecondary} ${waiterUi.btnGhost} text-sm`}
-          >
+          <Button type="button" variant="ghost" size="sm" onClick={closeAction}>
             {lang === 'zh' ? '取消' : lang === 'en' ? 'Cancel' : 'Cancelar'}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="gold"
+            size="sm"
             onClick={handleActionSubmit}
             disabled={!sourceTable || !targetTable || operating}
-            className={`${waiterUi.btnBuffet} text-sm disabled:opacity-50`}
           >
             {operationType === 'transfer'
               ? (operating ? t.operatingTransfer : t.confirmTransfer)
               : (operating ? t.operatingMerge : t.confirmMerge)}
-          </button>
+          </Button>
         </div>
       </Modal>
       {isDemo ? (

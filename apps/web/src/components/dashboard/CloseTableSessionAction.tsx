@@ -3,6 +3,7 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/components/providers/LanguageProvider';
+import { Button, type ButtonSize, type ButtonVariant } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
 import { showToast } from '@/components/ui/Toast';
@@ -16,6 +17,8 @@ interface Props {
   isCheckoutPending?: boolean;
   onClosed?: () => void;
   className?: string;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   disabled?: boolean;
   leadingIcon?: ReactNode;
 }
@@ -24,7 +27,9 @@ export function CloseTableSessionAction({
   tableId,
   isCheckoutPending = false,
   onClosed,
-  className = 'text-sm px-3 py-1.5 rounded-lg border border-brand-border text-brand-text hover:border-brand-gold/50 hover:text-brand-gold disabled:opacity-40 disabled:cursor-not-allowed transition-colors',
+  className = '',
+  variant = 'close',
+  size = 'action',
   disabled = false,
   leadingIcon,
 }: Props) {
@@ -133,8 +138,10 @@ export function CloseTableSessionAction({
 
   return (
     <>
-      <button
+      <Button
         type="button"
+        variant={variant}
+        size={size}
         disabled={disabled || isClosing}
         onClick={() => {
           if (isCheckoutPending) {
@@ -145,11 +152,9 @@ export function CloseTableSessionAction({
         }}
         className={className}
       >
-        <span className="inline-flex items-center gap-1.5">
-          {leadingIcon}
-          {isClosing ? i18n.closeTableOperating : i18n.closeTable}
-        </span>
-      </button>
+        {leadingIcon}
+        {isClosing ? i18n.closeTableOperating : i18n.closeTable}
+      </Button>
       <ConfirmModal
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}

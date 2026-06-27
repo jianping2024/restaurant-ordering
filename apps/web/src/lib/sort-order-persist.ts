@@ -12,8 +12,9 @@ export async function persistAdjacentSortOrderSwap(
   restaurantId: string,
   rowA: { id: string; sort_order: number },
   rowB: { id: string; sort_order: number },
+  scopeMaxSortOrder: number,
 ): Promise<{ ok: true } | { error: 'update_failed'; message: string }> {
-  const steps = adjacentSortOrderSwapSteps(rowA, rowB);
+  const steps = adjacentSortOrderSwapSteps(rowA, rowB, scopeMaxSortOrder);
   if (!steps) {
     return { ok: true };
   }

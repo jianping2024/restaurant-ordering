@@ -500,7 +500,8 @@ export async function moveMenuItemOrder(
 
   const a = ordered[index];
   const b = ordered[neighborIndex];
-  const persisted = await persistAdjacentSortOrderSwap(admin, 'menu_items', restaurantId, a, b);
+  const scopeMax = Math.max(...ordered.map((row) => row.sort_order));
+  const persisted = await persistAdjacentSortOrderSwap(admin, 'menu_items', restaurantId, a, b, scopeMax);
   if ('error' in persisted) {
     return { error: persisted.error, message: persisted.message, status: 500 };
   }
@@ -807,7 +808,8 @@ export async function movePrintStationOrder(
 
   const a = ordered[index];
   const b = ordered[neighborIndex];
-  const persisted = await persistAdjacentSortOrderSwap(admin, 'print_stations', restaurantId, a, b);
+  const scopeMax = Math.max(...ordered.map((row) => row.sort_order));
+  const persisted = await persistAdjacentSortOrderSwap(admin, 'print_stations', restaurantId, a, b, scopeMax);
   if ('error' in persisted) {
     return { error: persisted.error, message: persisted.message, status: 500 };
   }

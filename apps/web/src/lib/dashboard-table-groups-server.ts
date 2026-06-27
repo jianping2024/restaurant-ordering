@@ -247,12 +247,14 @@ export async function moveTableGroupOrder(
 
   const a = ordered[index];
   const b = ordered[neighborIndex];
+  const scopeMax = Math.max(...ordered.map((group) => group.sort_order));
   const persisted = await persistAdjacentSortOrderSwap(
     admin,
     'restaurant_table_groups',
     restaurantId,
     a,
     b,
+    scopeMax,
   );
   if ('error' in persisted) {
     return { error: persisted.error, message: persisted.message, status: 500 };

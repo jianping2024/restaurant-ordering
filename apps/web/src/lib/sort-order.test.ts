@@ -50,17 +50,25 @@ describe('swapAdjacentSortOrders', () => {
 });
 
 describe('adjacentSortOrderSwapSteps', () => {
-  it('uses a temp slot below the minimum for unique-index swaps', () => {
-    assert.deepEqual(adjacentSortOrderSwapSteps({ sort_order: 0 }, { sort_order: 1 }), {
-      tempOrder: -1,
+  it('uses a temp slot above scope max for unique-index swaps', () => {
+    assert.deepEqual(adjacentSortOrderSwapSteps({ sort_order: 0 }, { sort_order: 1 }, 39), {
+      tempOrder: 40,
       finalSortOrderA: 1,
       finalSortOrderB: 0,
     });
   });
 
+  it('avoids colliding with other rows when swapping non-zero orders', () => {
+    assert.deepEqual(adjacentSortOrderSwapSteps({ sort_order: 6 }, { sort_order: 7 }, 39), {
+      tempOrder: 40,
+      finalSortOrderA: 7,
+      finalSortOrderB: 6,
+    });
+  });
+
   it('returns null when rows already match target order', () => {
     assert.equal(
-      adjacentSortOrderSwapSteps({ sort_order: 3 }, { sort_order: 3 }),
+      adjacentSortOrderSwapSteps({ sort_order: 3 }, { sort_order: 3 }, 10),
       null,
     );
   });

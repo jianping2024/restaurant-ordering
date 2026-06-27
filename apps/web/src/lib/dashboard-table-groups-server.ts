@@ -8,8 +8,7 @@ import {
   type RestaurantTableGroupMember,
 } from '@/lib/restaurant-table-groups';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
-import { nextSortOrder, type SortOrderMoveDirection } from '@/lib/sort-order';
-import { persistAdjacentSortOrderSwap } from '@/lib/sort-order-persist';
+import { nextSortOrder, swapAdjacentSortOrders, type SortOrderMoveDirection } from '@/lib/sort-order';
 import type { MutationError } from '@/lib/dashboard-api-shared';
 import { uniqueViolation } from '@/lib/dashboard-api-shared';
 
@@ -247,18 +246,21 @@ export async function moveTableGroupOrder(
 
   const a = ordered[index];
   const b = ordered[neighborIndex];
-  const scopeMax = Math.max(...ordered.map((group) => group.sort_order));
-  const persisted = await persistAdjacentSortOrderSwap(
-    admin,
-    'restaurant_table_groups',
-    restaurantId,
-    a,
-    b,
-    scopeMax,
-  );
-  if ('error' in persisted) {
-    return { error: persisted.error, message: persisted.message, status: 500 };
-  }
+  const { sortOrderA, sortOrderB } = swapAdjacentSortOrders(a, b);
+
+  const { error: e1 } = await admin
+    .from('restaurant_table_groups')
+    .update({ sort_order: sortOrderA })
+    .eq('id', a.id)
+    .eq('restaurant_id', restaurantId);
+  if (e1) return { error: 'update_failed', message: e1.message, status: 500 };
+
+  const { error: e2 } = await admin
+    .from('restaurant_table_groups')
+    .update({ sort_order: sortOrderB })
+    .eq('id', b.id)
+    .eq('restaurant_id', restaurantId);
+  if (e2) return { error: 'update_failed', message: e2.message, status: 500 };
 
   const payload = await loadRestaurantTableGroups(admin, restaurantId);
   if ('error' in payload) return payload;

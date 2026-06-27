@@ -3,7 +3,6 @@ import { describe, it } from 'node:test';
 import {
   canReorderVisibleMenuItems,
   compareMenuItemsForDisplay,
-  menuItemsShareSortScope,
 } from './menu-item-order';
 import type { MenuItem } from '@/types';
 
@@ -47,15 +46,6 @@ describe('canReorderVisibleMenuItems', () => {
   it('disallows reorder while search is active', () => {
     const rows = [item({ id: 'a', category_id: 'c1' })];
     assert.equal(canReorderVisibleMenuItems(rows, 'cola'), false);
-  });
-});
-
-describe('menuItemsShareSortScope', () => {
-  it('rejects different categories for server swap guard', () => {
-    assert.equal(
-      menuItemsShareSortScope({ category_id: 'c1' }, { category_id: 'c2' }),
-      false,
-    );
   });
 });
 

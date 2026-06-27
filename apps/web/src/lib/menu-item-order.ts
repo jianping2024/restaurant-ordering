@@ -6,13 +6,6 @@ export function menuItemSortScope(categoryId: string | null | undefined): string
   return categoryId ?? null;
 }
 
-export function menuItemsShareSortScope(
-  a: Pick<MenuItem, 'category_id'>,
-  b: Pick<MenuItem, 'category_id'>,
-): boolean {
-  return menuItemSortScope(a.category_id) === menuItemSortScope(b.category_id);
-}
-
 /** Show dish reorder only when the visible list is one category scope and search is empty. */
 export function canReorderVisibleMenuItems(items: readonly MenuItem[], searchQuery: string): boolean {
   if (searchQuery.trim() || items.length === 0) return false;

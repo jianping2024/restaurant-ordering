@@ -17,8 +17,8 @@ import {
 } from '@/lib/menu-vat-rate';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { compareMenuItemsForDisplay, menuItemSiblingsInScope } from '@/lib/menu-item-order';
-import { nextSortOrder, sortBySortOrderThenCreatedAt, type SortOrderMoveDirection } from '@/lib/sort-order';
-import { persistAdjacentSortOrderSwap } from '@/lib/sort-order-persist';
+import { persistMenuItemSortOrderSwap } from '@/lib/sort-order-persist';
+import { nextSortOrder, sortBySortOrderThenCreatedAt, swapAdjacentSortOrders, type SortOrderMoveDirection } from '@/lib/sort-order';
 import type { MenuCategory, MenuItem, PrintStation, PrintStationTicketLayout } from '@/types';
 
 const ALLOWED_IMAGE_MIME = new Set([
@@ -501,7 +501,7 @@ export async function moveMenuItemOrder(
   const a = ordered[index];
   const b = ordered[neighborIndex];
   const scopeMax = Math.max(...ordered.map((row) => row.sort_order));
-  const persisted = await persistAdjacentSortOrderSwap(admin, 'menu_items', restaurantId, a, b, scopeMax);
+  const persisted = await persistMenuItemSortOrderSwap(admin, restaurantId, a, b, scopeMax);
   if ('error' in persisted) {
     return { error: persisted.error, message: persisted.message, status: 500 };
   }
@@ -808,10 +808,24 @@ export async function movePrintStationOrder(
 
   const a = ordered[index];
   const b = ordered[neighborIndex];
-  const scopeMax = Math.max(...ordered.map((row) => row.sort_order));
-  const persisted = await persistAdjacentSortOrderSwap(admin, 'print_stations', restaurantId, a, b, scopeMax);
-  if ('error' in persisted) {
-    return { error: persisted.error, message: persisted.message, status: 500 };
+  const { sortOrderA, sortOrderB } = swapAdjacentSortOrders(a, b);
+
+  const { error: e1 } = await admin
+    .from('print_stations')
+    .update({ sort_order: sortOrderA })
+    .eq('id', a.id)
+    .eq('restaurant_id', restaurantId);
+  if (e1) {
+    return { error: 'update_failed', message: e1.message, status: 500 };
+  }
+
+  const { error: e2 } = await admin
+    .from('print_stations')
+    .update({ sort_order: sortOrderB })
+    .eq('id', b.id)
+    .eq('restaurant_id', restaurantId);
+  if (e2) {
+    return { error: 'update_failed', message: e2.message, status: 500 };
   }
 
   return { ok: true };

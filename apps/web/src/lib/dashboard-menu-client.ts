@@ -40,6 +40,7 @@ export type MenuItemErrorLabels = {
   vatRateRequired: string;
   categoryRequired: string;
   imageTypeInvalid: string;
+  reorderScopeMismatch: string;
   saveFail: string;
 };
 
@@ -87,6 +88,8 @@ export function mapMenuItemApiError(
       return labels.categoryRequired;
     case 'invalid_image':
       return labels.imageTypeInvalid;
+    case 'reorder_scope_mismatch':
+      return labels.reorderScopeMismatch;
     default:
       return message || labels.saveFail;
   }
@@ -192,6 +195,14 @@ export async function batchSetMenuItemsAvailableClient(itemIds: string[], availa
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'batch_available', item_ids: itemIds, available }),
+  });
+}
+
+export async function swapMenuItemOrderClient(itemIdA: string, itemIdB: string) {
+  return request<{ ok: true }>('/api/dashboard/menu/items', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'swap_order', item_id_a: itemIdA, item_id_b: itemIdB }),
   });
 }
 

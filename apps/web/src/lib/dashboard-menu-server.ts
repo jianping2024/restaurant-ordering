@@ -17,6 +17,8 @@ import {
 } from '@/lib/menu-vat-rate';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { nextSortOrder } from '@/lib/sort-order';
+import { swapSortOrderInDatabase } from '@/lib/sort-order-swap';
+import { menuItemsShareSortScope } from '@/lib/menu-admin';
 import type { MenuCategory, MenuItem, PrintStation, PrintStationTicketLayout } from '@/types';
 
 const ALLOWED_IMAGE_MIME = new Set([
@@ -442,6 +444,47 @@ export async function createMenuItem(
   return { item: data as MenuItem };
 }
 
+export async function swapMenuItemOrder(
+  admin: SupabaseClient,
+  restaurantId: string,
+  itemIdA: string,
+  itemIdB: string,
+): Promise<{ ok: true } | MenuMutationError> {
+  const idA = parseTableIdParam(itemIdA);
+  const idB = parseTableIdParam(itemIdB);
+  if (!idA || !idB) {
+    return { error: 'invalid_item_id', status: 400 };
+  }
+
+  const { data: rows, error: listError } = await admin
+    .from('menu_items')
+    .select('id, sort_order, category_id')
+    .eq('restaurant_id', restaurantId)
+    .in('id', [idA, idB]);
+  if (listError) {
+    return { error: 'menu_items_query_failed', message: listError.message, status: 500 };
+  }
+  if (!rows || rows.length !== 2) {
+    return { error: 'item_not_found', status: 404 };
+  }
+
+  const a = rows.find((row) => row.id === idA)!;
+  const b = rows.find((row) => row.id === idB)!;
+  if (!menuItemsShareSortScope(a, b)) {
+    return { error: 'reorder_scope_mismatch', status: 400 };
+  }
+
+  return swapSortOrderInDatabase(
+    admin,
+    'menu_items',
+    restaurantId,
+    idA,
+    idB,
+    a.sort_order,
+    b.sort_order,
+  );
+}
+
 export async function updateMenuItem(
   admin: SupabaseClient,
   restaurantId: string,
@@ -728,23 +771,15 @@ export async function swapPrintStationOrder(
 
   const a = rows.find((row) => row.id === idA)!;
   const b = rows.find((row) => row.id === idB)!;
-  const { error: e1 } = await admin
-    .from('print_stations')
-    .update({ sort_order: b.sort_order })
-    .eq('id', idA)
-    .eq('restaurant_id', restaurantId);
-  if (e1) {
-    return { error: 'update_failed', message: e1.message, status: 500 };
-  }
-  const { error: e2 } = await admin
-    .from('print_stations')
-    .update({ sort_order: a.sort_order })
-    .eq('id', idB)
-    .eq('restaurant_id', restaurantId);
-  if (e2) {
-    return { error: 'update_failed', message: e2.message, status: 500 };
-  }
-  return { ok: true };
+  return swapSortOrderInDatabase(
+    admin,
+    'print_stations',
+    restaurantId,
+    idA,
+    idB,
+    a.sort_order,
+    b.sort_order,
+  );
 }
 
 export async function deletePrintStation(

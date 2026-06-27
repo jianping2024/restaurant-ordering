@@ -7,7 +7,6 @@ import {
   getActiveSettingsNavItem,
   isSettingsWideLayout,
 } from '@/lib/settings-nav';
-import { MenuSettingsGuide } from '@/components/dashboard/settings/MenuSettingsGuide';
 import { BuffetSettingsGuide } from '@/components/dashboard/settings/BuffetSettingsGuide';
 import { SettingsTabs } from '@/components/dashboard/settings/SettingsTabs';
 
@@ -19,9 +18,7 @@ export function DashboardSettingsShell({ children }: { children: React.ReactNode
   const pageTitle = activeItem ? hub[activeItem.labelKey] : hub.title;
   const pageSubtitle = activeItem?.hintKey ? hub[activeItem.hintKey] : '';
   const pageHelpModal =
-    activeItem?.id === 'menu' ? (
-      <MenuSettingsGuide />
-    ) : activeItem?.id === 'buffet' ? (
+    activeItem?.id === 'buffet' ? (
       <BuffetSettingsGuide />
     ) : null;
   const wide = isSettingsWideLayout(pathname);

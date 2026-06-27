@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
+
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Tree from 'rc-tree';
@@ -48,11 +48,12 @@ import { getPrintStationDisplayName } from '@/lib/print-station-admin';
 import { categoryCodePathFromLeaf, normalizeMenuItemCode } from '@/lib/menu-print-label';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import { PrintStationsManager } from '@/components/dashboard/PrintStationsManager';
+import { SettingsPageHelp } from '@/components/dashboard/settings/SettingsPageHelp';
 import {
   isMenuManagerTab,
   loadSavedMenuManagerTab,
   MENU_MANAGER_DEFAULT_TAB,
-  menuManagerSettingsPath,
+  menuManagerPath,
   saveMenuManagerTab,
   type MenuManagerTab,
 } from '@/lib/menu-manager-tab-preference';
@@ -70,7 +71,6 @@ interface MenuManagerProps {
   initialCategories: MenuCategory[];
   initialPrintStations: PrintStation[];
   initialTab?: MenuManagerTab;
-  embedded?: boolean;
 }
 
 type ItemForm = {
@@ -146,10 +146,10 @@ export function MenuManager({
   initialCategories,
   initialPrintStations,
   initialTab = MENU_MANAGER_DEFAULT_TAB,
-  embedded,
 }: MenuManagerProps) {
   const { lang } = useLanguage();
   const t = getMessages(lang).menuManager;
+  const hub = getMessages(lang).settingsHub;
   const ps = getMessages(lang).printStations;
   const router = useRouter();
   const supabase = createClient();
@@ -157,7 +157,6 @@ export function MenuManager({
   const [activeTab, setActiveTab] = useState<MenuManagerTab>(initialTab);
 
   useEffect(() => {
-    if (!embedded) return;
     const urlTab = new URLSearchParams(window.location.search).get('tab');
     if (isMenuManagerTab(urlTab)) {
       setActiveTab(urlTab);
@@ -167,19 +166,17 @@ export function MenuManager({
     const saved = loadSavedMenuManagerTab(restaurantId) ?? MENU_MANAGER_DEFAULT_TAB;
     setActiveTab(saved);
     saveMenuManagerTab(restaurantId, saved);
-    const path = menuManagerSettingsPath(saved);
+    const path = menuManagerPath(saved);
     const current = `${window.location.pathname}${window.location.search}`;
     if (current !== path) {
       router.replace(path, { scroll: false });
     }
-  }, [embedded, restaurantId, router]);
+  }, [restaurantId, router]);
 
   const switchTab = (tab: MenuManagerTab) => {
     setActiveTab(tab);
     saveMenuManagerTab(restaurantId, tab);
-    if (embedded) {
-      router.replace(menuManagerSettingsPath(tab), { scroll: false });
-    }
+    router.replace(menuManagerPath(tab), { scroll: false });
   };
   const [dishSearch, setDishSearch] = useState('');
   const [deleteMigrateTargetId, setDeleteMigrateTargetId] = useState('');
@@ -1024,14 +1021,21 @@ export function MenuManager({
 
   return (
     <div className="w-full max-w-full overflow-x-hidden">
-      {!embedded && (
-        <div className="mb-6">
+      <div className="mb-6">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
-          <p className="text-brand-text-muted text-sm mt-1">
-            {t.total} {items.length} {t.items}
-          </p>
+          <SettingsPageHelp title={t.guideTitle} triggerLabel={hub.helpLabel}>
+            <ol className="space-y-3 list-decimal list-outside pl-4 text-brand-text">
+              <li>{t.guideStep1}</li>
+              <li>{t.guideStep2}</li>
+              <li>{t.guideStep3}</li>
+            </ol>
+          </SettingsPageHelp>
         </div>
-      )}
+        <p className="text-brand-text-muted text-sm mt-1">
+          {t.total} {items.length} {t.items}
+        </p>
+      </div>
 
       <div className="flex flex-wrap gap-2 mb-6">
         <button
@@ -1071,22 +1075,14 @@ export function MenuManager({
 
       {activeTab === 'stations' ? (
         <div>
-          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-4">
             <p className="text-[13px] text-brand-text-muted">{ps.hintShort}</p>
-            <Link
-              href="/dashboard/settings/print-assistant"
-              className="text-[13px] text-brand-gold hover:underline shrink-0"
-            >
-              {ps.linkPrintAssistant}
-            </Link>
           </div>
           <PrintStationsManager
             restaurantId={restaurantId}
             initialStations={printStations}
             initialCategories={categories}
             initialItems={items}
-            embedded
-            inMenuTab
             onStationsChange={setPrintStations}
           />
         </div>
@@ -1141,11 +1137,9 @@ export function MenuManager({
                   >
                     {t.panelEmptyAddRoot}
                   </Button>
-                  {embedded ? (
-                    <Button type="button" variant="outline" onClick={() => switchTab('stations')}>
-                      {t.linkPrintStations}
-                    </Button>
-                  ) : null}
+                  <Button type="button" variant="outline" onClick={() => switchTab('stations')}>
+                    {t.linkPrintStations}
+                  </Button>
                 </div>
               </div>
             ) : (

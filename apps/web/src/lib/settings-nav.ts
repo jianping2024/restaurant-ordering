@@ -2,7 +2,6 @@ export type SettingsNavId =
   | 'profile'
   | 'features'
   | 'staff'
-  | 'menu'
   | 'buffet'
   | 'print-assistant';
 
@@ -10,14 +9,12 @@ export type SettingsHubLabelKey =
   | 'tabProfile'
   | 'tabFeatures'
   | 'tabStaff'
-  | 'tabMenu'
   | 'tabBuffet'
   | 'tabPrintAssistant';
 
 export type SettingsHubHintKey =
   | 'hintProfile'
   | 'hintFeatures'
-  | 'hintMenu'
   | 'hintBuffet'
   | 'hintPrintAssistant';
 
@@ -56,14 +53,6 @@ export const SETTINGS_NAV_TABS: SettingsNavItem[] = [
     isActive: (pathname) => pathname.startsWith('/dashboard/settings/features'),
   },
   {
-    id: 'menu',
-    href: '/dashboard/settings/menu',
-    labelKey: 'tabMenu',
-    hintKey: 'hintMenu',
-    icon: '📋',
-    isActive: (pathname) => pathname.startsWith('/dashboard/settings/menu'),
-  },
-  {
     id: 'buffet',
     href: '/dashboard/settings/buffet',
     labelKey: 'tabBuffet',
@@ -86,8 +75,5 @@ export function getActiveSettingsNavItem(pathname: string): SettingsNavItem | nu
 }
 
 export function isSettingsWideLayout(pathname: string): boolean {
-  return (
-    pathname.startsWith('/dashboard/settings/menu') ||
-    pathname.startsWith('/dashboard/settings/buffet')
-  );
+  return pathname.startsWith('/dashboard/settings/buffet');
 }

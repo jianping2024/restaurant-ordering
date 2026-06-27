@@ -1,5 +1,39 @@
-import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
+import { notFound } from 'next/navigation';
+import { MenuManager } from '@/components/dashboard/MenuManager';
+import { loadFrontdeskDashboardMenu } from '@/lib/dashboard-menu';
+import {
+  isMenuManagerTab,
+  MENU_MANAGER_DEFAULT_TAB,
+  type MenuManagerTab,
+} from '@/lib/menu-manager-tab-preference';
 
-export default function LegacyMenuPage() {
-  redirect('/dashboard/settings/menu');
+function parseMenuTab(tab: string | undefined): MenuManagerTab {
+  if (isMenuManagerTab(tab)) return tab;
+  return MENU_MANAGER_DEFAULT_TAB;
+}
+
+interface Props {
+  searchParams: Promise<{ tab?: string }>;
+}
+
+export default async function MenuPage({ searchParams }: Props) {
+  const { tab } = await searchParams;
+  const initialTab = parseMenuTab(tab);
+  const loaded = await loadFrontdeskDashboardMenu();
+  if ('error' in loaded) {
+    notFound();
+  }
+
+  return (
+    <Suspense fallback={null}>
+      <MenuManager
+        initialTab={initialTab}
+        restaurantId={loaded.restaurantId}
+        initialItems={loaded.menuItems}
+        initialCategories={loaded.menuCategories}
+        initialPrintStations={loaded.printStations}
+      />
+    </Suspense>
+  );
 }

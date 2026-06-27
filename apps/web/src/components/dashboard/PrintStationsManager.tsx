@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
@@ -19,10 +18,6 @@ interface PrintStationsManagerProps {
   initialStations: PrintStation[];
   initialCategories?: Pick<MenuCategory, 'id' | 'print_station_id'>[];
   initialItems?: Pick<MenuItem, 'id' | 'print_station_id'>[];
-  /** When true (e.g. under `/dashboard/settings`), hide page title — same pattern as `MenuManager`. */
-  embedded?: boolean;
-  /** Embedded as a tab inside menu management — hide cross-links back to menu. */
-  inMenuTab?: boolean;
   onStationsChange?: (stations: PrintStation[]) => void;
 }
 
@@ -51,8 +46,6 @@ export function PrintStationsManager({
   initialStations,
   initialCategories = [],
   initialItems = [],
-  embedded,
-  inMenuTab,
   onStationsChange,
 }: PrintStationsManagerProps) {
   const { lang } = useLanguage();
@@ -223,38 +216,11 @@ export function PrintStationsManager({
 
   return (
     <div className="w-full max-w-full overflow-x-hidden">
-      {!embedded && (
-        <div className="mb-6">
-          <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
-          <p className="text-brand-text-muted text-sm mt-1">{t.subtitle}</p>
-        </div>
-      )}
-
       {error ? (
         <p className="mesa-alert-danger text-sm px-4 py-2 mb-4">{error}</p>
       ) : null}
 
-      <div
-        className={`mb-4 flex flex-col gap-3 sm:flex-row sm:items-center ${
-          embedded ? 'sm:justify-between' : 'sm:justify-end'
-        }`}
-      >
-        {embedded && !inMenuTab ? (
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
-            <Link href="/dashboard/settings/menu" className="text-brand-text-muted hover:text-brand-gold transition-colors">
-              {t.linkMenu}
-            </Link>
-            <span className="text-brand-border" aria-hidden>
-              ·
-            </span>
-            <Link
-              href="/dashboard/settings/print-assistant"
-              className="text-brand-text-muted hover:text-brand-gold transition-colors"
-            >
-              {t.linkPrintAssistant}
-            </Link>
-          </div>
-        ) : null}
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
         <Button type="button" onClick={openStationCreateModal} className="w-full sm:w-auto shrink-0">
           + {t.add}
         </Button>

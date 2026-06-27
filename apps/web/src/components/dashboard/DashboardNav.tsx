@@ -41,6 +41,7 @@ const frontdeskNavItems = [
   { href: '/dashboard/orders', key: 'orders', icon: '📋', exact: false },
   { href: '/dashboard', key: 'overview', icon: '📊', exact: true },
   { href: '/dashboard/tables', key: 'tables', icon: '🪑', exact: false },
+  { href: '/dashboard/menu', key: 'menu', icon: '📋', exact: false },
 ] as const;
 
 const cashierNavItems = [

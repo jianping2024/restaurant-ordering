@@ -146,7 +146,7 @@ Triggers / internal: `handle_updated_at`, `enforce_print_station_same_restaurant
 
 ## Storage
 
-Bucket `menu-images` (public read). Owner-scoped write policies on `storage.objects`; path `{restaurant_id}/{menu_item_id}.{ext}`.
+Bucket `menu-images` (public read). Owner- and frontdesk-scoped write policies on `storage.objects`; path `{restaurant_id}/{menu_item_id}.{ext}`.
 
 ## Realtime (`supabase_realtime` publication)
 
@@ -367,11 +367,13 @@ menu_categories:
 
 - SELECT: public read (`true`).
 - ALL: owner by restaurant ownership.
+- ALL: authenticated frontdesk via `is_active_restaurant_staff(restaurant_id, ['frontdesk'])`.
 
 menu_items:
 
 - SELECT: public read (`true`).
 - ALL: owner by restaurant ownership.
+- ALL: authenticated frontdesk via `is_active_restaurant_staff(restaurant_id, ['frontdesk'])`.
 
 orders:
 
@@ -400,6 +402,7 @@ print_stations:
 
 - SELECT: public read (`true`).
 - ALL: owner by restaurant ownership.
+- ALL: authenticated frontdesk via `is_active_restaurant_staff(restaurant_id, ['frontdesk'])`.
 
 platform_admin_accounts:
 

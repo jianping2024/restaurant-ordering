@@ -35,6 +35,6 @@ export function menuManagerTabQuery(tab: MenuManagerTab): string {
   return tab === MENU_MANAGER_DEFAULT_TAB ? '' : `?tab=${tab}`;
 }
 
-export function menuManagerSettingsPath(tab: MenuManagerTab): string {
-  return `/dashboard/settings/menu${menuManagerTabQuery(tab)}`;
+export function menuManagerPath(tab: MenuManagerTab): string {
+  return `/dashboard/menu${menuManagerTabQuery(tab)}`;
 }

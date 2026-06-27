@@ -41,6 +41,7 @@ describe('isFrontdeskOperationalPath', () => {
   it('allows operational dashboard routes except settings', () => {
     assert.equal(isFrontdeskOperationalPath('/dashboard'), true);
     assert.equal(isFrontdeskOperationalPath('/dashboard/tables'), true);
+    assert.equal(isFrontdeskOperationalPath('/dashboard/menu'), true);
     assert.equal(isFrontdeskOperationalPath('/dashboard/waiter'), true);
     assert.equal(isFrontdeskOperationalPath('/dashboard/settings'), false);
     assert.equal(isFrontdeskOperationalPath('/dashboard/settings/menu'), false);

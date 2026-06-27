@@ -8,10 +8,14 @@ import {
   rejectForbiddenPrintJobsScopeParams,
   rejectUnexpectedPrintJobsQueryParams,
 } from '@/lib/print-jobs-scope';
+import {
+  filterPrintJobsForDevice,
+  loadDeviceRoutingStationIds,
+} from '@/lib/print-agent-routing';
 
 export const runtime = 'nodejs';
 
-/** Agent: pending jobs for JWT restaurant only (created within 10 minutes). Stale expiry is throttled on poll (Hobby cron is daily-only). */
+/** Agent: pending jobs for this device’s mapped print stations only (created within 10 minutes). */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
@@ -42,6 +46,12 @@ export async function GET(req: Request) {
 
   await maybeExpireStalePrintJobs(admin);
 
+  const deviceStationIds = await loadDeviceRoutingStationIds(
+    admin,
+    ctx.device_id,
+    ctx.restaurant_id,
+  );
+
   const cutoff = printJobMaxAgeCutoffIso();
   const { data: rows, error } = await admin
     .from('print_jobs')
@@ -50,12 +60,13 @@ export async function GET(req: Request) {
     .eq('status', 'pending')
     .gte('created_at', cutoff)
     .order('created_at', { ascending: true })
-    .limit(25);
+    .limit(50);
 
   if (error) {
     return NextResponse.json({ error: 'query_failed', message: error.message }, { status: 500 });
   }
 
-  const jobs = filterPrintJobsByRestaurant(rows, ctx.restaurant_id);
+  const scoped = filterPrintJobsByRestaurant(rows, ctx.restaurant_id);
+  const jobs = filterPrintJobsForDevice(scoped, deviceStationIds).slice(0, 25);
   return NextResponse.json({ jobs });
 }

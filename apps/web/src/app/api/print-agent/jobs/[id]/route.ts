@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyActiveAgentBearer } from '@/lib/print-agent-auth';
+import {
+  isPrintJobVisibleToDevice,
+  loadDeviceRoutingStationIds,
+} from '@/lib/print-agent-routing';
 import type { PrintJobStatus } from '@/types';
 
 export const runtime = 'nodejs';
@@ -43,7 +47,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const { data: job, error: jErr } = await admin
     .from('print_jobs')
-    .select('id, restaurant_id, status, attempts, claimed_by')
+    .select('id, restaurant_id, status, attempts, claimed_by, type, payload')
     .eq('id', jobId)
     .maybeSingle();
 
@@ -52,6 +56,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
   if (job.restaurant_id !== ctx.restaurant_id) {
     return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  }
+
+  const deviceStationIds = await loadDeviceRoutingStationIds(
+    admin,
+    ctx.device_id,
+    ctx.restaurant_id,
+  );
+  if (!isPrintJobVisibleToDevice(job, deviceStationIds)) {
+    return NextResponse.json({ error: 'job_not_routable_to_device' }, { status: 403 });
   }
 
   const current = job.status as PrintJobStatus;

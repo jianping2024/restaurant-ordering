@@ -210,6 +210,22 @@
 
       function t(key) { return (ui && ui[key]) ? ui[key] : key; }
       function fmt(key, val) { return t(key).replace('%s', val); }
+      function fmt2(key, a, b) {
+        var s = t(key);
+        s = s.replace('%s', a);
+        s = s.replace('%s', b);
+        return s;
+      }
+      function formatSaveError(j) {
+        if (j && j.error_code === 'station_mapping_conflict' && Array.isArray(j.conflicts) && j.conflicts.length) {
+          var lines = j.conflicts.map(function (c) {
+            var dev = (c.other_device_label && String(c.other_device_label).trim()) || String(c.other_device_id || '').slice(0, 8);
+            return fmt2('save_station_conflict_line', c.station_label || c.station_id || '?', dev);
+          });
+          return t('save_station_conflict_title') + '\n' + lines.join('\n');
+        }
+        return (j && j.error) || t('save_failed');
+      }
       function fmtCount(key, n) { return t(key).replace('%d', String(n)); }
 
       function escapeHtml(s) {
@@ -799,17 +815,13 @@
           .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {
             if (!res.ok) {
-              err.textContent = res.j.error || t('save_failed');
+              err.textContent = formatSaveError(res.j);
               return;
             }
             state.station_printers = res.j.station_printers || maps;
             state.station_count = Object.keys(state.station_printers || {}).length;
             seedDraft();
-            if (res.j.routing_sync === 'failed') {
-              ok.textContent = fmt('save_routing_sync_failed', res.j.routing_sync_error || '');
-            } else {
-              ok.textContent = t('save_ok');
-            }
+            ok.textContent = t('save_ok');
             renderStatus();
             refreshTestSelect();
           })

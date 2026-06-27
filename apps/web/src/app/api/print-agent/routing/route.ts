@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyActiveAgentBearer } from '@/lib/print-agent-auth';
-import { buildReceiptPrinterSnapshot } from '@/lib/print-receipt-printer-options';
+import {
+  normalizeStationPrintersInput,
+  saveDeviceRoutingSnapshot,
+} from '@/lib/print-agent-routing';
 
 export const runtime = 'nodejs';
 
@@ -19,21 +22,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
-  let body: {
-    station_printers?: unknown;
-  };
+  let body: { station_printers?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const stationPrinters: Record<string, string> = {};
-  if (body.station_printers && typeof body.station_printers === 'object' && !Array.isArray(body.station_printers)) {
-    for (const [k, v] of Object.entries(body.station_printers as Record<string, unknown>)) {
-      if (typeof v === 'string' && v.trim()) stationPrinters[k] = v.trim();
-    }
-  }
+  const stationPrinters = normalizeStationPrintersInput(body.station_printers);
 
   const { data: stations } = await admin
     .from('print_stations')
@@ -42,20 +38,32 @@ export async function POST(req: Request) {
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true });
 
-  const snapshot = buildReceiptPrinterSnapshot({
+  const result = await saveDeviceRoutingSnapshot(admin, {
+    restaurantId: auth.restaurant_id,
+    deviceId: auth.device_id,
     stationPrinters,
     stations: stations || [],
   });
 
-  const { error } = await admin
-    .from('print_agent_devices')
-    .update({ routing_snapshot: snapshot })
-    .eq('id', auth.device_id)
-    .eq('restaurant_id', auth.restaurant_id);
-
-  if (error) {
-    return NextResponse.json({ error: 'update_failed', message: error.message }, { status: 500 });
+  if (!result.ok) {
+    if (result.code === 'invalid_station') {
+      return NextResponse.json({ error: 'invalid_station', message: result.message }, { status: 400 });
+    }
+    if (result.code === 'station_mapping_conflict') {
+      return NextResponse.json(
+        {
+          error: 'station_mapping_conflict',
+          code: 'station_mapping_conflict',
+          conflicts: result.conflicts,
+        },
+        { status: 409 },
+      );
+    }
+    return NextResponse.json(
+      { error: 'update_failed', message: result.message },
+      { status: 500 },
+    );
   }
 
-  return NextResponse.json({ ok: true, count: snapshot.receipt_printers.length });
+  return NextResponse.json({ ok: true, count: result.snapshot.receipt_printers.length });
 }

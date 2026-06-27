@@ -156,7 +156,13 @@ export function PrintAgentDevicesPanel({
                 </div>
                 <div>
                   <dt className="inline">{t.devicesMappedStations}: </dt>
-                  <dd className="inline text-brand-ink">{d.mapped_station_count ?? '—'}</dd>
+                  <dd className="inline text-brand-ink">
+                    {d.mapped_station_labels?.length
+                      ? d.mapped_station_labels.join(' · ')
+                      : d.mapped_station_count != null && d.mapped_station_count > 0
+                        ? String(d.mapped_station_count)
+                        : '—'}
+                  </dd>
                 </div>
                 <div>
                   <dt className="inline">{t.devicesLastPrint}: </dt>

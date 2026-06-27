@@ -219,29 +219,8 @@ func registerPrinterWizardRoutes(mux *http.ServeMux, configPath string, cfg **co
 		if enc := strings.TrimSpace(body.TextEncoding); enc != "" {
 			c.TextEncoding = normalizeTextEncoding(enc)
 		}
-		cleaned, err := applyPrinterSetup(c, body)
-		if err != nil {
-			writePairJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
-			return
-		}
-		if err := saveConfig(configPath, c); err != nil {
-			writePairJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-			return
-		}
-		*cfg = c
-		syncStatus := "ok"
-		var syncErr string
-		if err := syncRoutingToCloud(c); err != nil {
-			syncStatus = "failed"
-			syncErr = err.Error()
-		}
-		agentLog(c, "log_station_maps_saved", len(cleaned))
-		writePairJSON(w, http.StatusOK, map[string]any{
-			"status":              "ok",
-			"station_printers":    c.StationPrinters,
-			"routing_sync":        syncStatus,
-			"routing_sync_error":  syncErr,
-		})
+		status, resp := persistStationPrinterSetup(configPath, cfg, c, body)
+		writePairJSON(w, status, resp)
 	})
 
 	mux.HandleFunc("/api/test-print", func(w http.ResponseWriter, r *http.Request) {

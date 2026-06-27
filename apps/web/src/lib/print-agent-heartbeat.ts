@@ -9,6 +9,7 @@ export type PrintAgentDeviceHeartbeatRow = {
   last_seen: string | null;
   agent_version?: string | null;
   mapped_station_count?: number | null;
+  mapped_station_labels?: string[];
   last_print_at?: string | null;
   last_print_status?: string | null;
   schedule_open?: boolean | null;

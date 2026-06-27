@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { devicesNeedingRenewal, type PrintAgentDeviceRow } from '@/lib/print-agent-credential-expiry';
 import type { PrintAgentDeviceHeartbeatRow } from '@/lib/print-agent-heartbeat';
 import { isPrintAgentDeviceOnline } from '@/lib/print-agent-heartbeat';
+import { stationLabelsFromRoutingSnapshot } from '@/lib/print-agent-routing';
 
 export async function loadPrintAgentDevicesNeedingRenewal(
   restaurantId: string,
@@ -27,7 +28,7 @@ export async function loadPrintAgentDevices(
   const { data, error } = await supabase
     .from('print_agent_devices')
     .select(
-      'id, label, valid_until, revoked_at, last_seen, agent_version, mapped_station_count, last_print_at, last_print_status, schedule_open',
+      'id, label, valid_until, revoked_at, last_seen, agent_version, mapped_station_count, routing_snapshot, last_print_at, last_print_status, schedule_open',
     )
     .eq('restaurant_id', restaurantId)
     .is('revoked_at', null)
@@ -36,7 +37,15 @@ export async function loadPrintAgentDevices(
   if (error) {
     return [];
   }
-  return (data || []) as PrintAgentDeviceHeartbeatRow[];
+  return (data || []).map((row) => {
+    const { routing_snapshot, ...rest } = row as PrintAgentDeviceHeartbeatRow & {
+      routing_snapshot?: unknown;
+    };
+    return {
+      ...rest,
+      mapped_station_labels: stationLabelsFromRoutingSnapshot(routing_snapshot),
+    };
+  });
 }
 
 /** Online-only subset for dashboard heartbeat display. */

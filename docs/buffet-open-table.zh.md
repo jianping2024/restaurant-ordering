@@ -49,7 +49,16 @@
 
 ## 客户端（服务员桌台）
 
-1. 点击「开台」前：`isBuffetGuestCountsUnchanged(tableOrders, …)` → 未变则 toast，**不发请求**。
+### 开台条 UI（禁止在布局组件写死）
+
+| 元素 | 判定 | 未开台 | 已开台 |
+|------|------|--------|--------|
+| 主按钮文案 | `aggregateBuffetForOrders(sessionOrders)` 是否为 null | `buffetConfirm`（**确认开台**） | `buffetSaveGuestCounts`（**保存人数**） |
+| 预计合计 | `resolveBuffetOpenPricePreview(resolved, adults, children)` | 有有效单价时显示 `buffetEstimatedTotal` | 同上（随计数实时重算） |
+
+**已开台** = session 内存在 active `buffet_base`（与 `aggregateBuffetForOrders` 一致）。布局重构（如 `WaiterTableBuffetPanel`）须通过 **`buffetActionLabel` prop** 传入文案，**不得**在 `WaiterTableDetailLayout` 内写死「确认开台」或「保存人数」。
+
+1. 点击主按钮前：`isBuffetGuestCountsUnchanged(tableOrders, …)` → 未变则 toast，**不发请求**。
 2. 有变化：`applyBuffetOpenOptimisticToOrders` 乐观更新 → `postWaiterBuffetOpenClient` → `applyDetail(detail)` 与服务端对齐；**不再**单独 `refresh()` 桌台详情。
 3. 失败：回滚乐观状态；409 冲突时 `refresh()`。
 
@@ -62,6 +71,8 @@
 | 职责 | 模块 |
 |------|------|
 | 成人/儿童是否变化（分项，非总人数） | `isBuffetGuestCountsUnchanged` |
+| 是否已开台 / 当前人头汇总 | `aggregateBuffetForOrders` |
+| 预计合计预览 | `resolveBuffetOpenPricePreview` |
 | 写计划（纯函数） | `planBuffetOpenWrites` |
 | DB 持久化 | `applyBuffetOpenToSession` |
 | 乐观 UI | `applyBuffetOpenOptimisticToOrders` |

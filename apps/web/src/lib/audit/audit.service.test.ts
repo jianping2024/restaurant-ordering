@@ -139,6 +139,32 @@ describe('recordAudit', () => {
     assert.equal(result.abnormalOperationId, 'abn-1');
   });
 
+  it('inserts operation log only for qty decrement', async () => {
+    const admin = mockAdmin({});
+    const result = await recordAudit(admin, AUDIT_EVENT.ITEM_QTY_DECREMENTED, {
+      restaurantId: 'rest-1',
+      actor,
+      context: {
+        orderId: 'order-1',
+        sessionId: 'sess-1',
+        tableId: 'table-1',
+        tableName: 'A2',
+        itemIndex: 0,
+        itemId: 'item-1',
+        itemName: 'Cola',
+        itemStatusBefore: 'pending',
+        qtyBefore: 3,
+        qtyAfter: 2,
+        unitAmount: 2.5,
+      },
+      reason: 'qty_adjustment',
+    });
+
+    assert.equal(result.operationLogId, 'log-1');
+    assert.equal(result.abnormalOperationId, undefined);
+    assert.deepEqual(result.warnings, []);
+  });
+
   it('inserts operation log only for abnormal confirmed', async () => {
     const admin = mockAdmin({});
     const result = await recordAudit(admin, AUDIT_EVENT.ABNORMAL_CONFIRMED, {

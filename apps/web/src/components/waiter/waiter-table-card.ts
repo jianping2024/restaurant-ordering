@@ -12,7 +12,7 @@ export type WaiterOrderLine = {
   itemIdx: number;
   label: string;
   itemCode: string | null;
-  canVoid: boolean;
+  canDecrement: boolean;
 };
 
 export interface WaiterTableCardData {
@@ -66,7 +66,7 @@ export function buildWaiterTableCard(
         { headcountStyle: 'compact' },
       ),
       itemCode: null,
-      canVoid: false,
+      canDecrement: false,
     });
   }
 
@@ -87,7 +87,7 @@ export function buildWaiterTableCard(
           itemIdx,
           label: formatOrderItemListLabel(item, { headcountStyle: 'compact' }),
           itemCode: null,
-          canVoid: false,
+          canDecrement: false,
         });
         return;
       }
@@ -97,7 +97,7 @@ export function buildWaiterTableCard(
         itemIdx,
         label: formatOrderItemListLabel(item),
         itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
-        canVoid: status === 'pending' || status === 'cooking',
+        canDecrement: status === 'pending' || status === 'cooking',
       });
     });
   }

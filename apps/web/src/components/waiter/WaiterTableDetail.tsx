@@ -20,13 +20,13 @@ import {
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
-import { UI_LOCALE_BY_LANG, getMessages } from '@/lib/i18n/messages';
+import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { showToast } from '@/components/ui/Toast';
-import { deriveOrderStatusFromItems } from '@/lib/order-status';
+import { applyOrderItemDecrement } from '@/lib/order-item-void/decrement-order-item';
+import { computeOrderTotalsFromItems } from '@/lib/order-item-void/persist-order-items-update';
 import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticatedShell';
 import { useWaiterTableDetail } from '@/components/waiter/useWaiterTableDetail';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
@@ -34,6 +34,8 @@ import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
+import { WaiterOrderQtyMinus } from '@/components/waiter/WaiterOrderQtyMinus';
+import { postWaiterDecrementOrderItemClient } from '@/lib/waiter-decrement-order-item-client';
 import { fetchWaiterTableActionTargetsClient, postWaiterBuffetOpenClient } from '@/lib/staff-board-client';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import { waiterBoardHref, waiterTableHref, waiterMenuHref } from '@/lib/staff-routes';
@@ -41,7 +43,6 @@ import { requestDashboardCheckoutRequest } from '@/lib/request-dashboard-checkou
 import type { WaiterTableDetailData } from '@/lib/staff-board';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
-import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -82,8 +83,6 @@ function WaiterTableDetailInner({
   const { lang } = useLanguage();
   const locale = UI_LOCALE_BY_LANG[lang];
   const t = WAITER_TEXT[lang];
-  const orderHistoryI18n = getMessages(lang).orderHistory;
-  const voidItemReasonOptionsList = useMemo(() => abnormalReasonOptions(lang, 'void_item'), [lang]);
   const initialDetail = initialTableDetail?.table ? initialTableDetail : null;
   const {
     table: selectedTable,
@@ -115,11 +114,7 @@ function WaiterTableDetailInner({
   const [operating, setOperating] = useState(false);
   const [closingDemoTable, setClosingDemoTable] = useState<string | null>(null);
   const [demoCloseConfirmTableId, setDemoCloseConfirmTableId] = useState<string | null>(null);
-  const [pendingVoidItem, setPendingVoidItem] = useState<{ orderId: string; itemIdx: number } | null>(
-    null,
-  );
-  const [voidReasonError, setVoidReasonError] = useState<string | null>(null);
-  const [voidingItem, setVoidingItem] = useState(false);
+  const [decrementingKey, setDecrementingKey] = useState<string | null>(null);
   const [callingBill, setCallingBill] = useState(false);
   const activeBuffets = useMemo(() => initialBuffets.filter((b) => b.is_active), [initialBuffets]);
   const [buffetId, setBuffetId] = useState<string>(() => activeBuffets[0]?.id || '');
@@ -672,102 +667,75 @@ function WaiterTableDetailInner({
     }
   };
 
-  const requestVoidItem = (orderId: string, itemIdx: number) => {
+  const orderLineKey = (orderId: string, itemIdx: number) => `${orderId}:${itemIdx}`;
+
+  const handleDecrementOrderLine = async (orderId: string, itemIdx: number) => {
     if (isCheckoutPending) {
       notifyCheckoutLocked();
       return;
     }
-    setVoidReasonError(null);
-    setPendingVoidItem({ orderId, itemIdx });
-  };
+    const order = orders.find((row) => row.id === orderId);
+    if (!order) return;
 
-  const performVoidItem = async (reason: string, detail: string) => {
-    if (!pendingVoidItem) return;
-    const { orderId, itemIdx } = pendingVoidItem;
-    setVoidingItem(true);
-    setVoidReasonError(null);
+    const key = orderLineKey(orderId, itemIdx);
+    setDecrementingKey(key);
     try {
-      const order = orders.find((row) => row.id === orderId);
-      if (!order) return;
-      const nextItems = order.items.map((item, idx) => {
-        if (idx !== itemIdx) return item;
-        return {
-          ...item,
-          item_status: 'voided' as const,
-          voided_at: new Date().toISOString(),
-          void_reason: reason,
-        };
-      });
-
       if (!isDemo) {
-        const res = await fetch(
-          `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/waiter/orders/${orderId}`,
-          {
-            method: 'PATCH',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              items: nextItems,
-              updated_at: order.updated_at,
-              void_reason: reason,
-              void_reason_detail: detail || undefined,
-            }),
-          },
-        );
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        if (res.status === 409) {
-          if (data.error === 'session_billing') {
-            notifyCheckoutLocked();
-            return;
-          }
-          showToast(t.refreshHint, 'error');
-          await refresh();
-          return;
-        }
-        if (res.status === 400 && data.error === 'reason_required') {
-          setVoidReasonError(orderHistoryI18n.voidItemReasonRequired);
-          return;
-        }
-        if (res.status === 400 && data.error === 'invalid_reason') {
-          setVoidReasonError(orderHistoryI18n.voidItemReasonRequired);
-          return;
-        }
-        if (res.status === 400 && data.error === 'reason_detail_required') {
-          setVoidReasonError(orderHistoryI18n.voidItemReasonDetailRequired);
-          return;
-        }
-        if (!res.ok) {
-          showToast(t.actionFailed, 'error');
-          return;
-        }
-        setPendingVoidItem(null);
+        const { outcome } = await postWaiterDecrementOrderItemClient(restaurant.slug, orderId, {
+          item_index: itemIdx,
+          updated_at: order.updated_at,
+        });
         await refresh();
-        showToast(t.voidedLabel, 'success');
+        if (outcome === 'voided') {
+          showToast(t.voidedLabel, 'success');
+        }
         return;
       }
 
-      const nextOrderStatus = deriveOrderStatusFromItems(nextItems);
+      const applied = applyOrderItemDecrement(order.items, itemIdx, order.status);
+      if (!applied.ok) {
+        showToast(t.actionFailed, 'error');
+        return;
+      }
+
+      const { nextStatus, total_amount } = computeOrderTotalsFromItems(
+        applied.nextItems,
+        order.status,
+      );
       const { error } = await supabase
         .from('orders')
         .update({
-          items: nextItems,
-          status: nextOrderStatus,
+          items: applied.nextItems,
+          status: nextStatus,
+          total_amount,
         })
         .eq('id', orderId)
         .eq('updated_at', order.updated_at);
 
       if (error) {
         showToast(t.refreshHint, 'error');
+        await refresh();
         return;
       }
 
-      setPendingVoidItem(null);
       await refresh();
-      showToast(t.voidedLabel, 'success');
-    } catch {
+      if (applied.outcome === 'voided') {
+        showToast(t.voidedLabel, 'success');
+      }
+    } catch (err) {
+      const apiErr = err as Error & { status?: number; code?: string };
+      if (apiErr.status === 409 && apiErr.code === 'session_billing') {
+        notifyCheckoutLocked();
+        return;
+      }
+      if (apiErr.status === 409) {
+        showToast(t.refreshHint, 'error');
+        await refresh();
+        return;
+      }
       showToast(t.actionFailed, 'error');
     } finally {
-      setVoidingItem(false);
+      setDecrementingKey(null);
     }
   };
 
@@ -1017,14 +985,12 @@ function WaiterTableDetailInner({
                       )}
                       {line.label}
                     </p>
-                    {line.canVoid && (
-                      <button
-                        type="button"
-                        onClick={() => requestVoidItem(line.orderId, line.itemIdx)}
-                        className={`shrink-0 ${waiterUi.btnSecondary} ${waiterUi.btnGhost} ${checkoutLockedClass}`}
-                      >
-                        {t.voidItem}
-                      </button>
+                    {line.canDecrement && (
+                      <WaiterOrderQtyMinus
+                        onDecrement={() => void handleDecrementOrderLine(line.orderId, line.itemIdx)}
+                        disabled={isCheckoutPending}
+                        busy={decrementingKey === orderLineKey(line.orderId, line.itemIdx)}
+                      />
                     )}
                   </div>
                 ))}
@@ -1109,29 +1075,6 @@ function WaiterTableDetailInner({
           }}
         />
       ) : null}
-      <ReasonConfirmDialog
-        open={pendingVoidItem != null}
-        onClose={() => {
-          setPendingVoidItem(null);
-          setVoidReasonError(null);
-        }}
-        title={orderHistoryI18n.voidItemReasonTitle}
-        message={orderHistoryI18n.voidItemReasonMessage}
-        reasonLabel={orderHistoryI18n.voidItemReasonLabel}
-        detailLabel={orderHistoryI18n.voidItemReasonDetailLabel}
-        detailPlaceholder={orderHistoryI18n.voidItemReasonDetailPlaceholder}
-        confirmLabel={t.voidItem}
-        cancelLabel={t.closeTableCancel}
-        reasonRequiredError={orderHistoryI18n.voidItemReasonRequired}
-        detailRequiredError={orderHistoryI18n.voidItemReasonDetailRequired}
-        reasons={voidItemReasonOptionsList}
-        reasonGroup="void_item"
-        confirming={voidingItem}
-        externalError={voidReasonError}
-        onConfirm={async (reason, detail) => {
-          await performVoidItem(reason, detail);
-        }}
-      />
     </div>
   );
 }

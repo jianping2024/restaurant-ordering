@@ -19,6 +19,7 @@ export const VOID_ITEM_REASONS = [
   'sold_out',
   'kitchen_cannot_make',
   'customer_cancelled',
+  'qty_adjustment',
   'other',
 ] as const;
 
@@ -35,6 +36,9 @@ export const UNPAID_CLOSE_REASONS = [
 export type DiscountReason = (typeof DISCOUNT_REASONS)[number];
 export type VoidItemReason = (typeof VOID_ITEM_REASONS)[number];
 export type UnpaidCloseReason = (typeof UNPAID_CLOSE_REASONS)[number];
+
+/** Waiter table detail minus-one; written server-side without a reason dialog. */
+export const VOID_ITEM_QTY_ADJUSTMENT_REASON: VoidItemReason = 'qty_adjustment';
 
 const REASON_SETS: Record<AbnormalReasonGroup, readonly string[]> = {
   discount: DISCOUNT_REASONS,

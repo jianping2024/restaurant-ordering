@@ -1,0 +1,94 @@
+import { NextResponse } from 'next/server';
+import { loadStaffAuditActor } from '@/lib/audit';
+import { decrementOrderItemWithAudit } from '@/lib/order-item-void/decrement-order-item.service';
+import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { sessionIdBlocksWaiterMutation, sessionBillingResponse } from '@/lib/waiter-session-guard';
+import type { Order } from '@/types';
+
+export const runtime = 'nodejs';
+
+export async function POST(
+  req: Request,
+  { params }: { params: { slug: string; orderId: string } },
+) {
+  const slug = params.slug;
+  const orderId = params.orderId;
+  if (!slug || !orderId) {
+    return NextResponse.json({ error: 'missing_params' }, { status: 400 });
+  }
+
+  const ctx = await openTableAuthFromRequest(req, slug);
+  if (!ctx) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+
+  let body: { item_index?: unknown; updated_at?: unknown };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+  }
+
+  const itemIndex = Number(body.item_index);
+  if (!Number.isInteger(itemIndex) || itemIndex < 0 || typeof body.updated_at !== 'string') {
+    return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
+  }
+
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
+  }
+
+  const { data: existing, error: findErr } = await admin
+    .from('orders')
+    .select('id, restaurant_id, updated_at, session_id, table_id, display_name, items, status')
+    .eq('id', orderId)
+    .maybeSingle();
+
+  if (findErr || !existing || existing.restaurant_id !== ctx.restaurant_id) {
+    return NextResponse.json({ error: 'order_not_found' }, { status: 404 });
+  }
+
+  if (existing.updated_at !== body.updated_at) {
+    return NextResponse.json({ error: 'conflict' }, { status: 409 });
+  }
+
+  const sessionId = existing.session_id as string | null | undefined;
+  if (sessionId && (await sessionIdBlocksWaiterMutation(admin, sessionId))) {
+    return sessionBillingResponse();
+  }
+
+  const actor = await loadStaffAuditActor(admin, {
+    restaurantId: ctx.restaurant_id,
+    userId: ctx.user_id,
+    role: ctx.role,
+  });
+
+  const result = await decrementOrderItemWithAudit({
+    admin,
+    restaurantId: ctx.restaurant_id,
+    actor,
+    orderId,
+    existing: {
+      items: (existing.items || []) as Order['items'],
+      updated_at: existing.updated_at as string,
+      session_id: existing.session_id as string | null,
+      table_id: existing.table_id as string | null,
+      display_name: existing.display_name as string | null,
+      status: existing.status as Order['status'],
+    },
+    itemIndex,
+  });
+
+  if (!result.ok) {
+    if (result.code === 'conflict') {
+      return NextResponse.json({ error: 'conflict' }, { status: 409 });
+    }
+    return NextResponse.json({ error: result.code }, { status: 400 });
+  }
+
+  return NextResponse.json({ ok: true, order: result.order, outcome: result.outcome });
+}

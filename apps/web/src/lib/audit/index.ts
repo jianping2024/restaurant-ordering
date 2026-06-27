@@ -14,4 +14,4 @@ export {
   resolveOwnerOperatorName,
   staffAuditActor,
 } from '@/lib/audit/resolve-actor';
-export { VOID_ITEM_REASONS } from '@/lib/audit/reasons';
+export { VOID_ITEM_REASONS, VOID_ITEM_QTY_ADJUSTMENT_REASON } from '@/lib/audit/reasons';

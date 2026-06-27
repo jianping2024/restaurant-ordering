@@ -4,8 +4,8 @@ import type { ItemDeletedAuditContext } from '@/lib/audit/builders/item-deleted'
 import { itemLineAmount } from '@/lib/audit/builders/item-deleted';
 import type { AuditActor } from '@/lib/audit/types';
 import { detectNewlyVoidedItems } from '@/lib/order-item-void/detect-newly-voided';
+import { persistOrderItemsUpdate } from '@/lib/order-item-void/persist-order-items-update';
 import { validateVoidItemReason } from '@/lib/order-item-void/validate-void-reason';
-import { deriveOrderStatusFromItems } from '@/lib/order-status';
 import type { Order, OrderItem } from '@/types';
 
 export type PatchOrderItemsInput = {
@@ -92,23 +92,23 @@ export async function patchOrderItemsWithVoidAudit(
     newlyVoided.map((row) => row.itemIndex),
     trimmedReason,
   );
-  const nextStatus = deriveOrderStatusFromItems(itemsToSave);
 
-  const { data: updated, error: updErr } = await input.admin
-    .from('orders')
-    .update({ items: itemsToSave, status: nextStatus })
-    .eq('id', input.orderId)
-    .eq('restaurant_id', input.restaurantId)
-    .eq('updated_at', input.existing.updated_at)
-    .select('*')
-    .maybeSingle();
+  const persist = await persistOrderItemsUpdate(input.admin, {
+    orderId: input.orderId,
+    restaurantId: input.restaurantId,
+    updatedAt: input.existing.updated_at,
+    items: itemsToSave,
+    orderStatusFallback: input.existing.status ?? 'pending',
+  });
 
-  if (updErr || !updated) {
+  if (!persist.ok) {
     return { ok: false, code: 'conflict' };
   }
 
+  const updated = persist.order;
+
   if (newlyVoided.length > 0 && trimmedReason) {
-    const orderRow = updated as Order;
+    const orderRow = updated;
     for (const row of newlyVoided) {
       await recordAudit(input.admin, AUDIT_EVENT.ITEM_DELETED, {
         restaurantId: input.restaurantId,
@@ -120,5 +120,5 @@ export async function patchOrderItemsWithVoidAudit(
     }
   }
 
-  return { ok: true, order: updated as Order };
+  return { ok: true, order: updated };
 }

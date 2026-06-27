@@ -90,7 +90,7 @@ func runConfigureWizard(ctx context.Context, configPath string, prefillAPI, rawQ
 	if onConfigureWizardReady != nil {
 		onConfigureWizardReady(baseURL)
 	}
-	announceWizardURL("Mesa 打印机设置", baseURL)
+	announceWizardURL("MesaGo 打印机设置", baseURL)
 
 	return waitLocalWizard(ctx, srv, done)
 }

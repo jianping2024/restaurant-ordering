@@ -46,7 +46,7 @@ func runSetupWizard(ctx context.Context, configPath string, cfg *config) error {
 
 	baseURL := "http://" + listenAddr + "/setup"
 	agentLogLocale(localeFromConfigPath(configPath), "log_wizard_open", baseURL)
-	announceWizardURL("Mesa 打印机映射", baseURL)
+	announceWizardURL("MesaGo 打印机映射", baseURL)
 
 	return waitLocalWizard(ctx, srv, done)
 }

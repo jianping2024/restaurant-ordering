@@ -19,7 +19,7 @@ func initAgentSession(runCtx context.Context, args []string) (*agentSession, boo
 		runCtx = context.Background()
 	}
 	fs := flag.NewFlagSet("run", flag.ExitOnError)
-	apiBase := fs.String("api", "http://127.0.0.1:3000", "Mesa base URL")
+	apiBase := fs.String("api", "http://127.0.0.1:3000", productName+" base URL")
 	code := fs.String("code", "", "6-digit pairing code (first run)")
 	defaultPrinter := fs.String("default-printer", "", "Default host:port for receipts / pre-bill (also sets legacy printer_host)")
 	cfgPath := fs.String("config", "", "Config file path")

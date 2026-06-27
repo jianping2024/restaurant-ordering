@@ -1,4 +1,5 @@
 import type { UILanguage } from '@/lib/i18n';
+import { applyBrandTokens, getBrandTokens } from '@/lib/i18n/brand-tokens';
 
 export const UI_LOCALE_BY_LANG: Record<UILanguage, string> = {
   zh: 'zh-CN',
@@ -410,7 +411,7 @@ export const MESSAGES = {
       downloadReleasePending:
         'v{version} 安装包正在准备，暂时不可下载。可先查看下方已发布版本，或稍后刷新。',
       downloadSubtitle:
-        '安装包向导默认勾选「当前用户登录 Windows 时自动运行 Mesa Print Agent」（可取消）；免安装 zip 不含开机自启。安装或解压后双击程序，按浏览器配对页完成连接。',
+        '安装包向导默认勾选「当前用户登录 Windows 时自动运行 {printAgent}」（可取消）；免安装 zip 不含开机自启。安装或解压后双击程序，按浏览器配对页完成连接。',
       downloadUpgradeSteps:
         '升级：托盘右键退出 → 运行下方新版本安装包 → 配置保留。已配对收银机列表会对比推荐版本（与仓库 VERSION 一致）。',
       downloadSetupAmd64: '下载安装包（64 位，推荐）',
@@ -427,9 +428,9 @@ export const MESSAGES = {
         '安装包未做代码签名，Windows 可能提示「未知发布者」。请选择「更多信息」→「仍要运行」，或在文件属性中勾选「解除锁定」。可在 GitHub Release 页核对 SHA256SUMS。',
       pairingTitle: '配对 Windows 打印助手',
       pairingSubtitle:
-        '新收银机或重新连接时，在这里生成配对码。请在同一台收银电脑上打开 Mesa，并确认右下角托盘有 Mesa 图标。',
+        '新收银机或重新连接时，在这里生成配对码。请在同一台收银电脑上打开 {brand}，并确认右下角托盘有 {brand} 图标。',
       pairingWizardNote:
-        '若未自动打开设置页，请点上方金色按钮；须在本机浏览器操作，且托盘 Mesa 图标已启动。',
+        '若未自动打开设置页，请点上方金色按钮；须在本机浏览器操作，且托盘 {brand} 图标已启动。',
       pairingGenerate: '生成配对码',
       pairingRefreshList: '刷新列表',
       pairingListTitle: '配对记录',
@@ -455,10 +456,10 @@ export const MESSAGES = {
       configureOpenWithCode: '在本机打开设置（已填入配对码）',
       configureOpenIdle: '在本机打开设置',
       configureUnreachable:
-        '未检测到本机打印助手。请在收银电脑上确认托盘有 Mesa 图标并已启动，再点「打开设置」；须在本机浏览器打开 Mesa，不能在其他电脑操作。',
+        '未检测到本机打印助手。请在收银电脑上确认托盘有 {brand} 图标并已启动，再点「打开设置」；须在本机浏览器打开 {brand}，不能在其他电脑操作。',
       configureOpenedHint:
         '已在本机打开设置页（配对码已填入）。若未看到浏览器窗口，请检查是否被拦截或点「在本机打开设置」重试。',
-      configureStep1: '在收银电脑安装并启动 Mesa 打印助手（任务栏托盘图标）',
+      configureStep1: '在收银电脑安装并启动 {printAgent}（任务栏托盘图标）',
       configureStep2: '生成配对码后会自动打开本机设置；也可手动点下方按钮',
       configureStep3:
         '浏览器打开后：若未配对，先进入配对页输入码；回到设置页点「扫描打印机」→ 选档口 → 保存（试打可选）',
@@ -521,9 +522,9 @@ export const MESSAGES = {
       devicesUnlabeled: '收银机',
       scheduleTitle: '营业时间与拉取策略',
       scheduleSubtitle:
-        '保存后，打印助手在下次启动时会从 Mesa 拉取并覆盖本机 config 中的 schedule / poll（打印机地址仍用本机配置）。运行中不会反复拉取。',
+        '保存后，打印助手在下次启动时会从 {brand} 拉取并覆盖本机 config 中的 schedule / poll（打印机地址仍用本机配置）。运行中不会反复拉取。',
       scheduleApplyNote:
-        '拉取间隔可按本店调整（淡季默认 20 秒）。保存后须重启收银机上的 Mesa 打印助手才会生效：托盘图标右键 → 退出，再从开始菜单重新打开。',
+        '拉取间隔可按本店调整（淡季默认 20 秒）。保存后须重启收银机上的 {printAgent} 才会生效：托盘图标右键 → 退出，再从开始菜单重新打开。',
       scheduleTimezone: '时区',
       scheduleLunch: '午市（每天）',
       scheduleDinner: '晚市（每天）',
@@ -829,6 +830,11 @@ export const MESSAGES = {
       unitDish: '道',
       topSellingTitle: '今日热销菜品',
       topSellingEmpty: '今日暂无菜品销售数据',
+      topSellingListedSummary: '榜单合计 {units} 份 · €{revenue}',
+      topSellingColDish: '菜品',
+      topSellingColQty: '销量',
+      topSellingColRevenue: '销售额',
+      topSellingShareOfList: '占榜单 {n}%',
       hotBadge: '热销',
       stockHint: '备货注意',
       recent: '最近订单',
@@ -1490,9 +1496,9 @@ export const MESSAGES = {
         'Builds are not Authenticode-signed. If SmartScreen blocks the installer, choose More info → Run anyway, or Unblock in file Properties. Verify SHA256SUMS on the GitHub release page.',
       pairingTitle: 'Pair Windows print agent',
       pairingSubtitle:
-        'Generate a code when adding a new POS PC or reconnecting one. Open Mesa on that same POS PC and make sure the Mesa tray icon is running.',
+        'Generate a code when adding a new POS PC or reconnecting one. Open {brand} on that same POS PC and make sure the {trayIcon} tray icon is running.',
       pairingWizardNote:
-        'If settings did not open automatically, use the gold button above. Use this PC’s browser with the Mesa tray icon running.',
+        'If settings did not open automatically, use the gold button above. Use this PC’s browser with the {trayIcon} tray icon running.',
       pairingGenerate: 'Generate pairing code',
       pairingRefreshList: 'Refresh list',
       pairingListTitle: 'Pairing history',
@@ -1519,10 +1525,10 @@ export const MESSAGES = {
       configureOpenWithCode: 'Open settings on this PC (code filled in)',
       configureOpenIdle: 'Open settings on this PC',
       configureUnreachable:
-        'Print agent not detected on this computer. On the POS PC, check the Mesa tray icon is running, then try again. Open Mesa in this PC’s browser—not from another machine.',
+        'Print agent not detected on this computer. On the POS PC, check the {trayIcon} tray icon is running, then try again. Open {brand} in this PC’s browser—not from another machine.',
       configureOpenedHint:
         'Local settings opened with your code filled in. If you do not see a browser tab, check for pop-up blockers or tap Open settings again.',
-      configureStep1: 'Install and start Mesa Print Agent on the POS PC (system tray icon)',
+      configureStep1: 'Install and start {printAgent} on the POS PC (system tray icon)',
       configureStep2: 'After generating a code, settings open automatically—or use the button below',
       configureStep3:
         'In the browser: if not paired yet, open the pairing page and enter the code; then Scan printers → map stations → Save (test print optional)',
@@ -1588,7 +1594,7 @@ export const MESSAGES = {
       scheduleSubtitle:
         'Saved settings are fetched once when the print agent starts (overrides local schedule/poll; printer addresses stay on the PC). Not polled while running.',
       scheduleApplyNote:
-        'Intervals are per restaurant (quiet-period default 20 sec). After saving, restart the in-store Mesa Print Agent: tray icon → Exit, then open Mesa Print Agent from the Start menu again.',
+        'Intervals are per restaurant (quiet-period default 20 sec). After saving, restart the in-store {printAgent}: tray icon → Exit, then open {printAgent} from the Start menu again.',
       scheduleTimezone: 'Timezone',
       scheduleLunch: 'Lunch (every day)',
       scheduleDinner: 'Dinner (every day)',
@@ -1750,6 +1756,11 @@ export const MESSAGES = {
       unitDish: '',
       topSellingTitle: 'Top sellers today',
       topSellingEmpty: 'No dish sales today',
+      topSellingListedSummary: 'Listed {units} · €{revenue}',
+      topSellingColDish: 'Dish',
+      topSellingColQty: 'Qty',
+      topSellingColRevenue: 'Revenue',
+      topSellingShareOfList: '{n}% of list',
       hotBadge: 'Hot',
       stockHint: 'Restock',
       recent: 'Recent orders',
@@ -2269,9 +2280,9 @@ export const MESSAGES = {
         'Sem assinatura Authenticode. Se o SmartScreen bloquear, escolha Mais informacoes → Executar mesmo assim, ou Desbloquear nas propriedades. Verifique SHA256SUMS no GitHub.',
       pairingTitle: 'Emparelhar agente Windows',
       pairingSubtitle:
-        'Gere um codigo ao adicionar um novo PC da caixa ou ao religar um existente. Abra o Mesa nesse mesmo PC e confirme o icone Mesa na bandeja.',
+        'Gere um codigo ao adicionar um novo PC da caixa ou ao religar um existente. Abra o {brand} nesse mesmo PC e confirme o icone {brand} na bandeja.',
       pairingWizardNote:
-        'Se as definicoes nao abriram sozinhas, use o botao dourado acima. Use o browser deste PC com o icone Mesa na bandeja.',
+        'Se as definicoes nao abriram sozinhas, use o botao dourado acima. Use o browser deste PC com o icone {brand} na bandeja.',
       pairingGenerate: 'Gerar codigo',
       pairingRefreshList: 'Atualizar lista',
       pairingListTitle: 'Historico de emparelhamento',
@@ -2298,10 +2309,10 @@ export const MESSAGES = {
       configureOpenWithCode: 'Abrir definicoes neste PC (codigo preenchido)',
       configureOpenIdle: 'Abrir definicoes neste PC',
       configureUnreachable:
-        'Agente nao detetado neste PC. No PC da caixa, confirme o icone Mesa na bandeja e tente de novo. Abra o Mesa neste browser, nao noutro computador.',
+        'Agente nao detetado neste PC. No PC da caixa, confirme o icone {brand} na bandeja e tente de novo. Abra o {brand} neste browser, nao noutro computador.',
       configureOpenedHint:
         'Definicoes locais abertas com o codigo preenchido. Se nao vir o browser, verifique pop-ups ou toque em Abrir definicoes novamente.',
-      configureStep1: 'Instale e inicie o Mesa Print Agent no PC da caixa (icone na bandeja)',
+      configureStep1: 'Instale e inicie o {printAgent} no PC da caixa (icone na bandeja)',
       configureStep2: 'Apos gerar o codigo, as definicoes abrem sozinhas — ou use o botao abaixo',
       configureStep3:
         'No browser: se ainda nao emparelhou, abra a pagina de emparelhamento e introduza o codigo; depois Voltar a procurar → mapear estacoes → Guardar (teste opcional)',
@@ -2367,7 +2378,7 @@ export const MESSAGES = {
       scheduleSubtitle:
         'Ao guardar, o agente aplica na proxima arrancada (substitui schedule/poll local; impressoras ficam no PC). Nao ha polling de configuracao em execucao.',
       scheduleApplyNote:
-        'Intervalos por restaurante (periodo calmo: 20 s por defeito). Apos guardar, reinicie o Mesa Print Agent na loja: icone na bandeja → Sair, depois abra de novo no menu Iniciar.',
+        'Intervalos por restaurante (periodo calmo: 20 s por defeito). Apos guardar, reinicie o {printAgent} na loja: icone na bandeja → Sair, depois abra de novo no menu Iniciar.',
       scheduleTimezone: 'Fuso horario',
       scheduleLunch: 'Almoco (todos os dias)',
       scheduleDinner: 'Jantar (todos os dias)',
@@ -2529,6 +2540,11 @@ export const MESSAGES = {
       unitDish: '',
       topSellingTitle: 'Mais vendidos hoje',
       topSellingEmpty: 'Sem vendas de pratos hoje',
+      topSellingListedSummary: 'Total {units} · €{revenue}',
+      topSellingColDish: 'Prato',
+      topSellingColQty: 'Qtd',
+      topSellingColRevenue: 'Vendas',
+      topSellingShareOfList: '{n}% da lista',
       hotBadge: 'Destaque',
       stockHint: 'Repor stock',
       recent: 'Pedidos recentes',
@@ -2709,5 +2725,5 @@ export const MESSAGES = {
 } as const;
 
 export function getMessages(lang: UILanguage) {
-  return MESSAGES[lang];
+  return applyBrandTokens(MESSAGES[lang], getBrandTokens(lang));
 }

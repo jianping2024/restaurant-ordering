@@ -1,13 +1,13 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@mesa/ui';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages } from '@/lib/i18n/messages';
+import { ProductLogo } from '@/components/ui/ProductLogo';
 
 type LoginResponse = {
   ok?: boolean;
@@ -80,9 +80,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="flex items-center justify-between mb-4">
-            <Link href="/">
-              <span className="font-heading text-4xl text-brand-gold tracking-wider">Mesa</span>
-            </Link>
+            <ProductLogo href="/" />
             <LanguageSwitcher compact />
           </div>
           <p className="text-brand-text-muted text-sm mt-2">{t.subtitle}</p>

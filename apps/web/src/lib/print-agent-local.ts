@@ -22,7 +22,7 @@ export function printAgentLocalHealthUrl(): string {
   return `http://127.0.0.1:${PRINT_AGENT_CONFIGURE_PORT}${HEALTH_PATH}`;
 }
 
-/** True when Mesa Print Agent tray is listening on localhost (paired agent running). */
+/** True when MesaGo Print Agent tray is listening on localhost (paired agent running). */
 export async function probeLocalPrintAgent(timeoutMs = PROBE_TIMEOUT_MS): Promise<boolean> {
   if (typeof window === 'undefined') {
     return false;

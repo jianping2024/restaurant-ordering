@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, Suspense, useState } from 'react';
 import { PasswordInput } from '@mesa/ui';
+import { OPS_CONSOLE_NAME } from '@mesa/shared';
 
 function OpsLoginForm() {
   const router = useRouter();
@@ -48,7 +49,7 @@ function OpsLoginForm() {
       onSubmit={onSubmit}
       className="w-full max-w-sm rounded-lg border border-zinc-800 bg-zinc-900 p-6"
     >
-      <h1 className="text-xl font-semibold text-white">Mesa 运营登录</h1>
+      <h1 className="text-xl font-semibold text-white">{OPS_CONSOLE_NAME} 登录</h1>
       <p className="mt-1 text-sm text-zinc-500">平台内部账号，与店主后台分离</p>
       {error ? <p className="mt-4 text-sm text-red-400">{error}</p> : null}
       <label className="mt-6 block text-sm text-zinc-400">

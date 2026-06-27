@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages } from '@/lib/i18n/messages';
+import { ProductLogo } from '@/components/ui/ProductLogo';
 
 export default function RegisterClosedPage() {
   const { lang } = useLanguage();
@@ -13,9 +14,7 @@ export default function RegisterClosedPage() {
     <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="flex items-center justify-between mb-6">
-          <Link href="/">
-            <span className="font-heading text-4xl text-brand-gold tracking-wider">Mesa</span>
-          </Link>
+          <ProductLogo href="/" />
           <LanguageSwitcher compact />
         </div>
         <div className="bg-brand-card border border-brand-border rounded-2xl p-8 text-center">

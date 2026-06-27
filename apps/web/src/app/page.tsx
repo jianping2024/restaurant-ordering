@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { getMessages } from '@/lib/i18n/messages';
+import { ProductLogo } from '@/components/ui/ProductLogo';
+import { PRODUCT_NAME } from '@mesa/shared';
 
 // 产品落地页
 export default function LandingPage() {
@@ -16,7 +18,7 @@ export default function LandingPage() {
       {/* 导航栏 */}
       <nav className="border-b border-brand-border">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 min-h-16 py-2 flex items-center justify-between gap-2">
-          <span className="font-heading text-xl sm:text-2xl text-brand-gold tracking-wider">Mesa</span>
+          <ProductLogo size="sm" />
           <div className="flex items-center gap-2 sm:gap-4">
             <LanguageSwitcher compact />
             <Link
@@ -66,7 +68,7 @@ export default function LandingPage() {
       {/* 功能特性 */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-16">
         <h2 className="font-heading text-2xl sm:text-3xl text-center text-brand-text mb-8 sm:mb-12">
-          {dict.why} <span className="text-brand-gold">Mesa</span>?
+          {dict.why} <span className="text-brand-gold">{PRODUCT_NAME}</span>?
         </h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {features.map((f) => (
@@ -97,7 +99,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="border-t border-brand-border py-8 text-center text-brand-muted text-sm">
-        © 2024 Mesa · {dict.copyright}
+        © 2024 {PRODUCT_NAME} · {dict.copyright}
       </footer>
     </div>
   );

@@ -1,4 +1,14 @@
 export {
+  OPS_CONSOLE_NAME,
+  PRINT_AGENT_NAME,
+  PRINT_AGENT_TRAY_TITLE,
+  PRODUCT_NAME,
+  PRODUCT_SITE_DESCRIPTION_ZH,
+  PRODUCT_SITE_TITLE,
+  PRODUCT_TAGLINE_ZH,
+  printAgentLabel,
+} from './brand';
+export {
   createRestaurantWithOwner,
   validateCreateRestaurantInput,
   type CreateRestaurantInput,

@@ -1,4 +1,4 @@
-// Mesa print agent: LAN 9100 discover, pairing, poll print_jobs, route per print_station.
+// MesaGo print agent: LAN 9100 discover, pairing, poll print_jobs, route per print_station.
 package main
 
 import (
@@ -183,7 +183,7 @@ func main() {
 			path := defaultConfigPath()
 			cfg, err := loadConfig(path)
 			if err != nil || cfg.AgentJWT == "" {
-				log.Fatal("pair with Mesa first (run MesaPrintAgent configure or pair)")
+				log.Fatal("pair with " + productName + " first (run MesaPrintAgent configure or pair)")
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 			defer cancel()
@@ -193,7 +193,7 @@ func main() {
 			fmt.Println("Printer settings saved to", path)
 			return
 		case "help", "-h", "--help":
-			fmt.Printf("Mesa Print Agent %s\n\n", Version)
+			fmt.Printf("%s %s\n\n", printAgentName, Version)
 			fmt.Println(`Usage:
   MesaPrintAgent              Run agent (Windows: system tray; first run opens pairing UI)
   MesaPrintAgent -console     Run with visible console (debug; Windows)

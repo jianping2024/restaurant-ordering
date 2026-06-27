@@ -71,7 +71,7 @@ func runAgentTrayFirst(args []string) {
 	}
 	onConfigureWizardReady = rt.rememberConfigureWizardURL
 	defer func() { onConfigureWizardReady = nil }()
-	rt.status.set("Starting", "Mesa Print Agent")
+	rt.status.set("Starting", printAgentName)
 
 	go func() {
 		rt.status.set("Setting up", "Complete pairing or printer mapping in the browser if it opened")

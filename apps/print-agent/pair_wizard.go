@@ -36,7 +36,7 @@ func registerPairWebRoutes(mux *http.ServeMux, configPath string, cfg **config, 
 func normalizeAPIBase(raw string) (string, error) {
 	s := strings.TrimSpace(raw)
 	if s == "" {
-		return "", fmt.Errorf("Mesa 网址不能为空")
+		return "", fmt.Errorf("%s 网址不能为空", productName)
 	}
 	if idx := strings.Index(s, "/dashboard"); idx > 0 {
 		s = strings.TrimRight(s[:idx], "/")
@@ -96,7 +96,7 @@ func runPairingWizard(ctx context.Context, configPath, prefillAPI string) error 
 	}
 
 	agentLogLocale(localeFromConfigPath(configPath), "log_wizard_open", baseURL)
-	announceWizardURL("Mesa 配对", baseURL)
+	announceWizardURL("MesaGo 配对", baseURL)
 
 	return waitLocalWizard(ctx, srv, done)
 }

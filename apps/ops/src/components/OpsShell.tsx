@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { OPS_CONSOLE_NAME } from '@mesa/shared';
 
 const NAV = [
   { href: '/ops', label: '概览' },
@@ -35,7 +36,7 @@ export function OpsShell({
       <header className="border-b border-zinc-800 bg-zinc-900/80">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
           <div className="flex items-center gap-6">
-            <span className="text-sm font-semibold tracking-wide text-amber-400">Mesa Ops</span>
+            <span className="text-sm font-semibold tracking-wide text-amber-400">{OPS_CONSOLE_NAME}</span>
             <nav className="flex gap-3 text-sm">
               {NAV.map((item) => {
                 const active =

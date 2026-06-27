@@ -11,6 +11,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { getMessages } from '@/lib/i18n/messages';
+import { ProductLogo } from '@/components/ui/ProductLogo';
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
 import { navItemsForRole } from '@/lib/dashboard-feature-registry';
 import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
@@ -103,7 +104,7 @@ export function DashboardNav({
         >
           ☰
         </button>
-        <span className="font-heading text-2xl text-brand-gold">Mesa</span>
+        <ProductLogo size="md" />
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <LanguageSwitcher compact />
@@ -128,7 +129,7 @@ export function DashboardNav({
       {/* Logo */}
       <div className="px-6 py-5 lg:py-6 border-b border-brand-border">
         <div className="flex items-center justify-between gap-2">
-          <span className="font-heading text-2xl text-brand-gold">Mesa</span>
+          <ProductLogo size="md" />
           <div className="flex items-center gap-2">
             <button
               type="button"

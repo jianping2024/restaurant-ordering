@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mesa Print Agent — Pairing</title>
+  <title>MesaGo Print Agent — Pairing</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -62,15 +62,15 @@
 <body>
   <div class="card">
     <div id="formWrap" class="form-wrap">
-      <h1 id="pageTitle">Pair Mesa Print Agent</h1>
-      <p class="sub" id="pageSub">Generate a 6-digit code in Mesa → Settings → Print assistant, then connect here. No command line.</p>
+      <h1 id="pageTitle">Pair MesaGo Print Agent</h1>
+      <p class="sub" id="pageSub">Generate a 6-digit code in MesaGo → Settings → Print assistant, then connect here. No command line.</p>
       <ol class="steps">
-        <li id="step1">Sign in to Mesa → Settings → Print assistant → Generate code</li>
-        <li id="step2">Enter your Mesa URL below (check if pre-filled)</li>
+        <li id="step1">Sign in to MesaGo → Settings → Print assistant → Generate code</li>
+        <li id="step2">Enter your MesaGo URL below (check if pre-filled)</li>
         <li id="step3">Enter the 6-digit code and connect</li>
       </ol>
       <form id="pairForm">
-        <label for="api" id="apiLabel">Mesa URL</label>
+        <label for="api" id="apiLabel">MesaGo URL</label>
         <input id="api" name="api" type="url" required placeholder="https://your-app.vercel.app" autocomplete="url" />
         <label for="code" id="codeLabel">Pairing code (6 digits)</label>
         <input id="code" name="code" class="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" required placeholder="000000" autocomplete="one-time-code" />
@@ -80,7 +80,7 @@
     </div>
     <div id="ok" class="ok">
       <h2 id="okTitle">Paired</h2>
-      <p id="okBody">Settings saved. If the agent keeps running, the <strong>printer setup</strong> page opens next—map each station to a LAN or USB printer. Keep the Mesa Print Agent window open.</p>
+      <p id="okBody">Settings saved. If the agent keeps running, the <strong>printer setup</strong> page opens next—map each station to a LAN or USB printer. Keep the MesaGo Print Agent window open.</p>
       <p class="hidden" id="configureLinkWrap" style="margin-top:14px"><a href="/configure" id="openConfigure" style="color:#d4a853">…</a></p>
       <p id="okClose" style="margin-top:12px;font-size:12px">You can close this browser tab.</p>
     </div>

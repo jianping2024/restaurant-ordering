@@ -1,15 +1,14 @@
 import { notFound } from 'next/navigation';
 import { WaiterTableDetail } from '@/components/waiter/WaiterTableDetail';
 import { DEMO_ORDERS, DEMO_RESTAURANT, DEMO_TABLES } from '@/lib/demo-data';
+import { demoPageMetadata } from '@/lib/demo-page-metadata';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 
 interface Props {
   params: Promise<{ tableId: string }>;
 }
 
-export const metadata = {
-  title: 'Mesa Demo Waiter — Table',
-};
+export const metadata = demoPageMetadata('Demo Waiter — Table');
 
 export default async function DemoWaiterTablePage({ params }: Props) {
   const { tableId: tableIdParam } = await params;

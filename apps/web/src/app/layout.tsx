@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Jost } from "next/font/google";
+import { PRODUCT_SITE_DESCRIPTION_ZH, PRODUCT_SITE_TITLE } from '@mesa/shared';
 import "./globals.css";
 import { LanguageProvider } from '@/components/providers/LanguageProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
@@ -28,8 +29,8 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
-  title: "Mesa — 葡萄牙餐厅点餐系统",
-  description: "多租户餐厅 SaaS，支持扫码点餐、实时厨房显示、智能分单",
+  title: PRODUCT_SITE_TITLE,
+  description: PRODUCT_SITE_DESCRIPTION_ZH,
 };
 
 const themeInitScript = `

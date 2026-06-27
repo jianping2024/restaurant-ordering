@@ -1,10 +1,9 @@
 import Link from 'next/link';
 import { cookies } from 'next/headers';
+import { demoPageMetadata } from '@/lib/demo-page-metadata';
 import { DEFAULT_UI_LANG, isUILanguage, UI_LANG_COOKIE, type UILanguage } from '@/lib/i18n';
 
-export const metadata = {
-  title: 'Mesa Demo Hub',
-};
+export const metadata = demoPageMetadata('Demo Hub');
 
 const DEMO_HUB_TEXT = {
   zh: {

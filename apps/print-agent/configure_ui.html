@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mesa Print Agent — Printer mapping</title>
+  <title>MesaGo Print Agent — Printer mapping</title>
   <style>
     * { box-sizing: border-box; }
     body { font-family: system-ui, sans-serif; background: #0f1419; color: #e8e6e3; margin: 0; min-height: 100vh; padding: 24px; }
@@ -44,7 +44,7 @@
 </head>
 <body>
   <div class="wrap">
-    <h1 id="pageTitle">Mesa Print Agent — Settings</h1>
+    <h1 id="pageTitle">MesaGo Print Agent — Settings</h1>
     <p class="sub" id="pageSub">…</p>
 
     <div class="status" id="status">…</div>
@@ -321,7 +321,7 @@
         }
         var tpl = t('status_paired');
         el.innerHTML = tpl
-          .replace('%s', escapeHtml(state.api_base || 'Mesa'))
+          .replace('%s', escapeHtml(state.api_base || 'MesaGo'))
           .replace('%d', String(state.station_count || 0));
         document.getElementById('gateCard').classList.add('hidden');
         document.getElementById('mainCard').classList.remove('hidden');

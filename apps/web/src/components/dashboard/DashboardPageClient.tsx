@@ -4,6 +4,7 @@ import type { Order, OrderStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { FeedbackInsightsPanel } from '@/components/dashboard/FeedbackInsightsPanel';
+import { DashboardTopSellingPanel } from '@/components/dashboard/DashboardTopSellingPanel';
 import { aggregateBuffetForOrders, formatBuffetGuestCountsOptional } from '@/lib/buffet-order';
 import { orderListGuestLabelsFromLang } from '@/lib/order-list-display';
 import {
@@ -96,12 +97,6 @@ export function DashboardPageClient({
     },
   ];
 
-  const topItemHint = (rank: number): string | null => {
-    if (rank === 0) return i18n.hotBadge;
-    if (rank <= 2) return i18n.stockHint;
-    return null;
-  };
-
   const buffetGuestLabel = (order: Order): string | null => {
     const summary = aggregateBuffetForOrders([order]);
     if (!summary) return null;
@@ -184,43 +179,21 @@ export function DashboardPageClient({
       />
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-brand-card border border-brand-border rounded-2xl p-6">
-          <h2 className="font-heading text-xl text-brand-gold mb-4">{i18n.topSellingTitle}</h2>
-          {topItems.length === 0 ? (
-            <p className="text-brand-text-muted text-sm">{i18n.topSellingEmpty}</p>
-          ) : (
-            <div className="space-y-3">
-              {topItems.map((item, i) => {
-                const hint = topItemHint(i);
-                return (
-                  <div key={`${item.name}-${i}`} className="flex items-start gap-3 py-1">
-                    <span className="text-brand-text-muted text-sm w-5 shrink-0 pt-0.5">{i + 1}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-brand-text truncate">{item.name}</p>
-                      <p className="text-[13px] text-brand-text-muted mt-0.5">
-                        {item.count} {i18n.serving}
-                        {item.revenue > 0 ? (
-                          <span className="ml-2 text-brand-gold tabular-nums">
-                            €{item.revenue.toFixed(2)}
-                          </span>
-                        ) : null}
-                      </p>
-                    </div>
-                    {hint ? (
-                      <span
-                        className={`shrink-0 text-[11px] px-2 py-0.5 rounded-full border ${
-                          i === 0 ? 'mesa-badge-success' : 'mesa-badge-warning'
-                        }`}
-                      >
-                        {hint}
-                      </span>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <DashboardTopSellingPanel
+          items={topItems}
+          i18n={{
+            topSellingTitle: i18n.topSellingTitle,
+            topSellingEmpty: i18n.topSellingEmpty,
+            topSellingListedSummary: i18n.topSellingListedSummary,
+            hotBadge: i18n.hotBadge,
+            stockHint: i18n.stockHint,
+            serving: i18n.serving,
+            colDish: i18n.topSellingColDish,
+            colQty: i18n.topSellingColQty,
+            colRevenue: i18n.topSellingColRevenue,
+            shareOfList: i18n.topSellingShareOfList,
+          }}
+        />
 
         <div className="bg-brand-card border border-brand-border rounded-2xl p-6">
           <h2 className="font-heading text-xl text-brand-gold mb-4">{i18n.recent}</h2>

@@ -156,7 +156,7 @@ func (t *trayLocalHTTP) runConfigureSession(ctx context.Context, configPath, pre
 	if onConfigureWizardReady != nil {
 		onConfigureWizardReady(baseURL)
 	}
-	announceWizardURL("Mesa 打印机设置", baseURL)
+	announceWizardURL("MesaGo 打印机设置", baseURL)
 	<-ctx.Done()
 	return ctx.Err()
 }

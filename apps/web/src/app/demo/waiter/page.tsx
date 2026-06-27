@@ -1,9 +1,8 @@
 import { WaiterDisplay } from '@/components/waiter/WaiterDisplay';
 import { DEMO_ORDERS, DEMO_RESTAURANT, DEMO_TABLES } from '@/lib/demo-data';
+import { demoPageMetadata } from '@/lib/demo-page-metadata';
 
-export const metadata = {
-  title: 'Mesa Demo Waiter',
-};
+export const metadata = demoPageMetadata('Demo Waiter');
 
 export default function DemoWaiterPage() {
   return (

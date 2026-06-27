@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
+import { OPS_CONSOLE_NAME, PRODUCT_NAME } from '@mesa/shared';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Mesa Ops',
-  description: 'Mesa platform operations console',
+  title: OPS_CONSOLE_NAME,
+  description: `${PRODUCT_NAME} platform operations console`,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

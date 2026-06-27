@@ -150,7 +150,7 @@ func winspoolPrint(printerName string, data []byte) error {
 }
 
 func winspoolPrintRawDoc(h windows.Handle, printerName, datatype string, data []byte) error {
-	docName, _ := windows.UTF16PtrFromString("Mesa Print Agent")
+	docName, _ := windows.UTF16PtrFromString(printAgentName)
 	dtypePtr, err := windows.UTF16PtrFromString(datatype)
 	if err != nil {
 		return err

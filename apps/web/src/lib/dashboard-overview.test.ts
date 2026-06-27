@@ -4,8 +4,10 @@ import type { Order } from '@/types';
 import {
   buildFeedbackInsights,
   buildTodayTopSellingItems,
+  buildTopSellingRows,
   computeTodayKpis,
   pendingActionsTotal,
+  topSellingActionHint,
 } from '@/lib/dashboard-overview';
 
 function order(partial: Partial<Order> & Pick<Order, 'id'>): Order {
@@ -133,5 +135,35 @@ describe('pendingActionsTotal', () => {
       }),
       6,
     );
+  });
+});
+
+describe('topSellingActionHint', () => {
+  it('marks rank 1 as hot', () => {
+    assert.equal(topSellingActionHint(1, 0.6), 'hot');
+  });
+
+  it('marks rank 2–3 with meaningful share as stock', () => {
+    assert.equal(topSellingActionHint(2, 0.4), 'stock');
+    assert.equal(topSellingActionHint(3, 0.25), 'stock');
+  });
+
+  it('skips stock hint when share is too small', () => {
+    assert.equal(topSellingActionHint(2, 0.1), null);
+    assert.equal(topSellingActionHint(4, 0.5), null);
+  });
+});
+
+describe('buildTopSellingRows', () => {
+  it('computes volume share and attaches hints', () => {
+    const rows = buildTopSellingRows([
+      { name: 'Cola', count: 3, revenue: 3 },
+      { name: 'Juice', count: 2, revenue: 4 },
+    ]);
+    assert.equal(rows.length, 2);
+    assert.equal(rows[0]?.actionHint, 'hot');
+    assert.equal(rows[0]?.volumeShare, 0.6);
+    assert.equal(rows[1]?.actionHint, 'stock');
+    assert.equal(rows[1]?.volumeShare, 0.4);
   });
 });

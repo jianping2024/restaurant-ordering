@@ -9,7 +9,7 @@ import {
 } from '@/lib/print-agent-claim-rate-limit';
 import { isUuid } from '@/lib/print-agent-auth';
 import { clientIpFromRequest } from '@/lib/request-client-ip';
-import { resolvePrintAgentCredentialTtlSec } from '@mesa/shared';
+import { resolvePrintAgentCredentialTtlSec, PRINT_AGENT_NAME } from '@mesa/shared';
 
 export const runtime = 'nodejs';
 
@@ -141,7 +141,7 @@ export async function POST(req: Request) {
       order_id: PRINT_AGENT_CONNECTION_TEST_ORDER_ID,
       locale,
       connection_test: true,
-      lines: [{ display_name: 'Mesa print agent — connection test', qty: 1 }],
+      lines: [{ display_name: `${PRINT_AGENT_NAME} — connection test`, qty: 1 }],
     },
   });
 

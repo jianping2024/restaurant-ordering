@@ -2,7 +2,8 @@
 # Vercel Ignored Build Step for @mesa/web (mesa-web project).
 # ignoreCommand runs with cwd = apps/web when Root Directory is apps/web.
 # Exit 0 → skip; exit 1 → build.
-# Skips when only apps/ops/, apps/print-agent/, or docs-only paths changed.
+# Skips when only apps/ops/, apps/print-agent/ (except VERSION), or docs-only paths changed.
+# VERSION bumps rebuild web so print-assistant shows the recommended download version.
 
 set -euo pipefail
 
@@ -23,6 +24,10 @@ fi
 while IFS= read -r f; do
   [[ -z "$f" ]] && continue
   case "$f" in
+    apps/print-agent/VERSION)
+      echo "vercel-ignore-web: print-agent VERSION changed → building"
+      exit 1
+      ;;
     apps/ops/*|apps/print-agent/*) ;;
     docs/*) ;;
     *)

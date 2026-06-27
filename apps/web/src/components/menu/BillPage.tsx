@@ -22,6 +22,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { showToast } from '@/components/ui/Toast';
 import { ReceiptPrinterSelect } from '@/components/dashboard/ReceiptPrinterSelect';
+import { useReceiptPrinterPreference } from '@/lib/use-receipt-printer-preference';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -103,7 +104,10 @@ export function BillPage({
   const [editingSplitNameValue, setEditingSplitNameValue] = useState('');
   const [editingCustomAmountIndex, setEditingCustomAmountIndex] = useState<number | null>(null);
   const [editingCustomAmountValue, setEditingCustomAmountValue] = useState('');
-  const [selectedReceiptPrinterId, setSelectedReceiptPrinterId] = useState('');
+  const {
+    printerId: selectedReceiptPrinterId,
+    setPrinterId: setSelectedReceiptPrinterId,
+  } = useReceiptPrinterPreference(isWaiterFlow ? restaurant.slug : undefined);
 
   const syncNameAcrossModes = (index: number, name: string) => {
     setSplitPeople((prev) => prev.map((person, idx) => (idx === index ? { ...person, name } : person)));
@@ -316,6 +320,9 @@ export function BillPage({
         slug: restaurant.slug,
         billSplitId: persistedSplitId,
         personIndex: rowIndex,
+        ...(selectedReceiptPrinterId
+          ? { receiptPrinterId: selectedReceiptPrinterId }
+          : {}),
       });
       if (!outcome.ok) {
         showToast(t.actionFailed, 'error');

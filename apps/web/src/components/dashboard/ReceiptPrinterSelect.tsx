@@ -39,6 +39,13 @@ export function ReceiptPrinterSelect({
     };
   }, [restaurantSlug, lang]);
 
+  useEffect(() => {
+    if (loading || !value || printers.length === 0) return;
+    if (!printers.some((printer) => printer.id === value)) {
+      onChange('');
+    }
+  }, [loading, onChange, printers, value]);
+
   const selectedLabel = value ? printers.find((p) => p.id === value) : undefined;
   const selectedLabelText = selectedLabel?.label;
   const currentStatus = !loading

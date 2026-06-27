@@ -20,10 +20,9 @@ import { ReceiptPrinterSelect } from '@/components/dashboard/ReceiptPrinterSelec
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
 import {
   loadCheckoutSoundEnabled,
-  loadSavedReceiptPrinterId,
   saveCheckoutSoundEnabled,
-  saveReceiptPrinterId,
 } from '@/lib/receipt-printer-preference';
+import { useReceiptPrinterPreference } from '@/lib/use-receipt-printer-preference';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import {
   checkoutPersonKey,
@@ -87,8 +86,12 @@ export function CheckoutRequestsManager({
   const supabase = useMemo(() => createClient(), []);
   const [selectedLines, setSelectedLines] = useState<CheckoutDisplayLine[]>([]);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
-  const [selectedReceiptPrinterId, setSelectedReceiptPrinterId] = useState('');
-  const [printSettingsOpen, setPrintSettingsOpen] = useState(false);
+  const {
+    printerId: selectedReceiptPrinterId,
+    setPrinterId: setSelectedReceiptPrinterId,
+    settingsOpen: printSettingsOpen,
+    setSettingsOpen: setPrintSettingsOpen,
+  } = useReceiptPrinterPreference(restaurantSlug, { enabled: showPrinterSettings });
   const [soundEnabled, setSoundEnabled] = useState(true);
   const prevRequestCountRef = useRef<number | null>(null);
   const refreshSeqRef = useRef(0);
@@ -99,18 +102,6 @@ export function CheckoutRequestsManager({
   }, []);
 
   useEffect(() => {
-    if (!restaurantSlug || !showPrinterSettings) return;
-    const saved = loadSavedReceiptPrinterId(restaurantSlug);
-    setSelectedReceiptPrinterId(saved);
-    setPrintSettingsOpen(!saved);
-  }, [restaurantSlug, showPrinterSettings]);
-
-  useEffect(() => {
-    if (!restaurantSlug || !showPrinterSettings) return;
-    saveReceiptPrinterId(restaurantSlug, selectedReceiptPrinterId);
-  }, [restaurantSlug, selectedReceiptPrinterId, showPrinterSettings]);
-
-  useEffect(() => {
     if (!initialTableId || deepLinkConsumedRef.current) return;
     const match = requests.find((r) => tableIdsEqual(r.table_id, initialTableId));
     if (match) {
@@ -118,11 +109,6 @@ export function CheckoutRequestsManager({
       deepLinkConsumedRef.current = true;
     }
   }, [initialTableId, requests]);
-
-  const handleReceiptPrinterChange = (printerId: string) => {
-    setSelectedReceiptPrinterId(printerId);
-    setPrintSettingsOpen(!printerId);
-  };
 
   useEffect(() => {
     const prev = prevRequestCountRef.current;
@@ -542,7 +528,7 @@ export function CheckoutRequestsManager({
                 <ReceiptPrinterSelect
                   restaurantSlug={restaurantSlug}
                   value={selectedReceiptPrinterId}
-                  onChange={handleReceiptPrinterChange}
+                  onChange={setSelectedReceiptPrinterId}
                   className="pt-3"
                 />
               </div>

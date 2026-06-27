@@ -7,7 +7,11 @@ import type { Order, OrderItemStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
-import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
+import { patchStaffOrderItemsClient } from '@/lib/order-item-void/patch-staff-order-items-client';
+import {
+  voidItemReasonDialogCopy,
+  voidItemReasonErrorMessage,
+} from '@/lib/order-item-void/void-item-reason-ui';
 import { deriveOrderStatusFromItems, itemsEveryVoided, normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { StaffAuthenticatedShell, type StaffShellContext } from '@/components/staff/StaffAuthenticatedShell';
@@ -81,7 +85,7 @@ function KitchenDisplayInner({
   const { lang } = useLanguage();
   const t = getMessages(lang).kitchen;
   const orderHistoryI18n = getMessages(lang).orderHistory;
-  const voidItemReasonOptionsList = useMemo(() => abnormalReasonOptions(lang, 'void_item'), [lang]);
+  const voidItemReasonCopy = useMemo(() => voidItemReasonDialogCopy(lang), [lang]);
   const demoText = KITCHEN_DEMO_TEXT[lang];
   const locale = UI_LOCALE_BY_LANG[lang];
   const [orders, setOrders] = useState<Order[]>(initialOrders);
@@ -245,37 +249,25 @@ function KitchenDisplayInner({
         };
       });
 
-      const res = await fetch(
-        `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/kitchen/orders/${order.id}`,
-        {
-          method: 'PATCH',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            items: nextItems,
-            updated_at: order.updated_at,
-            void_reason: reason,
-            void_reason_detail: detail || undefined,
-          }),
-        },
-      );
+      const result = await patchStaffOrderItemsClient('kitchen', restaurant.slug, order.id, {
+        items: nextItems,
+        updated_at: order.updated_at,
+        void_reason: reason,
+        void_reason_detail: detail || undefined,
+      });
 
-      if (res.ok) {
+      if (result.ok) {
         setPendingVoid(null);
         await refreshKitchenBoard();
         return;
       }
 
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
-      if (res.status === 400 && data.error === 'reason_detail_required') {
-        setVoidReasonError(orderHistoryI18n.voidItemReasonDetailRequired);
+      const reasonMessage = voidItemReasonErrorMessage(lang, result.error);
+      if (reasonMessage) {
+        setVoidReasonError(reasonMessage);
         return;
       }
-      if (res.status === 400 && (data.error === 'reason_required' || data.error === 'invalid_reason')) {
-        setVoidReasonError(orderHistoryI18n.voidItemReasonRequired);
-        return;
-      }
-      if (res.status === 409) {
+      if (result.status === 409) {
         setUpdateConflict(true);
         await refreshKitchenBoard();
         return;
@@ -375,16 +367,16 @@ function KitchenDisplayInner({
           setPendingVoid(null);
           setVoidReasonError(null);
         }}
-        title={orderHistoryI18n.voidItemReasonTitle}
-        message={orderHistoryI18n.voidItemReasonMessage}
-        reasonLabel={orderHistoryI18n.voidItemReasonLabel}
-        detailLabel={orderHistoryI18n.voidItemReasonDetailLabel}
-        detailPlaceholder={orderHistoryI18n.voidItemReasonDetailPlaceholder}
+        title={voidItemReasonCopy.title}
+        message={voidItemReasonCopy.message}
+        reasonLabel={voidItemReasonCopy.reasonLabel}
+        detailLabel={voidItemReasonCopy.detailLabel}
+        detailPlaceholder={voidItemReasonCopy.detailPlaceholder}
         confirmLabel={t.voidItem}
         cancelLabel={orderHistoryI18n.closeTableCancel}
-        reasonRequiredError={orderHistoryI18n.voidItemReasonRequired}
-        detailRequiredError={orderHistoryI18n.voidItemReasonDetailRequired}
-        reasons={voidItemReasonOptionsList}
+        reasonRequiredError={voidItemReasonCopy.reasonRequiredError}
+        detailRequiredError={voidItemReasonCopy.detailRequiredError}
+        reasons={voidItemReasonCopy.reasons}
         reasonGroup="void_item"
         confirming={voidingItem}
         externalError={voidReasonError}

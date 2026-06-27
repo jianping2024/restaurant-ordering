@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { applyOrderItemDecrement, canDecrementOrderItem } from '@/lib/order-item-void/decrement-order-item';
-import { VOID_ITEM_QTY_ADJUSTMENT_REASON } from '@/lib/audit/reasons';
 import type { OrderItem } from '@/types';
 
 const baseItem = (overrides: Partial<OrderItem> = {}): OrderItem => ({
@@ -46,8 +45,8 @@ describe('applyOrderItemDecrement', () => {
     if (!result.ok) return;
     assert.equal(result.outcome, 'voided');
     assert.equal(result.nextItems[0]?.item_status, 'voided');
-    assert.equal(result.nextItems[0]?.void_reason, VOID_ITEM_QTY_ADJUSTMENT_REASON);
     assert.ok(result.nextItems[0]?.voided_at);
+    assert.equal(result.nextItems[0]?.void_reason, undefined);
   });
 
   it('rejects invalid indexes and buffet lines', () => {

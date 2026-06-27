@@ -140,11 +140,34 @@ describe('decrementOrderItemWithAudit', () => {
         status: 'pending',
       },
       itemIndex: 0,
+      voidReason: 'customer_cancelled',
     });
 
     assert.equal(result.ok, true);
     assert.equal(result.ok && result.outcome, 'voided');
     assert.deepEqual(admin.auditEvents, [AUDIT_EVENT.ITEM_DELETED]);
     assert.equal(admin.abnormalInserts, 1);
+  });
+
+  it('requires void reason when removing the last unit', async () => {
+    const admin = mockAdmin();
+
+    const result = await decrementOrderItemWithAudit({
+      admin,
+      restaurantId: 'rest-1',
+      actor,
+      orderId: 'order-1',
+      existing: {
+        items: [baseItem({ qty: 1 })],
+        updated_at: '2026-01-01T00:00:00.000Z',
+        status: 'pending',
+      },
+      itemIndex: 0,
+    });
+
+    assert.equal(result.ok, false);
+    if (result.ok) return;
+    assert.equal(result.code, 'reason_required');
+    assert.equal(admin.auditEvents.length, 0);
   });
 });

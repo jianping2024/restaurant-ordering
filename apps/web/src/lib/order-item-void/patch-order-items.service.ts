@@ -4,6 +4,7 @@ import type { ItemDeletedAuditContext } from '@/lib/audit/builders/item-deleted'
 import { itemLineAmount } from '@/lib/audit/builders/item-deleted';
 import type { AuditActor } from '@/lib/audit/types';
 import { detectNewlyVoidedItems } from '@/lib/order-item-void/detect-newly-voided';
+import { applyVoidReasonToItems } from '@/lib/order-item-void/apply-void-reason-to-items';
 import { persistOrderItemsUpdate } from '@/lib/order-item-void/persist-order-items-update';
 import { validateVoidItemReason } from '@/lib/order-item-void/validate-void-reason';
 import type { Order, OrderItem } from '@/types';
@@ -37,17 +38,6 @@ export type PatchOrderItemsResult =
         | 'reason_detail_required'
         | 'update_failed';
     };
-
-function applyVoidReasonToItems(
-  items: OrderItem[],
-  newlyVoidedIndexes: number[],
-  reason: string,
-): OrderItem[] {
-  if (newlyVoidedIndexes.length === 0) return items;
-  return items.map((item, index) =>
-    newlyVoidedIndexes.includes(index) ? { ...item, void_reason: reason } : item,
-  );
-}
 
 function toAuditContext(
   order: Pick<Order, 'id' | 'session_id' | 'table_id' | 'display_name'>,

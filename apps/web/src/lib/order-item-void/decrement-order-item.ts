@@ -1,7 +1,6 @@
 import { coerceCartQty } from '@/lib/cart-totals';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
-import { VOID_ITEM_QTY_ADJUSTMENT_REASON } from '@/lib/audit/reasons';
 import type { Order, OrderItem, OrderItemStatus } from '@/types';
 
 export type DecrementOrderItemCode =
@@ -78,7 +77,6 @@ export function applyOrderItemDecrement(
     qty: 1,
     item_status: 'voided',
     voided_at: voidedAt,
-    void_reason: VOID_ITEM_QTY_ADJUSTMENT_REASON,
   };
   const nextItems = items.map((item, index) => (index === itemIndex ? after : item));
 

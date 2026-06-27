@@ -23,7 +23,12 @@ export async function POST(
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
-  let body: { item_index?: unknown; updated_at?: unknown };
+  let body: {
+    item_index?: unknown;
+    updated_at?: unknown;
+    void_reason?: unknown;
+    void_reason_detail?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
@@ -34,6 +39,10 @@ export async function POST(
   if (!Number.isInteger(itemIndex) || itemIndex < 0 || typeof body.updated_at !== 'string') {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
   }
+
+  const voidReason = typeof body.void_reason === 'string' ? body.void_reason : null;
+  const voidReasonDetail =
+    typeof body.void_reason_detail === 'string' ? body.void_reason_detail : null;
 
   let admin;
   try {
@@ -81,9 +90,18 @@ export async function POST(
       status: existing.status as Order['status'],
     },
     itemIndex,
+    voidReason,
+    voidReasonDetail,
   });
 
   if (!result.ok) {
+    if (
+      result.code === 'reason_required' ||
+      result.code === 'invalid_reason' ||
+      result.code === 'reason_detail_required'
+    ) {
+      return NextResponse.json({ error: result.code }, { status: 400 });
+    }
     if (result.code === 'conflict') {
       return NextResponse.json({ error: 'conflict' }, { status: 409 });
     }

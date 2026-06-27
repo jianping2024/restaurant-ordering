@@ -37,7 +37,7 @@ export type DiscountReason = (typeof DISCOUNT_REASONS)[number];
 export type VoidItemReason = (typeof VOID_ITEM_REASONS)[number];
 export type UnpaidCloseReason = (typeof UNPAID_CLOSE_REASONS)[number];
 
-/** Waiter table detail minus-one; written server-side without a reason dialog. */
+/** Audit reason for waiter qty−1 while line still has units left (not a full void). */
 export const VOID_ITEM_QTY_ADJUSTMENT_REASON: VoidItemReason = 'qty_adjustment';
 
 const REASON_SETS: Record<AbnormalReasonGroup, readonly string[]> = {

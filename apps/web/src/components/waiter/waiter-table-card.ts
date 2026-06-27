@@ -2,7 +2,7 @@ import type { Order } from '@/types';
 import { sumLineTotals } from '@/lib/cart-totals';
 import { aggregateBuffetForOrders } from '@/lib/buffet-order';
 import { guestCountFromTableOrders } from '@/lib/table-guest-count';
-import { formatOrderItemListLabel } from '@/lib/order-list-display';
+import { formatOrderItemListLabel, formatOrderItemNameLabel, formatOrderItemQuantityLabel } from '@/lib/order-list-display';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
@@ -11,6 +11,8 @@ export type WaiterOrderLine = {
   orderId: string;
   itemIdx: number;
   label: string;
+  /** Menu lines: `× N` shown beside the decrement control. */
+  quantityLabel: string | null;
   itemCode: string | null;
   canDecrement: boolean;
 };
@@ -65,6 +67,7 @@ export function buildWaiterTableCard(
         },
         { headcountStyle: 'compact' },
       ),
+      quantityLabel: null,
       itemCode: null,
       canDecrement: false,
     });
@@ -86,6 +89,7 @@ export function buildWaiterTableCard(
           orderId: order.id,
           itemIdx,
           label: formatOrderItemListLabel(item, { headcountStyle: 'compact' }),
+          quantityLabel: null,
           itemCode: null,
           canDecrement: false,
         });
@@ -95,7 +99,8 @@ export function buildWaiterTableCard(
       menuLines.push({
         orderId: order.id,
         itemIdx,
-        label: formatOrderItemListLabel(item),
+        label: formatOrderItemNameLabel(item),
+        quantityLabel: formatOrderItemQuantityLabel(item),
         itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
         canDecrement: status === 'pending' || status === 'cooking',
       });

@@ -58,6 +58,14 @@ export function formatOrderItemQuantityLabel(
   return guestLabel ? `· ${guestLabel}` : '';
 }
 
+/** Name column only (`🥤 Cola`) — quantity shown separately when needed. */
+export function formatOrderItemNameLabel(
+  item: Pick<OrderItem, 'emoji' | 'name' | 'name_pt'>,
+): string {
+  const name = item.name || item.name_pt;
+  return `${item.emoji} ${name}`;
+}
+
 /** Single order line label shared by waiter, guest menu, and dashboard lists. */
 export function formatOrderItemListLabel(
   item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count' | 'emoji' | 'name' | 'name_pt'>,

@@ -20,13 +20,19 @@ import {
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
-import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import { UI_LOCALE_BY_LANG, getMessages } from '@/lib/i18n/messages';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { showToast } from '@/components/ui/Toast';
+import { coerceCartQty } from '@/lib/cart-totals';
 import { applyOrderItemDecrement } from '@/lib/order-item-void/decrement-order-item';
 import { computeOrderTotalsFromItems } from '@/lib/order-item-void/persist-order-items-update';
+import {
+  voidItemReasonDialogCopy,
+  voidItemReasonErrorMessage,
+} from '@/lib/order-item-void/void-item-reason-ui';
 import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticatedShell';
 import { useWaiterTableDetail } from '@/components/waiter/useWaiterTableDetail';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
@@ -83,6 +89,8 @@ function WaiterTableDetailInner({
   const { lang } = useLanguage();
   const locale = UI_LOCALE_BY_LANG[lang];
   const t = WAITER_TEXT[lang];
+  const orderHistoryI18n = getMessages(lang).orderHistory;
+  const voidItemReasonCopy = useMemo(() => voidItemReasonDialogCopy(lang), [lang]);
   const initialDetail = initialTableDetail?.table ? initialTableDetail : null;
   const {
     table: selectedTable,
@@ -115,6 +123,13 @@ function WaiterTableDetailInner({
   const [closingDemoTable, setClosingDemoTable] = useState<string | null>(null);
   const [demoCloseConfirmTableId, setDemoCloseConfirmTableId] = useState<string | null>(null);
   const [decrementingKey, setDecrementingKey] = useState<string | null>(null);
+  const [pendingVoidDecrement, setPendingVoidDecrement] = useState<{
+    orderId: string;
+    itemIdx: number;
+    order: Order;
+  } | null>(null);
+  const [voidReasonError, setVoidReasonError] = useState<string | null>(null);
+  const [voidingDecrement, setVoidingDecrement] = useState(false);
   const [callingBill, setCallingBill] = useState(false);
   const activeBuffets = useMemo(() => initialBuffets.filter((b) => b.is_active), [initialBuffets]);
   const [buffetId, setBuffetId] = useState<string>(() => activeBuffets[0]?.id || '');
@@ -669,14 +684,13 @@ function WaiterTableDetailInner({
 
   const orderLineKey = (orderId: string, itemIdx: number) => `${orderId}:${itemIdx}`;
 
-  const handleDecrementOrderLine = async (orderId: string, itemIdx: number) => {
-    if (isCheckoutPending) {
-      notifyCheckoutLocked();
-      return;
-    }
-    const order = orders.find((row) => row.id === orderId);
-    if (!order) return;
-
+  const executeDecrementOrderLine = async (
+    orderId: string,
+    itemIdx: number,
+    order: Order,
+    voidReason?: string,
+    voidReasonDetail?: string,
+  ) => {
     const key = orderLineKey(orderId, itemIdx);
     setDecrementingKey(key);
     try {
@@ -684,6 +698,7 @@ function WaiterTableDetailInner({
         const { outcome } = await postWaiterDecrementOrderItemClient(restaurant.slug, orderId, {
           item_index: itemIdx,
           updated_at: order.updated_at,
+          ...(voidReason ? { void_reason: voidReason, void_reason_detail: voidReasonDetail } : {}),
         });
         await refresh();
         if (outcome === 'voided') {
@@ -733,9 +748,53 @@ function WaiterTableDetailInner({
         await refresh();
         return;
       }
+      const reasonMessage = voidItemReasonErrorMessage(lang, apiErr.code);
+      if (reasonMessage) {
+        throw err;
+      }
       showToast(t.actionFailed, 'error');
     } finally {
       setDecrementingKey(null);
+    }
+  };
+
+  const handleDecrementOrderLine = (orderId: string, itemIdx: number) => {
+    if (isCheckoutPending) {
+      notifyCheckoutLocked();
+      return;
+    }
+    const order = orders.find((row) => row.id === orderId);
+    if (!order) return;
+    const item = order.items[itemIdx];
+    if (!item) return;
+
+    if (coerceCartQty(item.qty) <= 1 && !isDemo) {
+      setVoidReasonError(null);
+      setPendingVoidDecrement({ orderId, itemIdx, order });
+      return;
+    }
+
+    void executeDecrementOrderLine(orderId, itemIdx, order);
+  };
+
+  const performVoidDecrement = async (reason: string, detail: string) => {
+    if (!pendingVoidDecrement) return;
+    const { orderId, itemIdx, order } = pendingVoidDecrement;
+    setVoidingDecrement(true);
+    setVoidReasonError(null);
+    try {
+      await executeDecrementOrderLine(orderId, itemIdx, order, reason, detail || undefined);
+      setPendingVoidDecrement(null);
+    } catch (err) {
+      const apiErr = err as Error & { code?: string };
+      const message = voidItemReasonErrorMessage(lang, apiErr.code);
+      if (message) {
+        setVoidReasonError(message);
+        return;
+      }
+      showToast(t.actionFailed, 'error');
+    } finally {
+      setVoidingDecrement(false);
     }
   };
 
@@ -985,12 +1044,19 @@ function WaiterTableDetailInner({
                       )}
                       {line.label}
                     </p>
-                    {line.canDecrement && (
-                      <WaiterOrderQtyMinus
-                        onDecrement={() => void handleDecrementOrderLine(line.orderId, line.itemIdx)}
-                        disabled={isCheckoutPending}
-                        busy={decrementingKey === orderLineKey(line.orderId, line.itemIdx)}
-                      />
+                    {(line.quantityLabel || line.canDecrement) && (
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {line.quantityLabel && (
+                          <span className="text-sm text-brand-text tabular-nums">{line.quantityLabel}</span>
+                        )}
+                        {line.canDecrement && (
+                          <WaiterOrderQtyMinus
+                            onDecrement={() => void handleDecrementOrderLine(line.orderId, line.itemIdx)}
+                            disabled={isCheckoutPending}
+                            busy={decrementingKey === orderLineKey(line.orderId, line.itemIdx)}
+                          />
+                        )}
+                      </div>
                     )}
                   </div>
                 ))}
@@ -1075,6 +1141,27 @@ function WaiterTableDetailInner({
           }}
         />
       ) : null}
+      <ReasonConfirmDialog
+        open={pendingVoidDecrement != null}
+        onClose={() => {
+          setPendingVoidDecrement(null);
+          setVoidReasonError(null);
+        }}
+        title={voidItemReasonCopy.title}
+        message={voidItemReasonCopy.message}
+        reasonLabel={voidItemReasonCopy.reasonLabel}
+        detailLabel={voidItemReasonCopy.detailLabel}
+        detailPlaceholder={voidItemReasonCopy.detailPlaceholder}
+        confirmLabel={t.voidItem}
+        cancelLabel={orderHistoryI18n.closeTableCancel}
+        reasonRequiredError={voidItemReasonCopy.reasonRequiredError}
+        detailRequiredError={voidItemReasonCopy.detailRequiredError}
+        reasons={voidItemReasonCopy.reasons}
+        reasonGroup="void_item"
+        confirming={voidingDecrement}
+        externalError={voidReasonError}
+        onConfirm={performVoidDecrement}
+      />
     </div>
   );
 }

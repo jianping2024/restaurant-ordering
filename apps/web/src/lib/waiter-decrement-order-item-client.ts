@@ -7,10 +7,17 @@ type DecrementOrderItemResponse = {
   error?: string;
 };
 
+export type DecrementOrderItemClientBody = {
+  item_index: number;
+  updated_at: string;
+  void_reason?: string;
+  void_reason_detail?: string;
+};
+
 export async function postWaiterDecrementOrderItemClient(
   slug: string,
   orderId: string,
-  body: { item_index: number; updated_at: string },
+  body: DecrementOrderItemClientBody,
 ): Promise<{ outcome: 'decremented' | 'voided' }> {
   const res = await fetch(
     `/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/orders/${encodeURIComponent(orderId)}/decrement-item`,

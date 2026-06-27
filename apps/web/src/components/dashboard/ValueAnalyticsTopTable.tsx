@@ -12,6 +12,7 @@ type Props<T extends { rank: number }> = {
   rows: T[];
   columns: Column<T>[];
   footer?: ReactNode;
+  dense?: boolean;
 };
 
 export function ValueAnalyticsTopTable<T extends { rank: number }>({
@@ -19,20 +20,24 @@ export function ValueAnalyticsTopTable<T extends { rank: number }>({
   rows,
   columns,
   footer,
+  dense = false,
 }: Props<T>) {
+  const cellPad = dense ? 'py-1.5' : 'py-2.5';
+  const headPad = dense ? 'py-1.5' : 'py-2';
+  const tableText = dense ? 'text-[13px]' : 'text-sm';
   return (
     <section className="bg-brand-card border border-brand-border rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
       <div className="px-5 sm:px-6 py-4 border-b border-brand-border">
         <h2 className="font-heading text-lg text-brand-gold">{title}</h2>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className={`w-full ${tableText}`}>
           <thead>
             <tr className="text-brand-text-muted border-b border-brand-border">
               {columns.map((col) => (
                 <th
                   key={String(col.key)}
-                  className={`px-4 py-2 font-medium ${col.align === 'right' ? 'text-right' : 'text-left'}`}
+                  className={`px-4 ${headPad} font-medium ${col.align === 'right' ? 'text-right' : 'text-left'}`}
                 >
                   {col.header}
                 </th>
@@ -55,7 +60,7 @@ export function ValueAnalyticsTopTable<T extends { rank: number }>({
                   {columns.map((col) => (
                     <td
                       key={String(col.key)}
-                      className={`px-4 py-2.5 text-brand-text ${col.align === 'right' ? 'text-right' : 'text-left'}`}
+                      className={`px-4 ${cellPad} text-brand-text ${col.align === 'right' ? 'text-right' : 'text-left'}`}
                     >
                       {col.render ? col.render(row) : String(row[col.key] ?? '')}
                     </td>

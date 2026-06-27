@@ -185,13 +185,10 @@ export function DashboardPageClient({
             topSellingTitle: i18n.topSellingTitle,
             topSellingEmpty: i18n.topSellingEmpty,
             topSellingListedSummary: i18n.topSellingListedSummary,
-            hotBadge: i18n.hotBadge,
-            stockHint: i18n.stockHint,
-            serving: i18n.serving,
+            colRank: i18n.topSellingColRank,
             colDish: i18n.topSellingColDish,
             colQty: i18n.topSellingColQty,
-            colRevenue: i18n.topSellingColRevenue,
-            shareOfList: i18n.topSellingShareOfList,
+            colShare: i18n.topSellingColShare,
           }}
         />
 

@@ -14,28 +14,18 @@ export type DashboardTopItem = {
   revenue: number;
 };
 
-export type TopSellingActionHint = 'hot' | 'stock';
-
 export type DashboardTopSellingRow = DashboardTopItem & {
   rank: number;
   /** Share of total units across the displayed top list (0–1). */
   volumeShare: number;
   /** Share of total revenue across the displayed top list (0–1). */
   revenueShare: number;
-  actionHint: TopSellingActionHint | null;
 };
 
 export type DashboardTopSellingSummary = {
   totalUnits: number;
   totalRevenue: number;
 };
-
-/** Prep hint for ranks 2–3 only when the dish still moves meaningful volume today. */
-export function topSellingActionHint(rank: number, volumeShare: number): TopSellingActionHint | null {
-  if (rank === 1) return 'hot';
-  if (rank <= 3 && volumeShare >= 0.2) return 'stock';
-  return null;
-}
 
 export function summarizeTopSellingItems(items: DashboardTopItem[]): DashboardTopSellingSummary {
   return {
@@ -55,7 +45,6 @@ export function buildTopSellingRows(items: DashboardTopItem[]): DashboardTopSell
       rank,
       volumeShare,
       revenueShare,
-      actionHint: topSellingActionHint(rank, volumeShare),
     };
   });
 }

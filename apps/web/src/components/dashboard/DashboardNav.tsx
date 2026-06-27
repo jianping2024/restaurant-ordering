@@ -14,6 +14,7 @@ import { ProductLogo } from '@/components/ui/ProductLogo';
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
 import { navItemsForRole } from '@/lib/dashboard-feature-registry';
 import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
+import { dashboardNavLinkClassName } from '@/components/dashboard/dashboard-nav-link';
 
 const ownerNavItems = navItemsForRole('owner');
 const frontdeskNavItems = navItemsForRole('frontdesk');
@@ -37,7 +38,7 @@ export function DashboardNav({
       : accessMode === 'frontdesk'
         ? frontdeskNavItems
         : ownerNavItems;
-  const showOperationalShortcuts = accessMode === 'frontdesk';
+  const showKitchenShortcut = accessMode === 'frontdesk' && kitchenShortcutEnabled;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [checkoutRequestCount, setCheckoutRequestCount] = useState(0);
 
@@ -88,8 +89,6 @@ export function DashboardNav({
   const handleGo = () => {
     setMobileOpen(false);
   };
-
-  const waiterBoardActive = pathname.startsWith('/dashboard/waiter');
 
   return (
     <>
@@ -152,13 +151,7 @@ export function DashboardNav({
               key={item.href}
               href={item.href}
               onClick={handleGo}
-              className={`
-                flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] leading-6 transition-all
-                ${active
-                  ? 'bg-brand-gold/15 text-brand-gold font-medium'
-                  : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-border/50'
-                }
-              `}
+              className={dashboardNavLinkClassName(active)}
             >
               <span className="text-lg">{item.icon}</span>
               <span>{t[item.key]}</span>
@@ -170,41 +163,20 @@ export function DashboardNav({
             </Link>
           );
         })}
+        {showKitchenShortcut ? (
+          <a
+            href={`/${restaurant.slug}/kitchen`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={dashboardNavLinkClassName(false)}
+          >
+            <span className="text-lg">🍳</span>
+            <span>{t.viewKitchen}</span>
+          </a>
+        ) : null}
       </nav>
 
-      {showOperationalShortcuts ? (
-        <div className="px-4 py-3 border-t border-brand-border">
-          {kitchenShortcutEnabled ? (
-            <a
-              href={`/${restaurant.slug}/kitchen`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
-            >
-              <span>🍳</span>
-              {t.viewKitchen}
-            </a>
-          ) : null}
-          <Link
-            href="/dashboard/waiter"
-            onClick={handleGo}
-            className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
-              waiterBoardActive
-                ? 'text-brand-gold font-medium'
-                : 'text-brand-text-muted hover:text-brand-gold'
-            }`}
-          >
-            <span>🛎️</span>
-            {t.viewWaiter}
-          </Link>
-        </div>
-      ) : null}
-
-      <DashboardNavFooter
-        systemSettingsLabel={t.systemSettings}
-        logoutLabel={t.logout}
-        onLogout={requestSignOut}
-      />
+      <DashboardNavFooter logoutLabel={t.logout} onLogout={requestSignOut} />
       <SignOutConfirmModal
         open={modalOpen}
         onClose={closeModal}

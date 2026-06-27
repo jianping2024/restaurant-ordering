@@ -21,7 +21,8 @@ export type DashboardNavItemKey =
   | 'checkout'
   | 'orders'
   | 'tables'
-  | 'menu';
+  | 'menu'
+  | 'viewWaiter';
 
 export type DashboardNavItemDef = {
   id: string;
@@ -105,6 +106,14 @@ export const DASHBOARD_NAV_ITEMS: Record<string, DashboardNavItemDef> = {
     icon: '📋',
     featureId: 'menu',
   },
+  waiterBoard: {
+    id: 'waiterBoard',
+    href: '/dashboard/waiter',
+    key: 'viewWaiter',
+    icon: '🛎️',
+    matchPrefix: '/dashboard/waiter',
+    featureId: 'waiter-board',
+  },
 };
 
 export const OWNER_NAV_ITEM_IDS = [
@@ -115,6 +124,7 @@ export const OWNER_NAV_ITEM_IDS = [
 ] as const;
 
 export const FRONTDESK_NAV_ITEM_IDS = [
+  'waiterBoard',
   'checkout',
   'orders',
   'overview',
@@ -252,7 +262,7 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
     navRoles: ['frontdesk'],
     pageLoader: 'loadDashboardAccess (frontdesk only)',
     writePattern: 'read-only',
-    riskNote: 'Shortcut in nav footer, not main nav array.',
+    riskNote: 'First item in frontdesk nav; kitchen shortcut stays optional below nav when enabled.',
   },
 ];
 

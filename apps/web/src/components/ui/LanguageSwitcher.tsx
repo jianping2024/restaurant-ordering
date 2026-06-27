@@ -13,7 +13,7 @@ const OPTIONS: { id: UILanguage; label: string; menuLabel: string }[] = [
 
 interface LanguageSwitcherProps {
   compact?: boolean;
-  variant?: 'inline' | 'menu';
+  variant?: 'inline' | 'menu' | 'icon';
 }
 
 export function LanguageSwitcher({ compact = false, variant = 'inline' }: LanguageSwitcherProps) {
@@ -25,7 +25,7 @@ export function LanguageSwitcher({ compact = false, variant = 'inline' }: Langua
   const current = OPTIONS.find((o) => o.id === lang) ?? OPTIONS[0];
 
   useEffect(() => {
-    if (variant !== 'menu' || !open) return;
+    if ((variant !== 'menu' && variant !== 'icon') || !open) return;
 
     const handlePointerDown = (event: MouseEvent) => {
       if (!rootRef.current?.contains(event.target as Node)) {
@@ -46,6 +46,47 @@ export function LanguageSwitcher({ compact = false, variant = 'inline' }: Langua
     router.refresh();
     setOpen(false);
   };
+
+  if (variant === 'icon') {
+    return (
+      <div ref={rootRef} className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="h-9 w-9 rounded-full border border-brand-border bg-brand-bg text-sm text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+          title={current.menuLabel}
+          aria-expanded={open}
+          aria-haspopup="listbox"
+          aria-label={current.menuLabel}
+        >
+          🌐
+        </button>
+        {open ? (
+          <div
+            role="listbox"
+            className="absolute bottom-full left-0 mb-1.5 min-w-[7rem] rounded-xl border border-brand-border bg-brand-card py-1 shadow-sm"
+          >
+            {OPTIONS.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                role="option"
+                aria-selected={lang === option.id}
+                onClick={() => selectLang(option.id)}
+                className={`flex w-full items-center px-3 py-2 text-sm transition-colors ${
+                  lang === option.id
+                    ? 'bg-brand-gold/15 text-brand-gold font-medium'
+                    : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-border/50'
+                }`}
+              >
+                {option.menuLabel}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
 
   if (variant === 'menu') {
     return (

@@ -16,6 +16,7 @@ import {
   parseMenuVatRate,
 } from '@/lib/menu-vat-rate';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { nextSortOrder } from '@/lib/sort-order';
 import type { MenuCategory, MenuItem, PrintStation, PrintStationTicketLayout } from '@/types';
 
 const ALLOWED_IMAGE_MIME = new Set([
@@ -159,7 +160,7 @@ export async function createMenuCategory(
       name_zh: input.name_zh?.trim() || null,
       item_code: normalizedCode,
       print_station_id: input.print_station_id || null,
-      sort_order: siblings.length,
+      sort_order: nextSortOrder(siblings),
       active: true,
     })
     .select()
@@ -420,10 +421,13 @@ export async function createMenuItem(
   const category = categoryOrError;
 
   const normalizedCode = normalizeMenuItemCode(input.item_code)!;
-  const sortOrder = items.filter((i) => i.category_id === category.id).length;
+  const categoryItems = items.filter((i) => i.category_id === category.id);
   const { data, error } = await admin
     .from('menu_items')
-    .insert({ ...buildMenuItemPayload(restaurantId, category, input, normalizedCode), sort_order: sortOrder })
+    .insert({
+      ...buildMenuItemPayload(restaurantId, category, input, normalizedCode),
+      sort_order: nextSortOrder(categoryItems),
+    })
     .select()
     .single();
 
@@ -636,11 +640,6 @@ export async function createPrintStation(
     return { error: 'print_stations_query_failed', message: listError.message, status: 500 };
   }
 
-  const nextOrder =
-    rows && rows.length > 0
-      ? Math.max(...rows.map((row) => row.sort_order as number)) + 1
-      : 0;
-
   const { data, error } = await admin
     .from('print_stations')
     .insert({
@@ -649,7 +648,7 @@ export async function createPrintStation(
       name_en: input.name_en?.trim() || null,
       name_zh: input.name_zh?.trim() || null,
       ticket_layout: input.ticket_layout,
-      sort_order: nextOrder,
+      sort_order: nextSortOrder(rows ?? []),
     })
     .select()
     .single();

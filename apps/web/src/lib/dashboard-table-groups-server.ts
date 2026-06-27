@@ -8,6 +8,7 @@ import {
   type RestaurantTableGroupMember,
 } from '@/lib/restaurant-table-groups';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { nextSortOrder } from '@/lib/sort-order';
 import type { MutationError } from '@/lib/dashboard-api-shared';
 import { uniqueViolation } from '@/lib/dashboard-api-shared';
 
@@ -140,10 +141,7 @@ export async function createTableGroup(
   const existing = await loadRestaurantTableGroups(admin, restaurantId);
   if ('error' in existing) return existing;
 
-  const nextOrder =
-    existing.groups.length === 0
-      ? 0
-      : Math.max(...existing.groups.map((g) => g.sort_order)) + 1;
+  const nextOrder = nextSortOrder(existing.groups);
 
   const { data, error } = await admin
     .from('restaurant_table_groups')

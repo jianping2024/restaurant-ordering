@@ -31,6 +31,7 @@ import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticate
 import { useWaiterTableDetail } from '@/components/waiter/useWaiterTableDetail';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
+import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
 import { fetchWaiterTableActionTargetsClient, postWaiterBuffetOpenClient } from '@/lib/staff-board-client';
@@ -257,6 +258,7 @@ function WaiterTableDetailInner({
     () => aggregateBuffetForOrders(orders),
     [orders],
   );
+  const buffetActionLabel = tableBuffetAggregate ? t.buffetSaveGuestCounts : t.buffetConfirm;
 
   const persistedBuffetId = tableBuffetAggregate?.buffetId;
   const persistedBuffetAdults = tableBuffetAggregate?.adults;
@@ -282,7 +284,7 @@ function WaiterTableDetailInner({
       .filter((table) => {
         const view = ordersForWaiterTableView(table.id, initialOrders, activeSessionByTableId);
         const c = buildWaiterTableCard(table.id, table.display_name, view, itemCodeByMenuId);
-        return c.orderLines.length > 0 || c.hasBuffet;
+        return isWaiterTableCardOccupied(c);
       })
       .map((row) => row.id);
   }, [activeSessionByTableId, demoTables, initialOrders, isDemo, itemCodeByMenuId]);
@@ -567,7 +569,7 @@ function WaiterTableDetailInner({
 
   const handleCallBill = async () => {
     if (isDemo || !embeddedInDashboard || isCheckoutPending) return;
-    if (selectedCard.orderLines.length === 0 && !selectedCard.hasBuffet) {
+    if (!isWaiterTableCardOccupied(selectedCard)) {
       showToast(t.noOrdersOnTable, 'info');
       return;
     }
@@ -590,7 +592,7 @@ function WaiterTableDetailInner({
 
   const showFrontdeskCloseTable = embeddedInDashboard;
   const showFrontdeskCallBill =
-    embeddedInDashboard && !isCheckoutPending && (selectedCard.orderLines.length > 0 || selectedCard.hasBuffet);
+    embeddedInDashboard && !isCheckoutPending && isWaiterTableCardOccupied(selectedCard);
 
   const applyBuffetToTable = async () => {
     if (!buffetId) return;
@@ -929,12 +931,12 @@ function WaiterTableDetailInner({
               disabled={buffetSubmitting || buffetPriceLoading || !buffetPriceDisplay.ok}
               className={`${waiterUi.btnPrimary} w-full justify-center disabled:opacity-50`}
             >
-              {buffetSubmitting ? '…' : t.buffetConfirm}
+              {buffetSubmitting ? '…' : buffetActionLabel}
             </button>
           </div>
         )}
 
-        {(selectedCard.orderLines.length > 0 || selectedCard.hasBuffet) && (
+        {isWaiterTableCardOccupied(selectedCard) && (
           <>
             <div className="flex flex-wrap items-center gap-2 mb-3">
               {selectedCard.hasBuffet && (

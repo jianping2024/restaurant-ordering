@@ -1,3 +1,4 @@
+import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import {
   compareRestaurantTables,
   sortRestaurantTables,
@@ -177,8 +178,8 @@ export function sortWaiterTableCards<T extends WaiterTableCardSortInput>(
       : 0;
     if (aCheckout !== bCheckout) return bCheckout - aCheckout;
 
-    const aActive = a.orderLines.length > 0 || a.hasBuffet ? 1 : 0;
-    const bActive = b.orderLines.length > 0 || b.hasBuffet ? 1 : 0;
+    const aActive = isWaiterTableCardOccupied(a) ? 1 : 0;
+    const bActive = isWaiterTableCardOccupied(b) ? 1 : 0;
     if (aActive !== bActive) return bActive - aActive;
 
     const ta = tableById.get(a.tableId);

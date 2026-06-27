@@ -7,6 +7,16 @@ import {
 import { sortRestaurantTables, tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import type { Order } from '@/types';
 
+export type WaiterTableOccupancyInput = {
+  orderLines: unknown[];
+  hasBuffet: boolean;
+};
+
+/** Table has visible menu lines or an active buffet base on the current session. */
+export function isWaiterTableCardOccupied(card: WaiterTableOccupancyInput): boolean {
+  return card.orderLines.length > 0 || card.hasBuffet;
+}
+
 /** Tables with visible order lines or an active buffet base on the current session. */
 export function activeWaiterTableIds(
   tables: readonly RestaurantTableRow[],
@@ -18,7 +28,7 @@ export function activeWaiterTableIds(
   for (const table of tables) {
     const view = ordersForWaiterTableView(table.id, orders as Order[], activeSessionByTableId);
     const card = buildWaiterTableCard(table.id, table.display_name, view);
-    if (card.orderLines.length > 0 || card.hasBuffet) {
+    if (isWaiterTableCardOccupied(card)) {
       active.push(table.id);
     }
   }

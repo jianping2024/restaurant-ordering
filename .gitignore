@@ -49,3 +49,6 @@ supabase/.temp/
 
 # Turborepo
 .turbo
+
+# cloud → staging sync artifacts (may contain production data)
+.sync-tmp/

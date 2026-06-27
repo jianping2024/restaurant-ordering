@@ -4,6 +4,7 @@ import type { Order } from '@/types';
 import {
   activeWaiterTableIds,
   filterWaiterTableActionTargets,
+  isWaiterTableCardOccupied,
 } from './waiter-table-occupancy';
 
 const T1 = '00000000-0000-4000-8000-000000000001';
@@ -15,6 +16,15 @@ const tables = [
   { id: T2, display_name: 'A-02', sort_order: 2 },
   { id: T3, display_name: 'A-03', sort_order: 3 },
 ];
+
+test('isWaiterTableCardOccupied reflects buffet or menu lines', () => {
+  assert.equal(isWaiterTableCardOccupied({ orderLines: [], hasBuffet: true }), true);
+  assert.equal(
+    isWaiterTableCardOccupied({ orderLines: [{}], hasBuffet: false }),
+    true,
+  );
+  assert.equal(isWaiterTableCardOccupied({ orderLines: [], hasBuffet: false }), false);
+});
 
 test('activeWaiterTableIds ignores idle tables without orders or buffet', () => {
   const sessionMeta = {

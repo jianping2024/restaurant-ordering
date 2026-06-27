@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  adjacentSortOrderSwapSteps,
   applyAdjacentSortOrderSwap,
   compareSortOrder,
   nextSortOrder,
@@ -45,6 +46,23 @@ describe('swapAdjacentSortOrders', () => {
       sortOrderA: 5,
       sortOrderB: 2,
     });
+  });
+});
+
+describe('adjacentSortOrderSwapSteps', () => {
+  it('uses a temp slot below the minimum for unique-index swaps', () => {
+    assert.deepEqual(adjacentSortOrderSwapSteps({ sort_order: 0 }, { sort_order: 1 }), {
+      tempOrder: -1,
+      finalSortOrderA: 1,
+      finalSortOrderB: 0,
+    });
+  });
+
+  it('returns null when rows already match target order', () => {
+    assert.equal(
+      adjacentSortOrderSwapSteps({ sort_order: 3 }, { sort_order: 3 }),
+      null,
+    );
   });
 });
 

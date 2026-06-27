@@ -1,0 +1,39 @@
+# Sync GitHub Release description from apps/print-agent/RELEASE_NOTES.md.
+# Use when notes were added after a tag was published, or to refresh wording on an existing release.
+name: Sync print agent release notes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/print-agent/RELEASE_NOTES.md
+      - scripts/print-agent-release-body.sh
+      - .github/workflows/sync-print-agent-release-notes.yml
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semver (leave empty to use apps/print-agent/VERSION)
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch release body on GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          VERSION="${{ github.event.inputs.version }}"
+          if [[ -z "$VERSION" ]]; then
+            VERSION="$(tr -d '\r\n' < apps/print-agent/VERSION)"
+          fi
+          echo "Syncing release notes for print-agent-v${VERSION} ..."
+          bash scripts/patch-print-agent-release-body.sh "$VERSION"

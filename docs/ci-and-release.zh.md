@@ -63,17 +63,24 @@ git push origin main   # 若 VERSION 有新提交
 git push origin print-agent-v0.2.31
 ```
 
+### Release 说明（自动）
+
+| 时机 | 行为 |
+|------|------|
+| **打新 tag `print-agent-v*`** | [print-agent-release.yml](../.github/workflows/print-agent-release.yml) 从 `RELEASE_NOTES.md` 读取 `## VERSION` 并写入 Release 正文（**无需本地 GH_TOKEN**） |
+| **已发版后只改了 `RELEASE_NOTES.md`** | push `main` 触发 [sync-print-agent-release-notes.yml](../.github/workflows/sync-print-agent-release-notes.yml)，自动补写/刷新对应 Release |
+| **手动刷新某一版** | GitHub → Actions → **Sync print agent release notes** → Run workflow，可选填版本号 |
+
+发版前在 **`apps/print-agent/RELEASE_NOTES.md`** 增加 `## X.Y.Z` 段落；`tag-print-agent.sh` / `pnpm push` 自动打 tag 时会校验该段落存在。
+
 ### 发版步骤
 
 1. 改 **`apps/print-agent/VERSION`**（与将要打的 tag 一致）
-2. 在 **`apps/print-agent/RELEASE_NOTES.md`** 增加对应 `## X.Y.Z` 版本说明（打 tag 前必填；`tag-print-agent.sh` 会校验）
-3. **`pnpm push`**（或 merge）— 确认 **Print agent CI** 在 main 上为绿
-4. **`./scripts/check-print-agent.sh`**（与 CI 相同：`go test` + `go vet`）
-5. `git tag print-agent-vX.Y.Z && git push origin print-agent-vX.Y.Z`
-6. 等 **Print agent release** 全绿（`test-linux` → Windows 打包 → `verify-release`）
-7. 在 [Releases](https://github.com/jianping2024/restaurant-ordering/releases) 确认有 **`MesaPrintAgent-Setup-amd64.exe`** 且 Release 正文含版本说明
-8. 可选：`./scripts/wait-for-github-release.sh print-agent-vX.Y.Z`
-9. 补写已发布版本的说明：`./scripts/patch-print-agent-release-body.sh X.Y.Z`（需 `GH_TOKEN`）
+2. 在 **`apps/print-agent/RELEASE_NOTES.md`** 增加对应 `## X.Y.Z` 版本说明
+3. **`pnpm push`**（或 merge）— 确认 **Print agent CI** 在 main 上为绿；若 agent 有改动会自动打 tag
+4. 等 **Print agent release** 全绿（`test-linux` → Windows 打包 → `verify-release`）
+5. 在 [Releases](https://github.com/jianping2024/restaurant-ordering/releases) 确认有 **`MesaPrintAgent-Setup-amd64.exe`** 且 Release 正文含版本说明
+6. 可选：`./scripts/wait-for-github-release.sh print-agent-vX.Y.Z`
 
 ### 以后如何避免「业务改了却打包挂」
 

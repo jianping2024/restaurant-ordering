@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Patch an existing GitHub Release body (e.g. after adding RELEASE_NOTES retroactively).
-# Usage: ./scripts/patch-print-agent-release-body.sh [VERSION]
-# Requires GH_TOKEN or GITHUB_TOKEN with repo scope.
+# Patch an existing GitHub Release body from RELEASE_NOTES.md.
+# Normally CI runs this via sync-print-agent-release-notes.yml (no local token needed).
+# Local usage: GH_TOKEN=... ./scripts/patch-print-agent-release-body.sh [VERSION]
 
 set -euo pipefail
 

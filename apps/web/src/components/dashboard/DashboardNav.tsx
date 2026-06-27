@@ -8,8 +8,7 @@ import { useSignOutConfirmState, SignOutConfirmModal } from '@/lib/auth/sign-out
 import { createClient } from '@/lib/supabase/client';
 import type { Restaurant } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { DashboardNavFooter } from '@/components/dashboard/DashboardNavFooter';
 import { getMessages } from '@/lib/i18n/messages';
 import { ProductLogo } from '@/components/ui/ProductLogo';
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
@@ -105,10 +104,7 @@ export function DashboardNav({
           ☰
         </button>
         <ProductLogo size="md" />
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <LanguageSwitcher compact />
-        </div>
+        <div className="h-9 w-9" aria-hidden />
       </div>
 
       {/* Mobile overlay */}
@@ -127,29 +123,23 @@ export function DashboardNav({
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
       >
       {/* Logo */}
-      <div className="px-6 py-5 lg:py-6 border-b border-brand-border">
+      <div className="shrink-0 px-6 py-5 lg:py-6 border-b border-brand-border">
         <div className="flex items-center justify-between gap-2">
           <ProductLogo size="md" />
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setMobileOpen(false)}
-              className="lg:hidden h-8 w-8 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text"
-              aria-label="Close menu"
-            >
-              ×
-            </button>
-            <div className="hidden lg:flex items-center gap-2">
-              <ThemeToggle />
-              <LanguageSwitcher compact />
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            className="lg:hidden h-8 w-8 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text"
+            aria-label="Close menu"
+          >
+            ×
+          </button>
         </div>
         <p className="text-brand-text-muted text-sm mt-1 truncate">{restaurant.name}</p>
       </div>
 
       {/* 导航 */}
-      <nav className="flex-1 px-4 py-4 space-y-1">
+      <nav className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-1">
         {navItems.map((item) => {
           const active =
             item.matchPrefix
@@ -210,16 +200,11 @@ export function DashboardNav({
         </div>
       ) : null}
 
-      {/* 退出 */}
-      <div className="px-4 py-4 border-t border-brand-border">
-        <button
-          onClick={requestSignOut}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] leading-6 text-brand-text-muted hover:text-status-danger hover:bg-[rgb(var(--color-status-danger-border)/0.12)] transition-all"
-        >
-          <span>🚪</span>
-          {t.logout}
-        </button>
-      </div>
+      <DashboardNavFooter
+        systemSettingsLabel={t.systemSettings}
+        logoutLabel={t.logout}
+        onLogout={requestSignOut}
+      />
       <SignOutConfirmModal
         open={modalOpen}
         onClose={closeModal}

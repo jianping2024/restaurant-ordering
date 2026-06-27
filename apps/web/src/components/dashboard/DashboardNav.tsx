@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { dashboardSignOutAndRedirect } from '@/lib/auth/sign-out-client';
+import { useSignOutConfirmState, SignOutConfirmModal } from '@/lib/auth/sign-out-confirm';
 import { createClient } from '@/lib/supabase/client';
 import type { Restaurant } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -80,12 +82,8 @@ export function DashboardNav({
     };
   }, [accessMode, restaurant.id]);
 
-  const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push('/auth/login');
-    router.refresh();
-  };
+  const { requestSignOut, modalOpen, modalConfirming, closeModal, confirmSignOut: runSignOut } =
+    useSignOutConfirmState(() => dashboardSignOutAndRedirect(router));
 
   const handleGo = () => {
     setMobileOpen(false);
@@ -214,13 +212,19 @@ export function DashboardNav({
       {/* 退出 */}
       <div className="px-4 py-4 border-t border-brand-border">
         <button
-          onClick={handleLogout}
+          onClick={requestSignOut}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] leading-6 text-brand-text-muted hover:text-status-danger hover:bg-[rgb(var(--color-status-danger-border)/0.12)] transition-all"
         >
           <span>🚪</span>
           {t.logout}
         </button>
       </div>
+      <SignOutConfirmModal
+        open={modalOpen}
+        onClose={closeModal}
+        onConfirm={runSignOut}
+        confirming={modalConfirming}
+      />
       </aside>
     </>
   );

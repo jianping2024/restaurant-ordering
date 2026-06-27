@@ -78,6 +78,7 @@ function KitchenDisplayInner({
   isDemo = false,
   handleSignOut,
   exitLabel,
+  confirmBeforeSignOut,
 }: Props & StaffShellContext) {
   const { lang } = useLanguage();
   const t = getMessages(lang).kitchen;
@@ -313,7 +314,11 @@ function KitchenDisplayInner({
       )}
       {/* 标题栏 */}
       <div className="mb-6">
-        <StaffRoleToolbar exitLabel={exitLabel} onSignOut={() => void handleSignOut()} />
+        <StaffRoleToolbar
+          exitLabel={exitLabel}
+          onSignOut={() => void handleSignOut()}
+          confirmSignOut={confirmBeforeSignOut}
+        />
         <div>
           <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
           <p className="text-brand-text-muted text-sm mt-1">

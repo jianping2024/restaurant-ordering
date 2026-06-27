@@ -13,6 +13,7 @@ import { getMessages } from '@/lib/i18n/messages';
 export type StaffShellContext = {
   handleSignOut: () => void;
   exitLabel: string;
+  confirmBeforeSignOut: boolean;
 };
 
 type Props = {
@@ -77,6 +78,7 @@ export function StaffAuthenticatedShell({
   };
 
   const exitLabel = asOwner ? labels.backToDashboard : labels.signOut;
+  const confirmBeforeSignOut = !asOwner;
 
   if (checkingSession || !authenticated) {
     return (
@@ -86,5 +88,5 @@ export function StaffAuthenticatedShell({
     );
   }
 
-  return <>{children({ handleSignOut, exitLabel })}</>;
+  return <>{children({ handleSignOut, exitLabel, confirmBeforeSignOut })}</>;
 }

@@ -11,6 +11,7 @@ type Props = {
   embeddedInDashboard: boolean;
   exitLabel: string;
   onSignOut: () => void;
+  confirmSignOut?: boolean;
 };
 
 export function WaiterTableDetailHeader({
@@ -21,6 +22,7 @@ export function WaiterTableDetailHeader({
   embeddedInDashboard,
   exitLabel,
   onSignOut,
+  confirmSignOut = true,
 }: Props) {
   return (
     <div className="mb-6">
@@ -29,7 +31,12 @@ export function WaiterTableDetailHeader({
           ← {backLabel}
         </Link>
         {!embeddedInDashboard ? (
-          <StaffRoleToolbar exitLabel={exitLabel} onSignOut={onSignOut} className="mb-0" />
+          <StaffRoleToolbar
+            exitLabel={exitLabel}
+            onSignOut={onSignOut}
+            confirmSignOut={confirmSignOut}
+            className="mb-0"
+          />
         ) : null}
       </div>
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">

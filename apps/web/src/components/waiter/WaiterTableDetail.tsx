@@ -84,7 +84,8 @@ function WaiterTableDetailInner({
   embeddedInDashboard = false,
   handleSignOut,
   exitLabel,
-}: Props & { handleSignOut: () => void; exitLabel: string }) {
+  confirmBeforeSignOut,
+}: Props & { handleSignOut: () => void; exitLabel: string; confirmBeforeSignOut: boolean }) {
   const router = useRouter();
   const { lang } = useLanguage();
   const locale = UI_LOCALE_BY_LANG[lang];
@@ -491,6 +492,7 @@ function WaiterTableDetailInner({
           embeddedInDashboard={embeddedInDashboard}
           exitLabel={exitLabel}
           onSignOut={handleSignOut}
+          confirmSignOut={confirmBeforeSignOut}
         />
         <div
           className={`${waiterUi.cardSurface} p-6 animate-pulse`}
@@ -515,6 +517,7 @@ function WaiterTableDetailInner({
           embeddedInDashboard={embeddedInDashboard}
           exitLabel={exitLabel}
           onSignOut={handleSignOut}
+          confirmSignOut={confirmBeforeSignOut}
         />
         <div className={`${waiterUi.cardSurface} p-4 text-sm text-brand-text-muted`}>
           {t.noOrdersOnTable}
@@ -837,6 +840,7 @@ function WaiterTableDetailInner({
         embeddedInDashboard={embeddedInDashboard}
         exitLabel={exitLabel}
         onSignOut={handleSignOut}
+        confirmSignOut={confirmBeforeSignOut}
       />
 
       <div className="space-y-4">
@@ -1001,13 +1005,19 @@ export function WaiterTableDetail(props: Props) {
         {...props}
         handleSignOut={() => {}}
         exitLabel=""
+        confirmBeforeSignOut={false}
       />
     );
   }
   return (
     <WaiterAuthenticatedShell restaurant={restaurant} isDemo={isDemo}>
-      {({ handleSignOut, exitLabel }) => (
-        <WaiterTableDetailInner {...props} handleSignOut={handleSignOut} exitLabel={exitLabel} />
+      {({ handleSignOut, exitLabel, confirmBeforeSignOut }) => (
+        <WaiterTableDetailInner
+          {...props}
+          handleSignOut={handleSignOut}
+          exitLabel={exitLabel}
+          confirmBeforeSignOut={confirmBeforeSignOut}
+        />
       )}
     </WaiterAuthenticatedShell>
   );

@@ -194,6 +194,12 @@ export const MESSAGES = {
       signOut: '退出并重新登录',
       backToLogin: '返回登录页',
     },
+    signOutConfirm: {
+      title: '确认退出登录？',
+      message: '退出后需重新登录才能继续使用。',
+      confirm: '退出登录',
+      cancel: '取消',
+    },
     authRegister: {
       passwordLength: '密码至少需要 6 位',
       restaurantRequired: '请填写餐厅名称',
@@ -1269,6 +1275,7 @@ export const MESSAGES = {
     },
     authLogin: { subtitle: 'Sign in to your restaurant dashboard', email: 'Email', password: 'Password', login: 'Sign in', noAccount: "Don't have an account?", register: 'Create account', invalid: 'Invalid email or password', network: 'Network error, please try again later', rateLimited: 'Too many attempts, please try again later', rateLimitedWithMinutes: 'Too many attempts — try again in about {minutes} minutes', serverError: 'Sign-in service error — try again later or contact the owner', staffDisabled: 'This staff account is disabled', staffIncomplete: 'Staff account is incomplete — ask the owner to recreate it in Staff settings' },
     dashboardAccessError: { title: 'Cannot load dashboard', desc: 'You are signed in, but we could not load your restaurant. This is usually not data loss — retry or sign in again.', retry: 'Retry', signOut: 'Sign out and sign in again', backToLogin: 'Back to login' },
+    signOutConfirm: { title: 'Sign out?', message: 'You will need to sign in again to continue.', confirm: 'Sign out', cancel: 'Cancel' },
     authRegister: { passwordLength: 'Password must be at least 6 characters', restaurantRequired: 'Please enter restaurant name', alreadyRegistered: 'This email is already registered, please sign in', registerFailed: 'Registration failed, please try again', createFailed: 'Failed to create restaurant: ', network: 'Network error, please try again later', verifyTitle: 'Registration successful!', verifySentTo: 'Confirmation email was sent to', verifyTip: 'Please click the confirmation link in your email to finish setup.', verifySpam: 'No email? Check your spam folder.', verified: 'Already verified?', toLogin: 'Go to login', subtitle: 'Create your restaurant and start taking orders', restaurantName: 'Restaurant name', menuLink: 'Menu link: ', email: 'Email', password: 'Password', passwordPlaceholder: 'At least 6 characters', submit: 'Create account', hasAccount: 'Already have an account?', directLogin: 'Sign in', closedTitle: 'Public registration is closed', closedBody: 'New owner accounts are created via the administrator-only endpoint. If you already have credentials, sign in below.', closedToLogin: 'Sign in' },
     onboarding: { title: 'Create your restaurant', desc: 'Add your restaurant name to start managing menu and orders.', label: 'Restaurant name', submit: 'Create restaurant', network: 'Network error, please try again later', fail: 'Creation failed: ', initTitle: 'Initializing restaurant', initDesc: 'Completing first-time setup, please wait...' },
     menuManager: {
@@ -2014,6 +2021,7 @@ export const MESSAGES = {
     },
     authLogin: { subtitle: 'Entrar no painel do restaurante', email: 'Email', password: 'Senha', login: 'Entrar', noAccount: 'Ainda nao tem conta?', register: 'Criar conta', invalid: 'Email ou senha incorretos', network: 'Erro de rede, tente novamente mais tarde', rateLimited: 'Muitas tentativas, tente mais tarde', rateLimitedWithMinutes: 'Muitas tentativas — tente de novo em cerca de {minutes} minutos', serverError: 'Erro no servico de login — tente mais tarde ou contacte o dono', staffDisabled: 'Conta de funcionario desativada', staffIncomplete: 'Conta incompleta — peca ao dono para recriar em Funcionarios' },
     dashboardAccessError: { title: 'Nao foi possivel carregar o painel', desc: 'Sessao valida, mas nao foi possivel ler o restaurante. Normalmente nao e perda de dados — tente de novo ou faca login novamente.', retry: 'Tentar de novo', signOut: 'Sair e entrar novamente', backToLogin: 'Voltar ao login' },
+    signOutConfirm: { title: 'Sair da sessao?', message: 'Sera necessario iniciar sessao novamente para continuar.', confirm: 'Sair', cancel: 'Cancelar' },
     authRegister: { passwordLength: 'A senha deve ter pelo menos 6 caracteres', restaurantRequired: 'Preencha o nome do restaurante', alreadyRegistered: 'Este email ja esta cadastrado, faca login', registerFailed: 'Falha no cadastro, tente novamente', createFailed: 'Falha ao criar restaurante: ', network: 'Erro de rede, tente novamente mais tarde', verifyTitle: 'Cadastro concluido!', verifySentTo: 'Email de confirmacao enviado para', verifyTip: 'Clique no link de confirmacao no email para finalizar o acesso.', verifySpam: 'Nao recebeu? Verifique a caixa de spam.', verified: 'Ja confirmou o email?', toLogin: 'Ir para login', subtitle: 'Cadastre seu restaurante e comece a receber pedidos', restaurantName: 'Nome do restaurante', menuLink: 'Link do menu: ', email: 'Email', password: 'Senha', passwordPlaceholder: 'Pelo menos 6 caracteres', submit: 'Cadastrar restaurante', hasAccount: 'Ja tem conta?', directLogin: 'Fazer login', closedTitle: 'Cadastro publico fechado', closedBody: 'Novas contas sao criadas pelo administrador. Se ja tem acesso, faca login.', closedToLogin: 'Entrar' },
     onboarding: { title: 'Crie seu restaurante', desc: 'Informe o nome do restaurante para comecar a gerenciar pedidos.', label: 'Nome do restaurante', submit: 'Criar restaurante', network: 'Erro de rede, tente novamente mais tarde', fail: 'Falha ao criar: ', initTitle: 'Inicializando restaurante', initDesc: 'Concluindo a configuracao inicial, aguarde...' },
     menuManager: {

@@ -1,5 +1,6 @@
 'use client';
 
+import { signOutFromSupabase } from '@/lib/auth/sign-out-client';
 import { createClient } from '@/lib/supabase/client';
 import { parseStaffUserMetadata } from '@/lib/staff-account';
 import type { StaffAccountRole } from '@/types';
@@ -59,6 +60,5 @@ export async function resolveStaffSession(
 }
 
 export async function staffSignOut(): Promise<void> {
-  const supabase = createClient();
-  await supabase.auth.signOut();
+  await signOutFromSupabase();
 }

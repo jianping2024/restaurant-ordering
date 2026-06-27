@@ -275,7 +275,8 @@ function WaiterBoardInner({
   embeddedInDashboard = false,
   handleSignOut,
   exitLabel,
-}: Props & { handleSignOut: () => void; exitLabel: string }) {
+  confirmBeforeSignOut,
+}: Props & { handleSignOut: () => void; exitLabel: string; confirmBeforeSignOut: boolean }) {
   const { lang } = useLanguage();
   const t = WAITER_TEXT[lang];
   const tableGroupsI18n = getMessages(lang).tableGroups;
@@ -558,7 +559,11 @@ function WaiterBoardInner({
       )}
       <div className="mb-6">
         {!embeddedInDashboard ? (
-          <StaffRoleToolbar exitLabel={exitLabel} onSignOut={handleSignOut} />
+          <StaffRoleToolbar
+            exitLabel={exitLabel}
+            onSignOut={handleSignOut}
+            confirmSignOut={confirmBeforeSignOut}
+          />
         ) : null}
         {!embeddedInDashboard ? (
           <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
@@ -695,13 +700,19 @@ export function WaiterDisplay(props: Props) {
         {...props}
         handleSignOut={() => {}}
         exitLabel=""
+        confirmBeforeSignOut={false}
       />
     );
   }
   return (
     <WaiterAuthenticatedShell restaurant={restaurant} isDemo={isDemo}>
-      {({ handleSignOut, exitLabel }) => (
-        <WaiterBoardInner {...props} handleSignOut={handleSignOut} exitLabel={exitLabel} />
+      {({ handleSignOut, exitLabel, confirmBeforeSignOut }) => (
+        <WaiterBoardInner
+          {...props}
+          handleSignOut={handleSignOut}
+          exitLabel={exitLabel}
+          confirmBeforeSignOut={confirmBeforeSignOut}
+        />
       )}
     </WaiterAuthenticatedShell>
   );

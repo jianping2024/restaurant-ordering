@@ -2,7 +2,11 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { dashboardSignOutAndRedirect } from '@/lib/auth/sign-out-client';
+import {
+  SignOutConfirmModal,
+  useSignOutConfirmState,
+} from '@/lib/auth/sign-out-confirm';
 import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
@@ -15,13 +19,8 @@ export function DashboardAccessError({ message }: Props) {
   const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).dashboardAccessError;
-
-  const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push('/auth/login');
-    router.refresh();
-  };
+  const { requestSignOut, modalOpen, modalConfirming, closeModal, confirmSignOut: runSignOut } =
+    useSignOutConfirmState(() => dashboardSignOutAndRedirect(router));
 
   return (
     <div className="flex-1 flex items-center justify-center p-8">
@@ -40,7 +39,7 @@ export function DashboardAccessError({ message }: Props) {
           <Button type="button" onClick={() => window.location.reload()}>
             {t.retry}
           </Button>
-          <Button type="button" variant="outline" onClick={handleSignOut}>
+          <Button type="button" variant="outline" onClick={requestSignOut}>
             {t.signOut}
           </Button>
         </div>
@@ -50,6 +49,12 @@ export function DashboardAccessError({ message }: Props) {
           </Link>
         </p>
       </div>
+      <SignOutConfirmModal
+        open={modalOpen}
+        onClose={closeModal}
+        onConfirm={runSignOut}
+        confirming={modalConfirming}
+      />
     </div>
   );
 }

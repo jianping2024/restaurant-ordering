@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Tree from 'rc-tree';
 import type { DataNode } from 'rc-tree/lib/interface';
-import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
@@ -17,8 +16,6 @@ import { getMessages } from '@/lib/i18n/messages';
 import {
   compressMenuImageForUpload,
   MENU_IMAGE_ACCEPT,
-  menuImageObjectPath,
-  removeMenuImageFromStorage,
   validateMenuImageFile,
 } from '@/lib/menu-image';
 import {
@@ -27,7 +24,6 @@ import {
   type NotePresetGroup,
 } from '@/lib/note-presets';
 import {
-  isPostgresUniqueViolation,
   menuItemHasDuplicateCode,
   siblingCategoryHasDuplicateCode,
 } from '@/lib/menu-code-uniqueness';
@@ -42,7 +38,7 @@ import {
   collectCategorySubtreeIds,
   getMenuCategoryLabel,
   itemMatchesSearch,
-  sortCategoryIdsLeavesFirst,
+  MAX_MENU_CATEGORY_DEPTH,
 } from '@/lib/menu-admin';
 import { getPrintStationDisplayName } from '@/lib/print-station-admin';
 import { categoryCodePathFromLeaf, normalizeMenuItemCode } from '@/lib/menu-print-label';
@@ -57,6 +53,18 @@ import {
   saveMenuManagerTab,
   type MenuManagerTab,
 } from '@/lib/menu-manager-tab-preference';
+import {
+  batchSetMenuItemsAvailableClient,
+  createMenuCategoryClient,
+  createMenuItemClient,
+  deleteMenuCategoryClient,
+  deleteMenuItemClient,
+  mapMenuCategoryApiError,
+  mapMenuItemApiError,
+  setMenuItemImageClient,
+  updateMenuCategoryClient,
+  updateMenuItemClient,
+} from '@/lib/dashboard-menu-client';
 import 'rc-tree/assets/index.css';
 
 const FOOD_EMOJIS = ['🍽️', '🍞', '🥗', '🥣', '🐟', '🥚', '🍗', '🐙', '🥩', '🦆', '🫒', '🍷', '🍺', '💧', '☕', '🥧', '🍮', '🫕', '🥘', '🍲'];
@@ -152,7 +160,6 @@ export function MenuManager({
   const hub = getMessages(lang).settingsHub;
   const ps = getMessages(lang).printStations;
   const router = useRouter();
-  const supabase = createClient();
 
   const [activeTab, setActiveTab] = useState<MenuManagerTab>(initialTab);
 
@@ -211,7 +218,7 @@ export function MenuManager({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>({ open: false });
   const [confirmLoading, setConfirmLoading] = useState(false);
-  const MAX_CATEGORY_DEPTH = 5;
+  const MAX_CATEGORY_DEPTH = MAX_MENU_CATEGORY_DEPTH;
 
   const noteUi = NOTE_UI_TEXT[lang];
 
@@ -527,8 +534,7 @@ export function MenuManager({
 
     setItemSaving(true);
     setItemError('');
-    const payload = {
-      restaurant_id: restaurantId,
+    const itemInput = {
       name_pt: itemForm.name_pt.trim(),
       name_en: itemForm.name_en.trim() || null,
       name_zh: itemForm.name_zh.trim() || null,
@@ -537,9 +543,6 @@ export function MenuManager({
       price: Number(itemForm.price),
       vat_rate: vatRate,
       category_id: selectedCategoryRow.id,
-      category: selectedCategoryRow.name_pt,
-      category_en: selectedCategoryRow.name_en || selectedCategoryRow.name_pt,
-      category_zh: selectedCategoryRow.name_zh || selectedCategoryRow.name_pt,
       emoji: itemForm.emoji,
       available: itemForm.available,
       note_preset_keys: itemForm.note_preset_keys,
@@ -548,51 +551,29 @@ export function MenuManager({
     };
 
     try {
-      let row: MenuItem;
-      if (editingItem) {
-        const { data, error } = await supabase.from('menu_items').update(payload).eq('id', editingItem.id).select().single();
-        if (error) {
-          if (isPostgresUniqueViolation(error)) {
-            setItemError(t.errItemCodeDuplicate);
-            return;
-          }
-          throw error;
-        }
-        row = data;
-      } else {
-        const sortOrder = items.filter((i) => i.category_id === selectedCategoryRow.id).length;
-        const { data, error } = await supabase.from('menu_items').insert({ ...payload, sort_order: sortOrder }).select().single();
-        if (error) {
-          if (isPostgresUniqueViolation(error)) {
-            setItemError(t.errItemCodeDuplicate);
-            return;
-          }
-          throw error;
-        }
-        row = data;
+      const saved = editingItem
+        ? await updateMenuItemClient(editingItem.id, itemInput)
+        : await createMenuItemClient(itemInput);
+      if (!saved.ok) {
+        setItemError(mapMenuItemApiError(saved.error, saved.message, t));
+        return;
       }
 
-      const itemId = row.id;
-      let imageUrl: string | null | undefined;
+      let row = saved.data.item;
       if (stripImage && !pendingImage) {
-        if (editingItem?.image_url) await removeMenuImageFromStorage(supabase, editingItem.image_url);
-        imageUrl = null;
+        const imageResult = await setMenuItemImageClient(row.id, { stripImage: true });
+        if (!imageResult.ok) {
+          setItemError(mapMenuItemApiError(imageResult.error, imageResult.message, t));
+          return;
+        }
+        row = imageResult.data.item;
       } else if (pendingImage) {
-        if (editingItem?.image_url) await removeMenuImageFromStorage(supabase, editingItem.image_url);
-        const path = menuImageObjectPath(restaurantId, itemId, pendingImage.type);
-        const { error: uploadError } = await supabase.storage.from('menu-images').upload(path, pendingImage, {
-          upsert: true,
-          contentType: pendingImage.type,
-        });
-        if (uploadError) throw uploadError;
-        const { data: pub } = supabase.storage.from('menu-images').getPublicUrl(path);
-        imageUrl = pub.publicUrl;
-      }
-
-      if (imageUrl !== undefined) {
-        const { data, error } = await supabase.from('menu_items').update({ image_url: imageUrl }).eq('id', itemId).select().single();
-        if (error) throw error;
-        row = data;
+        const imageResult = await setMenuItemImageClient(row.id, { file: pendingImage });
+        if (!imageResult.ok) {
+          setItemError(mapMenuItemApiError(imageResult.error, imageResult.message, t));
+          return;
+        }
+        row = imageResult.data.item;
       }
 
       if (editingItem) setItems((prev) => prev.map((i) => (i.id === editingItem.id ? row : i)));
@@ -606,21 +587,25 @@ export function MenuManager({
   };
 
   const deleteItem = async (item: MenuItem) => {
-    await removeMenuImageFromStorage(supabase, item.image_url);
-    const { error } = await supabase.from('menu_items').delete().eq('id', item.id);
-    if (!error) setItems((prev) => prev.filter((i) => i.id !== item.id));
+    const result = await deleteMenuItemClient(item.id);
+    if (result.ok) setItems((prev) => prev.filter((i) => i.id !== item.id));
   };
 
   const toggleItemAvailable = async (item: MenuItem) => {
-    const { data, error } = await supabase.from('menu_items').update({ available: !item.available }).eq('id', item.id).select().single();
-    if (!error && data) setItems((prev) => prev.map((i) => (i.id === item.id ? data : i)));
+    const nextAvailable = !item.available;
+    const result = await batchSetMenuItemsAvailableClient([item.id], nextAvailable);
+    if (result.ok) {
+      setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, available: nextAvailable } : i)));
+    }
   };
 
   const batchAvailable = async (available: boolean) => {
     const ids = visibleItems.map((i) => i.id);
     if (ids.length === 0) return;
-    await supabase.from('menu_items').update({ available }).in('id', ids);
-    setItems((prev) => prev.map((i) => (ids.includes(i.id) ? { ...i, available } : i)));
+    const result = await batchSetMenuItemsAvailableClient(ids, available);
+    if (result.ok) {
+      setItems((prev) => prev.map((i) => (ids.includes(i.id) ? { ...i, available } : i)));
+    }
   };
 
   const openBatchConfirm = (available: boolean) => {
@@ -661,28 +646,19 @@ export function MenuManager({
 
     setCategorySaving(true);
     setCategoryError('');
-    const siblings = categories.filter((c) => (c.parent_id || null) === parentId);
-    const { data, error } = await supabase
-      .from('menu_categories')
-      .insert({
-        restaurant_id: restaurantId,
-        parent_id: parentId,
-        name_pt: categoryDraft.name_pt.trim(),
-        name_en: categoryDraft.name_en.trim() || null,
-        name_zh: categoryDraft.name_zh.trim() || null,
-        item_code: normalizedCode,
-        print_station_id: categoryDraft.print_station_id || null,
-        sort_order: siblings.length,
-        active: true,
-      })
-      .select()
-      .single();
+    const result = await createMenuCategoryClient({
+      parent_id: parentId,
+      name_pt: categoryDraft.name_pt.trim(),
+      name_en: categoryDraft.name_en.trim() || null,
+      name_zh: categoryDraft.name_zh.trim() || null,
+      item_code: normalizedCode,
+      print_station_id: categoryDraft.print_station_id || null,
+    });
     setCategorySaving(false);
-    if (error) {
-      return setCategoryError(
-        isPostgresUniqueViolation(error) ? t.errCategoryCodeDuplicate : error.message,
-      );
+    if (!result.ok) {
+      return setCategoryError(mapMenuCategoryApiError(result.error, result.message, t));
     }
+    const data = result.data.category;
     setCategories((prev) => [...prev, data]);
     setSelectedCategoryId(data.id);
     if (parentId) {
@@ -714,25 +690,19 @@ export function MenuManager({
 
     setCategorySaving(true);
     setCategoryError('');
-    const { data, error } = await supabase
-      .from('menu_categories')
-      .update({
-        name_pt: categoryDraft.name_pt.trim(),
-        name_en: categoryDraft.name_en.trim() || null,
-        name_zh: categoryDraft.name_zh.trim() || null,
-        item_code: normalizedCode,
-        print_station_id: categoryDraft.print_station_id || null,
-      })
-      .eq('id', selectedCategory.id)
-      .select()
-      .single();
+    const result = await updateMenuCategoryClient({
+      category_id: selectedCategory.id,
+      name_pt: categoryDraft.name_pt.trim(),
+      name_en: categoryDraft.name_en.trim() || null,
+      name_zh: categoryDraft.name_zh.trim() || null,
+      item_code: normalizedCode,
+      print_station_id: categoryDraft.print_station_id || null,
+    });
     setCategorySaving(false);
-    if (error) {
-      return setCategoryError(
-        isPostgresUniqueViolation(error) ? t.errCategoryCodeDuplicate : error.message,
-      );
+    if (!result.ok) {
+      return setCategoryError(mapMenuCategoryApiError(result.error, result.message, t));
     }
-    const row = data as MenuCategory;
+    const row = result.data.category;
     setCategories((prev) => prev.map((c) => (c.id === selectedCategory.id ? row : c)));
     setCategoryDraft(categoryDraftFromRow(row));
     setCategoryPanelMode('edit');
@@ -795,58 +765,42 @@ export function MenuManager({
         setCategoryError(t.errMigrateTargetInSubtree);
         return;
       }
+    }
+
+    const apiMode = linkedInSubtree.length === 0 ? 'empty' : mode;
+    const result = await deleteMenuCategoryClient({
+      category_id: categoryId,
+      mode: apiMode,
+      migrate_target_id: apiMode === 'migrate' ? deleteMigrateTargetId : null,
+    });
+    if (!result.ok) {
+      setCategoryError(mapMenuCategoryApiError(result.error, result.message, t));
+      return;
+    }
+
+    if (apiMode === 'migrate' && deleteMigrateTargetId) {
       const target = categories.find((c) => c.id === deleteMigrateTargetId);
-      if (!target) return;
-      const { error: moveError } = await supabase
-        .from('menu_items')
-        .update({
-          category_id: target.id,
-          category: target.name_pt,
-          category_en: target.name_en || target.name_pt,
-          category_zh: target.name_zh || target.name_pt,
-        })
-        .in('category_id', subtreeIds);
-      if (moveError) {
-        setCategoryError(moveError.message);
-        return;
+      if (target) {
+        setItems((prev) =>
+          prev.map((item) =>
+            item.category_id && subtreeSet.has(item.category_id)
+              ? {
+                  ...item,
+                  category_id: target.id,
+                  category: target.name_pt,
+                  category_en: target.name_en || target.name_pt,
+                  category_zh: target.name_zh || target.name_pt,
+                }
+              : item,
+          ),
+        );
       }
-      setItems((prev) =>
-        prev.map((item) =>
-          item.category_id && subtreeSet.has(item.category_id)
-            ? {
-                ...item,
-                category_id: target.id,
-                category: target.name_pt,
-                category_en: target.name_en || target.name_pt,
-                category_zh: target.name_zh || target.name_pt,
-              }
-            : item,
-        ),
-      );
     } else if (linkedInSubtree.length > 0) {
-      for (const item of linkedInSubtree) {
-        await removeMenuImageFromStorage(supabase, item.image_url);
-      }
-      const { error: dishDeleteError } = await supabase
-        .from('menu_items')
-        .delete()
-        .in('category_id', subtreeIds);
-      if (dishDeleteError) {
-        setCategoryError(dishDeleteError.message);
-        return;
-      }
       setItems((prev) =>
         prev.filter((item) => !item.category_id || !subtreeSet.has(item.category_id)),
       );
     }
 
-    for (const cid of sortCategoryIdsLeavesFirst(subtreeIds, categories)) {
-      const { error } = await supabase.from('menu_categories').delete().eq('id', cid);
-      if (error) {
-        setCategoryError(error.message);
-        return;
-      }
-    }
     setCategories((prev) => prev.filter((c) => !subtreeSet.has(c.id)));
     setSelectedCategoryId((prev) => (subtreeSet.has(prev) ? '' : prev));
     setCategoryPanelMode('none');

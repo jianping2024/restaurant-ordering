@@ -1,7 +1,7 @@
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
-import { loadFrontdeskOperationalContext } from '@/lib/dashboard-access';
+import { loadMenuManagementContext } from '@/lib/dashboard-access';
 
-export type FrontdeskDashboardMenu =
+export type DashboardMenu =
   | {
       restaurantId: string;
       menuItems: MenuItem[];
@@ -10,8 +10,8 @@ export type FrontdeskDashboardMenu =
     }
   | { error: string; status: number };
 
-export async function loadFrontdeskDashboardMenu(): Promise<FrontdeskDashboardMenu> {
-  const ctx = await loadFrontdeskOperationalContext();
+export async function loadDashboardMenu(): Promise<DashboardMenu> {
+  const ctx = await loadMenuManagementContext();
   if ('error' in ctx) {
     return { error: ctx.error, status: ctx.status };
   }

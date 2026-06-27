@@ -227,6 +227,39 @@ export async function loadFrontdeskOperationalContext(options?: {
   return { admin, restaurantId: restaurant.id as string };
 }
 
+export type MenuManagementContext =
+  | { admin: SupabaseClient; restaurantId: string }
+  | { error: string; status: number };
+
+/** Server-side admin context for menu management (owner or frontdesk). */
+export async function loadMenuManagementContext(options?: {
+  requireWritable?: boolean;
+}): Promise<MenuManagementContext> {
+  const access = await loadDashboardAccess();
+  if (access.mode === 'unauthenticated') {
+    return { error: 'unauthorized', status: 401 };
+  }
+  if (access.mode === 'access_error' || access.mode === 'onboarding' || access.mode === 'cashier') {
+    return { error: 'forbidden', status: 403 };
+  }
+
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return { error: 'server_misconfigured', status: 503 };
+  }
+
+  if (
+    options?.requireWritable &&
+    isRestaurantSuspended(access.restaurant.suspended_at)
+  ) {
+    return { error: 'restaurant_suspended', status: 403 };
+  }
+
+  return { admin, restaurantId: access.restaurant.id };
+}
+
 /** Server-side admin context for `/dashboard` overview (owner or frontdesk). */
 export async function loadOverviewDashboardContext(): Promise<FrontdeskOperationalContext> {
   const access = await loadDashboardAccess();

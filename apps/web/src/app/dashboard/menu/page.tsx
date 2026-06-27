@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { MenuManager } from '@/components/dashboard/MenuManager';
-import { loadFrontdeskDashboardMenu } from '@/lib/dashboard-menu';
+import { loadDashboardMenu } from '@/lib/dashboard-menu';
 import {
   isMenuManagerTab,
   MENU_MANAGER_DEFAULT_TAB,
@@ -20,7 +20,7 @@ interface Props {
 export default async function MenuPage({ searchParams }: Props) {
   const { tab } = await searchParams;
   const initialTab = parseMenuTab(tab);
-  const loaded = await loadFrontdeskDashboardMenu();
+  const loaded = await loadDashboardMenu();
   if ('error' in loaded) {
     notFound();
   }

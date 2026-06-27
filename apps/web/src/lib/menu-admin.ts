@@ -2,6 +2,8 @@ import type { MenuCategory, MenuItem } from '@/types';
 import type { UILanguage } from '@/lib/i18n';
 import { categoryCodePathFromLeaf, formatMenuPrintDisplayName } from '@/lib/menu-print-label';
 
+export const MAX_MENU_CATEGORY_DEPTH = 5;
+
 export function getMenuCategoryLabel(c: MenuCategory, lang: UILanguage): string {
   if (lang === 'en') return c.name_en?.trim() || c.name_pt;
   if (lang === 'zh') return c.name_zh?.trim() || c.name_pt;

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
@@ -9,6 +8,12 @@ import type { MenuCategory, MenuItem, PrintStation, PrintStationTicketLayout } f
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { countPrintStationBindings, getPrintStationDisplayName } from '@/lib/print-station-admin';
+import {
+  createPrintStationClient,
+  deletePrintStationClient,
+  swapPrintStationOrderClient,
+  updatePrintStationClient,
+} from '@/lib/dashboard-menu-client';
 
 const SELECT_FIELD =
   'w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50';
@@ -42,7 +47,6 @@ function layoutEmoji(layout: PrintStationTicketLayout): string {
 }
 
 export function PrintStationsManager({
-  restaurantId,
   initialStations,
   initialCategories = [],
   initialItems = [],
@@ -51,7 +55,6 @@ export function PrintStationsManager({
   const { lang } = useLanguage();
   const t = getMessages(lang).printStations;
   const tm = getMessages(lang).menuManager;
-  const supabase = createClient();
 
   const [stations, setStations] = useState<PrintStation[]>(() =>
     [...initialStations].sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at)),
@@ -133,36 +136,26 @@ export function PrintStationsManager({
     setStationSaving(true);
     setStationError('');
     try {
+      const input = {
+        name_pt: stationForm.name_pt.trim(),
+        name_en: stationForm.name_en.trim() || null,
+        name_zh: stationForm.name_zh.trim() || null,
+        ticket_layout: stationForm.ticket_layout,
+      };
       if (editingStation) {
-        const { data, error: upErr } = await supabase
-          .from('print_stations')
-          .update({
-            name_pt: stationForm.name_pt.trim(),
-            name_en: stationForm.name_en.trim() || null,
-            name_zh: stationForm.name_zh.trim() || null,
-            ticket_layout: stationForm.ticket_layout,
-          })
-          .eq('id', editingStation.id)
-          .select()
-          .single();
-        if (upErr) throw upErr;
-        if (data) setStations((prev) => prev.map((s) => (s.id === editingStation.id ? (data as PrintStation) : s)));
+        const result = await updatePrintStationClient(editingStation.id, input);
+        if (!result.ok) throw new Error(result.error);
+        setStations((prev) =>
+          prev.map((s) => (s.id === editingStation.id ? result.data.station : s)),
+        );
       } else {
-        const nextOrder = stations.length === 0 ? 0 : Math.max(...stations.map((s) => s.sort_order)) + 1;
-        const { data, error: insErr } = await supabase
-          .from('print_stations')
-          .insert({
-            restaurant_id: restaurantId,
-            name_pt: stationForm.name_pt.trim(),
-            name_en: stationForm.name_en.trim() || null,
-            name_zh: stationForm.name_zh.trim() || null,
-            ticket_layout: stationForm.ticket_layout,
-            sort_order: nextOrder,
-          })
-          .select()
-          .single();
-        if (insErr) throw insErr;
-        if (data) setStations((prev) => [...prev, data as PrintStation].sort((a, b) => a.sort_order - b.sort_order));
+        const result = await createPrintStationClient(input);
+        if (!result.ok) throw new Error(result.error);
+        setStations((prev) =>
+          [...prev, result.data.station].sort(
+            (a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at),
+          ),
+        );
       }
       resetStationModal();
     } catch {
@@ -177,17 +170,10 @@ export function PrintStationsManager({
     if (j < 0 || j >= stations.length) return;
     const a = stations[index];
     const b = stations[j];
-    const oa = a.sort_order;
-    const ob = b.sort_order;
     setError('');
-    const { error: e1 } = await supabase.from('print_stations').update({ sort_order: ob }).eq('id', a.id);
-    if (e1) {
-      setError(e1.message || t.saveFail);
-      return;
-    }
-    const { error: e2 } = await supabase.from('print_stations').update({ sort_order: oa }).eq('id', b.id);
-    if (e2) {
-      setError(e2.message || t.saveFail);
+    const result = await swapPrintStationOrderClient(a.id, b.id);
+    if (!result.ok) {
+      setError(t.saveFail);
       return;
     }
     setStations((prev) => {
@@ -204,10 +190,10 @@ export function PrintStationsManager({
     if (!deleteTarget) return;
     setDeleteLoading(true);
     setError('');
-    const { error: delErr } = await supabase.from('print_stations').delete().eq('id', deleteTarget.id);
+    const result = await deletePrintStationClient(deleteTarget.id);
     setDeleteLoading(false);
-    if (delErr) {
-      setError(delErr.message || t.deleteFail);
+    if (!result.ok) {
+      setError(t.deleteFail);
       return;
     }
     setStations((prev) => prev.filter((s) => s.id !== deleteTarget.id));

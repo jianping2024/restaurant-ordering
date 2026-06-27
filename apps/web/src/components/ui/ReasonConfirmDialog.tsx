@@ -13,6 +13,10 @@ export interface ReasonConfirmDialogProps {
   title: string;
   message: string;
   reasonLabel: string;
+  /** Shown in the select when empty; defaults to reasonLabel. */
+  reasonPlaceholder?: string;
+  /** `compact` hides the visible label and uses muted helper text. */
+  reasonFieldVariant?: 'labeled' | 'compact';
   detailLabel: string;
   detailPlaceholder: string;
   confirmLabel: string;
@@ -33,6 +37,8 @@ export function ReasonConfirmDialog({
   title,
   message,
   reasonLabel,
+  reasonPlaceholder,
+  reasonFieldVariant = 'labeled',
   detailLabel,
   detailPlaceholder,
   confirmLabel,
@@ -49,6 +55,8 @@ export function ReasonConfirmDialog({
   const [reason, setReason] = useState('');
   const [detail, setDetail] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
+  const selectPlaceholder = reasonPlaceholder ?? reasonLabel;
+  const compactReasonField = reasonFieldVariant === 'compact';
 
   useEffect(() => {
     if (!open) {
@@ -81,13 +89,30 @@ export function ReasonConfirmDialog({
   return (
     <Modal open={open} onClose={onClose} title={title} size="sm">
       <div className="space-y-4">
-        <p className="text-sm text-brand-text leading-relaxed whitespace-pre-wrap">{message}</p>
-        <div className="space-y-2">
-          <label className="block text-sm text-brand-text-muted" htmlFor="unpaid-close-reason">
+        {message ? (
+          <p
+            className={
+              compactReasonField
+                ? 'text-sm text-brand-text-muted leading-relaxed whitespace-pre-wrap'
+                : 'text-sm text-brand-text leading-relaxed whitespace-pre-wrap'
+            }
+          >
+            {message}
+          </p>
+        ) : null}
+        <div className={compactReasonField ? 'space-y-1.5' : 'space-y-2'}>
+          <label
+            className={
+              compactReasonField
+                ? 'sr-only'
+                : 'block text-sm text-brand-text-muted'
+            }
+            htmlFor="reason-confirm-select"
+          >
             {reasonLabel}
           </label>
           <select
-            id="unpaid-close-reason"
+            id="reason-confirm-select"
             value={reason}
             onChange={(event) => {
               setReason(event.target.value);
@@ -96,7 +121,7 @@ export function ReasonConfirmDialog({
             disabled={confirming}
             className="w-full rounded-lg border border-brand-border bg-brand-card px-3 py-2 text-sm text-brand-text"
           >
-            <option value="">{reasonLabel}</option>
+            <option value="">{selectPlaceholder}</option>
             {reasons.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -106,11 +131,11 @@ export function ReasonConfirmDialog({
         </div>
         {needsDetail ? (
           <div className="space-y-2">
-            <label className="block text-sm text-brand-text-muted" htmlFor="unpaid-close-detail">
+            <label className="block text-sm text-brand-text-muted" htmlFor="reason-confirm-detail">
               {detailLabel}
             </label>
             <textarea
-              id="unpaid-close-detail"
+              id="reason-confirm-detail"
               value={detail}
               onChange={(event) => {
                 setDetail(event.target.value);
@@ -128,7 +153,7 @@ export function ReasonConfirmDialog({
             {displayError}
           </p>
         ) : null}
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-1">
+        <div className="flex flex-col-reverse gap-2 border-t border-brand-border/60 pt-4 sm:flex-row sm:justify-end">
           <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={confirming}>
             {cancelLabel}
           </Button>

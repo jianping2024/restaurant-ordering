@@ -20,19 +20,16 @@ import {
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
-import { UI_LOCALE_BY_LANG, getMessages } from '@/lib/i18n/messages';
+import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
+import { VoidItemReasonDialog } from '@/lib/order-item-void/VoidItemReasonDialog';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { showToast } from '@/components/ui/Toast';
 import { coerceCartQty } from '@/lib/cart-totals';
 import { applyOrderItemDecrement } from '@/lib/order-item-void/decrement-order-item';
 import { computeOrderTotalsFromItems } from '@/lib/order-item-void/persist-order-items-update';
-import {
-  voidItemReasonDialogCopy,
-  voidItemReasonErrorMessage,
-} from '@/lib/order-item-void/void-item-reason-ui';
+import { voidItemReasonErrorMessage } from '@/lib/order-item-void/void-item-reason-ui';
 import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticatedShell';
 import { useWaiterTableDetail } from '@/components/waiter/useWaiterTableDetail';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
@@ -89,8 +86,6 @@ function WaiterTableDetailInner({
   const { lang } = useLanguage();
   const locale = UI_LOCALE_BY_LANG[lang];
   const t = WAITER_TEXT[lang];
-  const orderHistoryI18n = getMessages(lang).orderHistory;
-  const voidItemReasonCopy = useMemo(() => voidItemReasonDialogCopy(lang), [lang]);
   const initialDetail = initialTableDetail?.table ? initialTableDetail : null;
   const {
     table: selectedTable,
@@ -1141,23 +1136,18 @@ function WaiterTableDetailInner({
           }}
         />
       ) : null}
-      <ReasonConfirmDialog
+      <VoidItemReasonDialog
         open={pendingVoidDecrement != null}
         onClose={() => {
           setPendingVoidDecrement(null);
           setVoidReasonError(null);
         }}
-        title={voidItemReasonCopy.title}
-        message={voidItemReasonCopy.message}
-        reasonLabel={voidItemReasonCopy.reasonLabel}
-        detailLabel={voidItemReasonCopy.detailLabel}
-        detailPlaceholder={voidItemReasonCopy.detailPlaceholder}
-        confirmLabel={t.voidItem}
-        cancelLabel={orderHistoryI18n.closeTableCancel}
-        reasonRequiredError={voidItemReasonCopy.reasonRequiredError}
-        detailRequiredError={voidItemReasonCopy.detailRequiredError}
-        reasons={voidItemReasonCopy.reasons}
-        reasonGroup="void_item"
+        lang={lang}
+        item={
+          pendingVoidDecrement
+            ? pendingVoidDecrement.order.items[pendingVoidDecrement.itemIdx] ?? null
+            : null
+        }
         confirming={voidingDecrement}
         externalError={voidReasonError}
         onConfirm={performVoidDecrement}

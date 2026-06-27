@@ -100,6 +100,5 @@ describe('write pattern guardrails', () => {
   it('flags partial server-api features that need extra care when moving menus', () => {
     const partial = DASHBOARD_FEATURES.filter((f) => f.writePattern === 'server-api-partial');
     assert.ok(partial.some((f) => f.id === 'checkout'));
-    assert.ok(partial.some((f) => f.id === 'unpaid-orders'));
   });
 });

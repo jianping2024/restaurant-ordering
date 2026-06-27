@@ -17,7 +17,6 @@ export const MESSAGES = {
     nav: {
       overview: '数据概览',
       tables: '桌位配置',
-      unpaidOrders: '活跃订单',
       checkout: '结账请求',
       printAssistant: '打印助手',
       menu: '菜单管理',
@@ -839,9 +838,6 @@ export const MESSAGES = {
       feedbackNoPraise: '暂无高赞样本',
       table: '桌',
       items: '件',
-      pending: '待处理',
-      cooking: '备餐中',
-      done: '已完成',
       filterTable: '筛选桌号（如 5）',
       print: '打印订单',
       printTitle: '订单小票',
@@ -900,11 +896,6 @@ export const MESSAGES = {
         customer_cancelled: '顾客要求取消',
         other: '其他',
       },
-      checkoutPendingBanner: '顾客已呼叫结账，请通知收银收款；桌台暂停转台、并台与改单。',
-      checkoutLockedHint: '该桌正在结账，请通知收银收款。',
-      batchesCount: '{n} 笔',
-      latestOrder: '最近 {time}',
-      openedBy: '开台：{name}',
       buffetAdultsCount: '{n}大人',
       buffetChildrenCount: '{n}小孩',
     },
@@ -1122,7 +1113,7 @@ export const MESSAGES = {
     },
   },
   en: {
-    nav: { overview: 'Overview', tables: 'Table setup', unpaidOrders: 'Active orders', checkout: 'Checkout requests', printAssistant: 'Print assistant', menu: 'Menu', buffet: 'Buffet pricing', orders: 'Paid orders', settings: 'Settings', abnormalOps: 'Abnormal ops', valueAnalytics: 'Value analytics', viewKitchen: 'Open kitchen display', viewWaiter: 'Waiter board', logout: 'Log out' },
+    nav: { overview: 'Overview', tables: 'Table setup', checkout: 'Checkout requests', printAssistant: 'Print assistant', menu: 'Menu', buffet: 'Buffet pricing', orders: 'Paid orders', settings: 'Settings', abnormalOps: 'Abnormal ops', valueAnalytics: 'Value analytics', viewKitchen: 'Open kitchen display', viewWaiter: 'Waiter board', logout: 'Log out' },
     buffetAdmin: {
       title: 'Buffet / per-person cover',
       subtitle: 'Buffet products, time slots, price grid, and special dates; floor board uses Lisbon date and time.',
@@ -1863,7 +1854,7 @@ export const MESSAGES = {
     bill: { guest: 'Guest', actionFailed: 'Action failed, please retry', notified: 'Staff has been notified', comingSoon: 'Please wait, staff will assist checkout soon', feedbackTitle: 'How was each dish?', feedbackHint: 'Takes about 10 seconds, optional', feedbackSkip: 'Skip', feedbackSubmit: 'Submit feedback', feedbackThanks: 'Thanks, your feedback helps us improve', thumbsUp: 'Like', thumbsDown: 'Dislike', reasonTaste: 'Taste issue', reasonTemp: 'Temperature issue', reasonSlow: 'Too slow', reasonMismatch: 'Not as described', reasonOther: 'Other', cancelledTag: 'Cancelled', noFeedbackItems: 'No reviewable dishes this time', totalLabel: 'Total', table: 'Table', settlement: 'Bill Settlement', details: 'Bill Details', total: 'Total', splitMode: 'Split mode', even: 'Even', byItem: 'By item', custom: 'Custom', people: 'People', addPerson: 'Add person', splitResult: 'Split result', callBill: 'Call for bill', splitUnassignedItems: 'Some dishes are not assigned — finish splitting before calling for the bill', splitAmountMismatch: 'Split amounts do not match the total — adjust before calling for the bill', nifLabel: 'NIF (optional)', nifPlaceholder: '123 456 789', nifHint: 'For invoice — Portuguese tax ID (9 digits)', nifInvalid: 'Invalid NIF — check the 9 digits', itemPending: 'Pending', itemCooking: 'Preparing', itemDone: 'Served', buffetGuestCounts: '{adults} adults · {children} children' },
   },
   pt: {
-    nav: { overview: 'Visao geral', tables: 'Config. mesas', unpaidOrders: 'Pedidos ativos', checkout: 'Solicitacoes de fechamento', printAssistant: 'Assistente de impressao', menu: 'Gestao do menu', buffet: 'Precos buffet', orders: 'Pedidos pagos', settings: 'Configuracoes', abnormalOps: 'Operacoes anormais', valueAnalytics: 'Analise de valor', viewKitchen: 'Abrir tela da cozinha', viewWaiter: 'Painel do garcom', logout: 'Sair' },
+    nav: { overview: 'Visao geral', tables: 'Config. mesas', checkout: 'Solicitacoes de fechamento', printAssistant: 'Assistente de impressao', menu: 'Gestao do menu', buffet: 'Precos buffet', orders: 'Pedidos pagos', settings: 'Configuracoes', abnormalOps: 'Operacoes anormais', valueAnalytics: 'Analise de valor', viewKitchen: 'Abrir tela da cozinha', viewWaiter: 'Painel do garcom', logout: 'Sair' },
     buffetAdmin: {
       title: 'Buffet / taxa por pessoa',
       subtitle: 'Produtos buffet, horarios, grelha de precos e datas especiais; garcom usa data/hora de Lisboa.',

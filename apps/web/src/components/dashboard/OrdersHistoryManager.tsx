@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Order } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
@@ -12,15 +11,8 @@ import type { MultiValue, StylesConfig } from 'react-select';
 import 'react-day-picker/dist/style.css';
 import {
   mergeTablesWithOrderHistory,
-  compareRestaurantTables,
-  tableIdsEqual,
   type RestaurantTableRow,
 } from '@/lib/restaurant-tables';
-import { showToast } from '@/components/ui/Toast';
-import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
-import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
-import { createClient } from '@/lib/supabase/client';
 import {
   buildOrderListDisplayChips,
   countOrderListItems,
@@ -28,15 +20,11 @@ import {
   orderListGuestLabelsFromLang,
   type OrderListDisplayChip,
 } from '@/lib/order-list-display';
-import { isTableCheckoutRequested } from '@/lib/table-checkout-pending';
-import { useCheckoutRequestedTableIds } from '@/lib/useCheckoutRequestedTableIds';
+
 interface Props {
   initialOrders: Order[];
   tables?: RestaurantTableRow[];
-  showCloseTable?: boolean;
-  restaurantId?: string;
-  initialCheckoutRequestedTableIds?: string[];
-  openedByNameBySessionId?: Record<string, string>;
+  pageTitle?: string;
 }
 
 interface TableOption {
@@ -44,184 +32,23 @@ interface TableOption {
   label: string;
 }
 
-type ActiveSessionRow = {
-  id: string;
-  table_id: string;
-  display_name: string;
-};
-
 const META_SEP = <span className="text-brand-text-muted/50" aria-hidden>·</span>;
 const ORDER_CARD_CLASS = 'bg-brand-card border border-brand-border rounded-xl px-4 py-3';
 
-export function OrdersHistoryManager({
-  initialOrders,
-  tables = [],
-  showCloseTable = false,
-  restaurantId,
-  initialCheckoutRequestedTableIds = [],
-  openedByNameBySessionId = {},
-}: Props) {
-  const router = useRouter();
+export function OrdersHistoryManager({ initialOrders, tables = [], pageTitle }: Props) {
   const { lang } = useLanguage();
   const i18n = getMessages(lang).orderHistory;
-  const tablesI18n = getMessages(lang).tables;
+  const nav = getMessages(lang).nav;
   const locale = UI_LOCALE_BY_LANG[lang];
-  const supabase = createClient();
   const [orders, setOrders] = useState(initialOrders);
-  const [activeSessions, setActiveSessions] = useState<ActiveSessionRow[]>([]);
-  const [operationType, setOperationType] = useState<'transfer' | 'merge' | null>(null);
-  const [sourceTableId, setSourceTableId] = useState<string | null>(null);
-  const [mergeSourceTableIds, setMergeSourceTableIds] = useState<string[]>([]);
-  const [targetTableId, setTargetTableId] = useState<string | null>(null);
-  const [sessionOperating, setSessionOperating] = useState(false);
   const [selectedTables, setSelectedTables] = useState<TableOption[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [pickerOpen, setPickerOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement | null>(null);
-  const checkoutRequestedTableIds = useCheckoutRequestedTableIds(
-    restaurantId,
-    showCloseTable,
-    initialCheckoutRequestedTableIds,
-  );
-
-  const notifyCheckoutLocked = () => {
-    showToast(i18n.checkoutLockedHint, 'info');
-  };
 
   useEffect(() => {
     setOrders(initialOrders);
   }, [initialOrders]);
-
-  const tableById = useMemo(
-    () => new Map(tables.map((row) => [row.id, row])),
-    [tables],
-  );
-
-  const loadActiveSessions = useCallback(async () => {
-    if (!showCloseTable || !restaurantId) return;
-    const { data: sessions } = await supabase
-      .from('table_sessions')
-      .select('id, table_id')
-      .eq('restaurant_id', restaurantId)
-      .in('status', ['open', 'billing']);
-
-    const rows = (sessions || []) as Omit<ActiveSessionRow, 'display_name'>[];
-    setActiveSessions(
-      rows.map((session) => ({
-        ...session,
-        display_name: tableById.get(session.table_id)?.display_name ?? session.table_id.slice(0, 8),
-      })),
-    );
-  }, [restaurantId, showCloseTable, supabase, tableById]);
-
-  useEffect(() => {
-    void loadActiveSessions();
-  }, [loadActiveSessions]);
-
-  const openSessionOperation = (type: 'transfer' | 'merge', tableId: string) => {
-    if (isTableCheckoutRequested(tableId, checkoutRequestedTableIds)) {
-      notifyCheckoutLocked();
-      return;
-    }
-    setOperationType(type);
-    setSourceTableId(tableId);
-    setMergeSourceTableIds(type === 'merge' ? [tableId] : []);
-    setTargetTableId(null);
-  };
-
-  const closeSessionOperation = () => {
-    setOperationType(null);
-    setSourceTableId(null);
-    setMergeSourceTableIds([]);
-    setTargetTableId(null);
-    setSessionOperating(false);
-  };
-
-  const handleSubmitSessionOperation = async () => {
-    if (!restaurantId || !operationType || !targetTableId) return;
-
-    const selectedSources =
-      operationType === 'merge'
-        ? mergeSourceTableIds
-        : sourceTableId
-          ? [sourceTableId]
-          : [];
-    if (selectedSources.length === 0) {
-      showToast(operationType === 'merge' ? tablesI18n.mergeAtLeastTwo : tablesI18n.sameTableError, 'error');
-      return;
-    }
-
-    if (operationType === 'transfer' && tableIdsEqual(sourceTableId, targetTableId)) {
-      showToast(tablesI18n.sameTableError, 'error');
-      return;
-    }
-
-    if (selectedSources.some((tableId) => isTableCheckoutRequested(tableId, checkoutRequestedTableIds))) {
-      notifyCheckoutLocked();
-      return;
-    }
-    if (isTableCheckoutRequested(targetTableId, checkoutRequestedTableIds)) {
-      notifyCheckoutLocked();
-      return;
-    }
-
-    setSessionOperating(true);
-    try {
-      const { error } =
-        operationType === 'transfer'
-          ? await supabase.rpc('transfer_table_session', {
-              p_restaurant_id: restaurantId,
-              p_from_table_id: selectedSources[0],
-              p_to_table_id: targetTableId,
-            })
-          : await supabase.rpc('merge_multiple_table_sessions', {
-              p_restaurant_id: restaurantId,
-              p_source_table_ids: selectedSources,
-              p_target_table_id: targetTableId,
-            });
-
-      if (error) {
-        if ((error.message || '').toLowerCase().includes('active session')) {
-          showToast(tablesI18n.sessionConflict, 'error');
-        } else {
-          showToast(tablesI18n.operationFailed, 'error');
-        }
-        return;
-      }
-
-      await loadActiveSessions();
-      showToast(tablesI18n.operationSuccess, 'success');
-      closeSessionOperation();
-      router.refresh();
-    } catch {
-      showToast(tablesI18n.operationFailed, 'error');
-    } finally {
-      setSessionOperating(false);
-    }
-  };
-
-  const occupiedTableIds = new Set(activeSessions.map((s) => s.table_id));
-  const transferTargets = tables
-    .filter(
-      (row) =>
-        (!sourceTableId || !tableIdsEqual(row.id, sourceTableId)) &&
-        !occupiedTableIds.has(row.id),
-    )
-    .sort(compareRestaurantTables);
-  const mergeTargets = activeSessions
-    .filter((s) => !mergeSourceTableIds.includes(s.table_id))
-    .map((s) => tableById.get(s.table_id))
-    .filter((row): row is RestaurantTableRow => !!row)
-    .sort(compareRestaurantTables);
-  const sessionOperationTargets = operationType === 'transfer' ? transferTargets : mergeTargets;
-  const maxMergeSourceCount = Math.max(0, activeSessions.length - 1);
-
-  useEffect(() => {
-    if (operationType !== 'merge' || !targetTableId) return;
-    if (mergeSourceTableIds.includes(targetTableId)) {
-      setTargetTableId(null);
-    }
-  }, [operationType, targetTableId, mergeSourceTableIds]);
 
   const tableOptions = useMemo<TableOption[]>(
     () =>
@@ -283,7 +110,7 @@ export function OrdersHistoryManager({
 
   const filteredOrders = useMemo(() => {
     const selectedTableIds = new Set(selectedTables.map((item) => item.value));
-    return orders.filter(order => {
+    return orders.filter((order) => {
       if (selectedTableIds.size > 0 && !selectedTableIds.has(order.table_id)) return false;
 
       if (dateRange?.from) {
@@ -303,31 +130,6 @@ export function OrdersHistoryManager({
       return true;
     });
   }, [orders, selectedTables, dateRange]);
-
-  const sessionTableIdById = useMemo(
-    () => new Map(activeSessions.map((s) => [s.id, s.table_id])),
-    [activeSessions],
-  );
-
-  const tableGroups = useMemo(() => {
-    if (!showCloseTable) return null;
-    const map = new Map<string, { displayName: string; tableId: string; orders: Order[] }>();
-    for (const order of filteredOrders) {
-      const sessionId = order.session_id;
-      if (!sessionId) continue;
-      const tableId = sessionTableIdById.get(sessionId) ?? order.table_id;
-      const displayName = tableById.get(tableId)?.display_name ?? order.display_name;
-      const entry = map.get(sessionId);
-      if (entry) entry.orders.push(order);
-      else map.set(sessionId, { displayName, tableId, orders: [order] });
-    }
-    return Array.from(map.entries()).sort(([, a], [, b]) =>
-      compareRestaurantTables(
-        tableById.get(a.tableId) ?? { sort_order: 0, display_name: a.displayName },
-        tableById.get(b.tableId) ?? { sort_order: 0, display_name: b.displayName },
-      ),
-    );
-  }, [filteredOrders, showCloseTable, sessionTableIdById, tableById]);
 
   const latestOrderTime = (sourceOrders: Order[]) =>
     new Date(
@@ -457,85 +259,6 @@ export function OrdersHistoryManager({
     </button>
   );
 
-  const renderTableCard = ([sessionId, group]: [string, { displayName: string; tableId: string; orders: Order[] }]) => {
-    const { tableId, displayName, orders: groupOrders } = group;
-    const totalAmount = groupOrders.reduce((sum, order) => sum + order.total_amount, 0);
-    const chips = buildOrderListDisplayChips(groupOrders, buffetGuestLabels);
-    const isCheckoutPending = isTableCheckoutRequested(tableId, checkoutRequestedTableIds);
-    const checkoutLockedClass = isCheckoutPending ? 'opacity-50 cursor-not-allowed' : '';
-    const openerLabel = openedByNameBySessionId[sessionId] ?? null;
-
-    return (
-      <div key={sessionId} className={ORDER_CARD_CLASS}>
-        {isCheckoutPending ? (
-          <div
-            role="status"
-            className="mb-3 rounded-xl border border-amber-500/45 bg-amber-500/12 px-3 py-2.5"
-          >
-            <p className="text-[13px] font-medium text-amber-950/95 dark:text-amber-100/95 leading-snug">
-              {i18n.checkoutPendingBanner}
-            </p>
-          </div>
-        ) : null}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">
-          <span className="font-medium text-brand-text">
-            {i18n.table} {displayName}
-          </span>
-          {openerLabel ? (
-            <>
-              {META_SEP}
-              <span className="text-brand-text-muted">
-                {i18n.openedBy.replace('{name}', openerLabel)}
-              </span>
-            </>
-          ) : null}
-          {groupOrders.length > 1 ? (
-            <>
-              {META_SEP}
-              <span className="text-brand-text-muted">
-                {i18n.batchesCount.replace('{n}', String(groupOrders.length))}
-              </span>
-            </>
-          ) : null}
-          {META_SEP}
-          <span className="text-brand-text-muted">
-            {i18n.latestOrder.replace('{time}', latestOrderTime(groupOrders))}
-          </span>
-          {META_SEP}
-          <span className="text-brand-text-muted">
-            {countOrderListItems(groupOrders)} {i18n.items}
-          </span>
-          {META_SEP}
-          {renderMetaAmount(totalAmount)}
-          {renderPrintButton(() => handlePrintOrders(groupOrders, displayName))}
-          <div className="flex-1 min-w-[8px]" />
-          <button
-            type="button"
-            onClick={() => openSessionOperation('transfer', tableId)}
-            className={`text-sm px-3 py-1.5 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/50 transition-colors ${checkoutLockedClass}`}
-          >
-            {tablesI18n.transferAction}
-          </button>
-          <button
-            type="button"
-            onClick={() => openSessionOperation('merge', tableId)}
-            className={`text-sm px-3 py-1.5 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/50 transition-colors ${checkoutLockedClass}`}
-          >
-            {tablesI18n.mergeAction}
-          </button>
-          <CloseTableSessionAction
-            tableId={tableId}
-            isCheckoutPending={isTableCheckoutRequested(tableId, checkoutRequestedTableIds)}
-            onClosed={() => {
-              void loadActiveSessions();
-            }}
-          />
-        </div>
-        {renderItemChips(chips)}
-      </div>
-    );
-  };
-
   const renderHistoryOrderCard = (order: Order) =>
     renderListCard(
       order.id,
@@ -558,6 +281,10 @@ export function OrdersHistoryManager({
 
   return (
     <div>
+      <div className="mb-6">
+        <h1 className="font-heading text-3xl text-brand-text">{pageTitle ?? nav.orders}</h1>
+      </div>
+
       <div className="bg-brand-card border border-brand-border rounded-xl p-4 mb-4 grid gap-3 md:grid-cols-2">
         <Select<TableOption, true>
           isMulti
@@ -616,117 +343,11 @@ export function OrdersHistoryManager({
         <div className="bg-brand-card border border-brand-border rounded-2xl p-12 text-center">
           <p className="text-brand-text-muted">{i18n.empty}</p>
         </div>
-      ) : tableGroups ? (
-        <div className="space-y-3">
-          {tableGroups.map(renderTableCard)}
-        </div>
       ) : (
         <div className="space-y-3">
           {filteredOrders.map(renderHistoryOrderCard)}
         </div>
       )}
-      {showCloseTable && restaurantId ? (
-        <Modal
-          open={!!operationType}
-          onClose={closeSessionOperation}
-          title={operationType === 'transfer' ? tablesI18n.transferTitle : tablesI18n.mergeTitle}
-          size="sm"
-        >
-          <p className="text-[13px] text-brand-text-muted mb-4">
-            {operationType === 'transfer' ? tablesI18n.transferHint : tablesI18n.mergeHint}
-          </p>
-          <div className="space-y-3">
-            <div>
-              <label className="text-[13px] text-brand-text-muted block mb-1.5">
-                {operationType === 'merge' ? tablesI18n.sourceTables : tablesI18n.sourceTable}
-              </label>
-              {operationType === 'merge' ? (
-                <div className="modal-scroll rounded-lg border border-brand-border bg-brand-bg p-2 max-h-40 overflow-y-auto space-y-1.5">
-                  {activeSessions.map((session) => {
-                    const checked = mergeSourceTableIds.includes(session.table_id);
-                    const checkoutLocked = isTableCheckoutRequested(session.table_id, checkoutRequestedTableIds);
-                    const atMaxSources = !checked && mergeSourceTableIds.length >= maxMergeSourceCount;
-                    const disabled = atMaxSources || checkoutLocked;
-                    return (
-                      <label
-                        key={session.id}
-                        className={`flex items-center gap-2 text-sm ${disabled ? 'text-brand-text-muted' : 'text-brand-text'}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          disabled={disabled}
-                          onChange={(e) => {
-                            const tableId = session.table_id;
-                            if (checkoutLocked) {
-                              notifyCheckoutLocked();
-                              return;
-                            }
-                            if (!e.target.checked) {
-                              setMergeSourceTableIds((prev) => prev.filter((id) => id !== tableId));
-                              return;
-                            }
-                            setMergeSourceTableIds((prev) =>
-                              [...prev, tableId].sort((a, b) => {
-                                const ta = tableById.get(a);
-                                const tb = tableById.get(b);
-                                if (ta && tb) return compareRestaurantTables(ta, tb);
-                                return a.localeCompare(b);
-                              }),
-                            );
-                          }}
-                          className="accent-brand-gold disabled:opacity-50"
-                        />
-                        {tablesI18n.table} {session.display_name}
-                      </label>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-sm text-brand-text">
-                  {tablesI18n.table} {tableById.get(sourceTableId ?? '')?.display_name ?? '—'}
-                </p>
-              )}
-              {operationType === 'merge' && (
-                <p className="mt-1.5 text-[13px] text-brand-text-muted">
-                  {tablesI18n.selectedCount}: {mergeSourceTableIds.length}
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="text-[13px] text-brand-text-muted block mb-1.5">{tablesI18n.targetTable}</label>
-              <select
-                value={targetTableId ?? ''}
-                onChange={(e) => setTargetTableId(e.target.value || null)}
-                className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
-              >
-                <option value="">--</option>
-                {sessionOperationTargets.map((row) => (
-                  <option key={row.id} value={row.id}>
-                    {tablesI18n.table} {row.display_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <Button variant="outline" onClick={closeSessionOperation}>{getMessages(lang).menuManager.cancel}</Button>
-            <Button
-              onClick={() => void handleSubmitSessionOperation()}
-              loading={sessionOperating}
-              disabled={
-                operationType === 'merge'
-                  ? mergeSourceTableIds.length === 0 || !targetTableId
-                  : !sourceTableId || !targetTableId
-              }
-            >
-              {operationType === 'transfer'
-                ? (sessionOperating ? tablesI18n.transferring : tablesI18n.confirmTransfer)
-                : (sessionOperating ? tablesI18n.merging : tablesI18n.confirmMerge)}
-            </Button>
-          </div>
-        </Modal>
-      ) : null}
     </div>
   );
 }

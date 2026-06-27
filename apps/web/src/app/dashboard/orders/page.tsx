@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import type { Order } from '@/types';
-import { OrdersPageClient } from '@/components/dashboard/OrdersPageClient';
+import { OrdersHistoryManager } from '@/components/dashboard/OrdersHistoryManager';
 import { loadFrontdeskDashboardTables } from '@/lib/dashboard-tables';
 
 export default async function OrdersPage() {
@@ -26,10 +26,9 @@ export default async function OrdersPage() {
   );
 
   return (
-    <OrdersPageClient
-      orders={historicalOrders as Order[]}
+    <OrdersHistoryManager
+      initialOrders={historicalOrders as Order[]}
       tables={loaded.tables}
-      headingNavKey="orders"
     />
   );
 }

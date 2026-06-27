@@ -19,7 +19,6 @@ export type DashboardNavItemKey =
   | 'abnormalOps'
   | 'settings'
   | 'checkout'
-  | 'unpaidOrders'
   | 'orders'
   | 'tables'
   | 'menu';
@@ -85,13 +84,6 @@ export const DASHBOARD_NAV_ITEMS: Record<string, DashboardNavItemDef> = {
     checkoutBadge: true,
     featureId: 'checkout',
   },
-  unpaidOrders: {
-    id: 'unpaidOrders',
-    href: '/dashboard/unpaid-orders',
-    key: 'unpaidOrders',
-    icon: '🧾',
-    featureId: 'unpaid-orders',
-  },
   orders: {
     id: 'orders',
     href: '/dashboard/orders',
@@ -124,7 +116,6 @@ export const OWNER_NAV_ITEM_IDS = [
 
 export const FRONTDESK_NAV_ITEM_IDS = [
   'checkout',
-  'unpaidOrders',
   'orders',
   'overview',
   'tables',
@@ -225,14 +216,6 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
     writePattern: 'server-api-partial',
     aliases: ['/api/restaurants/[slug]/checkout/confirm-payment', '/api/dashboard/close-table-session'],
     riskNote: 'Page read uses client bill_splits RLS; confirm-payment allows cashier/waiter/frontdesk + owner.',
-  },
-  {
-    id: 'unpaid-orders',
-    path: '/dashboard/unpaid-orders',
-    navRoles: ['frontdesk'],
-    pageLoader: 'loadFrontdeskDashboardTables',
-    writePattern: 'server-api-partial',
-    riskNote: 'Session transfer/merge in OrdersHistoryManager uses SECURITY DEFINER RPC (no role check).',
   },
   {
     id: 'orders',

@@ -89,6 +89,7 @@
       <p id="finishHint" style="color:#9aa5b1;font-size:12px;margin-top:10px">以后修改映射：托盘 → 打印机设置，或 MesaPrintAgent.exe configure</p>
     </div>
   </div>
+  <script src="/wizard-ui-shared.js"></script>
   <script>
     (function () {
       var err = document.getElementById('err');
@@ -102,6 +103,11 @@
       var saved = { station_printers: {} };
       var lastSavedMaps = {};
       var testConfirmed = false;
+      var savedMappingEmpty = false;
+
+      function setTestBlockVisible(show) {
+        MesaWizardUI.setTestBlockVisible(show);
+      }
       var ui = {};
       var printerScanInFlight = false;
       var pageLoadGen = 0;
@@ -110,23 +116,7 @@
       var uiBusy = false;
 
       function t(key) { return (ui && ui[key]) ? ui[key] : key; }
-      function fmt(key, value) { return t(key).replace('%s', value); }
-      function fmt2(key, a, b) {
-        var s = t(key);
-        s = s.replace('%s', a);
-        s = s.replace('%s', b);
-        return s;
-      }
-      function formatSaveError(j) {
-        if (j && j.error_code === 'station_mapping_conflict' && Array.isArray(j.conflicts) && j.conflicts.length) {
-          var lines = j.conflicts.map(function (c) {
-            var dev = (c.other_device_label && String(c.other_device_label).trim()) || String(c.other_device_id || '').slice(0, 8);
-            return fmt2('save_station_conflict_line', c.station_label || c.station_id || '?', dev);
-          });
-          return t('save_station_conflict_title') + '\n' + lines.join('\n');
-        }
-        return (j && j.error) || t('save_failed');
-      }
+      function fmt(key, value) { return MesaWizardUI.fmt(ui, key, value); }
       function fmtCount(key, value) { return t(key).replace('%d', String(value)); }
       function testPhrase() { return ui.test_print_phrase || '打印测试'; }
       function queryLocale() {
@@ -511,33 +501,27 @@
       document.getElementById('saveBtn').addEventListener('click', function () {
         if (uiBusy || printerScanInFlight) return;
         err.textContent = '';
-        var station_printers = {};
-        document.querySelectorAll('.station-row').forEach(function (row) {
-          var sid = row.dataset.stationId;
-          var addr = row.querySelector('.station-printer').value;
-          if (sid) draftMappings[sid] = addr;
-          if (sid && addr) station_printers[sid] = addr;
-        });
-        if (!Object.keys(station_printers).length) {
-          err.textContent = t('save_need_mapping');
-          return;
-        }
+        var station_printers = MesaWizardUI.collectFromRows(document, { draft: draftMappings });
         uiBusy = true;
         updateActionButtons();
-        fetch('/api/setup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ station_printers: station_printers })
-        }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        MesaWizardUI.postSetup(station_printers)
           .then(function (res) {
-            if (!res.ok) { err.textContent = formatSaveError(res.j); return; }
+            if (!res.ok) { err.textContent = MesaWizardUI.formatSaveError(ui, res.j); return; }
             saved.station_printers = res.j.station_printers || station_printers;
             seedDraftFromSaved();
             lastSavedMaps = station_printers;
+            savedMappingEmpty = MesaWizardUI.isMappingCleared(station_printers);
             testConfirmed = false;
             document.getElementById('formWrap').classList.add('hidden');
             document.getElementById('ok').style.display = 'block';
-            fillTestStationSelect(lastSavedMaps);
+            if (savedMappingEmpty) {
+              document.getElementById('okSub').textContent = MesaWizardUI.saveOkMessage(ui, station_printers);
+              setTestBlockVisible(false);
+            } else {
+              document.getElementById('okSub').textContent = t('test_section_hint').replace('%s', testPhrase());
+              setTestBlockVisible(true);
+              fillTestStationSelect(lastSavedMaps);
+            }
           }).catch(function () { err.textContent = t('pair_service_unreachable'); })
           .finally(function () {
             uiBusy = false;
@@ -583,7 +567,7 @@
         document.getElementById('testTroubleshoot').classList.remove('hidden');
       });
       document.getElementById('finishBtn').addEventListener('click', function () {
-        if (!testConfirmed && !confirm(t('close_unconfirmed'))) return;
+        if (!savedMappingEmpty && !testConfirmed && !confirm(t('close_unconfirmed'))) return;
         fetch('/api/setup-done', { method: 'POST' }).finally(function () { window.close(); });
       });
 

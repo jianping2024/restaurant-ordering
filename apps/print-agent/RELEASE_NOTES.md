@@ -2,6 +2,15 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.28
+
+**支持清除全部档口映射**
+
+- 打印机设置中可将所有出品档口置空后保存，**解除本机全部打印职责**（本机不再接收任何打印任务）。
+- 清空映射**仅影响当前这台 Agent** 的云端 `routing_snapshot`，**不会覆盖或删除其他 Agent** 已占用的档口。
+- 保存流程仍为先同步 MesaGo、成功后再写本地配置；试打仍须先选择档口打印机。
+- 配置/setup 向导共用 `wizard_ui_shared.js`，减少重复逻辑。
+
 ## 0.3.27
 
 **多代理打印隔离（需 MesaGo Web 与 Print Agent 同时升级）**

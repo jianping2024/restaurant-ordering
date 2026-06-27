@@ -39,10 +39,16 @@ func persistStationPrinterSetup(
 		return http.StatusInternalServerError, map[string]any{"error": err.Error()}
 	}
 	*cfg = c
-	agentLog(c, "log_station_maps_saved", len(cleaned))
+	cleared := len(cleaned) == 0
+	if cleared {
+		agentLog(c, "log_station_maps_cleared")
+	} else {
+		agentLog(c, "log_station_maps_saved", len(cleaned))
+	}
 	return http.StatusOK, map[string]any{
 		"status":           "ok",
 		"station_printers": c.StationPrinters,
 		"routing_sync":     "ok",
+		"mapping_cleared":  cleared,
 	}
 }

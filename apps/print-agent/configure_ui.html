@@ -92,6 +92,7 @@
       <pre class="debug-pre hidden" id="debugPre"></pre>
     </div>
   </div>
+  <script src="/wizard-ui-shared.js"></script>
   <script>
     (function () {
       var state = { paired: false, station_printers: {}, api_base: '' };
@@ -209,23 +210,7 @@
       }
 
       function t(key) { return (ui && ui[key]) ? ui[key] : key; }
-      function fmt(key, val) { return t(key).replace('%s', val); }
-      function fmt2(key, a, b) {
-        var s = t(key);
-        s = s.replace('%s', a);
-        s = s.replace('%s', b);
-        return s;
-      }
-      function formatSaveError(j) {
-        if (j && j.error_code === 'station_mapping_conflict' && Array.isArray(j.conflicts) && j.conflicts.length) {
-          var lines = j.conflicts.map(function (c) {
-            var dev = (c.other_device_label && String(c.other_device_label).trim()) || String(c.other_device_id || '').slice(0, 8);
-            return fmt2('save_station_conflict_line', c.station_label || c.station_id || '?', dev);
-          });
-          return t('save_station_conflict_title') + '\n' + lines.join('\n');
-        }
-        return (j && j.error) || t('save_failed');
-      }
+      function fmt(key, val) { return MesaWizardUI.fmt(ui, key, val); }
       function fmtCount(key, n) { return t(key).replace('%d', String(n)); }
 
       function escapeHtml(s) {
@@ -540,15 +525,7 @@
       }
 
       function collectMappings() {
-        var out = {};
-        document.querySelectorAll('.station-printer').forEach(function (sel) {
-          var row = sel.closest('.station-row');
-          if (!row) return;
-          var sid = row.dataset.stationId;
-          if (sid) draftMappings[sid] = sel.value;
-          if (sid && sel.value) out[sid] = sel.value;
-        });
-        return out;
+        return MesaWizardUI.collectFromRows(document, { draft: draftMappings });
       }
 
       function refreshTestSelect() {
@@ -802,26 +779,17 @@
         err.textContent = '';
         ok.textContent = '';
         var maps = collectMappings();
-        if (!Object.keys(maps).length) {
-          err.textContent = t('save_need_mapping');
-          return;
-        }
         document.getElementById('saveBtn').disabled = true;
-        fetch('/api/setup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ station_printers: maps })
-        })
-          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        MesaWizardUI.postSetup(maps)
           .then(function (res) {
             if (!res.ok) {
-              err.textContent = formatSaveError(res.j);
+              err.textContent = MesaWizardUI.formatSaveError(ui, res.j);
               return;
             }
             state.station_printers = res.j.station_printers || maps;
             state.station_count = Object.keys(state.station_printers || {}).length;
             seedDraft();
-            ok.textContent = t('save_ok');
+            ok.textContent = MesaWizardUI.saveOkMessage(ui, maps);
             renderStatus();
             refreshTestSelect();
           })

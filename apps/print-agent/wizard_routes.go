@@ -168,6 +168,8 @@ func applyPrinterSetup(cfg *config, body setupRequestBody) (map[string]string, e
 }
 
 func registerPrinterWizardRoutes(mux *http.ServeMux, configPath string, cfg **config, logPrefix string) {
+	registerWizardUISharedRoute(mux)
+
 	mux.HandleFunc("/api/printers", func(w http.ResponseWriter, r *http.Request) {
 		tcp, win, err := discoverPrintersForAPI(printersAPIForceRefresh(r))
 		if err != nil && len(tcp) == 0 && len(win) == 0 {

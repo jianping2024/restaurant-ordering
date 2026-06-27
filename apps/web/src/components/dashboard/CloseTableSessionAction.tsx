@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
@@ -17,6 +17,7 @@ interface Props {
   onClosed?: () => void;
   className?: string;
   disabled?: boolean;
+  leadingIcon?: ReactNode;
 }
 
 export function CloseTableSessionAction({
@@ -25,6 +26,7 @@ export function CloseTableSessionAction({
   onClosed,
   className = 'text-sm px-3 py-1.5 rounded-lg border border-brand-border text-brand-text hover:border-brand-gold/50 hover:text-brand-gold disabled:opacity-40 disabled:cursor-not-allowed transition-colors',
   disabled = false,
+  leadingIcon,
 }: Props) {
   const router = useRouter();
   const { lang } = useLanguage();
@@ -143,7 +145,10 @@ export function CloseTableSessionAction({
         }}
         className={className}
       >
-        {isClosing ? i18n.closeTableOperating : i18n.closeTable}
+        <span className="inline-flex items-center gap-1.5">
+          {leadingIcon}
+          {isClosing ? i18n.closeTableOperating : i18n.closeTable}
+        </span>
       </button>
       <ConfirmModal
         open={confirmOpen}

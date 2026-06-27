@@ -7,7 +7,6 @@ import type { Buffet, Order } from '@/types';
 import {
   aggregateBuffetForOrders,
   buildBuffetBaseLine,
-  formatBuffetPriceTemplate,
   isBuffetGuestCountsUnchanged,
   parseResolvedBuffetPriceRpcRow,
   resolveBuffetOpenPricePreview,
@@ -19,12 +18,11 @@ import {
 } from '@/lib/buffet-open-table';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
 import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import { WaiterTableDetailHeader } from '@/components/waiter/WaiterTableDetailHeader';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { VoidItemReasonDialog } from '@/lib/order-item-void/VoidItemReasonDialog';
-import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { showToast } from '@/components/ui/Toast';
 import { coerceCartQty } from '@/lib/cart-totals';
 import { applyOrderItemDecrement } from '@/lib/order-item-void/decrement-order-item';
@@ -37,7 +35,6 @@ import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
-import { WaiterOrderQtyMinus } from '@/components/waiter/WaiterOrderQtyMinus';
 import { postWaiterDecrementOrderItemClient } from '@/lib/waiter-decrement-order-item-client';
 import { fetchWaiterTableActionTargetsClient, postWaiterBuffetOpenClient } from '@/lib/staff-board-client';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
@@ -45,7 +42,13 @@ import { waiterBoardHref, waiterTableHref, waiterMenuHref } from '@/lib/staff-ro
 import { requestDashboardCheckoutRequest } from '@/lib/request-dashboard-checkout-request';
 import type { WaiterTableDetailData } from '@/lib/staff-board';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
-import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
+import {
+  WaiterCheckoutPendingBanner,
+  WaiterTableBuffetPanel,
+  WaiterTableOccupiedToolbar,
+  WaiterTableOrderedItemsPanel,
+} from '@/components/waiter/WaiterTableDetailLayout';
+import { resolveWaiterTableDetailActions } from '@/lib/waiter-table-detail-actions';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -245,8 +248,6 @@ function WaiterTableDetailInner({
   const notifyCheckoutLocked = useCallback(() => {
     showToast(t.checkoutLockedHint, 'info');
   }, [t.checkoutLockedHint]);
-
-  const checkoutLockedClass = isCheckoutPending ? 'opacity-50 cursor-not-allowed' : '';
 
   const currentTableDetail = useCallback(
     (): WaiterTableDetailData => ({
@@ -478,36 +479,28 @@ function WaiterTableDetailInner({
     [t],
   );
 
+  const detailHeading = (tableLabel: string) => `${t.detailsTitle} · ${t.table} ${tableLabel}`;
+
   if (!isDemo && !detailLoaded) {
     return (
       <div className={pageShellClass}>
-        <div className="mb-6">
-          <Link href={boardHref} className={waiterUi.navLink}>
-            ← {t.backToBoard}
-          </Link>
-          {embeddedInDashboard ? (
-            <h1 className="font-heading text-2xl text-brand-gold mt-2">
-              {t.detailsTitle} · {t.table} …
-            </h1>
-          ) : null}
+        <WaiterTableDetailHeader
+          boardHref={boardHref}
+          backLabel={t.backToBoard}
+          heading={detailHeading('…')}
+          embeddedInDashboard={embeddedInDashboard}
+          exitLabel={exitLabel}
+          onSignOut={handleSignOut}
+        />
+        <div
+          className={`${waiterUi.cardSurface} p-6 animate-pulse`}
+          aria-busy="true"
+          aria-label={t.tableDetailLoading}
+        >
+          <div className="h-5 w-48 rounded bg-brand-border/60 mb-4" />
+          <div className="h-24 rounded bg-brand-border/40" />
         </div>
-        {embeddedInDashboard ? (
-          <p className="text-sm text-brand-text-muted" aria-busy="true">
-            {t.tableDetailLoading}
-          </p>
-        ) : (
-          <>
-            <div
-              className="rounded-2xl border border-brand-border/50 bg-brand-card/70 p-6 animate-pulse"
-              aria-busy="true"
-              aria-label={t.tableDetailLoading}
-            >
-              <div className="h-5 w-48 rounded bg-brand-border/60 mb-4" />
-              <div className="h-24 rounded bg-brand-border/40" />
-            </div>
-            <p className="text-sm text-brand-text-muted mt-3">{t.tableDetailLoading}</p>
-          </>
-        )}
+        <p className="text-sm text-brand-text-muted mt-3">{t.tableDetailLoading}</p>
       </div>
     );
   }
@@ -515,18 +508,17 @@ function WaiterTableDetailInner({
   if (!isDemo && detailLoaded && !selectedTable) {
     return (
       <div className={pageShellClass}>
-        {!embeddedInDashboard ? (
-          <StaffRoleToolbar exitLabel={exitLabel} onSignOut={handleSignOut} />
-        ) : null}
-        <div className="mt-6 rounded-xl border border-brand-border bg-brand-card p-4 text-sm text-brand-text-muted">
+        <WaiterTableDetailHeader
+          boardHref={boardHref}
+          backLabel={t.backToBoard}
+          heading={detailHeading(displayName || '…')}
+          embeddedInDashboard={embeddedInDashboard}
+          exitLabel={exitLabel}
+          onSignOut={handleSignOut}
+        />
+        <div className={`${waiterUi.cardSurface} p-4 text-sm text-brand-text-muted`}>
           {t.noOrdersOnTable}
         </div>
-        <Link
-          href={boardHref}
-          className="mt-4 inline-flex text-sm text-brand-gold hover:text-brand-gold-light"
-        >
-          {t.backToBoard}
-        </Link>
       </div>
     );
   }
@@ -595,9 +587,14 @@ function WaiterTableDetailInner({
     }
   };
 
-  const showFrontdeskCloseTable = embeddedInDashboard;
-  const showFrontdeskCallBill =
-    embeddedInDashboard && !isCheckoutPending && isWaiterTableCardOccupied(selectedCard);
+  const tableOccupied = isWaiterTableCardOccupied(selectedCard);
+  const detailActions = resolveWaiterTableDetailActions({
+    embeddedInDashboard,
+    isDemo,
+    isCheckoutPending,
+    isOccupied: tableOccupied,
+    hasActiveBuffets: activeBuffets.length > 0,
+  });
 
   const applyBuffetToTable = async () => {
     if (!buffetId) return;
@@ -832,233 +829,73 @@ function WaiterTableDetailInner({
         </div>
       )}
 
-      <div className="mb-6">
-        <div className={`flex flex-wrap justify-between items-center gap-2 ${embeddedInDashboard ? '' : 'mb-3'}`}>
-          <Link
-            href={boardHref}
-            className={waiterUi.navLink}
-          >
-            ← {t.backToBoard}
-          </Link>
-          {!embeddedInDashboard ? (
-            <StaffRoleToolbar exitLabel={exitLabel} onSignOut={handleSignOut} className="mb-0" />
-          ) : null}
-        </div>
-        {!embeddedInDashboard ? (
-          <>
-            <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
-            <p className="text-brand-text-muted text-sm mt-1">{t.boardTitle}</p>
-          </>
-        ) : (
-          <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-            <h1 className="font-heading text-2xl text-brand-gold">
-              {t.detailsTitle} · {t.table} {selectedCard.displayName}
-            </h1>
-            <span className="text-[13px] text-brand-text-muted tabular-nums">{tableUpdatedLabel}</span>
-          </div>
-        )}
-      </div>
+      <WaiterTableDetailHeader
+        boardHref={boardHref}
+        backLabel={t.backToBoard}
+        heading={detailHeading(selectedCard.displayName)}
+        updatedAtLabel={tableUpdatedLabel}
+        embeddedInDashboard={embeddedInDashboard}
+        exitLabel={exitLabel}
+        onSignOut={handleSignOut}
+      />
 
-      <div
-        className={
-          embeddedInDashboard
-            ? 'space-y-4'
-            : 'rounded-2xl p-4 border border-brand-border/50 bg-brand-card shadow-sm shadow-black/5'
-        }
-      >
-        {!embeddedInDashboard ? (
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-heading text-2xl text-brand-text">
-              {t.detailsTitle} - {t.table} {selectedCard.displayName}
-            </h2>
-            <span className="text-[13px] text-brand-text-muted tabular-nums">{tableUpdatedLabel}</span>
-          </div>
+      <div className="space-y-4">
+        {isCheckoutPending ? <WaiterCheckoutPendingBanner message={t.checkoutPendingBanner} /> : null}
+
+        {detailActions.showBuffetPanel ? (
+          <WaiterTableBuffetPanel
+            t={t}
+            activeBuffets={activeBuffets}
+            selectedBuffet={selectedBuffet}
+            buffetId={buffetId}
+            onBuffetIdChange={setBuffetId}
+            buffetAdults={buffetAdults}
+            buffetChildren={buffetChildren}
+            onBumpCount={bumpBuffetCount}
+            buffetPriceLoading={buffetPriceLoading}
+            buffetPriceDisplay={buffetPriceDisplay}
+            buffetActionLabel={buffetActionLabel}
+            buffetSubmitting={buffetSubmitting}
+            onSave={() => void applyBuffetToTable()}
+          />
         ) : null}
 
-        {isCheckoutPending && (
-          <div
-            role="status"
-            className="mb-4 rounded-xl border border-amber-500/45 bg-amber-500/12 px-3 py-2.5"
-          >
-            <p className="text-[13px] font-medium text-amber-950/95 dark:text-amber-100/95 leading-snug">
-              {t.checkoutPendingBanner}
-            </p>
-          </div>
-        )}
+        {detailActions.showOccupiedToolbar ? (
+          <WaiterTableOccupiedToolbar
+            t={t}
+            tableId={selectedCard.tableId}
+            menuHref={menuHref}
+            isCheckoutPending={isCheckoutPending}
+            onCheckoutLocked={notifyCheckoutLocked}
+            onTransfer={() => openAction('transfer', selectedCard.tableId)}
+            onMerge={() => openAction('merge', selectedCard.tableId)}
+            showCallBill={detailActions.showCallBill}
+            callingBill={callingBill}
+            onCallBill={() => void handleCallBill()}
+            showCloseTable={detailActions.showCloseTable}
+            isDemo={isDemo}
+            closingDemoTable={closingDemoTable === selectedCard.tableId}
+            onDemoCloseClick={() => {
+              if (isCheckoutPending) {
+                void closeDemoTable(selectedCard.tableId);
+                return;
+              }
+              setDemoCloseConfirmTableId(selectedCard.tableId);
+            }}
+            onTableClosed={() => {
+              void refresh();
+            }}
+          />
+        ) : null}
 
-        {activeBuffets.length > 0 && !isDemo && !isCheckoutPending && (
-          <div className="mb-4 rounded-xl border border-brand-gold/30 bg-brand-gold/8 p-3.5 space-y-3">
-            {activeBuffets.length === 1 ? (
-              <p className="text-[15px] font-medium text-brand-text leading-snug">{selectedBuffet?.name}</p>
-            ) : (
-              <select
-                value={buffetId}
-                onChange={(e) => setBuffetId(e.target.value)}
-                aria-label={t.buffetBlock}
-                className="block w-full rounded-lg bg-brand-bg border border-brand-border px-2.5 py-2 text-[15px] font-medium text-brand-text"
-              >
-                {activeBuffets.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            )}
-
-            {buffetPriceLoading ? (
-              <p className="text-[13px] text-brand-text-muted">{t.buffetPriceLoading}</p>
-            ) : buffetPriceDisplay.ok ? (
-              <p className="text-[13px] leading-snug text-brand-text-muted">
-                {formatBuffetPriceTemplate(t.buffetPriceRatesLine, {
-                  adultPrice: buffetPriceDisplay.adultPrice,
-                  childPrice: buffetPriceDisplay.childPrice,
-                })}
-              </p>
-            ) : (
-              <p className="text-[13px] mesa-text-warning">{t.buffetNoRule}</p>
-            )}
-
-            <div className="flex flex-wrap gap-x-8 gap-y-3">
-              <div className="flex items-center gap-3">
-                <span className="text-[13px] text-brand-text min-w-[2rem]">{t.buffetAdults}</span>
-                <CartQtyStepper
-                  variant="drawer"
-                  qty={buffetAdults}
-                  onDecrement={() => bumpBuffetCount('adults', -1)}
-                  onIncrement={() => bumpBuffetCount('adults', 1)}
-                />
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-[13px] text-brand-text min-w-[2rem]">{t.buffetChildren}</span>
-                <CartQtyStepper
-                  variant="drawer"
-                  qty={buffetChildren}
-                  onDecrement={() => bumpBuffetCount('children', -1)}
-                  onIncrement={() => bumpBuffetCount('children', 1)}
-                />
-              </div>
-            </div>
-
-            {buffetPriceDisplay.ok && (
-              <p className="text-[15px] font-semibold text-brand-text tabular-nums">
-                {formatBuffetPriceTemplate(t.buffetEstimatedTotal, {
-                  total: buffetPriceDisplay.subtotal,
-                })}
-              </p>
-            )}
-
-            <button
-              type="button"
-              onClick={() => void applyBuffetToTable()}
-              disabled={buffetSubmitting || buffetPriceLoading || !buffetPriceDisplay.ok}
-              className={`${waiterUi.btnPrimary} w-full justify-center disabled:opacity-50`}
-            >
-              {buffetSubmitting ? '…' : buffetActionLabel}
-            </button>
-          </div>
-        )}
-
-        {isWaiterTableCardOccupied(selectedCard) && (
-          <>
-            <div className="flex flex-wrap items-center gap-2 mb-3">
-              {selectedCard.hasBuffet && (
-                isCheckoutPending ? (
-                  <button
-                    type="button"
-                    onClick={notifyCheckoutLocked}
-                    className={`${waiterUi.btnPrimary} mr-1 ${checkoutLockedClass}`}
-                  >
-                    + {t.addDish}
-                  </button>
-                ) : (
-                  <Link href={menuHref} className={`${waiterUi.btnPrimary} mr-1`}>
-                    + {t.addDish}
-                  </Link>
-                )
-              )}
-              <button
-                type="button"
-                onClick={() => openAction('transfer', selectedCard.tableId)}
-                className={`${waiterUi.btnSecondary} ${waiterUi.btnWarm} ${checkoutLockedClass}`}
-              >
-                {t.transfer}
-              </button>
-              <button
-                type="button"
-                onClick={() => openAction('merge', selectedCard.tableId)}
-                className={`${waiterUi.btnSecondary} ${waiterUi.btnGhost} ${checkoutLockedClass}`}
-              >
-                {t.merge}
-              </button>
-              {showFrontdeskCallBill ? (
-                <button
-                  type="button"
-                  onClick={() => void handleCallBill()}
-                  disabled={callingBill}
-                  className={`${waiterUi.btnSecondary} ${waiterUi.btnWarm} disabled:opacity-50`}
-                >
-                  {callingBill ? t.callBillOperating : t.callBill}
-                </button>
-              ) : null}
-              {showFrontdeskCloseTable ? (
-                isDemo ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (isCheckoutPending) {
-                        void closeDemoTable(selectedCard.tableId);
-                        return;
-                      }
-                      setDemoCloseConfirmTableId(selectedCard.tableId);
-                    }}
-                    disabled={closingDemoTable === selectedCard.tableId}
-                    className={`${waiterUi.btnSecondary} ${waiterUi.btnDanger} disabled:opacity-50`}
-                  >
-                    {closingDemoTable === selectedCard.tableId ? t.closeTableOperating : t.closeTable}
-                  </button>
-                ) : (
-                  <CloseTableSessionAction
-                    tableId={selectedCard.tableId}
-                    isCheckoutPending={isCheckoutPending}
-                    onClosed={() => {
-                      void refresh();
-                    }}
-                    className={`${waiterUi.btnSecondary} ${waiterUi.btnDanger} disabled:opacity-50`}
-                  />
-                )
-              ) : null}
-            </div>
-
-            {selectedCard.orderLines.length > 0 && (
-              <div className="rounded-lg border border-brand-border/60 p-2.5 space-y-2 mb-3">
-                {selectedCard.orderLines.map((line) => (
-                  <div key={`${line.orderId}-${line.itemIdx}`} className="flex items-center justify-between gap-2">
-                    <p className="text-sm text-brand-text truncate min-w-0 flex-1">
-                      {line.itemCode && (
-                        <span className="font-mono text-[11px] text-brand-gold tabular-nums mr-1">[{line.itemCode}]</span>
-                      )}
-                      {line.label}
-                    </p>
-                    {(line.quantityLabel || line.canDecrement) && (
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {line.quantityLabel && (
-                          <span className="text-sm text-brand-text tabular-nums">{line.quantityLabel}</span>
-                        )}
-                        {line.canDecrement && (
-                          <WaiterOrderQtyMinus
-                            onDecrement={() => void handleDecrementOrderLine(line.orderId, line.itemIdx)}
-                            disabled={isCheckoutPending}
-                            busy={decrementingKey === orderLineKey(line.orderId, line.itemIdx)}
-                          />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
+        <WaiterTableOrderedItemsPanel
+          title={t.orderedItems}
+          lines={selectedCard.orderLines}
+          isCheckoutPending={isCheckoutPending}
+          decrementingKey={decrementingKey}
+          orderLineKey={orderLineKey}
+          onDecrement={(orderId, itemIdx) => void handleDecrementOrderLine(orderId, itemIdx)}
+        />
       </div>
 
       <Modal

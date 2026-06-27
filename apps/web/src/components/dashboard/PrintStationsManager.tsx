@@ -14,8 +14,6 @@ import {
   swapPrintStationOrderClient,
   updatePrintStationClient,
 } from '@/lib/dashboard-menu-client';
-import { SortOrderButtons } from '@/components/dashboard/SortOrderButtons';
-import { compareSortOrderThenCreatedAt, sortBySortOrderThenCreatedAt, swapSortOrderFields } from '@/lib/sort-order';
 
 const SELECT_FIELD =
   'w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50';
@@ -59,7 +57,7 @@ export function PrintStationsManager({
   const tm = getMessages(lang).menuManager;
 
   const [stations, setStations] = useState<PrintStation[]>(() =>
-    [...initialStations].sort(compareSortOrderThenCreatedAt),
+    [...initialStations].sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at)),
   );
 
   useEffect(() => {
@@ -154,7 +152,9 @@ export function PrintStationsManager({
         const result = await createPrintStationClient(input);
         if (!result.ok) throw new Error(result.error);
         setStations((prev) =>
-          [...prev, result.data.station].sort(compareSortOrderThenCreatedAt),
+          [...prev, result.data.station].sort(
+            (a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at),
+          ),
         );
       }
       resetStationModal();
@@ -178,8 +178,11 @@ export function PrintStationsManager({
     }
     setStations((prev) => {
       const copy = prev.map((s) => ({ ...s }));
-      swapSortOrderFields(copy[index], copy[j]);
-      return sortBySortOrderThenCreatedAt(copy);
+      const sa = copy[index];
+      const sb = copy[j];
+      copy[index] = { ...sa, sort_order: sb.sort_order };
+      copy[j] = { ...sb, sort_order: sa.sort_order };
+      return [...copy].sort((x, y) => x.sort_order - y.sort_order || x.created_at.localeCompare(y.created_at));
     });
   };
 
@@ -256,13 +259,26 @@ export function PrintStationsManager({
                     <td className="px-4 py-3 text-[13px] text-brand-text-muted">{bindingsLabel(row.id)}</td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap items-center justify-end gap-1.5">
-                        <SortOrderButtons
-                          index={index}
-                          length={stations.length}
-                          moveUpLabel={t.moveUp}
-                          moveDownLabel={t.moveDown}
-                          onMove={(dir) => moveRow(index, dir)}
-                        />
+                        <button
+                          type="button"
+                          aria-label={t.moveUp}
+                          title={t.moveUp}
+                          disabled={index === 0}
+                          onClick={() => moveRow(index, -1)}
+                          className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-brand-border/70 text-brand-text-muted hover:text-brand-gold disabled:opacity-35"
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={t.moveDown}
+                          title={t.moveDown}
+                          disabled={index === stations.length - 1}
+                          onClick={() => moveRow(index, 1)}
+                          className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-brand-border/70 text-brand-text-muted hover:text-brand-gold disabled:opacity-35"
+                        >
+                          ↓
+                        </button>
                         <button
                           type="button"
                           onClick={() => openStationEditModal(row)}
@@ -304,13 +320,24 @@ export function PrintStationsManager({
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 border-t border-brand-border pt-3">
-                  <SortOrderButtons
-                    index={index}
-                    length={stations.length}
-                    moveUpLabel={t.moveUp}
-                    moveDownLabel={t.moveDown}
-                    onMove={(dir) => moveRow(index, dir)}
-                  />
+                  <button
+                    type="button"
+                    aria-label={t.moveUp}
+                    disabled={index === 0}
+                    onClick={() => moveRow(index, -1)}
+                    className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-brand-border/70 text-brand-text-muted disabled:opacity-35"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={t.moveDown}
+                    disabled={index === stations.length - 1}
+                    onClick={() => moveRow(index, 1)}
+                    className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-brand-border/70 text-brand-text-muted disabled:opacity-35"
+                  >
+                    ↓
+                  </button>
                   <button
                     type="button"
                     onClick={() => openStationEditModal(row)}

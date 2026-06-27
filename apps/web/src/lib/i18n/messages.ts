@@ -349,10 +349,6 @@ export const MESSAGES = {
       panelEmptyAddRoot: '新增一级分类',
       maxDepthTitle: '已达 {max} 级上限',
       depthExceeded: '最多支持 {max} 级分类，当前父级已是第 {depth} 级。',
-      moveUp: '上移',
-      moveDown: '下移',
-      sortOrderHint: '顺序会影响顾客端菜单与当前分类下的菜品列表排序。',
-      reorderScopeMismatch: '只能在同一分类内调整顺序',
     },
     printStations: {
       title: '出品档口',
@@ -1390,10 +1386,6 @@ export const MESSAGES = {
       panelEmptyAddRoot: 'Add top-level category',
       maxDepthTitle: 'Max {max} levels',
       depthExceeded: 'Maximum {max} levels; parent is already level {depth}.',
-      moveUp: 'Move up',
-      moveDown: 'Move down',
-      sortOrderHint: 'Order is used on the customer menu and within the selected category list.',
-      reorderScopeMismatch: 'Dishes can only be reordered within the same category',
     },
     printStations: {
       title: 'Print stations',
@@ -2135,10 +2127,6 @@ export const MESSAGES = {
       panelEmptyAddRoot: 'Nova categoria raiz',
       maxDepthTitle: 'Maximo {max} niveis',
       depthExceeded: 'Maximo {max} niveis; o pai ja esta no nivel {depth}.',
-      moveUp: 'Subir',
-      moveDown: 'Descer',
-      sortOrderHint: 'A ordem afeta o menu do cliente e a lista de pratos na categoria selecionada.',
-      reorderScopeMismatch: 'So pode reordenar pratos na mesma categoria',
     },
     printStations: {
       title: 'Estacoes de impressao',

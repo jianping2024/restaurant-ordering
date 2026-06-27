@@ -1,7 +1,6 @@
 import type { MenuCategory, MenuItem } from '@/types';
 import type { UILanguage } from '@/lib/i18n';
 import { categoryCodePathFromLeaf, formatMenuPrintDisplayName } from '@/lib/menu-print-label';
-import { compareSortOrderThenCreatedAt } from '@/lib/sort-order';
 
 export const MAX_MENU_CATEGORY_DEPTH = 5;
 
@@ -68,22 +67,6 @@ export function sortCategoryIdsLeavesFirst(
     return 1 + depth(row.parent_id);
   };
   return [...ids].sort((a, b) => depth(b) - depth(a));
-}
-
-export function canReorderMenuItemsInFilter(itemListFilterValue: string, searchQuery: string): boolean {
-  if (searchQuery.trim()) return false;
-  return itemListFilterValue === 'uncategorized' || itemListFilterValue.startsWith('cat:');
-}
-
-export function menuItemsShareSortScope(
-  a: Pick<MenuItem, 'category_id'>,
-  b: Pick<MenuItem, 'category_id'>,
-): boolean {
-  return (a.category_id ?? null) === (b.category_id ?? null);
-}
-
-export function compareMenuItemsBySortOrder(a: MenuItem, b: MenuItem): number {
-  return compareSortOrderThenCreatedAt(a, b);
 }
 
 export function itemMatchesSearch(item: MenuItem, query: string): boolean {

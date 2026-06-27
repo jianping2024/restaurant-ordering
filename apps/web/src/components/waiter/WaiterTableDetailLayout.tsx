@@ -149,7 +149,7 @@ export function WaiterTableBuffetPanel({
   return (
     <div className={`${waiterUi.cardSurface} ${waiterCardInset}`}>
       <div className={buffetStripClass}>
-        <BuffetPanelSection wideOnSm>
+        <BuffetPanelSection wideOnSm className="xl:pl-0">
           {activeBuffets.length === 1 ? (
             <p className="text-[15px] font-semibold text-brand-text leading-snug">{selectedBuffet?.name}</p>
           ) : (
@@ -197,7 +197,7 @@ export function WaiterTableBuffetPanel({
           ) : null}
         </BuffetPanelSection>
 
-        <BuffetPanelSection wideOnSm className="items-center xl:items-end">
+        <BuffetPanelSection wideOnSm className="items-center xl:items-end xl:pr-0">
           <Button
             type="button"
             variant="gold"

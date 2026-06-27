@@ -25,6 +25,13 @@ type WaiterCopy = (typeof WAITER_TEXT)[keyof typeof WAITER_TEXT];
 /** Five equal desktop columns between symmetric card padding; stacks on narrow viewports. */
 const buffetStripClass =
   'grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4 xl:grid-cols-5 xl:items-stretch xl:gap-0';
+/** Occupied-table toolbar: service flow → table ops → frontdesk actions; stacked on phone. */
+const occupiedToolbarStackClass =
+  'flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center';
+const occupiedToolbarTableOpsClass = 'grid grid-cols-2 gap-2 sm:contents';
+const occupiedToolbarPrimaryMobileClass = 'w-full justify-center sm:w-auto sm:justify-start';
+const occupiedToolbarSecondaryMobileClass = 'w-full justify-center sm:w-auto';
+const occupiedToolbarCloseMobileClass = 'w-full justify-center sm:w-auto sm:ml-auto';
 const buffetSectionClass =
   'flex min-w-0 flex-col justify-center xl:border-l xl:border-brand-border/50 xl:px-4 xl:first:border-l-0';
 
@@ -209,18 +216,20 @@ function ContinueOrderingControl({
   label,
   checkoutLocked,
   onCheckoutLocked,
+  className = '',
 }: {
   menuHref: string;
   label: string;
   checkoutLocked: boolean;
   onCheckoutLocked: () => void;
+  className?: string;
 }) {
-  const className = `${waiterUi.btnActionPrimary}${checkoutLocked ? ' opacity-50 cursor-not-allowed' : ''}`;
+  const controlClassName = `${waiterUi.btnActionPrimary}${checkoutLocked ? ' opacity-50 cursor-not-allowed' : ''}${className ? ` ${className}` : ''}`;
   const icon = <WaiterPlusIcon className={waiterUi.iconAction} />;
 
   if (checkoutLocked) {
     return (
-      <button type="button" onClick={onCheckoutLocked} className={className}>
+      <button type="button" onClick={onCheckoutLocked} className={controlClassName}>
         {icon}
         {label}
       </button>
@@ -228,7 +237,7 @@ function ContinueOrderingControl({
   }
 
   return (
-    <Link href={menuHref} className={className}>
+    <Link href={menuHref} className={controlClassName}>
       {icon}
       {label}
     </Link>
@@ -241,23 +250,76 @@ function ToolbarSecondaryButton({
   icon,
   locked = false,
   disabled = false,
+  className = '',
 }: {
   onClick: () => void;
   label: string;
   icon: ReactNode;
   locked?: boolean;
   disabled?: boolean;
+  className?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`${waiterUi.btnActionSecondary}${locked || disabled ? ' opacity-50 cursor-not-allowed' : ''}`}
+      className={`${waiterUi.btnActionSecondary}${locked || disabled ? ' opacity-50 cursor-not-allowed' : ''}${className ? ` ${className}` : ''}`}
     >
       {icon}
       {label}
     </button>
+  );
+}
+
+function ToolbarCloseTableControl({
+  tableId,
+  isCheckoutPending,
+  showCloseTable,
+  isDemo,
+  closingDemoTable,
+  closeLabel,
+  closeOperatingLabel,
+  onDemoCloseClick,
+  onTableClosed,
+}: {
+  tableId: string;
+  isCheckoutPending: boolean;
+  showCloseTable: boolean;
+  isDemo: boolean;
+  closingDemoTable: boolean;
+  closeLabel: string;
+  closeOperatingLabel: string;
+  onDemoCloseClick: () => void;
+  onTableClosed: () => void;
+}) {
+  if (!showCloseTable) return null;
+
+  const closeClassName = `${waiterUi.btnCloseOutline} ${occupiedToolbarCloseMobileClass} disabled:opacity-50`;
+  const closeIcon = <WaiterPowerIcon className={waiterUi.iconCloseTable} />;
+
+  if (isDemo) {
+    return (
+      <button
+        type="button"
+        onClick={onDemoCloseClick}
+        disabled={closingDemoTable}
+        className={closeClassName}
+      >
+        {closeIcon}
+        {closingDemoTable ? closeOperatingLabel : closeLabel}
+      </button>
+    );
+  }
+
+  return (
+    <CloseTableSessionAction
+      tableId={tableId}
+      isCheckoutPending={isCheckoutPending}
+      onClosed={onTableClosed}
+      className={closeClassName}
+      leadingIcon={closeIcon}
+    />
   );
 }
 
@@ -297,59 +359,53 @@ export function WaiterTableOccupiedToolbar({
   onTableClosed,
 }: OccupiedToolbarProps) {
   const checkoutLocked = isCheckoutPending;
-  const closeClassName = `${waiterUi.btnCloseOutline} w-full sm:w-auto sm:ml-auto disabled:opacity-50`;
-  const closeIcon = <WaiterPowerIcon className={waiterUi.iconCloseTable} />;
 
   return (
     <div className={`${waiterUi.cardSurface} p-4`}>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className={occupiedToolbarStackClass}>
         <ContinueOrderingControl
           menuHref={menuHref}
           label={t.continueOrdering}
           checkoutLocked={checkoutLocked}
           onCheckoutLocked={onCheckoutLocked}
+          className={occupiedToolbarPrimaryMobileClass}
         />
-        <ToolbarSecondaryButton
-          onClick={onTransfer}
-          label={t.transfer}
-          icon={<WaiterTransferIcon className={waiterUi.iconAction} />}
-          locked={checkoutLocked}
-        />
-        <ToolbarSecondaryButton
-          onClick={onMerge}
-          label={t.merge}
-          icon={<WaiterMergeIcon className={waiterUi.iconAction} />}
-          locked={checkoutLocked}
-        />
+        <div className={occupiedToolbarTableOpsClass}>
+          <ToolbarSecondaryButton
+            onClick={onTransfer}
+            label={t.transfer}
+            icon={<WaiterTransferIcon className={waiterUi.iconAction} />}
+            locked={checkoutLocked}
+            className={occupiedToolbarSecondaryMobileClass}
+          />
+          <ToolbarSecondaryButton
+            onClick={onMerge}
+            label={t.merge}
+            icon={<WaiterMergeIcon className={waiterUi.iconAction} />}
+            locked={checkoutLocked}
+            className={occupiedToolbarSecondaryMobileClass}
+          />
+        </div>
         {showCallBill ? (
           <ToolbarSecondaryButton
             onClick={onCallBill}
             label={callingBill ? t.callBillOperating : t.callBill}
             icon={<WaiterBillIcon className={waiterUi.iconAction} />}
             disabled={callingBill}
+            className={occupiedToolbarSecondaryMobileClass}
           />
         ) : null}
-        {showCloseTable ? (
-          isDemo ? (
-            <button
-              type="button"
-              onClick={onDemoCloseClick}
-              disabled={closingDemoTable}
-              className={closeClassName}
-            >
-              {closeIcon}
-              {closingDemoTable ? t.closeTableOperating : t.closeTable}
-            </button>
-          ) : (
-            <CloseTableSessionAction
-              tableId={tableId}
-              isCheckoutPending={isCheckoutPending}
-              onClosed={onTableClosed}
-              className={closeClassName}
-              leadingIcon={closeIcon}
-            />
-          )
-        ) : null}
+        <ToolbarCloseTableControl
+          tableId={tableId}
+          isCheckoutPending={isCheckoutPending}
+          showCloseTable={showCloseTable}
+          isDemo={isDemo}
+          closingDemoTable={closingDemoTable}
+          closeLabel={t.closeTable}
+          closeOperatingLabel={t.closeTableOperating}
+          onDemoCloseClick={onDemoCloseClick}
+          onTableClosed={onTableClosed}
+        />
       </div>
     </div>
   );

@@ -63,6 +63,10 @@ fi
 
 echo "Running print-agent checks before tagging ${TAG}..."
 "$ROOT/scripts/check-print-agent.sh"
+if ! bash "$ROOT/scripts/print-agent-release-body.sh" "$VER" >/dev/null; then
+  echo "ERROR: Add '## ${VER}' to apps/print-agent/RELEASE_NOTES.md before tagging." >&2
+  exit 1
+fi
 
 git tag "$TAG"
 echo "Pushing tag ${TAG}..."

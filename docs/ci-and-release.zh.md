@@ -66,12 +66,14 @@ git push origin print-agent-v0.2.31
 ### 发版步骤
 
 1. 改 **`apps/print-agent/VERSION`**（与将要打的 tag 一致）
-2. **`pnpm push`**（或 merge）— 确认 **Print agent CI** 在 main 上为绿
-3. **`./scripts/check-print-agent.sh`**（与 CI 相同：`go test` + `go vet`）
-4. `git tag print-agent-vX.Y.Z && git push origin print-agent-vX.Y.Z`
-5. 等 **Print agent release** 全绿（`test-linux` → Windows 打包 → `verify-release`）
-6. 在 [Releases](https://github.com/jianping2024/restaurant-ordering/releases) 确认有 **`MesaPrintAgent-Setup-amd64.exe`**（仅有 Source zip = 打包失败）
-7. 可选：`./scripts/wait-for-github-release.sh print-agent-vX.Y.Z`
+2. 在 **`apps/print-agent/RELEASE_NOTES.md`** 增加对应 `## X.Y.Z` 版本说明（打 tag 前必填；`tag-print-agent.sh` 会校验）
+3. **`pnpm push`**（或 merge）— 确认 **Print agent CI** 在 main 上为绿
+4. **`./scripts/check-print-agent.sh`**（与 CI 相同：`go test` + `go vet`）
+5. `git tag print-agent-vX.Y.Z && git push origin print-agent-vX.Y.Z`
+6. 等 **Print agent release** 全绿（`test-linux` → Windows 打包 → `verify-release`）
+7. 在 [Releases](https://github.com/jianping2024/restaurant-ordering/releases) 确认有 **`MesaPrintAgent-Setup-amd64.exe`** 且 Release 正文含版本说明
+8. 可选：`./scripts/wait-for-github-release.sh print-agent-vX.Y.Z`
+9. 补写已发布版本的说明：`./scripts/patch-print-agent-release-body.sh X.Y.Z`（需 `GH_TOKEN`）
 
 ### 以后如何避免「业务改了却打包挂」
 

@@ -19,6 +19,11 @@ fi
 "$ROOT/scripts/check-print-agent.sh"
 
 VER="$(tr -d '\r\n' < "$VERSION_FILE")"
+if ! bash "$ROOT/scripts/print-agent-release-body.sh" "$VER" >/dev/null; then
+  echo "Add a '## $VER' section to apps/print-agent/RELEASE_NOTES.md before tagging." >&2
+  exit 1
+fi
+
 TAG="print-agent-v$VER"
 
 if git rev-parse "$TAG" >/dev/null 2>&1; then

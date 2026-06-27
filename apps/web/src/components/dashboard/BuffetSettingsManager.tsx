@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import type { Buffet, BuffetCalendarKind, BuffetPriceRule, BuffetTimeSlot } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
@@ -30,6 +29,23 @@ import {
   todayIsoLocal,
   type RuleStatusFilter,
 } from '@/lib/buffet-pricing-admin';
+import {
+  applyBuffetDashboardData,
+  createBuffetClient,
+  createBuffetRuleClient,
+  createBuffetSlotClient,
+  deleteBuffetCalendarClient,
+  deleteBuffetClient,
+  deleteBuffetRuleClient,
+  deleteBuffetSlotClient,
+  fetchBuffetDashboardClient,
+  toggleBuffetRuleActiveClient,
+  updateBuffetClient,
+  updateBuffetFridayPolicyClient,
+  updateBuffetRuleClient,
+  updateBuffetSlotClient,
+  upsertBuffetCalendarClient,
+} from '@/lib/dashboard-buffet-client';
 
 interface Props {
   restaurantId: string;
@@ -114,7 +130,6 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialFridayWee
   const { lang } = useLanguage();
   const t = getMessages(lang).buffetAdmin;
   const weekdayShort = t.weekdayShort;
-  const supabase = createClient();
   const today = todayIsoLocal();
 
   const [tab, setTab] = useState<'buffets' | 'slots' | 'rules' | 'calendar'>('buffets');
@@ -187,35 +202,30 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialFridayWee
     }
   };
 
+  const applyDashboardData = useCallback(
+    (data: Parameters<typeof applyBuffetDashboardData>[0]) => {
+      applyBuffetDashboardData(data, {
+        setBuffets,
+        setSlots,
+        setRules,
+        setCalendarRows,
+        setFridayWeekendFrom,
+        setFridayEnabled,
+        setFridayDraftFrom,
+        dbTimeToHm,
+      });
+    },
+    [],
+  );
+
   const reload = useCallback(async () => {
-    const client = createClient();
-    const [b, s, r, c] = await Promise.all([
-      client.from('buffets').select('*').eq('restaurant_id', restaurantId).order('name'),
-      client.from('buffet_time_slots').select('*').eq('restaurant_id', restaurantId).order('sort_order').order('name'),
-      client.from('buffet_price_rules').select('*').eq('restaurant_id', restaurantId).order('priority', { ascending: false }),
-      client.from('buffet_calendar_overrides').select('on_date, kind').eq('restaurant_id', restaurantId).order('on_date'),
-    ]);
-    if (b.error || s.error || r.error || c.error) {
+    const result = await fetchBuffetDashboardClient();
+    if (!result.ok) {
       showToast(t.loadError, 'error');
       return;
     }
-    setBuffets((b.data || []) as Buffet[]);
-    setSlots((s.data || []) as BuffetTimeSlot[]);
-    setRules((r.data || []) as BuffetPriceRule[]);
-    setCalendarRows((c.data || []) as Array<{ on_date: string; kind: 'holiday' | 'special' }>);
-
-    const rest = await client
-      .from('restaurants')
-      .select('buffet_friday_weekend_from')
-      .eq('id', restaurantId)
-      .maybeSingle();
-    if (!rest.error) {
-      const from = (rest.data?.buffet_friday_weekend_from as string | null) ?? null;
-      setFridayWeekendFrom(from);
-      setFridayEnabled(!!from);
-      setFridayDraftFrom(dbTimeToHm(from) || '18:00');
-    }
-  }, [restaurantId, t.loadError]);
+    applyDashboardData(result.data);
+  }, [applyDashboardData, t.loadError]);
 
   useEffect(() => {
     let cancelled = false;
@@ -253,26 +263,12 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialFridayWee
     if (!kind) return;
     setPromptSubmitting(true);
     try {
-      if (kind === 'buffet') {
-        const { error } = await supabase.from('buffets').insert({
-          restaurant_id: restaurantId,
-          name,
-          is_active: true,
-        });
-        if (error) showToast(t.saveError, 'error');
-        else await reload();
-      } else if (kind === 'slot') {
-        const { error } = await supabase.from('buffet_time_slots').insert({
-          restaurant_id: restaurantId,
-          name,
-          start_time: '11:00:00',
-          end_time: '15:00:00',
-          weekdays: [0, 1, 2, 3, 4, 5, 6],
-          sort_order: slots.length,
-        });
-        if (error) showToast(t.saveError, 'error');
-        else await reload();
-      }
+      const result =
+        kind === 'buffet'
+          ? await createBuffetClient(name)
+          : await createBuffetSlotClient(name, slots.length);
+      if (!result.ok) showToast(t.saveError, 'error');
+      else applyDashboardData(result.data);
       setPrompt(null);
     } finally {
       setPromptSubmitting(false);
@@ -283,27 +279,18 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialFridayWee
     if (!confirm) return;
     setConfirmSubmitting(true);
     try {
+      let result;
       if (confirm.kind === 'buffet') {
-        const { error } = await supabase.from('buffets').delete().eq('id', confirm.row.id);
-        if (error) showToast(t.saveError, 'error');
-        else await reload();
+        result = await deleteBuffetClient(confirm.row.id);
       } else if (confirm.kind === 'slot') {
-        const { error } = await supabase.from('buffet_time_slots').delete().eq('id', confirm.id);
-        if (error) showToast(t.saveError, 'error');
-        else await reload();
+        result = await deleteBuffetSlotClient(confirm.id);
       } else if (confirm.kind === 'rule') {
-        const { error } = await supabase.from('buffet_price_rules').delete().eq('id', confirm.id);
-        if (error) showToast(t.saveError, 'error');
-        else await reload();
+        result = await deleteBuffetRuleClient(confirm.id);
       } else if (confirm.kind === 'calendar') {
-        const { error } = await supabase
-          .from('buffet_calendar_overrides')
-          .delete()
-          .eq('restaurant_id', restaurantId)
-          .eq('on_date', confirm.onDate);
-        if (error) showToast(t.saveError, 'error');
-        else await reload();
+        result = await deleteBuffetCalendarClient(confirm.onDate);
       }
+      if (!result?.ok) showToast(t.saveError, 'error');
+      else applyDashboardData(result.data);
       setConfirm(null);
     } finally {
       setConfirmSubmitting(false);
@@ -311,21 +298,21 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialFridayWee
   };
 
   const toggleBuffet = async (row: Buffet) => {
-    const { error } = await supabase.from('buffets').update({ is_active: !row.is_active }).eq('id', row.id);
-    if (error) showToast(t.saveError, 'error');
-    else await reload();
+    const result = await updateBuffetClient(row.id, { is_active: !row.is_active });
+    if (!result.ok) showToast(t.saveError, 'error');
+    else applyDashboardData(result.data);
   };
 
   const updateBuffetField = async (id: string, patch: Partial<Pick<Buffet, 'name' | 'is_active'>>) => {
-    const { error } = await supabase.from('buffets').update(patch).eq('id', id);
-    if (error) showToast(t.saveError, 'error');
-    else await reload();
+    const result = await updateBuffetClient(id, patch);
+    if (!result.ok) showToast(t.saveError, 'error');
+    else applyDashboardData(result.data);
   };
 
   const updateSlotField = async (id: string, patch: Partial<BuffetTimeSlot>) => {
-    const { error } = await supabase.from('buffet_time_slots').update(patch).eq('id', id);
-    if (error) showToast(t.saveError, 'error');
-    else await reload();
+    const result = await updateBuffetSlotClient(id, patch);
+    if (!result.ok) showToast(t.saveError, 'error');
+    else applyDashboardData(result.data);
   };
 
   const openRuleCreateModal = (overrides?: Partial<RuleDraft>, locks?: RuleFieldLocks) => {
@@ -374,17 +361,17 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialFridayWee
       note: ruleDraft.note.trim() || null,
     };
     if (ruleModal.mode === 'create') {
-      const { error } = await supabase.from('buffet_price_rules').insert(payload);
-      if (error) showToast(t.saveError, 'error');
+      const result = await createBuffetRuleClient(payload);
+      if (!result.ok) showToast(t.saveError, 'error');
       else {
-        await reload();
+        applyDashboardData(result.data);
         closeRuleModal();
       }
     } else {
-      const { error } = await supabase.from('buffet_price_rules').update(payload).eq('id', ruleModal.id);
-      if (error) showToast(t.saveError, 'error');
+      const result = await updateBuffetRuleClient(ruleModal.id, payload);
+      if (!result.ok) showToast(t.saveError, 'error');
       else {
-        await reload();
+        applyDashboardData(result.data);
         closeRuleModal();
       }
     }
@@ -424,24 +411,15 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialFridayWee
   };
 
   const toggleRuleActive = async (rule: BuffetPriceRule) => {
-    const { error } = await supabase
-      .from('buffet_price_rules')
-      .update({ is_active: !rule.is_active })
-      .eq('id', rule.id);
-    if (error) showToast(t.saveError, 'error');
-    else await reload();
+    const result = await toggleBuffetRuleActiveClient(rule.id, !rule.is_active);
+    if (!result.ok) showToast(t.saveError, 'error');
+    else applyDashboardData(result.data);
   };
 
   const upsertCalendarRows = async (rows: Array<{ on_date: string; kind: 'holiday' | 'special' }>) => {
-    const { error } = await supabase.from('buffet_calendar_overrides').upsert(
-      rows.map((r) => ({
-        restaurant_id: restaurantId,
-        on_date: r.on_date.slice(0, 10),
-        kind: r.kind,
-      })),
-    );
-    if (error) showToast(t.saveError, 'error');
-    else await reload();
+    const result = await upsertBuffetCalendarClient(rows);
+    if (!result.ok) showToast(t.saveError, 'error');
+    else applyDashboardData(result.data);
   };
 
   const toggleWeekday = (slot: BuffetTimeSlot, dow: number) => {
@@ -472,15 +450,12 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialFridayWee
     }
     setFridaySaving(true);
     try {
-      const { error } = await supabase
-        .from('restaurants')
-        .update({ buffet_friday_weekend_from: dbValue })
-        .eq('id', restaurantId);
-      if (error) {
+      const result = await updateBuffetFridayPolicyClient(dbValue);
+      if (!result.ok) {
         showToast(t.saveError, 'error');
         return;
       }
-      setFridayWeekendFrom(dbValue);
+      applyDashboardData(result.data);
       showToast(t.fridayWeekendSaved, 'success');
     } finally {
       setFridaySaving(false);

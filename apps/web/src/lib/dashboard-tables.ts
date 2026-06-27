@@ -1,7 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { loadFrontdeskOperationalContext } from '@/lib/dashboard-access';
 import {
-  sortTableGroups,
   type RestaurantTableGroup,
   type RestaurantTableGroupMember,
 } from '@/lib/restaurant-table-groups';
@@ -17,39 +16,7 @@ export type FrontdeskDashboardTables =
     }
   | { error: string; status: number; message?: string };
 
-async function loadRestaurantTableGroups(
-  admin: SupabaseClient,
-  restaurantId: string,
-): Promise<
-  | { groups: RestaurantTableGroup[]; members: RestaurantTableGroupMember[] }
-  | { error: string; message?: string }
-> {
-  const [{ data: groups, error: groupsError }, { data: members, error: membersError }] =
-    await Promise.all([
-      admin
-        .from('restaurant_table_groups')
-        .select('id, restaurant_id, name, remarks, sort_order, created_at')
-        .eq('restaurant_id', restaurantId)
-        .order('sort_order', { ascending: true })
-        .order('created_at', { ascending: true }),
-      admin
-        .from('restaurant_table_group_members')
-        .select('group_id, table_id, restaurant_id')
-        .eq('restaurant_id', restaurantId),
-    ]);
-
-  if (groupsError) {
-    return { error: 'table_groups_query_failed', message: groupsError.message };
-  }
-  if (membersError) {
-    return { error: 'table_group_members_query_failed', message: membersError.message };
-  }
-
-  return {
-    groups: sortTableGroups((groups || []) as RestaurantTableGroup[]),
-    members: (members || []) as RestaurantTableGroupMember[],
-  };
-}
+import { loadRestaurantTableGroups } from '@/lib/dashboard-table-groups-server';
 
 export async function loadFrontdeskDashboardTables(): Promise<FrontdeskDashboardTables> {
   const ctx = await loadFrontdeskOperationalContext();
@@ -81,7 +48,7 @@ export async function loadFrontdeskDashboardTables(): Promise<FrontdeskDashboard
   if ('error' in groupData) {
     return {
       error: groupData.error,
-      status: 500 as const,
+      status: groupData.status,
       message: groupData.message,
     };
   }

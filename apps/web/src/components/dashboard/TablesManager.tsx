@@ -427,7 +427,6 @@ export function TablesManager({
 
       {activeTab === 'groups' ? (
         <TableGroupsManager
-          restaurantId={restaurant.id}
           tables={tables}
           initialGroups={groups}
           initialMembers={members}

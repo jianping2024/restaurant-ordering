@@ -10,43 +10,12 @@ import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { getMessages } from '@/lib/i18n/messages';
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
+import { navItemsForRole } from '@/lib/dashboard-feature-registry';
 import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 
-const ownerNavItems = [
-  { href: '/dashboard', key: 'overview', icon: '📊', exact: true },
-  {
-    href: '/dashboard/value-analytics',
-    key: 'valueAnalytics',
-    icon: '📈',
-    exact: false,
-  },
-  {
-    href: '/dashboard/abnormal-operations',
-    key: 'abnormalOps',
-    icon: '⚠️',
-    exact: false,
-  },
-  {
-    href: '/dashboard/settings',
-    key: 'settings',
-    icon: '⚙️',
-    exact: false,
-    matchPrefix: '/dashboard/settings',
-  },
-] as const;
-
-const frontdeskNavItems = [
-  { href: '/dashboard/checkout', key: 'checkout', icon: '💳', exact: false },
-  { href: '/dashboard/unpaid-orders', key: 'unpaidOrders', icon: '🧾', exact: false },
-  { href: '/dashboard/orders', key: 'orders', icon: '📋', exact: false },
-  { href: '/dashboard', key: 'overview', icon: '📊', exact: true },
-  { href: '/dashboard/tables', key: 'tables', icon: '🪑', exact: false },
-  { href: '/dashboard/menu', key: 'menu', icon: '📋', exact: false },
-] as const;
-
-const cashierNavItems = [
-  { href: '/dashboard/checkout', key: 'checkout', icon: '💳', exact: false },
-] as const;
+const ownerNavItems = navItemsForRole('owner');
+const frontdeskNavItems = navItemsForRole('frontdesk');
+const cashierNavItems = navItemsForRole('cashier');
 
 export function DashboardNav({
   restaurant,
@@ -182,13 +151,13 @@ export function DashboardNav({
 
       {/* 导航 */}
       <nav className="flex-1 px-4 py-4 space-y-1">
-        {navItems.map(item => {
+        {navItems.map((item) => {
           const active =
-            'matchPrefix' in item && item.matchPrefix
-                ? pathname === item.matchPrefix || pathname.startsWith(`${item.matchPrefix}/`)
-                : item.exact
-                  ? pathname === item.href
-                  : pathname.startsWith(item.href);
+            item.matchPrefix
+              ? pathname === item.matchPrefix || pathname.startsWith(`${item.matchPrefix}/`)
+              : item.exact
+                ? pathname === item.href
+                : pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}
@@ -204,7 +173,7 @@ export function DashboardNav({
             >
               <span className="text-lg">{item.icon}</span>
               <span>{t[item.key]}</span>
-              {item.key === 'checkout' && checkoutRequestCount > 0 && (
+              {item.checkoutBadge && checkoutRequestCount > 0 && (
                 <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full mesa-badge-danger px-1.5 text-[11px] font-semibold">
                   {checkoutRequestCount > 99 ? '99+' : checkoutRequestCount}
                 </span>

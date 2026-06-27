@@ -1,13 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import { isPostgresUniqueViolation } from '@/lib/menu-code-uniqueness';
+import {
+  createTableGroupClient,
+  deleteTableGroupClient,
+  mapTableGroupApiError,
+  swapTableGroupOrderClient,
+  updateTableGroupClient,
+} from '@/lib/dashboard-table-groups-client';
 import {
   buildTableGroupIdByTableId,
   buildTableGroupNameByTableId,
@@ -31,7 +36,6 @@ type GroupForm = {
 const defaultForm = (): GroupForm => ({ name: '', remarks: '', tableIds: [] });
 
 interface Props {
-  restaurantId: string;
   tables: RestaurantTableRow[];
   initialGroups: RestaurantTableGroup[];
   initialMembers: RestaurantTableGroupMember[];
@@ -42,7 +46,6 @@ interface Props {
 }
 
 export function TableGroupsManager({
-  restaurantId,
   tables,
   initialGroups,
   initialMembers,
@@ -53,7 +56,6 @@ export function TableGroupsManager({
   const { lang } = useLanguage();
   const t = getMessages(lang).tableGroups;
   const tm = getMessages(lang).menuManager;
-  const supabase = createClient();
 
   const [groups, setGroups] = useState<RestaurantTableGroup[]>(() => sortTableGroups(initialGroups));
   const [members, setMembers] = useState<RestaurantTableGroupMember[]>(initialMembers);
@@ -153,65 +155,22 @@ export function TableGroupsManager({
     setFormError('');
     setError('');
     try {
-      let groupId = editing?.id;
-      if (editing) {
-        const { error: upErr } = await supabase
-          .from('restaurant_table_groups')
-          .update({ name, remarks })
-          .eq('id', editing.id);
-        if (upErr) throw upErr;
-      } else {
-        const nextOrder = groups.length === 0 ? 0 : Math.max(...groups.map((g) => g.sort_order)) + 1;
-        const { data, error: insErr } = await supabase
-          .from('restaurant_table_groups')
-          .insert({
-            restaurant_id: restaurantId,
-            name,
-            remarks,
-            sort_order: nextOrder,
-          })
-          .select('id, restaurant_id, name, remarks, sort_order, created_at')
-          .single();
-        if (insErr) throw insErr;
-        if (!data) throw new Error('insert_failed');
-        groupId = (data as RestaurantTableGroup).id;
+      const payload = {
+        name,
+        remarks,
+        table_ids: tableIds,
+      };
+      const result = editing
+        ? await updateTableGroupClient({ group_id: editing.id, ...payload })
+        : await createTableGroupClient(payload);
+      if (!result.ok) {
+        setFormError(mapTableGroupApiError(result.error, result.message, t));
+        return;
       }
-
-      if (!groupId) throw new Error('missing_group');
-
-      const { error: rpcErr } = await supabase.rpc('replace_table_group_members', {
-        p_group_id: groupId,
-        p_table_ids: tableIds,
-      });
-      if (rpcErr) throw rpcErr;
-
-      const [{ data: nextGroups, error: groupsErr }, { data: nextMembers, error: membersErr }] =
-        await Promise.all([
-          supabase
-            .from('restaurant_table_groups')
-            .select('id, restaurant_id, name, remarks, sort_order, created_at')
-            .eq('restaurant_id', restaurantId)
-            .order('sort_order', { ascending: true })
-            .order('created_at', { ascending: true }),
-          supabase
-            .from('restaurant_table_group_members')
-            .select('group_id, table_id, restaurant_id')
-            .eq('restaurant_id', restaurantId),
-        ]);
-      if (groupsErr) throw groupsErr;
-      if (membersErr) throw membersErr;
-
-      publish(
-        sortTableGroups((nextGroups || []) as RestaurantTableGroup[]),
-        (nextMembers || []) as RestaurantTableGroupMember[],
-      );
+      publish(result.data.groups, result.data.members);
       closeModal();
-    } catch (err) {
-      if (isPostgresUniqueViolation(err as { code?: string })) {
-        setFormError(t.duplicateName);
-      } else {
-        setFormError(t.saveFail);
-      }
+    } catch {
+      setFormError(t.saveFail);
     } finally {
       setSaving(false);
     }
@@ -223,44 +182,25 @@ export function TableGroupsManager({
     const a = groups[index];
     const b = groups[j];
     setError('');
-    const { error: e1 } = await supabase
-      .from('restaurant_table_groups')
-      .update({ sort_order: b.sort_order })
-      .eq('id', a.id);
-    if (e1) {
-      setError(t.saveFail);
+    const result = await swapTableGroupOrderClient(a.id, b.id);
+    if (!result.ok) {
+      setError(mapTableGroupApiError(result.error, result.message, t));
       return;
     }
-    const { error: e2 } = await supabase
-      .from('restaurant_table_groups')
-      .update({ sort_order: a.sort_order })
-      .eq('id', b.id);
-    if (e2) {
-      setError(t.saveFail);
-      return;
-    }
-    const copy = groups.map((g) => ({ ...g }));
-    copy[index] = { ...a, sort_order: b.sort_order };
-    copy[j] = { ...b, sort_order: a.sort_order };
-    publish(sortTableGroups(copy), members);
+    publish(result.data.groups, result.data.members);
   };
 
   const runDelete = async () => {
     if (!deleteTarget) return;
     setDeleteLoading(true);
     setError('');
-    const { error: delErr } = await supabase
-      .from('restaurant_table_groups')
-      .delete()
-      .eq('id', deleteTarget.id);
+    const result = await deleteTableGroupClient(deleteTarget.id);
     setDeleteLoading(false);
-    if (delErr) {
-      setError(t.deleteFail);
+    if (!result.ok) {
+      setError(mapTableGroupApiError(result.error, result.message, t));
       return;
     }
-    const nextGroups = groups.filter((g) => g.id !== deleteTarget.id);
-    const nextMembers = members.filter((m) => m.group_id !== deleteTarget.id);
-    publish(nextGroups, nextMembers);
+    publish(result.data.groups, result.data.members);
     setDeleteTarget(null);
   };
 

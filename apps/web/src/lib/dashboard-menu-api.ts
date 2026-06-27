@@ -1,24 +1,21 @@
 import { NextResponse } from 'next/server';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { loadMenuManagementContext } from '@/lib/dashboard-access';
-import type { MenuMutationError } from '@/lib/dashboard-menu-server';
+import type { MutationError } from '@/lib/dashboard-api-shared';
+import {
+  dashboardApiError,
+  loadWritableFrontdeskContext,
+  readJsonBody,
+} from '@/lib/dashboard-api-shared';
 
-export type WritableMenuContext = { admin: SupabaseClient; restaurantId: string };
+export type WritableMenuContext = { admin: import('@supabase/supabase-js').SupabaseClient; restaurantId: string };
+
+export type MenuMutationError = MutationError;
 
 export function menuApiError(result: MenuMutationError) {
-  return NextResponse.json(
-    { error: result.error, message: result.message },
-    { status: result.status },
-  );
+  return dashboardApiError(result);
 }
 
-export async function readJsonBody(req: Request): Promise<Record<string, unknown> | NextResponse> {
-  try {
-    return (await req.json()) as Record<string, unknown>;
-  } catch {
-    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
-  }
-}
+export { readJsonBody };
 
 export async function loadWritableMenuContext(): Promise<WritableMenuContext | NextResponse> {
   const ctx = await loadMenuManagementContext({ requireWritable: true });
@@ -27,3 +24,5 @@ export async function loadWritableMenuContext(): Promise<WritableMenuContext | N
   }
   return ctx;
 }
+
+export { loadWritableFrontdeskContext };

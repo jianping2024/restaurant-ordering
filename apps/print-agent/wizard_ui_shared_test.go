@@ -5,6 +5,15 @@ import (
 	"testing"
 )
 
+func TestIsWizardStaticPath(t *testing.T) {
+	if !isWizardStaticPath("/wizard-ui-shared.js") {
+		t.Fatal("expected wizard shared js path")
+	}
+	if isWizardStaticPath("/api/setup") {
+		t.Fatal("api paths are not static wizard assets")
+	}
+}
+
 func TestWizardUISharedJSEmbedded(t *testing.T) {
 	body := string(wizardUISharedJS)
 	if !strings.Contains(body, "MesaWizardUI") {

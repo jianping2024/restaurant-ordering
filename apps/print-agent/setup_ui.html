@@ -501,6 +501,10 @@
       document.getElementById('saveBtn').addEventListener('click', function () {
         if (uiBusy || printerScanInFlight) return;
         err.textContent = '';
+        if (!window.MesaWizardUI) {
+          err.textContent = t('save_failed') + ' (wizard-ui-shared.js)';
+          return;
+        }
         var station_printers = MesaWizardUI.collectFromRows(document, { draft: draftMappings });
         uiBusy = true;
         updateActionButtons();

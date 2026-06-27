@@ -2,6 +2,17 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.29
+
+**修复托盘「打印机设置」保存无反应**
+
+- 托盘本地 HTTP（`:17892`）未放行 `/wizard-ui-shared.js`，导致 `MesaWizardUI` 未加载、点击保存无反应；已修复。
+
+**厨房单菜单字号加大一档**
+
+- 厨房单 **仅菜单项**（分类标题、菜名、数量、备注）改为 **2×2**；`restaurant`、人数、`Items/Qty` 表头、页脚等其余行保持原字号。
+- 菜单块倍宽下列宽按 24 字符排版，长菜名截断略早，纸长会略增。
+
 ## 0.3.28
 
 **支持清除全部档口映射**

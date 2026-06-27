@@ -48,7 +48,7 @@ func TestBuildStationTicketEnglishLayout(t *testing.T) {
 		"Guest:4",
 		"Items",
 		"Qty",
-		"    (Bebidas/ Drinks2)",
+		"  (Bebidas/ Drinks2)",
 		"001-",
 		"500ml",
 		"007-Coca Cola Zero",
@@ -64,6 +64,11 @@ func TestBuildStationTicketEnglishLayout(t *testing.T) {
 	// Á = 0xC1, á = 0xE1 in Windows-1252.
 	if !bytes.Contains(raw, []byte{0xC1}) && !bytes.Contains(raw, []byte{0xE1}) {
 		t.Fatalf("expected Windows-1252 accented bytes in ticket output")
+	}
+
+	// Menu block uses 2×2 (GS ! n=0x11); masthead/footer stay 1×1 except Guest Order / Table No.
+	if !bytes.Contains(raw, []byte{0x1D, 0x21, 0x11}) {
+		t.Fatal("expected 2×2 ESC/POS mode on station ticket menu block")
 	}
 }
 

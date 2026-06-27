@@ -440,6 +440,128 @@ func escposPadLine(left, right string, width int) string {
 	return left + strings.Repeat(" ", gap) + right
 }
 
+// escposCols returns effective line width; GS ! double-width halves printable columns.
+func escposCols(enlarged bool) int {
+	if enlarged {
+		return escposWidth / 2
+	}
+	return escposWidth
+}
+
+// escposCategoryTab scales category indent with enlargement so group headers stay aligned.
+func escposCategoryTab(enlarged bool) int {
+	if enlarged {
+		return escposTabWidth / 2
+	}
+	return escposTabWidth
+}
+
+func (w *escposWriter) setPrintMode(enlarged, bold bool) {
+	if enlarged {
+		w.size(true, true)
+	} else {
+		w.size(false, false)
+	}
+	w.bold(bold)
+}
+
+func (w *escposWriter) writeTicketBranding() {
+	w.align(0)
+	w.setPrintMode(false, false)
+	w.text("restaurant")
+	w.lf()
+}
+
+func (w *escposWriter) writeTicketTitle(title string) {
+	w.align(1)
+	w.setPrintMode(true, true)
+	w.text(title)
+	w.lf()
+}
+
+func sortStationMenuLines(lines []jobLine) []jobLine {
+	out := append([]jobLine(nil), lines...)
+	sort.SliceStable(out, func(i, j int) bool {
+		a, b := out[i], out[j]
+		if a.CategoryGroupSort != b.CategoryGroupSort {
+			return a.CategoryGroupSort < b.CategoryGroupSort
+		}
+		return a.ItemIndex < b.ItemIndex
+	})
+	return out
+}
+
+// writeStationSlipHeader — branding, title, table context, Items/Qty column header (standard size).
+func (w *escposWriter) writeStationSlipHeader(p jobPayload, lab ticketLabels) {
+	w.writeTicketBranding()
+	w.writeTicketTitle(lab.guestOrder)
+	w.separator('-')
+
+	w.align(0)
+	w.setPrintMode(true, true)
+	if line := p.tableNoLabel(lab); line != "" {
+		w.text(line)
+	}
+	w.lf()
+
+	w.setPrintMode(false, false)
+	if p.GuestCount > 0 {
+		w.text(fmt.Sprintf("%s:%d", lab.guest, p.GuestCount))
+		w.lf()
+	}
+
+	w.separator('-')
+	w.text(escposPadLine(lab.items, lab.qty, escposWidth))
+	w.lf()
+}
+
+// writeStationMenuLines — kitchen menu body only; enlarged 2×2 for readability.
+func (w *escposWriter) writeStationMenuLines(lines []jobLine) {
+	const enlarged = true
+	w.setPrintMode(enlarged, false)
+	cols := escposCols(enlarged)
+	tab := escposCategoryTab(enlarged)
+
+	lastGroupHeader := ""
+	for _, ln := range sortStationMenuLines(lines) {
+		groupHeader := strings.TrimSpace(ln.CategoryGroupHeader)
+		if groupHeader != "" && groupHeader != lastGroupHeader {
+			w.text(strings.Repeat(" ", tab) + truncateRunes(groupHeader, cols-tab))
+			w.lf()
+			lastGroupHeader = groupHeader
+		}
+
+		label := strings.TrimSpace(ln.DisplayName)
+		if label == "" {
+			label = formatItemLabel(ln.ItemIndex, "")
+		}
+		qty := ln.Qty
+		if qty <= 0 {
+			qty = 1
+		}
+		w.text(escposPadLine(label, fmt.Sprintf("%d", qty), cols))
+		w.lf()
+		if note := strings.TrimSpace(ln.Note); note != "" {
+			w.text(" " + truncateRunes(note, cols-1))
+			w.lf()
+		}
+	}
+
+	w.setPrintMode(false, false)
+}
+
+func (w *escposWriter) writeStationSlipFooter(p jobPayload, lab ticketLabels) {
+	w.separator('-')
+	orderAt := strings.TrimSpace(p.OrderTime)
+	if orderAt == "" {
+		orderAt = nowLocal()
+	}
+	w.text(fmt.Sprintf("%s:%s", lab.orderTime, orderAt))
+	w.lf()
+	w.text(fmt.Sprintf("%s:%s", lab.printedBy, lab.printedByVal))
+	w.lf()
+}
+
 func runeLen(s string) int {
 	return len([]rune(s))
 }
@@ -506,87 +628,9 @@ func buildStationTicket(p jobPayload) []byte {
 		lab = labelsFor("zh")
 	}
 	w := newEscposForStationTicket(p)
-
-	w.align(0)
-	w.size(false, false)
-	w.bold(false)
-	w.text("restaurant")
-	w.lf()
-
-	w.align(1)
-	w.size(true, true)
-	w.bold(true)
-	w.text(lab.guestOrder)
-	w.lf()
-
-	w.separator('-')
-
-	w.align(0)
-	w.size(true, true)
-	w.bold(true)
-	if line := p.tableNoLabel(lab); line != "" {
-		w.text(line)
-	}
-	w.lf()
-
-	w.size(false, false)
-	w.bold(false)
-	if p.GuestCount > 0 {
-		w.text(fmt.Sprintf("%s:%d", lab.guest, p.GuestCount))
-		w.lf()
-	}
-
-	w.separator('-')
-
-	w.text(escposPadLine(lab.items, lab.qty, escposWidth))
-	w.lf()
-
-	lines := append([]jobLine(nil), p.Lines...)
-	sort.SliceStable(lines, func(i, j int) bool {
-		a, b := lines[i], lines[j]
-		if a.CategoryGroupSort != b.CategoryGroupSort {
-			return a.CategoryGroupSort < b.CategoryGroupSort
-		}
-		return a.ItemIndex < b.ItemIndex
-	})
-
-	lastGroupHeader := ""
-	for _, ln := range lines {
-		groupHeader := strings.TrimSpace(ln.CategoryGroupHeader)
-		if groupHeader != "" && groupHeader != lastGroupHeader {
-			indent := strings.Repeat(" ", escposTabWidth)
-			w.text(indent + truncateRunes(groupHeader, escposWidth-escposTabWidth))
-			w.lf()
-			lastGroupHeader = groupHeader
-		}
-
-		qty := ln.Qty
-		if qty <= 0 {
-			qty = 1
-		}
-		label := strings.TrimSpace(ln.DisplayName)
-		if label == "" {
-			label = formatItemLabel(ln.ItemIndex, "")
-		}
-		w.text(escposPadLine(label, fmt.Sprintf("%d", qty), escposWidth))
-		w.lf()
-		if note := strings.TrimSpace(ln.Note); note != "" {
-			w.text("  " + truncateRunes(note, escposWidth-2))
-			w.lf()
-		}
-	}
-
-	w.separator('-')
-
-	orderAt := strings.TrimSpace(p.OrderTime)
-	if orderAt == "" {
-		orderAt = nowLocal()
-	}
-	w.text(fmt.Sprintf("%s:%s", lab.orderTime, orderAt))
-	w.lf()
-	w.text(fmt.Sprintf("%s:%s", lab.printedBy, lab.printedByVal))
-	w.lf()
-
+	w.writeStationSlipHeader(p, lab)
+	w.writeStationMenuLines(p.Lines)
+	w.writeStationSlipFooter(p, lab)
 	return w.finish(true)
 }
 
@@ -596,18 +640,8 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 	isSplit := variant == "split_payment"
 	payer := formatSplitPayerForReceipt(p.PayerName)
 
-	w.align(0)
-	w.size(false, false)
-	w.bold(false)
-	w.text("restaurant")
-	w.lf()
-
-	w.align(1)
-	w.size(true, true)
-	w.bold(true)
-	w.text(receiptHeaderTitle(variant, lab))
-	w.lf()
-
+	w.writeTicketBranding()
+	w.writeTicketTitle(receiptHeaderTitle(variant, lab))
 	w.separator('-')
 
 	w.align(1)

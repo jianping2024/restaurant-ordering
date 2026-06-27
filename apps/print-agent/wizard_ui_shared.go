@@ -15,3 +15,7 @@ func registerWizardUISharedRoute(mux *http.ServeMux) {
 		_, _ = w.Write(wizardUISharedJS)
 	})
 }
+
+func isWizardStaticPath(path string) bool {
+	return path == "/wizard-ui-shared.js"
+}

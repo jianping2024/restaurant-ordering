@@ -1,5 +1,8 @@
 /** Shared waiter surface styles (borderless pills; avoids harsh 1px outlines on gold buttons). */
 export const waiterUi = {
+  iconAction: 'h-3.5 w-3.5 shrink-0',
+  iconCloseTable: 'h-4 w-4 shrink-0',
+  iconPanel: 'h-4 w-4 shrink-0',
   btnPrimary:
     'inline-flex items-center border-0 outline-none no-underline text-[14px] font-semibold px-4 py-2.5 rounded-xl bg-brand-gold text-brand-bg shadow-sm shadow-black/10 hover:bg-brand-gold-light active:scale-[0.98] transition-all focus-visible:ring-2 focus-visible:ring-brand-gold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-card',
   btnActionPrimary:

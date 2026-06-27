@@ -14,7 +14,7 @@ import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-pa
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { requestCustomerBillContext } from '@/lib/request-customer-context';
 import { useCustomerContextPoll } from '@/lib/use-customer-context-poll';
-import { requestOrderReceiptPrint } from '@/lib/request-order-receipt-print';
+import { requestOrderReceiptPrintQuiet } from '@/lib/request-order-receipt-print';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import type { BillSplit, DishFeedbackVote, Order, OrderItem, SplitMode, SplitResult } from '@/types';
@@ -277,7 +277,7 @@ export function BillPage({
       setPersistedResult(requestResult.result);
       setSubmitted(true);
       if (sessionId) {
-        void requestOrderReceiptPrint({
+        requestOrderReceiptPrintQuiet({
           slug: restaurant.slug,
           tableId,
           sessionId,

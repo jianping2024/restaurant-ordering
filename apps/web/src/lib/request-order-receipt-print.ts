@@ -1,7 +1,10 @@
 import type { ReceiptVariant } from '@/lib/order-receipt-enqueue';
 
-/** Fire-and-forget receipt print via print agent queue. */
-export async function requestOrderReceiptPrint(params: {
+export type OrderReceiptPrintResult =
+  | { ok: true; job_id?: string; skipped?: boolean; deduped?: boolean }
+  | { ok: false; error: string };
+
+export type OrderReceiptPrintParams = {
   slug: string;
   tableId: string;
   sessionId?: string | null;
@@ -14,13 +17,25 @@ export async function requestOrderReceiptPrint(params: {
   billSplitId?: string | null;
   personIndex?: number;
   receiptPrinterId?: string;
-}): Promise<void> {
+  /** Checkout dashboard discount % — used for checkout_bill payable total. */
+  discountRate?: number;
+};
+
+function resolveReceiptVariant(params: OrderReceiptPrintParams): ReceiptVariant {
+  const { receiptVariant, jobType } = params;
+  if (receiptVariant) return receiptVariant;
+  if (jobType === 'pre_bill') return 'pre_bill';
+  return 'final';
+}
+
+/** Enqueue a receipt print job via print agent queue. */
+export async function requestOrderReceiptPrint(
+  params: OrderReceiptPrintParams,
+): Promise<OrderReceiptPrintResult> {
   const {
     slug,
     tableId,
     sessionId,
-    receiptVariant,
-    jobType,
     amountPaid,
     paymentMethod,
     payerName,
@@ -28,13 +43,13 @@ export async function requestOrderReceiptPrint(params: {
     billSplitId,
     personIndex,
     receiptPrinterId,
+    discountRate,
   } = params;
 
-  const variant =
-    receiptVariant ?? (jobType === 'pre_bill' ? 'pre_bill' : jobType ? 'final' : 'final');
+  const variant = resolveReceiptVariant(params);
 
   try {
-    await fetch(`/api/restaurants/${encodeURIComponent(slug)}/order-receipt/print`, {
+    const res = await fetch(`/api/restaurants/${encodeURIComponent(slug)}/order-receipt/print`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -49,9 +64,34 @@ export async function requestOrderReceiptPrint(params: {
         ...(billSplitId ? { bill_split_id: billSplitId } : {}),
         ...(personIndex != null ? { person_index: personIndex } : {}),
         ...(receiptPrinterId?.trim() ? { receipt_printer_id: receiptPrinterId.trim() } : {}),
+        ...(discountRate != null && discountRate > 0 ? { discount_rate: discountRate } : {}),
       }),
     });
+
+    const data = (await res.json().catch(() => ({}))) as {
+      ok?: boolean;
+      skipped?: boolean;
+      deduped?: boolean;
+      job_id?: string;
+      error?: string;
+    };
+
+    if (!res.ok) {
+      return { ok: false, error: data.error || 'print_failed' };
+    }
+
+    return {
+      ok: true,
+      ...(data.skipped ? { skipped: true } : {}),
+      ...(data.deduped ? { deduped: true } : {}),
+      ...(data.job_id ? { job_id: data.job_id } : {}),
+    };
   } catch {
-    // Printing must not block checkout UX.
+    return { ok: false, error: 'network_error' };
   }
+}
+
+/** Fire-and-forget wrapper for flows where printing must not block UX. */
+export function requestOrderReceiptPrintQuiet(params: OrderReceiptPrintParams): void {
+  void requestOrderReceiptPrint(params);
 }

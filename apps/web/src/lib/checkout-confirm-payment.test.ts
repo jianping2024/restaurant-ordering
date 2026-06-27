@@ -115,8 +115,9 @@ describe('checkoutReceiptIdempotencyKey', () => {
     );
   });
 
-  it('returns undefined for pre_bill', () => {
+  it('returns undefined for pre_bill and checkout_bill', () => {
     assert.equal(checkoutReceiptIdempotencyKey('pre_bill', BILL_SPLIT_ID), undefined);
+    assert.equal(checkoutReceiptIdempotencyKey('checkout_bill', BILL_SPLIT_ID), undefined);
   });
 });
 

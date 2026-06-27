@@ -153,7 +153,7 @@ type jobPayload struct {
 	OrderedBy            string    `json:"ordered_by"`
 	OrderTime            string    `json:"order_time"`
 	PrintTime            string    `json:"print_time"`
-	// pre_bill | split_payment | final (empty → final on order_receipt)
+	// pre_bill | checkout_bill | split_payment | final (empty → final on order_receipt)
 	ReceiptVariant string `json:"receipt_variant"`
 	PayerName      string `json:"payer_name"`
 }

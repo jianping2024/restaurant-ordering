@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { BillSplit, SplitResult } from '@/types';
+import type { SplitResult } from '@/types';
 import type { AuditActor } from '@/lib/audit/types';
 import {
   recordDiscountAppliedAuditIfNeeded,
@@ -9,23 +9,14 @@ import { validateDiscountReason } from '@/lib/checkout-discount/validate-discoun
 import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
 import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
 
-export function normalizeSplitRows(split: BillSplit): SplitResult[] {
-  const rows = (split.result || []) as SplitResult[];
-  if (rows.length > 0) return rows;
-  if (split.total_amount > 0) {
-    return [{ name: 'Total', amount: Number(split.total_amount) }];
-  }
-  return [];
-}
-
-export function applyDiscountToRows(rows: SplitResult[], discountRate: number): SplitResult[] {
-  const rate = Math.min(100, Math.max(0, discountRate));
-  const factor = 1 - rate / 100;
-  return rows.map((row) => ({
-    ...row,
-    amount: Number(row.amount) * factor,
-  }));
-}
+export {
+  applyDiscountToRows,
+  checkoutPayableAmount,
+  clampCheckoutDiscountRate,
+  discountedSplitRows,
+  normalizeSplitRows,
+  sumSplitRowAmounts,
+} from '@/lib/checkout-split-math';
 
 export type ConfirmPaymentResult =
   | {

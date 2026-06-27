@@ -9,6 +9,7 @@ import {
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { fetchMenuPrintContext } from '@/lib/menu-print-context';
 import { orderItemPrintDisplayName } from '@/lib/menu-print-label';
+import { checkoutPayableAmount } from '@/lib/checkout-split-math';
 import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
 import {
   formatStationTicketOrderTime,
@@ -16,7 +17,7 @@ import {
   stationTicketOrderTimeIso,
 } from '@/lib/table-guest-count';
 
-export type ReceiptVariant = 'pre_bill' | 'split_payment' | 'final';
+export type ReceiptVariant = 'pre_bill' | 'checkout_bill' | 'split_payment' | 'final';
 
 export type OrderReceiptJobPayload = {
   order_id: string;
@@ -172,6 +173,8 @@ type EnqueueParams = {
   receiptPrinterId?: string;
   /** Bill snapshot order ids; falls back to bill_splits.order_ids when billSplitId is set */
   orderIds?: string[];
+  /** Checkout dashboard discount % for checkout_bill (matches「应收」). */
+  discountRate?: number;
 };
 
 /** Load session orders for receipt printing (no table_number filter — avoids missing merged/transferred orders). */
@@ -221,6 +224,7 @@ export async function enqueueReceiptPrint(
     paymentMethod,
     receiptPrinterId,
     orderIds: orderIdsParam,
+    discountRate = 0,
   } = params;
 
   const { data: restaurantRow, error: restaurantErr } = await admin
@@ -309,6 +313,13 @@ export async function enqueueReceiptPrint(
     amountDue = rowAmount;
   }
 
+  if (variant === 'checkout_bill') {
+    if (!billSplitId || !billSplit) {
+      return { ok: false, status: 400, code: 'bill_split_required' };
+    }
+    amountDue = checkoutPayableAmount(billSplit, discountRate);
+  }
+
   if (lines.length === 0 && variant === 'pre_bill') {
     return { ok: false, status: 404, code: 'no_billable_items' };
   }
@@ -349,7 +360,10 @@ export async function enqueueReceiptPrint(
     amount_due: due,
     lines,
     ordered_by: 'Customer/Merchant',
-    ...(variant !== 'pre_bill' && amountPaid != null && amountPaid > 0
+    ...(variant !== 'pre_bill' &&
+    variant !== 'checkout_bill' &&
+    amountPaid != null &&
+    amountPaid > 0
       ? { amount_paid: amountPaid, payment_method: paymentMethod?.trim() || 'Cash' }
       : {}),
   };

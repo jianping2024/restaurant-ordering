@@ -1,20 +1,65 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { staffAuthFromRequest } from '@/lib/staff-api-auth';
+import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
+import { clampCheckoutDiscountRate } from '@/lib/checkout-split-math';
 import { enqueueReceiptPrint, type ReceiptVariant } from '@/lib/order-receipt-enqueue';
-import {
-  resolveReceiptPrinterId,
-} from '@/lib/restaurant-receipt-printers-server';
+import { resolveReceiptPrinterId } from '@/lib/restaurant-receipt-printers-server';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 
 export const runtime = 'nodejs';
 
 function parseVariant(raw: unknown, jobTypeFallback: string): ReceiptVariant {
   const v = typeof raw === 'string' ? raw.trim() : '';
-  if (v === 'pre_bill' || v === 'split_payment' || v === 'final') return v;
+  if (v === 'pre_bill' || v === 'checkout_bill' || v === 'split_payment' || v === 'final') {
+    return v;
+  }
   if (jobTypeFallback === 'pre_bill') return 'pre_bill';
   return 'final';
+}
+
+/** Guest session path for customer pre-bill after call-for-bill. */
+async function authorizeCustomerPreBill(
+  slug: string,
+  tableId: string,
+  sessionId: string,
+): Promise<
+  | { ok: true; admin: ReturnType<typeof createAdminClient>; restaurantId: string; printLocale: string | null }
+  | { ok: false; error: string; status: number }
+> {
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return { ok: false, error: 'server_misconfigured', status: 503 };
+  }
+
+  const { data: rest } = await admin
+    .from('restaurants')
+    .select('id, print_locale')
+    .eq('slug', slug)
+    .maybeSingle();
+  if (!rest?.id) {
+    return { ok: false, error: 'restaurant_not_found', status: 404 };
+  }
+
+  const { data: session } = await admin
+    .from('table_sessions')
+    .select('id')
+    .eq('id', sessionId)
+    .eq('restaurant_id', rest.id)
+    .eq('table_id', tableId)
+    .in('status', ['open', 'billing'])
+    .maybeSingle();
+  if (!session?.id) {
+    return { ok: false, error: 'invalid_session', status: 403 };
+  }
+
+  return {
+    ok: true,
+    admin,
+    restaurantId: rest.id as string,
+    printLocale: (rest.print_locale as string | null) ?? null,
+  };
 }
 
 export async function POST(
@@ -38,6 +83,7 @@ export async function POST(
     bill_split_id?: unknown;
     person_index?: unknown;
     receipt_printer_id?: unknown;
+    discount_rate?: unknown;
   };
   try {
     body = await req.json();
@@ -54,67 +100,33 @@ export async function POST(
   const variant = parseVariant(body.receipt_variant, jobTypeRaw);
   const sessionIdRaw = typeof body.session_id === 'string' ? body.session_id.trim() : '';
 
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
+  if (variant === 'checkout_bill') {
+    const billSplitIdRaw =
+      typeof body.bill_split_id === 'string' ? body.bill_split_id.trim() : '';
+    if (!billSplitIdRaw) {
+      return NextResponse.json({ error: 'bill_split_required' }, { status: 400 });
+    }
   }
 
-  const waiterCtx = await staffAuthFromRequest(req, slug, 'waiter');
+  const checkoutAuth = await authorizeCheckoutConfirmPayment(slug, req);
+  let admin: ReturnType<typeof createAdminClient>;
   let restaurantId: string;
-  let printLocale: string | null = null;
+  let printLocale: string | null;
 
-  if (waiterCtx) {
-    restaurantId = waiterCtx.restaurant_id;
-    const { data: rest } = await admin
-      .from('restaurants')
-      .select('print_locale')
-      .eq('id', restaurantId)
-      .single();
-    printLocale = rest?.print_locale ?? null;
-  } else {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) {
-      const { data: rest } = await admin
-        .from('restaurants')
-        .select('id, print_locale')
-        .eq('slug', slug)
-        .eq('owner_id', user.id)
-        .maybeSingle();
-      if (!rest) {
-        return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-      }
-      restaurantId = rest.id;
-      printLocale = rest.print_locale;
-    } else if (variant === 'pre_bill' && sessionIdRaw) {
-      const { data: rest } = await admin
-        .from('restaurants')
-        .select('id, print_locale')
-        .eq('slug', slug)
-        .maybeSingle();
-      if (!rest?.id) {
-        return NextResponse.json({ error: 'restaurant_not_found' }, { status: 404 });
-      }
-      const { data: session } = await admin
-        .from('table_sessions')
-        .select('id')
-        .eq('id', sessionIdRaw)
-        .eq('restaurant_id', rest.id)
-        .eq('table_id', tableId)
-        .in('status', ['open', 'billing'])
-        .maybeSingle();
-      if (!session?.id) {
-        return NextResponse.json({ error: 'invalid_session' }, { status: 403 });
-      }
-      restaurantId = rest.id;
-      printLocale = rest.print_locale;
-    } else {
-      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if ('admin' in checkoutAuth) {
+    admin = checkoutAuth.admin;
+    restaurantId = checkoutAuth.restaurantId;
+    printLocale = checkoutAuth.printLocale;
+  } else if (variant === 'pre_bill' && sessionIdRaw) {
+    const guestAuth = await authorizeCustomerPreBill(slug, tableId, sessionIdRaw);
+    if (!guestAuth.ok) {
+      return NextResponse.json({ error: guestAuth.error }, { status: guestAuth.status });
     }
+    admin = guestAuth.admin;
+    restaurantId = guestAuth.restaurantId;
+    printLocale = guestAuth.printLocale;
+  } else {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
   const { data: tableRow } = await admin
@@ -165,6 +177,10 @@ export async function POST(
     typeof body.person_index === 'number' && Number.isInteger(body.person_index)
       ? body.person_index
       : undefined;
+  const discountRate =
+    typeof body.discount_rate === 'number' && Number.isFinite(body.discount_rate)
+      ? clampCheckoutDiscountRate(body.discount_rate)
+      : 0;
 
   const receiptPrinterIdRaw =
     typeof body.receipt_printer_id === 'string' ? body.receipt_printer_id.trim() : '';
@@ -193,6 +209,7 @@ export async function POST(
     amountPaid: amountPaid ?? personAmount,
     paymentMethod,
     receiptPrinterId,
+    discountRate,
   });
 
   if (!result.ok) {
@@ -203,5 +220,9 @@ export async function POST(
     return NextResponse.json({ ok: true, skipped: true });
   }
 
-  return NextResponse.json({ ok: true, job_id: result.job_id });
+  return NextResponse.json({
+    ok: true,
+    job_id: result.job_id,
+    ...(result.deduped ? { deduped: true } : {}),
+  });
 }

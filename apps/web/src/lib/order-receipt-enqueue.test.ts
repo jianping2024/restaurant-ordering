@@ -130,4 +130,103 @@ describe('enqueueReceiptPrint', () => {
     assert.deepEqual(result, { ok: true, skipped: true });
     assert.equal(insertCalled, false);
   });
+
+  it('checkout_bill uses discounted payable as amount_due', async () => {
+    let insertedPayload: Record<string, unknown> | null = null;
+    const billSplit: BillSplit = {
+      id: 'split-checkout',
+      restaurant_id: RESTAURANT_ID,
+      session_id: 'sess-1',
+      table_id: 'table-1',
+      display_name: 'A-01',
+      order_ids: [ORDER_ID],
+      split_mode: 'even',
+      persons: [],
+      result: [{ name: 'Total', amount: 100 }],
+      total_amount: 100,
+      status: 'requested',
+      created_at: '2026-06-22T00:00:00.000Z',
+    };
+
+    const admin = {
+      from(table: string) {
+        if (table === 'restaurants') {
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({
+                  data: { feature_flags: { bill_receipt_print: true } },
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'bill_splits') {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  maybeSingle: async () => ({ data: billSplit, error: null }),
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'orders') {
+          const ordersChain: {
+            select: () => typeof ordersChain;
+            eq: () => typeof ordersChain;
+            in: () => typeof ordersChain;
+            order: () => Promise<{ data: typeof orders; error: null }>;
+          } = {
+            select: () => ordersChain,
+            eq: () => ordersChain,
+            in: () => ordersChain,
+            order: async () => ({ data: orders, error: null }),
+          };
+          return ordersChain;
+        }
+        if (table === 'menu_items') {
+          return {
+            select: () => ({
+              eq: () => ({
+                in: async () => ({ data: [], error: null }),
+              }),
+            }),
+          };
+        }
+        if (table === 'print_jobs') {
+          return {
+            insert: (row: { payload: Record<string, unknown> }) => {
+              insertedPayload = row.payload;
+              return {
+                select: () => ({
+                  single: async () => ({ data: { id: 'job-1' }, error: null }),
+                }),
+              };
+            },
+          };
+        }
+        throw new Error(`unexpected table: ${table}`);
+      },
+    } as unknown as SupabaseClient;
+
+    const result = await enqueueReceiptPrint({
+      admin,
+      restaurantId: RESTAURANT_ID,
+      printLocale: 'pt',
+      sessionId: 'sess-1',
+      tableId: 'table-1',
+      tableDisplayName: 'A-01',
+      variant: 'checkout_bill',
+      billSplitId: billSplit.id,
+      discountRate: 10,
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(insertedPayload?.receipt_variant, 'checkout_bill');
+    assert.equal(insertedPayload?.amount_due, 90);
+    assert.equal(insertedPayload?.amount_paid, undefined);
+  });
 });

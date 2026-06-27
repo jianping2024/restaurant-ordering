@@ -42,6 +42,10 @@ export function checkoutPersonKey(billSplitId: string, rowIndex: number): string
   return `${billSplitId}-${rowIndex}`;
 }
 
+export function checkoutBillPrintKey(billSplitId: string): string {
+  return `bill-print:${billSplitId}`;
+}
+
 export function isCheckoutRequestBusy(processingKeys: ReadonlySet<string>, billSplitId: string): boolean {
   const prefix = `${billSplitId}-`;
   let busy = false;

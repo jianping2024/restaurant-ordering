@@ -9,9 +9,15 @@ import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import type { BillSplit, Order } from '@/types';
 import { showToast } from '@/components/ui/Toast';
 import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
-import { normalizeSplitRows } from '@/lib/checkout-confirm-payment';
+import {
+  checkoutPayableAmount,
+  clampCheckoutDiscountRate,
+  discountedSplitRows,
+  normalizeSplitRows,
+} from '@/lib/checkout-split-math';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
+import { requestOrderReceiptPrint } from '@/lib/request-order-receipt-print';
 import {
   checkoutLinesFromOrders,
   type CheckoutDisplayLine,
@@ -25,10 +31,12 @@ import {
 import { useReceiptPrinterPreference } from '@/lib/use-receipt-printer-preference';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import {
+  checkoutBillPrintKey,
   checkoutPersonKey,
   isCheckoutRequestBusy,
   mergeBillSplitsFromRefresh,
 } from '@/lib/checkout-request-state';
+import { useCheckoutBillPrintCooldown } from '@/lib/use-checkout-bill-print-cooldown';
 import { formatPortugueseNif } from '@/lib/pt-nif';
 import { tableIdsEqual } from '@/lib/restaurant-tables';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
@@ -92,6 +100,7 @@ export function CheckoutRequestsManager({
     settingsOpen: printSettingsOpen,
     setSettingsOpen: setPrintSettingsOpen,
   } = useReceiptPrinterPreference(restaurantSlug, { enabled: showPrinterSettings });
+  const { cooldownSecondsLeft, isOnCooldown, startCooldown } = useCheckoutBillPrintCooldown();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const prevRequestCountRef = useRef<number | null>(null);
   const refreshSeqRef = useRef(0);
@@ -238,16 +247,13 @@ export function CheckoutRequestsManager({
     };
   }, [supabase, restaurantId, requests, selectedRequestId]);
 
-  const getDiscountRate = (requestId: string) => Math.min(100, Math.max(0, discountRateById[requestId] || 0));
-  const getDiscountAmount = (request: BillSplit) => request.total_amount * (getDiscountRate(request.id) / 100);
-  const getPayable = (request: BillSplit) => Math.max(0, request.total_amount - getDiscountAmount(request));
+  const getDiscountRate = (requestId: string) =>
+    clampCheckoutDiscountRate(discountRateById[requestId] || 0);
+  const getPayable = (request: BillSplit) => checkoutPayableAmount(request, getDiscountRate(request.id));
   const getSplitRows = (request: BillSplit) => normalizeSplitRows(request);
 
   const getDiscountedSplitResult = (request: BillSplit) =>
-    getSplitRows(request).map((row) => ({
-      ...row,
-      amount: Number(row.amount) * (1 - getDiscountRate(request.id) / 100),
-    }));
+    discountedSplitRows(request, getDiscountRate(request.id));
 
   const hasConfirmedPerson = (request: BillSplit) => (request.result || []).some((row) => !!row.paid);
 
@@ -329,6 +335,56 @@ export function CheckoutRequestsManager({
       return;
     }
     void submitConfirmPersonPaid(request, rowIndex);
+  };
+
+  const handlePrintBill = async (request: BillSplit) => {
+    if (!restaurantSlug) {
+      showToast(t.printBillFailed, 'error');
+      return;
+    }
+    if (isOnCooldown(request.id)) {
+      showToast(
+        t.printBillCooldown.replace('{n}', String(cooldownSecondsLeft(request.id))),
+        'error',
+      );
+      return;
+    }
+
+    const printKey = checkoutBillPrintKey(request.id);
+    setProcessingKeys((prev) => new Set(prev).add(printKey));
+    try {
+      const outcome = await requestOrderReceiptPrint({
+        slug: restaurantSlug,
+        tableId: request.table_id,
+        sessionId: request.session_id,
+        billSplitId: request.id,
+        receiptVariant: 'checkout_bill',
+        discountRate: getDiscountRate(request.id),
+        ...(showPrinterSettings && selectedReceiptPrinterId
+          ? { receiptPrinterId: selectedReceiptPrinterId }
+          : {}),
+      });
+
+      if (!outcome.ok) {
+        showToast(t.printBillFailed, 'error');
+        return;
+      }
+      if (outcome.skipped) {
+        showToast(t.printBillSkipped, 'error');
+        return;
+      }
+
+      startCooldown(request.id);
+      showToast(t.printBillSuccess, 'success');
+    } catch {
+      showToast(t.printBillFailed, 'error');
+    } finally {
+      setProcessingKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(printKey);
+        return next;
+      });
+    }
   };
 
   const pendingLabel = t.pendingBadge.replace('{n}', String(requests.length));
@@ -461,8 +517,23 @@ export function CheckoutRequestsManager({
           </div>
         </div>
       )}
-      {canCloseTable ? (
-        <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-brand-border/50 pt-4">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-brand-border/50 pt-4">
+        <button
+          type="button"
+          onClick={() => void handlePrintBill(selectedRequest)}
+          disabled={
+            processingKeys.has(checkoutBillPrintKey(selectedRequest.id)) ||
+            isOnCooldown(selectedRequest.id)
+          }
+          className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
+        >
+          {processingKeys.has(checkoutBillPrintKey(selectedRequest.id))
+            ? t.printBillOperating
+            : isOnCooldown(selectedRequest.id)
+              ? t.printBillCooldown.replace('{n}', String(cooldownSecondsLeft(selectedRequest.id)))
+              : t.printBill}
+        </button>
+        {canCloseTable ? (
           <CloseTableSessionAction
             tableId={selectedRequest.table_id}
             isCheckoutPending
@@ -471,8 +542,8 @@ export function CheckoutRequestsManager({
               void refreshCheckoutRequests();
             }}
           />
-        </div>
-      ) : null}
+        ) : null}
+      </div>
     </div>
   ) : null;
 

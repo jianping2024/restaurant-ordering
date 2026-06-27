@@ -119,6 +119,30 @@ func TestParseJobPayloadDisplayNameFromJSON(t *testing.T) {
 	}
 }
 
+func TestCheckoutBillOmitsPaymentLines(t *testing.T) {
+	payload, _ := json.Marshal(map[string]any{
+		"display_name":    "A-02",
+		"receipt_variant": "checkout_bill",
+		"subtotal":        100,
+		"amount_due":      90,
+		"lines":           []jobLine{{ItemIndex: 1, DisplayName: "Soup", Qty: 1, UnitPrice: 100}},
+	})
+	raw := escposFromJob(printJob{Type: "order_receipt", Payload: payload})
+	s := string(raw)
+	if !strings.Contains(s, "Receipt") {
+		t.Fatalf("checkout_bill title must be Receipt, got: %q", s)
+	}
+	if strings.Contains(s, "Pre-Bill") {
+		t.Fatal("checkout_bill must not use pre_bill title")
+	}
+	if strings.Contains(s, "Amount Paid:") || strings.Contains(s, "Payment:") {
+		t.Fatal("checkout_bill must not include payment confirmation lines")
+	}
+	if !strings.Contains(s, "Amount Due:90.00") {
+		t.Fatalf("checkout_bill must show discounted amount due, got: %q", s)
+	}
+}
+
 func TestPreBillOmitsPaymentLines(t *testing.T) {
 	payload, _ := json.Marshal(map[string]any{
 		"display_name": "A-02",

@@ -12,19 +12,19 @@ export const buttonIcon = {
 } as const;
 
 const baseClass =
-  'inline-flex items-center justify-center border-0 outline-none transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2';
+  'inline-flex items-center justify-center outline-none transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2';
 
 const variants: Record<ButtonVariant, string> = {
   gold:
-    'bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light font-semibold shadow-sm shadow-black/10 active:scale-[0.98] focus-visible:ring-brand-gold/45',
+    'border border-transparent bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light font-semibold shadow-sm shadow-black/10 active:scale-[0.98] focus-visible:ring-brand-gold/45',
   outline: 'border border-brand-gold text-brand-gold hover:bg-brand-gold/10 font-semibold focus-visible:ring-brand-gold/30',
   ghost:
     'text-brand-text-muted hover:text-brand-text hover:bg-brand-border font-medium focus-visible:ring-brand-gold/30',
   danger: 'bg-red-600 text-white hover:bg-red-700 font-semibold focus-visible:ring-red-400/40',
   soft:
-    'bg-brand-border/30 text-brand-text hover:bg-brand-border/50 font-medium focus-visible:ring-brand-gold/30',
+    'border border-transparent bg-brand-border/30 text-brand-text hover:bg-brand-border/50 font-medium focus-visible:ring-brand-gold/30',
   close:
-    'border border-rose-500/55 bg-brand-card text-rose-700 hover:bg-rose-500/8 font-medium focus-visible:ring-rose-400/40',
+    'border border-rose-500 bg-brand-card text-rose-700 hover:bg-rose-500/8 font-medium focus-visible:ring-rose-400/40',
 };
 
 const sizes: Record<ButtonSize, string> = {

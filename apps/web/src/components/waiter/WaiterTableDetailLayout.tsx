@@ -28,6 +28,8 @@ const waiterCardBodyPy = 'py-4';
 const waiterCardInset = `${waiterCardPx} ${waiterCardBodyPy}`;
 /** Full-width on phone; intrinsic width from sm up. */
 const waiterActionBtnLayout = 'w-full justify-center sm:w-auto';
+/** Save / continue / close — same action size and desktop width. */
+const waiterPrimaryActionBtn = `${waiterActionBtnLayout} whitespace-nowrap sm:max-w-none xl:w-auto`;
 
 /** Five equal desktop columns between symmetric card padding; stacks on narrow viewports. */
 const buffetStripClass =
@@ -195,14 +197,14 @@ export function WaiterTableBuffetPanel({
           ) : null}
         </BuffetPanelSection>
 
-        <BuffetPanelSection wideOnSm className="items-center">
+        <BuffetPanelSection wideOnSm className="items-center xl:items-end">
           <Button
             type="button"
             variant="gold"
             size="action"
             onClick={onSave}
             disabled={saveDisabled}
-            className={`${waiterActionBtnLayout} whitespace-nowrap sm:max-w-none xl:w-auto`}
+            className={waiterPrimaryActionBtn}
           >
             <WaiterTableIcon className={buttonIcon.sm} />
             {buffetSubmitting ? '…' : buffetActionLabel}
@@ -233,7 +235,7 @@ function ContinueOrderingControl({
         variant="gold"
         size="action"
         onClick={onCheckoutLocked}
-        className={waiterActionBtnLayout}
+        className={waiterPrimaryActionBtn}
       >
         {icon}
         {label}
@@ -242,7 +244,7 @@ function ContinueOrderingControl({
   }
 
   return (
-    <ButtonLink href={menuHref} variant="gold" size="action" className={waiterActionBtnLayout}>
+    <ButtonLink href={menuHref} variant="gold" size="action" className={waiterPrimaryActionBtn}>
       {icon}
       {label}
     </ButtonLink>
@@ -310,7 +312,7 @@ function ToolbarCloseTableControl({
         size="action"
         onClick={onDemoCloseClick}
         disabled={closingDemoTable}
-        className={waiterActionBtnLayout}
+        className={waiterPrimaryActionBtn}
       >
         {closeIcon}
         {closingDemoTable ? closeOperatingLabel : closeLabel}
@@ -325,7 +327,7 @@ function ToolbarCloseTableControl({
       onClosed={onTableClosed}
       variant="close"
       size="action"
-      className={waiterActionBtnLayout}
+      className={waiterPrimaryActionBtn}
       leadingIcon={closeIcon}
     />
   );

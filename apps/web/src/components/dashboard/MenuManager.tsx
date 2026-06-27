@@ -614,21 +614,23 @@ export function MenuManager({
     if (result.ok) setItems((prev) => prev.filter((i) => i.id !== item.id));
   };
 
-  const toggleItemAvailable = async (item: MenuItem) => {
-    const nextAvailable = !item.available;
-    const result = await batchSetMenuItemsAvailableClient([item.id], nextAvailable);
-    if (result.ok) {
-      setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, available: nextAvailable } : i)));
-    }
-  };
-
-  const batchAvailable = async (available: boolean) => {
-    const ids = visibleItems.map((i) => i.id);
+  const setItemsAvailable = async (ids: string[], available: boolean) => {
     if (ids.length === 0) return;
     const result = await batchSetMenuItemsAvailableClient(ids, available);
     if (result.ok) {
       setItems((prev) => prev.map((i) => (ids.includes(i.id) ? { ...i, available } : i)));
     }
+  };
+
+  const toggleItemAvailable = async (item: MenuItem) => {
+    await setItemsAvailable([item.id], !item.available);
+  };
+
+  const batchAvailable = async (available: boolean) => {
+    await setItemsAvailable(
+      visibleItems.map((i) => i.id),
+      available,
+    );
   };
 
   const openBatchConfirm = (available: boolean) => {
@@ -1407,7 +1409,8 @@ export function MenuManager({
                         type="button"
                         onClick={() => toggleItemAvailable(item)}
                         className={`relative w-9 h-[18px] rounded-full transition-colors shrink-0 ${item.available ? 'bg-green-500' : 'bg-brand-border'}`}
-                        title={item.available ? t.allOn : t.unavailableBadge}
+                        title={item.available ? t.toggleAvailableTitle : t.toggleUnavailableTitle}
+                        aria-label={item.available ? t.toggleAvailableTitle : t.toggleUnavailableTitle}
                       >
                         <span
                           className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-brand-card border border-brand-border shadow-sm transition-transform ${

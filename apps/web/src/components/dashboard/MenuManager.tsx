@@ -41,9 +41,14 @@ import {
   MAX_MENU_CATEGORY_DEPTH,
 } from '@/lib/menu-admin';
 import { getPrintStationDisplayName } from '@/lib/print-station-admin';
+import {
+  canReorderVisibleMenuItems,
+  compareMenuItemsForDisplay,
+} from '@/lib/menu-item-order';
 import { categoryCodePathFromLeaf, normalizeMenuItemCode } from '@/lib/menu-print-label';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import { PrintStationsManager } from '@/components/dashboard/PrintStationsManager';
+import { DishSortOrderButtons } from '@/components/dashboard/DishSortOrderButtons';
 import { SettingsPageHelp } from '@/components/dashboard/settings/SettingsPageHelp';
 import {
   isMenuManagerTab,
@@ -62,6 +67,7 @@ import {
   mapMenuCategoryApiError,
   mapMenuItemApiError,
   setMenuItemImageClient,
+  swapMenuItemOrderClient,
   updateMenuCategoryClient,
   updateMenuItemClient,
 } from '@/lib/dashboard-menu-client';
@@ -186,6 +192,7 @@ export function MenuManager({
     router.replace(menuManagerPath(tab), { scroll: false });
   };
   const [dishSearch, setDishSearch] = useState('');
+  const [dishListError, setDishListError] = useState('');
   const [deleteMigrateTargetId, setDeleteMigrateTargetId] = useState('');
   const [items, setItems] = useState<MenuItem[]>(initialItems);
   const [categories, setCategories] = useState<MenuCategory[]>(initialCategories);
@@ -440,10 +447,26 @@ export function MenuManager({
     });
   }, [items, categories, selectedTopId, selectedSubId, showAllMenuItemTypes, itemListFilterValue]);
 
-  const visibleItems = useMemo(
+  const scopedDishItems = useMemo(
     () => filteredItems.filter((item) => itemMatchesSearch(item, dishSearch)),
     [filteredItems, dishSearch],
   );
+
+  const canReorderDishes = useMemo(
+    () => canReorderVisibleMenuItems(scopedDishItems, dishSearch),
+    [scopedDishItems, dishSearch],
+  );
+
+  const visibleItems = useMemo(() => {
+    if (canReorderDishes) {
+      return [...scopedDishItems].sort(compareMenuItemsForDisplay);
+    }
+    return scopedDishItems;
+  }, [scopedDishItems, canReorderDishes]);
+
+  useEffect(() => {
+    setDishListError('');
+  }, [itemListFilterValue, dishSearch]);
 
   const resetImageUi = () => {
     setPendingImage(null);
@@ -618,6 +641,26 @@ export function MenuManager({
       batchAvailable: available,
       batchCount: visibleItems.length,
     });
+  };
+
+  const moveDishRow = async (index: number, dir: -1 | 1) => {
+    const j = index + dir;
+    if (j < 0 || j >= visibleItems.length) return;
+    const a = visibleItems[index];
+    const b = visibleItems[j];
+    setDishListError('');
+    const result = await swapMenuItemOrderClient(a.id, b.id);
+    if (!result.ok) {
+      setDishListError(mapMenuItemApiError(result.error, result.message, t));
+      return;
+    }
+    setItems((prev) =>
+      prev.map((item) => {
+        if (item.id === a.id) return { ...item, sort_order: b.sort_order };
+        if (item.id === b.id) return { ...item, sort_order: a.sort_order };
+        return item;
+      }),
+    );
   };
 
   const createCategory = async (parentId: string | null) => {
@@ -1266,6 +1309,7 @@ export function MenuManager({
                 {t.batchScopeHint.replace('{count}', String(visibleItems.length))}
               </p>
             ) : null}
+            {dishListError ? <p className="mesa-alert-danger text-sm">{dishListError}</p> : null}
           </div>
 
           {visibleItems.length === 0 ? (
@@ -1282,7 +1326,7 @@ export function MenuManager({
             </div>
           ) : (
             <div className="space-y-1.5">
-              {visibleItems.map((item) => {
+              {visibleItems.map((item, index) => {
                 const code = item.item_code?.trim();
                 const nameEn = item.name_en?.trim() || t.listNameEmpty;
                 const nameZh = item.name_zh?.trim() || t.listNameEmpty;
@@ -1344,6 +1388,15 @@ export function MenuManager({
                       </p>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                      {canReorderDishes ? (
+                        <DishSortOrderButtons
+                          index={index}
+                          length={visibleItems.length}
+                          moveUpLabel={t.dishMoveUp}
+                          moveDownLabel={t.dishMoveDown}
+                          onMove={(dir) => moveDishRow(index, dir)}
+                        />
+                      ) : null}
                       <span className="text-brand-gold font-medium text-sm tabular-nums whitespace-nowrap">
                         EUR{item.price.toFixed(2)}
                       </span>
@@ -1391,6 +1444,9 @@ export function MenuManager({
               })}
             </div>
           )}
+          {canReorderDishes && visibleItems.length > 0 ? (
+            <p className="text-[12px] text-brand-text-muted mt-2">{t.dishSortOrderHint}</p>
+          ) : null}
         </>
       )}
 

@@ -28,6 +28,7 @@ const itemLabels = {
   vatRateRequired: 'vat required',
   categoryRequired: 'category required',
   imageTypeInvalid: 'bad image',
+  dishReorderScopeMismatch: 'scope mismatch',
   saveFail: 'save fail',
 };
 
@@ -156,5 +157,9 @@ describe('mapMenuItemApiError', () => {
       'item code duplicate',
     );
     assert.equal(mapMenuItemApiError('invalid_image', undefined, itemLabels), 'bad image');
+    assert.equal(
+      mapMenuItemApiError('reorder_scope_mismatch', undefined, itemLabels),
+      'scope mismatch',
+    );
   });
 });

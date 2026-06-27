@@ -9,7 +9,7 @@ import {
 } from '@/lib/restaurant-table-groups';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { nextSortOrder, type SortOrderMoveDirection } from '@/lib/sort-order';
-import { persistAdjacentSortOrderMove } from '@/lib/sort-order-persist';
+import { persistAdjacentSortOrderSwap } from '@/lib/sort-order-persist';
 import type { MutationError } from '@/lib/dashboard-api-shared';
 import { uniqueViolation } from '@/lib/dashboard-api-shared';
 
@@ -247,13 +247,12 @@ export async function moveTableGroupOrder(
 
   const a = ordered[index];
   const b = ordered[neighborIndex];
-  const persisted = await persistAdjacentSortOrderMove(
+  const persisted = await persistAdjacentSortOrderSwap(
     admin,
     'restaurant_table_groups',
     restaurantId,
     a,
     b,
-    direction,
   );
   if ('error' in persisted) {
     return { error: persisted.error, message: persisted.message, status: 500 };

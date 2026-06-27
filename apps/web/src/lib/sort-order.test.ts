@@ -1,12 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
-  adjacentMoveNeighborIndex,
-  adjacentSortOrdersAfterMove,
-  applyAdjacentSortOrderMove,
+  applyAdjacentSortOrderSwap,
   compareSortOrder,
   nextSortOrder,
   sortBySortOrderThenCreatedAt,
+  swapAdjacentSortOrders,
 } from './sort-order';
 
 describe('nextSortOrder', () => {
@@ -27,13 +26,6 @@ describe('nextSortOrder', () => {
       5,
     );
   });
-
-  it('returns max + 1 when legacy data starts at 1', () => {
-    assert.equal(
-      nextSortOrder([{ sort_order: 1 }, { sort_order: 2 }, { sort_order: 3 }]),
-      4,
-    );
-  });
 });
 
 describe('compareSortOrder', () => {
@@ -47,43 +39,29 @@ describe('compareSortOrder', () => {
   });
 });
 
-describe('adjacentSortOrdersAfterMove', () => {
-  it('swaps distinct sort orders', () => {
-    assert.deepEqual(adjacentSortOrdersAfterMove({ sort_order: 2 }, { sort_order: 5 }, -1), {
+describe('swapAdjacentSortOrders', () => {
+  it('exchanges sort orders', () => {
+    assert.deepEqual(swapAdjacentSortOrders({ sort_order: 2 }, { sort_order: 5 }), {
       sortOrderA: 5,
       sortOrderB: 2,
     });
   });
-
-  it('moves up when sort orders are equal', () => {
-    assert.deepEqual(adjacentSortOrdersAfterMove({ sort_order: 0 }, { sort_order: 0 }, -1), {
-      sortOrderA: -1,
-      sortOrderB: 0,
-    });
-  });
-
-  it('moves down when sort orders are equal', () => {
-    assert.deepEqual(adjacentSortOrdersAfterMove({ sort_order: 0 }, { sort_order: 0 }, 1), {
-      sortOrderA: 1,
-      sortOrderB: 0,
-    });
-  });
 });
 
-describe('applyAdjacentSortOrderMove', () => {
-  it('updates only the moved pair', () => {
+describe('applyAdjacentSortOrderSwap', () => {
+  it('updates only the swapped pair', () => {
     const rows = [
-      { id: 'a', sort_order: 0 },
-      { id: 'b', sort_order: 0 },
-      { id: 'c', sort_order: 2 },
+      { id: 'a', sort_order: 3 },
+      { id: 'b', sort_order: 4 },
+      { id: 'c', sort_order: 5 },
     ];
-    const next = applyAdjacentSortOrderMove(rows, 'b', 'a', -1);
+    const next = applyAdjacentSortOrderSwap(rows, 'b', 'a');
     assert.deepEqual(
       next.map((row) => [row.id, row.sort_order]),
       [
-        ['a', 0],
-        ['b', -1],
-        ['c', 2],
+        ['a', 4],
+        ['b', 3],
+        ['c', 5],
       ],
     );
   });
@@ -99,17 +77,5 @@ describe('sortBySortOrderThenCreatedAt', () => {
       sortBySortOrderThenCreatedAt(rows).map((row) => row.id),
       ['a', 'b'],
     );
-  });
-});
-
-describe('adjacentMoveNeighborIndex', () => {
-  it('returns null at list bounds', () => {
-    assert.equal(adjacentMoveNeighborIndex(0, 3, -1), null);
-    assert.equal(adjacentMoveNeighborIndex(2, 3, 1), null);
-  });
-
-  it('returns neighbor index inside the list', () => {
-    assert.equal(adjacentMoveNeighborIndex(1, 3, -1), 0);
-    assert.equal(adjacentMoveNeighborIndex(1, 3, 1), 2);
   });
 });

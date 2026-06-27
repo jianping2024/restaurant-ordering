@@ -23,3 +23,13 @@ export function canReorderVisibleMenuItems(items: readonly MenuItem[], searchQue
 export function compareMenuItemsForDisplay(a: MenuItem, b: MenuItem): number {
   return compareSortOrderThenCreatedAt(a, b);
 }
+
+export function menuItemSiblingsInScope(
+  items: readonly MenuItem[],
+  categoryId: string | null,
+  excludeId?: string,
+): MenuItem[] {
+  return items.filter(
+    (item) => item.category_id === categoryId && (!excludeId || item.id !== excludeId),
+  );
+}

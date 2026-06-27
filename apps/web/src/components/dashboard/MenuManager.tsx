@@ -45,7 +45,7 @@ import {
   canReorderVisibleMenuItems,
   compareMenuItemsForDisplay,
 } from '@/lib/menu-item-order';
-import { applyAdjacentSortOrderMove } from '@/lib/sort-order';
+import { applyAdjacentSortOrderSwap } from '@/lib/sort-order';
 import { categoryCodePathFromLeaf, normalizeMenuItemCode } from '@/lib/menu-print-label';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import { PrintStationsManager } from '@/components/dashboard/PrintStationsManager';
@@ -657,7 +657,7 @@ export function MenuManager({
       setDishListError(mapMenuItemApiError(result.error, result.message, t));
       return;
     }
-    setItems((prev) => applyAdjacentSortOrderMove(prev, a.id, b.id, dir));
+    setItems((prev) => applyAdjacentSortOrderSwap(prev, a.id, b.id));
   };
 
   const createCategory = async (parentId: string | null) => {

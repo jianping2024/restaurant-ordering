@@ -27,46 +27,27 @@ export function sortBySortOrderThenCreatedAt<T extends { sort_order: number; cre
   return [...rows].sort(compareSortOrderThenCreatedAt);
 }
 
-/** Sort orders when moving row A past adjacent row B. */
-export function adjacentSortOrdersAfterMove(
+/** Exchange sort_order between two adjacent rows (requires distinct values in scope). */
+export function swapAdjacentSortOrders(
   a: { sort_order: number },
   b: { sort_order: number },
-  direction: SortOrderMoveDirection,
 ): { sortOrderA: number; sortOrderB: number } {
-  if (a.sort_order !== b.sort_order) {
-    return { sortOrderA: b.sort_order, sortOrderB: a.sort_order };
-  }
-  if (direction === -1) {
-    return { sortOrderA: b.sort_order - 1, sortOrderB: b.sort_order };
-  }
-  return { sortOrderA: b.sort_order + 1, sortOrderB: b.sort_order };
+  return { sortOrderA: b.sort_order, sortOrderB: a.sort_order };
 }
 
-/** Apply an adjacent move to local rows (optimistic UI). */
-export function applyAdjacentSortOrderMove<T extends { id: string; sort_order: number }>(
+/** Optimistic UI: swap sort_order for two rows by id. */
+export function applyAdjacentSortOrderSwap<T extends { id: string; sort_order: number }>(
   rows: readonly T[],
   itemIdA: string,
   itemIdB: string,
-  direction: SortOrderMoveDirection,
 ): T[] {
   const a = rows.find((row) => row.id === itemIdA);
   const b = rows.find((row) => row.id === itemIdB);
   if (!a || !b) return [...rows];
-  const { sortOrderA, sortOrderB } = adjacentSortOrdersAfterMove(a, b, direction);
+  const { sortOrderA, sortOrderB } = swapAdjacentSortOrders(a, b);
   return rows.map((row) => {
     if (row.id === itemIdA) return { ...row, sort_order: sortOrderA };
     if (row.id === itemIdB) return { ...row, sort_order: sortOrderB };
     return row;
   });
-}
-
-/** Neighbor index for a move within a sorted list, or null when out of range. */
-export function adjacentMoveNeighborIndex(
-  index: number,
-  length: number,
-  direction: SortOrderMoveDirection,
-): number | null {
-  const neighbor = index + direction;
-  if (neighbor < 0 || neighbor >= length) return null;
-  return neighbor;
 }

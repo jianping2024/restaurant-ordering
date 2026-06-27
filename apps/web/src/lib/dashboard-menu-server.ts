@@ -16,8 +16,9 @@ import {
   parseMenuVatRate,
 } from '@/lib/menu-vat-rate';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { compareMenuItemsForDisplay, menuItemSiblingsInScope } from '@/lib/menu-item-order';
 import { nextSortOrder, sortBySortOrderThenCreatedAt, type SortOrderMoveDirection } from '@/lib/sort-order';
-import { persistAdjacentSortOrderMove } from '@/lib/sort-order-persist';
+import { persistAdjacentSortOrderSwap } from '@/lib/sort-order-persist';
 import type { MenuCategory, MenuItem, PrintStation, PrintStationTicketLayout } from '@/types';
 
 const ALLOWED_IMAGE_MIME = new Set([
@@ -283,18 +284,24 @@ export async function deleteMenuCategory(
     if (!target) {
       return { error: 'migrate_target_not_found', status: 404 };
     }
-    const { error: moveError } = await admin
-      .from('menu_items')
-      .update({
-        category_id: target.id,
-        category: target.name_pt,
-        category_en: target.name_en || target.name_pt,
-        category_zh: target.name_zh || target.name_pt,
-      })
-      .eq('restaurant_id', restaurantId)
-      .in('category_id', subtreeIds);
-    if (moveError) {
-      return { error: 'migrate_failed', message: moveError.message, status: 500 };
+    const targetSiblings = menuItemSiblingsInScope(items, target.id);
+    let nextOrder = nextSortOrder(targetSiblings);
+    const migrating = [...linkedInSubtree].sort(compareMenuItemsForDisplay);
+    for (const item of migrating) {
+      const { error: moveError } = await admin
+        .from('menu_items')
+        .update({
+          category_id: target.id,
+          category: target.name_pt,
+          category_en: target.name_en || target.name_pt,
+          category_zh: target.name_zh || target.name_pt,
+          sort_order: nextOrder++,
+        })
+        .eq('id', item.id)
+        .eq('restaurant_id', restaurantId);
+      if (moveError) {
+        return { error: 'migrate_failed', message: moveError.message, status: 500 };
+      }
     }
   } else if (linkedInSubtree.length > 0) {
     if (input.mode !== 'delete_all') {
@@ -422,7 +429,7 @@ export async function createMenuItem(
   const category = categoryOrError;
 
   const normalizedCode = normalizeMenuItemCode(input.item_code)!;
-  const categoryItems = items.filter((i) => i.category_id === category.id);
+  const categoryItems = menuItemSiblingsInScope(items, category.id);
   const { data, error } = await admin
     .from('menu_items')
     .insert({
@@ -493,7 +500,7 @@ export async function moveMenuItemOrder(
 
   const a = ordered[index];
   const b = ordered[neighborIndex];
-  const persisted = await persistAdjacentSortOrderMove(admin, 'menu_items', restaurantId, a, b, direction);
+  const persisted = await persistAdjacentSortOrderSwap(admin, 'menu_items', restaurantId, a, b);
   if ('error' in persisted) {
     return { error: persisted.error, message: persisted.message, status: 500 };
   }
@@ -527,9 +534,16 @@ export async function updateMenuItem(
   const category = categoryOrError;
 
   const normalizedCode = normalizeMenuItemCode(input.item_code)!;
+  const categoryChanged = existing.category_id !== category.id;
+  const updatePayload = {
+    ...buildMenuItemPayload(restaurantId, category, input, normalizedCode),
+    ...(categoryChanged
+      ? { sort_order: nextSortOrder(menuItemSiblingsInScope(items, category.id, id)) }
+      : {}),
+  };
   const { data, error } = await admin
     .from('menu_items')
-    .update(buildMenuItemPayload(restaurantId, category, input, normalizedCode))
+    .update(updatePayload)
     .eq('id', id)
     .eq('restaurant_id', restaurantId)
     .select()
@@ -793,7 +807,7 @@ export async function movePrintStationOrder(
 
   const a = ordered[index];
   const b = ordered[neighborIndex];
-  const persisted = await persistAdjacentSortOrderMove(admin, 'print_stations', restaurantId, a, b, direction);
+  const persisted = await persistAdjacentSortOrderSwap(admin, 'print_stations', restaurantId, a, b);
   if ('error' in persisted) {
     return { error: persisted.error, message: persisted.message, status: 500 };
   }

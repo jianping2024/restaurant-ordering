@@ -14,7 +14,7 @@ import {
   movePrintStationOrderClient,
   updatePrintStationClient,
 } from '@/lib/dashboard-menu-client';
-import { applyAdjacentSortOrderMove, compareSortOrderThenCreatedAt } from '@/lib/sort-order';
+import { applyAdjacentSortOrderSwap, compareSortOrderThenCreatedAt } from '@/lib/sort-order';
 
 const SELECT_FIELD =
   'w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50';
@@ -178,7 +178,7 @@ export function PrintStationsManager({
       return;
     }
     setStations((prev) =>
-      [...applyAdjacentSortOrderMove(prev, a.id, b.id, dir)].sort(compareSortOrderThenCreatedAt),
+      [...applyAdjacentSortOrderSwap(prev, a.id, b.id)].sort(compareSortOrderThenCreatedAt),
     );
   };
 

@@ -234,6 +234,8 @@ menu_items:
 
 - idx_menu_items_category: btree(restaurant_id, category)
 - idx_menu_items_category_id: btree(restaurant_id, category_id)
+- idx_menu_items_category_sort_order: unique btree(restaurant_id, category_id, sort_order) WHERE category_id IS NOT NULL
+- idx_menu_items_uncategorized_sort_order: unique btree(restaurant_id, sort_order) WHERE category_id IS NULL
 - idx_menu_items_code_per_restaurant: unique btree(restaurant_id, lower(btrim((item_code)::text))) WHERE (item_code IS NOT NULL) AND (btrim((item_code)::text) <> ''::text)
 - idx_menu_items_note_preset_keys: gin(note_preset_keys)
 - idx_menu_items_print_station: btree(restaurant_id, print_station_id) WHERE print_station_id IS NOT NULL

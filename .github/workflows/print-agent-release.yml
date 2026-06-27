@@ -139,8 +139,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p apps/print-agent/dist
           bash scripts/print-agent-release-body.sh "${{ steps.ver.outputs.version }}" > apps/print-agent/dist/RELEASE_BODY.md
-          head -n 20 apps/print-agent/dist/RELEASE_BODY.md
+          head -n 12 apps/print-agent/dist/RELEASE_BODY.md
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2

@@ -14,7 +14,19 @@ if [[ ! -f "$NOTES" ]]; then
   exit 1
 fi
 
-python3 - "$VERSION" "$NOTES" <<'PY'
+PYTHON=""
+for cmd in python3 python py; do
+  if command -v "$cmd" >/dev/null 2>&1; then
+    PYTHON=$cmd
+    break
+  fi
+done
+if [[ -z "$PYTHON" ]]; then
+  echo "python not found (need python3 or python for release notes)" >&2
+  exit 1
+fi
+
+"$PYTHON" - "$VERSION" "$NOTES" <<'PY'
 import re
 import sys
 

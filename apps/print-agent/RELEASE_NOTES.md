@@ -2,6 +2,12 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.32
+
+**备注行前加 `Observação:` 标签**
+
+- 出品联与预结/结账：菜品备注仍单独一行、下划线，前缀固定为 `Observação: `（与备注内容同一行）。
+
 ## 0.3.31
 
 **统一打单排版：出品联 1×1 + 备注下划线**

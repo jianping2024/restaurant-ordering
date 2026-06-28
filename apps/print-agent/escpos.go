@@ -498,6 +498,9 @@ func (w *escposWriter) writeTableContext(p jobPayload, lab ticketLabels, tableCe
 	}
 }
 
+// escposItemNotePrefix — label before underlined guest note on station + receipt tickets.
+const escposItemNotePrefix = "Observação: "
+
 func (w *escposWriter) writeItemNoteLine(note string, width int) {
 	note = strings.TrimSpace(note)
 	if note == "" {
@@ -505,8 +508,9 @@ func (w *escposWriter) writeItemNoteLine(note string, width int) {
 	}
 	w.writeBody1x1()
 	indent := strings.Repeat(" ", escposNoteIndentSpaces)
+	line := escposItemNotePrefix + note
 	w.underline(true)
-	w.text(indent + truncateRunes(note, width-escposNoteIndentSpaces))
+	w.text(indent + truncateRunes(line, width-escposNoteIndentSpaces))
 	w.lf()
 	w.underline(false)
 }

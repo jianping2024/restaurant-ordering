@@ -86,13 +86,16 @@ func TestStationTicketItemNoteUsesUnderline(t *testing.T) {
 		}},
 	})
 	raw := escposFromJob(printJob{Type: "station_ticket", Payload: payload})
-	noteIdx := bytes.Index(raw, []byte("no onion"))
-	if noteIdx < 0 {
-		t.Fatal("missing note text")
+	labelIdx := bytes.Index(raw, []byte("Observ"))
+	if labelIdx < 0 {
+		t.Fatal("missing Observação: prefix")
 	}
-	prefix := raw[max(0, noteIdx-4):noteIdx]
+	prefix := raw[max(0, labelIdx-4):labelIdx]
 	if !bytes.Contains(prefix, []byte{0x1B, 0x2D, 0x01}) {
 		t.Fatal("expected ESC - 1 underline before item note")
+	}
+	if !bytes.Contains(raw, []byte("Observ")) || !bytes.Contains(raw, []byte(": no onion")) {
+		t.Fatal("expected Observação: prefix before item note")
 	}
 }
 

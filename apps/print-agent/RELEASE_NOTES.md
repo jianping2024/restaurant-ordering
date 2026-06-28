@@ -2,6 +2,15 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.31
+
+**统一打单排版：出品联 1×1 + 备注下划线**
+
+- 出品联菜单项改回 **Font A 1×1**（与预结单菜品密度一致），票头/桌号仍为 2×2。
+- 出品联与预结/结账单：菜品 **备注** 单独一行、**下划线**（ESC/POS `ESC -`）；菜品名不加粗。
+- 预结/结账此前未输出的 `note` 字段现已打印。
+- 合并票头与菜品行排版逻辑，移除 2×2 菜单专用冗余代码。
+
 ## 0.3.30
 
 **厨房单菜单行距**

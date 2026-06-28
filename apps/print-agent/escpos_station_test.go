@@ -66,9 +66,33 @@ func TestBuildStationTicketEnglishLayout(t *testing.T) {
 		t.Fatalf("expected Windows-1252 accented bytes in ticket output")
 	}
 
-	// Menu block uses 2×2 (GS ! n=0x11); masthead/footer stay 1×1 except Guest Order / Table No.
-	if !bytes.Contains(raw, []byte{0x1D, 0x21, 0x11}) {
-		t.Fatal("expected 2×2 ESC/POS mode on station ticket menu block")
+	// Masthead (title + table) uses 2×2; menu body stays Font A 1×1 like pre-bill items.
+	idx := bytes.Index(raw, []byte("Items"))
+	if idx < 0 {
+		t.Fatal(`missing "Items" column header`)
+	}
+	if bytes.Contains(raw[idx:], []byte{0x1D, 0x21, 0x11}) {
+		t.Fatal("menu body must not use GS ! 2×2 after column headers")
+	}
+}
+
+func TestStationTicketItemNoteUsesUnderline(t *testing.T) {
+	payload, _ := json.Marshal(jobPayload{
+		TableDisplayName: "A-1",
+		Lines: []jobLine{{
+			DisplayName: "Soup",
+			Qty:         1,
+			Note:        "no onion",
+		}},
+	})
+	raw := escposFromJob(printJob{Type: "station_ticket", Payload: payload})
+	noteIdx := bytes.Index(raw, []byte("no onion"))
+	if noteIdx < 0 {
+		t.Fatal("missing note text")
+	}
+	prefix := raw[max(0, noteIdx-4):noteIdx]
+	if !bytes.Contains(prefix, []byte{0x1B, 0x2D, 0x01}) {
+		t.Fatal("expected ESC - 1 underline before item note")
 	}
 }
 

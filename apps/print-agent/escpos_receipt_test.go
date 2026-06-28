@@ -199,3 +199,27 @@ func TestPreBillTitleEnglishLocale(t *testing.T) {
 		t.Fatalf("pre_bill en locale must show Pre-Bill, got: %q", s)
 	}
 }
+
+func TestReceiptItemNoteUsesUnderline(t *testing.T) {
+	payload, _ := json.Marshal(jobPayload{
+		TableDisplayName: "A-03",
+		Subtotal:         5,
+		AmountDue:        5,
+		Lines: []jobLine{{
+			ItemIndex:   1,
+			DisplayName: "Tea",
+			Qty:         1,
+			UnitPrice:   5,
+			Note:        "less sugar",
+		}},
+	})
+	raw := escposFromJob(printJob{Type: "pre_bill", Payload: payload})
+	noteIdx := bytes.Index(raw, []byte("less sugar"))
+	if noteIdx < 0 {
+		t.Fatal("missing note on receipt-style ticket")
+	}
+	prefix := raw[max(0, noteIdx-4):noteIdx]
+	if !bytes.Contains(prefix, []byte{0x1B, 0x2D, 0x01}) {
+		t.Fatal("expected ESC - 1 underline before receipt item note")
+	}
+}

@@ -14,8 +14,8 @@ import (
 const escposWidth = 48
 const escposTabWidth = 4 // one tab stop for category group headers on station slips
 
-// Line spacing (ESC 3 n, dots) for 2×2 menu block — default ~30 dots is tight for double-height glyphs.
-const escposLineSpacingMenu2x2 byte = 50
+// escposNoteIndentSpaces — sub-line indent before underlined item notes (station + receipt).
+const escposNoteIndentSpaces = 1
 
 // Top: no extra LF — most printers already feed after ESC @ init.
 // Bottom: 2× single-height "restaurant" row before cut (visible pad only).
@@ -259,12 +259,6 @@ func newEscposForReceiptTicket(p jobPayload) *escposWriter {
 	return w
 }
 
-func newEscposForPayload(p jobPayload) *escposWriter {
-	w := newEscpos()
-	w.applyEncoding(loadPaperEncodingForPayload(payloadNeedsGBK(p)))
-	return w
-}
-
 func newEscposForConnectionTest(p jobPayload) *escposWriter {
 	w := newEscpos()
 	w.applyEncoding(loadPaperEncodingForPayload(connectionTestNeedsGBK(p)))
@@ -330,6 +324,14 @@ func (w *escposWriter) bold(on bool) {
 	w.content.Write([]byte{0x1B, 0x45, n})
 }
 
+func (w *escposWriter) underline(on bool) {
+	n := byte(0)
+	if on {
+		n = 1
+	}
+	w.content.Write([]byte{0x1B, 0x2D, n})
+}
+
 func (w *escposWriter) size(doubleW, doubleH bool) {
 	if doubleH {
 		w.hadDoubleHeight = true
@@ -365,20 +367,13 @@ func (w *escposWriter) lf() {
 	w.content.WriteByte('\n')
 }
 
-func (w *escposWriter) setLineSpacingDots(dots byte) {
-	w.content.Write([]byte{0x1B, 0x33, dots})
-}
-
-func (w *escposWriter) defaultLineSpacing() {
-	w.content.Write([]byte{0x1B, 0x32}) // ESC 2
-}
-
 func (w *escposWriter) writeResetPrintMode(out *bytes.Buffer) {
 	out.Write([]byte{0x1B, 0x61, 0})
 	out.Write([]byte{0x1D, 0x21, 0})
 	out.Write([]byte{0x1B, 0x45, 0})
+	out.Write([]byte{0x1B, 0x2D, 0})
 	out.Write([]byte{0x1C, 0x21, 0x00}) // FS ! — reset Chinese print modes (GS ! does not affect Han)
-	out.Write([]byte{0x1B, 0x32})       // ESC 2 — default line spacing after enlarged text
+	out.Write([]byte{0x1B, 0x32})       // ESC 2 — default line spacing
 	if w.enc == paperEncGBK && w.gbkActive {
 		out.Write([]byte{0x1C, 0x2E})
 		w.gbkActive = false
@@ -451,43 +446,69 @@ func escposPadLine(left, right string, width int) string {
 	return left + strings.Repeat(" ", gap) + right
 }
 
-// escposCols returns effective line width; GS ! double-width halves printable columns.
-func escposCols(enlarged bool) int {
-	if enlarged {
-		return escposWidth / 2
-	}
-	return escposWidth
+// writeBody1x1 — Font A normal (matches pre-bill / receipt item lines).
+func (w *escposWriter) writeBody1x1() {
+	w.size(false, false)
+	w.bold(false)
+	w.underline(false)
 }
 
-// escposCategoryTab scales category indent with enlargement so group headers stay aligned.
-func escposCategoryTab(enlarged bool) int {
-	if enlarged {
-		return escposTabWidth / 2
-	}
-	return escposTabWidth
-}
-
-func (w *escposWriter) setPrintMode(enlarged, bold bool) {
-	if enlarged {
-		w.size(true, true)
-	} else {
-		w.size(false, false)
-	}
-	w.bold(bold)
+// writeMasthead2x2Bold — ticket title and table number emphasis only.
+func (w *escposWriter) writeMasthead2x2Bold() {
+	w.size(true, true)
+	w.bold(true)
 }
 
 func (w *escposWriter) writeTicketBranding() {
 	w.align(0)
-	w.setPrintMode(false, false)
+	w.writeBody1x1()
 	w.text("restaurant")
 	w.lf()
 }
 
-func (w *escposWriter) writeTicketTitle(title string) {
+func (w *escposWriter) writeTicketMasthead(title string) {
+	w.writeTicketBranding()
 	w.align(1)
-	w.setPrintMode(true, true)
+	w.writeMasthead2x2Bold()
 	w.text(title)
 	w.lf()
+	w.separator('-')
+}
+
+// writeTableContext prints table no. (2×2 bold) and optional meta lines at body size.
+func (w *escposWriter) writeTableContext(p jobPayload, lab ticketLabels, tableCentered bool, metaLines ...string) {
+	if tableCentered {
+		w.align(1)
+	} else {
+		w.align(0)
+	}
+	w.writeMasthead2x2Bold()
+	if line := p.tableNoLabel(lab); line != "" {
+		w.text(line)
+		w.lf()
+	}
+	w.writeBody1x1()
+	w.align(0)
+	for _, line := range metaLines {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		w.text(line)
+		w.lf()
+	}
+}
+
+func (w *escposWriter) writeItemNoteLine(note string, width int) {
+	note = strings.TrimSpace(note)
+	if note == "" {
+		return
+	}
+	w.writeBody1x1()
+	indent := strings.Repeat(" ", escposNoteIndentSpaces)
+	w.underline(true)
+	w.text(indent + truncateRunes(note, width-escposNoteIndentSpaces))
+	w.lf()
+	w.underline(false)
 }
 
 func sortStationMenuLines(lines []jobLine) []jobLine {
@@ -504,41 +525,25 @@ func sortStationMenuLines(lines []jobLine) []jobLine {
 
 // writeStationSlipHeader — branding, title, table context, Items/Qty column header (standard size).
 func (w *escposWriter) writeStationSlipHeader(p jobPayload, lab ticketLabels) {
-	w.writeTicketBranding()
-	w.writeTicketTitle(lab.guestOrder)
-	w.separator('-')
-
-	w.align(0)
-	w.setPrintMode(true, true)
-	if line := p.tableNoLabel(lab); line != "" {
-		w.text(line)
-	}
-	w.lf()
-
-	w.setPrintMode(false, false)
+	w.writeTicketMasthead(lab.guestOrder)
+	var meta []string
 	if p.GuestCount > 0 {
-		w.text(fmt.Sprintf("%s:%d", lab.guest, p.GuestCount))
-		w.lf()
+		meta = append(meta, fmt.Sprintf("%s:%d", lab.guest, p.GuestCount))
 	}
-
+	w.writeTableContext(p, lab, false, meta...)
 	w.separator('-')
 	w.text(escposPadLine(lab.items, lab.qty, escposWidth))
 	w.lf()
 }
 
-// writeStationMenuLines — kitchen menu body only; enlarged 2×2 for readability.
+// writeStationMenuLines — kitchen menu body; Font A 1×1 (same density as pre-bill items).
 func (w *escposWriter) writeStationMenuLines(lines []jobLine) {
-	const enlarged = true
-	w.setPrintMode(enlarged, false)
-	w.setLineSpacingDots(escposLineSpacingMenu2x2)
-	cols := escposCols(enlarged)
-	tab := escposCategoryTab(enlarged)
-
+	w.writeBody1x1()
 	lastGroupHeader := ""
 	for _, ln := range sortStationMenuLines(lines) {
 		groupHeader := strings.TrimSpace(ln.CategoryGroupHeader)
 		if groupHeader != "" && groupHeader != lastGroupHeader {
-			w.text(strings.Repeat(" ", tab) + truncateRunes(groupHeader, cols-tab))
+			w.text(strings.Repeat(" ", escposTabWidth) + truncateRunes(groupHeader, escposWidth-escposTabWidth))
 			w.lf()
 			lastGroupHeader = groupHeader
 		}
@@ -551,16 +556,10 @@ func (w *escposWriter) writeStationMenuLines(lines []jobLine) {
 		if qty <= 0 {
 			qty = 1
 		}
-		w.text(escposPadLine(label, fmt.Sprintf("%d", qty), cols))
+		w.text(escposPadLine(label, fmt.Sprintf("%d", qty), escposWidth))
 		w.lf()
-		if note := strings.TrimSpace(ln.Note); note != "" {
-			w.text(" " + truncateRunes(note, cols-1))
-			w.lf()
-		}
+		w.writeItemNoteLine(ln.Note, escposWidth)
 	}
-
-	w.setPrintMode(false, false)
-	w.defaultLineSpacing()
 }
 
 func (w *escposWriter) writeStationSlipFooter(p jobPayload, lab ticketLabels) {
@@ -600,6 +599,58 @@ func formatItemLabel(idx int, name string) string {
 
 func formatMoney(v float64) string {
 	return fmt.Sprintf("%.2f", v)
+}
+
+type receiptLineFields struct {
+	label     string
+	qtyCol    string
+	priceCol  string
+	lineTotal float64
+	hasPrice  bool
+}
+
+func receiptLineFieldsFrom(ln jobLine) receiptLineFields {
+	qty := ln.Qty
+	if qty <= 0 {
+		qty = 1
+	}
+	label := strings.TrimSpace(ln.DisplayName)
+	lineTotal := ln.UnitPrice * float64(qty)
+	qtyCol := fmt.Sprintf("%d", qty)
+	if shareLabel := strings.TrimSpace(ln.ShareQtyLabel); shareLabel != "" {
+		qtyCol = shareLabel
+		lineTotal = ln.UnitPrice
+	}
+	priceCol := ""
+	hasPrice := false
+	if ln.UnitPrice > 0 {
+		hasPrice = true
+		priceCol = formatMoney(lineTotal)
+	}
+	return receiptLineFields{
+		label:     label,
+		qtyCol:    qtyCol,
+		priceCol:  priceCol,
+		lineTotal: lineTotal,
+		hasPrice:  hasPrice,
+	}
+}
+
+func (w *escposWriter) writeReceiptMenuLines(lines []jobLine, lab ticketLabels) (sum float64, hasPrice bool) {
+	w.writeBody1x1()
+	w.text(escposThreeColLine(lab.items, lab.qty, lab.originalPrice))
+	w.lf()
+	for _, ln := range lines {
+		fields := receiptLineFieldsFrom(ln)
+		if fields.hasPrice {
+			hasPrice = true
+			sum += fields.lineTotal
+		}
+		w.text(escposThreeColLine(fields.label, fields.qtyCol, fields.priceCol))
+		w.lf()
+		w.writeItemNoteLine(ln.Note, escposWidth)
+	}
+	return sum, hasPrice
 }
 
 func nowLocal() string {
@@ -653,58 +704,20 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 	isSplit := variant == "split_payment"
 	payer := formatSplitPayerForReceipt(p.PayerName)
 
-	w.writeTicketBranding()
-	w.writeTicketTitle(receiptHeaderTitle(variant, lab))
-	w.separator('-')
-
-	w.align(1)
-	w.size(true, true)
-	w.bold(true)
-	if line := p.tableNoLabel(lab); line != "" {
-		w.text(line)
-		w.lf()
-	}
-	w.size(false, false)
-	w.bold(false)
-	w.align(0)
+	w.writeTicketMasthead(receiptHeaderTitle(variant, lab))
+	var meta []string
 	if isSplit && payer != "" {
-		w.text(fmt.Sprintf("%s:%s", lab.guest, payer))
-		w.lf()
+		meta = append(meta, fmt.Sprintf("%s:%s", lab.guest, payer))
 	} else if p.GuestCount > 0 {
-		w.text(fmt.Sprintf("%s:%d", lab.guest, p.GuestCount))
-		w.lf()
+		meta = append(meta, fmt.Sprintf("%s:%d", lab.guest, p.GuestCount))
 	}
-
+	w.writeTableContext(p, lab, true, meta...)
 	w.separator('-')
 
 	var sum float64
 	hasPrice := false
 	if len(p.Lines) > 0 {
-		w.text(escposThreeColLine(lab.items, lab.qty, lab.originalPrice))
-		w.lf()
-		for _, ln := range p.Lines {
-			qty := ln.Qty
-			if qty <= 0 {
-				qty = 1
-			}
-			label := strings.TrimSpace(ln.DisplayName)
-			lineTotal := ln.UnitPrice * float64(qty)
-			qtyCol := fmt.Sprintf("%d", qty)
-			if shareLabel := strings.TrimSpace(ln.ShareQtyLabel); shareLabel != "" {
-				qtyCol = shareLabel
-				lineTotal = ln.UnitPrice
-			}
-			if ln.UnitPrice > 0 {
-				hasPrice = true
-				sum += lineTotal
-			}
-			priceCol := ""
-			if ln.UnitPrice > 0 {
-				priceCol = formatMoney(lineTotal)
-			}
-			w.text(escposThreeColLine(label, qtyCol, priceCol))
-			w.lf()
-		}
+		sum, hasPrice = w.writeReceiptMenuLines(p.Lines, lab)
 		w.separator('-')
 	}
 

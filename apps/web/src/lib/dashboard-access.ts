@@ -13,18 +13,22 @@ export {
   isOwnerOperationalPath,
 } from '@/lib/dashboard-paths';
 
+export type DashboardNavRestaurant = Pick<
+  Restaurant,
+  'id' | 'name' | 'slug' | 'logo_url' | 'feature_flags'
+>;
+
+export type FrontdeskDashboardRestaurant = Pick<
+  Restaurant,
+  'id' | 'name' | 'slug' | 'logo_url' | 'feature_flags' | 'suspended_at' | 'suspension_reason'
+>;
+
 export type DashboardAccessMode = 'owner' | 'cashier' | 'frontdesk';
 
 export type DashboardAccess =
   | { mode: 'owner'; restaurant: Restaurant }
   | { mode: 'cashier'; restaurant: Pick<Restaurant, 'id' | 'name' | 'slug'> }
-  | {
-      mode: 'frontdesk';
-      restaurant: Pick<
-        Restaurant,
-        'id' | 'name' | 'slug' | 'feature_flags' | 'suspended_at' | 'suspension_reason'
-      >;
-    };
+  | { mode: 'frontdesk'; restaurant: FrontdeskDashboardRestaurant };
 
 export type DashboardAccessResult =
   | DashboardAccess
@@ -40,7 +44,7 @@ const OWNER_RESTAURANT_SELECT =
   'id, name, slug, owner_id, logo_url, address, phone, geo_latitude, geo_longitude, plan, print_locale, country_code, feature_flags, suspended_at, suspension_reason, created_at';
 
 const FRONTDESK_RESTAURANT_SELECT =
-  'id, name, slug, feature_flags, suspended_at, suspension_reason';
+  'id, name, slug, logo_url, feature_flags, suspended_at, suspension_reason';
 
 async function isActiveStaffRole(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -134,10 +138,7 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
     if (restaurant) {
       return {
         mode: 'frontdesk',
-        restaurant: restaurant as Pick<
-          Restaurant,
-          'id' | 'name' | 'slug' | 'feature_flags' | 'suspended_at' | 'suspension_reason'
-        >,
+        restaurant: restaurant as FrontdeskDashboardRestaurant,
       };
     }
   }

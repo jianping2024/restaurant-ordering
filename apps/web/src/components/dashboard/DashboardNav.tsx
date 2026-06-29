@@ -1,30 +1,43 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { dashboardSignOutAndRedirect } from '@/lib/auth/sign-out-client';
 import { useSignOutConfirmState, SignOutConfirmModal } from '@/lib/auth/sign-out-confirm';
-import type { Restaurant } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { DashboardNavFooter } from '@/components/dashboard/DashboardNavFooter';
+import { DashboardNavItem } from '@/components/dashboard/DashboardNavItem';
+import { DashboardSidebarHeader } from '@/components/dashboard/DashboardSidebarHeader';
 import { getMessages } from '@/lib/i18n/messages';
 import { ProductLogo } from '@/components/ui/ProductLogo';
-import type { DashboardAccessMode } from '@/lib/dashboard-access';
+import type { DashboardAccessMode, DashboardNavRestaurant } from '@/lib/dashboard-access';
 import { navItemsForRole } from '@/lib/dashboard-feature-registry';
 import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
-import { dashboardNavLinkClassName } from '@/components/dashboard/dashboard-nav-link';
+import { DASHBOARD_SIDEBAR_WIDTH } from '@/components/dashboard/dashboard-nav-link';
 import { useCheckoutRequestCount } from '@/lib/use-checkout-request-count';
 
 const ownerNavItems = navItemsForRole('owner');
 const frontdeskNavItems = navItemsForRole('frontdesk');
 const cashierNavItems = navItemsForRole('cashier');
 
+function isNavItemActive(
+  pathname: string,
+  item: { href: string; exact?: boolean; matchPrefix?: string },
+): boolean {
+  if (item.matchPrefix) {
+    return pathname === item.matchPrefix || pathname.startsWith(`${item.matchPrefix}/`);
+  }
+  if (item.exact) {
+    return pathname === item.href;
+  }
+  return pathname.startsWith(item.href);
+}
+
 export function DashboardNav({
   restaurant,
   accessMode = 'owner',
 }: {
-  restaurant: Pick<Restaurant, 'id' | 'name' | 'slug' | 'feature_flags'>;
+  restaurant: DashboardNavRestaurant;
   accessMode?: DashboardAccessMode;
 }) {
   const kitchenShortcutEnabled = isDashboardKitchenShortcutEnabled(restaurant.feature_flags);
@@ -48,14 +61,11 @@ export function DashboardNav({
   const { requestSignOut, modalOpen, modalConfirming, closeModal, confirmSignOut: runSignOut } =
     useSignOutConfirmState(() => dashboardSignOutAndRedirect(router));
 
-  const handleGo = () => {
-    setMobileOpen(false);
-  };
+  const closeMobile = () => setMobileOpen(false);
 
   return (
     <>
-      {/* Mobile top bar */}
-      <div className="lg:hidden fixed inset-x-0 top-0 z-40 h-16 bg-brand-card border-b border-brand-border px-4 flex items-center justify-between">
+      <div className="lg:hidden fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-brand-border bg-brand-card px-4">
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
@@ -68,83 +78,56 @@ export function DashboardNav({
         <div className="h-9 w-9" aria-hidden />
       </div>
 
-      {/* Mobile overlay */}
-      {mobileOpen && (
+      {mobileOpen ? (
         <button
           type="button"
           aria-label="Close menu"
-          onClick={() => setMobileOpen(false)}
+          onClick={closeMobile}
           className="lg:hidden fixed inset-0 z-40 bg-black/40"
         />
-      )}
+      ) : null}
 
-      {/* Desktop sidebar + Mobile drawer */}
       <aside
-        className={`fixed left-0 top-0 z-50 h-screen w-64 bg-brand-card border-r border-brand-border flex flex-col transition-transform duration-200
+        className={`fixed left-0 top-0 z-50 flex h-screen ${DASHBOARD_SIDEBAR_WIDTH} flex-col border-r border-brand-border bg-brand-card transition-transform duration-200
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
       >
-      {/* Logo */}
-      <div className="shrink-0 px-6 py-5 lg:py-6 border-b border-brand-border">
-        <div className="flex items-center justify-between gap-2">
-          <ProductLogo size="md" />
-          <button
-            type="button"
-            onClick={() => setMobileOpen(false)}
-            className="lg:hidden h-8 w-8 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text"
-            aria-label="Close menu"
-          >
-            ×
-          </button>
-        </div>
-        <p className="text-brand-text-muted text-sm mt-1 truncate">{restaurant.name}</p>
-      </div>
+        <DashboardSidebarHeader
+          logoUrl={restaurant.logo_url}
+          restaurantName={restaurant.name}
+          onCloseMobile={closeMobile}
+        />
 
-      {/* 导航 */}
-      <nav className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-1">
-        {navItems.map((item) => {
-          const active =
-            item.matchPrefix
-              ? pathname === item.matchPrefix || pathname.startsWith(`${item.matchPrefix}/`)
-              : item.exact
-                ? pathname === item.href
-                : pathname.startsWith(item.href);
-          return (
-            <Link
+        <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-4 py-4">
+          {navItems.map((item) => (
+            <DashboardNavItem
               key={item.href}
               href={item.href}
-              onClick={handleGo}
-              className={dashboardNavLinkClassName(active)}
-            >
-              <span className="text-lg">{item.icon}</span>
-              <span>{t[item.key]}</span>
-              {item.checkoutBadge && checkoutRequestCount > 0 && (
-                <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full mesa-badge-danger px-1.5 text-[11px] font-semibold">
-                  {checkoutRequestCount > 99 ? '99+' : checkoutRequestCount}
-                </span>
-              )}
-            </Link>
-          );
-        })}
-        {showKitchenShortcut ? (
-          <a
-            href={`/${restaurant.slug}/kitchen`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={dashboardNavLinkClassName(false)}
-          >
-            <span className="text-lg">🍳</span>
-            <span>{t.viewKitchen}</span>
-          </a>
-        ) : null}
-      </nav>
+              active={isNavItemActive(pathname, item)}
+              icon={item.icon}
+              label={t[item.key]}
+              onNavigate={closeMobile}
+              badge={item.checkoutBadge ? checkoutRequestCount : undefined}
+            />
+          ))}
+          {showKitchenShortcut ? (
+            <DashboardNavItem
+              href={`/${restaurant.slug}/kitchen`}
+              active={false}
+              icon="🍳"
+              label={t.viewKitchen}
+              onNavigate={closeMobile}
+              external
+            />
+          ) : null}
+        </nav>
 
-      <DashboardNavFooter logoutLabel={t.logout} onLogout={requestSignOut} />
-      <SignOutConfirmModal
-        open={modalOpen}
-        onClose={closeModal}
-        onConfirm={runSignOut}
-        confirming={modalConfirming}
-      />
+        <DashboardNavFooter logoutLabel={t.logout} onLogout={requestSignOut} />
+        <SignOutConfirmModal
+          open={modalOpen}
+          onClose={closeModal}
+          onConfirm={runSignOut}
+          confirming={modalConfirming}
+        />
       </aside>
     </>
   );

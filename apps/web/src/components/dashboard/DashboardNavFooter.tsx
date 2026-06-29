@@ -17,10 +17,13 @@ export function DashboardNavFooter({ logoutLabel, onLogout }: DashboardNavFooter
         <button
           type="button"
           onClick={onLogout}
-          className="ml-auto flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-brand-text-muted transition-all hover:bg-[rgb(var(--color-status-danger-border)/0.12)] hover:text-status-danger"
+          aria-label={logoutLabel}
+          className="group ml-auto flex items-center gap-0 overflow-hidden rounded-xl px-2 py-2 text-sm text-brand-text-muted transition-all hover:gap-2 hover:px-3 hover:bg-[rgb(var(--color-status-danger-border)/0.12)] hover:text-status-danger"
         >
           <span aria-hidden>🚪</span>
-          <span>{logoutLabel}</span>
+          <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover:max-w-[4.5rem] group-hover:opacity-100">
+            {logoutLabel}
+          </span>
         </button>
       </div>
     </div>

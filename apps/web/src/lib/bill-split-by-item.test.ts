@@ -7,9 +7,35 @@ import {
   consumersForLineFromPersons,
   parseConsumerRows,
   shareQtyLabel,
+  withDefaultByItemLineRows,
 } from './bill-split-by-item';
 import { validateBillSplit } from './bill-split-validate';
 
+describe('withDefaultByItemLineRows', () => {
+  it('adds one empty row per missing line key', () => {
+    const next = withDefaultByItemLineRows({}, ['a', 'b']);
+    assert.equal(next.a?.length, 1);
+    assert.equal(next.b?.length, 1);
+    assert.equal(next.a?.[0]?.name, '');
+  });
+
+  it('keeps existing rows and ids', () => {
+    const existing = {
+      a: [{ id: 'stable-a', name: 'John', qtyInput: '1' }],
+    };
+    const next = withDefaultByItemLineRows(existing, ['a', 'b']);
+    assert.equal(next.a?.[0]?.id, 'stable-a');
+    assert.equal(next.b?.length, 1);
+    assert.ok(next.b?.[0]?.id.startsWith('row-'));
+  });
+
+  it('returns the same object when nothing is missing', () => {
+    const existing = {
+      a: [{ id: 'stable-a', name: 'John', qtyInput: '1' }],
+    };
+    assert.equal(withDefaultByItemLineRows(existing, ['a']), existing);
+  });
+});
 describe('calcByItemSplitResults', () => {
   it('allocates five bottles across named consumers with fractional qty', () => {
     const allocations = buildByItemAllocationsFromRows([

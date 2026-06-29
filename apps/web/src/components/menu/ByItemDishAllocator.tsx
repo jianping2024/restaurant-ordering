@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   compareRationalSumToTarget,
   formatRational,
@@ -9,7 +9,12 @@ import {
   rationalFromNumber,
   sumRationals,
 } from '@/lib/rational-qty';
-import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
+import {
+  createByItemConsumerRow,
+  type ByItemConsumerRow,
+} from '@/lib/bill-split-by-item';
+import { availableConsumerNamesForRow } from '@/lib/consumer-name-roster';
+import { ConsumerNameCombobox } from '@/components/menu/ConsumerNameCombobox';
 
 export type ByItemDishAllocatorLabels = {
   addConsumer: string;
@@ -21,36 +26,26 @@ export type ByItemDishAllocatorLabels = {
 };
 
 interface Props {
-  itemKey: string;
   title: React.ReactNode;
   lineTotal: number;
   lineQty: number;
   rows: ByItemConsumerRow[];
-  knownNames: string[];
+  consumerRoster: string[];
   labels: ByItemDishAllocatorLabels;
   onChange: (rows: ByItemConsumerRow[]) => void;
-}
-
-function newRow(): ByItemConsumerRow {
-  return {
-    id: `row-${Math.random().toString(36).slice(2, 10)}`,
-    name: '',
-    qtyInput: '',
-  };
+  onRememberConsumerName: (name: string, fromList: boolean) => void;
 }
 
 export function ByItemDishAllocator({
-  itemKey,
   title,
   lineTotal,
   lineQty,
   rows,
-  knownNames,
+  consumerRoster,
   labels,
   onChange,
+  onRememberConsumerName,
 }: Props) {
-  const listId = useId();
-
   const { allocatedLabel, isComplete, remaining } = useMemo(() => {
     const shares = rows
       .map((row) => parseQtyInput(row.qtyInput))
@@ -65,23 +60,18 @@ export function ByItemDishAllocator({
     };
   }, [rows, lineQty]);
 
-  const displayRows = rows.length > 0 ? rows : [newRow()];
-
   const updateRow = (rowId: string, patch: Partial<ByItemConsumerRow>) => {
-    const base = rows.length > 0 ? rows : [newRow()];
-    onChange(base.map((row) => (row.id === rowId ? { ...row, ...patch } : row)));
+    onChange(rows.map((row) => (row.id === rowId ? { ...row, ...patch } : row)));
   };
 
   const addRow = () => {
-    onChange([...(rows.length > 0 ? rows : [newRow()]), newRow()]);
+    onChange([...rows, createByItemConsumerRow()]);
   };
 
   const removeRow = (rowId: string) => {
     const next = rows.filter((row) => row.id !== rowId);
-    onChange(next.length > 0 ? next : [newRow()]);
+    onChange(next.length > 0 ? next : [createByItemConsumerRow()]);
   };
-
-  const suggestions = knownNames.filter((name) => !displayRows.some((row) => row.name.trim() === name));
 
   return (
     <div className="bg-brand-card border border-brand-border rounded-xl p-3.5">
@@ -99,16 +89,18 @@ export function ByItemDishAllocator({
       </div>
 
       <div className="space-y-2">
-        {displayRows.map((row) => (
+        {rows.map((row) => (
           <div key={row.id} className="flex items-center gap-2">
-            <input
-              type="text"
-              list={listId}
+            <ConsumerNameCombobox
               value={row.name}
-              onChange={(e) => updateRow(row.id, { name: e.target.value })}
+              options={availableConsumerNamesForRow({
+                roster: consumerRoster,
+                dishRows: rows,
+                rowId: row.id,
+              })}
               placeholder={labels.namePlaceholder}
-              className="flex-1 min-w-0 bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-[14px] text-brand-text placeholder:text-brand-muted focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
-              autoComplete="off"
+              onChange={(name) => updateRow(row.id, { name })}
+              onCommit={(name, fromList) => onRememberConsumerName(name, fromList)}
             />
             <input
               type="text"
@@ -129,34 +121,6 @@ export function ByItemDishAllocator({
           </div>
         ))}
       </div>
-
-      <datalist id={listId}>
-        {knownNames.map((name) => (
-          <option key={`${itemKey}-${name}`} value={name} />
-        ))}
-      </datalist>
-
-      {suggestions.length > 0 ? (
-        <div className="flex flex-wrap gap-1.5 mt-2.5">
-          {suggestions.slice(0, 8).map((name) => (
-            <button
-              key={name}
-              type="button"
-              onClick={() => {
-                const emptyRow = displayRows.find((row) => !row.name.trim());
-                if (emptyRow) {
-                  updateRow(emptyRow.id, { name });
-                  return;
-                }
-                onChange([...displayRows, { ...newRow(), name }]);
-              }}
-              className="text-[12px] px-2.5 py-1 rounded-full bg-brand-border/70 text-brand-text-muted hover:bg-brand-gold/15 hover:text-brand-gold transition-colors"
-            >
-              {name}
-            </button>
-          ))}
-        </div>
-      ) : null}
 
       <button
         type="button"

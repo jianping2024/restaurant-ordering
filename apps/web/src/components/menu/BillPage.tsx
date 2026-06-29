@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { calcByItemSplitResults, buildByItemAllocationsFromRows, buildSplitPersonsFromAllocations, type ByItemConsumerRow } from '@/lib/bill-split-by-item';
+import { calcByItemSplitResults, buildByItemAllocationsFromRows, buildSplitPersonsFromAllocations, withDefaultByItemLineRows, type ByItemConsumerRow } from '@/lib/bill-split-by-item';
+import { addToConsumerRoster, rememberConsumerName as rememberConsumerNameInRoster } from '@/lib/consumer-name-roster';
 import { validateBillSplit } from '@/lib/bill-split-validate';
 import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
 import { getMessages } from '@/lib/i18n/messages';
@@ -88,6 +89,13 @@ export function BillPage({
     { name: guestName(2), amount: 0 },
   ]);
   const [byItemAllocations, setByItemAllocations] = useState<Record<string, ByItemConsumerRow[]>>({});
+  const [consumerRoster, setConsumerRoster] = useState<string[]>(() => {
+    if (!existingSplit || existingSplit.split_mode !== 'by_item') return [];
+    return (existingSplit.persons ?? []).reduce(
+      (roster, person) => addToConsumerRoster(roster, person.name),
+      [] as string[],
+    );
+  });
   const [submitted, setSubmitted] = useState(!!existingSplit);
   const [submitting, setSubmitting] = useState(false);
   const [persistedResult, setPersistedResult] = useState<SplitResult[] | null>((existingSplit?.result as SplitResult[] | null) || null);
@@ -181,6 +189,19 @@ export function BillPage({
     [allItems],
   );
 
+  const itemLineKeys = useMemo(
+    () => itemLines.map((line) => line.key),
+    [itemLines],
+  );
+
+  useLayoutEffect(() => {
+    if (splitMode !== 'by_item') return;
+    setByItemAllocations((prev) => {
+      const next = withDefaultByItemLineRows(prev, itemLineKeys);
+      return next === prev ? prev : next;
+    });
+  }, [splitMode, itemLineKeys]);
+
   const parsedByItemAllocations = useMemo(
     () => buildByItemAllocationsFromRows(
       itemLines.map((line) => ({
@@ -191,16 +212,9 @@ export function BillPage({
     [itemLines, byItemAllocations],
   );
 
-  const knownConsumerNames = useMemo(() => {
-    const names = new Set<string>();
-    for (const rows of Object.values(byItemAllocations)) {
-      for (const row of rows) {
-        const name = row.name.trim();
-        if (name) names.add(name);
-      }
-    }
-    return Array.from(names).sort((a, b) => a.localeCompare(b));
-  }, [byItemAllocations]);
+  const rememberConsumerName = useCallback((name: string, fromList: boolean) => {
+    setConsumerRoster((prev) => rememberConsumerNameInRoster(prev, name, fromList));
+  }, []);
 
   const byItemAllocatorLabels = useMemo(
     () => ({
@@ -328,6 +342,10 @@ export function BillPage({
   const renameByItemConsumer = (oldName: string, newName: string) => {
     const trimmed = newName.trim();
     if (!trimmed || trimmed === oldName) return;
+    setConsumerRoster((prev) => {
+      const withoutOld = prev.filter((name) => name.toLowerCase() !== oldName.toLowerCase());
+      return rememberConsumerNameInRoster(withoutOld, trimmed, true);
+    });
     setByItemAllocations((prev) => {
       const next: Record<string, ByItemConsumerRow[]> = {};
       for (const [key, rows] of Object.entries(prev)) {
@@ -811,11 +829,11 @@ export function BillPage({
               return (
                 <ByItemDishAllocator
                   key={item.key}
-                  itemKey={item.key}
                   lineTotal={item.price * item.qty}
                   lineQty={item.qty}
                   rows={byItemAllocations[item.key] ?? []}
-                  knownNames={knownConsumerNames}
+                  consumerRoster={consumerRoster}
+                  onRememberConsumerName={rememberConsumerName}
                   labels={byItemAllocatorLabels}
                   onChange={(rows) => {
                     setByItemAllocations((prev) => ({ ...prev, [item.key]: rows }));

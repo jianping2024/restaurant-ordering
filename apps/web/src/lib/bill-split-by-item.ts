@@ -35,6 +35,28 @@ export type ByItemConsumerRow = {
   qtyInput: string;
 };
 
+export function createByItemConsumerRow(): ByItemConsumerRow {
+  return {
+    id: `row-${Math.random().toString(36).slice(2, 10)}`,
+    name: '',
+    qtyInput: '',
+  };
+}
+
+/** Ensures every visible line has a stable persisted row before the user can type. */
+export function withDefaultByItemLineRows(
+  allocations: Record<string, ByItemConsumerRow[]>,
+  lineKeys: string[],
+): Record<string, ByItemConsumerRow[]> {
+  const missing = lineKeys.filter((key) => !allocations[key]?.length);
+  if (missing.length === 0) return allocations;
+  const next = { ...allocations };
+  for (const key of missing) {
+    next[key] = [createByItemConsumerRow()];
+  }
+  return next;
+}
+
 function lineQtyRational(lineQty: number): Rational {
   return rationalFromNumber(lineQty);
 }

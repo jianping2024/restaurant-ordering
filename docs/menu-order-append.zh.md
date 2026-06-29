@@ -150,7 +150,7 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
          （无 waiter_flow）
 ④ 入队   await autoEnqueueStationTicketsAfterSubmit
 ⑤ 刷新   await loadSessionAndOrders
-⑥ UI     成功 toast ~3s
+⑥ 反馈   见下节「提交后反馈」
 ```
 
 **服务员代点**（`returnToWaiterHref` 有值）：
@@ -161,10 +161,24 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 ③ 请求   POST append { ..., waiter_flow: true }
 ④ 入队   await autoEnqueueStationTicketsAfterSubmit(waiterFlow: true)
 ⑤ 刷新   await loadSessionAndOrders
-⑥ 跳转   setSubmitted → 1200ms 后 router.push(returnToWaiterHref)
+⑥ 反馈   见下节「提交后反馈」
+⑦ 跳转   1200ms 后 router.push(returnToWaiterHref)
 ```
 
-**Demo**：不发真实 append；清空购物车后同样延迟跳回看板或 toast。
+**Demo**：不发真实 append；清空购物车。服务员 demo 走 `finishSuccessfulSubmit`（toast + 跳回看板）；顾客 demo 展示专用 demo toast 文案，不发 `orderSuccess`。
+
+### 提交后反馈（锁定）
+
+加单成功后须 **轻量、非阻断**，便于顾客连续点菜；**禁止**全屏遮罩阻断菜单。
+
+| 反馈 | 行为 |
+|------|------|
+| 成功 Toast | `showToast(t.orderSuccess, 'success')`；右下角，约 3s 自动消失；与错误/信息 toast 同一组件 |
+| 购物车 | 清空并关闭抽屉 |
+| 已下单列表 | `loadSessionAndOrders` 刷新；响应 `batch_id` 对应行标 **NEW** 约 15s（`latestBatchId`） |
+| 服务员代点 | 同上 Toast；约 1.2s 后跳回 `returnToWaiterHref`；跳转前菜单仍可操作 |
+
+**禁止**：全屏 modal / 模糊遮罩阻断点菜；成功态不得占用 3s 不可交互时间。
 
 ### 服务员看板 → 菜单链接
 

@@ -60,7 +60,6 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [demoToast, setDemoToast] = useState(false);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [activeSession, setActiveSession] = useState<TableSession | null>(null);
@@ -225,14 +224,12 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
       }
       setCart([]);
       setCartOpen(false);
-      setSubmitted(true);
+      showToast(t.orderSuccess, 'success');
       if (isWaiterFlow && returnToWaiterHref) {
         setTimeout(() => router.push(returnToWaiterHref), WAITER_RETURN_REDIRECT_MS);
-      } else {
-        setTimeout(() => setSubmitted(false), 3000);
       }
     },
-    [isWaiterFlow, returnToWaiterHref, router],
+    [isWaiterFlow, returnToWaiterHref, router, t.orderSuccess],
   );
 
   // 提交订单
@@ -399,16 +396,6 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
             >
               {t.demoBackHub}
             </Link>
-          </div>
-        </div>
-      )}
-
-      {/* 成功提示 */}
-      {submitted && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-brand-card border border-emerald-500/35 rounded-2xl p-8 text-center mx-4">
-            <div className="text-5xl mb-4">✅</div>
-            <h2 className="font-heading text-2xl text-brand-text">{t.orderSuccess}</h2>
           </div>
         </div>
       )}

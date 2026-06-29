@@ -10,7 +10,7 @@ import {
   type ByItemLineAllocation,
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
-import { addToConsumerRoster, rememberConsumerName as rememberConsumerNameInRoster } from '@/lib/consumer-name-roster';
+import { collectActiveConsumerNames } from '@/lib/consumer-name-roster';
 import type { BillSplit, SplitMode } from '@/types';
 
 export function useByItemSplitState(params: {
@@ -18,16 +18,9 @@ export function useByItemSplitState(params: {
   lineSpecs: ByItemLineSpec[];
   existingSplit: BillSplit | null;
 }) {
-  const { splitMode, lineSpecs, existingSplit } = params;
+  const { splitMode, lineSpecs } = params;
 
   const [byItemAllocations, setByItemAllocations] = useState<Record<string, ByItemConsumerRow[]>>({});
-  const [consumerRoster, setConsumerRoster] = useState<string[]>(() => {
-    if (!existingSplit || existingSplit.split_mode !== 'by_item') return [];
-    return (existingSplit.persons ?? []).reduce(
-      (roster, person) => addToConsumerRoster(roster, person.name),
-      [] as string[],
-    );
-  });
 
   useLayoutEffect(() => {
     if (splitMode !== 'by_item') return;
@@ -36,6 +29,11 @@ export function useByItemSplitState(params: {
       return next === prev ? prev : next;
     });
   }, [splitMode, lineSpecs]);
+
+  const consumerRoster = useMemo(
+    () => collectActiveConsumerNames(byItemAllocations),
+    [byItemAllocations],
+  );
 
   const parsedByItemAllocations = useMemo<ByItemLineAllocation>(
     () => buildByItemAllocationsFromRows(lineSpecs, byItemAllocations),
@@ -47,17 +45,11 @@ export function useByItemSplitState(params: {
     [lineSpecs, byItemAllocations],
   );
 
-  const rememberConsumerName = useCallback((name: string, fromList: boolean) => {
-    setConsumerRoster((prev) => rememberConsumerNameInRoster(prev, name, fromList));
-  }, []);
+  const rememberConsumerName: (name: string, fromList: boolean) => void = useCallback(() => {}, []);
 
   const renameByItemConsumer = useCallback((oldName: string, newName: string) => {
     const trimmed = newName.trim();
     if (!trimmed || trimmed === oldName) return;
-    setConsumerRoster((prev) => {
-      const withoutOld = prev.filter((name) => name.toLowerCase() !== oldName.toLowerCase());
-      return rememberConsumerNameInRoster(withoutOld, trimmed, true);
-    });
     setByItemAllocations((prev) => {
       const next: Record<string, ByItemConsumerRow[]> = {};
       for (const [key, rows] of Object.entries(prev)) {

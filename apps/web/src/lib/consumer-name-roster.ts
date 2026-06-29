@@ -1,5 +1,8 @@
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 
+/** Names shorter than this are ignored for combobox suggestions. */
+export const MIN_ACTIVE_CONSUMER_NAME_LENGTH = 2;
+
 export function normalizeConsumerName(name: string): string {
   return name.trim();
 }
@@ -13,23 +16,19 @@ export function addToConsumerRoster(roster: string[], name: string): string[] {
   return [...roster, trimmed].sort((a, b) => a.localeCompare(b));
 }
 
-export function isPartialConsumerNameEdit(roster: string[], name: string): boolean {
-  const trimmed = normalizeConsumerName(name);
-  if (!trimmed) return false;
-  const lower = trimmed.toLowerCase();
-  return roster.some((entry) => {
-    const entryLower = entry.toLowerCase();
-    return entryLower !== lower && entryLower.startsWith(lower);
-  });
-}
-
-export function rememberConsumerName(roster: string[], name: string, fromList: boolean): string[] {
-  const trimmed = normalizeConsumerName(name);
-  if (!trimmed) return roster;
-  if (fromList) return addToConsumerRoster(roster, trimmed);
-  if (trimmed.length < 2) return roster;
-  if (isPartialConsumerNameEdit(roster, trimmed)) return roster;
-  return addToConsumerRoster(roster, trimmed);
+/** Unique names currently typed on any by-item row (session pool for combobox). */
+export function collectActiveConsumerNames(
+  allocations: Record<string, ByItemConsumerRow[]>,
+): string[] {
+  let roster: string[] = [];
+  for (const rows of Object.values(allocations)) {
+    for (const row of rows) {
+      const trimmed = normalizeConsumerName(row.name);
+      if (trimmed.length < MIN_ACTIVE_CONSUMER_NAME_LENGTH) continue;
+      roster = addToConsumerRoster(roster, trimmed);
+    }
+  }
+  return roster;
 }
 
 export function namesUsedOnOtherDishRows(

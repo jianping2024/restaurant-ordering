@@ -3,9 +3,9 @@ import { describe, it } from 'node:test';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import {
   addToConsumerRoster,
+  collectActiveConsumerNames,
   filterConsumerNameOptions,
   namesUsedOnOtherDishRows,
-  rememberConsumerName,
   suggestConsumerNamesForRow,
 } from '@/lib/consumer-name-roster';
 
@@ -23,22 +23,33 @@ describe('addToConsumerRoster', () => {
   });
 });
 
-describe('rememberConsumerName', () => {
-  it('keeps roster when blur commits a single character', () => {
-    assert.deepEqual(rememberConsumerName(['John'], 'J', false), ['John']);
+describe('collectActiveConsumerNames', () => {
+  it('collects unique names from all dish rows with at least two characters', () => {
+    assert.deepEqual(
+      collectActiveConsumerNames({
+        buffet: [row('b1', 'John'), row('b2', 'Johney')],
+        drink: [row('d1', 'J'), row('d2', '')],
+      }),
+      ['John', 'Johney'],
+    );
   });
 
-  it('adds on blur when name has at least two characters', () => {
-    assert.deepEqual(rememberConsumerName([], 'John', false), ['John']);
+  it('drops a name when its row is removed from allocations', () => {
+    assert.deepEqual(
+      collectActiveConsumerNames({
+        buffet: [row('b1', 'John')],
+      }),
+      ['John'],
+    );
   });
 
-  it('does not add partial prefixes of roster names on blur', () => {
-    assert.deepEqual(rememberConsumerName(['John'], 'Jo', false), ['John']);
-    assert.deepEqual(rememberConsumerName(['John'], 'Joh', false), ['John']);
-  });
-
-  it('adds on list pick even for short names', () => {
-    assert.deepEqual(rememberConsumerName([], 'Li', true), ['Li']);
+  it('does not include blur-only roster junk that never appears on a row', () => {
+    const roster = collectActiveConsumerNames({
+      buffet: [row('b1', 'John'), row('b2', 'Johney')],
+      drink: [row('d1', '')],
+    });
+    assert.equal(roster.includes("J'o'h'n'e'y"), false);
+    assert.equal(roster.includes('Johne'), false);
   });
 });
 
@@ -66,6 +77,21 @@ describe('suggestConsumerNamesForRow', () => {
         query: 'J',
       }),
       ['John'],
+    );
+  });
+
+  it('only suggests names present in the active session pool', () => {
+    assert.deepEqual(
+      suggestConsumerNamesForRow({
+        roster: collectActiveConsumerNames({
+          buffet: [row('b1', 'John'), row('b2', 'Johney')],
+          drink: [row('d1', '')],
+        }),
+        dishRows: [row('d1', '')],
+        rowId: 'd1',
+        query: 'J',
+      }),
+      ['John', 'Johney'],
     );
   });
 

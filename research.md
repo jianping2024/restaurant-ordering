@@ -98,6 +98,7 @@
   - 写入/更新 `bill_splits`（同一会话复用请求，避免重复插入）
   - 会话状态切换到 `billing`
   - 分单结果会持久化并在刷新后恢复
+- **恢复点单与部分收款后的续结**（按菜分单锁定、已收款项保留、已收菜品不可改分配）：详见 [`docs/checkout-resume-ordering.zh.md`](docs/checkout-resume-ordering.zh.md)。
 
 ## 9. 服务员侧结账处理与关台
 
@@ -107,6 +108,7 @@
   - **分单结果**：仅展示**尚未确认收款**的客人；已确认者从该列表移除（避免与已收款项重复），确认时仍按 `bill_splits.result` 原始 `person_index` 调用 RPC。
 - 服务员/店主确认收款后：
   - 分账行 `paid: true`；全员付清时 `bill_splits.status -> paid`、`table_sessions.status -> closed`
+- **恢复点单**：多人分账且仅部分收款时允许将餐次从 `billing` 回到 `open` 继续加菜；`session_collected_payments` 保留。按菜分单在部分收款后**不得再改分单模式**，已收款对应的菜品分配冻结，详见 [`docs/checkout-resume-ordering.zh.md`](docs/checkout-resume-ordering.zh.md)。
 - **强制关台**（未走完分账全员 paid）：须同时取消未付分账、作废当餐订单行并关餐次，与看板「结账请求」绿灯一致；详见 [`docs/table-session-close.zh.md`](docs/table-session-close.zh.md)。
 - 关台后，顾客若刷新账单页会被服务端强制跳转回点单页（`/menu?table_id={uuid}`）。
 

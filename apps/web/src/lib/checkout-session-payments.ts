@@ -57,6 +57,23 @@ export function hasConfirmedPerson(split: BillSplit): boolean {
 
 export type ResumeCheckoutBlockReason = 'whole_table_paid';
 
+export type ResumeOrderingConfirmVariant =
+  | 'preserve_by_item'
+  | 'preserve_with_collections'
+  | 'cancel_no_collections';
+
+/** Confirm-dialog copy branch; must match resume_table_session_ordering split fate. */
+export function resumeOrderingConfirmVariant(
+  split: BillSplit,
+  collectedPayments: SessionCollectedPayment[],
+): ResumeOrderingConfirmVariant {
+  if (split.split_mode === 'by_item') return 'preserve_by_item';
+  if (hasConfirmedPerson(split) || collectedPayments.length > 0) {
+    return 'preserve_with_collections';
+  }
+  return 'cancel_no_collections';
+}
+
 export function resumeCheckoutBlockReason(
   split: BillSplit,
   collectedPayments: SessionCollectedPayment[],

@@ -39,6 +39,7 @@ import {
   hasConfirmedPerson,
   type SessionCollectedPayment,
   resumeCheckoutBlockReason,
+  resumeOrderingConfirmVariant,
   suggestedCollectionAmount,
   sumCollectedByPersonName,
   totalCollectedAmount,
@@ -537,6 +538,13 @@ export function CheckoutRequestsManager({
   const resumeBlockReason = selectedRequest
     ? resumeCheckoutBlockReason(selectedRequest, collectedPayments)
     : null;
+  const resumeConfirmMessage = useMemo(() => {
+    if (!selectedRequest) return t.resumeOrderingConfirmCancel;
+    const variant = resumeOrderingConfirmVariant(selectedRequest, collectedPayments);
+    if (variant === 'preserve_by_item') return t.resumeOrderingConfirmPreserveByItem;
+    if (variant === 'preserve_with_collections') return t.resumeOrderingConfirmPreserveWithCollections;
+    return t.resumeOrderingConfirmCancel;
+  }, [selectedRequest, collectedPayments, t]);
   const pendingSplitRows = selectedRequest
     ? unpaidSplitRowsWithIndex(getDiscountedSplitResult(selectedRequest))
     : [];
@@ -733,6 +741,9 @@ export function CheckoutRequestsManager({
               ? t.resumeOrderingOperating
               : t.resumeOrdering}
           </button>
+          {resumeBlockReason === 'whole_table_paid' ? (
+            <p className="w-full text-[12px] text-brand-text-muted">{t.resumeOrderingBlockedWholeTable}</p>
+          ) : null}
           {canCloseTable ? (
             <CloseTableSessionAction
               tableId={selectedRequest.table_id}
@@ -860,7 +871,7 @@ export function CheckoutRequestsManager({
         open={resumeConfirmOpen && !!selectedRequest}
         onClose={() => setResumeConfirmOpen(false)}
         title={t.resumeOrderingConfirmTitle}
-        message={t.resumeOrderingConfirmMessage}
+        message={resumeConfirmMessage}
         confirmLabel={t.resumeOrdering}
         cancelLabel={t.resumeOrderingCancel}
         confirming={

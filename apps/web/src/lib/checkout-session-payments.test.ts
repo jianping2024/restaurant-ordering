@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import type { BillSplit } from '@/types';
 import {
   resumeCheckoutBlockReason,
+  resumeOrderingConfirmVariant,
   suggestedCollectionAmount,
   sumCollectedByPersonName,
   totalCollectedAmount,
@@ -81,6 +82,42 @@ describe('unpaidSplitRowsWithIndex', () => {
         { name: 'Mary', index: 1 },
         { name: 'Ann', index: 3 },
       ],
+    );
+  });
+});
+
+describe('resumeOrderingConfirmVariant', () => {
+  it('preserves by-item split regardless of collections', () => {
+    assert.equal(
+      resumeOrderingConfirmVariant(billSplit({ split_mode: 'by_item' }), []),
+      'preserve_by_item',
+    );
+    assert.equal(
+      resumeOrderingConfirmVariant(
+        billSplit({
+          split_mode: 'by_item',
+          result: [{ name: 'John', amount: 10, paid: true }],
+        }),
+        [{ id: '1', person_name: 'John', amount: 10, created_at: '' }],
+      ),
+      'preserve_by_item',
+    );
+  });
+
+  it('branches even/custom by collection state', () => {
+    assert.equal(
+      resumeOrderingConfirmVariant(billSplit({ split_mode: 'even' }), []),
+      'cancel_no_collections',
+    );
+    assert.equal(
+      resumeOrderingConfirmVariant(
+        billSplit({
+          split_mode: 'even',
+          result: [{ name: 'John', amount: 10, paid: true }],
+        }),
+        [],
+      ),
+      'preserve_with_collections',
     );
   });
 });

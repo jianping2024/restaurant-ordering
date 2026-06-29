@@ -12,7 +12,6 @@ import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
 import {
   checkoutPayableAmount,
   discountedSplitRows,
-  normalizeSplitRows,
 } from '@/lib/checkout-split-math';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
@@ -37,11 +36,13 @@ import {
   mergeBillSplitsFromRefresh,
 } from '@/lib/checkout-request-state';
 import {
+  hasConfirmedPerson,
   type SessionCollectedPayment,
   resumeCheckoutBlockReason,
   suggestedCollectionAmount,
   sumCollectedByPersonName,
   totalCollectedAmount,
+  unpaidSplitRowsWithIndex,
 } from '@/lib/checkout-session-payments';
 import { requestCheckoutResumeOrdering } from '@/lib/request-checkout-resume-ordering';
 import { useCheckoutBillPrintCooldown } from '@/lib/use-checkout-bill-print-cooldown';
@@ -291,12 +292,8 @@ export function CheckoutRequestsManager({
   const getDiscountRate = (request: BillSplit) =>
     billDiscount.getDisplayRate(request.id, request.discount_rate ?? 0);
   const getPayable = (request: BillSplit) => checkoutPayableAmount(request, getDiscountRate(request));
-  const getSplitRows = (request: BillSplit) => normalizeSplitRows(request);
-
   const getDiscountedSplitResult = (request: BillSplit) =>
     discountedSplitRows(request, getDiscountRate(request));
-
-  const hasConfirmedPerson = (request: BillSplit) => (request.result || []).some((row) => !!row.paid);
 
   const patchRequestDiscount = useCallback(
     (
@@ -540,6 +537,9 @@ export function CheckoutRequestsManager({
   const resumeBlockReason = selectedRequest
     ? resumeCheckoutBlockReason(selectedRequest, collectedPayments)
     : null;
+  const pendingSplitRows = selectedRequest
+    ? unpaidSplitRowsWithIndex(getDiscountedSplitResult(selectedRequest))
+    : [];
 
   const checkoutDetail = selectedRequest ? (
     <div className="bg-brand-card border border-brand-border rounded-xl px-5 py-5 shadow-sm">
@@ -664,20 +664,17 @@ export function CheckoutRequestsManager({
           </div>
         </div>
       )}
-      {getSplitRows(selectedRequest).length > 0 && (
+      {pendingSplitRows.length > 0 && (
         <div className="mt-3 rounded-lg border border-brand-border/60 p-3">
           <p className="text-[13px] text-brand-text-muted mb-2">{t.splitResult}</p>
           <div className="space-y-2">
-            {getDiscountedSplitResult(selectedRequest).map((row, idx) => {
+            {pendingSplitRows.map(({ row, index }) => {
               const priorCollected = collectedByPerson.get(row.name.trim()) ?? 0;
               const suggested = suggestedCollectionAmount(row.name, row.amount, collectedByPerson);
               return (
-              <div key={`${selectedRequest.id}-${idx}`} className="flex items-center justify-between gap-2 text-sm">
+              <div key={`${selectedRequest.id}-${index}`} className="flex items-center justify-between gap-2 text-sm">
                 <div className="flex flex-col gap-0.5 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-brand-text">{localizeSplitPersonName(row.name, lang)}</span>
-                    {row.paid && <span className="text-[11px] px-2 py-0.5 rounded-full mesa-badge-success">{t.paid}</span>}
-                  </div>
+                  <span className="text-brand-text">{localizeSplitPersonName(row.name, lang)}</span>
                   {showCollectedLedger && (
                     <div className="text-[11px] text-brand-text-muted">
                       {t.collectedSoFar}: €{priorCollected.toFixed(2)}
@@ -690,14 +687,11 @@ export function CheckoutRequestsManager({
                   <span className="text-brand-gold">€{Number(row.amount).toFixed(2)}</span>
                   <button
                     type="button"
-                    onClick={() => void handleConfirmPersonPaid(selectedRequest, idx)}
-                    disabled={
-                      !!row.paid ||
-                      isCheckoutRequestBusy(processingKeys, selectedRequest.id)
-                    }
+                    onClick={() => void handleConfirmPersonPaid(selectedRequest, index)}
+                    disabled={isCheckoutRequestBusy(processingKeys, selectedRequest.id)}
                     className="text-sm font-semibold px-4 py-2 rounded-lg mesa-badge-success hover:opacity-90 disabled:opacity-50 transition-opacity"
                   >
-                    {processingKeys.has(checkoutPersonKey(selectedRequest.id, idx))
+                    {processingKeys.has(checkoutPersonKey(selectedRequest.id, index))
                       ? t.processing
                       : t.confirmOnePaid}
                   </button>

@@ -1,5 +1,17 @@
 import { normalizeSplitRows } from '@/lib/checkout-split-math';
-import type { BillSplit } from '@/types';
+import type { BillSplit, SplitResult } from '@/types';
+
+export type SplitRowWithIndex = {
+  row: SplitResult;
+  index: number;
+};
+
+/** Split rows still awaiting confirm-payment; preserves original person_index for RPC. */
+export function unpaidSplitRowsWithIndex(rows: SplitResult[]): SplitRowWithIndex[] {
+  return rows
+    .map((row, index) => ({ row, index }))
+    .filter(({ row }) => !row.paid);
+}
 
 export type SessionCollectedPayment = {
   id: string;

@@ -102,9 +102,11 @@
 ## 9. 服务员侧结账处理与关台
 
 - 后台订单页集成结账请求管理（展示待处理请求）。
+- 结账详情 UI：
+  - **已收款项**：逐位确认收款后写入 `session_collected_payments`，在顶部汇总展示。
+  - **分单结果**：仅展示**尚未确认收款**的客人；已确认者从该列表移除（避免与已收款项重复），确认时仍按 `bill_splits.result` 原始 `person_index` 调用 RPC。
 - 服务员/店主确认收款后：
-  - `bill_splits.status -> paid`
-  - `table_sessions.status -> closed`
+  - 分账行 `paid: true`；全员付清时 `bill_splits.status -> paid`、`table_sessions.status -> closed`
 - **强制关台**（未走完分账全员 paid）：须同时取消未付分账、作废当餐订单行并关餐次，与看板「结账请求」绿灯一致；详见 [`docs/table-session-close.zh.md`](docs/table-session-close.zh.md)。
 - 关台后，顾客若刷新账单页会被服务端强制跳转回点单页（`/menu?table_id={uuid}`）。
 

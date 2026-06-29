@@ -6,6 +6,7 @@ import {
   suggestedCollectionAmount,
   sumCollectedByPersonName,
   totalCollectedAmount,
+  unpaidSplitRowsWithIndex,
 } from './checkout-session-payments';
 
 function billSplit(overrides: Partial<BillSplit> = {}): BillSplit {
@@ -62,6 +63,24 @@ describe('totalCollectedAmount', () => {
         { id: '2', person_name: 'B', amount: 5.5, created_at: '' },
       ]),
       15.5,
+    );
+  });
+});
+
+describe('unpaidSplitRowsWithIndex', () => {
+  it('drops paid rows and keeps original indices', () => {
+    const pending = unpaidSplitRowsWithIndex([
+      { name: 'John', amount: 10, paid: true },
+      { name: 'Mary', amount: 20 },
+      { name: 'Mike', amount: 30, paid: true },
+      { name: 'Ann', amount: 40 },
+    ]);
+    assert.deepEqual(
+      pending.map((entry) => ({ name: entry.row.name, index: entry.index })),
+      [
+        { name: 'Mary', index: 1 },
+        { name: 'Ann', index: 3 },
+      ],
     );
   });
 });

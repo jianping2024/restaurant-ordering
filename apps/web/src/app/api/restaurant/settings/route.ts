@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { normalizeCountryCode } from '@mesa/shared';
+import { normalizeCountryCode, mergeGeoOrderRestrictionFlag, readGeoOrderRestrictionEnabled } from '@mesa/shared';
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseOrderRadiusInput } from '@/lib/order-radius';
@@ -69,6 +69,26 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
+  const { data: existing, error: loadErr } = await admin
+    .from('restaurants')
+    .select('feature_flags')
+    .eq('id', auth.restaurantId)
+    .maybeSingle();
+
+  if (loadErr || !existing) {
+    return NextResponse.json({ error: 'update_failed' }, { status: 500 });
+  }
+
+  const hasCoordinates = latitude != null && longitude != null;
+  const geoOrderRestrictionEnabled =
+    typeof body.geo_order_restriction_enabled === 'boolean'
+      ? body.geo_order_restriction_enabled
+      : readGeoOrderRestrictionEnabled(existing.feature_flags, hasCoordinates);
+
+  if (geoOrderRestrictionEnabled && !hasCoordinates) {
+    return NextResponse.json({ error: 'geo_coords_required' }, { status: 400 });
+  }
+
   const update = {
     name,
     address: typeof body.address === 'string' ? body.address.trim() || null : null,
@@ -76,6 +96,7 @@ export async function PATCH(req: Request) {
     geo_latitude: latitude,
     geo_longitude: longitude,
     order_radius_meters: orderRadiusMeters,
+    feature_flags: mergeGeoOrderRestrictionFlag(existing.feature_flags, geoOrderRestrictionEnabled),
     ...(countryCode !== undefined ? { country_code: countryCode } : {}),
   };
 

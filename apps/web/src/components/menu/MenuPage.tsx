@@ -22,7 +22,7 @@ import { getClientLanguage, setClientLanguage } from '@/lib/i18n';
 import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
 import { showToast } from '@/components/ui/Toast';
 import { autoEnqueueStationTicketsAfterSubmit } from '@/lib/auto-enqueue-station-tickets';
-import { normalizeOrderRadiusMeters } from '@/lib/order-radius';
+import { resolveCustomerGeoForOrder } from '@/lib/customer-geo-order';
 import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
 import { requestCustomerSessionContext } from '@/lib/request-customer-context';
 import { useCustomerContextPoll } from '@/lib/use-customer-context-poll';
@@ -39,6 +39,7 @@ interface Props {
     geo_latitude?: number | null;
     geo_longitude?: number | null;
     order_radius_meters?: number | null;
+    feature_flags?: Record<string, boolean> | null;
   };
   menuItems: MenuItem[];
   menuCategories: MenuCategory[];
@@ -46,43 +47,6 @@ interface Props {
   displayName: string;
   isDemo?: boolean;
   returnToWaiterHref?: string | null;
-}
-
-function calculateDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const toRad = (deg: number) => (deg * Math.PI) / 180;
-  const earthRadius = 6371000;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return earthRadius * c;
-}
-
-async function getBrowserLocation() {
-  if (typeof window === 'undefined' || !navigator.geolocation) {
-    throw new Error('not-supported');
-  }
-
-  const attempt = (options: PositionOptions) =>
-    new Promise<GeolocationPosition>((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject, options);
-    });
-
-  try {
-    return await attempt({
-      enableHighAccuracy: true,
-      timeout: 8000,
-      maximumAge: 0,
-    });
-  } catch {
-    return attempt({
-      enableHighAccuracy: false,
-      timeout: 20000,
-      maximumAge: 120000,
-    });
-  }
 }
 
 const WAITER_RETURN_REDIRECT_MS = 1200;
@@ -313,58 +277,23 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
       let latitude: number | undefined;
       let longitude: number | undefined;
 
-      if (restaurant.geo_latitude != null && restaurant.geo_longitude != null && !isWaiterFlow) {
-        let position: GeolocationPosition;
-        try {
-          position = await getBrowserLocation();
-        } catch (error) {
-          if (isLocalDevHost) {
-            showToast(t.locationBypassedLocal, 'info');
-            position = {
-              coords: {
-                latitude: restaurant.geo_latitude,
-                longitude: restaurant.geo_longitude,
-                accuracy: 0,
-                altitude: null,
-                altitudeAccuracy: null,
-                heading: null,
-                speed: null,
-                toJSON: () => ({}),
-              },
-              timestamp: Date.now(),
-              toJSON: () => ({}),
-            };
-          } else {
-            const geoError = error as GeolocationPositionError | Error;
-            if ('code' in geoError && geoError.code === 1) {
-              showToast(t.locationPermissionDenied, 'error');
-            } else if (geoError.message === 'not-supported') {
-              showToast(t.locationNotSupported, 'error');
-            } else {
-              showToast(t.locationCheckFailed, 'error');
-            }
-            return;
-          }
-        }
+      const geoResult = await resolveCustomerGeoForOrder({
+        restaurant,
+        isWaiterFlow,
+        isLocalDevHost,
+      });
 
-        latitude = position.coords.latitude;
-        longitude = position.coords.longitude;
+      if (!geoResult.ok) {
+        if (geoResult.reason === 'too_far') showToast(t.locationTooFar, 'error');
+        else if (geoResult.reason === 'permission_denied') showToast(t.locationPermissionDenied, 'error');
+        else if (geoResult.reason === 'not_supported') showToast(t.locationNotSupported, 'error');
+        else showToast(t.locationCheckFailed, 'error');
+        return;
+      }
 
-        const maxMeters = normalizeOrderRadiusMeters(restaurant.order_radius_meters);
-        const dist = calculateDistanceMeters(
-          latitude,
-          longitude,
-          restaurant.geo_latitude,
-          restaurant.geo_longitude,
-        );
-        if (dist > maxMeters) {
-          if (isLocalDevHost) {
-            showToast(t.locationBypassedLocal, 'info');
-          } else {
-            showToast(t.locationTooFar.replace('{meters}', String(maxMeters)), 'error');
-            return;
-          }
-        }
+      if (geoResult.latitude != null && geoResult.longitude != null) {
+        latitude = geoResult.latitude;
+        longitude = geoResult.longitude;
       }
 
       const items: AppendCartLineInput[] = cart.map((c) => ({
@@ -396,10 +325,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
 
       if (!appendRes.ok) {
         const code = appendData.error || '';
-        if (code === 'location_too_far') {
-          const maxMeters = normalizeOrderRadiusMeters(restaurant.order_radius_meters);
-          showToast(t.locationTooFar.replace('{meters}', String(maxMeters)), 'error');
-        }
+        if (code === 'location_too_far') showToast(t.locationTooFar, 'error');
         else if (code === 'location_required') showToast(t.locationPermissionDenied, 'error');
         else if (code === 'session_billing') showToast(t.billDisabledHint, 'info');
         else if (code === 'buffet_required') showToast(t.buffetRequired, 'info');

@@ -15,6 +15,7 @@ export type CustomerRestaurantRow = {
   geo_latitude?: number | null;
   geo_longitude?: number | null;
   order_radius_meters?: number | null;
+  feature_flags?: Record<string, boolean> | null;
 };
 
 export type CustomerResolvedTableContext = {
@@ -37,7 +38,7 @@ export async function loadCustomerRestaurantGate(
   const { data } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, logo_url, geo_latitude, geo_longitude, order_radius_meters, suspended_at, suspension_reason',
+      'id, name, slug, logo_url, geo_latitude, geo_longitude, order_radius_meters, feature_flags, suspended_at, suspension_reason',
     )
     .eq('slug', slug)
     .maybeSingle();
@@ -61,6 +62,7 @@ export async function loadCustomerRestaurantGate(
       geo_latitude: data.geo_latitude as number | null | undefined,
       geo_longitude: data.geo_longitude as number | null | undefined,
       order_radius_meters: data.order_radius_meters as number | null | undefined,
+      feature_flags: data.feature_flags as Record<string, boolean> | null | undefined,
     },
   };
 }

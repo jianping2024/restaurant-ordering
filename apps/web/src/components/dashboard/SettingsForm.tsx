@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { RESTAURANT_COUNTRY_OPTIONS, type RestaurantCountryCode } from '@mesa/shared';
+import { RESTAURANT_COUNTRY_OPTIONS, readGeoOrderRestrictionEnabled, type RestaurantCountryCode } from '@mesa/shared';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import type { RestaurantSettingsProfile } from '@/types';
@@ -23,6 +23,8 @@ export function SettingsForm({
 }) {
   const { lang } = useLanguage();
   const t = getMessages(lang).settings;
+  const hasStoredCoordinates =
+    restaurant.geo_latitude != null && restaurant.geo_longitude != null;
   const [form, setForm] = useState({
     name: restaurant.name,
     address: restaurant.address || '',
@@ -31,6 +33,10 @@ export function SettingsForm({
     geo_latitude: restaurant.geo_latitude != null ? String(restaurant.geo_latitude) : '',
     geo_longitude: restaurant.geo_longitude != null ? String(restaurant.geo_longitude) : '',
     order_radius_meters: String(normalizeOrderRadiusMeters(restaurant.order_radius_meters)),
+    geoOrderRestrictionEnabled: readGeoOrderRestrictionEnabled(
+      restaurant.feature_flags,
+      hasStoredCoordinates,
+    ),
   });
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -77,6 +83,11 @@ export function SettingsForm({
       return;
     }
 
+    if (form.geoOrderRestrictionEnabled && (latitude == null || longitude == null)) {
+      setError(t.geoRestrictionCoordsRequired);
+      return;
+    }
+
     const orderRadiusMeters = parseOrderRadiusInput(form.order_radius_meters);
     if (orderRadiusMeters == null) {
       setError(
@@ -89,7 +100,7 @@ export function SettingsForm({
 
     setSaving(true);
     try {
-      const payload: Record<string, string> = {
+      const payload: Record<string, string | boolean> = {
         name: form.name.trim(),
         address: form.address.trim(),
         phone: form.phone.trim(),
@@ -97,6 +108,7 @@ export function SettingsForm({
         geo_latitude: form.geo_latitude.trim(),
         geo_longitude: form.geo_longitude.trim(),
         order_radius_meters: String(orderRadiusMeters),
+        geo_order_restriction_enabled: form.geoOrderRestrictionEnabled,
       };
       const res = await fetch('/api/restaurant/settings', {
         method: 'PATCH',
@@ -109,6 +121,7 @@ export function SettingsForm({
         const json = (await res.json().catch(() => ({}))) as { error?: string };
         if (json.error === 'migration_required') setError(t.migrationRequired);
         else if (json.error === 'geo_invalid') setError(t.geoInvalid);
+        else if (json.error === 'geo_coords_required') setError(t.geoRestrictionCoordsRequired);
         else if (json.error === 'order_radius_invalid') {
           setError(
             t.orderRadiusInvalid
@@ -194,6 +207,28 @@ export function SettingsForm({
 
             <fieldset className="space-y-3 rounded-xl border border-brand-border/70 bg-brand-bg/40 p-4">
               <legend className="text-sm font-medium text-brand-text px-1">{t.geoSectionTitle}</legend>
+              <label className="flex items-start gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={form.geoOrderRestrictionEnabled}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, geoOrderRestrictionEnabled: e.target.checked }))
+                  }
+                  className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
+                />
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium text-brand-text">
+                    {t.geoRestrictionEnabled}
+                  </span>
+                  <span className="block text-[13px] text-brand-text-muted mt-0.5 leading-relaxed">
+                    {t.geoRestrictionEnabledDesc}
+                  </span>
+                </span>
+              </label>
+              <div
+                className={`space-y-3 ${form.geoOrderRestrictionEnabled ? '' : 'opacity-60'}`}
+                aria-disabled={!form.geoOrderRestrictionEnabled}
+              >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Input
                   label={t.geoLatitude}
@@ -250,6 +285,7 @@ export function SettingsForm({
                   .replace('{min}', String(MIN_ORDER_RADIUS_METERS))
                   .replace('{max}', String(MAX_ORDER_RADIUS_METERS))}
               </p>
+              </div>
             </fieldset>
 
             {error && (

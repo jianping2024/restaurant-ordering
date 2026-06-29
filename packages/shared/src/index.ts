@@ -80,3 +80,11 @@ export {
   type RestaurantFeatureModuleGroup,
   type RestaurantFeatureModuleId,
 } from './restaurant-features';
+export {
+  isGeoOrderRestrictionActive,
+  isGeoOrderRestrictionActiveForRestaurant,
+  mergeGeoOrderRestrictionFlag,
+  readGeoOrderRestrictionEnabled,
+  resolveActiveGeoOrderCoords,
+  type GeoOrderRestrictionFields,
+} from './geo-order-restriction';

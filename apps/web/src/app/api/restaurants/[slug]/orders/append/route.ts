@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { resolveActiveGeoOrderCoords } from '@mesa/shared';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
 import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
 import { distanceMeters } from '@/lib/geo-distance';
@@ -72,17 +73,8 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     return NextResponse.json({ error: loaded.error }, { status: loaded.status });
   }
 
-  const { data: restaurant, error: rErr } = await admin
-    .from('restaurants')
-    .select('geo_latitude, geo_longitude, order_radius_meters')
-    .eq('id', loaded.restaurant.id)
-    .maybeSingle();
-
-  if (rErr || !restaurant) {
-    return NextResponse.json({ error: 'restaurant_not_found' }, { status: 404 });
-  }
-
-  const rid = loaded.restaurant.id;
+  const restaurant = loaded.restaurant;
+  const rid = restaurant.id;
   const waiterFlow = body.waiter_flow === true;
   const staffOrderFlow = waiterFlow ? await openTableAuthFromRequest(req, slug) : null;
 
@@ -100,11 +92,8 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
 
   const displayName = tableRow.display_name as string;
 
-  if (
-    restaurant.geo_latitude != null &&
-    restaurant.geo_longitude != null &&
-    !staffOrderFlow
-  ) {
+  const geoAnchor = !staffOrderFlow ? resolveActiveGeoOrderCoords(restaurant) : null;
+  if (geoAnchor) {
     const lat = Number(body.latitude);
     const lon = Number(body.longitude);
     const host = req.headers.get('host') || '';
@@ -114,12 +103,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
       return NextResponse.json({ error: 'location_required' }, { status: 400 });
     }
 
-    const dist = distanceMeters(
-      lat,
-      lon,
-      Number(restaurant.geo_latitude),
-      Number(restaurant.geo_longitude),
-    );
+    const dist = distanceMeters(lat, lon, geoAnchor.latitude, geoAnchor.longitude);
     const maxMeters = normalizeOrderRadiusMeters(restaurant.order_radius_meters);
     if (dist > maxMeters && !devBypass) {
       return NextResponse.json({ error: 'location_too_far' }, { status: 403 });

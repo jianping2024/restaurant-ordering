@@ -95,6 +95,7 @@ export type RestaurantSettingsProfile = Pick<
   | 'geo_longitude'
   | 'order_radius_meters'
   | 'country_code'
+  | 'feature_flags'
 >;
 
 export interface MenuItem {
@@ -253,10 +254,18 @@ export interface Order {
   updated_at: string;
 }
 
+export interface SplitPersonItemShare {
+  key: string;
+  qty_num: number;
+  qty_den: number;
+}
+
 export interface SplitPerson {
   name: string;
-  items?: string[];  // by_item 模式：菜品 id 列表
-  amount?: number;   // custom 模式：手动金额
+  /** @deprecated Legacy by_item: line keys only (equal split). Prefer item_shares. */
+  items?: string[];
+  item_shares?: SplitPersonItemShare[];
+  amount?: number;
 }
 
 export interface SplitResult {

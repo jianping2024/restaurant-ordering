@@ -56,7 +56,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     locationNotSupported: 'Este dispositivo nao suporta localizacao. Nao foi possivel enviar o pedido.',
     locationPermissionDenied: 'Permita o acesso a localizacao para fazer pedidos neste restaurante.',
     locationCheckFailed: 'Nao foi possivel validar sua localizacao. Tente novamente.',
-    locationTooFar: 'Voce esta fora da area de pedido deste restaurante (maximo {meters} metros).',
+    locationTooFar: 'Esta demasiado longe do restaurante para fazer o pedido.',
     locationBypassedLocal: 'Ambiente local detectado: validacao de localizacao foi ignorada para testes.',
     printEnqueueNoStation:
       'Pedido guardado, mas nenhum talao de estacao: ligue uma estacao de impressao na categoria ou no prato (Menu nas definicoes).',
@@ -89,7 +89,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     locationNotSupported: 'This device does not support location. Unable to place order.',
     locationPermissionDenied: 'Please allow location access to place orders for this restaurant.',
     locationCheckFailed: 'Unable to verify your location. Please try again.',
-    locationTooFar: 'You are outside this restaurant ordering area (within {meters} meters only).',
+    locationTooFar: 'You are too far from the restaurant to place an order.',
     locationBypassedLocal: 'Local environment detected: location validation was skipped for testing.',
     printEnqueueNoStation:
       'Order saved, but no station ticket was queued. Assign a print station on the category or dish in Menu settings.',
@@ -122,7 +122,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     locationNotSupported: '当前设备不支持定位，无法提交订单',
     locationPermissionDenied: '请先允许定位权限，再进行下单',
     locationCheckFailed: '定位校验失败，请重试',
-    locationTooFar: '您当前不在餐厅 {meters} 米范围内，暂时无法下单',
+    locationTooFar: '离店过远，无法下单',
     locationBypassedLocal: '当前为本地环境，已跳过定位校验（仅用于调试）',
     printEnqueueNoStation:
       '订单已保存，但未打出品联：请在「菜单管理 → 出品档口」定义档口，并在分类或菜品上绑定。',

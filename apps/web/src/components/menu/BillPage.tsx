@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { calcByItemSplitResults, buildByItemAllocationsFromRows, buildSplitPersonsFromAllocations, withDefaultByItemLineRows, type ByItemConsumerRow } from '@/lib/bill-split-by-item';
+import { calcByItemSplitResults, buildByItemAllocationsFromRows, buildSplitPersonsFromAllocations, countByItemAllocationProgress, withDefaultByItemLineRows, type ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import { addToConsumerRoster, rememberConsumerName as rememberConsumerNameInRoster } from '@/lib/consumer-name-roster';
 import { validateBillSplit } from '@/lib/bill-split-validate';
 import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
@@ -220,16 +220,27 @@ export function BillPage({
     () => ({
       addConsumer: t.addConsumer,
       namePlaceholder: t.consumerNamePlaceholder,
-      qtyPlaceholder: t.consumerQtyPlaceholder,
+      wholePlaceholder: t.qtyWholePlaceholder,
+      numPlaceholder: t.qtyNumPlaceholder,
+      denPlaceholder: t.qtyDenPlaceholder,
+      missingDen: t.qtyMissingDen,
+      zeroDen: t.qtyZeroDen,
+      improperFraction: t.qtyImproperFraction,
       complete: t.byItemComplete,
       remaining: t.byItemRemaining,
       over: t.byItemOver,
       missingNames: t.byItemMissingNames,
       duplicateNames: t.byItemDuplicateNames,
       unassigned: t.byItemUnassigned,
+      invalidQty: t.byItemInvalidQty,
       remove: t.removeConsumer,
     }),
     [t],
+  );
+
+  const byItemProgress = useMemo(
+    () => countByItemAllocationProgress(itemLines, byItemAllocations),
+    [itemLines, byItemAllocations],
   );
 
   // 计算分单结果
@@ -828,6 +839,33 @@ export function BillPage({
         {/* 按菜分配 */}
         {splitMode === 'by_item' && (
           <div className="space-y-3">
+            {byItemProgress.total > 0 ? (
+              <div className="mb-1">
+                <div className="flex items-center justify-between text-[12px] mb-1.5">
+                  <span className="text-brand-text font-medium">{t.byItemProgress}</span>
+                  <span className={`tabular-nums ${
+                    byItemProgress.complete === byItemProgress.total
+                      ? 'text-emerald-600'
+                      : 'text-red-500'
+                  }`}
+                  >
+                    {byItemProgress.complete} / {byItemProgress.total}
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full bg-brand-border overflow-hidden">
+                  <div
+                    className={`h-full transition-all ${
+                      byItemProgress.complete === byItemProgress.total
+                        ? 'bg-emerald-500'
+                        : 'bg-red-500'
+                    }`}
+                    style={{
+                      width: `${Math.round((byItemProgress.complete / byItemProgress.total) * 100)}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            ) : null}
             {allItems.map((item) => {
               const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
               return (

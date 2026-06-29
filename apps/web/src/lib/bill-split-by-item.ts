@@ -2,6 +2,7 @@ import {
   formatRational,
   normalizeRational,
   parseQtyInput,
+  rationalFromInt,
   rationalFromNumber,
   type Rational,
   rationalsEqual,
@@ -32,14 +33,103 @@ export type ByItemSplitRow = {
 export type ByItemConsumerRow = {
   id: string;
   name: string;
-  qtyInput: string;
+  qtyWhole: string;
+  qtyNum: string;
+  qtyDen: string;
 };
+
+export type QtyPartsIssue = 'missing_den' | 'zero_den' | 'improper_fraction';
+
+export type QtyPartsLabels = {
+  wholePlaceholder: string;
+  numPlaceholder: string;
+  denPlaceholder: string;
+  missingDen: string;
+  zeroDen: string;
+  improperFraction: string;
+};
+
+export function sanitizeQtyDigits(raw: string): string {
+  return raw.replace(/\D/g, '').slice(0, 4);
+}
+
+export function validateQtyParts(parts: {
+  whole: string;
+  num: string;
+  den: string;
+}):
+  | { ok: true; qty: Rational }
+  | { ok: false; issue: QtyPartsIssue }
+  | { ok: false; issue: 'empty' } {
+  const whole = parts.whole.trim();
+  const num = parts.num.trim();
+  const den = parts.den.trim();
+  const hasWhole = whole.length > 0;
+  const hasNum = num.length > 0;
+  const hasDen = den.length > 0;
+
+  if (!hasWhole && !hasNum && !hasDen) {
+    return { ok: false, issue: 'empty' };
+  }
+
+  if (hasNum !== hasDen) {
+    return { ok: false, issue: 'missing_den' };
+  }
+
+  if (hasDen) {
+    const d = Number(den);
+    const n = Number(num);
+    if (!Number.isFinite(d) || d === 0) return { ok: false, issue: 'zero_den' };
+    if (!Number.isFinite(n) || n >= d) return { ok: false, issue: 'improper_fraction' };
+    const wholeN = hasWhole ? Number(whole) : 0;
+    if (!Number.isFinite(wholeN) || wholeN < 0) return { ok: false, issue: 'empty' };
+    return { ok: true, qty: normalizeRational({ num: wholeN * d + n, den: d }) };
+  }
+
+  const wholeN = Number(whole);
+  if (!Number.isFinite(wholeN) || wholeN <= 0) return { ok: false, issue: 'empty' };
+  return { ok: true, qty: rationalFromInt(wholeN) };
+}
+
+export function parseConsumerRowQty(row: ByItemConsumerRow): Rational | null {
+  const result = validateQtyParts({
+    whole: row.qtyWhole,
+    num: row.qtyNum,
+    den: row.qtyDen,
+  });
+  if (!result.ok) return null;
+  if (result.qty.num <= 0) return null;
+  return result.qty;
+}
+
+export function qtyPartsIssueLabel(issue: QtyPartsIssue, labels: QtyPartsLabels): string {
+  switch (issue) {
+    case 'missing_den':
+      return labels.missingDen;
+    case 'zero_den':
+      return labels.zeroDen;
+    case 'improper_fraction':
+      return labels.improperFraction;
+  }
+}
+
+export function getQtyPartsRowHint(row: ByItemConsumerRow, labels: QtyPartsLabels): string | null {
+  const result = validateQtyParts({
+    whole: row.qtyWhole,
+    num: row.qtyNum,
+    den: row.qtyDen,
+  });
+  if (result.ok || result.issue === 'empty') return null;
+  return qtyPartsIssueLabel(result.issue, labels);
+}
 
 export function createByItemConsumerRow(): ByItemConsumerRow {
   return {
     id: `row-${Math.random().toString(36).slice(2, 10)}`,
     name: '',
-    qtyInput: '',
+    qtyWhole: '',
+    qtyNum: '',
+    qtyDen: '',
   };
 }
 
@@ -67,8 +157,8 @@ export function parseConsumerRows(
   const parsed: Array<{ name: string; qty: Rational }> = [];
   for (const row of rows) {
     const name = row.name.trim();
-    const qty = parseQtyInput(row.qtyInput);
-    if (!name || !qty || qty.num <= 0) continue;
+    const qty = parseConsumerRowQty(row);
+    if (!name || !qty) continue;
     parsed.push({ name, qty });
   }
   return parsed;
@@ -78,6 +168,7 @@ export type ByItemLineStatus =
   | { kind: 'empty'; target: Rational }
   | { kind: 'missing_names'; allocated: Rational }
   | { kind: 'duplicate_names'; allocated: Rational }
+  | { kind: 'invalid_qty'; issue: QtyPartsIssue; allocated: Rational }
   | { kind: 'short'; remaining: Rational; allocated: Rational }
   | { kind: 'over'; excess: Rational; allocated: Rational }
   | { kind: 'complete'; allocated: Rational };
@@ -127,8 +218,20 @@ export function getByItemLineStatusFromRows(
   lineQty: number,
 ): ByItemLineStatus {
   for (const row of rows) {
-    const qty = parseQtyInput(row.qtyInput);
-    if (qty && qty.num > 0 && !row.name.trim()) {
+    const parts = validateQtyParts({
+      whole: row.qtyWhole,
+      num: row.qtyNum,
+      den: row.qtyDen,
+    });
+    if (!parts.ok && parts.issue !== 'empty') {
+      const partial = parseConsumerRows(rows);
+      return { kind: 'invalid_qty', issue: parts.issue, allocated: allocatedSum(partial) };
+    }
+  }
+
+  for (const row of rows) {
+    const qty = parseConsumerRowQty(row);
+    if (qty && !row.name.trim()) {
       const partial = parseConsumerRows(rows);
       return { kind: 'missing_names', allocated: allocatedSum(partial) };
     }
@@ -161,13 +264,16 @@ export type ByItemLineStatusLabels = {
   missingNames: string;
   duplicateNames: string;
   unassigned: string;
+  invalidQty: string;
 };
 
-export type ByItemLineStatusTone = 'success' | 'muted' | 'error';
+/** Non-complete dish states share one alert style in the UI. */
+export type ByItemLineStatusTone = 'success' | 'alert';
 
 export function byItemLineStatusSummary(
   status: ByItemLineStatus,
   labels: ByItemLineStatusLabels,
+  qtyLabels?: QtyPartsLabels,
 ): { text: string; tone: ByItemLineStatusTone } {
   const allocatedLabel = formatRational(
     status.kind === 'empty' ? { num: 0, den: 1 } : status.allocated,
@@ -184,29 +290,63 @@ export function byItemLineStatusSummary(
         text: labels.remaining
           .replace('{qty}', formatRational(status.remaining))
           .replace('{allocated}', allocatedLabel),
-        tone: 'muted',
+        tone: 'alert',
       };
     case 'over':
       return {
         text: labels.over
           .replace('{qty}', formatRational(status.excess))
           .replace('{allocated}', allocatedLabel),
-        tone: 'error',
+        tone: 'alert',
       };
     case 'missing_names':
-      return { text: labels.missingNames, tone: 'error' };
+      return { text: labels.missingNames, tone: 'alert' };
     case 'duplicate_names':
-      return { text: labels.duplicateNames, tone: 'error' };
+      return { text: labels.duplicateNames, tone: 'alert' };
+    case 'invalid_qty':
+      return {
+        text: qtyLabels
+          ? qtyPartsIssueLabel(status.issue, qtyLabels)
+          : labels.invalidQty,
+        tone: 'alert',
+      };
     case 'empty':
       return {
         text: labels.unassigned.replace('{qty}', formatRational(status.target)),
-        tone: 'muted',
+        tone: 'alert',
       };
   }
 }
 
 export function isByItemLineComplete(status: ByItemLineStatus): boolean {
   return status.kind === 'complete';
+}
+
+export function countByItemAllocationProgress(
+  itemLines: Array<{ key: string; qty: number }>,
+  allocations: Record<string, ByItemConsumerRow[]>,
+): { complete: number; total: number } {
+  let complete = 0;
+  for (const line of itemLines) {
+    const status = getByItemLineStatusFromRows(allocations[line.key] ?? [], line.qty);
+    if (isByItemLineComplete(status)) complete += 1;
+  }
+  return { complete, total: itemLines.length };
+}
+
+export function isRowQtyOverAllocated(
+  row: ByItemConsumerRow,
+  rows: ByItemConsumerRow[],
+  lineQty: number,
+): boolean {
+  const rowQty = parseConsumerRowQty(row);
+  if (!rowQty) return false;
+  const others = rows
+    .filter((candidate) => candidate.id !== row.id)
+    .map((candidate) => parseConsumerRowQty(candidate))
+    .filter((qty): qty is Rational => !!qty);
+  const diff = qtyDiff(lineQtyRational(lineQty), sumRationals([...others, rowQty]));
+  return diff.num < 0;
 }
 
 export function lineAllocationComplete(

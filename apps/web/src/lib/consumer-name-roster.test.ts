@@ -12,7 +12,9 @@ import {
 const row = (id: string, name: string): ByItemConsumerRow => ({
   id,
   name,
-  qtyInput: '',
+  qtyWhole: '',
+  qtyNum: '',
+  qtyDen: '',
 });
 
 describe('addToConsumerRoster', () => {

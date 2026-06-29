@@ -1,19 +1,54 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import type { ByItemConsumerRow } from './bill-split-by-item';
 import {
   buildByItemAllocationsFromRows,
   byItemLinePriceShare,
   byItemLineStatusSummary,
   calcByItemSplitResults,
   consumersForLineFromPersons,
+  countByItemAllocationProgress,
   getByItemLineStatusFromRows,
   getByItemLineStatusFromShares,
   isByItemLineComplete,
   parseConsumerRows,
   shareQtyLabel,
+  validateQtyParts,
   withDefaultByItemLineRows,
 } from './bill-split-by-item';
 import { validateBillSplit } from './bill-split-validate';
+
+function row(
+  id: string,
+  name: string,
+  qty: { whole?: string; num?: string; den?: string },
+): ByItemConsumerRow {
+  return {
+    id,
+    name,
+    qtyWhole: qty.whole ?? '',
+    qtyNum: qty.num ?? '',
+    qtyDen: qty.den ?? '',
+  };
+}
+
+describe('validateQtyParts', () => {
+  it('composes whole and fraction without symbols', () => {
+    const mixed = validateQtyParts({ whole: '2', num: '1', den: '3' });
+    assert.equal(mixed.ok, true);
+    if (mixed.ok) assert.equal(shareQtyLabel(mixed.qty), '2 1/3');
+
+    const frac = validateQtyParts({ whole: '', num: '1', den: '2' });
+    assert.equal(frac.ok, true);
+    if (frac.ok) assert.equal(shareQtyLabel(frac.qty), '1/2');
+  });
+
+  it('rejects improper fractions and zero denominator', () => {
+    assert.equal(validateQtyParts({ whole: '', num: '2', den: '2' }).ok, false);
+    assert.equal(validateQtyParts({ whole: '', num: '1', den: '0' }).ok, false);
+    assert.equal(validateQtyParts({ whole: '', num: '1', den: '' }).ok, false);
+  });
+});
 
 describe('withDefaultByItemLineRows', () => {
   it('adds one empty row per missing line key', () => {
@@ -25,7 +60,7 @@ describe('withDefaultByItemLineRows', () => {
 
   it('keeps existing rows and ids', () => {
     const existing = {
-      a: [{ id: 'stable-a', name: 'John', qtyInput: '1' }],
+      a: [row('stable-a', 'John', { whole: '1' })],
     };
     const next = withDefaultByItemLineRows(existing, ['a', 'b']);
     assert.equal(next.a?.[0]?.id, 'stable-a');
@@ -35,11 +70,12 @@ describe('withDefaultByItemLineRows', () => {
 
   it('returns the same object when nothing is missing', () => {
     const existing = {
-      a: [{ id: 'stable-a', name: 'John', qtyInput: '1' }],
+      a: [row('stable-a', 'John', { whole: '1' })],
     };
     assert.equal(withDefaultByItemLineRows(existing, ['a']), existing);
   });
 });
+
 describe('getByItemLineStatus', () => {
   const labels = {
     complete: '已分完 · {qty}',
@@ -48,48 +84,57 @@ describe('getByItemLineStatus', () => {
     missingNames: '请填写姓名',
     duplicateNames: '不能重复',
     unassigned: '还差 {qty}',
+    invalidQty: '数量有误',
+  };
+  const qtyLabels = {
+    wholePlaceholder: '整',
+    numPlaceholder: '分',
+    denPlaceholder: '母',
+    missingDen: '请填写完整分数',
+    zeroDen: '分母不能为 0',
+    improperFraction: '分数须小于 1',
   };
 
   it('marks a fully allocated line complete', () => {
     const status = getByItemLineStatusFromRows(
       [
-        { id: '1', name: 'John', qtyInput: '1/2' },
-        { id: '2', name: 'Jimmy', qtyInput: '3' },
+        row('1', 'John', { num: '1', den: '2' }),
+        row('2', 'Jimmy', { whole: '3' }),
       ],
       3.5,
     );
     assert.equal(status.kind, 'complete');
-    assert.equal(byItemLineStatusSummary(status, labels).tone, 'success');
-    assert.equal(byItemLineStatusSummary(status, labels).text, '已分完 · 3 1/2');
+    assert.equal(byItemLineStatusSummary(status, labels, qtyLabels).tone, 'success');
+    assert.equal(byItemLineStatusSummary(status, labels, qtyLabels).text, '已分完 · 3 1/2');
   });
 
-  it('shows excess instead of zero remaining when over-allocated', () => {
-    const status = getByItemLineStatusFromRows(
-      [{ id: '1', name: 'John', qtyInput: '4' }],
-      3,
-    );
-    assert.equal(status.kind, 'over');
-    assert.equal(byItemLineStatusSummary(status, labels).tone, 'error');
-    assert.match(byItemLineStatusSummary(status, labels).text, /^超出 /);
+  it('uses alert tone for short and over states', () => {
+    const short = getByItemLineStatusFromRows([row('1', 'John', { num: '1', den: '2' })], 2);
+    assert.equal(short.kind, 'short');
+    assert.equal(byItemLineStatusSummary(short, labels, qtyLabels).tone, 'alert');
+
+    const over = getByItemLineStatusFromRows([row('1', 'John', { whole: '4' })], 3);
+    assert.equal(over.kind, 'over');
+    assert.equal(byItemLineStatusSummary(over, labels, qtyLabels).tone, 'alert');
+    assert.match(byItemLineStatusSummary(over, labels, qtyLabels).text, /^超出 /);
   });
 
-  it('flags duplicate names before quantity mismatch', () => {
-    const status = getByItemLineStatusFromRows(
-      [
-        { id: '1', name: 'John', qtyInput: '1' },
-        { id: '2', name: 'john', qtyInput: '1' },
-      ],
+  it('flags duplicate names and invalid qty', () => {
+    const dup = getByItemLineStatusFromRows(
+      [row('1', 'John', { whole: '1' }), row('2', 'john', { whole: '1' })],
       3,
     );
-    assert.equal(status.kind, 'duplicate_names');
-    assert.equal(byItemLineStatusSummary(status, labels).text, '不能重复');
+    assert.equal(dup.kind, 'duplicate_names');
+
+    const invalid = getByItemLineStatusFromRows([row('1', 'John', { num: '2', den: '2' })], 1);
+    assert.equal(invalid.kind, 'invalid_qty');
   });
 
   it('shares the same complete rule as checkout validation', () => {
     const rows = [
-      { id: '1', name: 'tom', qtyInput: '2 1/3' },
-      { id: '2', name: 'jerry', qtyInput: '1 1/3' },
-      { id: '3', name: 'candy', qtyInput: '1 1/3' },
+      row('1', 'tom', { whole: '2', num: '1', den: '3' }),
+      row('2', 'jerry', { whole: '1', num: '1', den: '3' }),
+      row('3', 'candy', { whole: '1', num: '1', den: '3' }),
     ];
     const allocations = buildByItemAllocationsFromRows([{ key: 'order-0', rows }]);
     const shares = allocations['order-0'] ?? [];
@@ -97,15 +142,32 @@ describe('getByItemLineStatus', () => {
     assert.equal(isByItemLineComplete(getByItemLineStatusFromRows(rows, 5)), true);
   });
 });
+
+describe('countByItemAllocationProgress', () => {
+  it('counts only complete lines', () => {
+    const progress = countByItemAllocationProgress(
+      [
+        { key: 'a', qty: 1 },
+        { key: 'b', qty: 2 },
+      ],
+      {
+        a: [row('1', 'John', { whole: '1' })],
+        b: [row('2', 'Mary', { whole: '1' })],
+      },
+    );
+    assert.deepEqual(progress, { complete: 1, total: 2 });
+  });
+});
+
 describe('calcByItemSplitResults', () => {
   it('allocates five bottles across named consumers with fractional qty', () => {
     const allocations = buildByItemAllocationsFromRows([
       {
         key: 'order-0',
         rows: [
-          { id: '1', name: 'tom', qtyInput: '2 1/3' },
-          { id: '2', name: 'jerry', qtyInput: '1 1/3' },
-          { id: '3', name: 'candy', qtyInput: '1 1/3' },
+          row('1', 'tom', { whole: '2', num: '1', den: '3' }),
+          row('2', 'jerry', { whole: '1', num: '1', den: '3' }),
+          row('3', 'candy', { whole: '1', num: '1', den: '3' }),
         ],
       },
     ]);
@@ -125,8 +187,8 @@ describe('calcByItemSplitResults', () => {
 describe('parseConsumerRows', () => {
   it('ignores blank rows', () => {
     const parsed = parseConsumerRows([
-      { id: '1', name: 'Ana', qtyInput: '1' },
-      { id: '2', name: '', qtyInput: '2' },
+      row('1', 'Ana', { whole: '1' }),
+      row('2', '', { whole: '2' }),
     ]);
     assert.equal(parsed.length, 1);
     assert.equal(parsed[0]?.name, 'Ana');
@@ -161,7 +223,7 @@ describe('validateBillSplit by_item', () => {
     const allocations = buildByItemAllocationsFromRows([
       {
         key: 'order-0',
-        rows: [{ id: '1', name: 'tom', qtyInput: '2' }],
+        rows: [row('1', 'tom', { whole: '2' })],
       },
     ]);
     const result = validateBillSplit({
@@ -180,9 +242,9 @@ describe('validateBillSplit by_item', () => {
       {
         key: 'order-0',
         rows: [
-          { id: '1', name: 'tom', qtyInput: '2 1/3' },
-          { id: '2', name: 'jerry', qtyInput: '1 1/3' },
-          { id: '3', name: 'candy', qtyInput: '1 1/3' },
+          row('1', 'tom', { whole: '2', num: '1', den: '3' }),
+          row('2', 'jerry', { whole: '1', num: '1', den: '3' }),
+          row('3', 'candy', { whole: '1', num: '1', den: '3' }),
         ],
       },
     ]);
@@ -204,9 +266,9 @@ describe('validateBillSplit by_item', () => {
 describe('byItemLinePriceShare', () => {
   it('distributes cents without losing the line total', () => {
     const shares = parseConsumerRows([
-      { id: '1', name: 'tom', qtyInput: '2 1/3' },
-      { id: '2', name: 'jerry', qtyInput: '1 1/3' },
-      { id: '3', name: 'candy', qtyInput: '1 1/3' },
+      row('1', 'tom', { whole: '2', num: '1', den: '3' }),
+      row('2', 'jerry', { whole: '1', num: '1', den: '3' }),
+      row('3', 'candy', { whole: '1', num: '1', den: '3' }),
     ]);
     const total = shares.reduce(
       (sum, share) => sum + byItemLinePriceShare(10, shares, share.name),

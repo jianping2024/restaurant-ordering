@@ -11,6 +11,7 @@ import {
   getBuffetLineStatusFromRows,
   getByItemLineStatusFromRows,
   parseConsumerRows,
+  removeByItemConsumerRow,
   resolveBuffetRowCounts,
   shareQtyLabel,
   validateQtyParts,
@@ -213,6 +214,31 @@ describe('validateBillSplit by_item', () => {
       byItemAllocations: allocations,
     });
     assert.equal(result.ok, true);
+  });
+});
+
+describe('removeByItemConsumerRow', () => {
+  it('drops the target row when multiple rows exist', () => {
+    const rows = [row('a', 'John', {}), row('b', 'Mary', {})];
+    const next = removeByItemConsumerRow(rows, 'a');
+    assert.equal(next.length, 1);
+    assert.equal(next[0]?.name, 'Mary');
+  });
+
+  it('keeps one empty row when removing the last remaining row', () => {
+    const rows = [row('a', 'John', { whole: '1' })];
+    const next = removeByItemConsumerRow(rows, 'a');
+    assert.equal(next.length, 1);
+    assert.notEqual(next[0]?.id, 'a');
+    assert.equal(next[0]?.name, '');
+  });
+
+  it('creates a buffet default row when the last buffet row is removed', () => {
+    const rows = [{ ...row('a', 'John', {}), adultQty: '2', childQty: '' }];
+    const next = removeByItemConsumerRow(rows, 'a', { buffet: true });
+    assert.equal(next.length, 1);
+    assert.equal(next[0]?.adultQty, '1');
+    assert.equal(next[0]?.childQty, '');
   });
 });
 

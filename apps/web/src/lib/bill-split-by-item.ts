@@ -136,6 +136,16 @@ export function createByItemConsumerRow(opts?: { buffet?: boolean }): ByItemCons
   };
 }
 
+/** Drop one payer row; always keep at least one empty row for the dish line. */
+export function removeByItemConsumerRow(
+  rows: ByItemConsumerRow[],
+  rowId: string,
+  opts?: { buffet?: boolean },
+): ByItemConsumerRow[] {
+  const next = rows.filter((row) => row.id !== rowId);
+  return next.length > 0 ? next : [createByItemConsumerRow(opts)];
+}
+
 export type BuffetConsumerAllocation = {
   name: string;
   adults: number;

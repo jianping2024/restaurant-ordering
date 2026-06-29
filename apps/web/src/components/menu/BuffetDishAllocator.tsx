@@ -5,6 +5,7 @@ import {
   byItemLineStatusSummary,
   createByItemConsumerRow,
   getBuffetLineStatusFromRows,
+  removeByItemConsumerRow,
   resolveBuffetRowCounts,
   sanitizeQtyDigits,
   type ByItemConsumerRow,
@@ -12,6 +13,7 @@ import {
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { availableConsumerNamesForRow } from '@/lib/consumer-name-roster';
+import { ByItemConsumerRowRemoveButton } from '@/components/menu/ByItemConsumerRowRemoveButton';
 import { ConsumerNameCombobox } from '@/components/menu/ConsumerNameCombobox';
 
 export type BuffetDishAllocatorLabels = ByItemLineStatusLabels & {
@@ -91,8 +93,7 @@ export function BuffetDishAllocator({
   };
 
   const removeRow = (rowId: string) => {
-    const next = rows.filter((row) => row.id !== rowId);
-    onChange(next.length > 0 ? next : [createByItemConsumerRow({ buffet: true })]);
+    onChange(removeByItemConsumerRow(rows, rowId, { buffet: true }));
   };
 
   return (
@@ -160,14 +161,11 @@ export function BuffetDishAllocator({
                   />
                 </label>
               </div>
-              <button
-                type="button"
-                onClick={() => removeRow(row.id)}
-                aria-label={labels.remove}
-                className="w-8 h-8 shrink-0 rounded-lg text-brand-text-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
-              >
-                ×
-              </button>
+              <ByItemConsumerRowRemoveButton
+                rowCount={rows.length}
+                ariaLabel={labels.remove}
+                onRemove={() => removeRow(row.id)}
+              />
             </div>
           );
         })}

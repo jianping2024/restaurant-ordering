@@ -5,6 +5,7 @@ import {
   byItemLineStatusSummary,
   createByItemConsumerRow,
   getByItemLineStatusFromRows,
+  removeByItemConsumerRow,
   getQtyPartsRowHint,
   isRowQtyOverAllocated,
   type ByItemConsumerRow,
@@ -14,6 +15,7 @@ import {
 import { availableConsumerNamesForRow } from '@/lib/consumer-name-roster';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { BuffetDishAllocator, type BuffetDishAllocatorLabels } from '@/components/menu/BuffetDishAllocator';
+import { ByItemConsumerRowRemoveButton } from '@/components/menu/ByItemConsumerRowRemoveButton';
 import { ConsumerNameCombobox } from '@/components/menu/ConsumerNameCombobox';
 import { ByItemQtyInput } from '@/components/menu/ByItemQtyInput';
 
@@ -100,8 +102,7 @@ function MenuByItemDishAllocator({
   };
 
   const removeRow = (rowId: string) => {
-    const next = rows.filter((row) => row.id !== rowId);
-    onChange(next.length > 0 ? next : [createByItemConsumerRow()]);
+    onChange(removeByItemConsumerRow(rows, rowId));
   };
 
   const qtyLabels: QtyPartsLabels = {
@@ -154,14 +155,11 @@ function MenuByItemDishAllocator({
                 invalid={qtyInvalid || qtyOver}
                 onChange={(patch) => updateRow(row.id, patch)}
               />
-              <button
-                type="button"
-                onClick={() => removeRow(row.id)}
-                aria-label={labels.remove}
-                className="w-8 h-8 shrink-0 rounded-lg text-brand-text-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
-              >
-                ×
-              </button>
+              <ByItemConsumerRowRemoveButton
+                rowCount={rows.length}
+                ariaLabel={labels.remove}
+                onRemove={() => removeRow(row.id)}
+              />
             </div>
           );
         })}

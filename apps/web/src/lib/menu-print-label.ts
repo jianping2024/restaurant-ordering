@@ -66,19 +66,18 @@ export function formatMenuPrintDisplayName(params: {
   return `${segments.join('-')}-${name}`;
 }
 
-export function orderItemPrintDisplayName(
-  item: OrderItem,
-  menuById: Map<string, MenuItemForPrint>,
-  categories: MenuCategoryForPrint[],
+export function orderItemBaseName(
+  item: Pick<OrderItem, 'name_pt' | 'name' | 'name_en' | 'name_zh'>,
 ): string {
-  const base = (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
-  const row = menuById.get(item.id);
-  if (!row) return base;
-  const categoryPath = categoryCodePathFromLeaf(row.category_id, categories);
+  return (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
+}
+
+/** Receipt / station slip line from order snapshot: `RE-001-Água 500ml`. */
+export function orderItemReceiptLineLabel(item: OrderItem): string {
   return formatMenuPrintDisplayName({
-    categoryPath,
-    itemCode: row.item_code ?? null,
-    itemName: base,
+    categoryPath: item.category_code_path ?? [],
+    itemCode: item.item_code ?? null,
+    itemName: orderItemBaseName(item),
   });
 }
 
@@ -136,15 +135,4 @@ export function formatTopCategoryTicketHeader(
     inner = `${code}-${inner}`;
   }
   return `(${inner})`;
-}
-
-/** Station slip line: `001-Água 500ml` (item code + name only). */
-export function orderItemStationTicketLineLabel(
-  item: OrderItem,
-  menuRow: MenuItemForPrint | undefined,
-): string {
-  const name = (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
-  const code = normalizeMenuItemCode(menuRow?.item_code ?? null);
-  if (code) return `${code}-${name}`;
-  return name;
 }

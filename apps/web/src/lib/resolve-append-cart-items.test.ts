@@ -9,14 +9,33 @@ import {
 
 const RESTAURANT_ID = '11111111-1111-4111-8111-111111111111';
 
-function mockAdminMenuRows(rows: Array<Record<string, unknown>>): SupabaseClient {
-  const chain = {
-    select: () => chain,
-    eq: () => chain,
-    in: async () => ({ data: rows, error: null }),
-  };
+const CAT_RE = 'bc6b075f-dd1f-4246-9bdf-314475f86024';
+
+function mockAdminForAppend(
+  menuRows: Array<Record<string, unknown>>,
+  categoryRows: Array<Record<string, unknown>> = [
+    { id: CAT_RE, parent_id: null, item_code: 'RE' },
+  ],
+): SupabaseClient {
   return {
-    from: () => chain,
+    from(table: string) {
+      if (table === 'menu_items') {
+        const chain = {
+          select: () => chain,
+          eq: () => chain,
+          in: async () => ({ data: menuRows, error: null }),
+        };
+        return chain;
+      }
+      if (table === 'menu_categories') {
+        const chain = {
+          select: () => chain,
+          eq: async () => ({ data: categoryRows, error: null }),
+        };
+        return chain;
+      }
+      throw new Error(`unexpected table: ${table}`);
+    },
   } as unknown as SupabaseClient;
 }
 
@@ -106,17 +125,19 @@ describe('generateAppendBatchId', () => {
 });
 
 describe('resolveAppendCartItems', () => {
-  it('maps menu_items price from DB', async () => {
+  it('maps menu_items price and print snapshots from DB', async () => {
     const r = await resolveAppendCartItems({
-      admin: mockAdminMenuRows([
+      admin: mockAdminForAppend([
         {
           id: MENU_A,
+          category_id: CAT_RE,
           name_pt: 'Peixe',
           name_en: null,
           name_zh: null,
           price: '12.5',
           emoji: '🐟',
           available: true,
+          item_code: '001',
         },
       ]),
       restaurantId: RESTAURANT_ID,
@@ -130,11 +151,13 @@ describe('resolveAppendCartItems', () => {
     assert.equal(r.items[0].price, 12.5);
     assert.equal(r.items[0].qty, 2);
     assert.equal(r.items[0].name_pt, 'Peixe');
+    assert.equal(r.items[0].item_code, '001');
+    assert.deepEqual(r.items[0].category_code_path, ['RE']);
   });
 
   it('returns menu_item_not_found when id missing from query', async () => {
     const r = await resolveAppendCartItems({
-      admin: mockAdminMenuRows([]),
+      admin: mockAdminForAppend([]),
       restaurantId: RESTAURANT_ID,
       rawItems: [{ menu_item_id: MENU_A, qty: 1 }],
     });
@@ -145,7 +168,7 @@ describe('resolveAppendCartItems', () => {
 
   it('returns menu_item_unavailable when available is false', async () => {
     const r = await resolveAppendCartItems({
-      admin: mockAdminMenuRows([
+      admin: mockAdminForAppend([
         {
           id: MENU_A,
           name_pt: 'Off',

@@ -5,7 +5,7 @@ import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import {
   formatTopCategoryTicketHeader,
-  orderItemStationTicketLineLabel,
+  orderItemReceiptLineLabel,
   topLevelCategoryId,
   type MenuCategoryForStationTicket,
   type MenuItemForPrint,
@@ -340,7 +340,7 @@ export async function enqueueStationTicketsForOrder(params: {
           menu_item_id: l.item.id,
           qty: l.item.qty,
           note: l.item.note,
-          display_name: orderItemStationTicketLineLabel(l.item, menuById.get(l.item.id)),
+          display_name: orderItemReceiptLineLabel(l.item),
           emoji: l.item.emoji || '🍽️',
           category_group_sort: group.sort,
           category_group_header: group.header,

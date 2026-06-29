@@ -12,8 +12,7 @@ import {
 } from '@/lib/bill-split-by-item';
 import { buildByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
-import { fetchMenuPrintContext } from '@/lib/menu-print-context';
-import { orderItemPrintDisplayName } from '@/lib/menu-print-label';
+import { orderItemReceiptLineLabel } from '@/lib/menu-print-label';
 import { checkoutPayableAmount } from '@/lib/checkout-split-math';
 import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
 import {
@@ -63,7 +62,6 @@ export type OrderReceiptJobPayload = {
 
 export function buildReceiptLinesFromOrders(
   orders: Order[],
-  printCtx?: Awaited<ReturnType<typeof fetchMenuPrintContext>>,
 ): OrderReceiptJobPayload['lines'] {
   const lines: OrderReceiptJobPayload['lines'] = [];
   let itemIndex = 0;
@@ -72,12 +70,9 @@ export function buildReceiptLinesFromOrders(
       const st = normalizeOrderItemStatus(item, order.status);
       if (st === 'voided') continue;
       itemIndex += 1;
-      const display_name = printCtx
-        ? orderItemPrintDisplayName(item, printCtx.menuById, printCtx.categories)
-        : (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
       lines.push({
         item_index: itemIndex,
-        display_name,
+        display_name: orderItemReceiptLineLabel(item),
         qty: item.qty,
         unit_price: item.price,
         ...(item.note?.trim() ? { note: item.note.trim() } : {}),
@@ -92,7 +87,6 @@ export function buildSplitPersonReceiptLines(
   split: BillSplit,
   personIndex: number,
   orders: Order[],
-  printCtx?: Awaited<ReturnType<typeof fetchMenuPrintContext>>,
 ): OrderReceiptJobPayload['lines'] {
   if (split.split_mode !== 'by_item') return [];
 
@@ -134,12 +128,9 @@ export function buildSplitPersonReceiptLines(
           : shareQtyLabel(personShare.qty);
 
       itemIndex += 1;
-      const display_name = printCtx
-        ? orderItemPrintDisplayName(item, printCtx.menuById, printCtx.categories)
-        : (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
       lines.push({
         item_index: itemIndex,
-        display_name,
+        display_name: orderItemReceiptLineLabel(item),
         qty: 1,
         unit_price: sharePrice,
         share_qty_label: shareLabel,
@@ -322,15 +313,8 @@ export async function enqueueReceiptPrint(
   }
 
   const orderRows = orders as Order[];
-  const menuItemIds = orderRows.flatMap((o) => (o.items || []).map((it) => it.id));
-  let printCtx: Awaited<ReturnType<typeof fetchMenuPrintContext>> | undefined;
-  try {
-    printCtx = await fetchMenuPrintContext(admin, restaurantId, menuItemIds);
-  } catch {
-    printCtx = undefined;
-  }
 
-  let lines = buildReceiptLinesFromOrders(orderRows, printCtx);
+  let lines = buildReceiptLinesFromOrders(orderRows);
   let amountDue = lines.reduce((sum, ln) => sum + ln.unit_price * ln.qty, 0);
 
   if (variant === 'split_payment') {
@@ -340,7 +324,7 @@ export async function enqueueReceiptPrint(
     if (!billSplit) {
       return { ok: false, status: 404, code: 'bill_split_not_found' };
     }
-    lines = buildSplitPersonReceiptLines(billSplit, personIndex, orderRows, printCtx);
+    lines = buildSplitPersonReceiptLines(billSplit, personIndex, orderRows);
     const rowAmount = Number(billSplit.result?.[personIndex]?.amount ?? personAmount ?? 0);
     amountDue = rowAmount;
   }

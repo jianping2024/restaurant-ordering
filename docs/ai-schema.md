@@ -443,7 +443,7 @@ table_sessions:
 - Multi-tenant root entity is `restaurants`; most business tables reference `restaurant_id`.
 - Auth ownership/staff users are linked through `auth.users`.
 - Table lifecycle: `restaurant_tables` defines physical/logical tables; `table_sessions` tracks open/billing/closed dining sessions.
-- Ordering flow: `orders` stores item payloads in `items` jsonb and links to restaurant/table/session.
+- Ordering flow: `orders` stores item payloads in `items` jsonb and links to restaurant/table/session. Each line snapshots `item_code` and `category_code_path` (root→leaf category codes) at append time for print labels.
 - Billing flow: `bill_splits` supports even/by-item/custom splits and stores calculated result in jsonb. At most one active (`pending`/`confirmed`/`requested`) row per `session_id` (partial unique index).
 - Checkout request: `upsert_bill_split_request(...)` — advisory lock per session; `FOR UPDATE` on active split; merges `paid` flags; sets `table_sessions` to `billing`.
 - Checkout confirm payment: `confirm_bill_split_payment(...)` — advisory lock per session when `session_id` set; `FOR UPDATE` on `bill_splits`; rejects `cancelled`; appends `session_collected_payments` per confirm; closes `table_sessions` when all rows paid.

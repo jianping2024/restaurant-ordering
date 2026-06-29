@@ -642,6 +642,7 @@ func receiptLineFieldsFrom(ln jobLine) receiptLineFields {
 
 func (w *escposWriter) writeReceiptMenuLines(lines []jobLine, lab ticketLabels) (sum float64, hasPrice bool) {
 	w.writeBody1x1()
+	w.lf()
 	w.text(escposThreeColLine(lab.items, lab.qty, lab.originalPrice))
 	w.lf()
 	for _, ln := range lines {
@@ -653,6 +654,7 @@ func (w *escposWriter) writeReceiptMenuLines(lines []jobLine, lab ticketLabels) 
 		w.text(escposThreeColLine(fields.label, fields.qtyCol, fields.priceCol))
 		w.lf()
 		w.writeItemNoteLine(ln.Note, escposWidth)
+		w.lf()
 	}
 	return sum, hasPrice
 }

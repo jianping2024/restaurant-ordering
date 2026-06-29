@@ -218,9 +218,10 @@ function WaiterTableDetailInner({
     [buffetResolved, buffetAdults, buffetChildren],
   );
 
-  const bumpBuffetCount = (which: 'adults' | 'children', delta: number) => {
-    const setter = which === 'adults' ? setBuffetAdults : setBuffetChildren;
-    setter((n) => Math.max(0, n + delta));
+  const setBuffetGuestCount = (which: 'adults' | 'children', value: number) => {
+    const n = Math.max(0, Math.floor(value));
+    if (which === 'adults') setBuffetAdults(n);
+    else setBuffetChildren(n);
   };
 
   useEffect(() => {
@@ -832,7 +833,7 @@ function WaiterTableDetailInner({
             onBuffetIdChange={setBuffetId}
             buffetAdults={buffetAdults}
             buffetChildren={buffetChildren}
-            onBumpCount={bumpBuffetCount}
+            onSetGuestCount={setBuffetGuestCount}
             buffetPriceLoading={buffetPriceLoading}
             buffetPriceDisplay={buffetPriceDisplay}
             buffetActionLabel={buffetActionLabel}

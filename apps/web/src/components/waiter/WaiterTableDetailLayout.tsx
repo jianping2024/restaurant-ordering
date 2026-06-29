@@ -71,7 +71,7 @@ type BuffetPanelProps = {
   onBuffetIdChange: (id: string) => void;
   buffetAdults: number;
   buffetChildren: number;
-  onBumpCount: (which: 'adults' | 'children', delta: number) => void;
+  onSetGuestCount: (which: 'adults' | 'children', value: number) => void;
   buffetPriceLoading: boolean;
   buffetPriceDisplay: BuffetOpenPricePreview;
   buffetActionLabel: string;
@@ -82,18 +82,27 @@ type BuffetPanelProps = {
 function BuffetGuestCounter({
   label,
   qty,
+  onQtyChange,
   onDecrement,
   onIncrement,
 }: {
   label: string;
   qty: number;
+  onQtyChange: (value: number) => void;
   onDecrement: () => void;
   onIncrement: () => void;
 }) {
   return (
     <div className="flex items-center justify-start gap-3 xl:justify-center">
       <span className="text-[13px] text-brand-text min-w-[2rem]">{label}</span>
-      <CartQtyStepper variant="drawer" qty={qty} onDecrement={onDecrement} onIncrement={onIncrement} />
+      <CartQtyStepper
+        variant="drawer"
+        qty={qty}
+        onQtyChange={onQtyChange}
+        qtyInputAriaLabel={label}
+        onDecrement={onDecrement}
+        onIncrement={onIncrement}
+      />
     </div>
   );
 }
@@ -131,7 +140,7 @@ export function WaiterTableBuffetPanel({
   onBuffetIdChange,
   buffetAdults,
   buffetChildren,
-  onBumpCount,
+  onSetGuestCount,
   buffetPriceLoading,
   buffetPriceDisplay,
   buffetActionLabel,
@@ -168,8 +177,9 @@ export function WaiterTableBuffetPanel({
             <BuffetGuestCounter
               label={t.buffetAdults}
               qty={buffetAdults}
-              onDecrement={() => onBumpCount('adults', -1)}
-              onIncrement={() => onBumpCount('adults', 1)}
+              onQtyChange={(value) => onSetGuestCount('adults', value)}
+              onDecrement={() => onSetGuestCount('adults', buffetAdults - 1)}
+              onIncrement={() => onSetGuestCount('adults', buffetAdults + 1)}
             />
           </BuffetPanelSection>
 
@@ -177,8 +187,9 @@ export function WaiterTableBuffetPanel({
             <BuffetGuestCounter
               label={t.buffetChildren}
               qty={buffetChildren}
-              onDecrement={() => onBumpCount('children', -1)}
-              onIncrement={() => onBumpCount('children', 1)}
+              onQtyChange={(value) => onSetGuestCount('children', value)}
+              onDecrement={() => onSetGuestCount('children', buffetChildren - 1)}
+              onIncrement={() => onSetGuestCount('children', buffetChildren + 1)}
             />
           </BuffetPanelSection>
 

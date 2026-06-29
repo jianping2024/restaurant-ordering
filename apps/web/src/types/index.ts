@@ -160,8 +160,10 @@ export interface OrderItem {
   adult_unit_price?: number;
   child_unit_price?: number;
   price_rule_id?: string;
-  /** Snapshot from menu_items.item_code at append time (optional on legacy rows). */
+  /** Snapshot from menu_items.item_code at append time. */
   item_code?: string | null;
+  /** Snapshot: root→leaf category item_code path at append time (print label prefix). */
+  category_code_path?: string[];
   item_status?: OrderItemStatus; // 菜品级出餐状态
   batch_id?: string; // 同一餐次内的加单批次
   started_at?: string;

@@ -1,6 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { coerceCartPrice, coerceCartQty } from '@/lib/cart-totals';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import {
+  categoryCodePathFromLeaf,
+  type MenuCategoryForPrint,
+} from '@/lib/menu-print-label';
 import type { OrderItem } from '@/types';
 import {
   APPEND_CART_MAX_LINES,
@@ -29,6 +33,7 @@ export type ResolveAppendCartResult = ResolveAppendCartSuccess | ResolveAppendCa
 
 type MenuItemRow = {
   id: string;
+  category_id: string | null;
   name_pt: string;
   name_en: string | null;
   name_zh: string | null;
@@ -73,6 +78,8 @@ const FORBIDDEN_APPEND_LINE_KEYS = [
   'adult_unit_price',
   'child_unit_price',
   'price_rule_id',
+  'item_code',
+  'category_code_path',
 ] as const;
 
 function parseMenuItemId(row: Record<string, unknown>): string | null {
@@ -148,6 +155,7 @@ function menuRowToOrderItem(
   line: ParsedAppendCartLine,
   batchId: string,
   addedAt: string,
+  categories: MenuCategoryForPrint[],
 ): OrderItem {
   const name_pt = (menu.name_pt || '').trim() || '—';
   return {
@@ -161,6 +169,7 @@ function menuRowToOrderItem(
     price: coerceCartPrice(menu.price),
     emoji: typeof menu.emoji === 'string' && menu.emoji ? menu.emoji.slice(0, 8) : '🍽️',
     item_code: menu.item_code?.trim() || null,
+    category_code_path: categoryCodePathFromLeaf(menu.category_id, categories),
     item_status: 'pending',
     batch_id: batchId,
     added_at: addedAt,
@@ -183,16 +192,26 @@ export async function resolveAppendCartItems(params: {
   const { lines } = parsed;
   const ids = lines.map((l) => l.menuItemId);
 
-  const { data, error } = await params.admin
-    .from('menu_items')
-    .select('id, name_pt, name_en, name_zh, price, emoji, available, item_code')
-    .eq('restaurant_id', params.restaurantId)
-    .in('id', ids);
+  const [{ data, error }, { data: categoryRows, error: categoryErr }] = await Promise.all([
+    params.admin
+      .from('menu_items')
+      .select('id, category_id, name_pt, name_en, name_zh, price, emoji, available, item_code')
+      .eq('restaurant_id', params.restaurantId)
+      .in('id', ids),
+    params.admin
+      .from('menu_categories')
+      .select('id, parent_id, item_code')
+      .eq('restaurant_id', params.restaurantId),
+  ]);
 
   if (error) {
     throw new Error('menu_items_query_failed');
   }
+  if (categoryErr) {
+    throw new Error('menu_categories_query_failed');
+  }
 
+  const categories = (categoryRows || []) as MenuCategoryForPrint[];
   const byId = new Map<string, MenuItemRow>();
   for (const row of data || []) {
     byId.set(row.id as string, row as MenuItemRow);
@@ -210,7 +229,7 @@ export async function resolveAppendCartItems(params: {
     if (!menu.available) {
       return { ok: false, error: 'menu_item_unavailable' };
     }
-    items.push(menuRowToOrderItem(menu, line, batchId, addedAt));
+    items.push(menuRowToOrderItem(menu, line, batchId, addedAt, categories));
   }
 
   return { ok: true, items, batchId };

@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BillSplit, Order } from '@/types';
-import { buildSplitPersonReceiptLines, enqueueReceiptPrint } from './order-receipt-enqueue';
+import {
+  buildReceiptLinesFromOrders,
+  buildSplitPersonReceiptLines,
+  enqueueReceiptPrint,
+} from './order-receipt-enqueue';
 
 const RESTAURANT_ID = '11111111-1111-4111-8111-111111111111';
 
@@ -53,16 +57,53 @@ const orders: Order[] = [
         qty: 1,
         price: 3,
         emoji: '🥤',
+        item_code: '028',
+        category_code_path: ['RE'],
       },
     ],
   },
 ];
 
+describe('buildReceiptLinesFromOrders', () => {
+  it('uses order snapshot codes with buffet lines mixed in', () => {
+    const mixed: Order[] = [
+      {
+        ...orders[0]!,
+        items: [
+          {
+            id: 'buffet:f5c81888-7b78-40da-ba60-519e185e48d6',
+            kind: 'buffet_base',
+            name: 'Buffet livre',
+            name_pt: 'Buffet livre',
+            qty: 1,
+            price: 127.7,
+            emoji: '🍽️',
+          },
+          {
+            id: '47cd765c-1443-454a-bd75-e73638c310f5',
+            name_pt: 'Água 500ml',
+            name: 'Água 500ml',
+            qty: 1,
+            price: 1.85,
+            emoji: '💧',
+            item_code: '001',
+            category_code_path: ['RE'],
+          },
+        ],
+      },
+    ];
+    const lines = buildReceiptLinesFromOrders(mixed);
+    assert.equal(lines.length, 2);
+    assert.equal(lines[0]?.display_name, 'Buffet livre');
+    assert.equal(lines[1]?.display_name, 'RE-001-Água 500ml');
+  });
+});
+
 describe('buildSplitPersonReceiptLines', () => {
   it('includes 1/3 share label and per-person price for shared dish', () => {
     const lines = buildSplitPersonReceiptLines(byItemSplit(), 0, orders);
     assert.equal(lines.length, 1);
-    assert.equal(lines[0]?.display_name, 'Coca-Cola');
+    assert.equal(lines[0]?.display_name, 'RE-028-Coca-Cola');
     assert.equal(lines[0]?.share_qty_label, '1/3');
     assert.equal(lines[0]?.unit_price, 1);
     assert.equal(lines[0]?.qty, 1);
@@ -187,15 +228,6 @@ describe('enqueueReceiptPrint', () => {
           };
           return ordersChain;
         }
-        if (table === 'menu_items') {
-          return {
-            select: () => ({
-              eq: () => ({
-                in: async () => ({ data: [], error: null }),
-              }),
-            }),
-          };
-        }
         if (table === 'print_jobs') {
           return {
             insert: (row: { payload: Record<string, unknown> }) => {
@@ -228,6 +260,8 @@ describe('enqueueReceiptPrint', () => {
     assert.equal(insertedPayload?.receipt_variant, 'checkout_bill');
     assert.equal(insertedPayload?.amount_due, 90);
     assert.equal(insertedPayload?.amount_paid, undefined);
+    const payloadLines = insertedPayload?.lines as Array<{ display_name: string }>;
+    assert.equal(payloadLines[0]?.display_name, 'RE-028-Coca-Cola');
   });
 
   it('enqueues checkout_bill when bill_receipt_print is disabled (manual staff print)', async () => {
@@ -285,15 +319,6 @@ describe('enqueueReceiptPrint', () => {
             order: async () => ({ data: orders, error: null }),
           };
           return ordersChain;
-        }
-        if (table === 'menu_items') {
-          return {
-            select: () => ({
-              eq: () => ({
-                in: async () => ({ data: [], error: null }),
-              }),
-            }),
-          };
         }
         if (table === 'print_jobs') {
           return {

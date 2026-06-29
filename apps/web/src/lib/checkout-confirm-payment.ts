@@ -1,11 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SplitResult } from '@/types';
 import type { AuditActor } from '@/lib/audit/types';
-import {
-  recordDiscountAppliedAuditIfNeeded,
-  type BillSplitDiscountSnapshot,
-} from '@/lib/checkout-discount/record-discount-audit';
-import { validateDiscountReason } from '@/lib/checkout-discount/validate-discount-reason';
+import { recordDiscountAppliedAuditIfNeeded } from '@/lib/checkout-discount/record-discount-audit';
+import { assertDiscountReadyForPayment } from '@/lib/checkout-discount/discount-payment-gate';
 import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
 import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
 
@@ -103,36 +100,19 @@ export async function confirmBillSplitPayment(params: {
   } = params;
 
   const normalizedRate = Math.min(100, Math.max(0, discountRate));
-  const reasonValidation = validateDiscountReason(
-    normalizedRate,
+
+  const discountGate = await assertDiscountReadyForPayment({
+    admin,
+    restaurantId,
+    billSplitId,
+    discountRate: normalizedRate,
     discountReason,
     discountReasonDetail,
-  );
-  if (!reasonValidation.ok) {
-    return { ok: false, status: 400, code: reasonValidation.code };
+  });
+  if (!discountGate.ok) {
+    return { ok: false, status: discountGate.status, code: discountGate.code };
   }
-
-  let billSplitSnapshot: BillSplitDiscountSnapshot | null = null;
-  if (normalizedRate > 0) {
-    const { data: splitRow, error: splitErr } = await admin
-      .from('bill_splits')
-      .select('id, session_id, table_id, display_name, total_amount')
-      .eq('id', billSplitId)
-      .eq('restaurant_id', restaurantId)
-      .maybeSingle();
-
-    if (splitErr || !splitRow) {
-      return { ok: false, status: 404, code: 'bill_split_not_found' };
-    }
-
-    billSplitSnapshot = {
-      id: splitRow.id as string,
-      session_id: (splitRow.session_id as string | null) ?? null,
-      table_id: (splitRow.table_id as string | null) ?? null,
-      display_name: (splitRow.display_name as string | null) ?? null,
-      total_amount: Number(splitRow.total_amount) || 0,
-    };
-  }
+  const billSplitSnapshot = discountGate.snapshot;
 
   const { data: rpcData, error: rpcErr } = await admin.rpc('confirm_bill_split_payment', {
     p_restaurant_id: restaurantId,

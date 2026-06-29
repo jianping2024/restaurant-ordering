@@ -11,11 +11,14 @@ import { showToast } from '@/components/ui/Toast';
 import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
 import {
   checkoutPayableAmount,
-  clampCheckoutDiscountRate,
   discountedSplitRows,
   normalizeSplitRows,
 } from '@/lib/checkout-split-math';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
+import {
+  isCheckoutDiscountReasonError,
+  useCheckoutBillDiscount,
+} from '@/lib/checkout-discount/use-checkout-bill-discount';
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
 import {
   checkoutLinesFromOrders,
@@ -71,12 +74,7 @@ export function CheckoutRequestsManager({
 }: Props) {
   const [requests, setRequests] = useState<BillSplit[]>(initialRequests);
   const [processingKeys, setProcessingKeys] = useState<Set<string>>(() => new Set());
-  const [discountRateById, setDiscountRateById] = useState<Record<string, number>>({});
-  const [pendingDiscountConfirm, setPendingDiscountConfirm] = useState<{
-    request: BillSplit;
-    rowIndex: number;
-  } | null>(null);
-  const [discountReasonError, setDiscountReasonError] = useState<string | null>(null);
+  const billDiscount = useCheckoutBillDiscount();
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
   const discountReasonOptionsList = useMemo(
@@ -233,8 +231,7 @@ export function CheckoutRequestsManager({
     };
   }, [supabase, restaurantId, requests, selectedRequestId]);
 
-  const getDiscountRate = (requestId: string) =>
-    clampCheckoutDiscountRate(discountRateById[requestId] || 0);
+  const getDiscountRate = billDiscount.getRate;
   const getPayable = (request: BillSplit) => checkoutPayableAmount(request, getDiscountRate(request.id));
   const getSplitRows = (request: BillSplit) => normalizeSplitRows(request);
 
@@ -243,12 +240,7 @@ export function CheckoutRequestsManager({
 
   const hasConfirmedPerson = (request: BillSplit) => (request.result || []).some((row) => !!row.paid);
 
-  const submitConfirmPersonPaid = async (
-    request: BillSplit,
-    rowIndex: number,
-    discountReason?: string,
-    discountReasonDetail?: string,
-  ) => {
+  const submitConfirmPersonPaid = async (request: BillSplit, rowIndex: number) => {
     const discountedRows = getDiscountedSplitResult(request);
     const row = discountedRows[rowIndex];
     if (!row || row.paid) return;
@@ -259,41 +251,25 @@ export function CheckoutRequestsManager({
 
     const personKey = checkoutPersonKey(request.id, rowIndex);
     setProcessingKeys((prev) => new Set(prev).add(personKey));
-    setDiscountReasonError(null);
     try {
-      const rate = getDiscountRate(request.id);
       const outcome = await requestCheckoutConfirmPayment({
         slug: restaurantSlug,
         billSplitId: request.id,
         personIndex: rowIndex,
-        discountRate: rate,
-        ...(rate > 0 && discountReason
-          ? { discountReason, discountReasonDetail: discountReasonDetail || undefined }
-          : {}),
+        ...billDiscount.paymentPayload(request.id),
       });
       if (!outcome.ok) {
-        if (
-          rate > 0 &&
-          (outcome.error === 'reason_required' ||
-            outcome.error === 'invalid_reason' ||
-            outcome.error === 'reason_detail_required')
-        ) {
-          setDiscountReasonError(
-            outcome.error === 'reason_detail_required'
-              ? t.discountReasonDetailRequired
-              : t.discountReasonRequired,
-          );
-          setPendingDiscountConfirm({ request, rowIndex });
-          return;
-        }
         showToast(
-          outcome.error === 'already_paid' ? t.paid : '操作失败，请重试',
+          outcome.error === 'already_paid'
+            ? t.paid
+            : isCheckoutDiscountReasonError(outcome.error)
+              ? t.discountIncomplete
+              : '操作失败，请重试',
           'error',
         );
         return;
       }
 
-      setPendingDiscountConfirm(null);
       setRequests((prev) =>
         outcome.all_paid
           ? prev.filter((r) => r.id !== request.id)
@@ -311,10 +287,8 @@ export function CheckoutRequestsManager({
   };
 
   const handleConfirmPersonPaid = (request: BillSplit, rowIndex: number) => {
-    const rate = getDiscountRate(request.id);
-    if (rate > 0) {
-      setDiscountReasonError(null);
-      setPendingDiscountConfirm({ request, rowIndex });
+    if (!billDiscount.isSetupComplete(request.id)) {
+      showToast(t.discountIncomplete, 'error');
       return;
     }
     void submitConfirmPersonPaid(request, rowIndex);
@@ -410,9 +384,9 @@ export function CheckoutRequestsManager({
             min={0}
             max={100}
             value={getDiscountRate(selectedRequest.id)}
-            onChange={(next) =>
-              setDiscountRateById((prev) => ({ ...prev, [selectedRequest.id]: next }))
-            }
+            onChange={(next) => billDiscount.handleRateChange(selectedRequest.id, next)}
+            onFocus={() => billDiscount.handleRateFocus(selectedRequest.id)}
+            onBlur={() => billDiscount.handleRateBlur(selectedRequest.id)}
             className="w-28 bg-brand-bg border border-brand-border rounded-lg px-3 py-1.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
             placeholder="0"
             disabled={hasConfirmedPerson(selectedRequest)}
@@ -552,34 +526,23 @@ export function CheckoutRequestsManager({
         </div>
       )}
       <ReasonConfirmDialog
-        open={pendingDiscountConfirm != null}
-        onClose={() => {
-          setPendingDiscountConfirm(null);
-          setDiscountReasonError(null);
-        }}
+        open={billDiscount.pendingSetup != null}
+        onClose={billDiscount.cancelSetup}
         title={t.discountReasonTitle}
         message={t.discountReasonMessage}
         reasonLabel={t.discountReasonLabel}
         detailLabel={t.discountReasonDetailLabel}
         detailPlaceholder={t.discountReasonDetailPlaceholder}
-        confirmLabel={t.confirmOnePaid}
-        cancelLabel={t.backToList}
+        confirmLabel={t.discountReasonConfirm}
+        cancelLabel={t.discountReasonCancel}
         reasonRequiredError={t.discountReasonRequired}
         detailRequiredError={t.discountReasonDetailRequired}
         reasons={discountReasonOptionsList}
         reasonGroup="discount"
-        confirming={
-          pendingDiscountConfirm
-            ? processingKeys.has(
-                checkoutPersonKey(pendingDiscountConfirm.request.id, pendingDiscountConfirm.rowIndex),
-              )
-            : false
-        }
-        externalError={discountReasonError}
         onConfirm={async (reason, detail) => {
-          if (!pendingDiscountConfirm) return;
-          const { request, rowIndex } = pendingDiscountConfirm;
-          await submitConfirmPersonPaid(request, rowIndex, reason, detail);
+          const setup = billDiscount.pendingSetup;
+          if (!setup) return;
+          billDiscount.confirmSetup(setup.requestId, reason, detail);
         }}
       />
     </div>

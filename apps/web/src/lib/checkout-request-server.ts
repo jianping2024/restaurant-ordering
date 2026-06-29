@@ -3,11 +3,9 @@ import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
 import { validateBillSplit } from '@/lib/bill-split-validate';
 import { sumLineTotals } from '@/lib/cart-totals';
 import type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
-import { wholeTableCheckoutPayload } from '@/lib/checkout-request-payload';
 import type { SplitPerson, SplitResult } from '@/types';
 
 export type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
-export { wholeTableCheckoutPayload } from '@/lib/checkout-request-payload';
 
 export type CheckoutRequestResult =
   | { ok: true; bill_split_id: string; result: SplitResult[]; total_amount: number }
@@ -137,53 +135,4 @@ export async function submitCheckoutRequestForTable(
     result: (rpcPayload.result || payload.result) as SplitResult[],
     total_amount: rpcPayload.total_amount ?? total,
   };
-}
-
-export async function submitWholeTableCheckoutRequest(
-  admin: SupabaseClient,
-  restaurantId: string,
-  tableId: string,
-): Promise<CheckoutRequestResult> {
-  const { data: session, error: sessionErr } = await admin
-    .from('table_sessions')
-    .select('id, status')
-    .eq('restaurant_id', restaurantId)
-    .eq('table_id', tableId)
-    .in('status', ['open', 'billing'])
-    .order('opened_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (sessionErr) {
-    return {
-      ok: false,
-      error: 'session_lookup_failed',
-      status: 500,
-      message: sessionErr.message,
-    };
-  }
-  if (!session?.id) {
-    return { ok: false, error: 'no_active_session', status: 404 };
-  }
-  if (session.status === 'billing') {
-    return { ok: false, error: 'session_billing', status: 409 };
-  }
-
-  const orders = await loadCustomerSessionOrders({
-    admin,
-    restaurantId,
-    sessionId: session.id as string,
-    ascending: true,
-  });
-  const allItems = orders.flatMap((order) => order.items);
-  if (allItems.length === 0) {
-    return { ok: false, error: 'empty_session', status: 400 };
-  }
-
-  const total = sumLineTotals(allItems);
-  return submitCheckoutRequestForTable(
-    admin,
-    restaurantId,
-    tableId,
-    wholeTableCheckoutPayload(total),
-  );
 }

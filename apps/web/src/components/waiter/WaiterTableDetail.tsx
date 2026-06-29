@@ -39,8 +39,7 @@ import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime
 import { postWaiterDecrementOrderItemClient } from '@/lib/waiter-decrement-order-item-client';
 import { fetchWaiterTableActionTargetsClient, postWaiterBuffetOpenClient } from '@/lib/staff-board-client';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
-import { waiterBoardHref, waiterTableHref, waiterMenuHref } from '@/lib/staff-routes';
-import { requestDashboardCheckoutRequest } from '@/lib/request-dashboard-checkout-request';
+import { waiterBoardHref, waiterTableHref, waiterMenuHref, waiterBillHref } from '@/lib/staff-routes';
 import type { WaiterTableDetailData } from '@/lib/staff-board';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import {
@@ -130,7 +129,6 @@ function WaiterTableDetailInner({
   } | null>(null);
   const [voidReasonError, setVoidReasonError] = useState<string | null>(null);
   const [voidingDecrement, setVoidingDecrement] = useState(false);
-  const [callingBill, setCallingBill] = useState(false);
   const activeBuffets = useMemo(() => initialBuffets.filter((b) => b.is_active), [initialBuffets]);
   const [buffetId, setBuffetId] = useState<string>(() => activeBuffets[0]?.id || '');
   const selectedBuffet = useMemo(
@@ -328,6 +326,7 @@ function WaiterTableDetailInner({
   const pageShellClass = embeddedInDashboard ? '' : 'min-h-screen bg-brand-bg p-4';
   const boardHref = waiterBoardHref(restaurant.slug, routeOptions);
   const menuHref = waiterMenuHref(restaurant.slug, tableId, routeOptions);
+  const billHref = waiterBillHref(restaurant.slug, tableId, routeOptions);
 
   const openAction = (type: 'transfer' | 'merge', sourceId: string) => {
     if (tableIdsEqual(sourceId, tableId) && isCheckoutPending) {
@@ -565,29 +564,6 @@ function WaiterTableDetailInner({
       showToast(t.actionFailed, 'error');
     } finally {
       setClosingDemoTable(null);
-    }
-  };
-
-  const handleCallBill = async () => {
-    if (isDemo || !embeddedInDashboard || isCheckoutPending) return;
-    if (!isWaiterTableCardOccupied(selectedCard)) {
-      showToast(t.noOrdersOnTable, 'info');
-      return;
-    }
-    setCallingBill(true);
-    try {
-      const result = await requestDashboardCheckoutRequest(tableId);
-      if (!result.ok) {
-        if (result.error === 'session_billing') showToast(t.checkoutLockedHint, 'info');
-        else showToast(t.actionFailed, 'error');
-        return;
-      }
-      await refresh();
-      showToast(t.callBillSuccess, 'success');
-    } catch {
-      showToast(t.actionFailed, 'error');
-    } finally {
-      setCallingBill(false);
     }
   };
 
@@ -870,13 +846,12 @@ function WaiterTableDetailInner({
             t={t}
             tableId={selectedCard.tableId}
             menuHref={menuHref}
+            billHref={billHref}
             isCheckoutPending={isCheckoutPending}
             onCheckoutLocked={notifyCheckoutLocked}
             onTransfer={() => openAction('transfer', selectedCard.tableId)}
             onMerge={() => openAction('merge', selectedCard.tableId)}
-            showCallBill={detailActions.showCallBill}
-            callingBill={callingBill}
-            onCallBill={() => void handleCallBill()}
+            showGoToBill={detailActions.showGoToBill}
             showCloseTable={detailActions.showCloseTable}
             isDemo={isDemo}
             closingDemoTable={closingDemoTable === selectedCard.tableId}

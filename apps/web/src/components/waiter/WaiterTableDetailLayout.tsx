@@ -5,6 +5,7 @@ import type { Buffet } from '@/types';
 import { formatBuffetPriceTemplate, type BuffetOpenPricePreview } from '@/lib/buffet-order';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
+import { ButtonLink } from '@/components/ui/Button';
 import {
   WaiterBillIcon,
   WaiterClocheIcon,
@@ -282,17 +283,50 @@ function ToolbarCloseTableControl({
   );
 }
 
+function GoToBillControl({
+  billHref,
+  label,
+  checkoutLocked,
+  onCheckoutLocked,
+}: {
+  billHref: string;
+  label: string;
+  checkoutLocked: boolean;
+  onCheckoutLocked: () => void;
+}) {
+  const icon = <WaiterBillIcon className={buttonIcon.sm} />;
+
+  if (checkoutLocked) {
+    return (
+      <WaiterTableSecondaryButton type="button" onClick={onCheckoutLocked} icon={icon}>
+        {label}
+      </WaiterTableSecondaryButton>
+    );
+  }
+
+  return (
+    <ButtonLink
+      variant="soft"
+      size="action"
+      href={billHref}
+      className={waiterDetailLayout.secondaryAction}
+    >
+      {icon}
+      {label}
+    </ButtonLink>
+  );
+}
+
 type OccupiedToolbarProps = {
   t: WaiterCopy;
   tableId: string;
   menuHref: string;
+  billHref: string;
   isCheckoutPending: boolean;
   onCheckoutLocked: () => void;
   onTransfer: () => void;
   onMerge: () => void;
-  showCallBill: boolean;
-  callingBill: boolean;
-  onCallBill: () => void;
+  showGoToBill: boolean;
   showCloseTable: boolean;
   isDemo: boolean;
   closingDemoTable: boolean;
@@ -304,13 +338,12 @@ export function WaiterTableOccupiedToolbar({
   t,
   tableId,
   menuHref,
+  billHref,
   isCheckoutPending,
   onCheckoutLocked,
   onTransfer,
   onMerge,
-  showCallBill,
-  callingBill,
-  onCallBill,
+  showGoToBill,
   showCloseTable,
   isDemo,
   closingDemoTable,
@@ -344,15 +377,13 @@ export function WaiterTableOccupiedToolbar({
             >
               {t.merge}
             </WaiterTableSecondaryButton>
-            {showCallBill ? (
-              <WaiterTableSecondaryButton
-                type="button"
-                onClick={onCallBill}
-                disabled={callingBill}
-                icon={<WaiterBillIcon className={buttonIcon.sm} />}
-              >
-                {callingBill ? t.callBillOperating : t.callBill}
-              </WaiterTableSecondaryButton>
+            {showGoToBill ? (
+              <GoToBillControl
+                billHref={billHref}
+                label={t.goToBill}
+                checkoutLocked={isCheckoutPending}
+                onCheckoutLocked={onCheckoutLocked}
+              />
             ) : null}
           </div>
           <ToolbarCloseTableControl

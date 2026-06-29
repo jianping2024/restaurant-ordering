@@ -45,6 +45,20 @@ export function waiterMenuHref(
   return `${menuBase}?${params.toString()}`;
 }
 
+/** Waiter board → bill link for assisted checkout (same flow as customer menu → bill). */
+export function waiterBillHref(
+  slug: string,
+  tableId: string,
+  options: WaiterRouteOptions = {},
+): string {
+  const params = new URLSearchParams({
+    table_id: tableId,
+    from: 'waiter',
+    return: waiterTableHref(slug, tableId, options),
+  });
+  return `/${slug}/bill?${params.toString()}`;
+}
+
 /** Owner dashboard: open checkout for a table awaiting payment. */
 export function dashboardCheckoutTableHref(tableId: string): string {
   return `/dashboard/checkout?table_id=${encodeURIComponent(tableId)}`;

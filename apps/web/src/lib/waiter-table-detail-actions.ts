@@ -4,8 +4,8 @@ export type WaiterTableDetailActionFlags = {
   showBuffetPanel: boolean;
   /** Occupied-table toolbar: continue ordering, transfer, merge, etc. */
   showOccupiedToolbar: boolean;
-  /** Frontdesk may request checkout for guests. */
-  showCallBill: boolean;
+  /** Frontdesk may open the bill page to assist checkout. */
+  showGoToBill: boolean;
   /** Frontdesk may close the table session. */
   showCloseTable: boolean;
 };
@@ -22,7 +22,7 @@ export function resolveWaiterTableDetailActions(input: {
   return {
     showBuffetPanel: hasActiveBuffets && !isDemo && !isCheckoutPending,
     showOccupiedToolbar: isOccupied,
-    showCallBill: embeddedInDashboard && isOccupied && !isCheckoutPending,
+    showGoToBill: embeddedInDashboard && isOccupied && !isCheckoutPending,
     showCloseTable: embeddedInDashboard && isOccupied,
   };
 }

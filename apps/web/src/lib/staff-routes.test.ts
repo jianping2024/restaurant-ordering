@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { staffRolePath, waiterBoardHref, waiterTableHref, waiterMenuHref, resolveWaiterMenuReturnHref } from './staff-routes';
+import { staffRolePath, waiterBoardHref, waiterTableHref, waiterMenuHref, waiterBillHref, resolveWaiterMenuReturnHref } from './staff-routes';
 
 describe('waiterBoardHref', () => {
   it('returns staff slug path by default', () => {
@@ -48,6 +48,24 @@ describe('waiterMenuHref', () => {
   it('builds dashboard menu link when embedded', () => {
     const href = waiterMenuHref('cafe-lisboa', tableId, { embeddedInDashboard: true });
     assert.ok(href.startsWith('/cafe-lisboa/menu?'));
+    assert.ok(href.includes('return=%2Fdashboard%2Fwaiter%2F'));
+  });
+});
+
+describe('waiterBillHref', () => {
+  const tableId = '550e8400-e29b-41d4-a716-446655440001';
+
+  it('builds slug bill link with waiter return path', () => {
+    const href = waiterBillHref('cafe-lisboa', tableId);
+    assert.equal(
+      href,
+      `/cafe-lisboa/bill?table_id=${encodeURIComponent(tableId)}&from=waiter&return=${encodeURIComponent(`/cafe-lisboa/waiter/${tableId}`)}`,
+    );
+  });
+
+  it('builds dashboard bill link when embedded', () => {
+    const href = waiterBillHref('cafe-lisboa', tableId, { embeddedInDashboard: true });
+    assert.ok(href.startsWith('/cafe-lisboa/bill?'));
     assert.ok(href.includes('return=%2Fdashboard%2Fwaiter%2F'));
   });
 });

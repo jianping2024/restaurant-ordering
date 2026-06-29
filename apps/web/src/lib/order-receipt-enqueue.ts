@@ -114,15 +114,16 @@ export function buildSplitPersonReceiptLines(
       if (!personShare) return;
 
       const usesLegacyShares = !person?.item_shares?.some((share) => share.key === key);
+      const shareQty = personShare.qty.num / personShare.qty.den;
       const sharePrice = usesLegacyShares
         ? legacyEqualLineShare(lineTotal, legacyAssigneeIdsForKey(persons, key), personId)
         : spec.mode === 'buffet' && personShare.guestType
-          ? buffetShareUnitPrice(item, personShare.guestType)
+          ? buffetShareUnitPrice(item, personShare.guestType) * shareQty
           : byItemLinePriceShare(lineTotal, consumers, person.name);
       const shareLabel = usesLegacyShares
         ? legacyEqualShareQtyLabel(item.qty, consumers.length)
         : spec.mode === 'buffet' && personShare.guestType
-          ? '1'
+          ? shareQtyLabel(personShare.qty)
           : shareQtyLabel(personShare.qty);
 
       itemIndex += 1;

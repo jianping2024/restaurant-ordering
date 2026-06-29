@@ -40,7 +40,14 @@ function parsePersons(raw: unknown): SplitPerson[] | null {
                 : undefined;
             if (guest_type) {
               if (!key) return null;
-              return { key, qty_num: 1, qty_den: 1, guest_type };
+              const qty_num = typeof share.qty_num === 'number' && Number.isFinite(share.qty_num)
+                ? Math.trunc(share.qty_num)
+                : 1;
+              const qty_den = typeof share.qty_den === 'number' && Number.isFinite(share.qty_den)
+                ? Math.trunc(share.qty_den)
+                : 1;
+              if (qty_den <= 0 || qty_num <= 0) return null;
+              return { key, qty_num, qty_den, guest_type };
             }
             const qty_num = typeof share.qty_num === 'number' && Number.isFinite(share.qty_num)
               ? Math.trunc(share.qty_num)

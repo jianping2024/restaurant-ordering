@@ -35,8 +35,9 @@ export type ByItemConsumerRow = {
   qtyWhole: string;
   qtyNum: string;
   qtyDen: string;
-  /** Buffet lines: one head per row; menu lines ignore this. */
-  guestType?: BuffetGuestType | '';
+  /** Buffet lines: integer headcounts per payer; menu lines ignore these. */
+  adultQty?: string;
+  childQty?: string;
 };
 
 export type QtyPartsIssue = 'missing_den' | 'zero_den' | 'improper_fraction';
@@ -131,8 +132,68 @@ export function createByItemConsumerRow(opts?: { buffet?: boolean }): ByItemCons
     qtyWhole: '',
     qtyNum: '',
     qtyDen: '',
-    ...(opts?.buffet ? { guestType: '' as const } : {}),
+    ...(opts?.buffet ? { adultQty: '1', childQty: '' } : {}),
   };
+}
+
+export type BuffetConsumerAllocation = {
+  name: string;
+  adults: number;
+  children: number;
+};
+
+export function parseBuffetHeadcountInput(raw: string | undefined): number {
+  const digits = sanitizeQtyDigits(raw ?? '');
+  if (!digits) return 0;
+  const n = Number(digits);
+  return Number.isFinite(n) ? n : 0;
+}
+
+/** Name + empty counts → 1 adult; explicit zeros are respected when child count is set. */
+export function resolveBuffetRowCounts(row: ByItemConsumerRow): { adults: number; children: number } {
+  const adultRaw = (row.adultQty ?? '').trim();
+  const childRaw = (row.childQty ?? '').trim();
+  let adults = parseBuffetHeadcountInput(adultRaw);
+  const children = parseBuffetHeadcountInput(childRaw);
+  if (row.name.trim() && !adultRaw && !childRaw) {
+    adults = 1;
+  }
+  return { adults, children };
+}
+
+export function parseBuffetConsumerRows(rows: ByItemConsumerRow[]): BuffetConsumerAllocation[] {
+  const parsed: BuffetConsumerAllocation[] = [];
+  for (const row of rows) {
+    const name = row.name.trim();
+    if (!name) continue;
+    const { adults, children } = resolveBuffetRowCounts(row);
+    if (adults <= 0 && children <= 0) continue;
+    parsed.push({ name, adults, children });
+  }
+  return parsed;
+}
+
+function buffetSharesFromAllocations(
+  allocations: BuffetConsumerAllocation[],
+): ByItemConsumerShare[] {
+  const shares: ByItemConsumerShare[] = [];
+  for (const row of allocations) {
+    if (row.adults > 0) {
+      shares.push({
+        name: row.name,
+        qty: rationalFromInt(row.adults),
+        guestType: 'adult',
+      });
+    }
+    if (row.children > 0) {
+      shares.push({
+        name: row.name,
+        qty: rationalFromInt(row.children),
+        guestType: 'child',
+      });
+    }
+  }
+  return shares;
 }
 
 /** Ensures every visible line has a stable persisted row before the user can type. */
@@ -166,52 +227,85 @@ export function parseConsumerRows(
   return parsed;
 }
 
-export function parseBuffetConsumerRows(
-  rows: ByItemConsumerRow[],
-): Array<{ name: string; guestType: BuffetGuestType }> {
-  const parsed: Array<{ name: string; guestType: BuffetGuestType }> = [];
-  for (const row of rows) {
-    const name = row.name.trim();
-    if (!name || (row.guestType !== 'adult' && row.guestType !== 'child')) continue;
-    parsed.push({ name, guestType: row.guestType });
+export type BuffetCountFields = {
+  adultsNeeded: number;
+  childrenNeeded: number;
+  adultsAssigned: number;
+  childrenAssigned: number;
+};
+
+function buffetCountSummary(labels: ByItemLineStatusLabels, counts: BuffetCountFields): string {
+  const parts: string[] = [];
+  if (counts.adultsNeeded > 0) {
+    parts.push(
+      labels.buffetAdultProgress
+        .replace('{allocated}', String(counts.adultsAssigned))
+        .replace('{total}', String(counts.adultsNeeded)),
+    );
   }
-  return parsed;
+  if (counts.childrenNeeded > 0) {
+    parts.push(
+      labels.buffetChildProgress
+        .replace('{allocated}', String(counts.childrenAssigned))
+        .replace('{total}', String(counts.childrenNeeded)),
+    );
+  }
+  return parts.join(' · ');
 }
 
 function evaluateBuffetLineShares(
   adultsNeeded: number,
   childrenNeeded: number,
-  shares: Array<{ name: string; guestType: BuffetGuestType }>,
+  allocations: BuffetConsumerAllocation[],
 ): ByItemLineStatus {
-  if (shares.length === 0) {
+  if (allocations.length === 0) {
     if (adultsNeeded === 0 && childrenNeeded === 0) {
       return { kind: 'complete', allocated: rationalFromInt(0) };
     }
-    return { kind: 'buffet_empty', adultsNeeded, childrenNeeded };
+    return {
+      kind: 'buffet_empty',
+      adultsNeeded,
+      childrenNeeded,
+      adultsAssigned: 0,
+      childrenAssigned: 0,
+    };
   }
 
-  const names = shares.map((share) => share.name.trim().toLowerCase());
+  const names = allocations.map((row) => row.name.trim().toLowerCase());
   if (names.some((name) => !name)) {
-    return { kind: 'missing_names', allocated: rationalFromInt(shares.length) };
+    return { kind: 'missing_names', allocated: rationalFromInt(allocations.length) };
   }
   if (new Set(names).size !== names.length) {
-    return { kind: 'duplicate_names', allocated: rationalFromInt(shares.length) };
+    return { kind: 'duplicate_names', allocated: rationalFromInt(allocations.length) };
   }
 
-  const adultsAssigned = shares.filter((share) => share.guestType === 'adult').length;
-  const childrenAssigned = shares.filter((share) => share.guestType === 'child').length;
+  const adultsAssigned = allocations.reduce((sum, row) => sum + row.adults, 0);
+  const childrenAssigned = allocations.reduce((sum, row) => sum + row.children, 0);
   const adultDiff = adultsNeeded - adultsAssigned;
   const childDiff = childrenNeeded - childrenAssigned;
   const allocated = rationalFromInt(adultsAssigned + childrenAssigned);
 
   if (adultDiff === 0 && childDiff === 0) {
-    return { kind: 'complete', allocated };
+    return {
+      kind: 'complete',
+      allocated,
+      buffetCounts: {
+        adultsNeeded,
+        childrenNeeded,
+        adultsAssigned,
+        childrenAssigned,
+      },
+    };
   }
   if (adultDiff > 0 || childDiff > 0) {
     return {
       kind: 'buffet_short',
       adultsRemaining: Math.max(0, adultDiff),
       childrenRemaining: Math.max(0, childDiff),
+      adultsNeeded,
+      childrenNeeded,
+      adultsAssigned,
+      childrenAssigned,
       allocated,
     };
   }
@@ -219,6 +313,10 @@ function evaluateBuffetLineShares(
     kind: 'buffet_over',
     adultsExcess: Math.max(0, -adultDiff),
     childrenExcess: Math.max(0, -childDiff),
+    adultsNeeded,
+    childrenNeeded,
+    adultsAssigned,
+    childrenAssigned,
     allocated,
   };
 }
@@ -228,9 +326,9 @@ export function getBuffetLineStatusFromRows(
   spec: { adults: number; children: number },
 ): ByItemLineStatus {
   for (const row of rows) {
-    if (row.name.trim() && row.guestType !== 'adult' && row.guestType !== 'child') {
-      const partial = parseBuffetConsumerRows(rows);
-      return { kind: 'missing_guest_type', allocated: rationalFromInt(partial.length) };
+    const { adults, children } = resolveBuffetRowCounts(row);
+    if ((adults > 0 || children > 0) && !row.name.trim()) {
+      return { kind: 'missing_names', allocated: rationalFromInt(adults + children) };
     }
   }
 
@@ -238,14 +336,8 @@ export function getBuffetLineStatusFromRows(
   const lower = namedRows.map((row) => row.name.trim().toLowerCase());
   if (lower.length > 0 && new Set(lower).size !== lower.length) {
     const partial = parseBuffetConsumerRows(rows);
-    return { kind: 'duplicate_names', allocated: rationalFromInt(partial.length) };
-  }
-
-  for (const row of rows) {
-    if (!row.name.trim() && (row.guestType === 'adult' || row.guestType === 'child')) {
-      const partial = parseBuffetConsumerRows(rows);
-      return { kind: 'missing_names', allocated: rationalFromInt(partial.length) };
-    }
+    const heads = partial.reduce((sum, row) => sum + row.adults + row.children, 0);
+    return { kind: 'duplicate_names', allocated: rationalFromInt(heads) };
   }
 
   return evaluateBuffetLineShares(spec.adults, spec.children, parseBuffetConsumerRows(rows));
@@ -255,29 +347,30 @@ export function getBuffetLineStatusFromShares(
   spec: { adults: number; children: number },
   shares: ByItemConsumerShare[],
 ): ByItemLineStatus {
-  return evaluateBuffetLineShares(
-    spec.adults,
-    spec.children,
-    shares
-      .filter((share): share is ByItemConsumerShare & { guestType: BuffetGuestType } =>
-        share.guestType === 'adult' || share.guestType === 'child',
-      )
-      .map((share) => ({ name: share.name, guestType: share.guestType })),
-  );
+  const byName = new Map<string, BuffetConsumerAllocation>();
+  for (const share of shares) {
+    if (share.guestType !== 'adult' && share.guestType !== 'child') continue;
+    const qty = share.qty.num / share.qty.den;
+    if (qty <= 0) continue;
+    const existing = byName.get(share.name) ?? { name: share.name, adults: 0, children: 0 };
+    if (share.guestType === 'child') existing.children += qty;
+    else existing.adults += qty;
+    byName.set(share.name, existing);
+  }
+  return evaluateBuffetLineShares(spec.adults, spec.children, Array.from(byName.values()));
 }
 
 export type ByItemLineStatus =
   | { kind: 'empty'; target: Rational }
-  | { kind: 'buffet_empty'; adultsNeeded: number; childrenNeeded: number }
+  | { kind: 'buffet_empty' } & BuffetCountFields
   | { kind: 'missing_names'; allocated: Rational }
-  | { kind: 'missing_guest_type'; allocated: Rational }
   | { kind: 'duplicate_names'; allocated: Rational }
   | { kind: 'invalid_qty'; issue: QtyPartsIssue; allocated: Rational }
   | { kind: 'short'; remaining: Rational; allocated: Rational }
   | { kind: 'over'; excess: Rational; allocated: Rational }
-  | { kind: 'buffet_short'; adultsRemaining: number; childrenRemaining: number; allocated: Rational }
-  | { kind: 'buffet_over'; adultsExcess: number; childrenExcess: number; allocated: Rational }
-  | { kind: 'complete'; allocated: Rational };
+  | { kind: 'buffet_short'; adultsRemaining: number; childrenRemaining: number; allocated: Rational } & BuffetCountFields
+  | { kind: 'buffet_over'; adultsExcess: number; childrenExcess: number; allocated: Rational } & BuffetCountFields
+  | { kind: 'complete'; allocated: Rational; buffetCounts?: BuffetCountFields };
 
 function allocatedSum(shares: Array<{ qty: Rational }>): Rational {
   if (shares.length === 0) return { num: 0, den: 1 };
@@ -383,7 +476,8 @@ export type ByItemLineStatusLabels = {
   buffetShortChild: string;
   buffetOverAdult: string;
   buffetOverChild: string;
-  buffetMissingGuestType: string;
+  buffetAdultProgress: string;
+  buffetChildProgress: string;
 };
 
 function buffetStatusParts(
@@ -426,28 +520,47 @@ export function byItemLineStatusSummary(
   switch (status.kind) {
     case 'complete':
       return {
-        text: opts?.buffet
-          ? labels.buffetComplete
-          : labels.complete.replace('{qty}', formatRational(status.allocated)),
+        text: opts?.buffet && status.buffetCounts
+          ? `${labels.buffetComplete} · ${buffetCountSummary(labels, status.buffetCounts)}`
+          : opts?.buffet
+            ? labels.buffetComplete
+            : labels.complete.replace('{qty}', formatRational(status.allocated)),
         tone: 'success',
       };
-    case 'buffet_empty':
+    case 'buffet_empty': {
+      const remain = buffetStatusParts(labels, 'short', status.adultsNeeded, status.childrenNeeded).join(' · ');
+      const counts = buffetCountSummary(labels, status);
       return {
-        text: buffetStatusParts(labels, 'short', status.adultsNeeded, status.childrenNeeded).join(' · '),
+        text: [remain, counts].filter(Boolean).join(' · '),
         tone: 'alert',
       };
-    case 'buffet_short':
+    }
+    case 'buffet_short': {
+      const remain = buffetStatusParts(
+        labels,
+        'short',
+        status.adultsRemaining,
+        status.childrenRemaining,
+      ).join(' · ');
+      const counts = buffetCountSummary(labels, status);
       return {
-        text: buffetStatusParts(labels, 'short', status.adultsRemaining, status.childrenRemaining).join(' · '),
+        text: [remain, counts].filter(Boolean).join(' · '),
         tone: 'alert',
       };
-    case 'buffet_over':
+    }
+    case 'buffet_over': {
+      const over = buffetStatusParts(
+        labels,
+        'over',
+        status.adultsExcess,
+        status.childrenExcess,
+      ).join(' · ');
+      const counts = buffetCountSummary(labels, status);
       return {
-        text: buffetStatusParts(labels, 'over', status.adultsExcess, status.childrenExcess).join(' · '),
+        text: [over, counts].filter(Boolean).join(' · '),
         tone: 'alert',
       };
-    case 'missing_guest_type':
-      return { text: labels.buffetMissingGuestType, tone: 'alert' };
+    }
     case 'short':
       return {
         text: labels.remaining
@@ -570,11 +683,7 @@ export function buildByItemAllocationsFromRows(
   const allocations: ByItemLineAllocation = {};
   for (const spec of lineSpecs) {
     if (spec.mode === 'buffet') {
-      const shares = parseBuffetConsumerRows(rowsByKey[spec.key] ?? []).map((row) => ({
-        name: row.name,
-        qty: rationalFromInt(1),
-        guestType: row.guestType,
-      }));
+      const shares = buffetSharesFromAllocations(parseBuffetConsumerRows(rowsByKey[spec.key] ?? []));
       if (shares.length > 0) allocations[spec.key] = shares;
       continue;
     }
@@ -603,9 +712,7 @@ export function buildByItemAllocationsFromPersons(
             : undefined;
         rows.push({
           name: person.name,
-          qty: guestType
-            ? rationalFromInt(1)
-            : normalizeRational({ num: share.qty_num, den: share.qty_den }),
+          qty: normalizeRational({ num: share.qty_num, den: share.qty_den }),
           ...(guestType ? { guestType } : {}),
         });
         allocations[share.key] = rows;
@@ -645,8 +752,10 @@ export function calcByItemSplitResults(params: {
     if (line.mode === 'buffet') {
       if (!buffetLineAllocationComplete(line, shares)) continue;
       for (const share of shares) {
-        const price =
+        const qty = share.qty.num / share.qty.den;
+        const unitPrice =
           share.guestType === 'child' ? line.childUnitPrice : line.adultUnitPrice;
+        const price = Math.round(unitPrice * qty * 100) / 100;
         const existing = people.get(share.name) ?? {
           name: share.name,
           amount: 0,
@@ -654,8 +763,8 @@ export function calcByItemSplitResults(params: {
         };
         existing.items.push({
           name: line.name.trim(),
-          qty: 1,
-          price,
+          qty,
+          price: unitPrice,
         });
         existing.amount = Math.round((existing.amount + price) * 100) / 100;
         people.set(share.name, existing);
@@ -719,19 +828,19 @@ export function consumersForLineFromPersons(
   const legacyNames: string[] = [];
 
   for (const person of persons) {
-    const share = person.item_shares?.find((row) => row.key === lineKey);
-    if (share) {
-      const guestType =
-        share.guest_type === 'adult' || share.guest_type === 'child'
-          ? share.guest_type
-          : undefined;
-      explicit.push({
-        name: person.name,
-        qty: guestType
-          ? rationalFromInt(1)
-          : normalizeRational({ num: share.qty_num, den: share.qty_den }),
-        ...(guestType ? { guestType } : {}),
-      });
+    const shares = person.item_shares?.filter((row) => row.key === lineKey) ?? [];
+    if (shares.length > 0) {
+      for (const share of shares) {
+        const guestType =
+          share.guest_type === 'adult' || share.guest_type === 'child'
+            ? share.guest_type
+            : undefined;
+        explicit.push({
+          name: person.name,
+          qty: normalizeRational({ num: share.qty_num, den: share.qty_den }),
+          ...(guestType ? { guestType } : {}),
+        });
+      }
       continue;
     }
     if ((person.items || []).includes(lineKey)) {

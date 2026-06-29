@@ -5,7 +5,8 @@ import {
   byItemLineStatusSummary,
   createByItemConsumerRow,
   getBuffetLineStatusFromRows,
-  type BuffetGuestType,
+  resolveBuffetRowCounts,
+  sanitizeQtyDigits,
   type ByItemConsumerRow,
   type ByItemLineStatusLabels,
 } from '@/lib/bill-split-by-item';
@@ -17,8 +18,8 @@ export type BuffetDishAllocatorLabels = ByItemLineStatusLabels & {
   addConsumer: string;
   namePlaceholder: string;
   remove: string;
-  guestTypeAdult: string;
-  guestTypeChild: string;
+  buffetAdultQtyLabel: string;
+  buffetChildQtyLabel: string;
 };
 
 interface Props {
@@ -36,13 +37,30 @@ const STATUS_TONE_CLASS = {
   alert: 'text-red-500',
 } as const;
 
-function guestTypeButtonClass(active: boolean): string {
-  return [
-    'px-2.5 py-1.5 rounded-lg text-[12px] font-medium border transition-colors',
-    active
-      ? 'border-brand-gold bg-brand-gold/15 text-brand-gold'
-      : 'border-brand-border text-brand-text-muted hover:border-brand-gold/40',
-  ].join(' ');
+const INPUT_CLASS =
+  'w-10 bg-brand-bg border rounded-lg py-2 text-[14px] text-brand-text text-center placeholder:text-brand-muted focus:outline-none focus:ring-2 tabular-nums';
+const INPUT_OK = `${INPUT_CLASS} border-brand-border focus:ring-brand-gold/40`;
+const INPUT_ALERT = `${INPUT_CLASS} border-red-500 focus:ring-red-500/40`;
+
+function isRowBuffetOverAllocated(
+  row: ByItemConsumerRow,
+  rows: ByItemConsumerRow[],
+  spec: { adults: number; children: number },
+): boolean {
+  const { adults, children } = resolveBuffetRowCounts(row);
+  if (adults <= 0 && children <= 0) return false;
+  const others = rows
+    .filter((candidate) => candidate.id !== row.id)
+    .reduce(
+      (totals, candidate) => {
+        const counts = resolveBuffetRowCounts(candidate);
+        totals.adults += counts.adults;
+        totals.children += counts.children;
+        return totals;
+      },
+      { adults: 0, children: 0 },
+    );
+  return others.adults + adults > spec.adults || others.children + children > spec.children;
 }
 
 export function BuffetDishAllocator({
@@ -77,10 +95,6 @@ export function BuffetDishAllocator({
     onChange(next.length > 0 ? next : [createByItemConsumerRow({ buffet: true })]);
   };
 
-  const setGuestType = (rowId: string, guestType: BuffetGuestType) => {
-    updateRow(rowId, { guestType });
-  };
-
   return (
     <div
       className={`bg-brand-card border rounded-xl p-3.5 ${
@@ -100,45 +114,63 @@ export function BuffetDishAllocator({
       </div>
 
       <div className="space-y-2">
-        {rows.map((row) => (
-          <div key={row.id} className="flex items-start gap-2">
-            <ConsumerNameCombobox
-              value={row.name}
-              options={availableConsumerNamesForRow({
-                roster: consumerRoster,
-                dishRows: rows,
-                rowId: row.id,
-              })}
-              placeholder={labels.namePlaceholder}
-              onChange={(name) => updateRow(row.id, { name })}
-              onCommit={(name, fromList) => onRememberConsumerName(name, fromList)}
-            />
-            <div className="flex shrink-0 gap-1">
+        {rows.map((row) => {
+          const over = isRowBuffetOverAllocated(row, rows, spec);
+          const fieldClass = over ? INPUT_ALERT : INPUT_OK;
+          return (
+            <div key={row.id} className="flex items-start gap-2">
+              <ConsumerNameCombobox
+                value={row.name}
+                options={availableConsumerNamesForRow({
+                  roster: consumerRoster,
+                  dishRows: rows,
+                  rowId: row.id,
+                })}
+                placeholder={labels.namePlaceholder}
+                onChange={(name) => updateRow(row.id, { name })}
+                onCommit={(name, fromList) => onRememberConsumerName(name, fromList)}
+              />
+              <div className="flex shrink-0 items-center gap-1">
+                <label className="flex items-center gap-1 text-[11px] text-brand-text-muted">
+                  <span className="whitespace-nowrap">{labels.buffetAdultQtyLabel}</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={row.adultQty ?? ''}
+                    onChange={(e) => updateRow(row.id, {
+                      adultQty: sanitizeQtyDigits(e.target.value),
+                    })}
+                    aria-label={labels.buffetAdultQtyLabel}
+                    className={fieldClass}
+                  />
+                </label>
+                <label className="flex items-center gap-1 text-[11px] text-brand-text-muted">
+                  <span className="whitespace-nowrap">{labels.buffetChildQtyLabel}</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={row.childQty ?? ''}
+                    onChange={(e) => updateRow(row.id, {
+                      childQty: sanitizeQtyDigits(e.target.value),
+                    })}
+                    aria-label={labels.buffetChildQtyLabel}
+                    className={fieldClass}
+                  />
+                </label>
+              </div>
               <button
                 type="button"
-                onClick={() => setGuestType(row.id, 'adult')}
-                className={guestTypeButtonClass(row.guestType === 'adult')}
+                onClick={() => removeRow(row.id)}
+                aria-label={labels.remove}
+                className="w-8 h-8 shrink-0 rounded-lg text-brand-text-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
               >
-                {labels.guestTypeAdult}
-              </button>
-              <button
-                type="button"
-                onClick={() => setGuestType(row.id, 'child')}
-                className={guestTypeButtonClass(row.guestType === 'child')}
-              >
-                {labels.guestTypeChild}
+                ×
               </button>
             </div>
-            <button
-              type="button"
-              onClick={() => removeRow(row.id)}
-              aria-label={labels.remove}
-              className="w-8 h-8 shrink-0 rounded-lg text-brand-text-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
-            >
-              ×
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <button

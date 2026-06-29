@@ -28,7 +28,8 @@
 
 ## 3. 服务员侧结账详情（`CheckoutRequestsManager`）
 
-与 [`research.md`](../research.md) §9 一致，并补充续结语义：
+与 [`research.md`](../research.md) §9 一致，并补充续结语义。  
+**UI 版式与信息层级**见 [`checkout-dashboard-ui.zh.md`](./checkout-dashboard-ui.zh.md)。
 
 - **已收款项**：展示本餐次全部历史确认收款（含恢复点单之前发生的）。
 - **分单结果**：仅展示**尚未确认收款**的客人；已收款者不在此重复出现。

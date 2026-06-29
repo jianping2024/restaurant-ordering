@@ -21,11 +21,12 @@ export type SessionCollectedPayment = {
 };
 
 export const SESSION_COLLECTED_PAYMENT_SELECT =
-  'id, person_name, amount, created_at' as const;
+  'id, session_id, person_name, amount, created_at' as const;
 
 export function parseSessionCollectedPayments(
   data: Array<{
     id: unknown;
+    session_id?: unknown;
     person_name: unknown;
     amount: unknown;
     created_at: unknown;
@@ -33,6 +34,24 @@ export function parseSessionCollectedPayments(
 ): SessionCollectedPayment[] {
   return (data ?? []).map((row) => ({
     id: row.id as string,
+    person_name: row.person_name as string,
+    amount: Number(row.amount),
+    created_at: row.created_at as string,
+  }));
+}
+
+export function parseSessionCollectedPaymentsWithSession(
+  data: Array<{
+    id: unknown;
+    session_id: unknown;
+    person_name: unknown;
+    amount: unknown;
+    created_at: unknown;
+  }> | null,
+): Array<SessionCollectedPayment & { session_id: string }> {
+  return (data ?? []).map((row) => ({
+    id: row.id as string,
+    session_id: row.session_id as string,
     person_name: row.person_name as string,
     amount: Number(row.amount),
     created_at: row.created_at as string,

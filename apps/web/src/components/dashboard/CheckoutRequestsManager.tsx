@@ -4,16 +4,35 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { IntegerInput } from '@/components/ui/IntegerInput';
-import { formatOrderDateTime, formatCollectedPaymentTime } from '@/lib/format-dashboard-date';
-import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import { getMessages } from '@/lib/i18n/messages';
 import type { BillSplit, Order } from '@/types';
 import { showToast } from '@/components/ui/Toast';
 import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
 import {
-  checkoutPayableAmount,
+  checkoutBillPrintKey,
+  checkoutPersonKey,
+  checkoutResumeOrderingKey,
+  mergeBillSplitsFromRefresh,
+} from '@/lib/checkout-request-state';
+import {
   discountedSplitRows,
 } from '@/lib/checkout-split-math';
+import {
+  hasConfirmedPerson,
+  parseSessionCollectedPayments,
+  parseSessionCollectedPaymentsWithSession,
+  SESSION_COLLECTED_PAYMENT_SELECT,
+  type SessionCollectedPayment,
+  resumeCheckoutBlockReason,
+  resumeOrderingConfirmVariant,
+  suggestedCollectionAmount,
+  sumCollectedByPersonName,
+  unpaidSplitRowsWithIndex,
+} from '@/lib/checkout-session-payments';
+import { requestCheckoutResumeOrdering } from '@/lib/request-checkout-resume-ordering';
+import { useCheckoutBillPrintCooldown } from '@/lib/use-checkout-bill-print-cooldown';
+import { tableIdsEqual } from '@/lib/restaurant-tables';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
 import { requestCheckoutApplyDiscount } from '@/lib/request-checkout-apply-discount';
@@ -29,45 +48,18 @@ import {
   saveCheckoutSoundEnabled,
 } from '@/lib/receipt-printer-preference';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
+import { CheckoutRequestDetail } from '@/components/dashboard/checkout/CheckoutRequestDetail';
+import { CheckoutRequestListCard } from '@/components/dashboard/checkout/CheckoutRequestListCard';
 import {
-  checkoutBillPrintKey,
-  checkoutPersonKey,
-  checkoutResumeOrderingKey,
-  isCheckoutRequestBusy,
-  mergeBillSplitsFromRefresh,
-} from '@/lib/checkout-request-state';
-import {
-  hasConfirmedPerson,
-  parseSessionCollectedPayments,
-  SESSION_COLLECTED_PAYMENT_SELECT,
-  type SessionCollectedPayment,
-  resumeCheckoutBlockReason,
-  resumeOrderingConfirmVariant,
-  suggestedCollectionAmount,
-  sumCollectedByPersonName,
-  totalCollectedAmount,
-  unpaidSplitRowsWithIndex,
-} from '@/lib/checkout-session-payments';
-import { requestCheckoutResumeOrdering } from '@/lib/request-checkout-resume-ordering';
-import { useCheckoutBillPrintCooldown } from '@/lib/use-checkout-bill-print-cooldown';
-import { formatPortugueseNif } from '@/lib/pt-nif';
-import { tableIdsEqual } from '@/lib/restaurant-tables';
-import { localizeSplitPersonName } from '@/lib/split-person-label';
-import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
-import { ConfirmModal } from '@/components/ui/ConfirmModal';
+  buildCheckoutSettlementSummary,
+  checkoutPaymentProgress,
+  checkoutSplitModeLabel,
+  groupCollectedPaymentsBySession,
+  hasCheckoutCollections,
+} from '@/lib/checkout-settlement';
 
 /** Fallback when Realtime is delayed; only runs while the tab is visible. */
 const CHECKOUT_REQUESTS_POLL_MS = 30_000;
-
-function formatWaitDuration(
-  createdAt: string,
-  t: ReturnType<typeof getMessages>['checkout'],
-): string {
-  const ms = Date.now() - new Date(createdAt).getTime();
-  const mins = Math.floor(ms / 60_000);
-  if (mins < 1) return t.durationJustNow;
-  return t.durationMinutes.replace('{n}', String(mins));
-}
 
 interface Props {
   initialRequests: BillSplit[];
@@ -97,11 +89,12 @@ export function CheckoutRequestsManager({
     () => abnormalReasonOptions(lang, 'discount'),
     [lang],
   );
-  const locale = UI_LOCALE_BY_LANG[lang];
   const supabase = useMemo(() => createClient(), []);
   const [selectedLines, setSelectedLines] = useState<CheckoutDisplayLine[]>([]);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
-  const [collectedPayments, setCollectedPayments] = useState<SessionCollectedPayment[]>([]);
+  const [collectedPaymentsBySession, setCollectedPaymentsBySession] = useState<
+    Map<string, SessionCollectedPayment[]>
+  >(() => new Map());
   const [resumeConfirmOpen, setResumeConfirmOpen] = useState(false);
   const { cooldownSecondsLeft, isOnCooldown, startCooldown } = useCheckoutBillPrintCooldown();
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -251,44 +244,46 @@ export function CheckoutRequestsManager({
   }, [supabase, restaurantId, requests, selectedRequestId]);
 
   useEffect(() => {
-    if (!restaurantId || !selectedRequestId) {
-      setCollectedPayments([]);
-      return;
-    }
-
-    const sessionId = requests.find((r) => r.id === selectedRequestId)?.session_id;
-    if (!sessionId) {
-      setCollectedPayments([]);
+    const sessionIds = Array.from(
+      new Set(
+        requests
+          .map((request) => request.session_id)
+          .filter((id): id is string => typeof id === 'string' && id.length > 0),
+      ),
+    );
+    if (!restaurantId || sessionIds.length === 0) {
+      setCollectedPaymentsBySession(new Map());
       return;
     }
 
     let cancelled = false;
-    const loadCollectedPayments = async () => {
+    const loadCollectedLedgers = async () => {
       const { data, error } = await supabase
         .from('session_collected_payments')
         .select(SESSION_COLLECTED_PAYMENT_SELECT)
         .eq('restaurant_id', restaurantId)
-        .eq('session_id', sessionId)
+        .in('session_id', sessionIds)
         .order('created_at', { ascending: true });
 
       if (cancelled) return;
       if (error) {
-        setCollectedPayments([]);
+        setCollectedPaymentsBySession(new Map());
         return;
       }
 
-      setCollectedPayments(parseSessionCollectedPayments(data));
+      setCollectedPaymentsBySession(
+        groupCollectedPaymentsBySession(parseSessionCollectedPaymentsWithSession(data)),
+      );
     };
 
-    void loadCollectedPayments();
+    void loadCollectedLedgers();
     return () => {
       cancelled = true;
     };
-  }, [supabase, restaurantId, requests, selectedRequestId]);
+  }, [supabase, restaurantId, requests]);
 
   const getDiscountRate = (request: BillSplit) =>
     billDiscount.getDisplayRate(request.id, request.discount_rate ?? 0);
-  const getPayable = (request: BillSplit) => checkoutPayableAmount(request, getDiscountRate(request));
   const getDiscountedSplitResult = (request: BillSplit) =>
     discountedSplitRows(request, getDiscountRate(request));
 
@@ -384,7 +379,9 @@ export function CheckoutRequestsManager({
       return;
     }
 
-    const collectedByPerson = sumCollectedByPersonName(collectedPayments);
+    const collectedByPerson = sumCollectedByPersonName(
+      getCollectedForSession(request.session_id),
+    );
     const collectedAmount = suggestedCollectionAmount(row.name, row.amount, collectedByPerson);
 
     const personKey = checkoutPersonKey(request.id, rowIndex);
@@ -408,7 +405,12 @@ export function CheckoutRequestsManager({
           .eq('restaurant_id', restaurantId)
           .eq('session_id', request.session_id)
           .order('created_at', { ascending: true });
-        setCollectedPayments(parseSessionCollectedPayments(data));
+        const payments = parseSessionCollectedPayments(data);
+        setCollectedPaymentsBySession((prev) => {
+          const next = new Map(prev);
+          next.set(request.session_id as string, payments);
+          return next;
+        });
       }
 
       setRequests((prev) =>
@@ -519,245 +521,71 @@ export function CheckoutRequestsManager({
   const selectedRequest = selectedRequestId
     ? requests.find((r) => r.id === selectedRequestId)
     : undefined;
-  const collectedByPerson = useMemo(
-    () => sumCollectedByPersonName(collectedPayments),
-    [collectedPayments],
+
+  const splitModeLabels = useMemo(
+    () => ({
+      even: t.splitModeEven,
+      byItem: t.splitModeByItem,
+      custom: t.splitModeCustom,
+      wholeTable: t.splitModeWhole,
+    }),
+    [t],
   );
-  const showCollectedLedger = collectedPayments.length > 0;
+
+  const getCollectedForSession = useCallback(
+    (sessionId: string | null | undefined) => {
+      if (!sessionId) return [];
+      return collectedPaymentsBySession.get(sessionId) ?? [];
+    },
+    [collectedPaymentsBySession],
+  );
+
+  const getRequestCheckoutMeta = useCallback(
+    (request: BillSplit) => {
+      const collected = getCollectedForSession(request.session_id);
+      const discountRate = billDiscount.getDisplayRate(request.id, request.discount_rate ?? 0);
+      const summary = buildCheckoutSettlementSummary(request, discountRate, collected);
+      const progress = checkoutPaymentProgress(request);
+      const paymentProgressLabel =
+        progress.totalCount > 1
+          ? t.paymentProgress
+              .replace('{paid}', String(progress.paidCount))
+              .replace('{total}', String(progress.totalCount))
+          : null;
+      return {
+        collected,
+        summary,
+        splitModeLabel: checkoutSplitModeLabel(request.split_mode, splitModeLabels),
+        paymentProgressLabel,
+        partialPaid: hasCheckoutCollections(request, collected),
+      };
+    },
+    [billDiscount, getCollectedForSession, splitModeLabels, t],
+  );
+
+  const selectedCollectedPayments = useMemo(
+    () => (selectedRequest ? getCollectedForSession(selectedRequest.session_id) : []),
+    [selectedRequest, getCollectedForSession],
+  );
+  const selectedMeta = selectedRequest ? getRequestCheckoutMeta(selectedRequest) : null;
+
+  const collectedByPerson = useMemo(
+    () => sumCollectedByPersonName(selectedCollectedPayments),
+    [selectedCollectedPayments],
+  );
   const resumeBlockReason = selectedRequest
-    ? resumeCheckoutBlockReason(selectedRequest, collectedPayments)
+    ? resumeCheckoutBlockReason(selectedRequest, selectedCollectedPayments)
     : null;
   const resumeConfirmMessage = useMemo(() => {
     if (!selectedRequest) return t.resumeOrderingConfirmCancel;
-    const variant = resumeOrderingConfirmVariant(selectedRequest, collectedPayments);
+    const variant = resumeOrderingConfirmVariant(selectedRequest, selectedCollectedPayments);
     if (variant === 'preserve_by_item') return t.resumeOrderingConfirmPreserveByItem;
     if (variant === 'preserve_with_collections') return t.resumeOrderingConfirmPreserveWithCollections;
     return t.resumeOrderingConfirmCancel;
-  }, [selectedRequest, collectedPayments, t]);
+  }, [selectedRequest, selectedCollectedPayments, t]);
   const pendingSplitRows = selectedRequest
     ? unpaidSplitRowsWithIndex(getDiscountedSplitResult(selectedRequest))
     : [];
-
-  const checkoutDetail = selectedRequest ? (
-    <div className="bg-brand-card border border-brand-border rounded-xl px-5 py-5 shadow-sm">
-      <button
-        type="button"
-        onClick={() => setSelectedRequestId(null)}
-        className="text-sm text-brand-text-muted hover:text-brand-gold transition-colors mb-4"
-      >
-        ← {t.backToList}
-      </button>
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="font-heading text-3xl text-brand-text leading-none">
-            {t.table} {selectedRequest.display_name}
-          </p>
-          <p className="text-brand-text-muted text-[13px] mt-2">
-            {new Date(selectedRequest.created_at).toLocaleString(locale)}
-          </p>
-          <p className="mesa-text-warning text-[12px] mt-1">
-            {t.waitingSince.replace(
-              '{duration}',
-              formatWaitDuration(selectedRequest.created_at, t),
-            )}
-          </p>
-          {selectedRequest.customer_nif ? (
-            <p className="text-brand-text text-[13px] mt-2">
-              {t.customerNif}:{' '}
-              <span className="font-mono tabular-nums">
-                {formatPortugueseNif(selectedRequest.customer_nif)}
-              </span>
-            </p>
-          ) : null}
-        </div>
-        <div className="text-right">
-          <p className="text-brand-gold font-semibold">{t.amount} €{selectedRequest.total_amount.toFixed(2)}</p>
-          <p className="text-[12px] text-brand-text-muted mt-1">
-            {t.finalAmount} €{getPayable(selectedRequest).toFixed(2)}
-          </p>
-          <span className="text-[13px] px-2 py-0.5 rounded-full mesa-badge-warning">
-            {t.requested}
-          </span>
-        </div>
-      </div>
-      <div className="mt-3 rounded-lg border border-brand-border/60 overflow-hidden">
-        <p className="text-[13px] text-brand-text-muted px-3 pt-3 pb-2">{t.orderItems}</p>
-        {selectedLines.length === 0 ? (
-          <p className="text-brand-text-muted text-sm px-3 pb-3">{t.orderItemsEmpty}</p>
-        ) : (
-          <div className="border-t border-brand-border/60">
-            {selectedLines.map((line) => (
-              <div
-                key={line.key}
-                className="flex items-center justify-between gap-2 px-3 py-2.5 border-b border-brand-border/40 last:border-0"
-              >
-                <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
-                  {line.emoji ? <span>{line.emoji}</span> : null}
-                  {line.itemCode && (
-                    <span className="font-mono text-[11px] text-brand-gold tabular-nums shrink-0">
-                      [{line.itemCode}]
-                    </span>
-                  )}
-                  <span className="text-brand-text text-sm truncate">{line.name || '—'}</span>
-                  <span className="text-brand-text-muted text-[13px]">× {line.qty}</span>
-                </div>
-                <span className="text-brand-gold text-sm shrink-0">
-                  €{line.lineTotal.toFixed(2)}
-                </span>
-              </div>
-            ))}
-            <div className="flex items-center justify-between px-3 py-2.5 bg-brand-border/25">
-              <span className="text-brand-text font-medium text-sm">{t.orderItemsTotal}</span>
-              <span className="font-heading text-lg text-brand-gold">
-                €{selectedRequest.total_amount.toFixed(2)}
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-      <div className="mt-3 rounded-lg border border-brand-border/60 p-3">
-        <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.discountRate}</label>
-        <div className="flex items-center gap-2">
-          <span className="text-brand-text-muted text-sm">%</span>
-          <IntegerInput
-            min={0}
-            max={100}
-            value={getDiscountRate(selectedRequest)}
-            onChange={(next) => billDiscount.handleRateChange(selectedRequest.id, next)}
-            onFocus={() =>
-              billDiscount.handleRateFocus(selectedRequest.id, selectedRequest.discount_rate ?? 0)
-            }
-            onBlur={() => handleDiscountRateBlur(selectedRequest)}
-            className="w-28 bg-brand-bg border border-brand-border rounded-lg px-3 py-1.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
-            placeholder="0"
-            disabled={
-              hasConfirmedPerson(selectedRequest) ||
-              billDiscount.applyingRequestId === selectedRequest.id
-            }
-          />
-        </div>
-      </div>
-      {showCollectedLedger && (
-        <div className="mt-3 rounded-lg border border-brand-border/60 p-3">
-          <p className="text-[13px] text-brand-text-muted mb-2">{t.collectedPaymentsTitle}</p>
-          <div className="space-y-1.5">
-            {collectedPayments.map((payment) => (
-              <div
-                key={payment.id}
-                className="flex items-start justify-between gap-3 text-sm"
-              >
-                <div className="flex flex-col gap-0.5 min-w-0">
-                  <span className="text-brand-text">
-                    {localizeSplitPersonName(payment.person_name, lang)}
-                  </span>
-                  <time
-                    className="text-[11px] text-brand-text-muted tabular-nums"
-                    dateTime={payment.created_at}
-                    title={formatOrderDateTime(lang, payment.created_at)}
-                  >
-                    {formatCollectedPaymentTime(lang, payment.created_at)}
-                  </time>
-                </div>
-                <span className="text-brand-gold tabular-nums shrink-0">
-                  €{payment.amount.toFixed(2)}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="flex items-center justify-between text-sm mt-2 pt-2 border-t border-brand-border/40">
-            <span className="text-brand-text-muted">{t.collectedPaymentsTotal}</span>
-            <span className="text-brand-gold font-medium">
-              €{totalCollectedAmount(collectedPayments).toFixed(2)}
-            </span>
-          </div>
-        </div>
-      )}
-      {pendingSplitRows.length > 0 && (
-        <div className="mt-3 rounded-lg border border-brand-border/60 p-3">
-          <p className="text-[13px] text-brand-text-muted mb-2">{t.splitResult}</p>
-          <div className="space-y-2">
-            {pendingSplitRows.map(({ row, index }) => {
-              const priorCollected = collectedByPerson.get(row.name.trim()) ?? 0;
-              const suggested = suggestedCollectionAmount(row.name, row.amount, collectedByPerson);
-              return (
-              <div key={`${selectedRequest.id}-${index}`} className="flex items-center justify-between gap-2 text-sm">
-                <div className="flex flex-col gap-0.5 min-w-0">
-                  <span className="text-brand-text">{localizeSplitPersonName(row.name, lang)}</span>
-                  {showCollectedLedger && (
-                    <div className="text-[11px] text-brand-text-muted">
-                      {t.collectedSoFar}: €{priorCollected.toFixed(2)}
-                      {' · '}
-                      {t.suggestedThisTime}: €{suggested.toFixed(2)}
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-brand-gold">€{Number(row.amount).toFixed(2)}</span>
-                  <button
-                    type="button"
-                    onClick={() => void handleConfirmPersonPaid(selectedRequest, index)}
-                    disabled={isCheckoutRequestBusy(processingKeys, selectedRequest.id)}
-                    className="text-sm font-semibold px-4 py-2 rounded-lg mesa-badge-success hover:opacity-90 disabled:opacity-50 transition-opacity"
-                  >
-                    {processingKeys.has(checkoutPersonKey(selectedRequest.id, index))
-                      ? t.processing
-                      : t.confirmOnePaid}
-                  </button>
-                </div>
-              </div>
-            );
-            })}
-          </div>
-        </div>
-      )}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-brand-border/50 pt-4">
-        <button
-          type="button"
-          onClick={() => void handlePrintBill(selectedRequest)}
-          disabled={
-            processingKeys.has(checkoutBillPrintKey(selectedRequest.id)) ||
-            isOnCooldown(selectedRequest.id)
-          }
-          className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
-        >
-          {processingKeys.has(checkoutBillPrintKey(selectedRequest.id))
-            ? t.printBillOperating
-            : isOnCooldown(selectedRequest.id)
-              ? t.printBillCooldown.replace('{n}', String(cooldownSecondsLeft(selectedRequest.id)))
-              : t.printBill}
-        </button>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setResumeConfirmOpen(true)}
-            disabled={
-              !!resumeBlockReason ||
-              processingKeys.has(checkoutResumeOrderingKey(selectedRequest.id)) ||
-              isCheckoutRequestBusy(processingKeys, selectedRequest.id)
-            }
-            className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
-          >
-            {processingKeys.has(checkoutResumeOrderingKey(selectedRequest.id))
-              ? t.resumeOrderingOperating
-              : t.resumeOrdering}
-          </button>
-          {resumeBlockReason === 'whole_table_paid' ? (
-            <p className="w-full text-[12px] text-brand-text-muted">{t.resumeOrderingBlockedWholeTable}</p>
-          ) : null}
-          {canCloseTable ? (
-            <CloseTableSessionAction
-              tableId={selectedRequest.table_id}
-              isCheckoutPending
-              onClosed={() => {
-                setSelectedRequestId(null);
-                void refreshCheckoutRequests();
-              }}
-            />
-          ) : null}
-        </div>
-      </div>
-    </div>
-  ) : null;
 
   return (
     <div className="mb-8">
@@ -805,44 +633,79 @@ export function CheckoutRequestsManager({
             {t.emptyHint}
           </p>
         </div>
-      ) : checkoutDetail ?? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {requests.map((request) => (
-            <button
-              key={request.id}
-              type="button"
-              onClick={() => setSelectedRequestId(request.id)}
-              className="group rounded-xl border border-amber-500/35 bg-amber-500/8 px-4 py-3 text-left shadow-sm shadow-amber-900/5 transition-all duration-150 hover:border-amber-500/55 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-heading text-2xl text-brand-text leading-none">
-                    {t.table} {request.display_name}
-                  </p>
-                  <p className="text-brand-text-muted text-[12px] mt-2">
-                    {new Date(request.created_at).toLocaleString(locale)}
-                  </p>
-                  <p className="mesa-text-warning text-[12px] mt-1">
-                    {t.waitingSince.replace(
-                      '{duration}',
-                      formatWaitDuration(request.created_at, t),
-                    )}
-                  </p>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="text-brand-gold font-semibold text-lg">
-                    €{request.total_amount.toFixed(2)}
-                  </p>
-                  <span className="inline-block text-[11px] px-2 py-0.5 rounded-full mesa-badge-warning mt-1.5">
-                    {t.requested}
-                  </span>
-                </div>
+      ) : (
+        <div className="lg:grid lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)] lg:gap-4 lg:items-start">
+          <div
+            className={`space-y-2 ${selectedRequestId ? 'hidden lg:block' : ''}`}
+          >
+            {requests.map((request) => {
+              const meta = getRequestCheckoutMeta(request);
+              return (
+                <CheckoutRequestListCard
+                  key={request.id}
+                  request={request}
+                  selected={request.id === selectedRequestId}
+                  summary={meta.summary}
+                  splitModeLabel={meta.splitModeLabel}
+                  paymentProgressLabel={meta.paymentProgressLabel}
+                  partialPaid={meta.partialPaid}
+                  lang={lang}
+                  t={t}
+                  onSelect={() => setSelectedRequestId(request.id)}
+                />
+              );
+            })}
+          </div>
+
+          <div className={selectedRequestId ? '' : 'hidden lg:block'}>
+            {selectedRequest && selectedMeta ? (
+              <CheckoutRequestDetail
+                request={selectedRequest}
+                summary={selectedMeta.summary}
+                splitModeLabel={selectedMeta.splitModeLabel}
+                partialPaid={selectedMeta.partialPaid}
+                collectedPayments={selectedCollectedPayments}
+                pendingSplitRows={pendingSplitRows}
+                collectedByPerson={collectedByPerson}
+                selectedLines={selectedLines}
+                processingKeys={processingKeys}
+                discountRate={getDiscountRate(selectedRequest)}
+                discountApplying={billDiscount.applyingRequestId === selectedRequest.id}
+                discountLocked={hasConfirmedPerson(selectedRequest)}
+                resumeBlockReason={resumeBlockReason}
+                canCloseTable={canCloseTable}
+                printCooldownSeconds={cooldownSecondsLeft(selectedRequest.id)}
+                printOnCooldown={isOnCooldown(selectedRequest.id)}
+                showBackButton
+                lang={lang}
+                t={t}
+                onBack={() => setSelectedRequestId(null)}
+                onDiscountRateChange={(next) =>
+                  billDiscount.handleRateChange(selectedRequest.id, next)
+                }
+                onDiscountRateFocus={() =>
+                  billDiscount.handleRateFocus(
+                    selectedRequest.id,
+                    selectedRequest.discount_rate ?? 0,
+                  )
+                }
+                onDiscountRateBlur={() => handleDiscountRateBlur(selectedRequest)}
+                onConfirmPersonPaid={(index) =>
+                  void handleConfirmPersonPaid(selectedRequest, index)
+                }
+                onPrintBill={() => void handlePrintBill(selectedRequest)}
+                onResumeOrderingClick={() => setResumeConfirmOpen(true)}
+                onCloseTable={() => {
+                  setSelectedRequestId(null);
+                  void refreshCheckoutRequests();
+                }}
+              />
+            ) : (
+              <div className="hidden lg:flex bg-brand-card border border-brand-border rounded-xl px-6 py-16 text-center items-center justify-center min-h-[240px]">
+                <p className="text-brand-text-muted text-sm">{t.selectTableHint}</p>
               </div>
-              <p className="text-[12px] text-brand-text-muted mt-3 transition-colors group-hover:text-brand-gold">
-                {t.clickToCheckout}
-              </p>
-            </button>
-          ))}
+            )}
+          </div>
         </div>
       )}
       <ReasonConfirmDialog

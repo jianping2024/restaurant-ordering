@@ -1,0 +1,390 @@
+'use client';
+
+import { useState } from 'react';
+import {
+  formatCollectedPaymentTime,
+  formatOrderDateTime,
+} from '@/lib/format-dashboard-date';
+import { IntegerInput } from '@/components/ui/IntegerInput';
+import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
+import type { CheckoutSettlementSummary } from '@/lib/checkout-settlement';
+import {
+  checkoutRowCollectAmount,
+  formatCheckoutWaitDuration,
+} from '@/lib/checkout-settlement';
+import type { CheckoutDisplayLine } from '@/lib/checkout-session-lines';
+import {
+  checkoutBillPrintKey,
+  checkoutPersonKey,
+  checkoutResumeOrderingKey,
+  isCheckoutRequestBusy,
+} from '@/lib/checkout-request-state';
+import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
+import { totalCollectedAmount } from '@/lib/checkout-session-payments';
+import type { SplitRowWithIndex } from '@/lib/checkout-session-payments';
+import type { getMessages } from '@/lib/i18n/messages';
+import type { UILanguage } from '@/lib/i18n';
+import { formatPortugueseNif } from '@/lib/pt-nif';
+import { localizeSplitPersonName } from '@/lib/split-person-label';
+import type { BillSplit } from '@/types';
+
+type CheckoutT = ReturnType<typeof getMessages>['checkout'];
+
+interface Props {
+  request: BillSplit;
+  summary: CheckoutSettlementSummary;
+  splitModeLabel: string;
+  partialPaid: boolean;
+  collectedPayments: SessionCollectedPayment[];
+  pendingSplitRows: SplitRowWithIndex[];
+  collectedByPerson: Map<string, number>;
+  selectedLines: CheckoutDisplayLine[];
+  processingKeys: Set<string>;
+  discountRate: number;
+  discountApplying: boolean;
+  discountLocked: boolean;
+  resumeBlockReason: string | null;
+  canCloseTable: boolean;
+  printCooldownSeconds: number;
+  printOnCooldown: boolean;
+  showBackButton: boolean;
+  lang: UILanguage;
+  t: CheckoutT;
+  onBack: () => void;
+  onDiscountRateChange: (rate: number) => void;
+  onDiscountRateFocus: () => void;
+  onDiscountRateBlur: () => void;
+  onConfirmPersonPaid: (rowIndex: number) => void;
+  onPrintBill: () => void;
+  onResumeOrderingClick: () => void;
+  onCloseTable: () => void;
+}
+
+function SettlementBar({
+  summary,
+  t,
+}: {
+  summary: CheckoutSettlementSummary;
+  t: CheckoutT;
+}) {
+  return (
+    <div className="rounded-lg border border-brand-gold/30 bg-brand-gold/5 px-3 py-2.5">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+        <span className="text-brand-text-muted">
+          {t.settlementConsumption}{' '}
+          <span className="text-brand-text tabular-nums font-medium">
+            €{summary.consumption.toFixed(2)}
+          </span>
+        </span>
+        {summary.discountRate > 0 ? (
+          <span className="text-brand-text-muted">
+            {t.settlementDiscount.replace('{n}', String(summary.discountRate))}
+          </span>
+        ) : null}
+        <span className="text-brand-text-muted">
+          {t.finalAmount}{' '}
+          <span className="text-brand-text tabular-nums font-medium">
+            €{summary.payable.toFixed(2)}
+          </span>
+        </span>
+        {summary.collected > 0 ? (
+          <span className="text-brand-text-muted">
+            {t.settlementCollected}{' '}
+            <span className="tabular-nums">€{summary.collected.toFixed(2)}</span>
+          </span>
+        ) : null}
+        <span className="text-brand-text-muted">
+          {t.settlementPending}{' '}
+          <span className="text-brand-gold font-semibold tabular-nums">
+            €{summary.pending.toFixed(2)}
+          </span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export function CheckoutRequestDetail({
+  request,
+  summary,
+  splitModeLabel,
+  partialPaid,
+  collectedPayments,
+  pendingSplitRows,
+  collectedByPerson,
+  selectedLines,
+  processingKeys,
+  discountRate,
+  discountApplying,
+  discountLocked,
+  resumeBlockReason,
+  canCloseTable,
+  printCooldownSeconds,
+  printOnCooldown,
+  showBackButton,
+  lang,
+  t,
+  onBack,
+  onDiscountRateChange,
+  onDiscountRateFocus,
+  onDiscountRateBlur,
+  onConfirmPersonPaid,
+  onPrintBill,
+  onResumeOrderingClick,
+  onCloseTable,
+}: Props) {
+  const [orderItemsOpen, setOrderItemsOpen] = useState(false);
+  const waitLabel = formatCheckoutWaitDuration(request.created_at, {
+    durationJustNow: t.durationJustNow,
+    durationMinutes: t.durationMinutes,
+  });
+  const requestedAt = formatCollectedPaymentTime(lang, request.created_at);
+  const showCollectedLedger = collectedPayments.length > 0;
+
+  return (
+    <div className="bg-brand-card border border-brand-border rounded-xl px-5 py-5 shadow-sm lg:sticky lg:top-4">
+      {showBackButton ? (
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-sm text-brand-text-muted hover:text-brand-gold transition-colors mb-4 lg:hidden"
+        >
+          ← {t.backToList}
+        </button>
+      ) : null}
+
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="font-heading text-3xl text-brand-text leading-none">
+            {t.table} {request.display_name}
+          </p>
+          <p className="text-brand-text-muted text-[13px] mt-2 tabular-nums">
+            {requestedAt} {t.requestedAtLabel} · {waitLabel}
+          </p>
+          <div className="flex flex-wrap items-center gap-1.5 mt-2">
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-brand-border/50 text-brand-text-muted">
+              {splitModeLabel}
+            </span>
+            <span
+              className={`text-[11px] px-2 py-0.5 rounded-full ${
+                partialPaid ? 'mesa-badge-warning' : 'mesa-badge-warning'
+              }`}
+            >
+              {partialPaid ? t.partialPaidBadge : t.requested}
+            </span>
+          </div>
+          {request.customer_nif ? (
+            <p className="text-brand-text text-[13px] mt-2">
+              {t.customerNif}:{' '}
+              <span className="font-mono tabular-nums">
+                {formatPortugueseNif(request.customer_nif)}
+              </span>
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <SettlementBar summary={summary} t={t} />
+      </div>
+
+      {pendingSplitRows.length > 0 ? (
+        <div className="mt-4 rounded-lg border-2 border-brand-gold/35 bg-brand-gold/5 p-3">
+          <p className="text-[13px] font-medium text-brand-text mb-2">{t.pendingCollectionsTitle}</p>
+          <div className="space-y-2">
+            {pendingSplitRows.map(({ row, index }) => {
+              const priorCollected = collectedByPerson.get(row.name.trim()) ?? 0;
+              const collectNow = checkoutRowCollectAmount(row.amount, priorCollected);
+              const showOwedTotal = priorCollected > 0 && collectNow < row.amount;
+              return (
+                <div
+                  key={`${request.id}-${index}`}
+                  className="flex items-center justify-between gap-2 text-sm"
+                >
+                  <div className="min-w-0">
+                    <span className="text-brand-text font-medium">
+                      {localizeSplitPersonName(row.name, lang)}
+                    </span>
+                    {showOwedTotal ? (
+                      <p className="text-[11px] text-brand-text-muted tabular-nums mt-0.5">
+                        {t.personOwedTotal.replace('{amount}', row.amount.toFixed(2))}
+                        {' · '}
+                        {t.collectedSoFar} €{priorCollected.toFixed(2)}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-brand-gold font-semibold text-base tabular-nums">
+                      €{collectNow.toFixed(2)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onConfirmPersonPaid(index)}
+                      disabled={isCheckoutRequestBusy(processingKeys, request.id)}
+                      className="text-sm font-semibold px-3 py-2 rounded-lg mesa-badge-success hover:opacity-90 disabled:opacity-50 transition-opacity whitespace-nowrap"
+                    >
+                      {processingKeys.has(checkoutPersonKey(request.id, index))
+                        ? t.processing
+                        : t.confirmOnePaidAmount.replace('{amount}', collectNow.toFixed(2))}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      {showCollectedLedger ? (
+        <div className="mt-3 px-1">
+          <p className="text-[12px] text-brand-text-muted mb-1.5">{t.collectedPaymentsTitle}</p>
+          <div className="space-y-1">
+            {collectedPayments.map((payment) => (
+              <div
+                key={payment.id}
+                className="flex items-center justify-between gap-3 text-[13px]"
+              >
+                <span className="text-brand-text-muted min-w-0 truncate">
+                  {localizeSplitPersonName(payment.person_name, lang)}
+                  <span className="mx-1.5 text-brand-border" aria-hidden>
+                    ·
+                  </span>
+                  <time
+                    className="tabular-nums"
+                    dateTime={payment.created_at}
+                    title={formatOrderDateTime(lang, payment.created_at)}
+                  >
+                    {formatCollectedPaymentTime(lang, payment.created_at)}
+                  </time>
+                </span>
+                <span className="text-brand-text tabular-nums shrink-0">
+                  €{payment.amount.toFixed(2)}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-between text-[12px] mt-1.5 pt-1.5 border-t border-brand-border/30">
+            <span className="text-brand-text-muted">{t.collectedPaymentsTotal}</span>
+            <span className="text-brand-text tabular-nums">
+              €{totalCollectedAmount(collectedPayments).toFixed(2)}
+            </span>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="mt-3 rounded-lg border border-brand-border/60 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setOrderItemsOpen((open) => !open)}
+          className="w-full flex items-center justify-between px-3 py-2.5 text-left text-[13px] text-brand-text-muted hover:bg-brand-border/20 transition-colors"
+        >
+          <span>{t.orderItemsCount.replace('{n}', String(selectedLines.length))}</span>
+          <span aria-hidden>{orderItemsOpen ? '▾' : '▸'}</span>
+        </button>
+        {orderItemsOpen ? (
+          selectedLines.length === 0 ? (
+            <p className="text-brand-text-muted text-sm px-3 pb-3">{t.orderItemsEmpty}</p>
+          ) : (
+            <div className="border-t border-brand-border/60">
+              {selectedLines.map((line) => (
+                <div
+                  key={line.key}
+                  className="flex items-center justify-between gap-2 px-3 py-2 border-b border-brand-border/40 last:border-0"
+                >
+                  <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
+                    {line.emoji ? <span>{line.emoji}</span> : null}
+                    {line.itemCode ? (
+                      <span className="font-mono text-[11px] text-brand-gold tabular-nums shrink-0">
+                        [{line.itemCode}]
+                      </span>
+                    ) : null}
+                    <span className="text-brand-text text-sm truncate">{line.name || '—'}</span>
+                    <span className="text-brand-text-muted text-[13px]">× {line.qty}</span>
+                  </div>
+                  <span className="text-brand-text text-sm tabular-nums shrink-0">
+                    €{line.lineTotal.toFixed(2)}
+                  </span>
+                </div>
+              ))}
+              <div className="flex items-center justify-between px-3 py-2 bg-brand-border/25 text-sm">
+                <span className="text-brand-text-muted">{t.orderItemsTotal}</span>
+                <span className="text-brand-text tabular-nums">
+                  €{request.total_amount.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          )
+        ) : null}
+      </div>
+
+      <div className="mt-3 rounded-lg border border-brand-border/60 p-3">
+        <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.discountRate}</label>
+        <div className="flex items-center gap-2">
+          <span className="text-brand-text-muted text-sm">%</span>
+          <IntegerInput
+            min={0}
+            max={100}
+            value={discountRate}
+            onChange={onDiscountRateChange}
+            onFocus={onDiscountRateFocus}
+            onBlur={onDiscountRateBlur}
+            className="w-28 bg-brand-bg border border-brand-border rounded-lg px-3 py-1.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
+            placeholder="0"
+            disabled={discountLocked || discountApplying}
+          />
+        </div>
+        {discountLocked ? (
+          <p className="text-[11px] text-brand-text-muted mt-1.5">{t.discountLockedAfterPayment}</p>
+        ) : null}
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-brand-border/50 pt-4">
+        <button
+          type="button"
+          onClick={onPrintBill}
+          disabled={
+            processingKeys.has(checkoutBillPrintKey(request.id)) || printOnCooldown
+          }
+          className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
+        >
+          {processingKeys.has(checkoutBillPrintKey(request.id))
+            ? t.printBillOperating
+            : printOnCooldown
+              ? t.printBillCooldown.replace('{n}', String(printCooldownSeconds))
+              : t.printBill}
+        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-col items-end gap-1">
+            <button
+              type="button"
+              onClick={onResumeOrderingClick}
+              disabled={
+                !!resumeBlockReason ||
+                processingKeys.has(checkoutResumeOrderingKey(request.id)) ||
+                isCheckoutRequestBusy(processingKeys, request.id)
+              }
+              title={resumeBlockReason === 'whole_table_paid' ? t.resumeOrderingBlockedWholeTable : undefined}
+              className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
+            >
+              {processingKeys.has(checkoutResumeOrderingKey(request.id))
+                ? t.resumeOrderingOperating
+                : t.resumeOrdering}
+            </button>
+            {resumeBlockReason === 'whole_table_paid' ? (
+              <p className="text-[11px] text-brand-text-muted max-w-[14rem] text-right">
+                {t.resumeOrderingBlockedWholeTable}
+              </p>
+            ) : null}
+          </div>
+          {canCloseTable ? (
+            <CloseTableSessionAction
+              tableId={request.table_id}
+              isCheckoutPending
+              onClosed={onCloseTable}
+            />
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,16 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { calcByItemSplitResults } from '@/lib/bill-split-by-item';
-import {
-  buildBillSplitOrderLines,
-  buildByItemLineSpecs,
-  byItemSplitLineFromOrderLine,
-} from '@/lib/bill-split-by-item-lines';
-import { useByItemSplitState } from '@/lib/use-by-item-split-state';
-import { validateBillSplit } from '@/lib/bill-split-validate';
+import { validateSplitDraft } from '@/lib/bill-split-draft';
+import { deriveBillView, isBillOrdersComplete } from '@/lib/customer-bill-sync';
 import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
 import { getMessages } from '@/lib/i18n/messages';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
@@ -18,8 +12,8 @@ import { normalizeDecimalInput as normalizeAmountInput } from '@/lib/number-inpu
 import { formatPortugueseNif, normalizePortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
-import { requestCustomerBillContext } from '@/lib/request-customer-context';
-import { useCustomerContextPoll } from '@/lib/use-customer-context-poll';
+import { useBillOrders } from '@/lib/use-bill-orders';
+import { useByItemSplitState } from '@/lib/use-by-item-split-state';
 import { requestOrderReceiptPrintQuiet } from '@/lib/request-order-receipt-print';
 import { localizeSplitPersonName } from '@/lib/split-person-label';
 import { createClient } from '@/lib/supabase/client';
@@ -60,7 +54,7 @@ export function BillPage({
   restaurant,
   tableId,
   displayName,
-  orders,
+  orders: initialOrders,
   sessionId,
   existingSplit,
   returnPath,
@@ -104,7 +98,16 @@ export function BillPage({
   const [feedbackSkipped, setFeedbackSkipped] = useState(initialFeedbackSkipped);
   const [feedbackHydrating, setFeedbackHydrating] = useState(() => !!existingSplit && !!sessionId && !returnPath && !initialFeedbackSubmitted && !initialFeedbackSkipped);
   const [customerNifInput, setCustomerNifInput] = useState('');
-  const [liveOrders, setLiveOrders] = useState<Order[]>(orders);
+  const {
+    orders,
+    orderLines,
+    lineSpecs,
+    total,
+    isSyncing,
+    refreshOrders,
+    commitOrders,
+    syncOrders,
+  } = useBillOrders(initialOrders, { slug: restaurant.slug, tableId });
   const [editingSplitNameIndex, setEditingSplitNameIndex] = useState<number | null>(null);
   const [editingSplitNameValue, setEditingSplitNameValue] = useState('');
   const [editingCustomAmountIndex, setEditingCustomAmountIndex] = useState<number | null>(null);
@@ -156,27 +159,6 @@ export function BillPage({
     setEditingCustomAmountValue('');
   };
 
-  useEffect(() => {
-    setLiveOrders(orders);
-  }, [orders]);
-
-  const fetchSessionOrders = useCallback(async () => {
-    const data = await requestCustomerBillContext(restaurant.slug, tableId);
-    if (!data) return;
-    setLiveOrders((data.orders || []) as Order[]);
-  }, [restaurant.slug, tableId]);
-
-  useCustomerContextPoll({
-    enabled: !!sessionId,
-    hasActiveSession: true,
-    onPoll: fetchSessionOrders,
-  });
-
-  // 结账金额按本餐次“实际已下单菜品”计算，不限制菜品状态。
-  const orderLines = useMemo(() => buildBillSplitOrderLines(liveOrders), [liveOrders]);
-  const lineSpecs = useMemo(() => buildByItemLineSpecs(orderLines), [orderLines]);
-  const total = orderLines.reduce((sum, item) => sum + item.price * item.qty, 0);
-
   const {
     byItemAllocations,
     setByItemAllocations,
@@ -187,6 +169,38 @@ export function BillPage({
     renameByItemConsumer,
     buildPersonsForSubmit,
   } = useByItemSplitState({ splitMode, lineSpecs, existingSplit });
+
+  const splitDraftInput = useMemo(
+    () => ({
+      splitMode,
+      total,
+      orderLines,
+      lineSpecs,
+      personCount,
+      splitPeople,
+      customAmounts,
+      parsedByItemAllocations,
+      wholeTableLabel: t.totalLabel,
+    }),
+    [
+      splitMode,
+      total,
+      orderLines,
+      lineSpecs,
+      personCount,
+      splitPeople,
+      customAmounts,
+      parsedByItemAllocations,
+      t.totalLabel,
+    ],
+  );
+
+  const { results: computedResults, validation: splitValidation } = useMemo(
+    () => validateSplitDraft(splitDraftInput),
+    [splitDraftInput],
+  );
+
+  const results = persistedResult || computedResults;
 
   const byItemAllocatorLabels = useMemo(
     () => ({
@@ -220,53 +234,6 @@ export function BillPage({
     [t],
   );
 
-  // 计算分单结果
-  const calcResult = (): SplitResult[] => {
-    if (!splitMode) {
-      return [{ name: t.totalLabel, amount: total }];
-    }
-
-    if (splitMode === 'even') {
-      const each = total / personCount;
-      return splitPeople.slice(0, personCount).map((person) => ({
-        name: person.name,
-        amount: each,
-      }));
-    }
-
-    if (splitMode === 'by_item') {
-      return calcByItemSplitResults({
-        lines: orderLines.map((item) =>
-          byItemSplitLineFromOrderLine(item, (item.name || item.name_pt || '').trim()),
-        ),
-        allocations: parsedByItemAllocations,
-      });
-    }
-
-    // custom 模式
-    const manualTotal = customAmounts.slice(0, -1).reduce((sum, p) => sum + p.amount, 0);
-    const lastAmount = Math.max(0, total - manualTotal);
-    return customAmounts.map((p, i) => ({
-      name: p.name,
-      amount: i === customAmounts.length - 1 ? lastAmount : p.amount,
-    }));
-  };
-
-  const results = persistedResult || calcResult();
-
-  const splitValidation = useMemo(
-    () =>
-      validateBillSplit({
-        splitMode,
-        total,
-        results,
-        lineSpecs: splitMode === 'by_item' ? lineSpecs : undefined,
-        byItemAllocations: splitMode === 'by_item' ? parsedByItemAllocations : undefined,
-        customAmounts,
-      }),
-    [splitMode, total, results, lineSpecs, parsedByItemAllocations, customAmounts],
-  );
-
   const splitValidationMessage =
     splitValidation.ok
       ? null
@@ -279,22 +246,67 @@ export function BillPage({
   const customerNifInvalid =
     customerNifInput.trim().length > 0 && !validatePortugueseNif(customerNifInput);
 
-  // 呼叫结账
-  const handleCallBill = async () => {
-    if (!splitValidation.ok) {
-      showToast(splitValidationMessage ?? t.splitAmountMismatch, 'error');
+  const handleSplitModeClick = async (mode: SplitMode) => {
+    if (isSyncing || submitting) return;
+    if (splitMode === mode) {
+      setSplitMode(null);
       return;
     }
+    const fresh = await syncOrders();
+    if (!fresh) {
+      showToast(t.billSyncFailed, 'error');
+      return;
+    }
+    setSplitMode(mode);
+  };
+
+  // 呼叫结账
+  const handleCallBill = async () => {
     if (customerNifInvalid) {
       showToast(t.nifInvalid, 'error');
       return;
     }
+    if (splitMode && !splitValidation.ok) {
+      showToast(splitValidationMessage ?? t.splitAmountMismatch, 'error');
+      return;
+    }
     setSubmitting(true);
     try {
+      const displayedBefore = orders;
+      const fresh = await refreshOrders();
+      if (!fresh) {
+        showToast(t.billSyncFailed, 'error');
+        return;
+      }
+      if (!isBillOrdersComplete(displayedBefore, fresh)) {
+        commitOrders(fresh);
+        showToast(t.billIncomplete, 'error');
+        return;
+      }
+      commitOrders(fresh);
+
+      const freshView = deriveBillView(fresh);
+      const { results: submitResults, validation } = validateSplitDraft({
+        ...splitDraftInput,
+        total: freshView.total,
+        orderLines: freshView.orderLines,
+        lineSpecs: freshView.lineSpecs,
+      });
+      if (!validation.ok) {
+        const message =
+          validation.issue === 'unassigned_items'
+            ? t.splitUnassignedItems
+            : validation.issue === 'incomplete_qty'
+              ? t.splitIncompleteQty
+              : t.splitAmountMismatch;
+        showToast(message, 'error');
+        return;
+      }
+
       const persons = splitMode === 'by_item'
         ? buildPersonsForSubmit()
-        : splitPeople.slice(0, results.length).map((person, idx) => ({
-            name: results[idx]?.name ?? person.name,
+        : splitPeople.slice(0, submitResults.length).map((person, idx) => ({
+            name: submitResults[idx]?.name ?? person.name,
           }));
 
       const requestResult = await requestCheckoutRequest({
@@ -302,7 +314,7 @@ export function BillPage({
         tableId,
         splitMode,
         persons,
-        result: results,
+        result: submitResults,
         customerNif: normalizePortugueseNif(customerNifInput) || null,
       });
       if (!requestResult.ok) {
@@ -725,7 +737,9 @@ export function BillPage({
           ] as const).map(([mode, label]) => (
             <button
               key={mode}
-              onClick={() => setSplitMode(prev => (prev === mode ? null : mode))}
+              type="button"
+              disabled={isSyncing || submitting}
+              onClick={() => void handleSplitModeClick(mode)}
               className={`py-2.5 rounded-xl text-sm transition-all ${
                 splitMode === mode
                   ? 'bg-brand-gold text-brand-on-gold font-semibold'
@@ -951,7 +965,7 @@ export function BillPage({
           size="lg"
           onClick={handleCallBill}
           loading={submitting}
-          disabled={orderLines.length === 0 || !sessionId || (!!splitMode && !splitValidation.ok) || customerNifInvalid}
+          disabled={orderLines.length === 0 || !sessionId || isSyncing || submitting || (!!splitMode && !splitValidation.ok) || customerNifInvalid}
         >
           🔔 {t.callBill} — €{total.toFixed(2)}
         </Button>

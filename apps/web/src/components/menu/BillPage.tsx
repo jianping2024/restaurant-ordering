@@ -67,6 +67,8 @@ export function BillPage({
   const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).bill;
+  const backHref = returnPath || `/${restaurant.slug}/menu?table_id=${encodeURIComponent(tableId)}`;
+  const backLabel = isWaiterFlow ? t.backToWaiter : t.backToMenu;
   const guestName = (n: number) => `${t.guest} ${n}`;
   const lineQtyLabel = (item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count'>) =>
     formatOrderItemQuantityLabel(item, {
@@ -600,16 +602,14 @@ export function BillPage({
               ))}
             </div>
           )}
-          {returnPath && (
-            <div className="mt-6">
-              <Link
-                href={returnPath}
-                className="inline-flex items-center justify-center rounded-xl border border-brand-border px-4 py-2 text-sm text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
-              >
-                {lang === 'zh' ? '返回服务员页面' : lang === 'en' ? 'Back to waiter board' : 'Voltar ao painel do garcom'}
-              </Link>
-            </div>
-          )}
+          <div className="mt-6">
+            <Link
+              href={backHref}
+              className="inline-flex items-center justify-center rounded-xl border border-brand-border px-4 py-2 text-sm text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+            >
+              ← {backLabel}
+            </Link>
+          </div>
           {!returnPath && !feedbackSkipped && (
             <div className="mt-6 bg-brand-card border border-brand-border rounded-xl p-4 text-left">
               <h3 className="text-brand-text font-medium">{t.feedbackTitle}</h3>
@@ -712,16 +712,14 @@ export function BillPage({
           <h1 className="font-heading text-2xl text-brand-gold">{restaurant.name}</h1>
           <LanguageSwitcher compact />
         </div>
-        {returnPath && (
-          <div className="mt-2">
-            <Link
-              href={returnPath}
-              className="text-[13px] text-brand-text-muted hover:text-brand-gold transition-colors"
-            >
-              {lang === 'zh' ? '返回服务员页面' : lang === 'en' ? 'Back to waiter board' : 'Voltar ao painel do garcom'}
-            </Link>
-          </div>
-        )}
+        <div className="mt-2">
+          <Link
+            href={backHref}
+            className="text-[13px] text-brand-text-muted hover:text-brand-gold transition-colors"
+          >
+            ← {backLabel}
+          </Link>
+        </div>
         <p className="text-brand-text-muted text-sm">{t.table} {displayName} — {t.settlement}</p>
       </header>
 

@@ -6,7 +6,7 @@ Thermal print agent for Mesa (UNYKA UK56009). One installer for LAN and USB.
 Installer autostart (Setup .exe only)
 -------------------------------------
 The installer wizard includes "Start Mesa Print Agent when the current user logs on"
-(checked by default). Uncheck if you do not want it to run at Windows sign-in.
+(unchecked by default). Check it if you want the agent to run at Windows sign-in.
 This adds a shortcut in your Windows Startup folder (removed on uninstall).
 Portable zip does not configure autostart.
 

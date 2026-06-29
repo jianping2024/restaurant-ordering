@@ -35,7 +35,7 @@ Use the printed addresses in `config.json` (see below). Map each **print station
 
 **Windows (release installer / zip)** — normal use:
 
-1. Install from Dashboard download; sign-in autostart is **on by default** in the Setup wizard (portable zip does not).
+1. Install from Dashboard download; sign-in autostart is **off by default** in the Setup wizard (optional task; portable zip does not).
 2. **Double-click `MesaPrintAgent`** (or let it start at logon). The agent runs in the **system tray** (taskbar **^** → **Mesa Print**). **No black console window** — you do **not** need to keep a command prompt open while printing.
 3. **First pairing:** generate a 6-digit code in Mesa **打印助手**, then **Open settings on this PC** (or tray → **Printer settings…**). If not paired, use the **pairing page** link; on the settings page click **Scan printers**, map stations, **Save** (test print optional). First agent start may also auto-open pairing on port **17890** before you use Dashboard.
 4. **Troubleshooting only:** `MesaPrintAgent.exe -console`, or tray → **Show debug console**; log file under `%LOCALAPPDATA%\Mesa Print Agent\agent.log`. Optional advanced: `MesaPrintAgent.exe -api URL -code 123456` or `MesaPrintAgent pair`.
@@ -135,7 +135,7 @@ Assets (stable names for Dashboard `latest/download` links):
 
 | File | Use |
 |------|-----|
-| `MesaPrintAgent-Setup-amd64.exe` | Inno installer, x64; wizard **checks “run at user logon” by default** (Startup folder shortcut; uninstall removes) |
+| `MesaPrintAgent-Setup-amd64.exe` | Inno installer, x64; wizard offers **“run at user logon”** (unchecked by default; Startup folder shortcut; uninstall removes) |
 | `MesaPrintAgent-Setup-arm64.exe` | Inno installer, ARM64 Windows |
 | `MesaPrintAgent-windows-amd64.zip` | Portable zip |
 | `MesaPrintAgent-windows-arm64.zip` | Portable zip, ARM64 |

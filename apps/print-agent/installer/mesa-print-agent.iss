@@ -31,7 +31,7 @@ InfoAfterFile=wizard-after.txt
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
-Name: "autostart"; Description: "Start Mesa Print Agent when the current user logs on"; GroupDescription: "Startup options:"; Flags: checkedonce
+Name: "autostart"; Description: "Start Mesa Print Agent when the current user logs on"; GroupDescription: "Startup options:"; Flags: unchecked
 
 [Files]
 Source: "..\dist\amd64\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion

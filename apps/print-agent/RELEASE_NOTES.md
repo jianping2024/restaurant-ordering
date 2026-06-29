@@ -2,6 +2,12 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.33
+
+**安装器：登录自启默认不勾选**
+
+- Inno Setup 向导「当前用户登录时启动」改为默认**不勾选**；需要登录自启的用户可在安装时手动勾选。
+
 ## 0.3.32
 
 **备注行前加 `Observação:` 标签**

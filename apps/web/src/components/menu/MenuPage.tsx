@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type {
@@ -24,8 +24,13 @@ import { showToast } from '@/components/ui/Toast';
 import { autoEnqueueStationTicketsAfterSubmit } from '@/lib/auto-enqueue-station-tickets';
 import { resolveCustomerGeoForOrder } from '@/lib/customer-geo-order';
 import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
+import {
+  guestOrderGateFromCachedState,
+  guestOrderGateFromSessionContext,
+  guestOrderingActionHint,
+} from '@/lib/customer-menu-order-gate';
 import { requestCustomerSessionContext } from '@/lib/request-customer-context';
-import { useCustomerContextPoll } from '@/lib/use-customer-context-poll';
+import type { CustomerSessionResponse } from '@/lib/request-customer-context';
 
 const LANG_FLAGS: Record<Language, string> = { pt: '🇵🇹', en: '🇬🇧', zh: '🇨🇳' };
 const LANG_LABELS: Record<Language, string> = { pt: 'PT', en: 'EN', zh: '中' };
@@ -65,22 +70,29 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
   const [activeSession, setActiveSession] = useState<TableSession | null>(null);
   const [latestBatchId, setLatestBatchId] = useState<string | null>(null);
 
-  const loadSessionAndOrders = useCallback(async () => {
+  const loadSessionAndOrders = useCallback(async (): Promise<CustomerSessionResponse | null> => {
     const data = await requestCustomerSessionContext(restaurant.slug, tableId);
-    if (!data) return;
+    if (!data) return null;
     setActiveSession((data.active_session as TableSession | null) || null);
     if (!data.active_session) {
       setRecentOrders([]);
-      return;
+      return data;
     }
     setRecentOrders((data.recent_orders || []) as Order[]);
+    return data;
   }, [restaurant.slug, tableId]);
 
-  useCustomerContextPoll({
-    enabled: !isDemo,
-    hasActiveSession: !!activeSession,
-    onPoll: loadSessionAndOrders,
-  });
+  useEffect(() => {
+    if (isDemo) return;
+    void loadSessionAndOrders();
+  }, [isDemo, loadSessionAndOrders]);
+
+  const ensureGuestCanPlaceOrder = useCallback(async () => {
+    const cached = guestOrderGateFromCachedState(isDemo ?? false, activeSession, recentOrders);
+    if (cached) return cached;
+    const data = await loadSessionAndOrders();
+    return guestOrderGateFromSessionContext(data);
+  }, [activeSession, isDemo, loadSessionAndOrders, recentOrders]);
 
   // 当前分类菜品
   const topCategories = menuCategories.filter((c) => !c.parent_id && c.active).sort((a, b) => a.sort_order - b.sort_order);
@@ -140,7 +152,6 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
     () => guestOrderingEnabled(activeSession, recentOrders),
     [activeSession, recentOrders],
   );
-  const canPlaceMenuOrders = isDemo || guestCanOrder;
   const guestOrderingHints = useMemo(() => {
     const messages = MENU_PAGE_MESSAGES[lang];
     if (activeSession?.status === 'billing') {
@@ -161,9 +172,10 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
   };
 
   // 列表步进器 / 抽屉共用：仅改本地 cart，提交仍走 submitOrder → orders/append
-  const bumpCartItem = (item: MenuItem, delta: number) => {
-    if (!canPlaceMenuOrders) {
-      showToast(guestOrderingHints.action, 'info');
+  const bumpCartItem = async (item: MenuItem, delta: number) => {
+    const gate = await ensureGuestCanPlaceOrder();
+    if (!gate.canPlace) {
+      showToast(guestOrderingActionHint(lang, gate.sessionStatus), 'info');
       return;
     }
     const current = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
@@ -235,8 +247,9 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
   // 提交订单
   const submitOrder = async () => {
     if (cart.length === 0) return;
-    if (!canPlaceMenuOrders) {
-      showToast(guestOrderingHints.action, 'info');
+    const gate = await ensureGuestCanPlaceOrder();
+    if (!gate.canPlace) {
+      showToast(guestOrderingActionHint(lang, gate.sessionStatus), 'info');
       return;
     }
 
@@ -308,7 +321,10 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
         const code = appendData.error || '';
         if (code === 'location_too_far') showToast(t.locationTooFar, 'error');
         else if (code === 'location_required') showToast(t.locationPermissionDenied, 'error');
-        else if (code === 'session_billing') showToast(t.billDisabledHint, 'info');
+        else if (code === 'session_billing') {
+          await loadSessionAndOrders();
+          showToast(t.billDisabledHint, 'info');
+        }
         else if (code === 'buffet_required') showToast(t.buffetRequired, 'info');
         else if (code === 'rate_limited') showToast(t.printEnqueueRateLimited, 'error');
         else showToast(t.submitFailed, 'error');

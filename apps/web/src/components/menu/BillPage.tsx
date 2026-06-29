@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { validateSplitDraft } from '@/lib/bill-split-draft';
@@ -11,7 +11,9 @@ import {
   shouldShowCheckoutSubmitted,
 } from '@/lib/checkout-split-continuation';
 import { deriveBillView, isBillOrdersComplete } from '@/lib/customer-bill-sync';
+import { detectCheckoutResumedFromBillContext } from '@/lib/customer-bill-checkout-resume';
 import { requestCustomerBillContext } from '@/lib/request-customer-context';
+import type { CustomerBillResponse } from '@/lib/request-customer-context';
 import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
 import { getMessages } from '@/lib/i18n/messages';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
@@ -124,6 +126,7 @@ export function BillPage({
     shouldShowCheckoutSubmitted(existingSplit, sessionStatus),
   );
   const [submitting, setSubmitting] = useState(false);
+  const [checkoutStatusRefreshing, setCheckoutStatusRefreshing] = useState(false);
   const [persistedResult, setPersistedResult] = useState<SplitResult[] | null>((existingSplit?.result as SplitResult[] | null) || null);
   const [persistedSplitId, setPersistedSplitId] = useState<string | null>(existingSplit?.id || null);
   const [personPayProcessingIdx, setPersonPayProcessingIdx] = useState<number | null>(null);
@@ -144,24 +147,20 @@ export function BillPage({
     syncOrders,
   } = useBillOrders(initialOrders, { slug: restaurant.slug, tableId });
 
-  useEffect(() => {
-    if (!submitted || !sessionId) return;
-
-    let cancelled = false;
-    const pollCheckoutResumed = async () => {
-      const ctx = await requestCustomerBillContext(restaurant.slug, tableId);
-      if (cancelled || !ctx) return;
-      if (ctx.active_session?.status === 'open' && ctx.existing_split?.status === 'confirmed') {
+  const applyCheckoutResumedState = useCallback(
+    async (ctx: CustomerBillResponse) => {
+      const resumed = detectCheckoutResumedFromBillContext(ctx);
+      if (resumed.kind === 'continuation') {
         setSubmitted(false);
-        setContinuationSplit(ctx.existing_split);
-        setCollectedLedgerActive(ctx.has_collected_payments);
-        if (ctx.existing_split.split_mode) {
-          setSplitMode(ctx.existing_split.split_mode);
+        setContinuationSplit(resumed.split);
+        setCollectedLedgerActive(resumed.hasCollectedPayments);
+        if (resumed.split.split_mode) {
+          setSplitMode(resumed.split.split_mode);
         }
         await syncOrders();
-        return;
+        return true;
       }
-      if (ctx.active_session?.status === 'open' && !ctx.existing_split) {
+      if (resumed.kind === 'fresh') {
         setSubmitted(false);
         setSplitMode(null);
         setContinuationSplit(null);
@@ -169,16 +168,27 @@ export function BillPage({
         setPersistedResult(null);
         setPersistedSplitId(null);
         await syncOrders();
+        return true;
       }
-    };
+      return false;
+    },
+    [syncOrders],
+  );
 
-    void pollCheckoutResumed();
-    const timer = window.setInterval(() => void pollCheckoutResumed(), 5000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-    };
-  }, [submitted, sessionId, restaurant.slug, tableId, syncOrders]);
+  const refreshCheckoutStatus = async () => {
+    setCheckoutStatusRefreshing(true);
+    try {
+      const ctx = await requestCustomerBillContext(restaurant.slug, tableId);
+      if (!ctx) {
+        showToast(t.actionFailed, 'error');
+        return;
+      }
+      const changed = await applyCheckoutResumedState(ctx);
+      showToast(changed ? t.checkoutResumed : t.checkoutStillPending, changed ? 'success' : 'info');
+    } finally {
+      setCheckoutStatusRefreshing(false);
+    }
+  };
 
   const [editingSplitNameIndex, setEditingSplitNameIndex] = useState<number | null>(null);
   const [editingSplitNameValue, setEditingSplitNameValue] = useState('');
@@ -678,7 +688,15 @@ export function BillPage({
               ))}
             </div>
           )}
-          <div className="mt-6">
+          <div className="mt-6 flex flex-col items-center gap-3">
+            <button
+              type="button"
+              onClick={() => void refreshCheckoutStatus()}
+              disabled={checkoutStatusRefreshing}
+              className="inline-flex items-center justify-center rounded-xl border border-brand-gold/40 px-4 py-2 text-sm text-brand-gold hover:bg-brand-gold/10 transition-colors disabled:opacity-50"
+            >
+              {checkoutStatusRefreshing ? t.refreshStatusRefreshing : t.refreshStatus}
+            </button>
             <Link
               href={backHref}
               className="inline-flex items-center justify-center rounded-xl border border-brand-border px-4 py-2 text-sm text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"

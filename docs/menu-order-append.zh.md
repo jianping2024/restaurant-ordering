@@ -123,19 +123,23 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 
 **实现状态**：契约函数为 `resolveWaiterMenuReturnHref`（`staff-routes.ts`）。若菜单页仍仅用 `returnPath.startsWith('/{slug}/waiter')`，则 dashboard 的 `return=/dashboard/waiter/...` 会被丢弃并回退到 `/{slug}/waiter`，导致代点完成后误进服务员鉴权页——属已知缺口，修复时只改解析函数与菜单/账单入口，**不要**改 append 写单管道。
 
-### 会话轮询（加菜门禁 UI）
+### 会话同步（加菜门禁 UI，无轮询）
+
+顾客菜单**不**后台定时刷新；状态在**用户操作时**与服务器对齐。
 
 ```
 挂载 MenuPage
-  → requestCustomerSessionContext(slug, table_id)   GET .../customer/session
-  → useCustomerContextPoll
-       无 session：30s 轮询（等开台）
-       有 session：20s 轮询（订单状态）
+  → requestCustomerSessionContext(slug, table_id)   GET .../customer/session（仅一次，首屏）
   → guestOrderingEnabled(activeSession, recentOrders)
-       false → 禁用加购 / 提交，展示「等待开台」或「结账中」
+       本地已可点 → 直接加菜
+       本地不可点 → 加菜 / 提交前再 GET .../customer/session，重算门禁
+  → append 返回 session_billing → 再拉一次 session，再提示
 ```
 
-与开台管道对齐：开台成功后轮询拉到 `buffet_base`，`canPlaceMenuOrders` 变为 true。
+与开台管道对齐：服务员开台后，顾客**第一次点加菜**会拉到 `buffet_base`，门禁放开。  
+恢复点单后同理：本地仍显示「结账中」时，点「+ 加入」会先刷新 session，`billing → open` 后即可加菜。
+
+**不自动更新**：已下单区菜品状态、顶部横幅，在用户不操作时不刷新；刷新页面或再次加菜/提交时会更新。
 
 ### 提交流程（`submitOrder`）
 
@@ -144,7 +148,7 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 **顾客流**（`!returnToWaiterHref`）：
 
 ```
-① 门禁   canPlaceMenuOrders（demo 跳过）
+① 门禁   ensureGuestCanPlaceOrder（demo 跳过；不可点时先刷新 session）
 ② 定位   餐厅有 geo → getBrowserLocation + 距离校验
 ③ 请求   POST append { table_id, items, latitude, longitude }
          （无 waiter_flow）
@@ -225,7 +229,7 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 | 提交后入队（客户端） | `lib/auto-enqueue-station-tickets.ts` |
 | 入队 API | `app/api/restaurants/[slug]/station-tickets/auto/route.ts` |
 | 档口分组入队 | `lib/station-ticket-enqueue.ts` |
-| 会话轮询上下文 | `lib/request-customer-context.ts`、`lib/use-customer-context-poll.ts` |
+| 会话上下文（操作时刷新） | `lib/request-customer-context.ts`、`lib/customer-menu-order-gate.ts` |
 | 看板 → 菜单链接 | `lib/staff-routes.ts` → `waiterMenuHref` |
 | 看板回跳路径（契约） | `lib/staff-routes.ts` → `waiterTableHref`、`resolveWaiterMenuReturnHref` |
 | 开台前置（另一管道） | [`buffet-open-table.zh.md`](buffet-open-table.zh.md) |

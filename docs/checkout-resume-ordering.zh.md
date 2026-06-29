@@ -98,7 +98,17 @@
 - 丢失或篡改 `session_collected_payments`。
 - 整桌已收后仍恢复点单。
 
-## 7. 实现状态（文档与代码对照）
+## 7. 顾客端感知恢复点单（无轮询）
+
+| 页面 | 行为 |
+|------|------|
+| **菜单** `MenuPage` | 无后台轮询。恢复点单后，顾客点「+ 加入」或提交购物车时 **先拉** `customer/session`，服务端已 `open` 则立即加菜。 |
+| **账单成功页** `BillPage` | 无 5s 自动检测。停在「已通知服务员」时，顾客点 **「刷新状态」** 拉 `customer/bill`；若已恢复点单则回到可编辑账单（保留分单快照规则同 §4）。 |
+| **返回菜单** | 进入菜单时首屏拉一次 session，与上表加菜前刷新一致。 |
+
+员工端结账台仍用 Realtime + 兜底轮询，与顾客端策略分离。
+
+## 8. 实现状态（文档与代码对照）
 
 | 能力 | 目标（本文） | 当前实现（摘要） |
 |------|----------------|------------------|
@@ -112,10 +122,12 @@
 | 服务端续结校验 | 与 UI 一致 | `validateCheckoutContinuation` |
 | 恢复点单确认弹窗文案 | 与 RPC 分支一致 | `resumeOrderingConfirmVariant` + i18n |
 
-## 8. 相关文件
+## 9. 相关文件
 
 - `apps/web/src/components/dashboard/CheckoutRequestsManager.tsx` — 结账详情、恢复点单入口
-- `apps/web/src/components/menu/BillPage.tsx` — 顾客分单与呼叫结账
+- `apps/web/src/components/menu/MenuPage.tsx` — 加菜前 session 刷新
+- `apps/web/src/components/menu/BillPage.tsx` — 顾客分单、成功页手动刷新
+- `apps/web/src/lib/customer-bill-checkout-resume.ts` — 成功页刷新结果判定
 - `apps/web/src/lib/checkout-split-continuation.ts` — 锁定判定、`paidSplitPersonNames`、`lockedByItemLineKeys`
 - `apps/web/src/lib/checkout-session-payments.ts` — 已收台账、待收行过滤、恢复拦截、确认文案分支
 - `supabase/migrations/20260710120000_resume_ordering_preserve_by_item_split.sql` — 按菜分单恢复保留 RPC

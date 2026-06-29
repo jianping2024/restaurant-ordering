@@ -6,6 +6,7 @@ import {
   isCheckoutSplitLocked,
   isPausedCheckoutSplit,
   lockedByItemLineKeys,
+  paidSplitPersonNames,
   shouldShowCheckoutSubmitted,
   validateCheckoutContinuation,
 } from './checkout-split-continuation';
@@ -51,16 +52,59 @@ describe('shouldShowCheckoutSubmitted', () => {
 });
 
 describe('isCheckoutSplitLocked', () => {
-  it('locks when any row is paid or ledger exists', () => {
+  it('locks only after collection has started', () => {
     assert.equal(isCheckoutSplitLocked(split({ result: [{ name: 'A', amount: 10, paid: true }] }), false), true);
     assert.equal(isCheckoutSplitLocked(split(), true), true);
-    assert.equal(isCheckoutSplitLocked(split({ status: 'confirmed' }), false, 'open'), true);
+    assert.equal(isCheckoutSplitLocked(split({ status: 'confirmed' }), false), false);
     assert.equal(isCheckoutSplitLocked(split(), false), false);
   });
 });
 
 describe('lockedByItemLineKeys', () => {
-  it('collects keys from persons item_shares', () => {
+  it('collects keys only for paid guests', () => {
+    const keys = lockedByItemLineKeys(
+      split({
+        result: [
+          { name: 'John', amount: 10, paid: true },
+          { name: 'Mary', amount: 10, paid: false },
+        ],
+        persons: [
+          {
+            name: 'John',
+            item_shares: [{ key: 'o1-0', qty_num: 1, qty_den: 1 }],
+          },
+          {
+            name: 'Mary',
+            item_shares: [{ key: 'o1-1', qty_num: 1, qty_den: 1 }],
+          },
+        ],
+      }),
+    );
+    assert.equal(keys.has('o1-0'), true);
+    assert.equal(keys.has('o1-1'), false);
+  });
+
+  it('locks all assigned keys when ledger exists without paid rows', () => {
+    const keys = lockedByItemLineKeys(
+      split({
+        persons: [
+          {
+            name: 'John',
+            item_shares: [{ key: 'o1-0', qty_num: 1, qty_den: 1 }],
+          },
+          {
+            name: 'Mary',
+            item_shares: [{ key: 'o1-1', qty_num: 1, qty_den: 1 }],
+          },
+        ],
+      }),
+      true,
+    );
+    assert.equal(keys.has('o1-0'), true);
+    assert.equal(keys.has('o1-1'), true);
+  });
+
+  it('returns empty when no collection has started', () => {
     const keys = lockedByItemLineKeys(
       split({
         persons: [
@@ -71,7 +115,16 @@ describe('lockedByItemLineKeys', () => {
         ],
       }),
     );
-    assert.equal(keys.has('o1-0'), true);
+    assert.equal(keys.size, 0);
+  });
+});
+
+describe('paidSplitPersonNames', () => {
+  it('normalizes paid guest names', () => {
+    const names = paidSplitPersonNames(
+      split({ result: [{ name: ' John ', amount: 5, paid: true }] }),
+    );
+    assert.equal(names.has('john'), true);
   });
 });
 
@@ -125,6 +178,34 @@ describe('validateCheckoutContinuation', () => {
     });
     assert.equal(out.ok, false);
     if (!out.ok) assert.equal(out.issue, 'locked_allocation_changed');
+  });
+
+  it('allows changed allocation after resume when nothing was collected', () => {
+    const existing = split({
+      status: 'confirmed',
+      persons: [
+        {
+          name: 'John',
+          item_shares: [{ key: 'o1-0', qty_num: 1, qty_den: 1 }],
+        },
+      ],
+    });
+    const out = validateCheckoutContinuation({
+      existing,
+      payload: {
+        splitMode: 'by_item',
+        persons: [
+          {
+            name: 'Mary',
+            item_shares: [{ key: 'o1-0', qty_num: 1, qty_den: 1 }],
+          },
+        ],
+        result: [{ name: 'Mary', amount: 10 }],
+      },
+      lineSpecs: [menuSpec('o1-0')],
+      hasCollectedLedger: false,
+    });
+    assert.equal(out.ok, true);
   });
 });
 

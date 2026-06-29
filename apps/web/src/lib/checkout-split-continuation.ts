@@ -24,17 +24,24 @@ export function isPausedCheckoutSplit(
   return sessionStatus === 'open' && split?.status === 'confirmed';
 }
 
-/** Split plan must not change after partial collection or paused continuation. */
+/** Split plan must not change after partial collection has started. */
 export function isCheckoutSplitLocked(
   split: BillSplit | null | undefined,
   hasCollectedLedger = false,
-  sessionStatus?: string | null,
 ): boolean {
   if (!split) return false;
   if (hasPaidSplitRow(split)) return true;
   if (hasCollectedLedger) return true;
-  if (isPausedCheckoutSplit(split, sessionStatus)) return true;
   return false;
+}
+
+/** Guests who already paid on the active split (case-insensitive). */
+export function paidSplitPersonNames(split: BillSplit | null | undefined): ReadonlySet<string> {
+  return new Set(
+    (split?.result ?? [])
+      .filter((row) => row.paid)
+      .map((row) => row.name.trim().toLowerCase()),
+  );
 }
 
 /** Bill page shows post-request success only while checkout is actively requested. */
@@ -48,11 +55,23 @@ export function shouldShowCheckoutSubmitted(
   return split.status === 'pending';
 }
 
-/** Order line keys already assigned before continuation; only new keys may be edited. */
-export function lockedByItemLineKeys(split: BillSplit | null | undefined): Set<string> {
+/**
+ * By-item line keys that must stay read-only after collection starts.
+ * Locks paid guests' shares; when ledger exists without per-row paid flags, locks all prior shares.
+ */
+export function lockedByItemLineKeys(
+  split: BillSplit | null | undefined,
+  hasCollectedLedger = false,
+): Set<string> {
   const keys = new Set<string>();
   if (!split || split.split_mode !== 'by_item') return keys;
+
+  const paidNames = paidSplitPersonNames(split);
+  const lockAllAssignedShares = hasCollectedLedger && paidNames.size === 0;
+
   for (const person of split.persons ?? []) {
+    const isPaidPerson = paidNames.has(person.name.trim().toLowerCase());
+    if (!lockAllAssignedShares && !isPaidPerson) continue;
     for (const share of person.item_shares ?? []) {
       if (share.key) keys.add(share.key);
     }
@@ -170,7 +189,7 @@ export function validateCheckoutContinuation(params: {
   }
 
   if (existing.split_mode === 'by_item' && incomingMode === 'by_item') {
-    const lockedKeys = lockedByItemLineKeys(existing);
+    const lockedKeys = lockedByItemLineKeys(existing, hasCollectedLedger);
     if (lockedKeys.size === 0) return { ok: true };
     const existingAlloc = buildByItemAllocationsFromPersons(existing.persons ?? [], lineSpecs);
     const incomingAlloc = buildByItemAllocationsFromPersons(payload.persons, lineSpecs);

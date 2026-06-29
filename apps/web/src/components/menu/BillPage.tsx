@@ -7,6 +7,7 @@ import { validateSplitDraft } from '@/lib/bill-split-draft';
 import {
   isCheckoutSplitLocked,
   lockedByItemLineKeys,
+  paidSplitPersonNames,
   shouldShowCheckoutSubmitted,
 } from '@/lib/checkout-split-continuation';
 import { deriveBillView, isBillOrdersComplete } from '@/lib/customer-bill-sync';
@@ -250,21 +251,19 @@ export function BillPage({
   } = useByItemSplitState({ splitMode, lineSpecs, existingSplit: continuationSplit });
 
   const splitLocked = useMemo(
-    () => isCheckoutSplitLocked(continuationSplit, collectedLedgerActive, sessionStatus),
-    [continuationSplit, collectedLedgerActive, sessionStatus],
+    () => isCheckoutSplitLocked(continuationSplit, collectedLedgerActive),
+    [continuationSplit, collectedLedgerActive],
   );
   const lockedLineKeys = useMemo(
-    () => (splitLocked ? lockedByItemLineKeys(continuationSplit) : new Set<string>()),
-    [splitLocked, continuationSplit],
+    () =>
+      splitLocked
+        ? lockedByItemLineKeys(continuationSplit, collectedLedgerActive)
+        : new Set<string>(),
+    [splitLocked, continuationSplit, collectedLedgerActive],
   );
   const paidPersonNames = useMemo(
-    () =>
-      new Set(
-        (continuationSplit?.result ?? [])
-          .filter((row) => row.paid)
-          .map((row) => row.name.trim().toLowerCase()),
-      ),
-    [continuationSplit?.result],
+    () => paidSplitPersonNames(continuationSplit),
+    [continuationSplit],
   );
 
   const splitDraftInput = useMemo(

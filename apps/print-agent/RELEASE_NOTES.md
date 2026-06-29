@@ -2,6 +2,12 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.37
+
+**预结/结账小票：自助餐 Qty 列**
+
+- Qty 列加宽至 9 字符并居中，支持 `A4-C2`、`A9`、`C3` 等自助餐人数标签（由 Web 端 `share_qty_label` 下发）。
+
 ## 0.3.36
 
 **预结/结账小票：菜品行间距**

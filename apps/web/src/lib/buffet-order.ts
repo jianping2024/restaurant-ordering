@@ -101,6 +101,15 @@ export function formatBuffetHeadcountLabel(adults: number, children: number): st
   return `A${adults} C${children}`;
 }
 
+/** Thermal receipt Qty column for buffet_base lines, e.g. A4-C2, A9, C3 (no spaces; omit zero segments). */
+export function formatBuffetReceiptQtyLabel(adults: number, children: number): string {
+  const { adults: a, children: c } = normalizeBuffetGuestCounts(adults, children);
+  if (a > 0 && c > 0) return `A${a}-C${c}`;
+  if (a > 0) return `A${a}`;
+  if (c > 0) return `C${c}`;
+  return '';
+}
+
 /** Interpolate € placeholders in waiter buffet open-table copy. */
 export function formatBuffetPriceTemplate(template: string, values: Record<string, number>): string {
   return Object.entries(values).reduce(

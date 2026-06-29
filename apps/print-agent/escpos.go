@@ -403,8 +403,8 @@ func (w *escposWriter) separator(ch rune) {
 }
 
 const (
-	escposColItems = 28
-	escposColQty   = 4
+	escposColItems = 25 // leaves 9 for Qty (A999-C999) and 14 for "Original Price"
+	escposColQty   = 9
 	escposColPrice = escposWidth - escposColItems - escposColQty
 )
 
@@ -420,9 +420,19 @@ func padField(s string, width int, alignRight bool) string {
 	return string(r) + strings.Repeat(" ", gap)
 }
 
+func padFieldCenter(s string, width int) string {
+	r := []rune(truncateRunes(s, width))
+	gap := width - len(r)
+	if gap <= 0 {
+		return string(r)
+	}
+	left := gap / 2
+	return strings.Repeat(" ", left) + string(r) + strings.Repeat(" ", gap-left)
+}
+
 func escposThreeColLine(left, mid, right string) string {
 	return padField(left, escposColItems, false) +
-		padField(mid, escposColQty, true) +
+		padFieldCenter(mid, escposColQty) +
 		padField(right, escposColPrice, true)
 }
 

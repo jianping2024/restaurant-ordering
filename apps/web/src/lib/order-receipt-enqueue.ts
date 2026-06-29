@@ -1,5 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { BillSplit, Order, PrintJobType } from '@/types';
+import type { BillSplit, Order, OrderItem, PrintJobType } from '@/types';
+import { formatBuffetReceiptQtyLabel } from '@/lib/buffet-order';
+import { isBuffetBaseItem } from '@/lib/order-items';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import {
   byItemLinePriceShare,
@@ -60,6 +62,24 @@ export type OrderReceiptJobPayload = {
   }>;
 };
 
+function buffetReceiptShareQtyLabel(item: OrderItem): string | undefined {
+  if (!isBuffetBaseItem(item)) return undefined;
+  const label = formatBuffetReceiptQtyLabel(item.adult_count ?? 0, item.child_count ?? 0);
+  return label || undefined;
+}
+
+function receiptLineFromOrderItem(item: OrderItem, itemIndex: number): OrderReceiptJobPayload['lines'][number] {
+  const share_qty_label = buffetReceiptShareQtyLabel(item);
+  return {
+    item_index: itemIndex,
+    display_name: orderItemReceiptLineLabel(item),
+    qty: item.qty,
+    unit_price: item.price,
+    ...(share_qty_label ? { share_qty_label } : {}),
+    ...(item.note?.trim() ? { note: item.note.trim() } : {}),
+  };
+}
+
 export function buildReceiptLinesFromOrders(
   orders: Order[],
 ): OrderReceiptJobPayload['lines'] {
@@ -70,13 +90,7 @@ export function buildReceiptLinesFromOrders(
       const st = normalizeOrderItemStatus(item, order.status);
       if (st === 'voided') continue;
       itemIndex += 1;
-      lines.push({
-        item_index: itemIndex,
-        display_name: orderItemReceiptLineLabel(item),
-        qty: item.qty,
-        unit_price: item.price,
-        ...(item.note?.trim() ? { note: item.note.trim() } : {}),
-      });
+      lines.push(receiptLineFromOrderItem(item, itemIndex));
     }
   }
   return lines;

@@ -78,6 +78,8 @@ describe('buildReceiptLinesFromOrders', () => {
             qty: 1,
             price: 127.7,
             emoji: '🍽️',
+            adult_count: 4,
+            child_count: 2,
           },
           {
             id: '47cd765c-1443-454a-bd75-e73638c310f5',
@@ -95,6 +97,7 @@ describe('buildReceiptLinesFromOrders', () => {
     const lines = buildReceiptLinesFromOrders(mixed);
     assert.equal(lines.length, 2);
     assert.equal(lines[0]?.display_name, 'Buffet livre');
+    assert.equal(lines[0]?.share_qty_label, 'A4-C2');
     assert.equal(lines[1]?.display_name, 'RE-001-Água 500ml');
   });
 });

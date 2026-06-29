@@ -5,6 +5,7 @@ import {
   computeBuffetSubtotal,
   formatBuffetGuestCountsOptional,
   formatBuffetPriceTemplate,
+  formatBuffetReceiptQtyLabel,
   isBuffetGuestCountsUnchanged,
   resolveBuffetOpenPricePreview,
 } from '@/lib/buffet-order';
@@ -82,6 +83,24 @@ describe('formatBuffetGuestCountsOptional', () => {
 
   it('returns empty when both are zero', () => {
     assert.equal(formatBuffetGuestCountsOptional(0, 0, labels), '');
+  });
+});
+
+describe('formatBuffetReceiptQtyLabel', () => {
+  it('shows adult and child with hyphen', () => {
+    assert.equal(formatBuffetReceiptQtyLabel(4, 2), 'A4-C2');
+  });
+
+  it('omits adult segment when zero', () => {
+    assert.equal(formatBuffetReceiptQtyLabel(0, 3), 'C3');
+  });
+
+  it('omits child segment when zero', () => {
+    assert.equal(formatBuffetReceiptQtyLabel(9, 0), 'A9');
+  });
+
+  it('returns empty when both are zero', () => {
+    assert.equal(formatBuffetReceiptQtyLabel(0, 0), '');
   });
 });
 

@@ -54,6 +54,32 @@ func TestBuildOrderReceiptEnglishLayout(t *testing.T) {
 	}
 }
 
+func TestBuildOrderReceiptBuffetShareQtyLabel(t *testing.T) {
+	payload, _ := json.Marshal(map[string]any{
+		"display_name":    "008",
+		"receipt_variant": "pre_bill",
+		"subtotal":        127.7,
+		"amount_due":      127.7,
+		"lines": []map[string]any{
+			{
+				"item_index":       1,
+				"display_name":     "Buffet livre",
+				"qty":              1,
+				"unit_price":       127.7,
+				"share_qty_label":  "A4-C2",
+			},
+		},
+	})
+	raw := escposFromJob(printJob{Type: "order_receipt", Payload: payload})
+	s := string(raw)
+	if !strings.Contains(s, "A4-C2") {
+		t.Fatalf("buffet receipt must show headcount A4-C2, got: %q", s)
+	}
+	if !strings.Contains(s, "127.70") {
+		t.Fatalf("buffet receipt must show line total 127.70, got: %q", s)
+	}
+}
+
 func TestBuildOrderReceiptSplitPaymentShareQtyLabel(t *testing.T) {
 	payload, _ := json.Marshal(map[string]any{
 		"display_name":    "A-05",

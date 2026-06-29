@@ -1,5 +1,4 @@
 import { createAdminClient } from '@/lib/supabase/admin';
-import { createClient } from '@/lib/supabase/server';
 import {
   cloudConfigToForm,
   defaultPrintAgentCloudConfig,
@@ -17,26 +16,24 @@ import { PrintAgentPairingPanel } from '@/components/dashboard/PrintAgentPairing
 import { PrintAgentSchedulePanel } from '@/components/dashboard/PrintAgentSchedulePanel';
 import { PrintAgentCredentialExpiryAlert } from '@/components/dashboard/PrintAgentCredentialExpiryAlert';
 import { PrintAgentDevicesPanel } from '@/components/dashboard/PrintAgentDevicesPanel';
+import { ReceiptBillPrinterPanel } from '@/components/dashboard/ReceiptBillPrinterPanel';
 import {
   loadPrintAgentDevices,
   loadPrintAgentDevicesNeedingRenewal,
 } from '@/lib/print-agent-devices-server';
+import { loadDashboardAccess } from '@/lib/dashboard-access';
+import { redirect } from 'next/navigation';
 
 export default async function PrintAssistantSettingsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const access = await loadDashboardAccess();
+  if (access.mode === 'unauthenticated') redirect('/auth/login');
+  if (access.mode === 'onboarding' || access.mode === 'access_error') redirect('/dashboard');
 
-  const { data: restaurant } = await supabase
-    .from('restaurants')
-    .select('id')
-    .eq('owner_id', user!.id)
-    .single();
-
-  const rid = restaurant!.id;
+  const restaurant = access.restaurant;
+  const rid = restaurant.id;
 
   let initialScheduleForm = cloudConfigToForm(defaultPrintAgentCloudConfig());
+  let initialDefaultReceiptStationId = '';
   try {
     const admin = createAdminClient();
     const { data: row } = await admin
@@ -46,7 +43,9 @@ export default async function PrintAssistantSettingsPage() {
       .single();
     const raw = row?.print_agent_config;
     if (raw && typeof raw === 'object' && Object.keys(raw as object).length > 0) {
-      initialScheduleForm = cloudConfigToForm(normalizePrintAgentCloudConfig(raw));
+      const config = normalizePrintAgentCloudConfig(raw);
+      initialScheduleForm = cloudConfigToForm(config);
+      initialDefaultReceiptStationId = config.default_receipt_station_id || '';
     }
   } catch {
     /* use defaults */
@@ -75,6 +74,10 @@ export default async function PrintAssistantSettingsPage() {
       <PrintAgentDevicesPanel
         initialDevices={pairedDevices}
         recommendedVersion={printAgentVersion || ''}
+      />
+      <ReceiptBillPrinterPanel
+        restaurantSlug={restaurant.slug}
+        initialDefaultReceiptStationId={initialDefaultReceiptStationId}
       />
       <PrintAgentPairingPanel />
       {downloadUrls ? (

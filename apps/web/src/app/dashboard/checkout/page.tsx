@@ -32,7 +32,6 @@ export default async function CheckoutRequestsPage({
       restaurantId={restaurant.id}
       restaurantSlug={restaurant.slug}
       checkoutRequests={(checkoutRequests || []) as BillSplit[]}
-      showPrinterSettings={access.mode === 'frontdesk'}
       canCloseTable={access.mode === 'frontdesk' || access.mode === 'owner'}
       initialTableId={initialTableId || undefined}
     />

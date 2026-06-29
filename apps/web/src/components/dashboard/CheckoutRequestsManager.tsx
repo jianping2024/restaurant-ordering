@@ -17,26 +17,21 @@ import {
 } from '@/lib/checkout-split-math';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
-import { requestOrderReceiptPrint } from '@/lib/request-order-receipt-print';
 import {
   checkoutLinesFromOrders,
   type CheckoutDisplayLine,
 } from '@/lib/checkout-session-lines';
-import { ReceiptPrinterSelect } from '@/components/dashboard/ReceiptPrinterSelect';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
 import {
   loadCheckoutSoundEnabled,
   saveCheckoutSoundEnabled,
 } from '@/lib/receipt-printer-preference';
-import { useReceiptPrinterPreference } from '@/lib/use-receipt-printer-preference';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import {
-  checkoutBillPrintKey,
   checkoutPersonKey,
   isCheckoutRequestBusy,
   mergeBillSplitsFromRefresh,
 } from '@/lib/checkout-request-state';
-import { useCheckoutBillPrintCooldown } from '@/lib/use-checkout-bill-print-cooldown';
 import { formatPortugueseNif } from '@/lib/pt-nif';
 import { tableIdsEqual } from '@/lib/restaurant-tables';
 import { localizeSplitPersonName } from '@/lib/split-person-label';
@@ -61,8 +56,6 @@ interface Props {
   restaurantId: string;
   /** When set, fully paid checkout enqueues a thermal order_receipt print job. */
   restaurantSlug?: string;
-  /** Frontdesk: show receipt printer picker on checkout. */
-  showPrinterSettings?: boolean;
   /** Owner or frontdesk may force-close unpaid tables from checkout. */
   canCloseTable?: boolean;
   /** Deep link from owner waiter board: auto-open this table's checkout request. */
@@ -73,7 +66,6 @@ export function CheckoutRequestsManager({
   initialRequests,
   restaurantId,
   restaurantSlug,
-  showPrinterSettings = true,
   canCloseTable = false,
   initialTableId,
 }: Props) {
@@ -95,13 +87,6 @@ export function CheckoutRequestsManager({
   const supabase = useMemo(() => createClient(), []);
   const [selectedLines, setSelectedLines] = useState<CheckoutDisplayLine[]>([]);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
-  const {
-    printerId: selectedReceiptPrinterId,
-    setPrinterId: setSelectedReceiptPrinterId,
-    settingsOpen: printSettingsOpen,
-    setSettingsOpen: setPrintSettingsOpen,
-  } = useReceiptPrinterPreference(restaurantSlug, { enabled: showPrinterSettings });
-  const { cooldownSecondsLeft, isOnCooldown, startCooldown } = useCheckoutBillPrintCooldown();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const prevRequestCountRef = useRef<number | null>(null);
   const refreshSeqRef = useRef(0);
@@ -285,9 +270,6 @@ export function CheckoutRequestsManager({
         ...(rate > 0 && discountReason
           ? { discountReason, discountReasonDetail: discountReasonDetail || undefined }
           : {}),
-        ...(showPrinterSettings && selectedReceiptPrinterId
-          ? { receiptPrinterId: selectedReceiptPrinterId }
-          : {}),
       });
       if (!outcome.ok) {
         if (
@@ -336,56 +318,6 @@ export function CheckoutRequestsManager({
       return;
     }
     void submitConfirmPersonPaid(request, rowIndex);
-  };
-
-  const handlePrintBill = async (request: BillSplit) => {
-    if (!restaurantSlug) {
-      showToast(t.printBillFailed, 'error');
-      return;
-    }
-    if (isOnCooldown(request.id)) {
-      showToast(
-        t.printBillCooldown.replace('{n}', String(cooldownSecondsLeft(request.id))),
-        'error',
-      );
-      return;
-    }
-
-    const printKey = checkoutBillPrintKey(request.id);
-    setProcessingKeys((prev) => new Set(prev).add(printKey));
-    try {
-      const outcome = await requestOrderReceiptPrint({
-        slug: restaurantSlug,
-        tableId: request.table_id,
-        sessionId: request.session_id,
-        billSplitId: request.id,
-        receiptVariant: 'checkout_bill',
-        discountRate: getDiscountRate(request.id),
-        ...(showPrinterSettings && selectedReceiptPrinterId
-          ? { receiptPrinterId: selectedReceiptPrinterId }
-          : {}),
-      });
-
-      if (!outcome.ok) {
-        showToast(t.printBillFailed, 'error');
-        return;
-      }
-      if (outcome.skipped) {
-        showToast(t.printBillSkipped, 'error');
-        return;
-      }
-
-      startCooldown(request.id);
-      showToast(t.printBillSuccess, 'success');
-    } catch {
-      showToast(t.printBillFailed, 'error');
-    } finally {
-      setProcessingKeys((prev) => {
-        const next = new Set(prev);
-        next.delete(printKey);
-        return next;
-      });
-    }
   };
 
   const pendingLabel = t.pendingBadge.replace('{n}', String(requests.length));
@@ -518,23 +450,8 @@ export function CheckoutRequestsManager({
           </div>
         </div>
       )}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-brand-border/50 pt-4">
-        <button
-          type="button"
-          onClick={() => void handlePrintBill(selectedRequest)}
-          disabled={
-            processingKeys.has(checkoutBillPrintKey(selectedRequest.id)) ||
-            isOnCooldown(selectedRequest.id)
-          }
-          className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
-        >
-          {processingKeys.has(checkoutBillPrintKey(selectedRequest.id))
-            ? t.printBillOperating
-            : isOnCooldown(selectedRequest.id)
-              ? t.printBillCooldown.replace('{n}', String(cooldownSecondsLeft(selectedRequest.id)))
-              : t.printBill}
-        </button>
-        {canCloseTable ? (
+      {canCloseTable ? (
+        <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-brand-border/50 pt-4">
           <CloseTableSessionAction
             tableId={selectedRequest.table_id}
             isCheckoutPending
@@ -543,8 +460,8 @@ export function CheckoutRequestsManager({
               void refreshCheckoutRequests();
             }}
           />
-        ) : null}
-      </div>
+        </div>
+      ) : null}
     </div>
   ) : null;
 
@@ -581,31 +498,6 @@ export function CheckoutRequestsManager({
           </label>
         </div>
 
-        {restaurantSlug && showPrinterSettings ? (
-          <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setPrintSettingsOpen((o) => !o)}
-              className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left text-sm text-brand-text hover:bg-brand-border/30 transition-colors"
-              aria-expanded={printSettingsOpen}
-            >
-              <span className="font-medium">{t.printSettings}</span>
-              <span className="text-brand-text-muted text-[13px]">
-                {printSettingsOpen ? t.printCollapse : t.printExpand}
-              </span>
-            </button>
-            {printSettingsOpen ? (
-              <div className="px-4 pb-4 border-t border-brand-border/60">
-                <ReceiptPrinterSelect
-                  restaurantSlug={restaurantSlug}
-                  value={selectedReceiptPrinterId}
-                  onChange={setSelectedReceiptPrinterId}
-                  className="pt-3"
-                />
-              </div>
-            ) : null}
-          </div>
-        ) : null}
       </header>
 
       {requests.length === 0 ? (

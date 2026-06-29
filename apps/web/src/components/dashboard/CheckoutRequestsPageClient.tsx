@@ -7,7 +7,6 @@ interface Props {
   checkoutRequests: BillSplit[];
   restaurantId: string;
   restaurantSlug: string;
-  showPrinterSettings?: boolean;
   canCloseTable?: boolean;
   initialTableId?: string;
 }
@@ -16,7 +15,6 @@ export function CheckoutRequestsPageClient({
   checkoutRequests,
   restaurantId,
   restaurantSlug,
-  showPrinterSettings,
   canCloseTable,
   initialTableId,
 }: Props) {
@@ -25,7 +23,6 @@ export function CheckoutRequestsPageClient({
       initialRequests={checkoutRequests}
       restaurantId={restaurantId}
       restaurantSlug={restaurantSlug}
-      showPrinterSettings={showPrinterSettings}
       canCloseTable={canCloseTable}
       initialTableId={initialTableId}
     />

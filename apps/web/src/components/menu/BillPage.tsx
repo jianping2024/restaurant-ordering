@@ -22,8 +22,6 @@ import type { BillSplit, DishFeedbackVote, Order, OrderItem, SplitMode, SplitRes
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { showToast } from '@/components/ui/Toast';
-import { ReceiptPrinterSelect } from '@/components/dashboard/ReceiptPrinterSelect';
-import { useReceiptPrinterPreference } from '@/lib/use-receipt-printer-preference';
 import { ByItemDishAllocator } from '@/components/menu/ByItemDishAllocator';
 
 interface Props {
@@ -106,10 +104,6 @@ export function BillPage({
   const [editingSplitNameValue, setEditingSplitNameValue] = useState('');
   const [editingCustomAmountIndex, setEditingCustomAmountIndex] = useState<number | null>(null);
   const [editingCustomAmountValue, setEditingCustomAmountValue] = useState('');
-  const {
-    printerId: selectedReceiptPrinterId,
-    setPrinterId: setSelectedReceiptPrinterId,
-  } = useReceiptPrinterPreference(isWaiterFlow ? restaurant.slug : undefined);
 
   const syncNameAcrossModes = (index: number, name: string) => {
     setSplitPeople((prev) => prev.map((person, idx) => (idx === index ? { ...person, name } : person)));
@@ -322,9 +316,6 @@ export function BillPage({
           tableId,
           sessionId,
           receiptVariant: 'pre_bill',
-          ...(selectedReceiptPrinterId
-            ? { receiptPrinterId: selectedReceiptPrinterId }
-            : {}),
         });
       }
     } catch {
@@ -341,7 +332,9 @@ export function BillPage({
       const next: Record<string, ByItemConsumerRow[]> = {};
       for (const [key, rows] of Object.entries(prev)) {
         next[key] = rows.map((row) => (
-          row.name.trim() === oldName ? { ...row, name: trimmed } : row
+          row.name.trim().toLowerCase() === oldName.toLowerCase()
+            ? { ...row, name: trimmed }
+            : row
         ));
       }
       return next;
@@ -361,9 +354,6 @@ export function BillPage({
         slug: restaurant.slug,
         billSplitId: persistedSplitId,
         personIndex: rowIndex,
-        ...(selectedReceiptPrinterId
-          ? { receiptPrinterId: selectedReceiptPrinterId }
-          : {}),
       });
       if (!outcome.ok) {
         showToast(t.actionFailed, 'error');
@@ -983,13 +973,6 @@ export function BillPage({
 
       {/* 呼叫结账 */}
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2">
-        {isWaiterFlow ? (
-          <ReceiptPrinterSelect
-            restaurantSlug={restaurant.slug}
-            value={selectedReceiptPrinterId}
-            onChange={setSelectedReceiptPrinterId}
-          />
-        ) : null}
         <Button
           className="w-full"
           size="lg"

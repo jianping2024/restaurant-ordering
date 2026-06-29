@@ -22,7 +22,7 @@ export function ReceiptPrinterSelect({
   labelClassName = 'text-[13px] text-brand-text-muted block mb-1.5',
 }: Props) {
   const { lang } = useLanguage();
-  const t = getMessages(lang).checkout;
+  const t = getMessages(lang).printAssistant.billReceipt;
   const [printers, setPrinters] = useState<ReceiptPrinterOption[]>([]);
   const [loading, setLoading] = useState(true);
 

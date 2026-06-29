@@ -27,6 +27,8 @@ export type PrintAgentCloudConfig = {
   poll?: PrintAgentPollConfig;
   /** Agent JWT lifetime in days after claim; default 365, max 365. */
   credential_ttl_days?: number;
+  /** `station:{uuid}` used for bill/pre_bill/checkout receipts when the client omits a printer. */
+  default_receipt_station_id?: string;
 };
 
 /** Flat form used on the dashboard settings page. */
@@ -136,6 +138,14 @@ function clampSec(n: number, min: number, max: number, fallback: number): number
   return Math.min(max, Math.max(min, Math.round(n)));
 }
 
+export function parseDefaultReceiptStationId(raw: unknown): string | undefined {
+  const id = typeof raw === 'string' ? raw.trim() : '';
+  if (!id.startsWith('station:')) return undefined;
+  const stationUuid = id.slice('station:'.length);
+  if (!/^[0-9a-f-]{36}$/i.test(stationUuid)) return undefined;
+  return id;
+}
+
 export function normalizePrintAgentCloudConfig(raw: unknown): PrintAgentCloudConfig {
   if (!raw || typeof raw !== 'object') return defaultPrintAgentCloudConfig();
   const o = raw as Record<string, unknown>;
@@ -146,10 +156,12 @@ export function normalizePrintAgentCloudConfig(raw: unknown): PrintAgentCloudCon
       : base.schedule;
   const poll =
     o.poll && typeof o.poll === 'object' ? (o.poll as PrintAgentPollConfig) : base.poll;
+  const default_receipt_station_id = parseDefaultReceiptStationId(o.default_receipt_station_id);
   return {
     schedule,
     poll,
     credential_ttl_days: resolvePrintAgentCredentialTtlDays(o),
+    ...(default_receipt_station_id ? { default_receipt_station_id } : {}),
   };
 }
 
@@ -160,7 +172,13 @@ export function validatePrintAgentCloudConfig(raw: unknown): { ok: true; config:
     const out = formToCloudConfig(form);
     return {
       ok: true,
-      config: { ...out, credential_ttl_days: c.credential_ttl_days },
+      config: {
+        ...out,
+        credential_ttl_days: c.credential_ttl_days,
+        ...(c.default_receipt_station_id
+          ? { default_receipt_station_id: c.default_receipt_station_id }
+          : {}),
+      },
     };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'invalid_config' };

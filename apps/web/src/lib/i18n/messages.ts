@@ -521,6 +521,21 @@ export const MESSAGES = {
       devicesMappedStations: '已映射档口数',
       devicesLastPrint: '最近打印',
       devicesUnlabeled: '收银机',
+      billReceipt: {
+        title: '账单打印',
+        subtitle: '结账、预结单与收款小票将使用此处指定的默认打印机；未选择时按档口排序使用第一台已映射打印机。',
+        mappingHint: '打印机映射请在收银电脑托盘「打印机设置」中配置；此处仅选择默认账单档口。',
+        receiptPrinter: '默认账单打印机',
+        receiptPrinterNone: '自动（第一台已映射）',
+        receiptPrinterCurrent: '当前：{label}',
+        receiptPrinterCurrentNone: '当前：自动选择第一台已映射打印机',
+        receiptPrintersLoading: '加载打印机列表…',
+        receiptPrintersEmpty: '暂无已映射打印机。请先在收银机完成配对并配置档口映射。',
+        save: '保存',
+        saving: '保存中…',
+        saved: '已保存',
+        errorPrefix: '保存失败：',
+      },
       scheduleTitle: '营业时间与拉取策略',
       scheduleSubtitle:
         '保存后，打印助手在下次启动时会从 {brand} 拉取并覆盖本机 config 中的 schedule / poll（打印机地址仍用本机配置）。运行中不会反复拉取。',
@@ -1154,6 +1169,7 @@ export const MESSAGES = {
       byItemRemaining: '还差 {qty}',
       byItemComplete: '已分完',
       removeConsumer: '移除',
+      consumerUseName: '使用「{name}」',
       nifLabel: 'NIF 税号（选填）',
       nifPlaceholder: '123 456 789',
       nifHint: '如需发票，请填写葡萄牙税号（9 位数字）',
@@ -1600,6 +1616,23 @@ export const MESSAGES = {
       devicesMappedStations: 'Mapped stations',
       devicesLastPrint: 'Last print',
       devicesUnlabeled: 'Register',
+      billReceipt: {
+        title: 'Bill printing',
+        subtitle:
+          'Checkout, pre-bills, and payment receipts use this default printer. If unset, the first mapped station (by sort order) is used.',
+        mappingHint:
+          'Map printers to stations in the print agent on the register PC (tray → Printer settings). Here you only pick the default bill station.',
+        receiptPrinter: 'Default bill printer',
+        receiptPrinterNone: 'Auto (first mapped)',
+        receiptPrinterCurrent: 'Current: {label}',
+        receiptPrinterCurrentNone: 'Current: auto — first mapped station',
+        receiptPrintersLoading: 'Loading printers…',
+        receiptPrintersEmpty: 'No mapped printers yet. Pair the print agent and map stations first.',
+        save: 'Save',
+        saving: 'Saving…',
+        saved: 'Saved',
+        errorPrefix: 'Save failed: ',
+      },
       scheduleTitle: 'Hours & polling',
       scheduleSubtitle:
         'Saved settings are fetched once when the print agent starts (overrides local schedule/poll; printer addresses stay on the PC). Not polled while running.',
@@ -1944,7 +1977,7 @@ export const MESSAGES = {
       tooltipChildren: 'Children',
     },
     kitchen: { display: 'Kitchen Display', pendingCount: 'pending orders', allDone: 'All orders are completed', table: 'Table', newOrder: 'New', cooking: 'Cooking', completed: 'Done', voided: 'Voided', startCooking: 'Start cooking', finishServing: 'Mark done', voidItem: 'Void', firstBatch: 'First order', addOnBatch: 'Add-on', openTableIdle: 'No kitchen tickets yet — guests may order again', openTableBadge: 'Seated', openTablesIdleNote: '{n} more seated table(s) with no pending tickets', backToDashboard: 'Back to dashboard', signOut: 'Sign out' },
-    bill: { guest: 'Guest', wholeTable: 'Whole table', actionFailed: 'Action failed, please retry', notified: 'Staff has been notified', comingSoon: 'Please wait, staff will assist checkout soon', feedbackTitle: 'How was each dish?', feedbackHint: 'Takes about 10 seconds, optional', feedbackSkip: 'Skip', feedbackSubmit: 'Submit feedback', feedbackThanks: 'Thanks, your feedback helps us improve', thumbsUp: 'Like', thumbsDown: 'Dislike', reasonTaste: 'Taste issue', reasonTemp: 'Temperature issue', reasonSlow: 'Too slow', reasonMismatch: 'Not as described', reasonOther: 'Other', cancelledTag: 'Cancelled', noFeedbackItems: 'No reviewable dishes this time', totalLabel: 'Total', table: 'Table', settlement: 'Bill Settlement', details: 'Bill Details', total: 'Total', splitMode: 'Split mode', even: 'Even', byItem: 'By item', custom: 'Custom', people: 'People', addPerson: 'Add person', splitResult: 'Split result', callBill: 'Call for bill', splitUnassignedItems: 'Some dishes are not assigned — finish splitting before calling for the bill', splitIncompleteQty: 'Some dish quantities are not fully allocated — check each item', splitAmountMismatch: 'Split amounts do not match the total — adjust before calling for the bill', addConsumer: 'Add consumer', consumerNamePlaceholder: 'Name', consumerQtyPlaceholder: 'Qty', byItemRemaining: '{qty} left', byItemComplete: 'Fully allocated', removeConsumer: 'Remove', nifLabel: 'NIF (optional)', nifPlaceholder: '123 456 789', nifHint: 'For invoice — Portuguese tax ID (9 digits)', nifInvalid: 'Invalid NIF — check the 9 digits', itemPending: 'Pending', itemCooking: 'Preparing', itemDone: 'Served', buffetGuestCounts: '{adults} adults · {children} children' },
+    bill: { guest: 'Guest', wholeTable: 'Whole table', actionFailed: 'Action failed, please retry', notified: 'Staff has been notified', comingSoon: 'Please wait, staff will assist checkout soon', feedbackTitle: 'How was each dish?', feedbackHint: 'Takes about 10 seconds, optional', feedbackSkip: 'Skip', feedbackSubmit: 'Submit feedback', feedbackThanks: 'Thanks, your feedback helps us improve', thumbsUp: 'Like', thumbsDown: 'Dislike', reasonTaste: 'Taste issue', reasonTemp: 'Temperature issue', reasonSlow: 'Too slow', reasonMismatch: 'Not as described', reasonOther: 'Other', cancelledTag: 'Cancelled', noFeedbackItems: 'No reviewable dishes this time', totalLabel: 'Total', table: 'Table', settlement: 'Bill Settlement', details: 'Bill Details', total: 'Total', splitMode: 'Split mode', even: 'Even', byItem: 'By item', custom: 'Custom', people: 'People', addPerson: 'Add person', splitResult: 'Split result', callBill: 'Call for bill', splitUnassignedItems: 'Some dishes are not assigned — finish splitting before calling for the bill', splitIncompleteQty: 'Some dish quantities are not fully allocated — check each item', splitAmountMismatch: 'Split amounts do not match the total — adjust before calling for the bill', addConsumer: 'Add consumer', consumerNamePlaceholder: 'Name', consumerQtyPlaceholder: 'Qty', byItemRemaining: '{qty} left', byItemComplete: 'Fully allocated', removeConsumer: 'Remove', consumerUseName: 'Use "{name}"', nifLabel: 'NIF (optional)', nifPlaceholder: '123 456 789', nifHint: 'For invoice — Portuguese tax ID (9 digits)', nifInvalid: 'Invalid NIF — check the 9 digits', itemPending: 'Pending', itemCooking: 'Preparing', itemDone: 'Served', buffetGuestCounts: '{adults} adults · {children} children' },
   },
   pt: {
     nav: { overview: 'Visao geral', tables: 'Config. mesas', checkout: 'Solicitacoes de fechamento', printAssistant: 'Assistente de impressao', menu: 'Gestao do menu', buffet: 'Precos buffet', orders: 'Pedidos pagos', settings: 'Configuracoes', abnormalOps: 'Operacoes anormais', valueAnalytics: 'Analise de valor', viewKitchen: 'Abrir tela da cozinha', viewWaiter: 'Painel do garcom', logout: 'Sair', systemSettings: 'Sistema' },
@@ -2382,6 +2415,23 @@ export const MESSAGES = {
       devicesMappedStations: 'Estacoes mapeadas',
       devicesLastPrint: 'Ultima impressao',
       devicesUnlabeled: 'Caixa',
+      billReceipt: {
+        title: 'Impressao de contas',
+        subtitle:
+          'Fechamento, pre-contas e recibos usam esta impressora predefinida. Se nao escolher, usa a primeira estacao mapeada (por ordem).',
+        mappingHint:
+          'Mapeie impressoras nas definicoes do agente no PC da caixa (bandeja → Definicoes de impressora). Aqui escolhe apenas a estacao predefinida para contas.',
+        receiptPrinter: 'Impressora predefinida para contas',
+        receiptPrinterNone: 'Automatico (primeira mapeada)',
+        receiptPrinterCurrent: 'Atual: {label}',
+        receiptPrinterCurrentNone: 'Atual: automatico — primeira estacao mapeada',
+        receiptPrintersLoading: 'A carregar impressoras…',
+        receiptPrintersEmpty: 'Sem impressoras mapeadas. Emparelhe o agente e configure as estacoes primeiro.',
+        save: 'Guardar',
+        saving: 'A guardar…',
+        saved: 'Guardado',
+        errorPrefix: 'Falha ao guardar: ',
+      },
       scheduleTitle: 'Horario e polling',
       scheduleSubtitle:
         'Ao guardar, o agente aplica na proxima arrancada (substitui schedule/poll local; impressoras ficam no PC). Nao ha polling de configuracao em execucao.',
@@ -2726,7 +2776,7 @@ export const MESSAGES = {
       tooltipChildren: 'Criancas',
     },
     kitchen: { display: 'Tela da cozinha', pendingCount: 'pedidos pendentes', allDone: 'Todos os pedidos foram concluídos', table: 'Mesa', newOrder: 'Novo', cooking: 'Em preparo', completed: 'Concluido', voided: 'Cancelado', startCooking: 'Iniciar preparo', finishServing: 'Finalizar pedido', voidItem: 'Cancelar prato', firstBatch: 'Pedido inicial', addOnBatch: 'Adicao', openTableIdle: 'Sem pedidos de cozinha — clientes podem pedir de novo', openTableBadge: 'Na mesa', openTablesIdleNote: 'Mais {n} mesa(s) ativa(s) sem pedidos pendentes', backToDashboard: 'Voltar ao painel', signOut: 'Sair' },
-    bill: { guest: 'Pessoa', wholeTable: 'Mesa inteira', actionFailed: 'Falha na operacao, tente novamente', notified: 'Garcom foi avisado', comingSoon: 'Aguarde, o garcom fara o fechamento em instantes', feedbackTitle: 'Como foi cada prato?', feedbackHint: 'Leva cerca de 10 segundos e e opcional', feedbackSkip: 'Pular', feedbackSubmit: 'Enviar avaliacao', feedbackThanks: 'Obrigado, seu feedback ajuda a melhorar', thumbsUp: 'Curtir', thumbsDown: 'Nao curtir', reasonTaste: 'Problema de sabor', reasonTemp: 'Problema de temperatura', reasonSlow: 'Demorou demais', reasonMismatch: 'Diferente da descricao', reasonOther: 'Outro', cancelledTag: 'Cancelado', noFeedbackItems: 'Sem pratos avaliaveis nesta rodada', totalLabel: 'Total', table: 'Mesa', settlement: 'Fechamento da conta', details: 'Detalhes da conta', total: 'Total', splitMode: 'Forma de divisao', even: 'Igual', byItem: 'Por prato', custom: 'Personalizado', people: 'Pessoas', addPerson: 'Adicionar pessoa', splitResult: 'Resultado da divisao', callBill: 'Chamar fechamento', splitUnassignedItems: 'Ainda ha pratos sem atribuir — conclua a divisao antes de chamar o fechamento', splitIncompleteQty: 'Ainda ha quantidades por atribuir — verifique cada prato', splitAmountMismatch: 'Os valores da divisao nao batem com o total — ajuste antes de chamar o fechamento', addConsumer: 'Adicionar consumidor', consumerNamePlaceholder: 'Nome', consumerQtyPlaceholder: 'Qtd', byItemRemaining: 'Faltam {qty}', byItemComplete: 'Totalmente atribuido', removeConsumer: 'Remover', nifLabel: 'NIF (opcional)', nifPlaceholder: '123 456 789', nifHint: 'Para fatura — NIF portugues (9 digitos)', nifInvalid: 'NIF invalido — verifique os 9 digitos', itemPending: 'Pendente', itemCooking: 'Em preparo', itemDone: 'Servido', buffetGuestCounts: '{adults} adultos · {children} criancas' },
+    bill: { guest: 'Pessoa', wholeTable: 'Mesa inteira', actionFailed: 'Falha na operacao, tente novamente', notified: 'Garcom foi avisado', comingSoon: 'Aguarde, o garcom fara o fechamento em instantes', feedbackTitle: 'Como foi cada prato?', feedbackHint: 'Leva cerca de 10 segundos e e opcional', feedbackSkip: 'Pular', feedbackSubmit: 'Enviar avaliacao', feedbackThanks: 'Obrigado, seu feedback ajuda a melhorar', thumbsUp: 'Curtir', thumbsDown: 'Nao curtir', reasonTaste: 'Problema de sabor', reasonTemp: 'Problema de temperatura', reasonSlow: 'Demorou demais', reasonMismatch: 'Diferente da descricao', reasonOther: 'Outro', cancelledTag: 'Cancelado', noFeedbackItems: 'Sem pratos avaliaveis nesta rodada', totalLabel: 'Total', table: 'Mesa', settlement: 'Fechamento da conta', details: 'Detalhes da conta', total: 'Total', splitMode: 'Forma de divisao', even: 'Igual', byItem: 'Por prato', custom: 'Personalizado', people: 'Pessoas', addPerson: 'Adicionar pessoa', splitResult: 'Resultado da divisao', callBill: 'Chamar fechamento', splitUnassignedItems: 'Ainda ha pratos sem atribuir — conclua a divisao antes de chamar o fechamento', splitIncompleteQty: 'Ainda ha quantidades por atribuir — verifique cada prato', splitAmountMismatch: 'Os valores da divisao nao batem com o total — ajuste antes de chamar o fechamento', addConsumer: 'Adicionar consumidor', consumerNamePlaceholder: 'Nome', consumerQtyPlaceholder: 'Qtd', byItemRemaining: 'Faltam {qty}', byItemComplete: 'Totalmente atribuido', removeConsumer: 'Remover', consumerUseName: 'Usar "{name}"', nifLabel: 'NIF (opcional)', nifPlaceholder: '123 456 789', nifHint: 'Para fatura — NIF portugues (9 digitos)', nifInvalid: 'NIF invalido — verifique os 9 digitos', itemPending: 'Pendente', itemCooking: 'Em preparo', itemDone: 'Servido', buffetGuestCounts: '{adults} adultos · {children} criancas' },
   },
 } as const;
 

@@ -7,6 +7,7 @@ import {
   type ReceiptPrinterRoutingSnapshot,
   type StationRow,
 } from '@/lib/print-receipt-printer-options';
+import { parseDefaultReceiptStationId } from '@/lib/print-agent-config';
 
 /** Union routing from all active agents (newer devices listed first for same id). */
 export async function loadRestaurantReceiptPrinterSnapshot(
@@ -66,7 +67,7 @@ function printLocaleToUi(locale: string | null | undefined): 'pt' | 'en' | 'zh' 
   return 'pt';
 }
 
-/** Explicit picker id, or first mapped station (print_stations.sort_order) for guest receipts. */
+/** Explicit picker id, configured default, or first mapped station (print_stations.sort_order). */
 export async function resolveReceiptPrinterId(
   admin: SupabaseClient,
   restaurantId: string,
@@ -77,6 +78,17 @@ export async function resolveReceiptPrinterId(
   const allowed = assertReceiptPrinterIdAllowed(explicitId, snapshot);
   if (allowed) return allowed;
   if (!snapshot?.receipt_printers.length) return undefined;
+
+  const { data: restaurantRow } = await admin
+    .from('restaurants')
+    .select('print_agent_config')
+    .eq('id', restaurantId)
+    .maybeSingle();
+  const configDefault = parseDefaultReceiptStationId(
+    (restaurantRow?.print_agent_config as Record<string, unknown> | null)?.default_receipt_station_id,
+  );
+  const configuredDefault = assertReceiptPrinterIdAllowed(configDefault, snapshot);
+  if (configuredDefault) return configuredDefault;
 
   const { data: stations } = await admin
     .from('print_stations')

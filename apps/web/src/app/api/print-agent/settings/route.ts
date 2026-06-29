@@ -5,6 +5,7 @@ import {
   defaultPrintAgentCloudConfig,
   normalizePrintAgentCloudConfig,
   validatePrintAgentCloudConfig,
+  type PrintAgentCloudConfig,
 } from '@/lib/print-agent-config';
 import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
 
@@ -58,11 +59,6 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const validated = validatePrintAgentCloudConfig(body);
-  if (!validated.ok) {
-    return NextResponse.json({ error: validated.error }, { status: 400 });
-  }
-
   let admin;
   try {
     admin = createAdminClient();
@@ -70,9 +66,31 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
+  const { data: row, error: readErr } = await admin
+    .from('restaurants')
+    .select('print_agent_config')
+    .eq('id', auth.restaurantId)
+    .single();
+  if (readErr) {
+    return NextResponse.json({ error: 'query_failed', message: readErr.message }, { status: 500 });
+  }
+
+  const existing = normalizePrintAgentCloudConfig(row?.print_agent_config);
+  const validated = validatePrintAgentCloudConfig(body);
+  if (!validated.ok) {
+    return NextResponse.json({ error: validated.error }, { status: 400 });
+  }
+
+  const merged: PrintAgentCloudConfig = {
+    ...validated.config,
+    ...(existing.default_receipt_station_id
+      ? { default_receipt_station_id: existing.default_receipt_station_id }
+      : {}),
+  };
+
   const { error } = await admin
     .from('restaurants')
-    .update({ print_agent_config: validated.config })
+    .update({ print_agent_config: merged })
     .eq('id', auth.restaurantId);
 
   if (error) {
@@ -80,7 +98,7 @@ export async function PUT(req: Request) {
   }
 
   return NextResponse.json({
-    config: validated.config,
-    form: cloudConfigToForm(validated.config),
+    config: merged,
+    form: cloudConfigToForm(merged),
   });
 }

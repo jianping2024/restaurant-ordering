@@ -13,15 +13,9 @@ const OPTIONS: { id: UILanguage; label: string; menuLabel: string }[] = [
 interface LanguageSwitcherProps {
   compact?: boolean;
   variant?: 'inline' | 'menu' | 'icon';
-  /** Icon variant only: popover opens upward (default) or to the right (collapsed sidebar). */
-  menuSide?: 'top' | 'right';
 }
 
-export function LanguageSwitcher({
-  compact = false,
-  variant = 'inline',
-  menuSide = 'top',
-}: LanguageSwitcherProps) {
+export function LanguageSwitcher({ compact = false, variant = 'inline' }: LanguageSwitcherProps) {
   const { lang, setLang } = useLanguage();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -67,11 +61,7 @@ export function LanguageSwitcher({
         {open ? (
           <div
             role="listbox"
-            className={`absolute min-w-[7rem] rounded-xl border border-brand-border bg-brand-card py-1 shadow-sm ${
-              menuSide === 'right'
-                ? 'left-full bottom-0 ml-1.5'
-                : 'bottom-full left-0 mb-1.5'
-            }`}
+            className="absolute bottom-full left-0 mb-1.5 min-w-[7rem] rounded-xl border border-brand-border bg-brand-card py-1 shadow-sm"
           >
             {OPTIONS.map((option) => (
               <button

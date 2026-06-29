@@ -6,30 +6,9 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle';
 interface DashboardNavFooterProps {
   logoutLabel: string;
   onLogout: () => void;
-  collapsed: boolean;
 }
 
-export function DashboardNavFooter({ logoutLabel, onLogout, collapsed }: DashboardNavFooterProps) {
-  if (collapsed) {
-    return (
-      <div className="shrink-0 overflow-visible border-t border-brand-border px-2 py-3">
-        <div className="flex flex-col items-center gap-2">
-          <ThemeToggle />
-          <LanguageSwitcher variant="icon" menuSide="right" />
-          <button
-            type="button"
-            onClick={onLogout}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-border bg-brand-bg text-sm text-brand-text-muted transition-colors hover:border-brand-gold/40 hover:text-status-danger"
-            title={logoutLabel}
-            aria-label={logoutLabel}
-          >
-            <span aria-hidden>🚪</span>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+export function DashboardNavFooter({ logoutLabel, onLogout }: DashboardNavFooterProps) {
   return (
     <div className="shrink-0 border-t border-brand-border px-4 py-3">
       <div className="flex items-center gap-2">

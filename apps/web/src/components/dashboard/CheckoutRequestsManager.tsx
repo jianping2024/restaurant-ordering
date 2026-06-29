@@ -58,9 +58,6 @@ import {
   hasCheckoutCollections,
 } from '@/lib/checkout-settlement';
 
-/** Fallback when Realtime is delayed; only runs while the tab is visible. */
-const CHECKOUT_REQUESTS_POLL_MS = 30_000;
-
 interface Props {
   initialRequests: BillSplit[];
   /** From server after loadDashboardAccess — used for Realtime filter (RLS enforces access). */
@@ -141,7 +138,6 @@ export function CheckoutRequestsManager({
 
   useEffect(() => {
     let channel: RealtimeChannel | null = null;
-    let pollTimer: number | null = null;
 
     const subscribe = () => {
       if (channel) return;
@@ -159,18 +155,9 @@ export function CheckoutRequestsManager({
           () => void refreshCheckoutRequests(),
         )
         .subscribe();
-      pollTimer = window.setInterval(() => {
-        if (document.visibilityState === 'visible') {
-          void refreshCheckoutRequests();
-        }
-      }, CHECKOUT_REQUESTS_POLL_MS);
     };
 
     const unsubscribe = () => {
-      if (pollTimer !== null) {
-        window.clearInterval(pollTimer);
-        pollTimer = null;
-      }
       if (channel) {
         supabase.removeChannel(channel);
         channel = null;

@@ -32,6 +32,8 @@ export function PrintAgentDevicesPanel({
   const [revokeTarget, setRevokeTarget] = useState<PrintAgentDeviceHeartbeatRow | null>(null);
   const [error, setError] = useState('');
 
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
@@ -45,9 +47,17 @@ export function PrintAgentDevicesPanel({
   }, []);
 
   useEffect(() => {
-    const id = window.setInterval(() => void refresh(), 30_000);
-    return () => window.clearInterval(id);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void refresh();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, [refresh]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const runRevoke = async () => {
     const target = revokeTarget;
@@ -102,7 +112,7 @@ export function PrintAgentDevicesPanel({
       {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
       <ul className="modal-scroll mt-4 max-h-96 space-y-3 overflow-y-auto">
         {devices.map((d) => {
-          const online = isPrintAgentDeviceOnline(d.last_seen);
+          const online = isPrintAgentDeviceOnline(d.last_seen, nowMs);
           const versionBehind =
             recommendedVersion &&
             d.agent_version &&
@@ -140,7 +150,7 @@ export function PrintAgentDevicesPanel({
                 <div>
                   <dt className="inline">{t.devicesLastSeen}: </dt>
                   <dd className="inline text-brand-ink">
-                    {formatLastSeenRelative(d.last_seen, locale)}
+                    {formatLastSeenRelative(d.last_seen, locale, nowMs)}
                   </dd>
                 </div>
                 <div>
@@ -168,7 +178,7 @@ export function PrintAgentDevicesPanel({
                   <dt className="inline">{t.devicesLastPrint}: </dt>
                   <dd className="inline text-brand-ink">
                     {d.last_print_at
-                      ? `${formatLastSeenRelative(d.last_print_at, locale)} — ${
+                      ? `${formatLastSeenRelative(d.last_print_at, locale, nowMs)} — ${
                           d.last_print_status === 'done'
                             ? t.statusDone
                             : d.last_print_status === 'failed'

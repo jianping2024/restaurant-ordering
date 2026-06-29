@@ -1,6 +1,7 @@
 import type { SplitMode } from '@/types';
 import {
-  lineAllocationComplete,
+  getByItemLineStatusFromShares,
+  isByItemLineComplete,
   type ByItemLineAllocation,
 } from '@/lib/bill-split-by-item';
 
@@ -41,14 +42,11 @@ export function validateBillSplit(params: {
   if (splitMode === 'by_item' && itemLines) {
     for (const line of itemLines) {
       const shares = byItemAllocations?.[line.key] || [];
-      if (shares.length === 0) {
+      const status = getByItemLineStatusFromShares(line.qty, shares);
+      if (status.kind === 'empty') {
         return { ok: false, issue: 'unassigned_items' };
       }
-      const names = shares.map((share) => share.name.trim().toLowerCase());
-      if (names.some((name) => !name) || new Set(names).size !== names.length) {
-        return { ok: false, issue: 'incomplete_qty' };
-      }
-      if (!lineAllocationComplete(line.qty, shares)) {
+      if (!isByItemLineComplete(status)) {
         return { ok: false, issue: 'incomplete_qty' };
       }
     }

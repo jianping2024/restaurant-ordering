@@ -3,8 +3,12 @@ import { describe, it } from 'node:test';
 import {
   buildByItemAllocationsFromRows,
   byItemLinePriceShare,
+  byItemLineStatusSummary,
   calcByItemSplitResults,
   consumersForLineFromPersons,
+  getByItemLineStatusFromRows,
+  getByItemLineStatusFromShares,
+  isByItemLineComplete,
   parseConsumerRows,
   shareQtyLabel,
   withDefaultByItemLineRows,
@@ -34,6 +38,63 @@ describe('withDefaultByItemLineRows', () => {
       a: [{ id: 'stable-a', name: 'John', qtyInput: '1' }],
     };
     assert.equal(withDefaultByItemLineRows(existing, ['a']), existing);
+  });
+});
+describe('getByItemLineStatus', () => {
+  const labels = {
+    complete: '已分完 · {qty}',
+    remaining: '还差 {qty} · 已分 {allocated}',
+    over: '超出 {qty} · 已分 {allocated}',
+    missingNames: '请填写姓名',
+    duplicateNames: '不能重复',
+    unassigned: '还差 {qty}',
+  };
+
+  it('marks a fully allocated line complete', () => {
+    const status = getByItemLineStatusFromRows(
+      [
+        { id: '1', name: 'John', qtyInput: '1/2' },
+        { id: '2', name: 'Jimmy', qtyInput: '3' },
+      ],
+      3.5,
+    );
+    assert.equal(status.kind, 'complete');
+    assert.equal(byItemLineStatusSummary(status, labels).tone, 'success');
+    assert.equal(byItemLineStatusSummary(status, labels).text, '已分完 · 3 1/2');
+  });
+
+  it('shows excess instead of zero remaining when over-allocated', () => {
+    const status = getByItemLineStatusFromRows(
+      [{ id: '1', name: 'John', qtyInput: '4' }],
+      3,
+    );
+    assert.equal(status.kind, 'over');
+    assert.equal(byItemLineStatusSummary(status, labels).tone, 'error');
+    assert.match(byItemLineStatusSummary(status, labels).text, /^超出 /);
+  });
+
+  it('flags duplicate names before quantity mismatch', () => {
+    const status = getByItemLineStatusFromRows(
+      [
+        { id: '1', name: 'John', qtyInput: '1' },
+        { id: '2', name: 'john', qtyInput: '1' },
+      ],
+      3,
+    );
+    assert.equal(status.kind, 'duplicate_names');
+    assert.equal(byItemLineStatusSummary(status, labels).text, '不能重复');
+  });
+
+  it('shares the same complete rule as checkout validation', () => {
+    const rows = [
+      { id: '1', name: 'tom', qtyInput: '2 1/3' },
+      { id: '2', name: 'jerry', qtyInput: '1 1/3' },
+      { id: '3', name: 'candy', qtyInput: '1 1/3' },
+    ];
+    const allocations = buildByItemAllocationsFromRows([{ key: 'order-0', rows }]);
+    const shares = allocations['order-0'] ?? [];
+    assert.equal(isByItemLineComplete(getByItemLineStatusFromShares(5, shares)), true);
+    assert.equal(isByItemLineComplete(getByItemLineStatusFromRows(rows, 5)), true);
   });
 });
 describe('calcByItemSplitResults', () => {

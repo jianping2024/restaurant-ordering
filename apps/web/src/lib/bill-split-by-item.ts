@@ -74,6 +74,141 @@ export function parseConsumerRows(
   return parsed;
 }
 
+export type ByItemLineStatus =
+  | { kind: 'empty'; target: Rational }
+  | { kind: 'missing_names'; allocated: Rational }
+  | { kind: 'duplicate_names'; allocated: Rational }
+  | { kind: 'short'; remaining: Rational; allocated: Rational }
+  | { kind: 'over'; excess: Rational; allocated: Rational }
+  | { kind: 'complete'; allocated: Rational };
+
+function allocatedSum(shares: Array<{ qty: Rational }>): Rational {
+  if (shares.length === 0) return { num: 0, den: 1 };
+  return sumRationals(shares.map((share) => share.qty));
+}
+
+function qtyDiff(target: Rational, allocated: Rational): Rational {
+  return normalizeRational({
+    num: target.num * allocated.den - allocated.num * target.den,
+    den: target.den * allocated.den,
+  });
+}
+
+function evaluateByItemLineShares(
+  lineQty: number,
+  shares: Array<{ name: string; qty: Rational }>,
+): ByItemLineStatus {
+  const target = lineQtyRational(lineQty);
+  if (shares.length === 0) {
+    return { kind: 'empty', target };
+  }
+
+  const names = shares.map((share) => share.name.trim().toLowerCase());
+  const allocated = allocatedSum(shares);
+  if (names.some((name) => !name)) {
+    return { kind: 'missing_names', allocated };
+  }
+  if (new Set(names).size !== names.length) {
+    return { kind: 'duplicate_names', allocated };
+  }
+
+  const diff = qtyDiff(target, allocated);
+  if (diff.num === 0) return { kind: 'complete', allocated };
+  if (diff.num > 0) return { kind: 'short', remaining: diff, allocated };
+  return {
+    kind: 'over',
+    excess: normalizeRational({ num: -diff.num, den: diff.den }),
+    allocated,
+  };
+}
+
+export function getByItemLineStatusFromRows(
+  rows: ByItemConsumerRow[],
+  lineQty: number,
+): ByItemLineStatus {
+  for (const row of rows) {
+    const qty = parseQtyInput(row.qtyInput);
+    if (qty && qty.num > 0 && !row.name.trim()) {
+      const partial = parseConsumerRows(rows);
+      return { kind: 'missing_names', allocated: allocatedSum(partial) };
+    }
+  }
+
+  const names = rows.map((row) => row.name.trim()).filter(Boolean);
+  const lower = names.map((name) => name.toLowerCase());
+  if (lower.length > 0 && new Set(lower).size !== lower.length) {
+    const partial = parseConsumerRows(rows);
+    return { kind: 'duplicate_names', allocated: allocatedSum(partial) };
+  }
+
+  return evaluateByItemLineShares(lineQty, parseConsumerRows(rows));
+}
+
+export function getByItemLineStatusFromShares(
+  lineQty: number,
+  shares: ByItemConsumerShare[],
+): ByItemLineStatus {
+  return evaluateByItemLineShares(
+    lineQty,
+    shares.map((share) => ({ name: share.name, qty: share.qty })),
+  );
+}
+
+export type ByItemLineStatusLabels = {
+  complete: string;
+  remaining: string;
+  over: string;
+  missingNames: string;
+  duplicateNames: string;
+  unassigned: string;
+};
+
+export type ByItemLineStatusTone = 'success' | 'muted' | 'error';
+
+export function byItemLineStatusSummary(
+  status: ByItemLineStatus,
+  labels: ByItemLineStatusLabels,
+): { text: string; tone: ByItemLineStatusTone } {
+  const allocatedLabel = formatRational(
+    status.kind === 'empty' ? { num: 0, den: 1 } : status.allocated,
+  );
+
+  switch (status.kind) {
+    case 'complete':
+      return {
+        text: labels.complete.replace('{qty}', formatRational(status.allocated)),
+        tone: 'success',
+      };
+    case 'short':
+      return {
+        text: labels.remaining
+          .replace('{qty}', formatRational(status.remaining))
+          .replace('{allocated}', allocatedLabel),
+        tone: 'muted',
+      };
+    case 'over':
+      return {
+        text: labels.over
+          .replace('{qty}', formatRational(status.excess))
+          .replace('{allocated}', allocatedLabel),
+        tone: 'error',
+      };
+    case 'missing_names':
+      return { text: labels.missingNames, tone: 'error' };
+    case 'duplicate_names':
+      return { text: labels.duplicateNames, tone: 'error' };
+    case 'empty':
+      return {
+        text: labels.unassigned.replace('{qty}', formatRational(status.target)),
+        tone: 'muted',
+      };
+  }
+}
+
+export function isByItemLineComplete(status: ByItemLineStatus): boolean {
+  return status.kind === 'complete';
+}
+
 export function lineAllocationComplete(
   lineQty: number,
   shares: Array<{ qty: Rational }>,

@@ -2,26 +2,19 @@
 
 import { useMemo } from 'react';
 import {
-  compareRationalSumToTarget,
-  formatRational,
-  normalizeRational,
-  parseQtyInput,
-  rationalFromNumber,
-  sumRationals,
-} from '@/lib/rational-qty';
-import {
+  byItemLineStatusSummary,
   createByItemConsumerRow,
+  getByItemLineStatusFromRows,
   type ByItemConsumerRow,
+  type ByItemLineStatusLabels,
 } from '@/lib/bill-split-by-item';
 import { availableConsumerNamesForRow } from '@/lib/consumer-name-roster';
 import { ConsumerNameCombobox } from '@/components/menu/ConsumerNameCombobox';
 
-export type ByItemDishAllocatorLabels = {
+export type ByItemDishAllocatorLabels = ByItemLineStatusLabels & {
   addConsumer: string;
   namePlaceholder: string;
   qtyPlaceholder: string;
-  remaining: string;
-  complete: string;
   remove: string;
 };
 
@@ -36,6 +29,12 @@ interface Props {
   onRememberConsumerName: (name: string, fromList: boolean) => void;
 }
 
+const STATUS_TONE_CLASS = {
+  success: 'text-emerald-600',
+  muted: 'text-brand-text-muted',
+  error: 'text-red-500',
+} as const;
+
 export function ByItemDishAllocator({
   title,
   lineTotal,
@@ -46,19 +45,10 @@ export function ByItemDishAllocator({
   onChange,
   onRememberConsumerName,
 }: Props) {
-  const { allocatedLabel, isComplete, remaining } = useMemo(() => {
-    const shares = rows
-      .map((row) => parseQtyInput(row.qtyInput))
-      .filter((qty): qty is NonNullable<typeof qty> => !!qty && qty.num > 0);
-    const sum = sumRationals(shares);
-    const compare = compareRationalSumToTarget(shares, lineQty);
-    const remaining = remainingQty(lineQty, sum);
-    return {
-      allocatedLabel: formatRational(sum),
-      isComplete: compare === 0,
-      remaining: remaining,
-    };
-  }, [rows, lineQty]);
+  const statusSummary = useMemo(() => {
+    const status = getByItemLineStatusFromRows(rows, lineQty);
+    return byItemLineStatusSummary(status, labels);
+  }, [rows, lineQty, labels]);
 
   const updateRow = (rowId: string, patch: Partial<ByItemConsumerRow>) => {
     onChange(rows.map((row) => (row.id === rowId ? { ...row, ...patch } : row)));
@@ -78,11 +68,8 @@ export function ByItemDishAllocator({
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0">
           <p className="text-brand-text text-sm leading-snug">{title}</p>
-          <p className={`text-[12px] mt-1 ${isComplete ? 'text-emerald-600' : 'text-brand-text-muted'}`}>
-            {isComplete
-              ? labels.complete
-              : labels.remaining.replace('{qty}', formatRemaining(remaining))}
-            {!isComplete && allocatedLabel !== '0' ? ` · ${allocatedLabel}` : ''}
+          <p className={`text-[12px] mt-1 ${STATUS_TONE_CLASS[statusSummary.tone]}`}>
+            {statusSummary.text}
           </p>
         </div>
         <span className="text-brand-gold text-[13px] shrink-0 tabular-nums">€{lineTotal.toFixed(2)}</span>
@@ -131,17 +118,4 @@ export function ByItemDishAllocator({
       </button>
     </div>
   );
-}
-
-function formatRemaining(value: { num: number; den: number }) {
-  if (value.num <= 0) return '0';
-  return formatRational(value);
-}
-
-function remainingQty(lineQty: number, allocated: { num: number; den: number }) {
-  const target = rationalFromNumber(lineQty);
-  return normalizeRational({
-    num: target.num * allocated.den - allocated.num * target.den,
-    den: target.den * allocated.den,
-  });
 }

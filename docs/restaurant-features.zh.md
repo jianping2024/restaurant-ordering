@@ -9,11 +9,11 @@
 | 功能键 | 默认 | 作用 |
 |--------|------|------|
 | `kitchen_board` | **关闭** | 勾选后在后台侧栏底部显示「厨房看板」快捷入口 |
-| `bill_receipt_print` | **关闭** | 勾选后生成预账单、分单小票与结账账单的打印任务；未勾选时不入队（厨房单不受影响） |
+| `bill_receipt_print` | **关闭** | 勾选后自动入队预账单、分单小票与结账小票；未勾选时跳过自动打印（厨房单不受影响）；后台「打印账单」手动补打不受影响 |
 
 未勾选厨房看板时，侧栏不显示厨房看板链接；厨房页面本身（`/{slug}/kitchen`）与员工登录入口不受影响，仍可直接访问。
 
-未勾选打印账单时，呼叫结账与确认收款流程照常，仅跳过 `pre_bill` / `order_receipt` 类 `print_jobs` 入队。
+未勾选打印账单时，呼叫结账与确认收款流程照常，仅跳过自动触发的 `pre_bill` / `split_payment` / `final` 类 `print_jobs` 入队；员工在结账详情手动点「打印账单」（`checkout_bill`）仍会入队。
 
 ## 数据模型
 
@@ -101,7 +101,7 @@
 |------|------|
 | `/dashboard/settings/features` | 功能管理页（`FeatureFlagsManager`） |
 | `DashboardNav` | 根据 `feature_flags` 决定是否渲染厨房看板链接 |
-| `enqueueReceiptPrint` | 根据 `bill_receipt_print` 决定是否入队账单类打印任务 |
+| `enqueueReceiptPrint` | 自动账单 variant（`pre_bill` / `split_payment` / `final`）受 `bill_receipt_print` 门控；手动 `checkout_bill` 不受限 |
 
 设置子导航见 `src/lib/settings-nav.ts`（分组「功能」）。
 

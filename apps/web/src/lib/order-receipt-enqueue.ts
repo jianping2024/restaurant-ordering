@@ -24,6 +24,13 @@ import {
 
 export type ReceiptVariant = 'pre_bill' | 'checkout_bill' | 'split_payment' | 'final';
 
+/** Variants triggered by customer checkout flows; gated by bill_receipt_print. */
+const AUTOMATIC_BILL_RECEIPT_VARIANTS = new Set<ReceiptVariant>([
+  'pre_bill',
+  'split_payment',
+  'final',
+]);
+
 export type OrderReceiptJobPayload = {
   order_id: string;
   locale: 'zh' | 'en' | 'pt';
@@ -262,7 +269,10 @@ export async function enqueueReceiptPrint(
       message: restaurantErr.message,
     };
   }
-  if (!isRestaurantFeatureEnabled(restaurantRow?.feature_flags, 'bill_receipt_print')) {
+  if (
+    AUTOMATIC_BILL_RECEIPT_VARIANTS.has(variant) &&
+    !isRestaurantFeatureEnabled(restaurantRow?.feature_flags, 'bill_receipt_print')
+  ) {
     return { ok: true, skipped: true };
   }
 

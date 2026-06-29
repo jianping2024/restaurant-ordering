@@ -37,6 +37,11 @@ export function useBillOrders(
     return fresh;
   }, [refreshOrders, commitOrders]);
 
+  // Client navigations (menu → bill) may reuse a stale RSC payload; always reconcile on entry.
+  useEffect(() => {
+    void syncOrders();
+  }, [syncOrders]);
+
   return {
     orders,
     orderLines,

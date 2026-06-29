@@ -1,26 +1,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { buildByItemAllocationsFromPersons } from '@/lib/bill-split-by-item';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
 import { validateBillSplit } from '@/lib/bill-split-validate';
 import { sumLineTotals } from '@/lib/cart-totals';
 import type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
-import type { SplitPerson, SplitResult } from '@/types';
+import type { SplitResult } from '@/types';
 
 export type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
 
 export type CheckoutRequestResult =
   | { ok: true; bill_split_id: string; result: SplitResult[]; total_amount: number }
   | { ok: false; error: string; status: number; message?: string };
-
-function byItemAssignFromPersons(persons: SplitPerson[]): Record<string, string[]> {
-  const assign: Record<string, string[]> = {};
-  persons.forEach((person, personIdx) => {
-    (person.items || []).forEach((key) => {
-      if (!assign[key]) assign[key] = [];
-      assign[key].push(`p${personIdx + 1}`);
-    });
-  });
-  return assign;
-}
 
 export async function submitCheckoutRequestForTable(
   admin: SupabaseClient,
@@ -80,15 +70,17 @@ export async function submitCheckoutRequestForTable(
     return { ok: false, error: 'empty_session', status: 400 };
   }
 
+  const itemLines = allItems.map((item) => ({ key: item.key, qty: item.qty }));
+  const lineQtyByKey = Object.fromEntries(itemLines.map((line) => [line.key, line.qty]));
   const total = sumLineTotals(allItems);
   const validation = validateBillSplit({
     splitMode: payload.splitMode,
     total,
     results: payload.result,
-    itemKeys: allItems.map((item) => item.key),
-    byItemAssign:
+    itemLines: payload.splitMode === 'by_item' ? itemLines : undefined,
+    byItemAllocations:
       payload.splitMode === 'by_item'
-        ? byItemAssignFromPersons(payload.persons)
+        ? buildByItemAllocationsFromPersons(payload.persons, lineQtyByKey)
         : undefined,
   });
   if (!validation.ok) {

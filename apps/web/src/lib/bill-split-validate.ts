@@ -1,8 +1,15 @@
 import type { SplitMode } from '@/types';
+import {
+  lineAllocationComplete,
+  type ByItemLineAllocation,
+} from '@/lib/bill-split-by-item';
 
 const AMOUNT_EPS = 0.009;
 
-export type BillSplitValidationIssue = 'unassigned_items' | 'amount_mismatch';
+export type BillSplitValidationIssue =
+  | 'unassigned_items'
+  | 'incomplete_qty'
+  | 'amount_mismatch';
 
 function amountsMatch(
   splitMode: SplitMode,
@@ -23,18 +30,28 @@ export function validateBillSplit(params: {
   splitMode: SplitMode | null;
   total: number;
   results: Array<{ amount: number }>;
-  itemKeys?: string[];
-  byItemAssign?: Record<string, string[]>;
+  itemLines?: Array<{ key: string; qty: number }>;
+  byItemAllocations?: ByItemLineAllocation;
   customAmounts?: Array<{ amount: number }>;
 }): { ok: true } | { ok: false; issue: BillSplitValidationIssue } {
-  const { splitMode, total, results, itemKeys, byItemAssign, customAmounts } = params;
+  const { splitMode, total, results, itemLines, byItemAllocations, customAmounts } = params;
 
   if (!splitMode) return { ok: true };
 
-  if (splitMode === 'by_item') {
-    const keys = itemKeys ?? [];
-    const hasUnassigned = keys.some((key) => !(byItemAssign?.[key]?.length));
-    if (hasUnassigned) return { ok: false, issue: 'unassigned_items' };
+  if (splitMode === 'by_item' && itemLines) {
+    for (const line of itemLines) {
+      const shares = byItemAllocations?.[line.key] || [];
+      if (shares.length === 0) {
+        return { ok: false, issue: 'unassigned_items' };
+      }
+      const names = shares.map((share) => share.name.trim().toLowerCase());
+      if (names.some((name) => !name) || new Set(names).size !== names.length) {
+        return { ok: false, issue: 'incomplete_qty' };
+      }
+      if (!lineAllocationComplete(line.qty, shares)) {
+        return { ok: false, issue: 'incomplete_qty' };
+      }
+    }
   }
 
   if (splitMode === 'custom' && customAmounts?.length) {

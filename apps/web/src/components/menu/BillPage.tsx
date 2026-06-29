@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { calcByItemSplitResults } from '@/lib/bill-split-by-item';
+import { calcByItemSplitResults, buildByItemAllocationsFromRows, buildSplitPersonsFromAllocations, type ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import { validateBillSplit } from '@/lib/bill-split-validate';
 import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
 import { getMessages } from '@/lib/i18n/messages';
@@ -24,6 +24,7 @@ import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { showToast } from '@/components/ui/Toast';
 import { ReceiptPrinterSelect } from '@/components/dashboard/ReceiptPrinterSelect';
 import { useReceiptPrinterPreference } from '@/lib/use-receipt-printer-preference';
+import { ByItemDishAllocator } from '@/components/menu/ByItemDishAllocator';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -88,7 +89,7 @@ export function BillPage({
     { name: guestName(1), amount: 0 },
     { name: guestName(2), amount: 0 },
   ]);
-  const [byItemAssign, setByItemAssign] = useState<Record<string, string[]>>({});
+  const [byItemAllocations, setByItemAllocations] = useState<Record<string, ByItemConsumerRow[]>>({});
   const [submitted, setSubmitted] = useState(!!existingSplit);
   const [submitting, setSubmitting] = useState(false);
   const [persistedResult, setPersistedResult] = useState<SplitResult[] | null>((existingSplit?.result as SplitResult[] | null) || null);
@@ -124,7 +125,12 @@ export function BillPage({
 
   const commitInlineRename = (index: number) => {
     const normalized = editingSplitNameValue.trim();
-    syncNameAcrossModes(index, normalized || guestName(index + 1));
+    if (splitMode === 'by_item') {
+      const oldName = results[index]?.name;
+      if (oldName && normalized) renameByItemConsumer(oldName, normalized);
+    } else {
+      syncNameAcrossModes(index, normalized || guestName(index + 1));
+    }
     setEditingSplitNameIndex(null);
     setEditingSplitNameValue('');
   };
@@ -176,6 +182,44 @@ export function BillPage({
     })));
   const total = allItems.reduce((sum, item) => sum + item.price * item.qty, 0);
 
+  const itemLines = useMemo(
+    () => allItems.map((item) => ({ key: item.key, qty: item.qty })),
+    [allItems],
+  );
+
+  const parsedByItemAllocations = useMemo(
+    () => buildByItemAllocationsFromRows(
+      itemLines.map((line) => ({
+        key: line.key,
+        rows: byItemAllocations[line.key] ?? [],
+      })),
+    ),
+    [itemLines, byItemAllocations],
+  );
+
+  const knownConsumerNames = useMemo(() => {
+    const names = new Set<string>();
+    for (const rows of Object.values(byItemAllocations)) {
+      for (const row of rows) {
+        const name = row.name.trim();
+        if (name) names.add(name);
+      }
+    }
+    return Array.from(names).sort((a, b) => a.localeCompare(b));
+  }, [byItemAllocations]);
+
+  const byItemAllocatorLabels = useMemo(
+    () => ({
+      addConsumer: t.addConsumer,
+      namePlaceholder: t.consumerNamePlaceholder,
+      qtyPlaceholder: t.consumerQtyPlaceholder,
+      remaining: t.byItemRemaining,
+      complete: t.byItemComplete,
+      remove: t.removeConsumer,
+    }),
+    [t],
+  );
+
   // 计算分单结果
   const calcResult = (): SplitResult[] => {
     if (!splitMode) {
@@ -191,16 +235,14 @@ export function BillPage({
     }
 
     if (splitMode === 'by_item') {
-      const people = splitPeople.slice(0, personCount);
       return calcByItemSplitResults({
-        people,
         lines: allItems.map((item) => ({
           key: item.key,
           name: (item.name || item.name_pt || '').trim(),
           qty: item.qty,
           unitPrice: item.price,
         })),
-        assign: byItemAssign,
+        allocations: parsedByItemAllocations,
       });
     }
 
@@ -221,11 +263,11 @@ export function BillPage({
         splitMode,
         total,
         results,
-        itemKeys: allItems.map((item) => item.key),
-        byItemAssign,
+        itemLines: splitMode === 'by_item' ? itemLines : undefined,
+        byItemAllocations: splitMode === 'by_item' ? parsedByItemAllocations : undefined,
         customAmounts,
       }),
-    [splitMode, total, results, allItems, byItemAssign, customAmounts],
+    [splitMode, total, results, itemLines, parsedByItemAllocations, customAmounts],
   );
 
   const splitValidationMessage =
@@ -233,7 +275,9 @@ export function BillPage({
       ? null
       : splitValidation.issue === 'unassigned_items'
         ? t.splitUnassignedItems
-        : t.splitAmountMismatch;
+        : splitValidation.issue === 'incomplete_qty'
+          ? t.splitIncompleteQty
+          : t.splitAmountMismatch;
 
   const customerNifInvalid =
     customerNifInput.trim().length > 0 && !validatePortugueseNif(customerNifInput);
@@ -250,16 +294,11 @@ export function BillPage({
     }
     setSubmitting(true);
     try {
-      const persons = splitPeople.slice(0, splitMode === 'by_item' ? personCount : results.length).map((person, idx) => ({
-        name: results[idx]?.name ?? person.name,
-        ...(splitMode === 'by_item'
-          ? {
-              items: allItems
-                .filter((item) => (byItemAssign[item.key] || []).includes(person.id))
-                .map((item) => item.key),
-            }
-          : {}),
-      }));
+      const persons = splitMode === 'by_item'
+        ? buildSplitPersonsFromAllocations(parsedByItemAllocations)
+        : splitPeople.slice(0, results.length).map((person, idx) => ({
+            name: results[idx]?.name ?? person.name,
+          }));
 
       const requestResult = await requestCheckoutRequest({
         slug: restaurant.slug,
@@ -295,18 +334,19 @@ export function BillPage({
     }
   };
 
-  // 按菜分配中切换人员
-  const togglePersonForItem = (itemKey: string, person: string) => {
-    setByItemAssign(prev => {
-      const current = prev[itemKey] || [];
-      const next = current.includes(person)
-        ? current.filter(p => p !== person)
-        : [...current, person];
-      return { ...prev, [itemKey]: next };
+  const renameByItemConsumer = (oldName: string, newName: string) => {
+    const trimmed = newName.trim();
+    if (!trimmed || trimmed === oldName) return;
+    setByItemAllocations((prev) => {
+      const next: Record<string, ByItemConsumerRow[]> = {};
+      for (const [key, rows] of Object.entries(prev)) {
+        next[key] = rows.map((row) => (
+          row.name.trim() === oldName ? { ...row, name: trimmed } : row
+        ));
+      }
+      return next;
     });
   };
-
-  const byItemPersons = splitPeople.slice(0, personCount);
 
   const handleConfirmPersonPaidFromWaiter = async (rowIndex: number) => {
     if (!persistedSplitId) {
@@ -725,8 +765,8 @@ export function BillPage({
           </p>
         )}
 
-        {/* 人数选择（均摊 & 按菜）*/}
-        {splitMode && (splitMode === 'even' || splitMode === 'by_item') && (
+        {/* 人数选择（均摊）*/}
+        {splitMode === 'even' && (
           <div className="flex items-center gap-4 mb-4">
             <span className="text-brand-text-muted text-sm">{t.people}</span>
             <div className="flex items-center gap-3">
@@ -741,12 +781,6 @@ export function BillPage({
                       return cut.map((row, idx) => ({ ...row, name: next[idx]?.name || row.name }));
                     });
                     return next;
-                  });
-                  setByItemAssign((prev) => {
-                    const allowedIds = new Set(splitPeople.slice(0, n).map((person) => person.id));
-                    return Object.fromEntries(
-                      Object.entries(prev).map(([itemKey, ids]) => [itemKey, ids.filter((id) => allowedIds.has(id))]),
-                    );
                   });
                 }}
                 className="w-8 h-8 rounded-full bg-brand-border text-brand-text flex items-center justify-center"
@@ -780,38 +814,32 @@ export function BillPage({
         )}
 
         {/* 按菜分配 */}
-        {splitMode && splitMode === 'by_item' && (
+        {splitMode === 'by_item' && (
           <div className="space-y-3">
-            {allItems.map(item => {
+            {allItems.map((item) => {
               const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
               return (
-              <div key={item.key} className="bg-brand-card border border-brand-border rounded-xl p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-brand-text text-sm">
-                    {item.emoji}{' '}
-                    {itemCode && (
-                      <span className="font-mono text-[11px] text-brand-gold tabular-nums mr-1">[{itemCode}]</span>
-                    )}
-                    {(item.name || item.name_pt)} {lineQtyLabel(item)}
-                  </p>
-                  <span className="text-brand-gold text-[13px]">€{(item.price * item.qty).toFixed(2)}</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {byItemPersons.map(person => (
-                    <button
-                      key={person.id}
-                      onClick={() => togglePersonForItem(item.key, person.id)}
-                      className={`text-[13px] px-3 py-1 rounded-full transition-all ${
-                        (byItemAssign[item.key] || []).includes(person.id)
-                          ? 'bg-brand-gold text-brand-on-gold font-semibold'
-                          : 'bg-brand-border text-brand-text-muted'
-                      }`}
-                    >
-                      {person.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                <ByItemDishAllocator
+                  key={item.key}
+                  itemKey={item.key}
+                  lineTotal={item.price * item.qty}
+                  lineQty={item.qty}
+                  rows={byItemAllocations[item.key] ?? []}
+                  knownNames={knownConsumerNames}
+                  labels={byItemAllocatorLabels}
+                  onChange={(rows) => {
+                    setByItemAllocations((prev) => ({ ...prev, [item.key]: rows }));
+                  }}
+                  title={(
+                    <>
+                      {item.emoji}{' '}
+                      {itemCode && (
+                        <span className="font-mono text-[11px] text-brand-gold tabular-nums mr-1">[{itemCode}]</span>
+                      )}
+                      {(item.name || item.name_pt)} {lineQtyLabel(item)}
+                    </>
+                  )}
+                />
               );
             })}
           </div>

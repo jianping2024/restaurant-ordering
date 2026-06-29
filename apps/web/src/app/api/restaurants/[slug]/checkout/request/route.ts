@@ -28,10 +28,31 @@ function parsePersons(raw: unknown): SplitPerson[] | null {
           .filter(Boolean)
           .slice(0, 500)
       : undefined;
+    const item_shares = Array.isArray(r.item_shares)
+      ? r.item_shares
+          .map((entry) => {
+            if (!entry || typeof entry !== 'object') return null;
+            const share = entry as Record<string, unknown>;
+            const key = typeof share.key === 'string' ? share.key.trim() : '';
+            const qty_num = typeof share.qty_num === 'number' && Number.isFinite(share.qty_num)
+              ? Math.trunc(share.qty_num)
+              : NaN;
+            const qty_den = typeof share.qty_den === 'number' && Number.isFinite(share.qty_den)
+              ? Math.trunc(share.qty_den)
+              : NaN;
+            if (!key || !Number.isFinite(qty_num) || !Number.isFinite(qty_den) || qty_den <= 0 || qty_num <= 0) {
+              return null;
+            }
+            return { key, qty_num, qty_den };
+          })
+          .filter((entry): entry is NonNullable<typeof entry> => !!entry)
+          .slice(0, 500)
+      : undefined;
     const amount = typeof r.amount === 'number' && Number.isFinite(r.amount) ? r.amount : undefined;
     persons.push({
       name,
-      ...(items ? { items } : {}),
+      ...(items?.length ? { items } : {}),
+      ...(item_shares?.length ? { item_shares } : {}),
       ...(amount != null ? { amount } : {}),
     });
   }

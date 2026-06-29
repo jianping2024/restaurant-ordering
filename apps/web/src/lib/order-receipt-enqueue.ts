@@ -2,9 +2,12 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BillSplit, Order, PrintJobType } from '@/types';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import {
-  byItemAssigneesForKey,
-  byItemLineShare,
-  byItemQtyShareLabel,
+  byItemLinePriceShare,
+  consumersForLineFromPersons,
+  legacyAssigneeIdsForKey,
+  legacyEqualLineShare,
+  legacyEqualShareQtyLabel,
+  shareQtyLabel,
 } from '@/lib/bill-split-by-item';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { fetchMenuPrintContext } from '@/lib/menu-print-context';
@@ -85,8 +88,7 @@ export function buildSplitPersonReceiptLines(
   if (split.split_mode !== 'by_item') return [];
 
   const person = split.persons?.[personIndex];
-  const keys = new Set(person?.items || []);
-  if (keys.size === 0) return [];
+  if (!person) return [];
 
   const persons = split.persons || [];
   const personId = `p${personIndex + 1}`;
@@ -97,12 +99,24 @@ export function buildSplitPersonReceiptLines(
       const st = normalizeOrderItemStatus(item, order.status);
       if (st === 'voided') return;
       const key = `${order.id}-${idx}`;
-      if (!keys.has(key)) return;
+      const hasLine = person.item_shares?.some((share) => share.key === key)
+        || (person.items || []).includes(key);
+      if (!hasLine) return;
 
-      const assignees = byItemAssigneesForKey(persons, key);
+      const consumers = consumersForLineFromPersons(persons, key, item.qty);
+      if (consumers.length === 0) return;
+
       const lineTotal = item.price * item.qty;
-      const sharePrice = byItemLineShare(lineTotal, assignees, personId);
-      const shareLabel = byItemQtyShareLabel(item.qty, assignees.length);
+      const personShare = consumers.find((consumer) => consumer.name === person?.name);
+      if (!personShare) return;
+
+      const usesLegacyShares = !person?.item_shares?.some((share) => share.key === key);
+      const sharePrice = usesLegacyShares
+        ? legacyEqualLineShare(lineTotal, legacyAssigneeIdsForKey(persons, key), personId)
+        : byItemLinePriceShare(lineTotal, consumers, person.name);
+      const shareLabel = usesLegacyShares
+        ? legacyEqualShareQtyLabel(item.qty, consumers.length)
+        : shareQtyLabel(personShare.qty);
 
       itemIndex += 1;
       const display_name = printCtx

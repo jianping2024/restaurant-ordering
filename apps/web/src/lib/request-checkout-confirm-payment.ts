@@ -4,23 +4,12 @@ export async function requestCheckoutConfirmPayment(params: {
   slug: string;
   billSplitId: string;
   personIndex: number;
-  discountRate?: number;
-  discountReason?: string;
-  discountReasonDetail?: string;
   receiptPrinterId?: string;
 }): Promise<
   | { ok: true; all_paid: boolean; result: SplitResult[]; final_amount: number }
   | { ok: false; error: string }
 > {
-  const {
-    slug,
-    billSplitId,
-    personIndex,
-    discountRate,
-    discountReason,
-    discountReasonDetail,
-    receiptPrinterId,
-  } = params;
+  const { slug, billSplitId, personIndex, receiptPrinterId } = params;
   try {
     const res = await fetch(
       `/api/restaurants/${encodeURIComponent(slug)}/checkout/confirm-payment`,
@@ -31,9 +20,6 @@ export async function requestCheckoutConfirmPayment(params: {
         body: JSON.stringify({
           bill_split_id: billSplitId,
           person_index: personIndex,
-          ...(discountRate != null ? { discount_rate: discountRate } : {}),
-          ...(discountReason ? { discount_reason: discountReason } : {}),
-          ...(discountReasonDetail ? { discount_reason_detail: discountReasonDetail } : {}),
           ...(receiptPrinterId ? { receipt_printer_id: receiptPrinterId } : {}),
         }),
       },

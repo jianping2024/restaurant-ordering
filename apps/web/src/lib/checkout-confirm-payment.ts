@@ -1,8 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SplitResult } from '@/types';
-import type { AuditActor } from '@/lib/audit/types';
-import { recordDiscountAppliedAuditIfNeeded } from '@/lib/checkout-discount/record-discount-audit';
-import { assertDiscountReadyForPayment } from '@/lib/checkout-discount/discount-payment-gate';
 import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
 import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
 
@@ -25,12 +22,7 @@ export type ConfirmPaymentResult =
   | {
       ok: false;
       status: number;
-      code:
-        | string
-        | 'reason_required'
-        | 'invalid_reason'
-        | 'reason_detail_required'
-        | 'bill_split_not_found';
+      code: string;
       message?: string;
     };
 
@@ -80,10 +72,6 @@ export async function confirmBillSplitPayment(params: {
   printLocale: string | null;
   billSplitId: string;
   personIndex: number;
-  discountRate?: number;
-  discountReason?: string | null;
-  discountReasonDetail?: string | null;
-  actor?: AuditActor;
   receiptPrinterId?: string;
 }): Promise<ConfirmPaymentResult> {
   const {
@@ -92,33 +80,13 @@ export async function confirmBillSplitPayment(params: {
     printLocale,
     billSplitId,
     personIndex,
-    discountRate = 0,
-    discountReason,
-    discountReasonDetail,
-    actor,
     receiptPrinterId,
   } = params;
-
-  const normalizedRate = Math.min(100, Math.max(0, discountRate));
-
-  const discountGate = await assertDiscountReadyForPayment({
-    admin,
-    restaurantId,
-    billSplitId,
-    discountRate: normalizedRate,
-    discountReason,
-    discountReasonDetail,
-  });
-  if (!discountGate.ok) {
-    return { ok: false, status: discountGate.status, code: discountGate.code };
-  }
-  const billSplitSnapshot = discountGate.snapshot;
 
   const { data: rpcData, error: rpcErr } = await admin.rpc('confirm_bill_split_payment', {
     p_restaurant_id: restaurantId,
     p_bill_split_id: billSplitId,
     p_person_index: personIndex,
-    p_discount_rate: normalizedRate,
   });
 
   if (rpcErr) {
@@ -195,23 +163,6 @@ export async function confirmBillSplitPayment(params: {
       receiptPrinterId: printTarget,
       billSplitId,
       orderIds: parseRpcOrderIds(payload.order_ids),
-    });
-  }
-
-  if (
-    normalizedRate > 0 &&
-    actor &&
-    billSplitSnapshot &&
-    discountReason?.trim()
-  ) {
-    await recordDiscountAppliedAuditIfNeeded({
-      admin,
-      restaurantId,
-      actor,
-      billSplit: billSplitSnapshot,
-      discountRate: normalizedRate,
-      reason: discountReason,
-      reasonDetail: discountReasonDetail,
     });
   }
 

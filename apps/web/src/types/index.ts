@@ -292,6 +292,10 @@ export interface BillSplit {
   created_at: string;
   /** Optional Portuguese NIF (9 digits) from guest checkout request */
   customer_nif?: string | null;
+  /** Checkout discount percent (0–100) for the whole bill */
+  discount_rate?: number;
+  discount_reason?: string | null;
+  discount_reason_detail?: string | null;
 }
 
 export interface FeedbackSession {

@@ -34,41 +34,8 @@ function billSplit(overrides: Partial<BillSplit> = {}): BillSplit {
 function mockAdminRpc(
   data: unknown,
   rpcError: { message: string } | null = null,
-  options?: { billSplitRow?: Record<string, unknown> | null; discountAudited?: boolean },
 ): SupabaseClient {
-  const billSplitRow = options?.billSplitRow ?? {
-    id: BILL_SPLIT_ID,
-    session_id: 'sess-1',
-    table_id: '33333333-3333-4333-8333-333333333333',
-    display_name: 'A-01',
-    total_amount: 100,
-  };
-  const discountAudited = options?.discountAudited ?? false;
-
-  const queryChain = (resolve: () => Promise<{ data: unknown; error: null }>) => {
-    const chain: { eq: () => typeof chain; limit: () => typeof chain; maybeSingle: () => ReturnType<typeof resolve> } = {
-      eq: () => chain,
-      limit: () => chain,
-      maybeSingle: resolve,
-    };
-    return chain;
-  };
-
   return {
-    from: (table: string) => ({
-      select: () => {
-        if (table === 'bill_splits') {
-          return queryChain(async () => ({ data: billSplitRow, error: null }));
-        }
-        if (table === 'operation_logs') {
-          return queryChain(async () => ({
-            data: discountAudited ? { id: 'log-1' } : null,
-            error: null,
-          }));
-        }
-        return queryChain(async () => ({ data: null, error: null }));
-      },
-    }),
     rpc: async () => ({ data, error: rpcError }),
   } as unknown as SupabaseClient;
 }
@@ -192,39 +159,6 @@ describe('confirmBillSplitPayment', () => {
     if (r.ok) return;
     assert.equal(r.status, 500);
     assert.equal(r.code, 'bill_update_failed');
-  });
-
-  it('requires discount reason before RPC when rate > 0 and not yet audited', async () => {
-    const r = await confirmBillSplitPayment({
-      ...baseParams,
-      discountRate: 10,
-      admin: mockAdminRpc({ ok: true }),
-    });
-    assert.equal(r.ok, false);
-    if (r.ok) return;
-    assert.equal(r.status, 400);
-    assert.equal(r.code, 'reason_required');
-  });
-
-  it('skips discount reason when bill discount already audited', async () => {
-    const r = await confirmBillSplitPayment({
-      ...baseParams,
-      discountRate: 10,
-      admin: mockAdminRpc(
-        {
-          ok: true,
-          newly_paid: true,
-          should_print_split: false,
-          should_print_final: false,
-          all_paid: false,
-          result: [{ name: 'A', amount: 45, paid: true }],
-          final_amount: 45,
-        },
-        null,
-        { discountAudited: true },
-      ),
-    });
-    assert.equal(r.ok, true);
   });
 
   it('returns success payload from RPC without printing when flags false', async () => {

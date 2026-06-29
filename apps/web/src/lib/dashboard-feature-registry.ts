@@ -224,7 +224,11 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
     navRoles: ['frontdesk', 'cashier'],
     pageLoader: 'loadDashboardAccess',
     writePattern: 'server-api-partial',
-    aliases: ['/api/restaurants/[slug]/checkout/confirm-payment', '/api/dashboard/close-table-session'],
+    aliases: [
+      '/api/restaurants/[slug]/checkout/apply-discount',
+      '/api/restaurants/[slug]/checkout/confirm-payment',
+      '/api/dashboard/close-table-session',
+    ],
     riskNote: 'Page read uses client bill_splits RLS; confirm-payment allows cashier/waiter/frontdesk + owner.',
   },
   {

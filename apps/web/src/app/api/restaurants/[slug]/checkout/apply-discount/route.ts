@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
-import { confirmBillSplitPayment } from '@/lib/checkout-confirm-payment';
-import { resolveReceiptPrinterId } from '@/lib/restaurant-receipt-printers-server';
+import { applyBillSplitDiscount } from '@/lib/checkout-discount/apply-bill-split-discount';
 
 export const runtime = 'nodejs';
 
@@ -16,8 +15,9 @@ export async function POST(
 
   let body: {
     bill_split_id?: unknown;
-    person_index?: unknown;
-    receipt_printer_id?: unknown;
+    discount_rate?: unknown;
+    discount_reason?: unknown;
+    discount_reason_detail?: unknown;
   };
   try {
     body = await req.json();
@@ -30,36 +30,29 @@ export async function POST(
     return NextResponse.json({ error: 'missing_bill_split_id' }, { status: 400 });
   }
 
-  const personIndex =
-    typeof body.person_index === 'number' && Number.isInteger(body.person_index)
-      ? body.person_index
+  const discountRate =
+    typeof body.discount_rate === 'number' && Number.isFinite(body.discount_rate)
+      ? body.discount_rate
       : 0;
 
-  const receiptPrinterIdRaw =
-    typeof body.receipt_printer_id === 'string' ? body.receipt_printer_id.trim() : '';
+  const discountReason =
+    typeof body.discount_reason === 'string' ? body.discount_reason : null;
+  const discountReasonDetail =
+    typeof body.discount_reason_detail === 'string' ? body.discount_reason_detail : null;
 
   const auth = await authorizeCheckoutConfirmPayment(slug, req);
   if ('error' in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
-  const receiptPrinterId = await resolveReceiptPrinterId(
-    auth.admin,
-    auth.restaurantId,
-    receiptPrinterIdRaw || undefined,
-    auth.printLocale,
-  );
-  if (receiptPrinterIdRaw && !receiptPrinterId) {
-    return NextResponse.json({ error: 'invalid_receipt_printer' }, { status: 400 });
-  }
-
-  const result = await confirmBillSplitPayment({
+  const result = await applyBillSplitDiscount({
     admin: auth.admin,
     restaurantId: auth.restaurantId,
-    printLocale: auth.printLocale,
     billSplitId,
-    personIndex,
-    receiptPrinterId: receiptPrinterId ?? undefined,
+    discountRate,
+    discountReason,
+    discountReasonDetail,
+    actor: auth.actor,
   });
 
   if (!result.ok) {
@@ -71,8 +64,8 @@ export async function POST(
 
   return NextResponse.json({
     ok: true,
-    all_paid: result.all_paid,
-    result: result.result,
-    final_amount: result.final_amount,
+    discount_rate: result.discount_rate,
+    discount_reason: result.discount_reason,
+    discount_reason_detail: result.discount_reason_detail,
   });
 }

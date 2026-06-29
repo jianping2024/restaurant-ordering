@@ -9,7 +9,7 @@ abnormal_operations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, type
 
 operation_logs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, action_type: text, entity_type: text, entity_id: uuid, operator_id: uuid FK -> auth.users.id, operator_name: text, operator_role: text, before_data: jsonb default {}, after_data: jsonb default {}, reason: text nullable, reason_detail: text nullable, ip_address: text nullable, device_info: text nullable, created_at: timestamptz)
 
-bill_splits (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, order_ids: uuid[], split_mode: text [even|by_item|custom], persons: jsonb, result: jsonb, total_amount: numeric, status: text [pending|confirmed|requested|paid|cancelled], created_at: timestamptz, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id, display_name: text, customer_nif: text nullable)
+bill_splits (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, order_ids: uuid[], split_mode: text [even|by_item|custom], persons: jsonb, result: jsonb, total_amount: numeric, status: text [pending|confirmed|requested|paid|cancelled], created_at: timestamptz, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id, display_name: text, customer_nif: text nullable, discount_rate: numeric default 0, discount_reason: text nullable, discount_reason_detail: text nullable)
 
 buffet_calendar_overrides (restaurant_id: uuid PK FK -> restaurants.id, on_date: date PK, kind: text [holiday|special])
 
@@ -128,7 +128,7 @@ restaurants_public — security definer view; public menu/geo fields for custome
 
 | Function | Role | Notes |
 |----------|------|-------|
-| `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index, discount_rate?)` | authenticated, service_role | SECURITY DEFINER checkout; advisory lock per session; rejects `cancelled` splits; not anon |
+| `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index)` | authenticated, service_role | SECURITY DEFINER checkout; reads `bill_splits.discount_rate`; advisory lock per session; rejects `cancelled` splits; not anon |
 | `upsert_bill_split_request(restaurant_id, session_id, table_id, display_name, order_ids, split_mode, persons, result, total_amount, customer_nif)` | authenticated, service_role | Atomic checkout request; merges `paid` under lock; not anon |
 | `close_table_session_operational(restaurant_id, table_id, closed_reason, closed_by_user_id?)` | authenticated, service_role | Atomic operational close: cancel splits, void orders, close session; not anon |
 | `compute_session_payment_gap(restaurant_id, session_id)` | authenticated, service_role | Returns payable/paid/gap + `is_unpaid_close` for an active session |

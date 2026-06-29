@@ -15,10 +15,8 @@ import {
   normalizeSplitRows,
 } from '@/lib/checkout-split-math';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
-import {
-  isCheckoutDiscountReasonError,
-  useCheckoutBillDiscount,
-} from '@/lib/checkout-discount/use-checkout-bill-discount';
+import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
+import { requestCheckoutApplyDiscount } from '@/lib/request-checkout-apply-discount';
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
 import {
   checkoutLinesFromOrders,
@@ -231,14 +229,98 @@ export function CheckoutRequestsManager({
     };
   }, [supabase, restaurantId, requests, selectedRequestId]);
 
-  const getDiscountRate = billDiscount.getRate;
-  const getPayable = (request: BillSplit) => checkoutPayableAmount(request, getDiscountRate(request.id));
+  const getDiscountRate = (request: BillSplit) =>
+    billDiscount.getDisplayRate(request.id, request.discount_rate ?? 0);
+  const getPayable = (request: BillSplit) => checkoutPayableAmount(request, getDiscountRate(request));
   const getSplitRows = (request: BillSplit) => normalizeSplitRows(request);
 
   const getDiscountedSplitResult = (request: BillSplit) =>
-    discountedSplitRows(request, getDiscountRate(request.id));
+    discountedSplitRows(request, getDiscountRate(request));
 
   const hasConfirmedPerson = (request: BillSplit) => (request.result || []).some((row) => !!row.paid);
+
+  const patchRequestDiscount = useCallback(
+    (
+      requestId: string,
+      discount: {
+        discount_rate: number;
+        discount_reason: string | null;
+        discount_reason_detail: string | null;
+      },
+    ) => {
+      setRequests((prev) =>
+        prev.map((r) => (r.id === requestId ? { ...r, ...discount } : r)),
+      );
+      billDiscount.finishSetup(requestId);
+    },
+    [billDiscount],
+  );
+
+  const persistDiscount = useCallback(
+    async (
+      request: BillSplit,
+      rate: number,
+      reason?: string,
+      detail?: string,
+    ) => {
+      if (!restaurantSlug) {
+        showToast('操作失败，请重试', 'error');
+        return false;
+      }
+      billDiscount.setApplying(request.id);
+      try {
+        const outcome = await requestCheckoutApplyDiscount({
+          slug: restaurantSlug,
+          billSplitId: request.id,
+          discountRate: rate,
+          ...(reason ? { discountReason: reason } : {}),
+          ...(detail ? { discountReasonDetail: detail } : {}),
+        });
+        if (!outcome.ok) {
+          const message =
+            outcome.error === 'reason_required'
+              ? t.discountReasonRequired
+              : outcome.error === 'reason_detail_required'
+                ? t.discountReasonDetailRequired
+                : outcome.error === 'discount_locked_after_payment'
+                  ? t.discountLockedAfterPayment
+                  : '操作失败，请重试';
+          showToast(message, 'error');
+          return false;
+        }
+        patchRequestDiscount(request.id, outcome);
+        return true;
+      } catch {
+        showToast('操作失败，请重试', 'error');
+        return false;
+      } finally {
+        billDiscount.setApplying(null);
+      }
+    },
+    [billDiscount, patchRequestDiscount, restaurantSlug, t],
+  );
+
+  const handleDiscountRateBlur = (request: BillSplit) => {
+    const rate = getDiscountRate(request);
+    const serverRate = request.discount_rate ?? 0;
+    const setup = billDiscount.beginSetupIfNeeded(
+      request.id,
+      rate,
+      serverRate,
+      request.discount_reason,
+    );
+    if (setup.needsReason) return;
+    if (rate === serverRate) {
+      billDiscount.finishSetup(request.id);
+      return;
+    }
+    void persistDiscount(
+      request,
+      rate,
+      request.discount_reason ?? undefined,
+      request.discount_reason_detail ?? undefined,
+    );
+  };
 
   const submitConfirmPersonPaid = async (request: BillSplit, rowIndex: number) => {
     const discountedRows = getDiscountedSplitResult(request);
@@ -256,17 +338,9 @@ export function CheckoutRequestsManager({
         slug: restaurantSlug,
         billSplitId: request.id,
         personIndex: rowIndex,
-        ...billDiscount.paymentPayload(request.id),
       });
       if (!outcome.ok) {
-        showToast(
-          outcome.error === 'already_paid'
-            ? t.paid
-            : isCheckoutDiscountReasonError(outcome.error)
-              ? t.discountIncomplete
-              : '操作失败，请重试',
-          'error',
-        );
+        showToast(outcome.error === 'already_paid' ? t.paid : '操作失败，请重试', 'error');
         return;
       }
 
@@ -287,10 +361,6 @@ export function CheckoutRequestsManager({
   };
 
   const handleConfirmPersonPaid = (request: BillSplit, rowIndex: number) => {
-    if (!billDiscount.isSetupComplete(request.id)) {
-      showToast(t.discountIncomplete, 'error');
-      return;
-    }
     void submitConfirmPersonPaid(request, rowIndex);
   };
 
@@ -383,13 +453,18 @@ export function CheckoutRequestsManager({
           <IntegerInput
             min={0}
             max={100}
-            value={getDiscountRate(selectedRequest.id)}
+            value={getDiscountRate(selectedRequest)}
             onChange={(next) => billDiscount.handleRateChange(selectedRequest.id, next)}
-            onFocus={() => billDiscount.handleRateFocus(selectedRequest.id)}
-            onBlur={() => billDiscount.handleRateBlur(selectedRequest.id)}
+            onFocus={() =>
+              billDiscount.handleRateFocus(selectedRequest.id, selectedRequest.discount_rate ?? 0)
+            }
+            onBlur={() => handleDiscountRateBlur(selectedRequest)}
             className="w-28 bg-brand-bg border border-brand-border rounded-lg px-3 py-1.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
             placeholder="0"
-            disabled={hasConfirmedPerson(selectedRequest)}
+            disabled={
+              hasConfirmedPerson(selectedRequest) ||
+              billDiscount.applyingRequestId === selectedRequest.id
+            }
           />
         </div>
       </div>
@@ -539,10 +614,12 @@ export function CheckoutRequestsManager({
         detailRequiredError={t.discountReasonDetailRequired}
         reasons={discountReasonOptionsList}
         reasonGroup="discount"
+        confirming={billDiscount.applyingRequestId != null}
         onConfirm={async (reason, detail) => {
           const setup = billDiscount.pendingSetup;
-          if (!setup) return;
-          billDiscount.confirmSetup(setup.requestId, reason, detail);
+          if (!setup || !selectedRequest) return;
+          const request = requests.find((r) => r.id === setup.requestId) ?? selectedRequest;
+          await persistDiscount(request, setup.rate, reason, detail);
         }}
       />
     </div>

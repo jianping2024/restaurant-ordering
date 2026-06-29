@@ -776,7 +776,7 @@ export function BillPage({
         </div>
         {!splitMode && (
           <p className="text-brand-text-muted text-[13px] mb-2">
-            可直接呼叫结账；如需分单再选择上方方式。
+            {t.splitOptionalHint}
           </p>
         )}
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type {
@@ -18,7 +18,7 @@ import { CATEGORY_LABELS, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { formatOrderItemListLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
-import { getClientLanguage, setClientLanguage } from '@/lib/i18n';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
 import { showToast } from '@/components/ui/Toast';
 import { autoEnqueueStationTicketsAfterSubmit } from '@/lib/auto-enqueue-station-tickets';
@@ -54,7 +54,7 @@ const WAITER_RETURN_REDIRECT_MS = 1200;
 export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displayName, isDemo, returnToWaiterHref }: Props) {
   const router = useRouter();
   const isWaiterFlow = !!returnToWaiterHref;
-  const [lang, setLang] = useState<Language>(() => getClientLanguage() as Language);
+  const { lang, setLang } = useLanguage();
   const [activeTopCategory, setActiveTopCategory] = useState<string>('Pratos');
   const [activeSubpath, setActiveSubpath] = useState<string>('');
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -65,22 +65,6 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [activeSession, setActiveSession] = useState<TableSession | null>(null);
   const [latestBatchId, setLatestBatchId] = useState<string | null>(null);
-
-  // 从 localStorage 恢复语言设置
-  useEffect(() => {
-    const savedLegacy = localStorage.getItem('mesa-lang') as Language | null;
-    if (savedLegacy && ['pt', 'en', 'zh'].includes(savedLegacy)) {
-      setLang(savedLegacy);
-      setClientLanguage(savedLegacy);
-      return;
-    }
-  }, []);
-
-  const setLangAndSave = (l: Language) => {
-    setLang(l);
-    setClientLanguage(l);
-    localStorage.setItem('mesa-lang', l);
-  };
 
   const loadSessionAndOrders = useCallback(async () => {
     const data = await requestCustomerSessionContext(restaurant.slug, tableId);
@@ -441,7 +425,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
             {(Object.keys(LANG_FLAGS) as Language[]).map(l => (
               <button
                 key={l}
-                onClick={() => setLangAndSave(l)}
+                onClick={() => setLang(l)}
                 className={`px-2.5 py-1 rounded-full text-[13px] transition-all ${
                   lang === l
                     ? 'bg-brand-gold text-brand-on-gold font-semibold'
@@ -484,7 +468,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
                   : 'border-brand-border text-brand-text-muted'
               }`}
             >
-              All
+              {t.subcategoryAll}
             </button>
             {subCategories.map((subpath) => (
               <button

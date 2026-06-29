@@ -31,6 +31,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   printEnqueueRateLimited: string;
   waitingForBuffet: string;
   buffetRequired: string;
+  subcategoryAll: string;
 }> = {
   pt: {
     table: 'Mesa',
@@ -64,6 +65,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     printEnqueueRateLimited: 'Demasiados pedidos de impressao; tente novamente dentro de um minuto.',
     waitingForBuffet: 'Aguarde: o garcom deve registar o buffet desta mesa antes de pedir pratos.',
     buffetRequired: 'O garcom ainda nao activou esta mesa. Peça para registar o buffet primeiro.',
+    subcategoryAll: 'Tudo',
   },
   en: {
     table: 'Table',
@@ -97,6 +99,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     printEnqueueRateLimited: 'Too many print requests; please try again in a minute.',
     waitingForBuffet: 'Please wait: staff must post buffet for this table before you can order dishes.',
     buffetRequired: 'This table is not open for ordering yet. Ask staff to post buffet first.',
+    subcategoryAll: 'All',
   },
   zh: {
     table: '桌号',
@@ -130,5 +133,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     printEnqueueRateLimited: '打印请求过于频繁，请稍后再试。',
     waitingForBuffet: '请稍候：服务员需先为本桌登记自助餐后，方可点菜。',
     buffetRequired: '本桌尚未开台，请先请服务员登记自助餐。',
+    subcategoryAll: '全部',
   },
 };

@@ -145,11 +145,26 @@ supabase migration list | tail -3
 | `IPv6 is not supported...` | 先 `supabase link --project-ref <ref> --yes`，再 `db push`；或升级 CLI |
 | `Remote database is up to date` | 该环境已应用，无需重复 push |
 | migration 与远端历史冲突 | **不要**改旧 migration；新建时间戳 migration 修复；必要时联系人工对账 `supabase_migrations.schema_migrations` |
+| 新 migration 时间戳早于已应用文件 | 使用 `migration up --local --include-all` 与 `db push --yes --include-all` |
 | 需要 staging 数据与 cloud 一致 | 用 `scripts/sync-cloud-to-staging.sh`（会先 `db push` 再覆写数据，见脚本注释） |
 
 ---
 
 ## 六、本次执行记录（2026-06-29）
+
+迁移：`20260629130000_resume_ordering_preserve_partial_split.sql`（部分收款恢复点单保留 `bill_splits` 为 `confirmed`）
+
+| 环境 | 命令 | 结果 |
+|------|------|------|
+| dev | `supabase migration up --local --include-all` | 已应用 `20260629130000`；RPC `resume_table_session_ordering` 含 `v_has_partial_payment` 分支 |
+| staging | `link mnvqmrrvbqwuxfxlewdm` + `db push --yes --include-all` | Remote 已含 `20260629130000` |
+| cloud | `link spgnhkaqtsbytvletpdm` + `db push --yes --include-all` | Remote 已含 `20260629130000` |
+
+说明：该 migration 时间戳早于已应用的 `20260709120000`，须加 **`--include-all`** 才能 push。
+
+---
+
+## 六（历史）、2026-06-29 — session_collected_payments
 
 迁移：`20260709120000_session_collected_payments_resume_ordering.sql`
 
@@ -159,7 +174,7 @@ supabase migration list | tail -3
 | staging | `link mnvqmrrvbqwuxfxlewdm` + `db push --yes` | Remote 已含 `20260709120000` |
 | cloud | `link spgnhkaqtsbytvletpdm` + `db push --yes` | 已应用 `20260709120000` |
 
-CLI 当前 link：**staging**（`mnvqmrrvbqwuxfxlewdm`）。若需与 `sync-cloud-to-staging.sh` 一致可改 link 回 cloud。
+CLI 当前 link：**cloud**（`spgnhkaqtsbytvletpdm`）。若需联调 staging 可 `link mnvqmrrvbqwuxfxlewdm`。
 
 ---
 

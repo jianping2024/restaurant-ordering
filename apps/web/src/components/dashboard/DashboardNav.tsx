@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { dashboardSignOutAndRedirect } from '@/lib/auth/sign-out-client';
 import { useSignOutConfirmState, SignOutConfirmModal } from '@/lib/auth/sign-out-confirm';
-import { createClient } from '@/lib/supabase/client';
 import type { Restaurant } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { DashboardNavFooter } from '@/components/dashboard/DashboardNavFooter';
@@ -15,6 +14,7 @@ import type { DashboardAccessMode } from '@/lib/dashboard-access';
 import { navItemsForRole } from '@/lib/dashboard-feature-registry';
 import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 import { dashboardNavLinkClassName } from '@/components/dashboard/dashboard-nav-link';
+import { useCheckoutRequestCount } from '@/lib/use-checkout-request-count';
 
 const ownerNavItems = navItemsForRole('owner');
 const frontdeskNavItems = navItemsForRole('frontdesk');
@@ -40,48 +40,10 @@ export function DashboardNav({
         : ownerNavItems;
   const showKitchenShortcut = accessMode === 'frontdesk' && kitchenShortcutEnabled;
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [checkoutRequestCount, setCheckoutRequestCount] = useState(0);
-
-  useEffect(() => {
-    if (accessMode === 'owner') return;
-
-    const supabase = createClient();
-    let cancelled = false;
-
-    const loadCheckoutRequestCount = async () => {
-      const { count } = await supabase
-        .from('bill_splits')
-        .select('id', { count: 'exact', head: true })
-        .eq('restaurant_id', restaurant.id)
-        .eq('status', 'requested')
-        .not('session_id', 'is', null);
-
-      if (!cancelled) setCheckoutRequestCount(count || 0);
-    };
-
-    void loadCheckoutRequestCount();
-
-    const channel = supabase
-      .channel(`nav-checkout-count-${restaurant.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'bill_splits',
-          filter: `restaurant_id=eq.${restaurant.id}`,
-        },
-        () => {
-          void loadCheckoutRequestCount();
-        },
-      )
-      .subscribe();
-
-    return () => {
-      cancelled = true;
-      supabase.removeChannel(channel);
-    };
-  }, [accessMode, restaurant.id]);
+  const checkoutRequestCount = useCheckoutRequestCount(
+    restaurant.id,
+    accessMode !== 'owner',
+  );
 
   const { requestSignOut, modalOpen, modalConfirming, closeModal, confirmSignOut: runSignOut } =
     useSignOutConfirmState(() => dashboardSignOutAndRedirect(router));

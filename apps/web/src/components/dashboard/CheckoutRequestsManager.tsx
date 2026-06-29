@@ -43,6 +43,7 @@ import {
   type CheckoutDisplayLine,
 } from '@/lib/checkout-session-lines';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
+import { invalidateCheckoutRequestCount } from '@/lib/checkout-request-count-sync';
 import {
   loadCheckoutSoundEnabled,
   saveCheckoutSoundEnabled,
@@ -405,6 +406,7 @@ export function CheckoutRequestsManager({
           ? prev.filter((r) => r.id !== request.id)
           : prev.map((r) => (r.id === request.id ? { ...r, result: outcome.result } : r)),
       );
+      invalidateCheckoutRequestCount();
     } catch {
       showToast('操作失败，请重试', 'error');
     } finally {
@@ -444,6 +446,7 @@ export function CheckoutRequestsManager({
 
       setSelectedRequestId(null);
       void refreshCheckoutRequests();
+      invalidateCheckoutRequestCount();
       showToast(t.resumeOrderingSuccess, 'success');
     } catch {
       showToast(t.resumeOrderingFailed, 'error');
@@ -685,6 +688,7 @@ export function CheckoutRequestsManager({
                 onCloseTable={() => {
                   setSelectedRequestId(null);
                   void refreshCheckoutRequests();
+                  invalidateCheckoutRequestCount();
                 }}
               />
             ) : (

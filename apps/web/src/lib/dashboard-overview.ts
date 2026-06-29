@@ -3,6 +3,7 @@ import { aggregateMenuItemsFromOrders, rankMenuItemAggs, type MenuItemAgg } from
 import { printJobMaxAgeCutoffIso } from '@/lib/print-job-max-age';
 import type { UILanguage } from '@/lib/i18n';
 import type { Order } from '@/types';
+import { countPendingCheckoutRequests } from '@/lib/table-checkout-pending';
 
 export const DASHBOARD_FEEDBACK_LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000;
 export const DASHBOARD_RECENT_ORDERS_LIMIT = 5;
@@ -256,7 +257,7 @@ export async function loadDashboardOverviewData(
     { data: todayOrders },
     { data: recentOrders },
     { count: inProgressOrderCount },
-    { count: pendingCheckoutCount },
+    pendingCheckoutCount,
     { count: pendingAbnormalCount },
     { count: pendingPrintCount },
     { data: feedbackSessions },
@@ -279,12 +280,7 @@ export async function loadDashboardOverviewData(
       .select('id', { count: 'exact', head: true })
       .eq('restaurant_id', restaurantId)
       .neq('status', 'done'),
-    admin
-      .from('bill_splits')
-      .select('id', { count: 'exact', head: true })
-      .eq('restaurant_id', restaurantId)
-      .eq('status', 'requested')
-      .not('session_id', 'is', null),
+    countPendingCheckoutRequests(admin, restaurantId),
     admin
       .from('abnormal_operations')
       .select('id', { count: 'exact', head: true })
@@ -321,7 +317,7 @@ export async function loadDashboardOverviewData(
     recentOrders: (recentOrders || []) as Order[],
     pendingActions: {
       inProgressOrders: inProgressOrderCount ?? 0,
-      pendingCheckout: pendingCheckoutCount ?? 0,
+      pendingCheckout: pendingCheckoutCount,
       pendingAbnormal: pendingAbnormalCount ?? 0,
       pendingPrint: pendingPrintCount ?? 0,
     },

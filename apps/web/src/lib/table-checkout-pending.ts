@@ -52,6 +52,22 @@ export function checkoutRequestedAtForTable(
   return match?.[1] ?? null;
 }
 
+/** Active customer checkout requests (staff queue + nav badge). */
+export async function countPendingCheckoutRequests(
+  client: SupabaseClient,
+  restaurantId: string,
+): Promise<number> {
+  const { count, error } = await client
+    .from('bill_splits')
+    .select('id', { count: 'exact', head: true })
+    .eq('restaurant_id', restaurantId)
+    .eq('status', 'requested')
+    .not('session_id', 'is', null);
+
+  if (error) return 0;
+  return count ?? 0;
+}
+
 export async function fetchCheckoutRequestedBoard(
   client: SupabaseClient,
   restaurantId: string,

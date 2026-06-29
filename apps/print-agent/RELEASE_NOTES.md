@@ -2,6 +2,13 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.34
+
+**安装器：可选桌面快捷方式**
+
+- Inno Setup「Select Additional Tasks」页新增 **Desktop shortcut**（默认不勾选），与 **Sign-in startup** 并列展示，便于用户按需勾选。
+- 卸载时移除安装器创建的桌面与登录启动快捷方式。
+
 ## 0.3.33
 
 **安装器：登录自启默认不勾选**

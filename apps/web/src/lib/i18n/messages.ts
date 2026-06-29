@@ -412,7 +412,7 @@ export const MESSAGES = {
       downloadReleasePending:
         'v{version} 安装包正在准备，暂时不可下载。可先查看下方已发布版本，或稍后刷新。',
       downloadSubtitle:
-        '安装包向导可选「当前用户登录 Windows 时自动运行 {printAgent}」（默认不勾选）；免安装 zip 不含开机自启。安装或解压后双击程序，按浏览器配对页完成连接。',
+        '安装包向导「附加任务」页可选：创建桌面快捷方式、登录 Windows 时自动运行（均默认不勾选）；免安装 zip 不含这些选项。安装或解压后双击程序，按浏览器配对页完成连接。',
       downloadUpgradeSteps:
         '升级：托盘右键退出 → 运行下方新版本安装包 → 配置保留。已配对收银机列表会对比推荐版本（与仓库 VERSION 一致）。',
       downloadSetupAmd64: '下载安装包（64 位，推荐）',
@@ -1505,7 +1505,7 @@ export const MESSAGES = {
       downloadReleasePending:
         'v{version} is still being prepared and is not available yet. Use the published version below or refresh later.',
       downloadSubtitle:
-        'The installer offers “run at Windows sign-in” (unchecked by default). Portable zip has no autostart. Double-click the agent and complete pairing in the browser.',
+        'On the installer’s optional tasks step you can add a desktop shortcut and/or run at Windows sign-in (both unchecked by default). Portable zip has neither. Double-click the agent and complete pairing in the browser.',
       downloadUpgradeSteps:
         'To upgrade: exit from the tray menu → run the new installer below → config is kept. Paired devices compare agent version to the recommended build (repo VERSION).',
       downloadSetupAmd64: 'Installer (64-bit, recommended)',
@@ -2304,7 +2304,7 @@ export const MESSAGES = {
       downloadReleasePending:
         'v{version} ainda esta a ser preparado e nao esta disponivel. Use a versao publicada abaixo ou atualize mais tarde.',
       downloadSubtitle:
-        'O instalador oferece «executar ao iniciar sessao no Windows» (desmarcado por defeito). O zip portatil nao configura arranque automatico. Duplo clique no agente e emparelhe no browser.',
+        'No passo de tarefas opcionais do instalador pode adicionar atalho no ambiente de trabalho e/ou executar ao iniciar sessao no Windows (ambos desmarcados por defeito). O zip portatil nao inclui estas opcoes. Duplo clique no agente e emparelhe no browser.',
       downloadUpgradeSteps:
         'Atualizar: sair pelo menu da bandeja → executar o novo instalador abaixo → a configuracao mantem-se. Os dispositivos emparelhados mostram se a versao esta atrasada.',
       downloadSetupAmd64: 'Instalador (64 bits, recomendado)',

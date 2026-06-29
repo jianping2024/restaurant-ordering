@@ -31,7 +31,8 @@ InfoAfterFile=wizard-after.txt
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
-Name: "autostart"; Description: "Start Mesa Print Agent when the current user logs on"; GroupDescription: "Startup options:"; Flags: unchecked
+Name: "desktopicon"; Description: "Create a Mesa Print Agent shortcut on the desktop"; GroupDescription: "Desktop shortcut:"; Flags: unchecked
+Name: "autostart"; Description: "Start Mesa Print Agent when you sign in to Windows"; GroupDescription: "Sign-in startup:"; Flags: unchecked
 
 [Files]
 Source: "..\dist\amd64\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
@@ -42,6 +43,7 @@ Source: "WINDOWS-README.txt"; DestDir: "{app}"; Flags: ignoreversion
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"
 Name: "{group}\Printer settings"; Filename: "{app}\{#MyAppExe}"; Parameters: "configure"
 Name: "{group}\Read me"; Filename: "{app}\WINDOWS-README.txt"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: desktopicon
 Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: autostart
 
 [Run]

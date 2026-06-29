@@ -3,12 +3,14 @@ Mesa Print Agent (Windows) — v0.2+
 
 Thermal print agent for Mesa (UNYKA UK56009). One installer for LAN and USB.
 
-Installer autostart (Setup .exe only)
--------------------------------------
-The installer wizard includes "Start Mesa Print Agent when the current user logs on"
-(unchecked by default). Check it if you want the agent to run at Windows sign-in.
-This adds a shortcut in your Windows Startup folder (removed on uninstall).
-Portable zip does not configure autostart.
+Installer optional tasks (Setup .exe only)
+------------------------------------------
+On the wizard step "Select Additional Tasks" you can check:
+
+  Desktop shortcut — add Mesa Print Agent to your desktop (off by default).
+  Sign-in startup — run the agent when you log on to Windows (off by default).
+
+Checked shortcuts are removed when you uninstall. Portable zip has no wizard tasks.
 
 First-time setup (no command line)
 ----------------------------------

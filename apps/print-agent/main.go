@@ -151,6 +151,12 @@ func summarizeJobPayload(job printJob) string {
 
 func main() {
 	windowsPrepareConsole(os.Args)
+	if len(os.Args) > 1 && os.Args[1] == "--restart-wait" {
+		time.Sleep(1 * time.Second)
+		guardMainAgentSingleInstance()
+		runAgent(nil)
+		return
+	}
 	guardMainAgentSingleInstance()
 	if len(os.Args) > 1 {
 		switch os.Args[1] {

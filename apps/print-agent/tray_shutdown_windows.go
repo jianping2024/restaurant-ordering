@@ -3,6 +3,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"sync"
@@ -23,6 +24,25 @@ func stopTrayAgentWork(rt *trayRuntime) {
 	shutdownTrayLocalHTTP()
 	terminateSpawnedChildren()
 	releaseAgentSingleInstance()
+}
+
+// requestTrayRestart spawns a replacement instance, then exits. Spawn runs first so a
+// failure leaves the current agent running.
+func requestTrayRestart(rt *trayRuntime) {
+	log.Println("tray: restart requested")
+	if err := spawnAgentRestart(); err != nil {
+		log.Printf("tray: restart spawn failed: %v", err)
+		loc := loadTrayUILocale()
+		messageBoxOK(uiT(loc, "about_title"), fmt.Sprintf(uiT(loc, "restart_failed"), err.Error()))
+		return
+	}
+	stopTrayAgentWork(rt)
+	go systray.Quit()
+	go func() {
+		time.Sleep(2 * time.Second)
+		exitTrayAgent()
+	}()
+	exitTrayAgent()
 }
 
 // requestTrayExit shuts down and terminates the process immediately.

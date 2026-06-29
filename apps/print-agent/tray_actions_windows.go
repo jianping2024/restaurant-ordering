@@ -44,6 +44,13 @@ func confirmTrayExit(locale string) bool {
 	)
 }
 
+func confirmTrayRestart(locale string) bool {
+	return messageBoxYesNo(
+		uiT(locale, "restart_confirm_title"),
+		uiT(locale, "restart_confirm_body"),
+	)
+}
+
 func trayAboutText(rt *trayRuntime, locale string) string {
 	text := uiT(locale, "about_title") + " " + Version + "\n\n" + uiT(locale, "about_config") + "\n" + defaultConfigPath()
 	text += "\n\n" + uiT(locale, "about_log") + "\n" + agentLogPath()
@@ -75,7 +82,7 @@ func applyTrayUILocaleSubmenu(mUILang, mLangZh, mLangEn, mLangPt interface {
 	mLangPt.SetTitle(uiLocaleOptionTitle(locale, "pt"))
 }
 
-func applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mQuit interface {
+func applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mRestart, mQuit interface {
 	SetTitle(string)
 	SetTooltip(string)
 }, locale string) {
@@ -90,6 +97,8 @@ func applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole
 	mShowConsole.SetTooltip(uiT(locale, "menu_console_tip"))
 	mAbout.SetTitle(uiT(locale, "menu_about"))
 	mAbout.SetTooltip(uiT(locale, "menu_about_tip"))
+	mRestart.SetTitle(uiT(locale, "menu_restart"))
+	mRestart.SetTooltip(uiT(locale, "menu_restart_tip"))
 	mQuit.SetTitle(uiT(locale, "menu_quit"))
 	mQuit.SetTooltip(uiT(locale, "menu_quit_tip"))
 }

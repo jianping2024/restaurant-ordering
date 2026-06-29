@@ -2,6 +2,13 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.35
+
+**托盘：重启**
+
+- 托盘右键菜单在「退出」上方新增 **重启**，可重新加载云端配置并恢复打印，无需手动退出再打开。
+- 更新相关提示文案（已运行、首次启动等）。
+
 ## 0.3.34
 
 **安装器：可选桌面快捷方式**

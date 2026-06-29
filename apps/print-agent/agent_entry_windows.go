@@ -146,6 +146,7 @@ func onTrayReady(rt *trayRuntime) {
 	mShowConsole := systray.AddMenuItem(uiT(loc, "menu_console"), uiT(loc, "menu_console_tip"))
 	systray.AddSeparator()
 	mAbout := systray.AddMenuItem(uiT(loc, "menu_about"), uiT(loc, "menu_about_tip"))
+	mRestart := systray.AddMenuItem(uiT(loc, "menu_restart"), uiT(loc, "menu_restart_tip"))
 	mQuit := systray.AddMenuItem(uiT(loc, "menu_quit"), uiT(loc, "menu_quit_tip"))
 
 	go func() {
@@ -158,7 +159,7 @@ func onTrayReady(rt *trayRuntime) {
 			if loc != lastLoc {
 				lastLoc = loc
 				systray.SetTitle(uiT(loc, "tray_title"))
-				applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mQuit, loc)
+				applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mRestart, mQuit, loc)
 				applyTrayUILocaleSubmenu(mUILang, mLangZh, mLangEn, mLangPt, loc)
 			}
 			mStatus.SetTitle(rt.status.menuStatusLine(loc))
@@ -186,7 +187,7 @@ func onTrayReady(rt *trayRuntime) {
 		agentLogLocale(code, "log_tray_ui_locale", uiLocaleOptionLogLabel(code))
 		loc = code
 		systray.SetTitle(uiT(loc, "tray_title"))
-		applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mQuit, loc)
+		applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mRestart, mQuit, loc)
 		applyTrayUILocaleSubmenu(mUILang, mLangZh, mLangEn, mLangPt, loc)
 		systray.SetTooltip(rt.status.tooltip(Version, loc))
 	}
@@ -222,6 +223,13 @@ func onTrayReady(rt *trayRuntime) {
 				}
 			case <-mAbout.ClickedCh:
 				messageBoxOK(uiT(rt.uiLocale(), "about_title"), trayAboutText(rt, rt.uiLocale()))
+			case <-mRestart.ClickedCh:
+				loc := rt.uiLocale()
+				if !confirmTrayRestart(loc) {
+					continue
+				}
+				requestTrayRestart(rt)
+				return
 			case <-mQuit.ClickedCh:
 				loc := rt.uiLocale()
 				if !confirmTrayExit(loc) {

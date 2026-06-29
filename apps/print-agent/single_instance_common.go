@@ -9,7 +9,7 @@ func isMainAgentInvocation(args []string) bool {
 	}
 	switch args[1] {
 	case "discover", "pair", "configure", "config", "setup",
-		"help", "-h", "--help", "version", "-v", "--version":
+		"help", "-h", "--help", "version", "-v", "--version", "--restart-wait":
 		return false
 	case "run":
 		return true

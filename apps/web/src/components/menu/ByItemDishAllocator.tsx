@@ -27,6 +27,7 @@ interface Props {
   rows: ByItemConsumerRow[];
   consumerRoster: string[];
   labels: ByItemDishAllocatorLabels;
+  readOnly?: boolean;
   onChange: (rows: ByItemConsumerRow[]) => void;
   onRememberConsumerName: (name: string, fromList: boolean) => void;
 }
@@ -42,6 +43,7 @@ export function ByItemDishAllocator({
   rows,
   consumerRoster,
   labels,
+  readOnly = false,
   onChange,
   onRememberConsumerName,
 }: Props) {
@@ -53,6 +55,7 @@ export function ByItemDishAllocator({
         rows={rows}
         consumerRoster={consumerRoster}
         labels={labels}
+        readOnly={readOnly}
         onChange={onChange}
         onRememberConsumerName={onRememberConsumerName}
       />
@@ -66,6 +69,7 @@ export function ByItemDishAllocator({
       rows={rows}
       consumerRoster={consumerRoster}
       labels={labels}
+      readOnly={readOnly}
       onChange={onChange}
       onRememberConsumerName={onRememberConsumerName}
     />
@@ -78,6 +82,7 @@ function MenuByItemDishAllocator({
   rows,
   consumerRoster,
   labels,
+  readOnly = false,
   onChange,
   onRememberConsumerName,
 }: Props & { spec: Extract<ByItemLineSpec, { mode: 'menu' }> }) {
@@ -120,7 +125,7 @@ function MenuByItemDishAllocator({
         statusSummary.tone === 'alert'
           ? 'border-red-500/40 ring-1 ring-red-500/20'
           : 'border-brand-border'
-      }`}
+      }${readOnly ? ' opacity-60 pointer-events-none' : ''}`}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0">

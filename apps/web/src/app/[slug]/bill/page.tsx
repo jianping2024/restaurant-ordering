@@ -72,14 +72,24 @@ export default async function BillRoute({ params, searchParams }: Props) {
 
   let initialFeedbackSubmitted = false;
   let initialFeedbackSkipped = false;
+  let hasCollectedPayments = false;
   if (tableContext.activeSession.id) {
-    const { data: feedbackSession } = await admin
-      .from('feedback_sessions')
-      .select('completed_at, skipped_at')
-      .eq('session_id', tableContext.activeSession.id)
-      .maybeSingle();
+    const sessionId = tableContext.activeSession.id;
+    const [{ data: feedbackSession }, collectedCountResult] = await Promise.all([
+      admin
+        .from('feedback_sessions')
+        .select('completed_at, skipped_at')
+        .eq('session_id', sessionId)
+        .maybeSingle(),
+      admin
+        .from('session_collected_payments')
+        .select('id', { count: 'exact', head: true })
+        .eq('restaurant_id', restaurant.id)
+        .eq('session_id', sessionId),
+    ]);
     initialFeedbackSubmitted = !!feedbackSession?.completed_at;
     initialFeedbackSkipped = !!feedbackSession?.skipped_at;
+    hasCollectedPayments = (collectedCountResult.count ?? 0) > 0;
   }
 
   return (
@@ -89,7 +99,9 @@ export default async function BillRoute({ params, searchParams }: Props) {
       displayName={tableContext.displayName}
       orders={orders}
       sessionId={tableContext.activeSession.id}
+      sessionStatus={tableContext.activeSession.status}
       existingSplit={existingSplit}
+      hasCollectedPayments={hasCollectedPayments}
       returnPath={waiterReturnHref}
       initialFeedbackSubmitted={initialFeedbackSubmitted}
       initialFeedbackSkipped={initialFeedbackSkipped}

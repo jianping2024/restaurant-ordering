@@ -1,11 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { buildByItemAllocationsFromPersons } from '@/lib/bill-split-by-item';
 import { buildBillSplitOrderLines, buildByItemLineSpecs } from '@/lib/bill-split-by-item-lines';
+import { validateCheckoutContinuation } from '@/lib/checkout-split-continuation';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
 import { validateBillSplit } from '@/lib/bill-split-validate';
 import { sumLineTotals } from '@/lib/cart-totals';
 import type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
-import type { SplitResult } from '@/types';
+import type { BillSplit, SplitResult } from '@/types';
 
 export type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
 
@@ -80,6 +81,34 @@ export async function submitCheckoutRequestForTable(
   });
   if (!validation.ok) {
     return { ok: false, error: validation.issue, status: 400 };
+  }
+
+  const { data: existingSplitRow } = await admin
+    .from('bill_splits')
+    .select('*')
+    .eq('restaurant_id', restaurantId)
+    .eq('session_id', sessionId)
+    .in('status', ['pending', 'confirmed', 'requested'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { count: collectedCount } = await admin
+    .from('session_collected_payments')
+    .select('id', { count: 'exact', head: true })
+    .eq('restaurant_id', restaurantId)
+    .eq('session_id', sessionId);
+
+  if (existingSplitRow) {
+    const continuation = validateCheckoutContinuation({
+      existing: existingSplitRow as BillSplit,
+      payload,
+      lineSpecs,
+      hasCollectedLedger: (collectedCount ?? 0) > 0,
+    });
+    if (!continuation.ok) {
+      return { ok: false, error: continuation.issue, status: 409 };
+    }
   }
 
   const orderIds = orders.map((order) => order.id);

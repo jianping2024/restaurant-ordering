@@ -4,6 +4,11 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { validateSplitDraft } from '@/lib/bill-split-draft';
+import {
+  isCheckoutSplitLocked,
+  lockedByItemLineKeys,
+  shouldShowCheckoutSubmitted,
+} from '@/lib/checkout-split-continuation';
 import { deriveBillView, isBillOrdersComplete } from '@/lib/customer-bill-sync';
 import { requestCustomerBillContext } from '@/lib/request-customer-context';
 import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
@@ -19,7 +24,7 @@ import { requestOrderReceiptPrintQuiet } from '@/lib/request-order-receipt-print
 import { localizeSplitPersonName } from '@/lib/split-person-label';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
-import type { BillSplit, DishFeedbackVote, Order, OrderItem, SplitMode, SplitResult } from '@/types';
+import type { BillSplit, DishFeedbackVote, Order, OrderItem, SessionStatus, SplitMode, SplitResult } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { showToast } from '@/components/ui/Toast';
@@ -31,7 +36,9 @@ interface Props {
   displayName: string;
   orders: Order[];
   sessionId: string | null;
+  sessionStatus: SessionStatus;
   existingSplit: BillSplit | null;
+  hasCollectedPayments?: boolean;
   returnPath?: string | null;
   initialFeedbackSubmitted?: boolean;
   initialFeedbackSkipped?: boolean;
@@ -57,7 +64,9 @@ export function BillPage({
   displayName,
   orders: initialOrders,
   sessionId,
+  sessionStatus,
   existingSplit,
+  hasCollectedPayments = false,
   returnPath,
   initialFeedbackSubmitted = false,
   initialFeedbackSkipped = false,
@@ -80,17 +89,39 @@ export function BillPage({
     if (existingSplit.split_mode === 'custom' && existingSplit.result?.length === 1) return null;
     return existingSplit.split_mode;
   })();
+  const [continuationSplit, setContinuationSplit] = useState<BillSplit | null>(existingSplit);
+  const [collectedLedgerActive, setCollectedLedgerActive] = useState(hasCollectedPayments);
   const [splitMode, setSplitMode] = useState<SplitMode | null>(initialSplitMode);
-  const [personCount, setPersonCount] = useState(2);
-  const [splitPeople, setSplitPeople] = useState<SplitPersonSlot[]>([
-    { id: 'p1', name: guestName(1) },
-    { id: 'p2', name: guestName(2) },
-  ]);
-  const [customAmounts, setCustomAmounts] = useState<PersonAmount[]>([
-    { name: guestName(1), amount: 0 },
-    { name: guestName(2), amount: 0 },
-  ]);
-  const [submitted, setSubmitted] = useState(!!existingSplit);
+  const [personCount, setPersonCount] = useState(() => {
+    if (existingSplit?.split_mode === 'even' && existingSplit.persons?.length) {
+      return existingSplit.persons.length;
+    }
+    return 2;
+  });
+  const [splitPeople, setSplitPeople] = useState<SplitPersonSlot[]>(() => {
+    if (existingSplit?.persons?.length) {
+      return existingSplit.persons.map((person, idx) => ({
+        id: `p${idx + 1}`,
+        name: person.name,
+      }));
+    }
+    return [
+      { id: 'p1', name: guestName(1) },
+      { id: 'p2', name: guestName(2) },
+    ];
+  });
+  const [customAmounts, setCustomAmounts] = useState<PersonAmount[]>(() => {
+    if (existingSplit?.split_mode === 'custom' && existingSplit.result?.length) {
+      return existingSplit.result.map((row) => ({ name: row.name, amount: row.amount }));
+    }
+    return [
+      { name: guestName(1), amount: 0 },
+      { name: guestName(2), amount: 0 },
+    ];
+  });
+  const [submitted, setSubmitted] = useState(
+    shouldShowCheckoutSubmitted(existingSplit, sessionStatus),
+  );
   const [submitting, setSubmitting] = useState(false);
   const [persistedResult, setPersistedResult] = useState<SplitResult[] | null>((existingSplit?.result as SplitResult[] | null) || null);
   const [persistedSplitId, setPersistedSplitId] = useState<string | null>(existingSplit?.id || null);
@@ -119,9 +150,21 @@ export function BillPage({
     const pollCheckoutResumed = async () => {
       const ctx = await requestCustomerBillContext(restaurant.slug, tableId);
       if (cancelled || !ctx) return;
+      if (ctx.active_session?.status === 'open' && ctx.existing_split?.status === 'confirmed') {
+        setSubmitted(false);
+        setContinuationSplit(ctx.existing_split);
+        setCollectedLedgerActive(ctx.has_collected_payments);
+        if (ctx.existing_split.split_mode) {
+          setSplitMode(ctx.existing_split.split_mode);
+        }
+        await syncOrders();
+        return;
+      }
       if (ctx.active_session?.status === 'open' && !ctx.existing_split) {
         setSubmitted(false);
         setSplitMode(null);
+        setContinuationSplit(null);
+        setCollectedLedgerActive(false);
         setPersistedResult(null);
         setPersistedSplitId(null);
         await syncOrders();
@@ -149,6 +192,7 @@ export function BillPage({
   const startInlineRename = (index: number) => {
     const current = splitPeople[index];
     if (!current) return;
+    if (splitLocked && paidPersonNames.has(current.name.trim().toLowerCase())) return;
     setEditingSplitNameIndex(index);
     setEditingSplitNameValue(current.name);
   };
@@ -157,7 +201,14 @@ export function BillPage({
     const normalized = editingSplitNameValue.trim();
     if (splitMode === 'by_item') {
       const oldName = results[index]?.name;
-      if (oldName && normalized) renameByItemConsumer(oldName, normalized);
+      if (oldName && normalized) {
+        if (splitLocked && paidPersonNames.has(oldName.trim().toLowerCase())) {
+          setEditingSplitNameIndex(null);
+          setEditingSplitNameValue('');
+          return;
+        }
+        renameByItemConsumer(oldName, normalized);
+      }
     } else {
       syncNameAcrossModes(index, normalized || guestName(index + 1));
     }
@@ -196,7 +247,25 @@ export function BillPage({
     byItemProgress,
     renameByItemConsumer,
     buildPersonsForSubmit,
-  } = useByItemSplitState({ splitMode, lineSpecs, existingSplit });
+  } = useByItemSplitState({ splitMode, lineSpecs, existingSplit: continuationSplit });
+
+  const splitLocked = useMemo(
+    () => isCheckoutSplitLocked(continuationSplit, collectedLedgerActive, sessionStatus),
+    [continuationSplit, collectedLedgerActive, sessionStatus],
+  );
+  const lockedLineKeys = useMemo(
+    () => (splitLocked ? lockedByItemLineKeys(continuationSplit) : new Set<string>()),
+    [splitLocked, continuationSplit],
+  );
+  const paidPersonNames = useMemo(
+    () =>
+      new Set(
+        (continuationSplit?.result ?? [])
+          .filter((row) => row.paid)
+          .map((row) => row.name.trim().toLowerCase()),
+      ),
+    [continuationSplit?.result],
+  );
 
   const splitDraftInput = useMemo(
     () => ({
@@ -275,7 +344,7 @@ export function BillPage({
     customerNifInput.trim().length > 0 && !validatePortugueseNif(customerNifInput);
 
   const handleSplitModeClick = async (mode: SplitMode) => {
-    if (isSyncing || submitting) return;
+    if (isSyncing || submitting || splitLocked) return;
     if (splitMode === mode) {
       setSplitMode(null);
       return;
@@ -346,9 +415,17 @@ export function BillPage({
         customerNif: normalizePortugueseNif(customerNifInput) || null,
       });
       if (!requestResult.ok) {
-        showToast(requestResult.error === 'invalid_nif' ? t.nifInvalid : t.actionFailed, 'error');
+        const message =
+          requestResult.error === 'invalid_nif'
+            ? t.nifInvalid
+            : requestResult.error === 'split_mode_locked' || requestResult.error === 'locked_allocation_changed'
+              ? t.splitPlanLocked
+              : t.actionFailed;
+        showToast(message, 'error');
         return;
       }
+
+      setContinuationSplit(null);
 
       setPersistedSplitId(requestResult.bill_split_id);
       setPersistedResult(requestResult.result);
@@ -762,7 +839,7 @@ export function BillPage({
             <button
               key={mode}
               type="button"
-              disabled={isSyncing || submitting}
+              disabled={isSyncing || submitting || splitLocked}
               onClick={() => void handleSplitModeClick(mode)}
               className={`py-2.5 rounded-xl text-sm transition-all ${
                 splitMode === mode
@@ -774,7 +851,10 @@ export function BillPage({
             </button>
           ))}
         </div>
-        {!splitMode && (
+        {splitLocked && (
+          <p className="text-brand-text-muted text-[13px] mb-2">{t.splitPlanLocked}</p>
+        )}
+        {!splitMode && !splitLocked && (
           <p className="text-brand-text-muted text-[13px] mb-2">
             {t.splitOptionalHint}
           </p>
@@ -786,6 +866,8 @@ export function BillPage({
             <span className="text-brand-text-muted text-sm">{t.people}</span>
             <div className="flex items-center gap-3">
               <button
+                type="button"
+                disabled={splitLocked}
                 onClick={() => {
                   const n = Math.max(2, personCount - 1);
                   setPersonCount(n);
@@ -802,6 +884,8 @@ export function BillPage({
               >−</button>
               <span className="font-heading text-xl text-brand-gold">{personCount}</span>
               <button
+                type="button"
+                disabled={splitLocked}
                 onClick={() => {
                   const n = Math.min(20, personCount + 1);
                   setPersonCount(n);
@@ -839,7 +923,9 @@ export function BillPage({
             labels={byItemAllocatorLabels}
             itemCodeByMenuId={itemCodeByMenuId}
             progress={byItemProgress}
+            lockedLineKeys={lockedLineKeys}
             onAllocationChange={(key, rows) => {
+              if (lockedLineKeys.has(key)) return;
               setByItemAllocations((prev) => ({ ...prev, [key]: rows }));
             }}
             onRememberConsumerName={rememberConsumerName}
@@ -852,7 +938,9 @@ export function BillPage({
       <div className="px-4 py-4">
         <h2 className="text-brand-text font-medium mb-3">{t.splitResult}</h2>
         <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
-          {results.map((r, i) => (
+          {results.map((r, i) => {
+            const rowPaid = splitLocked && paidPersonNames.has(r.name.trim().toLowerCase());
+            return (
             <div key={i} className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0">
               {splitMode && (splitMode === 'even' || splitMode === 'by_item' || splitMode === 'custom') ? (
                 editingSplitNameIndex === i ? (
@@ -875,6 +963,8 @@ export function BillPage({
                     className="text-brand-text text-sm bg-transparent border-b border-brand-gold/45 focus:outline-none min-w-[92px]"
                     placeholder={guestName(i + 1)}
                   />
+                ) : rowPaid ? (
+                  <span className="text-brand-text text-sm">{localizeSplitPersonName(r.name, lang)}</span>
                 ) : (
                   <button
                     type="button"
@@ -915,6 +1005,8 @@ export function BillPage({
                         placeholder="0.00"
                       />
                     </div>
+                  ) : rowPaid ? (
+                    <span className="text-brand-gold font-medium">€{customAmounts[i]?.amount.toFixed(2) || '0.00'}</span>
                   ) : (
                     <button
                       type="button"
@@ -929,9 +1021,10 @@ export function BillPage({
                 <span className="text-brand-gold font-medium">€{r.amount.toFixed(2)}</span>
               )}
             </div>
-          ))}
+          );
+          })}
         </div>
-        {splitMode === 'custom' && (
+        {splitMode === 'custom' && !splitLocked && (
           <button
             onClick={() => {
               setCustomAmounts(prev => {

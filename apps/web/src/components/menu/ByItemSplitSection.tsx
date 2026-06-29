@@ -16,6 +16,7 @@ interface Props {
   consumerRoster: string[];
   labels: ByItemDishAllocatorLabels & { byItemProgress: string };
   itemCodeByMenuId?: Record<string, string>;
+  lockedLineKeys?: ReadonlySet<string>;
   onAllocationChange: (key: string, rows: ByItemConsumerRow[]) => void;
   onRememberConsumerName: (name: string, fromList: boolean) => void;
   progress: { complete: number; total: number };
@@ -29,6 +30,7 @@ export function ByItemSplitSection({
   consumerRoster,
   labels,
   itemCodeByMenuId = {},
+  lockedLineKeys,
   onAllocationChange,
   onRememberConsumerName,
   progress,
@@ -82,6 +84,7 @@ export function ByItemSplitSection({
             rows={byItemAllocations[spec.key] ?? []}
             consumerRoster={consumerRoster}
             labels={labels}
+            readOnly={lockedLineKeys?.has(spec.key)}
             onChange={(rows) => onAllocationChange(spec.key, rows)}
             onRememberConsumerName={onRememberConsumerName}
             title={(

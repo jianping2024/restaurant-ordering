@@ -44,17 +44,24 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
       active_session: null,
       orders: [],
       existing_split: null,
+      has_collected_payments: false,
     });
   }
 
-  const [orders, existingSplit] = await Promise.all([
+  const sessionId = ctx.activeSession.id;
+  const [orders, existingSplit, collectedCountResult] = await Promise.all([
     loadCustomerSessionOrders({
       admin,
       restaurantId: restaurant.id,
-      sessionId: ctx.activeSession.id,
+      sessionId,
       ascending: true,
     }),
-    loadCustomerExistingSplit({ admin, sessionId: ctx.activeSession.id }),
+    loadCustomerExistingSplit({ admin, sessionId }),
+    admin
+      .from('session_collected_payments')
+      .select('id', { count: 'exact', head: true })
+      .eq('restaurant_id', restaurant.id)
+      .eq('session_id', sessionId),
   ]);
 
   return NextResponse.json({
@@ -63,5 +70,6 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     active_session: ctx.activeSession,
     orders,
     existing_split: existingSplit,
+    has_collected_payments: (collectedCountResult.count ?? 0) > 0,
   });
 }

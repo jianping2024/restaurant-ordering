@@ -88,9 +88,9 @@
 |------|----------------|------------------|
 | 已收款项跨恢复保留 | ✓ | ✓ `session_collected_payments` 不随恢复删除 |
 | 多人分账部分收款后可恢复 | ✓ | ✓ 非整桌单行时可恢复 |
-| 恢复时取消活跃 `bill_splits` | — | ✓ `requested` → `cancelled` |
-| 恢复后记住按菜分单与锁定 | ✓ | **未实现**：再次结账须重建分单 |
-| 顾客页禁用分单模式 / 锁定已收菜行 | ✓ | **未实现** |
+| 恢复时取消活跃 `bill_splits` | — | 无部分收款时仍 `cancelled`；有部分收款时改为 `confirmed` 保留快照 |
+| 恢复后记住按菜分单与锁定 | ✓ | ✓ `loadCustomerExistingSplit` + `checkout-split-continuation` + 服务端校验 |
+| 顾客页禁用分单模式 / 锁定已收菜行 | ✓ | ✓ `BillPage` + `ByItemSplitSection` 只读行 |
 
 后续实现须以 **餐次级分单快照 + 行级锁定** 为单元设计（而非仅 UI 隐藏），并与 `confirm_bill_split_payment` 的 `person_index`、按菜校验共用一套服务端规则。
 

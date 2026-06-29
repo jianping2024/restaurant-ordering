@@ -13,6 +13,7 @@ export type CustomerBillResponse = {
   active_session: TableSession | null;
   orders: Order[];
   existing_split: BillSplit | null;
+  has_collected_payments: boolean;
 };
 
 async function fetchJson<T>(url: string): Promise<T | null> {

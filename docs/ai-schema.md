@@ -447,7 +447,7 @@ table_sessions:
 - Billing flow: `bill_splits` supports even/by-item/custom splits and stores calculated result in jsonb. At most one active (`pending`/`confirmed`/`requested`) row per `session_id` (partial unique index).
 - Checkout request: `upsert_bill_split_request(...)` — advisory lock per session; `FOR UPDATE` on active split; merges `paid` flags; sets `table_sessions` to `billing`.
 - Checkout confirm payment: `confirm_bill_split_payment(...)` — advisory lock per session when `session_id` set; `FOR UPDATE` on `bill_splits`; rejects `cancelled`; appends `session_collected_payments` per confirm; closes `table_sessions` when all rows paid.
-- Resume ordering: `resume_table_session_ordering(...)` — cancels active split, sets session `open`; ledger unchanged; whole-table blocked if paid or ledger has rows. **Target product rules** for by-item partial payment (split lock, frozen allocations): `docs/checkout-resume-ordering.zh.md`.
+- Resume ordering: `resume_table_session_ordering(...)` — sets session `open`; ledger unchanged; whole-table blocked if paid or ledger has rows; **partial multi-person pay** keeps active split as `confirmed` (else `cancelled`). Product rules: `docs/checkout-resume-ordering.zh.md`.
 - Operational close: `close_table_session_operational(...)` — advisory lock; locks active `bill_splits` then `table_sessions`; cancels splits, voids order lines, closes session.
 - Menu routing: `menu_categories` and `menu_items` can each map to `print_stations`.
 - Print agent flow: `print_agent_pairings` issues six-digit pairing codes; `print_agent_devices` stores paired agent state; `print_jobs` stores queued print work.

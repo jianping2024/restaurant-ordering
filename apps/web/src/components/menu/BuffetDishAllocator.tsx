@@ -30,6 +30,7 @@ interface Props {
   rows: ByItemConsumerRow[];
   consumerRoster: string[];
   labels: BuffetDishAllocatorLabels;
+  readOnly?: boolean;
   onChange: (rows: ByItemConsumerRow[]) => void;
   onRememberConsumerName: (name: string, fromList: boolean) => void;
 }
@@ -71,6 +72,7 @@ export function BuffetDishAllocator({
   rows,
   consumerRoster,
   labels,
+  readOnly = false,
   onChange,
   onRememberConsumerName,
 }: Props) {
@@ -102,7 +104,7 @@ export function BuffetDishAllocator({
         statusSummary.tone === 'alert'
           ? 'border-red-500/40 ring-1 ring-red-500/20'
           : 'border-brand-border'
-      }`}
+      }${readOnly ? ' opacity-60 pointer-events-none' : ''}`}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0">

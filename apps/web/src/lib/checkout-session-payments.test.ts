@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { BillSplit } from '@/types';
 import {
+  parseSessionCollectedPayments,
   resumeCheckoutBlockReason,
   resumeOrderingConfirmVariant,
   suggestedCollectionAmount,
@@ -27,6 +28,23 @@ function billSplit(overrides: Partial<BillSplit> = {}): BillSplit {
     ...overrides,
   };
 }
+
+describe('parseSessionCollectedPayments', () => {
+  it('maps ledger rows with numeric amount', () => {
+    const rows = parseSessionCollectedPayments([
+      {
+        id: 'pay-1',
+        person_name: 'John',
+        amount: 26.4,
+        created_at: '2026-06-27T14:30:00.000Z',
+      },
+    ]);
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0]?.person_name, 'John');
+    assert.equal(rows[0]?.amount, 26.4);
+    assert.equal(rows[0]?.created_at, '2026-06-27T14:30:00.000Z');
+  });
+});
 
 describe('sumCollectedByPersonName', () => {
   it('aggregates by trimmed person name', () => {

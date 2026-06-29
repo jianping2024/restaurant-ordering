@@ -5,6 +5,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { IntegerInput } from '@/components/ui/IntegerInput';
+import { formatOrderDateTime, formatCollectedPaymentTime } from '@/lib/format-dashboard-date';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import type { BillSplit, Order } from '@/types';
 import { showToast } from '@/components/ui/Toast';
@@ -37,6 +38,8 @@ import {
 } from '@/lib/checkout-request-state';
 import {
   hasConfirmedPerson,
+  parseSessionCollectedPayments,
+  SESSION_COLLECTED_PAYMENT_SELECT,
   type SessionCollectedPayment,
   resumeCheckoutBlockReason,
   resumeOrderingConfirmVariant,
@@ -263,7 +266,7 @@ export function CheckoutRequestsManager({
     const loadCollectedPayments = async () => {
       const { data, error } = await supabase
         .from('session_collected_payments')
-        .select('id, person_name, amount, created_at')
+        .select(SESSION_COLLECTED_PAYMENT_SELECT)
         .eq('restaurant_id', restaurantId)
         .eq('session_id', sessionId)
         .order('created_at', { ascending: true });
@@ -274,14 +277,7 @@ export function CheckoutRequestsManager({
         return;
       }
 
-      setCollectedPayments(
-        (data || []).map((row) => ({
-          id: row.id as string,
-          person_name: row.person_name as string,
-          amount: Number(row.amount),
-          created_at: row.created_at as string,
-        })),
-      );
+      setCollectedPayments(parseSessionCollectedPayments(data));
     };
 
     void loadCollectedPayments();
@@ -408,18 +404,11 @@ export function CheckoutRequestsManager({
       if (request.session_id) {
         const { data } = await supabase
           .from('session_collected_payments')
-          .select('id, person_name, amount, created_at')
+          .select(SESSION_COLLECTED_PAYMENT_SELECT)
           .eq('restaurant_id', restaurantId)
           .eq('session_id', request.session_id)
           .order('created_at', { ascending: true });
-        setCollectedPayments(
-          (data || []).map((payment) => ({
-            id: payment.id as string,
-            person_name: payment.person_name as string,
-            amount: Number(payment.amount),
-            created_at: payment.created_at as string,
-          })),
-        );
+        setCollectedPayments(parseSessionCollectedPayments(data));
       }
 
       setRequests((prev) =>
@@ -655,12 +644,23 @@ export function CheckoutRequestsManager({
             {collectedPayments.map((payment) => (
               <div
                 key={payment.id}
-                className="flex items-center justify-between text-sm"
+                className="flex items-start justify-between gap-3 text-sm"
               >
-                <span className="text-brand-text">
-                  {localizeSplitPersonName(payment.person_name, lang)}
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <span className="text-brand-text">
+                    {localizeSplitPersonName(payment.person_name, lang)}
+                  </span>
+                  <time
+                    className="text-[11px] text-brand-text-muted tabular-nums"
+                    dateTime={payment.created_at}
+                    title={formatOrderDateTime(lang, payment.created_at)}
+                  >
+                    {formatCollectedPaymentTime(lang, payment.created_at)}
+                  </time>
+                </div>
+                <span className="text-brand-gold tabular-nums shrink-0">
+                  €{payment.amount.toFixed(2)}
                 </span>
-                <span className="text-brand-gold">€{payment.amount.toFixed(2)}</span>
               </div>
             ))}
           </div>

@@ -20,6 +20,25 @@ export type SessionCollectedPayment = {
   created_at: string;
 };
 
+export const SESSION_COLLECTED_PAYMENT_SELECT =
+  'id, person_name, amount, created_at' as const;
+
+export function parseSessionCollectedPayments(
+  data: Array<{
+    id: unknown;
+    person_name: unknown;
+    amount: unknown;
+    created_at: unknown;
+  }> | null,
+): SessionCollectedPayment[] {
+  return (data ?? []).map((row) => ({
+    id: row.id as string,
+    person_name: row.person_name as string,
+    amount: Number(row.amount),
+    created_at: row.created_at as string,
+  }));
+}
+
 export function sumCollectedByPersonName(
   payments: SessionCollectedPayment[],
 ): Map<string, number> {

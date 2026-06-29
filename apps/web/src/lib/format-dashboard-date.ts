@@ -20,6 +20,36 @@ const ORDER_TIME_OPTS: Intl.DateTimeFormatOptions = {
   timeZone: DASHBOARD_DISPLAY_TZ,
 };
 
+const COLLECTED_TIME_OPTS: Intl.DateTimeFormatOptions = {
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: DASHBOARD_DISPLAY_TZ,
+};
+
+function dashboardCalendarDay(date: Date): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: DASHBOARD_DISPLAY_TZ,
+  }).format(date);
+}
+
+/** Same-day collections show time only; older rows include date for multi-day sessions. */
+export function formatCollectedPaymentTime(
+  lang: UILanguage,
+  iso: string,
+  now = new Date(),
+): string {
+  const locale = UI_LOCALE_BY_LANG[lang];
+  const at = new Date(iso);
+  const opts =
+    dashboardCalendarDay(at) === dashboardCalendarDay(now)
+      ? COLLECTED_TIME_OPTS
+      : ORDER_TIME_OPTS;
+  return new Intl.DateTimeFormat(locale, opts).format(at);
+}
+
 /** Stable zh overview line (Node vs mobile ICU differ on spacing around weekday). */
 export function formatOverviewDate(lang: UILanguage, date = new Date()): string {
   const locale = UI_LOCALE_BY_LANG[lang];

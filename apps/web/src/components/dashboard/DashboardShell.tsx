@@ -1,10 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import {
-  DASHBOARD_NAV_COLLAPSED_STORAGE_KEY,
-  dashboardMainOffsetClass,
-} from '@/lib/dashboard-nav-layout';
+import { DASHBOARD_NAV_COLLAPSED_STORAGE_KEY } from '@/lib/dashboard-nav-layout';
 
 type DashboardNavLayoutContextValue = {
   collapsed: boolean;
@@ -64,11 +61,15 @@ export function DashboardShell({
 
   return (
     <DashboardNavLayoutContext.Provider value={value}>
-      <div className="min-h-screen bg-brand-bg flex">
+      <div
+        className={`min-h-screen bg-brand-bg lg:grid lg:transition-[grid-template-columns] lg:duration-200 lg:ease-out motion-reduce:lg:transition-none ${
+          collapsed
+            ? 'lg:[grid-template-columns:4.5rem_minmax(0,1fr)]'
+            : 'lg:[grid-template-columns:16rem_minmax(0,1fr)]'
+        }`}
+      >
         {sidebar}
-        <main
-          className={`flex-1 min-w-0 overflow-x-hidden p-4 pt-20 sm:p-6 sm:pt-20 lg:p-8 lg:pt-8 min-h-screen transition-[margin-left] duration-200 ease-out motion-reduce:transition-none ${dashboardMainOffsetClass(collapsed)}`}
-        >
+        <main className="min-h-screen min-w-0 overflow-x-hidden p-4 pt-20 sm:p-6 sm:pt-20 lg:p-8 lg:pt-8">
           {children}
         </main>
       </div>

@@ -15,7 +15,6 @@ import { ProductLogo } from '@/components/ui/ProductLogo';
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
 import { navItemsForRole } from '@/lib/dashboard-feature-registry';
 import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
-import { dashboardNavWidthClass } from '@/lib/dashboard-nav-layout';
 
 const ownerNavItems = navItemsForRole('owner');
 const frontdeskNavItems = navItemsForRole('frontdesk');
@@ -177,30 +176,42 @@ export function DashboardNav({
 
       <aside
         id="dashboard-nav"
-        className={`fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-brand-border bg-brand-card transition-[transform,width] duration-200 ease-out motion-reduce:transition-none ${dashboardNavWidthClass(collapsed)} ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+        className={`fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-brand-border bg-brand-card transition-transform duration-200 ease-out motion-reduce:transition-none lg:relative lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:w-full lg:translate-x-0 lg:transition-none ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         <div
-          className={`shrink-0 border-b border-brand-border py-5 lg:py-6 ${showRail ? 'px-2 lg:px-2' : 'px-6'}`}
+          className={`shrink-0 border-b border-brand-border py-5 lg:py-6 ${showRail ? 'px-2' : 'px-6'}`}
         >
-          <div className="flex items-center justify-between gap-2">
-            <div className={`min-w-0 flex-1 ${showRail ? 'flex justify-center lg:flex' : ''}`}>
-              <ProductLogo size="md" variant={showRail ? 'mark' : 'full'} />
+          {showRail ? (
+            <div className="flex flex-col items-center gap-2">
+              <ProductLogo size="md" variant="mark" />
+              <NavCollapseToggle
+                collapsed={collapsed}
+                onToggle={toggleCollapsed}
+                expandLabel={t.expandSidebar}
+                collapseLabel={t.collapseSidebar}
+              />
             </div>
-            <button
-              type="button"
-              onClick={() => setMobileOpen(false)}
-              className="h-8 w-8 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text lg:hidden"
-              aria-label={t.closeMenu}
-            >
-              ×
-            </button>
-            <NavCollapseToggle
-              collapsed={collapsed}
-              onToggle={toggleCollapsed}
-              expandLabel={t.expandSidebar}
-              collapseLabel={t.collapseSidebar}
-            />
-          </div>
+          ) : (
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <ProductLogo size="md" />
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                className="h-8 w-8 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text lg:hidden"
+                aria-label={t.closeMenu}
+              >
+                ×
+              </button>
+              <NavCollapseToggle
+                collapsed={collapsed}
+                onToggle={toggleCollapsed}
+                expandLabel={t.expandSidebar}
+                collapseLabel={t.collapseSidebar}
+              />
+            </div>
+          )}
           {!showRail ? (
             <p className="mt-1 truncate text-sm text-brand-text-muted">{restaurant.name}</p>
           ) : null}

@@ -46,6 +46,10 @@ export function checkoutBillPrintKey(billSplitId: string): string {
   return `bill-print:${billSplitId}`;
 }
 
+export function checkoutResumeOrderingKey(billSplitId: string): string {
+  return `resume-ordering:${billSplitId}`;
+}
+
 export function isCheckoutRequestBusy(processingKeys: ReadonlySet<string>, billSplitId: string): boolean {
   const prefix = `${billSplitId}-`;
   let busy = false;

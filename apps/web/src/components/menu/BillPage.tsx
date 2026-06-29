@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { validateSplitDraft } from '@/lib/bill-split-draft';
 import { deriveBillView, isBillOrdersComplete } from '@/lib/customer-bill-sync';
+import { requestCustomerBillContext } from '@/lib/request-customer-context';
 import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
 import { getMessages } from '@/lib/i18n/messages';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
@@ -108,6 +109,31 @@ export function BillPage({
     commitOrders,
     syncOrders,
   } = useBillOrders(initialOrders, { slug: restaurant.slug, tableId });
+
+  useEffect(() => {
+    if (!submitted || !sessionId) return;
+
+    let cancelled = false;
+    const pollCheckoutResumed = async () => {
+      const ctx = await requestCustomerBillContext(restaurant.slug, tableId);
+      if (cancelled || !ctx) return;
+      if (ctx.active_session?.status === 'open' && !ctx.existing_split) {
+        setSubmitted(false);
+        setSplitMode(null);
+        setPersistedResult(null);
+        setPersistedSplitId(null);
+        await syncOrders();
+      }
+    };
+
+    void pollCheckoutResumed();
+    const timer = window.setInterval(() => void pollCheckoutResumed(), 5000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [submitted, sessionId, restaurant.slug, tableId, syncOrders]);
+
   const [editingSplitNameIndex, setEditingSplitNameIndex] = useState<number | null>(null);
   const [editingSplitNameValue, setEditingSplitNameValue] = useState('');
   const [editingCustomAmountIndex, setEditingCustomAmountIndex] = useState<number | null>(null);

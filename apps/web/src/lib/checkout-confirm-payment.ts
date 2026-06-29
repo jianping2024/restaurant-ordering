@@ -50,6 +50,7 @@ const RPC_ERROR_STATUS: Record<string, number> = {
   bill_split_cancelled: 409,
   empty_split: 400,
   invalid_person_index: 400,
+  invalid_collected_amount: 400,
   already_paid: 409,
   bill_update_failed: 500,
   session_close_failed: 500,
@@ -72,6 +73,8 @@ export async function confirmBillSplitPayment(params: {
   printLocale: string | null;
   billSplitId: string;
   personIndex: number;
+  collectedAmount?: number;
+  createdByUserId?: string;
   receiptPrinterId?: string;
 }): Promise<ConfirmPaymentResult> {
   const {
@@ -80,6 +83,8 @@ export async function confirmBillSplitPayment(params: {
     printLocale,
     billSplitId,
     personIndex,
+    collectedAmount,
+    createdByUserId,
     receiptPrinterId,
   } = params;
 
@@ -87,6 +92,8 @@ export async function confirmBillSplitPayment(params: {
     p_restaurant_id: restaurantId,
     p_bill_split_id: billSplitId,
     p_person_index: personIndex,
+    p_collected_amount: collectedAmount ?? null,
+    p_created_by_user_id: createdByUserId ?? null,
   });
 
   if (rpcErr) {

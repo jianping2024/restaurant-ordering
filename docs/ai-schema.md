@@ -11,6 +11,8 @@ operation_logs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, action_ty
 
 bill_splits (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, order_ids: uuid[], split_mode: text [even|by_item|custom], persons: jsonb, result: jsonb, total_amount: numeric, status: text [pending|confirmed|requested|paid|cancelled], created_at: timestamptz, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id, display_name: text, customer_nif: text nullable, discount_rate: numeric default 0, discount_reason: text nullable, discount_reason_detail: text nullable)
 
+session_collected_payments (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, session_id: uuid FK -> table_sessions.id, person_name: text, amount: numeric, bill_split_id: uuid FK -> bill_splits.id nullable, created_by_user_id: uuid FK -> auth.users.id nullable, created_at: timestamptz)
+
 buffet_calendar_overrides (restaurant_id: uuid PK FK -> restaurants.id, on_date: date PK, kind: text [holiday|special])
 
 buffet_price_rules (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, buffet_id: uuid FK -> buffets.id, time_slot_id: uuid FK -> buffet_time_slots.id, calendar_kind: text [weekday|weekend|holiday|special], valid_from: date, valid_to: date, adult_price: numeric, child_price: numeric, priority: integer, is_active: boolean, note: text nullable, created_at: timestamptz)
@@ -128,7 +130,8 @@ restaurants_public — security definer view; public menu/geo fields for custome
 
 | Function | Role | Notes |
 |----------|------|-------|
-| `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index)` | authenticated, service_role | SECURITY DEFINER checkout; reads `bill_splits.discount_rate`; advisory lock per session; rejects `cancelled` splits; not anon |
+| `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index, collected_amount?, created_by_user_id?)` | authenticated, service_role | SECURITY DEFINER checkout; reads `bill_splits.discount_rate`; appends `session_collected_payments`; advisory lock per session; rejects `cancelled` splits; not anon |
+| `resume_table_session_ordering(restaurant_id, table_id)` | authenticated, service_role | Cancel active checkout split, set session `billing` → `open`; blocks whole-table when paid or ledger non-empty |
 | `upsert_bill_split_request(restaurant_id, session_id, table_id, display_name, order_ids, split_mode, persons, result, total_amount, customer_nif)` | authenticated, service_role | Atomic checkout request; merges `paid` under lock; not anon |
 | `close_table_session_operational(restaurant_id, table_id, closed_reason, closed_by_user_id?)` | authenticated, service_role | Atomic operational close: cancel splits, void orders, close session; not anon |
 | `compute_session_payment_gap(restaurant_id, session_id)` | authenticated, service_role | Returns payable/paid/gap + `is_unpaid_close` for an active session |
@@ -443,7 +446,8 @@ table_sessions:
 - Ordering flow: `orders` stores item payloads in `items` jsonb and links to restaurant/table/session.
 - Billing flow: `bill_splits` supports even/by-item/custom splits and stores calculated result in jsonb. At most one active (`pending`/`confirmed`/`requested`) row per `session_id` (partial unique index).
 - Checkout request: `upsert_bill_split_request(...)` — advisory lock per session; `FOR UPDATE` on active split; merges `paid` flags; sets `table_sessions` to `billing`.
-- Checkout confirm payment: `confirm_bill_split_payment(...)` — advisory lock per session when `session_id` set; `FOR UPDATE` on `bill_splits`; rejects `cancelled`; closes `table_sessions` when all rows paid.
+- Checkout confirm payment: `confirm_bill_split_payment(...)` — advisory lock per session when `session_id` set; `FOR UPDATE` on `bill_splits`; rejects `cancelled`; appends `session_collected_payments` per confirm; closes `table_sessions` when all rows paid.
+- Resume ordering: `resume_table_session_ordering(...)` — cancels active split, sets session `open`; ledger unchanged; whole-table blocked if paid or ledger has rows.
 - Operational close: `close_table_session_operational(...)` — advisory lock; locks active `bill_splits` then `table_sessions`; cancels splits, voids order lines, closes session.
 - Menu routing: `menu_categories` and `menu_items` can each map to `print_stations`.
 - Print agent flow: `print_agent_pairings` issues six-digit pairing codes; `print_agent_devices` stores paired agent state; `print_jobs` stores queued print work.

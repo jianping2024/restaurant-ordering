@@ -18,6 +18,7 @@ import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
 import { requestCheckoutApplyDiscount } from '@/lib/request-checkout-apply-discount';
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
+import { requestOrderReceiptPrint } from '@/lib/request-order-receipt-print';
 import {
   checkoutLinesFromOrders,
   type CheckoutDisplayLine,
@@ -29,14 +30,26 @@ import {
 } from '@/lib/receipt-printer-preference';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import {
+  checkoutBillPrintKey,
   checkoutPersonKey,
+  checkoutResumeOrderingKey,
   isCheckoutRequestBusy,
   mergeBillSplitsFromRefresh,
 } from '@/lib/checkout-request-state';
+import {
+  type SessionCollectedPayment,
+  resumeCheckoutBlockReason,
+  suggestedCollectionAmount,
+  sumCollectedByPersonName,
+  totalCollectedAmount,
+} from '@/lib/checkout-session-payments';
+import { requestCheckoutResumeOrdering } from '@/lib/request-checkout-resume-ordering';
+import { useCheckoutBillPrintCooldown } from '@/lib/use-checkout-bill-print-cooldown';
 import { formatPortugueseNif } from '@/lib/pt-nif';
 import { tableIdsEqual } from '@/lib/restaurant-tables';
 import { localizeSplitPersonName } from '@/lib/split-person-label';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 /** Fallback when Realtime is delayed; only runs while the tab is visible. */
 const CHECKOUT_REQUESTS_POLL_MS = 30_000;
@@ -83,6 +96,9 @@ export function CheckoutRequestsManager({
   const supabase = useMemo(() => createClient(), []);
   const [selectedLines, setSelectedLines] = useState<CheckoutDisplayLine[]>([]);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [collectedPayments, setCollectedPayments] = useState<SessionCollectedPayment[]>([]);
+  const [resumeConfirmOpen, setResumeConfirmOpen] = useState(false);
+  const { cooldownSecondsLeft, isOnCooldown, startCooldown } = useCheckoutBillPrintCooldown();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const prevRequestCountRef = useRef<number | null>(null);
   const refreshSeqRef = useRef(0);
@@ -229,6 +245,49 @@ export function CheckoutRequestsManager({
     };
   }, [supabase, restaurantId, requests, selectedRequestId]);
 
+  useEffect(() => {
+    if (!restaurantId || !selectedRequestId) {
+      setCollectedPayments([]);
+      return;
+    }
+
+    const sessionId = requests.find((r) => r.id === selectedRequestId)?.session_id;
+    if (!sessionId) {
+      setCollectedPayments([]);
+      return;
+    }
+
+    let cancelled = false;
+    const loadCollectedPayments = async () => {
+      const { data, error } = await supabase
+        .from('session_collected_payments')
+        .select('id, person_name, amount, created_at')
+        .eq('restaurant_id', restaurantId)
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: true });
+
+      if (cancelled) return;
+      if (error) {
+        setCollectedPayments([]);
+        return;
+      }
+
+      setCollectedPayments(
+        (data || []).map((row) => ({
+          id: row.id as string,
+          person_name: row.person_name as string,
+          amount: Number(row.amount),
+          created_at: row.created_at as string,
+        })),
+      );
+    };
+
+    void loadCollectedPayments();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, restaurantId, requests, selectedRequestId]);
+
   const getDiscountRate = (request: BillSplit) =>
     billDiscount.getDisplayRate(request.id, request.discount_rate ?? 0);
   const getPayable = (request: BillSplit) => checkoutPayableAmount(request, getDiscountRate(request));
@@ -331,6 +390,9 @@ export function CheckoutRequestsManager({
       return;
     }
 
+    const collectedByPerson = sumCollectedByPersonName(collectedPayments);
+    const collectedAmount = suggestedCollectionAmount(row.name, row.amount, collectedByPerson);
+
     const personKey = checkoutPersonKey(request.id, rowIndex);
     setProcessingKeys((prev) => new Set(prev).add(personKey));
     try {
@@ -338,10 +400,28 @@ export function CheckoutRequestsManager({
         slug: restaurantSlug,
         billSplitId: request.id,
         personIndex: rowIndex,
+        collectedAmount,
       });
       if (!outcome.ok) {
         showToast(outcome.error === 'already_paid' ? t.paid : '操作失败，请重试', 'error');
         return;
+      }
+
+      if (request.session_id) {
+        const { data } = await supabase
+          .from('session_collected_payments')
+          .select('id, person_name, amount, created_at')
+          .eq('restaurant_id', restaurantId)
+          .eq('session_id', request.session_id)
+          .order('created_at', { ascending: true });
+        setCollectedPayments(
+          (data || []).map((payment) => ({
+            id: payment.id as string,
+            person_name: payment.person_name as string,
+            amount: Number(payment.amount),
+            created_at: payment.created_at as string,
+          })),
+        );
       }
 
       setRequests((prev) =>
@@ -364,10 +444,102 @@ export function CheckoutRequestsManager({
     void submitConfirmPersonPaid(request, rowIndex);
   };
 
+  const handleResumeOrdering = async (request: BillSplit) => {
+    if (!restaurantSlug) {
+      showToast(t.resumeOrderingFailed, 'error');
+      return;
+    }
+
+    const resumeKey = checkoutResumeOrderingKey(request.id);
+    setProcessingKeys((prev) => new Set(prev).add(resumeKey));
+    try {
+      const outcome = await requestCheckoutResumeOrdering({
+        slug: restaurantSlug,
+        tableId: request.table_id,
+      });
+      if (!outcome.ok) {
+        const message =
+          outcome.error === 'whole_table_paid'
+            ? t.resumeOrderingBlockedWholeTable
+            : t.resumeOrderingFailed;
+        showToast(message, 'error');
+        return;
+      }
+
+      setSelectedRequestId(null);
+      void refreshCheckoutRequests();
+      showToast(t.resumeOrderingSuccess, 'success');
+    } catch {
+      showToast(t.resumeOrderingFailed, 'error');
+    } finally {
+      setProcessingKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(resumeKey);
+        return next;
+      });
+      setResumeConfirmOpen(false);
+    }
+  };
+
+  const handlePrintBill = async (request: BillSplit) => {
+    if (!restaurantSlug) {
+      showToast(t.printBillFailed, 'error');
+      return;
+    }
+    if (isOnCooldown(request.id)) {
+      showToast(
+        t.printBillCooldown.replace('{n}', String(cooldownSecondsLeft(request.id))),
+        'error',
+      );
+      return;
+    }
+
+    const printKey = checkoutBillPrintKey(request.id);
+    setProcessingKeys((prev) => new Set(prev).add(printKey));
+    try {
+      const outcome = await requestOrderReceiptPrint({
+        slug: restaurantSlug,
+        tableId: request.table_id,
+        sessionId: request.session_id,
+        billSplitId: request.id,
+        receiptVariant: 'checkout_bill',
+        discountRate: getDiscountRate(request),
+      });
+
+      if (!outcome.ok) {
+        showToast(t.printBillFailed, 'error');
+        return;
+      }
+      if (outcome.skipped) {
+        showToast(t.printBillSkipped, 'error');
+        return;
+      }
+
+      startCooldown(request.id);
+      showToast(t.printBillSuccess, 'success');
+    } catch {
+      showToast(t.printBillFailed, 'error');
+    } finally {
+      setProcessingKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(printKey);
+        return next;
+      });
+    }
+  };
+
   const pendingLabel = t.pendingBadge.replace('{n}', String(requests.length));
   const selectedRequest = selectedRequestId
     ? requests.find((r) => r.id === selectedRequestId)
     : undefined;
+  const collectedByPerson = useMemo(
+    () => sumCollectedByPersonName(collectedPayments),
+    [collectedPayments],
+  );
+  const showCollectedLedger = collectedPayments.length > 0;
+  const resumeBlockReason = selectedRequest
+    ? resumeCheckoutBlockReason(selectedRequest, collectedPayments)
+    : null;
 
   const checkoutDetail = selectedRequest ? (
     <div className="bg-brand-card border border-brand-border rounded-xl px-5 py-5 shadow-sm">
@@ -468,17 +640,53 @@ export function CheckoutRequestsManager({
           />
         </div>
       </div>
+      {showCollectedLedger && (
+        <div className="mt-3 rounded-lg border border-brand-border/60 p-3">
+          <p className="text-[13px] text-brand-text-muted mb-2">{t.collectedPaymentsTitle}</p>
+          <div className="space-y-1.5">
+            {collectedPayments.map((payment) => (
+              <div
+                key={payment.id}
+                className="flex items-center justify-between text-sm"
+              >
+                <span className="text-brand-text">
+                  {localizeSplitPersonName(payment.person_name, lang)}
+                </span>
+                <span className="text-brand-gold">€{payment.amount.toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-between text-sm mt-2 pt-2 border-t border-brand-border/40">
+            <span className="text-brand-text-muted">{t.collectedPaymentsTotal}</span>
+            <span className="text-brand-gold font-medium">
+              €{totalCollectedAmount(collectedPayments).toFixed(2)}
+            </span>
+          </div>
+        </div>
+      )}
       {getSplitRows(selectedRequest).length > 0 && (
         <div className="mt-3 rounded-lg border border-brand-border/60 p-3">
           <p className="text-[13px] text-brand-text-muted mb-2">{t.splitResult}</p>
-          <div className="space-y-1.5">
-            {getDiscountedSplitResult(selectedRequest).map((row, idx) => (
-              <div key={`${selectedRequest.id}-${idx}`} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-brand-text">{localizeSplitPersonName(row.name, lang)}</span>
-                  {row.paid && <span className="text-[11px] px-2 py-0.5 rounded-full mesa-badge-success">{t.paid}</span>}
+          <div className="space-y-2">
+            {getDiscountedSplitResult(selectedRequest).map((row, idx) => {
+              const priorCollected = collectedByPerson.get(row.name.trim()) ?? 0;
+              const suggested = suggestedCollectionAmount(row.name, row.amount, collectedByPerson);
+              return (
+              <div key={`${selectedRequest.id}-${idx}`} className="flex items-center justify-between gap-2 text-sm">
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-brand-text">{localizeSplitPersonName(row.name, lang)}</span>
+                    {row.paid && <span className="text-[11px] px-2 py-0.5 rounded-full mesa-badge-success">{t.paid}</span>}
+                  </div>
+                  {showCollectedLedger && (
+                    <div className="text-[11px] text-brand-text-muted">
+                      {t.collectedSoFar}: €{priorCollected.toFixed(2)}
+                      {' · '}
+                      {t.suggestedThisTime}: €{suggested.toFixed(2)}
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <span className="text-brand-gold">€{Number(row.amount).toFixed(2)}</span>
                   <button
                     type="button"
@@ -495,22 +703,54 @@ export function CheckoutRequestsManager({
                   </button>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         </div>
       )}
-      {canCloseTable ? (
-        <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-brand-border/50 pt-4">
-          <CloseTableSessionAction
-            tableId={selectedRequest.table_id}
-            isCheckoutPending
-            onClosed={() => {
-              setSelectedRequestId(null);
-              void refreshCheckoutRequests();
-            }}
-          />
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-brand-border/50 pt-4">
+        <button
+          type="button"
+          onClick={() => void handlePrintBill(selectedRequest)}
+          disabled={
+            processingKeys.has(checkoutBillPrintKey(selectedRequest.id)) ||
+            isOnCooldown(selectedRequest.id)
+          }
+          className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
+        >
+          {processingKeys.has(checkoutBillPrintKey(selectedRequest.id))
+            ? t.printBillOperating
+            : isOnCooldown(selectedRequest.id)
+              ? t.printBillCooldown.replace('{n}', String(cooldownSecondsLeft(selectedRequest.id)))
+              : t.printBill}
+        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setResumeConfirmOpen(true)}
+            disabled={
+              !!resumeBlockReason ||
+              processingKeys.has(checkoutResumeOrderingKey(selectedRequest.id)) ||
+              isCheckoutRequestBusy(processingKeys, selectedRequest.id)
+            }
+            className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
+          >
+            {processingKeys.has(checkoutResumeOrderingKey(selectedRequest.id))
+              ? t.resumeOrderingOperating
+              : t.resumeOrdering}
+          </button>
+          {canCloseTable ? (
+            <CloseTableSessionAction
+              tableId={selectedRequest.table_id}
+              isCheckoutPending
+              onClosed={() => {
+                setSelectedRequestId(null);
+                void refreshCheckoutRequests();
+              }}
+            />
+          ) : null}
         </div>
-      ) : null}
+      </div>
     </div>
   ) : null;
 
@@ -620,6 +860,22 @@ export function CheckoutRequestsManager({
           if (!setup || !selectedRequest) return;
           const request = requests.find((r) => r.id === setup.requestId) ?? selectedRequest;
           await persistDiscount(request, setup.rate, reason, detail);
+        }}
+      />
+      <ConfirmModal
+        open={resumeConfirmOpen && !!selectedRequest}
+        onClose={() => setResumeConfirmOpen(false)}
+        title={t.resumeOrderingConfirmTitle}
+        message={t.resumeOrderingConfirmMessage}
+        confirmLabel={t.resumeOrdering}
+        cancelLabel={t.resumeOrderingCancel}
+        confirming={
+          !!selectedRequest &&
+          processingKeys.has(checkoutResumeOrderingKey(selectedRequest.id))
+        }
+        onConfirm={() => {
+          if (!selectedRequest) return;
+          void handleResumeOrdering(selectedRequest);
         }}
       />
     </div>

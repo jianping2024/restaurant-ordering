@@ -17,6 +17,7 @@ export async function POST(
   let body: {
     bill_split_id?: unknown;
     person_index?: unknown;
+    collected_amount?: unknown;
     receipt_printer_id?: unknown;
   };
   try {
@@ -34,6 +35,11 @@ export async function POST(
     typeof body.person_index === 'number' && Number.isInteger(body.person_index)
       ? body.person_index
       : 0;
+
+  const collectedAmount =
+    typeof body.collected_amount === 'number' && Number.isFinite(body.collected_amount)
+      ? body.collected_amount
+      : undefined;
 
   const receiptPrinterIdRaw =
     typeof body.receipt_printer_id === 'string' ? body.receipt_printer_id.trim() : '';
@@ -59,6 +65,8 @@ export async function POST(
     printLocale: auth.printLocale,
     billSplitId,
     personIndex,
+    collectedAmount,
+    createdByUserId: auth.actor.userId,
     receiptPrinterId: receiptPrinterId ?? undefined,
   });
 

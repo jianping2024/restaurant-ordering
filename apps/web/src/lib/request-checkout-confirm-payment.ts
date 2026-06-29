@@ -4,12 +4,13 @@ export async function requestCheckoutConfirmPayment(params: {
   slug: string;
   billSplitId: string;
   personIndex: number;
+  collectedAmount?: number;
   receiptPrinterId?: string;
 }): Promise<
   | { ok: true; all_paid: boolean; result: SplitResult[]; final_amount: number }
   | { ok: false; error: string }
 > {
-  const { slug, billSplitId, personIndex, receiptPrinterId } = params;
+  const { slug, billSplitId, personIndex, collectedAmount, receiptPrinterId } = params;
   try {
     const res = await fetch(
       `/api/restaurants/${encodeURIComponent(slug)}/checkout/confirm-payment`,
@@ -20,6 +21,7 @@ export async function requestCheckoutConfirmPayment(params: {
         body: JSON.stringify({
           bill_split_id: billSplitId,
           person_index: personIndex,
+          ...(collectedAmount != null ? { collected_amount: collectedAmount } : {}),
           ...(receiptPrinterId ? { receipt_printer_id: receiptPrinterId } : {}),
         }),
       },

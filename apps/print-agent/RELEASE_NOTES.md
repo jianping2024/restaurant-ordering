@@ -2,6 +2,12 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.38
+
+**预结/结账小票：表头与虚线间距**
+
+- 去掉虚线与 `Items` 表头之间多余的一行空白（v0.3.36 误加）；菜品行之间的间距不变。
+
 ## 0.3.37
 
 **预结/结账小票：自助餐 Qty 列**

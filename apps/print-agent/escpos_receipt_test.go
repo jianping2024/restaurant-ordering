@@ -54,6 +54,36 @@ func TestBuildOrderReceiptEnglishLayout(t *testing.T) {
 	}
 }
 
+func TestReceiptItemsHeaderFollowsMenuSeparator(t *testing.T) {
+	payload, _ := json.Marshal(map[string]any{
+		"display_name":    "01",
+		"guest_count":     2,
+		"receipt_variant": "pre_bill",
+		"subtotal":        10.0,
+		"amount_due":      10.0,
+		"lines": []map[string]any{
+			{"item_index": 1, "display_name": "Water", "qty": 1, "unit_price": 10.0},
+		},
+	})
+	raw := escposFromJob(printJob{Type: "order_receipt", Payload: payload})
+	s := string(raw)
+	lab := receiptLabelsFor("en")
+	itemsLine := escposThreeColLine(lab.items, lab.qty, lab.originalPrice)
+	idx := strings.Index(s, itemsLine)
+	if idx < 0 {
+		t.Fatalf("missing Items header line %q", itemsLine)
+	}
+	dash := strings.Repeat("-", escposWidth)
+	lastDash := strings.LastIndex(s[:idx], dash)
+	if lastDash < 0 {
+		t.Fatal("missing menu separator before Items")
+	}
+	gap := s[lastDash+len(dash) : idx]
+	if strings.Count(gap, "\n") != 1 {
+		t.Fatalf("menu separator → Items must be exactly one newline (no blank line); got %d newlines in gap %q", strings.Count(gap, "\n"), gap)
+	}
+}
+
 func TestBuildOrderReceiptBuffetShareQtyLabel(t *testing.T) {
 	payload, _ := json.Marshal(map[string]any{
 		"display_name":    "008",

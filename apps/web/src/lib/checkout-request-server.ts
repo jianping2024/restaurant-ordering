@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { buildByItemAllocationsFromPersons } from '@/lib/bill-split-by-item';
+import { buildBillSplitOrderLines, buildByItemLineSpecs } from '@/lib/bill-split-by-item-lines';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
 import { validateBillSplit } from '@/lib/bill-split-validate';
 import { sumLineTotals } from '@/lib/cart-totals';
@@ -60,27 +61,21 @@ export async function submitCheckoutRequestForTable(
     sessionId,
     ascending: true,
   });
-  const allItems = orders.flatMap((order) =>
-    order.items.map((item, idx) => ({
-      ...item,
-      key: `${order.id}-${idx}`,
-    })),
-  );
-  if (allItems.length === 0) {
+  const orderLines = buildBillSplitOrderLines(orders);
+  if (orderLines.length === 0) {
     return { ok: false, error: 'empty_session', status: 400 };
   }
 
-  const itemLines = allItems.map((item) => ({ key: item.key, qty: item.qty }));
-  const lineQtyByKey = Object.fromEntries(itemLines.map((line) => [line.key, line.qty]));
-  const total = sumLineTotals(allItems);
+  const lineSpecs = buildByItemLineSpecs(orderLines);
+  const total = sumLineTotals(orderLines);
   const validation = validateBillSplit({
     splitMode: payload.splitMode,
     total,
     results: payload.result,
-    itemLines: payload.splitMode === 'by_item' ? itemLines : undefined,
+    lineSpecs: payload.splitMode === 'by_item' ? lineSpecs : undefined,
     byItemAllocations:
       payload.splitMode === 'by_item'
-        ? buildByItemAllocationsFromPersons(payload.persons, lineQtyByKey)
+        ? buildByItemAllocationsFromPersons(payload.persons, lineSpecs)
         : undefined,
   });
   if (!validation.ok) {

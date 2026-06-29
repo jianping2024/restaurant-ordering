@@ -3,12 +3,14 @@ import type { BillSplit, Order, PrintJobType } from '@/types';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import {
   byItemLinePriceShare,
+  buffetShareUnitPrice,
   consumersForLineFromPersons,
   legacyAssigneeIdsForKey,
   legacyEqualLineShare,
   legacyEqualShareQtyLabel,
   shareQtyLabel,
 } from '@/lib/bill-split-by-item';
+import { buildByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { fetchMenuPrintContext } from '@/lib/menu-print-context';
 import { orderItemPrintDisplayName } from '@/lib/menu-print-label';
@@ -103,7 +105,8 @@ export function buildSplitPersonReceiptLines(
         || (person.items || []).includes(key);
       if (!hasLine) return;
 
-      const consumers = consumersForLineFromPersons(persons, key, item.qty);
+      const spec = buildByItemLineSpec({ ...item, key, order_id: order.id });
+      const consumers = consumersForLineFromPersons(persons, key, spec);
       if (consumers.length === 0) return;
 
       const lineTotal = item.price * item.qty;
@@ -113,10 +116,14 @@ export function buildSplitPersonReceiptLines(
       const usesLegacyShares = !person?.item_shares?.some((share) => share.key === key);
       const sharePrice = usesLegacyShares
         ? legacyEqualLineShare(lineTotal, legacyAssigneeIdsForKey(persons, key), personId)
-        : byItemLinePriceShare(lineTotal, consumers, person.name);
+        : spec.mode === 'buffet' && personShare.guestType
+          ? buffetShareUnitPrice(item, personShare.guestType)
+          : byItemLinePriceShare(lineTotal, consumers, person.name);
       const shareLabel = usesLegacyShares
         ? legacyEqualShareQtyLabel(item.qty, consumers.length)
-        : shareQtyLabel(personShare.qty);
+        : spec.mode === 'buffet' && personShare.guestType
+          ? '1'
+          : shareQtyLabel(personShare.qty);
 
       itemIndex += 1;
       const display_name = printCtx

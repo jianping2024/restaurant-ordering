@@ -4,7 +4,7 @@ import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
 import { submitCheckoutRequestForTable } from '@/lib/checkout-request-server';
 import { parsePortugueseNif } from '@/lib/pt-nif';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
-import type { SplitMode, SplitPerson, SplitResult } from '@/types';
+import type { SplitMode, SplitPerson, SplitPersonItemShare, SplitResult } from '@/types';
 
 export const runtime = 'nodejs';
 
@@ -30,10 +30,18 @@ function parsePersons(raw: unknown): SplitPerson[] | null {
       : undefined;
     const item_shares = Array.isArray(r.item_shares)
       ? r.item_shares
-          .map((entry) => {
+          .map((entry): SplitPersonItemShare | null => {
             if (!entry || typeof entry !== 'object') return null;
             const share = entry as Record<string, unknown>;
             const key = typeof share.key === 'string' ? share.key.trim() : '';
+            const guest_type =
+              share.guest_type === 'adult' || share.guest_type === 'child'
+                ? share.guest_type
+                : undefined;
+            if (guest_type) {
+              if (!key) return null;
+              return { key, qty_num: 1, qty_den: 1, guest_type };
+            }
             const qty_num = typeof share.qty_num === 'number' && Number.isFinite(share.qty_num)
               ? Math.trunc(share.qty_num)
               : NaN;
@@ -45,7 +53,7 @@ function parsePersons(raw: unknown): SplitPerson[] | null {
             }
             return { key, qty_num, qty_den };
           })
-          .filter((entry): entry is NonNullable<typeof entry> => !!entry)
+          .filter((entry): entry is SplitPersonItemShare => entry != null)
           .slice(0, 500)
       : undefined;
     const amount = typeof r.amount === 'number' && Number.isFinite(r.amount) ? r.amount : undefined;

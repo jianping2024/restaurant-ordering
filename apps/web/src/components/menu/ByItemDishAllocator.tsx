@@ -12,19 +12,16 @@ import {
   type QtyPartsLabels,
 } from '@/lib/bill-split-by-item';
 import { availableConsumerNamesForRow } from '@/lib/consumer-name-roster';
+import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
+import { BuffetDishAllocator, type BuffetDishAllocatorLabels } from '@/components/menu/BuffetDishAllocator';
 import { ConsumerNameCombobox } from '@/components/menu/ConsumerNameCombobox';
 import { ByItemQtyInput } from '@/components/menu/ByItemQtyInput';
 
-export type ByItemDishAllocatorLabels = ByItemLineStatusLabels & QtyPartsLabels & {
-  addConsumer: string;
-  namePlaceholder: string;
-  remove: string;
-};
+export type ByItemDishAllocatorLabels = ByItemLineStatusLabels & QtyPartsLabels & BuffetDishAllocatorLabels;
 
 interface Props {
   title: React.ReactNode;
-  lineTotal: number;
-  lineQty: number;
+  spec: ByItemLineSpec;
   rows: ByItemConsumerRow[];
   consumerRoster: string[];
   labels: ByItemDishAllocatorLabels;
@@ -39,17 +36,54 @@ const STATUS_TONE_CLASS = {
 
 export function ByItemDishAllocator({
   title,
-  lineTotal,
-  lineQty,
+  spec,
   rows,
   consumerRoster,
   labels,
   onChange,
   onRememberConsumerName,
 }: Props) {
+  if (spec.mode === 'buffet') {
+    return (
+      <BuffetDishAllocator
+        title={title}
+        spec={spec}
+        rows={rows}
+        consumerRoster={consumerRoster}
+        labels={labels}
+        onChange={onChange}
+        onRememberConsumerName={onRememberConsumerName}
+      />
+    );
+  }
+
+  return (
+    <MenuByItemDishAllocator
+      title={title}
+      spec={spec}
+      rows={rows}
+      consumerRoster={consumerRoster}
+      labels={labels}
+      onChange={onChange}
+      onRememberConsumerName={onRememberConsumerName}
+    />
+  );
+}
+
+function MenuByItemDishAllocator({
+  title,
+  spec,
+  rows,
+  consumerRoster,
+  labels,
+  onChange,
+  onRememberConsumerName,
+}: Props & { spec: Extract<ByItemLineSpec, { mode: 'menu' }> }) {
+  const lineQty = spec.lineQty;
+  const lineTotal = spec.lineTotal;
   const lineStatus = useMemo(
-    () => getByItemLineStatusFromRows(rows, lineQty),
-    [rows, lineQty],
+    () => getByItemLineStatusFromRows(rows, spec),
+    [rows, spec],
   );
 
   const statusSummary = useMemo(

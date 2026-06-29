@@ -4,6 +4,7 @@ import {
   isByItemLineComplete,
   type ByItemLineAllocation,
 } from '@/lib/bill-split-by-item';
+import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 
 const AMOUNT_EPS = 0.009;
 
@@ -32,18 +33,27 @@ export function validateBillSplit(params: {
   total: number;
   results: Array<{ amount: number }>;
   itemLines?: Array<{ key: string; qty: number }>;
+  lineSpecs?: ByItemLineSpec[];
   byItemAllocations?: ByItemLineAllocation;
   customAmounts?: Array<{ amount: number }>;
 }): { ok: true } | { ok: false; issue: BillSplitValidationIssue } {
-  const { splitMode, total, results, itemLines, byItemAllocations, customAmounts } = params;
+  const { splitMode, total, results, itemLines, lineSpecs, byItemAllocations, customAmounts } = params;
 
   if (!splitMode) return { ok: true };
 
-  if (splitMode === 'by_item' && itemLines) {
-    for (const line of itemLines) {
-      const shares = byItemAllocations?.[line.key] || [];
-      const status = getByItemLineStatusFromShares(line.qty, shares);
-      if (status.kind === 'empty') {
+  const specs = lineSpecs ?? itemLines?.map((line) => ({
+    mode: 'menu' as const,
+    key: line.key,
+    lineQty: line.qty,
+    lineTotal: 0,
+    unitPrice: 0,
+  }));
+
+  if (splitMode === 'by_item' && specs) {
+    for (const spec of specs) {
+      const shares = byItemAllocations?.[spec.key] || [];
+      const status = getByItemLineStatusFromShares(spec, shares);
+      if (status.kind === 'empty' || status.kind === 'buffet_empty') {
         return { ok: false, issue: 'unassigned_items' };
       }
       if (!isByItemLineComplete(status)) {

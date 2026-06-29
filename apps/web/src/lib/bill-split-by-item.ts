@@ -8,18 +8,17 @@ import {
   rationalsEqual,
   sumRationals,
 } from '@/lib/rational-qty';
-import type { SplitPerson, SplitPersonItemShare } from '@/types';
+import type { ByItemLineSpec, ByItemSplitLine } from '@/lib/bill-split-by-item-lines';
+import type { OrderItem, SplitPerson, SplitPersonItemShare } from '@/types';
 
-export type ByItemSplitLine = {
-  key: string;
-  name: string;
-  qty: number;
-  unitPrice: number;
-};
+export type { ByItemLineSpec, ByItemSplitLine } from '@/lib/bill-split-by-item-lines';
+
+export type BuffetGuestType = 'adult' | 'child';
 
 export type ByItemConsumerShare = {
   name: string;
   qty: Rational;
+  guestType?: BuffetGuestType;
 };
 
 export type ByItemLineAllocation = Record<string, ByItemConsumerShare[]>;
@@ -36,6 +35,8 @@ export type ByItemConsumerRow = {
   qtyWhole: string;
   qtyNum: string;
   qtyDen: string;
+  /** Buffet lines: one head per row; menu lines ignore this. */
+  guestType?: BuffetGuestType | '';
 };
 
 export type QtyPartsIssue = 'missing_den' | 'zero_den' | 'improper_fraction';
@@ -123,26 +124,27 @@ export function getQtyPartsRowHint(row: ByItemConsumerRow, labels: QtyPartsLabel
   return qtyPartsIssueLabel(result.issue, labels);
 }
 
-export function createByItemConsumerRow(): ByItemConsumerRow {
+export function createByItemConsumerRow(opts?: { buffet?: boolean }): ByItemConsumerRow {
   return {
     id: `row-${Math.random().toString(36).slice(2, 10)}`,
     name: '',
     qtyWhole: '',
     qtyNum: '',
     qtyDen: '',
+    ...(opts?.buffet ? { guestType: '' as const } : {}),
   };
 }
 
 /** Ensures every visible line has a stable persisted row before the user can type. */
 export function withDefaultByItemLineRows(
   allocations: Record<string, ByItemConsumerRow[]>,
-  lineKeys: string[],
+  lineSpecs: ByItemLineSpec[],
 ): Record<string, ByItemConsumerRow[]> {
-  const missing = lineKeys.filter((key) => !allocations[key]?.length);
+  const missing = lineSpecs.filter((spec) => !allocations[spec.key]?.length);
   if (missing.length === 0) return allocations;
   const next = { ...allocations };
-  for (const key of missing) {
-    next[key] = [createByItemConsumerRow()];
+  for (const spec of missing) {
+    next[spec.key] = [createByItemConsumerRow({ buffet: spec.mode === 'buffet' })];
   }
   return next;
 }
@@ -153,8 +155,8 @@ function lineQtyRational(lineQty: number): Rational {
 
 export function parseConsumerRows(
   rows: ByItemConsumerRow[],
-): Array<{ name: string; qty: Rational }> {
-  const parsed: Array<{ name: string; qty: Rational }> = [];
+): ByItemConsumerShare[] {
+  const parsed: ByItemConsumerShare[] = [];
   for (const row of rows) {
     const name = row.name.trim();
     const qty = parseConsumerRowQty(row);
@@ -164,13 +166,117 @@ export function parseConsumerRows(
   return parsed;
 }
 
+export function parseBuffetConsumerRows(
+  rows: ByItemConsumerRow[],
+): Array<{ name: string; guestType: BuffetGuestType }> {
+  const parsed: Array<{ name: string; guestType: BuffetGuestType }> = [];
+  for (const row of rows) {
+    const name = row.name.trim();
+    if (!name || (row.guestType !== 'adult' && row.guestType !== 'child')) continue;
+    parsed.push({ name, guestType: row.guestType });
+  }
+  return parsed;
+}
+
+function evaluateBuffetLineShares(
+  adultsNeeded: number,
+  childrenNeeded: number,
+  shares: Array<{ name: string; guestType: BuffetGuestType }>,
+): ByItemLineStatus {
+  if (shares.length === 0) {
+    if (adultsNeeded === 0 && childrenNeeded === 0) {
+      return { kind: 'complete', allocated: rationalFromInt(0) };
+    }
+    return { kind: 'buffet_empty', adultsNeeded, childrenNeeded };
+  }
+
+  const names = shares.map((share) => share.name.trim().toLowerCase());
+  if (names.some((name) => !name)) {
+    return { kind: 'missing_names', allocated: rationalFromInt(shares.length) };
+  }
+  if (new Set(names).size !== names.length) {
+    return { kind: 'duplicate_names', allocated: rationalFromInt(shares.length) };
+  }
+
+  const adultsAssigned = shares.filter((share) => share.guestType === 'adult').length;
+  const childrenAssigned = shares.filter((share) => share.guestType === 'child').length;
+  const adultDiff = adultsNeeded - adultsAssigned;
+  const childDiff = childrenNeeded - childrenAssigned;
+  const allocated = rationalFromInt(adultsAssigned + childrenAssigned);
+
+  if (adultDiff === 0 && childDiff === 0) {
+    return { kind: 'complete', allocated };
+  }
+  if (adultDiff > 0 || childDiff > 0) {
+    return {
+      kind: 'buffet_short',
+      adultsRemaining: Math.max(0, adultDiff),
+      childrenRemaining: Math.max(0, childDiff),
+      allocated,
+    };
+  }
+  return {
+    kind: 'buffet_over',
+    adultsExcess: Math.max(0, -adultDiff),
+    childrenExcess: Math.max(0, -childDiff),
+    allocated,
+  };
+}
+
+export function getBuffetLineStatusFromRows(
+  rows: ByItemConsumerRow[],
+  spec: { adults: number; children: number },
+): ByItemLineStatus {
+  for (const row of rows) {
+    if (row.name.trim() && row.guestType !== 'adult' && row.guestType !== 'child') {
+      const partial = parseBuffetConsumerRows(rows);
+      return { kind: 'missing_guest_type', allocated: rationalFromInt(partial.length) };
+    }
+  }
+
+  const namedRows = rows.filter((row) => row.name.trim());
+  const lower = namedRows.map((row) => row.name.trim().toLowerCase());
+  if (lower.length > 0 && new Set(lower).size !== lower.length) {
+    const partial = parseBuffetConsumerRows(rows);
+    return { kind: 'duplicate_names', allocated: rationalFromInt(partial.length) };
+  }
+
+  for (const row of rows) {
+    if (!row.name.trim() && (row.guestType === 'adult' || row.guestType === 'child')) {
+      const partial = parseBuffetConsumerRows(rows);
+      return { kind: 'missing_names', allocated: rationalFromInt(partial.length) };
+    }
+  }
+
+  return evaluateBuffetLineShares(spec.adults, spec.children, parseBuffetConsumerRows(rows));
+}
+
+export function getBuffetLineStatusFromShares(
+  spec: { adults: number; children: number },
+  shares: ByItemConsumerShare[],
+): ByItemLineStatus {
+  return evaluateBuffetLineShares(
+    spec.adults,
+    spec.children,
+    shares
+      .filter((share): share is ByItemConsumerShare & { guestType: BuffetGuestType } =>
+        share.guestType === 'adult' || share.guestType === 'child',
+      )
+      .map((share) => ({ name: share.name, guestType: share.guestType })),
+  );
+}
+
 export type ByItemLineStatus =
   | { kind: 'empty'; target: Rational }
+  | { kind: 'buffet_empty'; adultsNeeded: number; childrenNeeded: number }
   | { kind: 'missing_names'; allocated: Rational }
+  | { kind: 'missing_guest_type'; allocated: Rational }
   | { kind: 'duplicate_names'; allocated: Rational }
   | { kind: 'invalid_qty'; issue: QtyPartsIssue; allocated: Rational }
   | { kind: 'short'; remaining: Rational; allocated: Rational }
   | { kind: 'over'; excess: Rational; allocated: Rational }
+  | { kind: 'buffet_short'; adultsRemaining: number; childrenRemaining: number; allocated: Rational }
+  | { kind: 'buffet_over'; adultsExcess: number; childrenExcess: number; allocated: Rational }
   | { kind: 'complete'; allocated: Rational };
 
 function allocatedSum(shares: Array<{ qty: Rational }>): Rational {
@@ -215,8 +321,12 @@ function evaluateByItemLineShares(
 
 export function getByItemLineStatusFromRows(
   rows: ByItemConsumerRow[],
-  lineQty: number,
+  spec: ByItemLineSpec,
 ): ByItemLineStatus {
+  if (spec.mode === 'buffet') {
+    return getBuffetLineStatusFromRows(rows, spec);
+  }
+
   for (const row of rows) {
     const parts = validateQtyParts({
       whole: row.qtyWhole,
@@ -244,15 +354,18 @@ export function getByItemLineStatusFromRows(
     return { kind: 'duplicate_names', allocated: allocatedSum(partial) };
   }
 
-  return evaluateByItemLineShares(lineQty, parseConsumerRows(rows));
+  return evaluateByItemLineShares(spec.lineQty, parseConsumerRows(rows));
 }
 
 export function getByItemLineStatusFromShares(
-  lineQty: number,
+  spec: ByItemLineSpec,
   shares: ByItemConsumerShare[],
 ): ByItemLineStatus {
+  if (spec.mode === 'buffet') {
+    return getBuffetLineStatusFromShares(spec, shares);
+  }
   return evaluateByItemLineShares(
-    lineQty,
+    spec.lineQty,
     shares.map((share) => ({ name: share.name, qty: share.qty })),
   );
 }
@@ -265,7 +378,33 @@ export type ByItemLineStatusLabels = {
   duplicateNames: string;
   unassigned: string;
   invalidQty: string;
+  buffetComplete: string;
+  buffetShortAdult: string;
+  buffetShortChild: string;
+  buffetOverAdult: string;
+  buffetOverChild: string;
+  buffetMissingGuestType: string;
 };
+
+function buffetStatusParts(
+  labels: ByItemLineStatusLabels,
+  kind: 'short' | 'over',
+  adults: number,
+  children: number,
+): string[] {
+  const parts: string[] = [];
+  if (adults > 0) {
+    parts.push(
+      (kind === 'short' ? labels.buffetShortAdult : labels.buffetOverAdult).replace('{n}', String(adults)),
+    );
+  }
+  if (children > 0) {
+    parts.push(
+      (kind === 'short' ? labels.buffetShortChild : labels.buffetOverChild).replace('{n}', String(children)),
+    );
+  }
+  return parts;
+}
 
 /** Non-complete dish states share one alert style in the UI. */
 export type ByItemLineStatusTone = 'success' | 'alert';
@@ -274,17 +413,41 @@ export function byItemLineStatusSummary(
   status: ByItemLineStatus,
   labels: ByItemLineStatusLabels,
   qtyLabels?: QtyPartsLabels,
+  opts?: { buffet?: boolean },
 ): { text: string; tone: ByItemLineStatusTone } {
   const allocatedLabel = formatRational(
-    status.kind === 'empty' ? { num: 0, den: 1 } : status.allocated,
+    status.kind === 'empty'
+      ? { num: 0, den: 1 }
+      : status.kind === 'buffet_empty'
+        ? { num: 0, den: 1 }
+        : status.allocated,
   );
 
   switch (status.kind) {
     case 'complete':
       return {
-        text: labels.complete.replace('{qty}', formatRational(status.allocated)),
+        text: opts?.buffet
+          ? labels.buffetComplete
+          : labels.complete.replace('{qty}', formatRational(status.allocated)),
         tone: 'success',
       };
+    case 'buffet_empty':
+      return {
+        text: buffetStatusParts(labels, 'short', status.adultsNeeded, status.childrenNeeded).join(' · '),
+        tone: 'alert',
+      };
+    case 'buffet_short':
+      return {
+        text: buffetStatusParts(labels, 'short', status.adultsRemaining, status.childrenRemaining).join(' · '),
+        tone: 'alert',
+      };
+    case 'buffet_over':
+      return {
+        text: buffetStatusParts(labels, 'over', status.adultsExcess, status.childrenExcess).join(' · '),
+        tone: 'alert',
+      };
+    case 'missing_guest_type':
+      return { text: labels.buffetMissingGuestType, tone: 'alert' };
     case 'short':
       return {
         text: labels.remaining
@@ -323,15 +486,15 @@ export function isByItemLineComplete(status: ByItemLineStatus): boolean {
 }
 
 export function countByItemAllocationProgress(
-  itemLines: Array<{ key: string; qty: number }>,
+  lineSpecs: ByItemLineSpec[],
   allocations: Record<string, ByItemConsumerRow[]>,
 ): { complete: number; total: number } {
   let complete = 0;
-  for (const line of itemLines) {
-    const status = getByItemLineStatusFromRows(allocations[line.key] ?? [], line.qty);
+  for (const spec of lineSpecs) {
+    const status = getByItemLineStatusFromRows(allocations[spec.key] ?? [], spec);
     if (isByItemLineComplete(status)) complete += 1;
   }
-  return { complete, total: itemLines.length };
+  return { complete, total: lineSpecs.length };
 }
 
 export function isRowQtyOverAllocated(
@@ -389,32 +552,61 @@ export function byItemLinePriceShare(
   return (centsByName.get(personName) ?? 0) / 100;
 }
 
+export function buffetLineAllocationComplete(
+  line: Extract<ByItemSplitLine, { mode: 'buffet' }>,
+  shares: ByItemConsumerShare[],
+): boolean {
+  const status = getBuffetLineStatusFromShares(
+    { adults: line.adults, children: line.children },
+    shares,
+  );
+  return status.kind === 'complete';
+}
+
 export function buildByItemAllocationsFromRows(
-  lines: Array<{ key: string; rows: ByItemConsumerRow[] }>,
+  lineSpecs: ByItemLineSpec[],
+  rowsByKey: Record<string, ByItemConsumerRow[]>,
 ): ByItemLineAllocation {
   const allocations: ByItemLineAllocation = {};
-  for (const line of lines) {
-    const shares = parseConsumerRows(line.rows);
-    if (shares.length > 0) {
-      allocations[line.key] = shares;
+  for (const spec of lineSpecs) {
+    if (spec.mode === 'buffet') {
+      const shares = parseBuffetConsumerRows(rowsByKey[spec.key] ?? []).map((row) => ({
+        name: row.name,
+        qty: rationalFromInt(1),
+        guestType: row.guestType,
+      }));
+      if (shares.length > 0) allocations[spec.key] = shares;
+      continue;
     }
+    const shares = parseConsumerRows(rowsByKey[spec.key] ?? []);
+    if (shares.length > 0) allocations[spec.key] = shares;
   }
   return allocations;
 }
 
 export function buildByItemAllocationsFromPersons(
   persons: SplitPerson[],
-  lineQtyByKey: Record<string, number>,
+  lineSpecs: ByItemLineSpec[],
 ): ByItemLineAllocation {
   const allocations: ByItemLineAllocation = {};
+  const lineQtyByKey = Object.fromEntries(
+    lineSpecs.map((spec) => [spec.key, spec.mode === 'menu' ? spec.lineQty : 1]),
+  );
 
   for (const person of persons) {
     if (person.item_shares?.length) {
       for (const share of person.item_shares) {
         const rows = allocations[share.key] ?? [];
+        const guestType =
+          share.guest_type === 'adult' || share.guest_type === 'child'
+            ? share.guest_type
+            : undefined;
         rows.push({
           name: person.name,
-          qty: normalizeRational({ num: share.qty_num, den: share.qty_den }),
+          qty: guestType
+            ? rationalFromInt(1)
+            : normalizeRational({ num: share.qty_num, den: share.qty_den }),
+          ...(guestType ? { guestType } : {}),
         });
         allocations[share.key] = rows;
       }
@@ -450,6 +642,27 @@ export function calcByItemSplitResults(params: {
 
   for (const line of lines) {
     const shares = allocations[line.key] || [];
+    if (line.mode === 'buffet') {
+      if (!buffetLineAllocationComplete(line, shares)) continue;
+      for (const share of shares) {
+        const price =
+          share.guestType === 'child' ? line.childUnitPrice : line.adultUnitPrice;
+        const existing = people.get(share.name) ?? {
+          name: share.name,
+          amount: 0,
+          items: [],
+        };
+        existing.items.push({
+          name: line.name.trim(),
+          qty: 1,
+          price,
+        });
+        existing.amount = Math.round((existing.amount + price) * 100) / 100;
+        people.set(share.name, existing);
+      }
+      continue;
+    }
+
     if (!lineAllocationComplete(line.qty, shares)) continue;
 
     const lineTotal = line.unitPrice * line.qty;
@@ -482,7 +695,12 @@ export function buildSplitPersonsFromAllocations(
     for (const share of shares) {
       const normalized = normalizeRational(share.qty);
       const rows = byName.get(share.name) ?? [];
-      rows.push({ key, qty_num: normalized.num, qty_den: normalized.den });
+      rows.push({
+        key,
+        qty_num: normalized.num,
+        qty_den: normalized.den,
+        ...(share.guestType ? { guest_type: share.guestType } : {}),
+      });
       byName.set(share.name, rows);
     }
   }
@@ -495,7 +713,7 @@ export function buildSplitPersonsFromAllocations(
 export function consumersForLineFromPersons(
   persons: SplitPerson[],
   lineKey: string,
-  lineQty: number,
+  spec: ByItemLineSpec,
 ): ByItemConsumerShare[] {
   const explicit: ByItemConsumerShare[] = [];
   const legacyNames: string[] = [];
@@ -503,9 +721,16 @@ export function consumersForLineFromPersons(
   for (const person of persons) {
     const share = person.item_shares?.find((row) => row.key === lineKey);
     if (share) {
+      const guestType =
+        share.guest_type === 'adult' || share.guest_type === 'child'
+          ? share.guest_type
+          : undefined;
       explicit.push({
         name: person.name,
-        qty: normalizeRational({ num: share.qty_num, den: share.qty_den }),
+        qty: guestType
+          ? rationalFromInt(1)
+          : normalizeRational({ num: share.qty_num, den: share.qty_den }),
+        ...(guestType ? { guestType } : {}),
       });
       continue;
     }
@@ -517,11 +742,21 @@ export function consumersForLineFromPersons(
   if (explicit.length > 0) return explicit;
   if (legacyNames.length === 0) return [];
 
+  const lineQty = spec.mode === 'menu' ? spec.lineQty : 1;
   const qty = lineQtyRational(lineQty);
   return legacyNames.map((name) => ({
     name,
     qty: normalizeRational({ num: qty.num, den: qty.den * legacyNames.length }),
   }));
+}
+
+export function buffetShareUnitPrice(
+  item: Pick<OrderItem, 'adult_unit_price' | 'child_unit_price'>,
+  guestType: BuffetGuestType,
+): number {
+  return guestType === 'child'
+    ? (item.child_unit_price ?? 0)
+    : (item.adult_unit_price ?? 0);
 }
 
 export function shareQtyLabel(share: Rational): string {

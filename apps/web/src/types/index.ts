@@ -258,6 +258,8 @@ export interface SplitPersonItemShare {
   key: string;
   qty_num: number;
   qty_den: number;
+  /** Buffet by-item: adult vs child head pricing. */
+  guest_type?: 'adult' | 'child';
 }
 
 export interface SplitPerson {

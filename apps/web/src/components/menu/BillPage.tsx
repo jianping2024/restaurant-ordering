@@ -1,10 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { calcByItemSplitResults, buildByItemAllocationsFromRows, buildSplitPersonsFromAllocations, countByItemAllocationProgress, withDefaultByItemLineRows, type ByItemConsumerRow } from '@/lib/bill-split-by-item';
-import { addToConsumerRoster, rememberConsumerName as rememberConsumerNameInRoster } from '@/lib/consumer-name-roster';
+import { calcByItemSplitResults } from '@/lib/bill-split-by-item';
+import {
+  buildBillSplitOrderLines,
+  buildByItemLineSpecs,
+  byItemSplitLineFromOrderLine,
+} from '@/lib/bill-split-by-item-lines';
+import { useByItemSplitState } from '@/lib/use-by-item-split-state';
 import { validateBillSplit } from '@/lib/bill-split-validate';
 import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
 import { getMessages } from '@/lib/i18n/messages';
@@ -23,7 +28,7 @@ import type { BillSplit, DishFeedbackVote, Order, OrderItem, SplitMode, SplitRes
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { showToast } from '@/components/ui/Toast';
-import { ByItemDishAllocator } from '@/components/menu/ByItemDishAllocator';
+import { ByItemSplitSection } from '@/components/menu/ByItemSplitSection';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -88,14 +93,6 @@ export function BillPage({
     { name: guestName(1), amount: 0 },
     { name: guestName(2), amount: 0 },
   ]);
-  const [byItemAllocations, setByItemAllocations] = useState<Record<string, ByItemConsumerRow[]>>({});
-  const [consumerRoster, setConsumerRoster] = useState<string[]>(() => {
-    if (!existingSplit || existingSplit.split_mode !== 'by_item') return [];
-    return (existingSplit.persons ?? []).reduce(
-      (roster, person) => addToConsumerRoster(roster, person.name),
-      [] as string[],
-    );
-  });
   const [submitted, setSubmitted] = useState(!!existingSplit);
   const [submitting, setSubmitting] = useState(false);
   const [persistedResult, setPersistedResult] = useState<SplitResult[] | null>((existingSplit?.result as SplitResult[] | null) || null);
@@ -176,45 +173,20 @@ export function BillPage({
   });
 
   // 结账金额按本餐次“实际已下单菜品”计算，不限制菜品状态。
-  const allItems = liveOrders.flatMap(o => o.items
-    .map((item, idx) => ({
-      ...item,
-      order_id: o.id,
-      key: `${o.id}-${idx}`,
-    })));
-  const total = allItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const orderLines = useMemo(() => buildBillSplitOrderLines(liveOrders), [liveOrders]);
+  const lineSpecs = useMemo(() => buildByItemLineSpecs(orderLines), [orderLines]);
+  const total = orderLines.reduce((sum, item) => sum + item.price * item.qty, 0);
 
-  const itemLines = useMemo(
-    () => allItems.map((item) => ({ key: item.key, qty: item.qty })),
-    [allItems],
-  );
-
-  const itemLineKeys = useMemo(
-    () => itemLines.map((line) => line.key),
-    [itemLines],
-  );
-
-  useLayoutEffect(() => {
-    if (splitMode !== 'by_item') return;
-    setByItemAllocations((prev) => {
-      const next = withDefaultByItemLineRows(prev, itemLineKeys);
-      return next === prev ? prev : next;
-    });
-  }, [splitMode, itemLineKeys]);
-
-  const parsedByItemAllocations = useMemo(
-    () => buildByItemAllocationsFromRows(
-      itemLines.map((line) => ({
-        key: line.key,
-        rows: byItemAllocations[line.key] ?? [],
-      })),
-    ),
-    [itemLines, byItemAllocations],
-  );
-
-  const rememberConsumerName = useCallback((name: string, fromList: boolean) => {
-    setConsumerRoster((prev) => rememberConsumerNameInRoster(prev, name, fromList));
-  }, []);
+  const {
+    byItemAllocations,
+    setByItemAllocations,
+    consumerRoster,
+    rememberConsumerName,
+    parsedByItemAllocations,
+    byItemProgress,
+    renameByItemConsumer,
+    buildPersonsForSubmit,
+  } = useByItemSplitState({ splitMode, lineSpecs, existingSplit });
 
   const byItemAllocatorLabels = useMemo(
     () => ({
@@ -233,14 +205,18 @@ export function BillPage({
       duplicateNames: t.byItemDuplicateNames,
       unassigned: t.byItemUnassigned,
       invalidQty: t.byItemInvalidQty,
+      buffetComplete: t.byItemBuffetComplete,
+      buffetShortAdult: t.byItemBuffetShortAdult,
+      buffetShortChild: t.byItemBuffetShortChild,
+      buffetOverAdult: t.byItemBuffetOverAdult,
+      buffetOverChild: t.byItemBuffetOverChild,
+      buffetMissingGuestType: t.byItemBuffetMissingGuestType,
+      guestTypeAdult: t.byItemGuestTypeAdult,
+      guestTypeChild: t.byItemGuestTypeChild,
       remove: t.removeConsumer,
+      byItemProgress: t.byItemProgress,
     }),
     [t],
-  );
-
-  const byItemProgress = useMemo(
-    () => countByItemAllocationProgress(itemLines, byItemAllocations),
-    [itemLines, byItemAllocations],
   );
 
   // 计算分单结果
@@ -259,12 +235,9 @@ export function BillPage({
 
     if (splitMode === 'by_item') {
       return calcByItemSplitResults({
-        lines: allItems.map((item) => ({
-          key: item.key,
-          name: (item.name || item.name_pt || '').trim(),
-          qty: item.qty,
-          unitPrice: item.price,
-        })),
+        lines: orderLines.map((item) =>
+          byItemSplitLineFromOrderLine(item, (item.name || item.name_pt || '').trim()),
+        ),
         allocations: parsedByItemAllocations,
       });
     }
@@ -286,11 +259,11 @@ export function BillPage({
         splitMode,
         total,
         results,
-        itemLines: splitMode === 'by_item' ? itemLines : undefined,
+        lineSpecs: splitMode === 'by_item' ? lineSpecs : undefined,
         byItemAllocations: splitMode === 'by_item' ? parsedByItemAllocations : undefined,
         customAmounts,
       }),
-    [splitMode, total, results, itemLines, parsedByItemAllocations, customAmounts],
+    [splitMode, total, results, lineSpecs, parsedByItemAllocations, customAmounts],
   );
 
   const splitValidationMessage =
@@ -318,7 +291,7 @@ export function BillPage({
     setSubmitting(true);
     try {
       const persons = splitMode === 'by_item'
-        ? buildSplitPersonsFromAllocations(parsedByItemAllocations)
+        ? buildPersonsForSubmit()
         : splitPeople.slice(0, results.length).map((person, idx) => ({
             name: results[idx]?.name ?? person.name,
           }));
@@ -354,26 +327,6 @@ export function BillPage({
     }
   };
 
-  const renameByItemConsumer = (oldName: string, newName: string) => {
-    const trimmed = newName.trim();
-    if (!trimmed || trimmed === oldName) return;
-    setConsumerRoster((prev) => {
-      const withoutOld = prev.filter((name) => name.toLowerCase() !== oldName.toLowerCase());
-      return rememberConsumerNameInRoster(withoutOld, trimmed, true);
-    });
-    setByItemAllocations((prev) => {
-      const next: Record<string, ByItemConsumerRow[]> = {};
-      for (const [key, rows] of Object.entries(prev)) {
-        next[key] = rows.map((row) => (
-          row.name.trim().toLowerCase() === oldName.toLowerCase()
-            ? { ...row, name: trimmed }
-            : row
-        ));
-      }
-      return next;
-    });
-  };
-
   const handleConfirmPersonPaidFromWaiter = async (rowIndex: number) => {
     if (!persistedSplitId) {
       showToast(t.actionFailed, 'error');
@@ -404,7 +357,7 @@ export function BillPage({
 
   const reviewableItems = useMemo(() => {
     const dedup = new Map<string, { menu_item_id: string; order_id: string; name: string; emoji: string; qty: number }>();
-    allItems
+    orderLines
       .filter((item) => item.item_status !== 'voided' && item.kind !== 'buffet_base')
       .forEach((item) => {
         const existing = dedup.get(item.id);
@@ -421,7 +374,7 @@ export function BillPage({
         });
       });
     return Array.from(dedup.values());
-  }, [allItems]);
+  }, [orderLines]);
 
   const feedbackReasonLabels: Record<FeedbackReasonKey, string> = {
     taste: t.reasonTaste,
@@ -737,7 +690,7 @@ export function BillPage({
       <div className="px-4 py-4">
         <h2 className="text-brand-text font-medium mb-3">{t.details}</h2>
         <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
-          {allItems.map((item) => {
+          {orderLines.map((item) => {
             const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
             return (
             <div key={item.key} className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0 gap-2">
@@ -838,61 +791,20 @@ export function BillPage({
 
         {/* 按菜分配 */}
         {splitMode === 'by_item' && (
-          <div className="space-y-3">
-            {byItemProgress.total > 0 ? (
-              <div className="mb-1">
-                <div className="flex items-center justify-between text-[12px] mb-1.5">
-                  <span className="text-brand-text font-medium">{t.byItemProgress}</span>
-                  <span className={`tabular-nums ${
-                    byItemProgress.complete === byItemProgress.total
-                      ? 'text-emerald-600'
-                      : 'text-red-500'
-                  }`}
-                  >
-                    {byItemProgress.complete} / {byItemProgress.total}
-                  </span>
-                </div>
-                <div className="h-1.5 rounded-full bg-brand-border overflow-hidden">
-                  <div
-                    className={`h-full transition-all ${
-                      byItemProgress.complete === byItemProgress.total
-                        ? 'bg-emerald-500'
-                        : 'bg-red-500'
-                    }`}
-                    style={{
-                      width: `${Math.round((byItemProgress.complete / byItemProgress.total) * 100)}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            ) : null}
-            {allItems.map((item) => {
-              const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
-              return (
-                <ByItemDishAllocator
-                  key={item.key}
-                  lineTotal={item.price * item.qty}
-                  lineQty={item.qty}
-                  rows={byItemAllocations[item.key] ?? []}
-                  consumerRoster={consumerRoster}
-                  onRememberConsumerName={rememberConsumerName}
-                  labels={byItemAllocatorLabels}
-                  onChange={(rows) => {
-                    setByItemAllocations((prev) => ({ ...prev, [item.key]: rows }));
-                  }}
-                  title={(
-                    <>
-                      {item.emoji}{' '}
-                      {itemCode && (
-                        <span className="font-mono text-[11px] text-brand-gold tabular-nums mr-1">[{itemCode}]</span>
-                      )}
-                      {(item.name || item.name_pt)} {lineQtyLabel(item)}
-                    </>
-                  )}
-                />
-              );
-            })}
-          </div>
+          <ByItemSplitSection
+            lang={lang}
+            lineSpecs={lineSpecs}
+            orderLines={orderLines}
+            byItemAllocations={byItemAllocations}
+            consumerRoster={consumerRoster}
+            labels={byItemAllocatorLabels}
+            itemCodeByMenuId={itemCodeByMenuId}
+            progress={byItemProgress}
+            onAllocationChange={(key, rows) => {
+              setByItemAllocations((prev) => ({ ...prev, [key]: rows }));
+            }}
+            onRememberConsumerName={rememberConsumerName}
+          />
         )}
 
       </div>
@@ -1038,7 +950,7 @@ export function BillPage({
           size="lg"
           onClick={handleCallBill}
           loading={submitting}
-          disabled={allItems.length === 0 || !sessionId || (!!splitMode && !splitValidation.ok) || customerNifInvalid}
+          disabled={orderLines.length === 0 || !sessionId || (!!splitMode && !splitValidation.ok) || customerNifInvalid}
         >
           🔔 {t.callBill} — €{total.toFixed(2)}
         </Button>

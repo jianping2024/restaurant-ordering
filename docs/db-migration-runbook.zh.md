@@ -152,6 +152,20 @@ supabase migration list | tail -3
 
 ## 六、本次执行记录（2026-06-29）
 
+迁移：`20260710120000_resume_ordering_preserve_by_item_split.sql`（按菜分单恢复点单始终保留 `bill_splits` 为 `confirmed`）
+
+| 环境 | 命令 | 结果 |
+|------|------|------|
+| dev | `supabase migration up --local --include-all` | 已应用 `20260710120000`；RPC 含 `v_preserve_split`（`by_item` 或部分收款 → `confirmed`） |
+| staging | `link mnvqmrrvbqwuxfxlewdm` + `db push --yes` | Remote 已含 `20260710120000` |
+| cloud | `link spgnhkaqtsbytvletpdm` + `db push --yes` | Remote 已含 `20260710120000` |
+
+CLI 当前 link：**cloud**（`spgnhkaqtsbytvletpdm`）。
+
+---
+
+## 六（历史）、2026-06-29 — 部分收款恢复点单
+
 迁移：`20260629130000_resume_ordering_preserve_partial_split.sql`（部分收款恢复点单保留 `bill_splits` 为 `confirmed`）
 
 | 环境 | 命令 | 结果 |

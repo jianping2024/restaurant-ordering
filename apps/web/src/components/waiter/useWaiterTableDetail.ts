@@ -36,7 +36,7 @@ function clientStateFromDetail(detail: WaiterTableDetailData | null | undefined)
 /**
  * Table detail client state.
  *
- * Production: SSR initialDetail hydrates first paint; Realtime + mutations refresh via staff API.
+ * Production: SSR initialDetail hydrates first paint; client reconcile on entry + Realtime refresh via staff API.
  * Demo: static props only.
  */
 export function useWaiterTableDetail(
@@ -105,14 +105,14 @@ export function useWaiterTableDetail(
   }, [applyDetail, enabled, restaurant.slug, tableId]);
 
   useEffect(() => {
+    if (initialDetail) applyDetail(initialDetail);
+  }, [applyDetail, initialDetail]);
+
+  // Client navigations may reuse a stale RSC payload; reconcile without clearing SSR data.
+  useEffect(() => {
     if (!enabled) return;
-    if (initialDetail) {
-      applyDetail(initialDetail);
-      return;
-    }
-    setDetailLoaded(false);
     void refresh();
-  }, [applyDetail, enabled, initialDetail, refresh, tableId]);
+  }, [enabled, refresh, tableId]);
 
   useRestaurantRealtimeRefresh(
     supabase,

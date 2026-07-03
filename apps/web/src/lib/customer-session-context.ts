@@ -24,6 +24,14 @@ export type CustomerResolvedTableContext = {
   activeSession: TableSession | null;
 };
 
+/** Same shape as GET /api/restaurants/[slug]/customer/session and menu SSR props. */
+export type CustomerSessionContext = {
+  table_id: string;
+  display_name: string;
+  active_session: TableSession | null;
+  recent_orders: Order[];
+};
+
 export type CustomerRestaurantGateResult =
   | { kind: 'found'; restaurant: CustomerRestaurantRow }
   | { kind: 'not_found' }
@@ -127,6 +135,32 @@ export async function resolveCustomerTableContext(params: {
     tableId,
     displayName,
     activeSession: (activeSession as TableSession | null) || null,
+  };
+}
+
+export async function loadCustomerSessionContext(params: {
+  admin: AdminClient;
+  restaurantId: string;
+  tableIdParam?: string | null;
+}): Promise<CustomerSessionContext | null> {
+  const tableContext = await resolveCustomerTableContext(params);
+  if (!tableContext) return null;
+
+  const recent_orders = tableContext.activeSession?.id
+    ? await loadCustomerSessionOrders({
+        admin: params.admin,
+        restaurantId: params.restaurantId,
+        sessionId: tableContext.activeSession.id,
+        ascending: false,
+        limit: 20,
+      })
+    : [];
+
+  return {
+    table_id: tableContext.tableId,
+    display_name: tableContext.displayName,
+    active_session: tableContext.activeSession,
+    recent_orders,
   };
 }
 

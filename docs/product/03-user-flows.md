@@ -69,7 +69,7 @@
 ### 正常流程
 
 1. 打开 `/{slug}/menu?table_id=...`（服务员带 `from` / `return` 参数）
-2. 客户端拉取 `GET .../customer/session` 判断 `guestOrderGateFromSessionContext`
+2. RSC 调用 `loadCustomerSessionContext` 注入首屏 session + 近期订单；客户端 `useCustomerSessionContext` 挂载后静默 reconcile
 3. 条件满足（`open` 会话 + active `buffet_base`）→ 展示菜单、购物车
 4. 顾客选菜、提交 → 进入「加菜流程」
 

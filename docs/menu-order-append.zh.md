@@ -128,12 +128,13 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 顾客菜单**不**后台定时刷新；状态在**用户操作时**与服务器对齐。
 
 ```
-挂载 MenuPage
-  → requestCustomerSessionContext(slug, table_id)   GET .../customer/session（仅一次，首屏）
+RSC menu/page.tsx
+  → loadCustomerSessionContext（与 GET .../customer/session 同形）
+  → MenuPage initialSessionContext + useCustomerSessionContext
   → guestOrderingEnabled(activeSession, recentOrders)
        本地已可点 → 直接加菜
-       本地不可点 → 加菜 / 提交前再 GET .../customer/session，重算门禁
-  → append 返回 session_billing → 再拉一次 session，再提示
+       本地不可点 → 加菜 / 提交前 refresh，重算门禁
+  → append 返回 session_billing → refresh，再提示
 ```
 
 与开台管道对齐：服务员开台后，顾客**第一次点加菜**会拉到 `buffet_base`，门禁放开。  
@@ -229,7 +230,7 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 | 提交后入队（客户端） | `lib/auto-enqueue-station-tickets.ts` |
 | 入队 API | `app/api/restaurants/[slug]/station-tickets/auto/route.ts` |
 | 档口分组入队 | `lib/station-ticket-enqueue.ts` |
-| 会话上下文（操作时刷新） | `lib/request-customer-context.ts`、`lib/customer-menu-order-gate.ts` |
+| 会话上下文（SSR + 操作时 refresh） | `lib/customer-session-context.ts` → `loadCustomerSessionContext`、`lib/use-customer-session-context.ts`、`lib/customer-menu-order-gate.ts` |
 | 看板 → 菜单链接 | `lib/staff-routes.ts` → `waiterMenuHref` |
 | 看板回跳路径（契约） | `lib/staff-routes.ts` → `waiterTableHref`、`resolveWaiterMenuReturnHref` |
 | 开台前置（另一管道） | [`buffet-open-table.zh.md`](buffet-open-table.zh.md) |

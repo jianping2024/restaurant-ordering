@@ -1,11 +1,7 @@
+import type { CustomerSessionContext } from '@/lib/customer-session-context';
 import type { BillSplit, Order, TableSession } from '@/types';
 
-export type CustomerSessionResponse = {
-  table_id: string;
-  display_name: string;
-  active_session: TableSession | null;
-  recent_orders: Order[];
-};
+export type CustomerSessionResponse = CustomerSessionContext;
 
 export type CustomerBillResponse = {
   table_id: string;

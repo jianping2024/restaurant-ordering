@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type {
@@ -8,8 +8,6 @@ import type {
   MenuItem,
   Language,
   CartItem,
-  Order,
-  TableSession,
   MenuCategory,
 } from '@/types';
 import { MenuItemCard } from './MenuItemCard';
@@ -29,8 +27,8 @@ import {
   guestOrderGateFromSessionContext,
   guestOrderingActionHint,
 } from '@/lib/customer-menu-order-gate';
-import { requestCustomerSessionContext } from '@/lib/request-customer-context';
-import type { CustomerSessionResponse } from '@/lib/request-customer-context';
+import type { CustomerSessionContext } from '@/lib/customer-session-context';
+import { useCustomerSessionContext } from '@/lib/use-customer-session-context';
 import {
   isDashboardWaiterReturnPath,
   isSlugWaiterAssistedFlow,
@@ -55,13 +53,23 @@ interface Props {
   menuCategories: MenuCategory[];
   tableId: string;
   displayName: string;
+  initialSessionContext?: CustomerSessionContext | null;
   isDemo?: boolean;
   returnToWaiterHref?: string | null;
 }
 
 const WAITER_RETURN_REDIRECT_MS = 1200;
 
-export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displayName, isDemo, returnToWaiterHref }: Props) {
+export function MenuPage({
+  restaurant,
+  menuItems,
+  menuCategories,
+  tableId,
+  displayName,
+  initialSessionContext = null,
+  isDemo,
+  returnToWaiterHref,
+}: Props) {
   const router = useRouter();
   const isWaiterFlow = !!returnToWaiterHref;
   const { lang, setLang } = useLanguage();
@@ -71,33 +79,25 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [demoToast, setDemoToast] = useState(false);
-  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
-  const [activeSession, setActiveSession] = useState<TableSession | null>(null);
   const [latestBatchId, setLatestBatchId] = useState<string | null>(null);
 
-  const loadSessionAndOrders = useCallback(async (): Promise<CustomerSessionResponse | null> => {
-    const data = await requestCustomerSessionContext(restaurant.slug, tableId);
-    if (!data) return null;
-    setActiveSession((data.active_session as TableSession | null) || null);
-    if (!data.active_session) {
-      setRecentOrders([]);
-      return data;
-    }
-    setRecentOrders((data.recent_orders || []) as Order[]);
-    return data;
-  }, [restaurant.slug, tableId]);
-
-  useEffect(() => {
-    if (isDemo) return;
-    void loadSessionAndOrders();
-  }, [isDemo, loadSessionAndOrders]);
+  const {
+    activeSession,
+    recentOrders,
+    sessionResolved,
+    refresh: refreshSessionContext,
+  } = useCustomerSessionContext(initialSessionContext, {
+    slug: restaurant.slug,
+    tableId,
+    isDemo,
+  });
 
   const ensureGuestCanPlaceOrder = useCallback(async () => {
     const cached = guestOrderGateFromCachedState(isDemo ?? false, activeSession, recentOrders);
     if (cached) return cached;
-    const data = await loadSessionAndOrders();
+    const data = await refreshSessionContext();
     return guestOrderGateFromSessionContext(data);
-  }, [activeSession, isDemo, loadSessionAndOrders, recentOrders]);
+  }, [activeSession, isDemo, recentOrders, refreshSessionContext]);
 
   // 当前分类菜品
   const topCategories = menuCategories.filter((c) => !c.parent_id && c.active).sort((a, b) => a.sort_order - b.sort_order);
@@ -154,8 +154,8 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
   });
 
   const guestCanOrder = useMemo(
-    () => guestOrderingEnabled(activeSession, recentOrders),
-    [activeSession, recentOrders],
+    () => sessionResolved && guestOrderingEnabled(activeSession, recentOrders),
+    [activeSession, recentOrders, sessionResolved],
   );
   const guestOrderingHints = useMemo(() => {
     const messages = MENU_PAGE_MESSAGES[lang];
@@ -331,7 +331,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
         if (code === 'location_too_far') showToast(t.locationTooFar, 'error');
         else if (code === 'location_required') showToast(t.locationPermissionDenied, 'error');
         else if (code === 'session_billing') {
-          await loadSessionAndOrders();
+          await refreshSessionContext();
           showToast(t.billDisabledHint, 'info');
         }
         else if (code === 'buffet_required') showToast(t.buffetRequired, 'info');
@@ -361,7 +361,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
       } else {
         await enqueuePromise;
         if (sessionId) {
-          await loadSessionAndOrders();
+          await refreshSessionContext();
         }
       }
 
@@ -499,7 +499,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
         )}
       </header>
 
-      {!isDemo && !guestCanOrder && (
+      {!isDemo && sessionResolved && !guestCanOrder && (
         <div className="mx-4 mt-3 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3 text-[13px] text-brand-text">
           {guestOrderingHints.banner}
         </div>
@@ -512,7 +512,7 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
           {recentOrders.length > 0 && (
             <p className="text-brand-text-muted text-[12px] mb-3">{t.orderedSubmittedHint}</p>
           )}
-          {recentOrders.length === 0 ? (
+          {!sessionResolved ? null : recentOrders.length === 0 ? (
             <p className="text-brand-text-muted text-sm">{t.noOrders}</p>
           ) : (
             <div className="space-y-3">

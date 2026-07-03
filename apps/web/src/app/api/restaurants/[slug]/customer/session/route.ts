@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
   loadCustomerRestaurantForApi,
-  loadCustomerSessionOrders,
-  resolveCustomerTableContext,
+  loadCustomerSessionContext,
 } from '@/lib/customer-session-context';
 
 export const runtime = 'nodejs';
@@ -28,7 +27,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
   const restaurant = loaded.restaurant;
 
   const { searchParams } = new URL(req.url);
-  const ctx = await resolveCustomerTableContext({
+  const ctx = await loadCustomerSessionContext({
     admin,
     restaurantId: restaurant.id,
     tableIdParam: searchParams.get('table_id'),
@@ -37,20 +36,5 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     return NextResponse.json({ error: 'table_not_available' }, { status: 404 });
   }
 
-  const orders = ctx.activeSession?.id
-    ? await loadCustomerSessionOrders({
-        admin,
-        restaurantId: restaurant.id,
-        sessionId: ctx.activeSession.id,
-        ascending: false,
-        limit: 20,
-      })
-    : [];
-
-  return NextResponse.json({
-    table_id: ctx.tableId,
-    display_name: ctx.displayName,
-    active_session: ctx.activeSession,
-    recent_orders: orders,
-  });
+  return NextResponse.json(ctx);
 }

@@ -1,5 +1,5 @@
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
-import type { CustomerSessionResponse } from '@/lib/request-customer-context';
+import type { CustomerSessionContext } from '@/lib/customer-session-context';
 import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
 import type { Language, Order, SessionStatus, TableSession } from '@/types';
 
@@ -9,7 +9,7 @@ export type GuestOrderGateResult = {
 };
 
 export function guestOrderGateFromSessionContext(
-  context: CustomerSessionResponse | null,
+  context: CustomerSessionContext | null,
 ): GuestOrderGateResult {
   const session = (context?.active_session as TableSession | null) ?? null;
   const orders = (context?.recent_orders || []) as Order[];

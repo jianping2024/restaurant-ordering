@@ -2,7 +2,10 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { RestaurantMaintenancePage } from '@/components/customer/RestaurantMaintenancePage';
-import { loadCustomerRestaurantGate, resolveCustomerTableContext } from '@/lib/customer-session-context';
+import {
+  loadCustomerRestaurantGate,
+  loadCustomerSessionContext,
+} from '@/lib/customer-session-context';
 import { MenuPage } from '@/components/menu/MenuPage';
 import { resolveWaiterMenuReturnHref } from '@/lib/staff-routes';
 
@@ -28,12 +31,12 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
   }
   const restaurant = gate.restaurant;
 
-  const tableContext = await resolveCustomerTableContext({
+  const sessionContext = await loadCustomerSessionContext({
     admin,
     restaurantId: restaurant.id,
     tableIdParam,
   });
-  if (!tableContext) notFound();
+  if (!sessionContext) notFound();
 
   const supabase = await createClient();
 
@@ -58,8 +61,9 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
       restaurant={restaurant}
       menuItems={menuItems || []}
       menuCategories={menuCategories || []}
-      tableId={tableContext.tableId}
-      displayName={tableContext.displayName}
+      tableId={sessionContext.table_id}
+      displayName={sessionContext.display_name}
+      initialSessionContext={sessionContext}
       returnToWaiterHref={returnToWaiterHref}
     />
   );

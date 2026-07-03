@@ -29,11 +29,10 @@ import {
 } from '@/lib/customer-menu-order-gate';
 import type { CustomerSessionContext } from '@/lib/customer-session-context';
 import { useCustomerSessionContext } from '@/lib/use-customer-session-context';
-import {
-  isDashboardWaiterReturnPath,
-  isSlugWaiterAssistedFlow,
-  waiterBillHref,
-} from '@/lib/staff-routes';
+import type { StaffAssistedFlow } from '@/lib/staff-routes';
+import { waiterBillHref } from '@/lib/staff-routes';
+import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
+import { StaffAssistedBackLink } from '@/components/staff/StaffAssistedBackLink';
 
 const LANG_FLAGS: Record<Language, string> = { pt: '🇵🇹', en: '🇬🇧', zh: '🇨🇳' };
 const LANG_LABELS: Record<Language, string> = { pt: 'PT', en: 'EN', zh: '中' };
@@ -55,7 +54,7 @@ interface Props {
   displayName: string;
   initialSessionContext?: CustomerSessionContext | null;
   isDemo?: boolean;
-  returnToWaiterHref?: string | null;
+  staffAssisted?: StaffAssistedFlow | null;
 }
 
 const WAITER_RETURN_REDIRECT_MS = 1200;
@@ -68,10 +67,9 @@ export function MenuPage({
   displayName,
   initialSessionContext = null,
   isDemo,
-  returnToWaiterHref,
+  staffAssisted = null,
 }: Props) {
   const router = useRouter();
-  const isWaiterFlow = !!returnToWaiterHref;
   const { lang, setLang } = useLanguage();
   const [activeTopCategory, setActiveTopCategory] = useState<string>('Pratos');
   const [activeSubpath, setActiveSubpath] = useState<string>('');
@@ -226,14 +224,13 @@ export function MenuPage({
     acc.totalItemCount += order.items.length;
     return acc;
   }, { totalItemCount: 0 });
-  const pageBottomPaddingClass =
-    totalQty > 0
-      ? (isWaiterFlow ? 'pb-52' : 'pb-28')
-      : (isWaiterFlow ? 'pb-24' : 'pb-16');
+  const pageBottomPaddingClass = totalQty > 0 ? 'pb-28' : 'pb-16';
   // 只要本桌本餐次有下单记录，即可随时进入结账页。
   const canGoBill = !!activeSession && totalItemCount > 0;
-  const canShowBillCta = !isSlugWaiterAssistedFlow(returnToWaiterHref) && !!activeSession;
-  const billHref = isDashboardWaiterReturnPath(returnToWaiterHref)
+  const canShowBillCta = staffAssisted
+    ? staffAssisted.showBillCta && !!activeSession
+    : !!activeSession;
+  const billHref = staffAssisted?.showBillCta
     ? waiterBillHref(restaurant.slug, tableId, { embeddedInDashboard: true })
     : `/${restaurant.slug}/bill?table_id=${encodeURIComponent(tableId)}`;
 
@@ -246,11 +243,11 @@ export function MenuPage({
       setCart([]);
       setCartOpen(false);
       showToast(t.orderSuccess, 'success');
-      if (isWaiterFlow && returnToWaiterHref) {
-        setTimeout(() => router.push(returnToWaiterHref), WAITER_RETURN_REDIRECT_MS);
+      if (staffAssisted?.redirectAfterSubmit) {
+        setTimeout(() => router.push(staffAssisted.returnHref), WAITER_RETURN_REDIRECT_MS);
       }
     },
-    [isWaiterFlow, returnToWaiterHref, router, t.orderSuccess],
+    [staffAssisted, router, t.orderSuccess],
   );
 
   // 提交订单
@@ -263,7 +260,7 @@ export function MenuPage({
     }
 
     if (isDemo) {
-      if (isWaiterFlow) {
+      if (staffAssisted) {
         finishSuccessfulSubmit();
         return;
       }
@@ -282,7 +279,7 @@ export function MenuPage({
 
       const geoResult = await resolveCustomerGeoForOrder({
         restaurant,
-        isWaiterFlow,
+        isWaiterFlow: !!staffAssisted,
         isLocalDevHost,
       });
 
@@ -314,7 +311,7 @@ export function MenuPage({
           items,
           latitude,
           longitude,
-          waiter_flow: isWaiterFlow,
+          waiter_flow: !!staffAssisted,
         }),
       });
 
@@ -352,11 +349,11 @@ export function MenuPage({
         orderId: savedOrderId,
         batchId: appendData.batch_id,
         enqueueToken: appendData.enqueue_token,
-        waiterFlow: isWaiterFlow,
+        waiterFlow: !!staffAssisted,
         lang,
       });
 
-      if (isWaiterFlow) {
+      if (staffAssisted) {
         void enqueuePromise;
       } else {
         await enqueuePromise;
@@ -429,6 +426,14 @@ export function MenuPage({
       <header className="sticky top-0 z-30 bg-brand-bg/95 backdrop-blur border-b border-brand-border">
         <div className="flex items-center justify-between px-4 py-3">
           <div>
+            {staffAssisted ? (
+              <div className="mb-1">
+                <StaffAssistedBackLink
+                  href={staffAssisted.returnHref}
+                  label={staffAssistedReturnLabel(staffAssisted, lang)}
+                />
+              </div>
+            ) : null}
             <h1 className="font-heading text-xl text-brand-gold">{restaurant.name}</h1>
             <p className="text-brand-text-muted text-[13px]">{t.table} {displayName}</p>
           </div>
@@ -584,15 +589,7 @@ export function MenuPage({
       </div>
 
       {totalQty > 0 ? (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-30 space-y-2">
-          {isWaiterFlow && returnToWaiterHref && (
-            <Link
-              href={returnToWaiterHref}
-              className="block text-center rounded-xl py-2 text-sm border border-brand-gold/35 bg-brand-gold/12 text-brand-gold hover:bg-brand-gold/18 transition-colors"
-            >
-              ← {t.backToWaiter}
-            </Link>
-          )}
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-30">
           <button
             onClick={() => setCartOpen(true)}
             className="w-full bg-brand-gold text-brand-on-gold rounded-2xl px-5 py-4 flex items-center justify-between shadow-2xl shadow-brand-gold/20 active:scale-95 transition-transform"
@@ -606,18 +603,7 @@ export function MenuPage({
             <span className="font-heading text-lg font-semibold">€{totalPrice.toFixed(2)}</span>
           </button>
         </div>
-      ) : (
-        isWaiterFlow && returnToWaiterHref && (
-          <div className="fixed left-1/2 -translate-x-1/2 z-20 w-[calc(100%-2rem)] max-w-mobile bottom-4">
-            <Link
-              href={returnToWaiterHref}
-              className="block text-center rounded-xl py-2 text-sm border border-brand-gold/35 bg-brand-gold/12 text-brand-gold hover:bg-brand-gold/18 transition-colors"
-            >
-              ← {t.backToWaiter}
-            </Link>
-          </div>
-        )
-      )}
+      ) : null}
 
       {/* 购物车抽屉 */}
       <CartDrawer

@@ -7,7 +7,7 @@ import {
   loadCustomerSessionContext,
 } from '@/lib/customer-session-context';
 import { MenuPage } from '@/components/menu/MenuPage';
-import { resolveWaiterMenuReturnHref } from '@/lib/staff-routes';
+import { resolveStaffAssistedFlow } from '@/lib/staff-routes';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -54,7 +54,12 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
     .eq('active', true)
     .order('sort_order');
 
-  const returnToWaiterHref = resolveWaiterMenuReturnHref(from, returnPath, slug);
+  const staffAssisted = resolveStaffAssistedFlow(
+    from,
+    returnPath,
+    slug,
+    sessionContext.table_id,
+  );
 
   return (
     <MenuPage
@@ -64,7 +69,7 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
       tableId={sessionContext.table_id}
       displayName={sessionContext.display_name}
       initialSessionContext={sessionContext}
-      returnToWaiterHref={returnToWaiterHref}
+      staffAssisted={staffAssisted}
     />
   );
 }

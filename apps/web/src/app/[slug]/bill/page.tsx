@@ -11,9 +11,8 @@ import {
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { resolveCheckoutRequestCaller } from '@/lib/checkout-request-auth';
 import {
-  resolveWaiterMenuReturnHref,
+  resolveStaffAssistedFlow,
   waiterBoardHref,
-  isSlugWaiterAssistedFlow,
 } from '@/lib/staff-routes';
 
 interface Props {
@@ -45,16 +44,21 @@ export default async function BillRoute({ params, searchParams }: Props) {
   });
   if (!tableContext) notFound();
 
-  const waiterReturnHref = resolveWaiterMenuReturnHref(from, returnPath, slug);
+  const staffAssisted = resolveStaffAssistedFlow(
+    from,
+    returnPath,
+    slug,
+    tableContext.tableId,
+  );
 
   const caller = await resolveCheckoutRequestCaller(slug);
-  if (caller.kind === 'forbidden_staff' || isSlugWaiterAssistedFlow(waiterReturnHref)) {
-    redirect(waiterReturnHref ?? waiterBoardHref(slug));
+  if (caller.kind === 'forbidden_staff' || staffAssisted?.variant === 'slug_waiter') {
+    redirect(staffAssisted?.returnHref ?? waiterBoardHref(slug));
   }
 
   if (!tableContext.activeSession) {
-    if (waiterReturnHref) {
-      redirect(waiterReturnHref);
+    if (staffAssisted) {
+      redirect(staffAssisted.returnHref);
     }
     redirect(`/${slug}/menu?table_id=${encodeURIComponent(tableContext.tableId)}`);
   }
@@ -112,7 +116,7 @@ export default async function BillRoute({ params, searchParams }: Props) {
       sessionStatus={tableContext.activeSession.status}
       existingSplit={existingSplit}
       hasCollectedPayments={hasCollectedPayments}
-      returnPath={waiterReturnHref}
+      staffAssisted={staffAssisted}
       initialFeedbackSubmitted={initialFeedbackSubmitted}
       initialFeedbackSkipped={initialFeedbackSkipped}
       itemCodeByMenuId={itemCodeByMenuId}

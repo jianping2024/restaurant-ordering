@@ -19,8 +19,10 @@ import { getMessages } from '@/lib/i18n/messages';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import { normalizeDecimalInput as normalizeAmountInput } from '@/lib/number-input';
 import { formatPortugueseNif, normalizePortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
-import { checkoutRedirectAfterBillRequest } from '@/lib/staff-routes';
+import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
+import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
+import { StaffAssistedBackLink } from '@/components/staff/StaffAssistedBackLink';
 import { useBillOrders } from '@/lib/use-bill-orders';
 import { useByItemSplitState } from '@/lib/use-by-item-split-state';
 import { requestOrderReceiptPrintQuiet } from '@/lib/request-order-receipt-print';
@@ -42,7 +44,7 @@ interface Props {
   sessionStatus: SessionStatus;
   existingSplit: BillSplit | null;
   hasCollectedPayments?: boolean;
-  returnPath?: string | null;
+  staffAssisted?: StaffAssistedFlow | null;
   initialFeedbackSubmitted?: boolean;
   initialFeedbackSkipped?: boolean;
   itemCodeByMenuId?: Record<string, string>;
@@ -70,21 +72,20 @@ export function BillPage({
   sessionStatus,
   existingSplit,
   hasCollectedPayments = false,
-  returnPath,
+  staffAssisted = null,
   initialFeedbackSubmitted = false,
   initialFeedbackSkipped = false,
   itemCodeByMenuId = {},
 }: Props) {
-  const isWaiterFlow = !!returnPath;
   const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).bill;
-  const backHref = returnPath || `/${restaurant.slug}/menu?table_id=${encodeURIComponent(tableId)}`;
-  const backLabel = isWaiterFlow ? t.backToWaiter : t.backToMenu;
-  const checkoutRedirectHref = useMemo(
-    () => checkoutRedirectAfterBillRequest(tableId, returnPath),
-    [tableId, returnPath],
-  );
+  const backHref = staffAssisted?.returnHref
+    ?? `/${restaurant.slug}/menu?table_id=${encodeURIComponent(tableId)}`;
+  const backLabel = staffAssisted
+    ? staffAssistedReturnLabel(staffAssisted, lang)
+    : t.backToMenu;
+  const checkoutRedirectHref = staffAssisted?.checkoutRedirectHref ?? null;
 
   const guestName = (n: number) => `${t.guest} ${n}`;
   const lineQtyLabel = (item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count'>) =>
@@ -137,7 +138,9 @@ export function BillPage({
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(initialFeedbackSubmitted);
   const [feedbackSkipped, setFeedbackSkipped] = useState(initialFeedbackSkipped);
-  const [feedbackHydrating, setFeedbackHydrating] = useState(() => !!existingSplit && !!sessionId && !returnPath && !initialFeedbackSubmitted && !initialFeedbackSkipped);
+  const [feedbackHydrating, setFeedbackHydrating] = useState(
+    () => !!existingSplit && !!sessionId && !staffAssisted?.skipFeedback && !initialFeedbackSubmitted && !initialFeedbackSkipped,
+  );
   const [customerNifInput, setCustomerNifInput] = useState('');
   const {
     orders,
@@ -446,7 +449,7 @@ export function BillPage({
       setContinuationSplit(null);
 
       setPersistedResult(requestResult.result);
-      const redirectHref = checkoutRedirectAfterBillRequest(tableId, returnPath);
+      const redirectHref = staffAssisted?.checkoutRedirectHref ?? null;
       if (redirectHref) {
         router.replace(redirectHref);
         return;
@@ -499,7 +502,7 @@ export function BillPage({
   const selectedFeedbackCount = Object.values(feedbackDraft).filter((entry) => !!entry.vote).length;
 
   useEffect(() => {
-    if (!submitted || !sessionId || !!returnPath || initialFeedbackSubmitted || initialFeedbackSkipped) return;
+    if (!submitted || !sessionId || staffAssisted?.skipFeedback || initialFeedbackSubmitted || initialFeedbackSkipped) return;
     setFeedbackHydrating(true);
     const supabase = createClient();
     const syncFeedbackState = async () => {
@@ -532,7 +535,7 @@ export function BillPage({
       setFeedbackSubmitted(true);
     };
     void syncFeedbackState().finally(() => setFeedbackHydrating(false));
-  }, [submitted, sessionId, restaurant.id, returnPath, initialFeedbackSubmitted, initialFeedbackSkipped]);
+  }, [submitted, sessionId, restaurant.id, staffAssisted, initialFeedbackSubmitted, initialFeedbackSkipped]);
 
   const setVote = (menuItemId: string, vote: DishFeedbackVote) => {
     setFeedbackDraft((prev) => ({
@@ -675,7 +678,7 @@ export function BillPage({
               ← {backLabel}
             </Link>
           </div>
-          {!returnPath && !feedbackSkipped && (
+          {!staffAssisted?.skipFeedback && !feedbackSkipped && (
             <div className="mt-6 bg-brand-card border border-brand-border rounded-xl p-4 text-left">
               <h3 className="text-brand-text font-medium">{t.feedbackTitle}</h3>
               <p className="text-brand-text-muted text-[13px] mt-1">{t.feedbackHint}</p>
@@ -778,12 +781,7 @@ export function BillPage({
           <LanguageSwitcher compact />
         </div>
         <div className="mt-2">
-          <Link
-            href={backHref}
-            className="text-[13px] text-brand-text-muted hover:text-brand-gold transition-colors"
-          >
-            ← {backLabel}
-          </Link>
+          <StaffAssistedBackLink href={backHref} label={backLabel} />
         </div>
         <p className="text-brand-text-muted text-sm">{t.table} {displayName} — {t.settlement}</p>
       </header>

@@ -2,7 +2,7 @@ import { MenuPage } from '@/components/menu/MenuPage';
 import { DEMO_RESTAURANT, DEMO_TABLES, demoTableByDisplayName } from '@/lib/demo-data';
 import { DEFAULT_MENU_VAT_RATE } from '@/lib/menu-vat-rate';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
-import { resolveWaiterMenuReturnHref } from '@/lib/staff-routes';
+import { resolveStaffAssistedFlow } from '@/lib/staff-routes';
 import type { MenuCategory, MenuItem } from '@/types';
 
 interface Props {
@@ -52,9 +52,13 @@ export default async function DemoMenuPage({ searchParams }: Props) {
   const defaultTable = demoTableByDisplayName('5') ?? DEMO_TABLES[4]!;
   const tableId = parseTableIdParam(tableIdParam) ?? defaultTable.id;
   const table = DEMO_TABLES.find((t) => t.id === tableId) ?? defaultTable;
-  const returnToWaiterHref = resolveWaiterMenuReturnHref(from, returnPath, DEMO_RESTAURANT.slug, {
-    isDemo: true,
-  });
+  const staffAssisted = resolveStaffAssistedFlow(
+    from,
+    returnPath,
+    DEMO_RESTAURANT.slug,
+    table.id,
+    { isDemo: true },
+  );
 
   return (
     <MenuPage
@@ -64,7 +68,7 @@ export default async function DemoMenuPage({ searchParams }: Props) {
       tableId={table.id}
       displayName={table.display_name}
       isDemo
-      returnToWaiterHref={returnToWaiterHref}
+      staffAssisted={staffAssisted}
     />
   );
 }

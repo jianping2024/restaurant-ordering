@@ -7,6 +7,8 @@ import {
   waiterMenuHref,
   waiterBillHref,
   resolveWaiterMenuReturnHref,
+  resolveStaffAssistedFlow,
+  isWaiterTableDetailReturnPath,
   isDashboardWaiterReturnPath,
   isSlugWaiterAssistedFlow,
   checkoutRedirectAfterBillRequest,
@@ -178,6 +180,55 @@ describe('resolveWaiterMenuReturnHref', () => {
     assert.equal(
       resolveWaiterMenuReturnHref('waiter', '/evil', 'cafe-lisboa', { isDemo: true }),
       '/demo/waiter',
+    );
+  });
+});
+
+describe('isWaiterTableDetailReturnPath', () => {
+  const tableId = '550e8400-e29b-41d4-a716-446655440001';
+
+  it('matches waiter table detail paths', () => {
+    assert.equal(isWaiterTableDetailReturnPath(waiterTableHref('cafe-lisboa', tableId)), true);
+    assert.equal(
+      isWaiterTableDetailReturnPath(waiterTableHref('cafe-lisboa', tableId, { embeddedInDashboard: true })),
+      true,
+    );
+  });
+
+  it('rejects waiter board list paths', () => {
+    assert.equal(isWaiterTableDetailReturnPath('/dashboard/waiter'), false);
+    assert.equal(isWaiterTableDetailReturnPath('/cafe-lisboa/waiter'), false);
+    assert.equal(isWaiterTableDetailReturnPath(null), false);
+  });
+});
+
+describe('resolveStaffAssistedFlow', () => {
+  const tableId = '550e8400-e29b-41d4-a716-446655440001';
+
+  it('returns null for customer menu entry', () => {
+    assert.equal(resolveStaffAssistedFlow(undefined, undefined, 'cafe-lisboa', tableId), null);
+  });
+
+  it('resolves slug waiter assisted flow', () => {
+    const returnPath = waiterTableHref('cafe-lisboa', tableId);
+    const flow = resolveStaffAssistedFlow('waiter', returnPath, 'cafe-lisboa', tableId);
+    assert.ok(flow);
+    assert.equal(flow!.returnHref, returnPath);
+    assert.equal(flow!.variant, 'slug_waiter');
+    assert.equal(flow!.showBillCta, false);
+    assert.equal(flow!.skipFeedback, true);
+    assert.equal(flow!.checkoutRedirectHref, null);
+  });
+
+  it('resolves dashboard frontdesk assisted flow', () => {
+    const returnPath = waiterTableHref('cafe-lisboa', tableId, { embeddedInDashboard: true });
+    const flow = resolveStaffAssistedFlow('waiter', returnPath, 'cafe-lisboa', tableId);
+    assert.ok(flow);
+    assert.equal(flow!.variant, 'dashboard_frontdesk');
+    assert.equal(flow!.showBillCta, true);
+    assert.equal(
+      flow!.checkoutRedirectHref,
+      `/dashboard/checkout?table_id=${encodeURIComponent(tableId)}`,
     );
   });
 });

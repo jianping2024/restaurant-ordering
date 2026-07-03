@@ -92,6 +92,54 @@ function isSafeInternalReturnPath(path: string): boolean {
   return path.startsWith('/') && !path.startsWith('//') && !path.includes('://');
 }
 
+export type StaffAssistedFlowVariant = 'slug_waiter' | 'dashboard_frontdesk' | 'demo';
+
+/** Resolved staff-assisted customer menu/bill flow (`from=waiter`). */
+export type StaffAssistedFlow = {
+  returnHref: string;
+  variant: StaffAssistedFlowVariant;
+  redirectAfterSubmit: boolean;
+  showBillCta: boolean;
+  skipGeoFence: boolean;
+  skipFeedback: boolean;
+  checkoutRedirectHref: string | null;
+};
+
+/** Return path points at a waiter table detail page (not the board list). */
+export function isWaiterTableDetailReturnPath(returnPath: string | null | undefined): boolean {
+  if (!returnPath) return false;
+  return /\/waiter\/[^/]+$/.test(returnPath);
+}
+
+export function resolveStaffAssistedFlow(
+  from: string | undefined,
+  returnPath: string | undefined,
+  slug: string,
+  tableId: string,
+  options: WaiterRouteOptions = {},
+): StaffAssistedFlow | null {
+  const returnHref = resolveWaiterMenuReturnHref(from, returnPath, slug, options);
+  if (!returnHref) return null;
+
+  const isDashboard = isDashboardWaiterReturnPath(returnHref);
+  const isDemo = options.isDemo ?? false;
+  const variant: StaffAssistedFlowVariant = isDemo
+    ? 'demo'
+    : isDashboard
+      ? 'dashboard_frontdesk'
+      : 'slug_waiter';
+
+  return {
+    returnHref,
+    variant,
+    redirectAfterSubmit: true,
+    showBillCta: variant === 'dashboard_frontdesk',
+    skipGeoFence: true,
+    skipFeedback: true,
+    checkoutRedirectHref: checkoutRedirectAfterBillRequest(tableId, returnHref),
+  };
+}
+
 /** Menu/bill waiter return links — allow slug, dashboard, and demo waiter boards only. */
 export function resolveWaiterMenuReturnHref(
   from: string | undefined,

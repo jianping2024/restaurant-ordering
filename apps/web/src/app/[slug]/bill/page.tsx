@@ -9,7 +9,12 @@ import {
   resolveCustomerTableContext,
 } from '@/lib/customer-session-context';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
-import { resolveWaiterMenuReturnHref } from '@/lib/staff-routes';
+import { resolveCheckoutRequestCaller } from '@/lib/checkout-request-auth';
+import {
+  resolveWaiterMenuReturnHref,
+  waiterBoardHref,
+  isSlugWaiterAssistedFlow,
+} from '@/lib/staff-routes';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -41,6 +46,11 @@ export default async function BillRoute({ params, searchParams }: Props) {
   if (!tableContext) notFound();
 
   const waiterReturnHref = resolveWaiterMenuReturnHref(from, returnPath, slug);
+
+  const caller = await resolveCheckoutRequestCaller(slug);
+  if (caller.kind === 'forbidden_staff' || isSlugWaiterAssistedFlow(waiterReturnHref)) {
+    redirect(waiterReturnHref ?? waiterBoardHref(slug));
+  }
 
   if (!tableContext.activeSession) {
     if (waiterReturnHref) {

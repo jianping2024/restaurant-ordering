@@ -31,6 +31,11 @@ import {
 } from '@/lib/customer-menu-order-gate';
 import { requestCustomerSessionContext } from '@/lib/request-customer-context';
 import type { CustomerSessionResponse } from '@/lib/request-customer-context';
+import {
+  isDashboardWaiterReturnPath,
+  isSlugWaiterAssistedFlow,
+  waiterBillHref,
+} from '@/lib/staff-routes';
 
 const LANG_FLAGS: Record<Language, string> = { pt: '🇵🇹', en: '🇬🇧', zh: '🇨🇳' };
 const LANG_LABELS: Record<Language, string> = { pt: 'PT', en: 'EN', zh: '中' };
@@ -227,6 +232,10 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
       : (isWaiterFlow ? 'pb-24' : 'pb-16');
   // 只要本桌本餐次有下单记录，即可随时进入结账页。
   const canGoBill = !!activeSession && totalItemCount > 0;
+  const canShowBillCta = !isSlugWaiterAssistedFlow(returnToWaiterHref) && !!activeSession;
+  const billHref = isDashboardWaiterReturnPath(returnToWaiterHref)
+    ? waiterBillHref(restaurant.slug, tableId, { embeddedInDashboard: true })
+    : `/${restaurant.slug}/bill?table_id=${encodeURIComponent(tableId)}`;
 
   const finishSuccessfulSubmit = useCallback(
     (batchId?: string) => {
@@ -538,19 +547,21 @@ export function MenuPage({ restaurant, menuItems, menuCategories, tableId, displ
               ))}
             </div>
           )}
-          <div className="mt-4 pt-3 border-t border-brand-border">
-            <Link
-              href={`/${restaurant.slug}/bill?table_id=${encodeURIComponent(tableId)}`}
-              aria-disabled={!canGoBill}
-              className={`w-full block text-center rounded-xl py-2.5 text-sm font-semibold transition-colors ${
-                canGoBill
-                  ? 'bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light'
-                  : 'bg-brand-border text-brand-text-muted pointer-events-none'
-              }`}
-            >
-              {t.billCta}
-            </Link>
-          </div>
+          {canShowBillCta ? (
+            <div className="mt-4 pt-3 border-t border-brand-border">
+              <Link
+                href={billHref}
+                aria-disabled={!canGoBill}
+                className={`w-full block text-center rounded-xl py-2.5 text-sm font-semibold transition-colors ${
+                  canGoBill
+                    ? 'bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light'
+                    : 'bg-brand-border text-brand-text-muted pointer-events-none'
+                }`}
+              >
+                {t.billCta}
+              </Link>
+            </div>
+          ) : null}
         </div>
       </section>
 

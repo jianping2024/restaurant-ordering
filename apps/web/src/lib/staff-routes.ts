@@ -75,6 +75,11 @@ export function isDashboardWaiterReturnPath(returnPath: string | null | undefine
   );
 }
 
+/** Slug waiter board assisted flow — may order but must not initiate checkout. */
+export function isSlugWaiterAssistedFlow(returnPath: string | null | undefined): boolean {
+  return !!returnPath && !isDashboardWaiterReturnPath(returnPath);
+}
+
 /** After bill checkout request — frontdesk goes to dashboard checkout; others stay on bill. */
 export function checkoutRedirectAfterBillRequest(
   tableId: string,

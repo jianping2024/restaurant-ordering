@@ -8,6 +8,7 @@ import {
   waiterBillHref,
   resolveWaiterMenuReturnHref,
   isDashboardWaiterReturnPath,
+  isSlugWaiterAssistedFlow,
   checkoutRedirectAfterBillRequest,
 } from './staff-routes';
 
@@ -104,6 +105,26 @@ describe('isDashboardWaiterReturnPath', () => {
     assert.equal(isDashboardWaiterReturnPath(waiterTableHref('cafe-lisboa', tableId)), false);
     assert.equal(isDashboardWaiterReturnPath('/demo/waiter'), false);
     assert.equal(isDashboardWaiterReturnPath(null), false);
+  });
+});
+
+describe('isSlugWaiterAssistedFlow', () => {
+  const tableId = '550e8400-e29b-41d4-a716-446655440001';
+
+  it('matches slug waiter table return paths', () => {
+    assert.equal(
+      isSlugWaiterAssistedFlow(waiterTableHref('cafe-lisboa', tableId)),
+      true,
+    );
+  });
+
+  it('rejects dashboard waiter and customer flows', () => {
+    assert.equal(
+      isSlugWaiterAssistedFlow(waiterTableHref('cafe-lisboa', tableId, { embeddedInDashboard: true })),
+      false,
+    );
+    assert.equal(isSlugWaiterAssistedFlow(null), false);
+    assert.equal(isSlugWaiterAssistedFlow('/dashboard/waiter'), false);
   });
 });
 

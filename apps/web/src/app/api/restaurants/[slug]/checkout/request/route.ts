@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { assertCheckoutRequestAllowed } from '@/lib/checkout-request-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
 import { submitCheckoutRequestForTable } from '@/lib/checkout-request-server';
@@ -95,6 +96,11 @@ export async function POST(
   const slug = params.slug?.trim();
   if (!slug) {
     return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
+  }
+
+  const auth = await assertCheckoutRequestAllowed(slug);
+  if (!auth.ok) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   let body: {

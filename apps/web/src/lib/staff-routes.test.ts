@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { staffRolePath, waiterBoardHref, waiterTableHref, waiterMenuHref, waiterBillHref, resolveWaiterMenuReturnHref } from './staff-routes';
+import {
+  staffRolePath,
+  waiterBoardHref,
+  waiterTableHref,
+  waiterMenuHref,
+  waiterBillHref,
+  resolveWaiterMenuReturnHref,
+  isDashboardWaiterReturnPath,
+  checkoutRedirectAfterBillRequest,
+} from './staff-routes';
 
 describe('waiterBoardHref', () => {
   it('returns staff slug path by default', () => {
@@ -77,6 +86,46 @@ describe('staffRolePath', () => {
 
   it('routes frontdesk staff to dashboard overview', () => {
     assert.equal(staffRolePath('cafe-lisboa', 'frontdesk'), '/dashboard');
+  });
+});
+
+describe('isDashboardWaiterReturnPath', () => {
+  const tableId = '550e8400-e29b-41d4-a716-446655440001';
+
+  it('matches dashboard waiter board and table paths', () => {
+    assert.equal(isDashboardWaiterReturnPath('/dashboard/waiter'), true);
+    assert.equal(
+      isDashboardWaiterReturnPath(waiterTableHref('cafe-lisboa', tableId, { embeddedInDashboard: true })),
+      true,
+    );
+  });
+
+  it('rejects slug waiter and demo paths', () => {
+    assert.equal(isDashboardWaiterReturnPath(waiterTableHref('cafe-lisboa', tableId)), false);
+    assert.equal(isDashboardWaiterReturnPath('/demo/waiter'), false);
+    assert.equal(isDashboardWaiterReturnPath(null), false);
+  });
+});
+
+describe('checkoutRedirectAfterBillRequest', () => {
+  const tableId = '550e8400-e29b-41d4-a716-446655440001';
+
+  it('redirects frontdesk bill flow to dashboard checkout', () => {
+    assert.equal(
+      checkoutRedirectAfterBillRequest(
+        tableId,
+        waiterTableHref('cafe-lisboa', tableId, { embeddedInDashboard: true }),
+      ),
+      `/dashboard/checkout?table_id=${encodeURIComponent(tableId)}`,
+    );
+  });
+
+  it('returns null for customer and slug waiter bill flows', () => {
+    assert.equal(checkoutRedirectAfterBillRequest(tableId, null), null);
+    assert.equal(
+      checkoutRedirectAfterBillRequest(tableId, waiterTableHref('cafe-lisboa', tableId)),
+      null,
+    );
   });
 });
 

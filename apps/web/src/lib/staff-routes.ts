@@ -64,6 +64,25 @@ export function dashboardCheckoutTableHref(tableId: string): string {
   return `/dashboard/checkout?table_id=${encodeURIComponent(tableId)}`;
 }
 
+const DASHBOARD_WAITER_BOARD_PREFIX = '/dashboard/waiter';
+
+/** Frontdesk embedded waiter flow (`return=/dashboard/waiter/...`). */
+export function isDashboardWaiterReturnPath(returnPath: string | null | undefined): boolean {
+  if (!returnPath) return false;
+  return (
+    returnPath === DASHBOARD_WAITER_BOARD_PREFIX ||
+    returnPath.startsWith(`${DASHBOARD_WAITER_BOARD_PREFIX}/`)
+  );
+}
+
+/** After bill checkout request — frontdesk goes to dashboard checkout; others stay on bill. */
+export function checkoutRedirectAfterBillRequest(
+  tableId: string,
+  returnPath: string | null | undefined,
+): string | null {
+  return isDashboardWaiterReturnPath(returnPath) ? dashboardCheckoutTableHref(tableId) : null;
+}
+
 function isSafeInternalReturnPath(path: string): boolean {
   return path.startsWith('/') && !path.startsWith('//') && !path.includes('://');
 }

@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import type { StaffRole } from '@/lib/staff-account';
 
-export const CHECKOUT_AUTHORIZED_STAFF_ROLES: StaffRole[] = ['waiter', 'cashier', 'frontdesk'];
+export const CHECKOUT_AUTHORIZED_STAFF_ROLES: StaffRole[] = ['cashier', 'frontdesk'];
 
 /** Waiter + frontdesk staff; restaurant owner also passes via {@link staffAuthFromRequest} owner fallback. */
 export const OPEN_TABLE_AUTHORIZED_STAFF_ROLES: StaffRole[] = ['waiter', 'frontdesk'];

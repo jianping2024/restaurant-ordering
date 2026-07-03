@@ -19,7 +19,7 @@ import { getMessages } from '@/lib/i18n/messages';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import { normalizeDecimalInput as normalizeAmountInput } from '@/lib/number-input';
 import { formatPortugueseNif, normalizePortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
-import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
+import { checkoutRedirectAfterBillRequest } from '@/lib/staff-routes';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { useBillOrders } from '@/lib/use-bill-orders';
 import { useByItemSplitState } from '@/lib/use-by-item-split-state';
@@ -81,6 +81,11 @@ export function BillPage({
   const t = getMessages(lang).bill;
   const backHref = returnPath || `/${restaurant.slug}/menu?table_id=${encodeURIComponent(tableId)}`;
   const backLabel = isWaiterFlow ? t.backToWaiter : t.backToMenu;
+  const checkoutRedirectHref = useMemo(
+    () => checkoutRedirectAfterBillRequest(tableId, returnPath),
+    [tableId, returnPath],
+  );
+
   const guestName = (n: number) => `${t.guest} ${n}`;
   const lineQtyLabel = (item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count'>) =>
     formatOrderItemQuantityLabel(item, {
@@ -128,8 +133,6 @@ export function BillPage({
   const [submitting, setSubmitting] = useState(false);
   const [checkoutStatusRefreshing, setCheckoutStatusRefreshing] = useState(false);
   const [persistedResult, setPersistedResult] = useState<SplitResult[] | null>((existingSplit?.result as SplitResult[] | null) || null);
-  const [persistedSplitId, setPersistedSplitId] = useState<string | null>(existingSplit?.id || null);
-  const [personPayProcessingIdx, setPersonPayProcessingIdx] = useState<number | null>(null);
   const [feedbackDraft, setFeedbackDraft] = useState<Record<string, { vote?: DishFeedbackVote; reasons: FeedbackReasonKey[] }>>({});
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(initialFeedbackSubmitted);
@@ -146,6 +149,11 @@ export function BillPage({
     commitOrders,
     syncOrders,
   } = useBillOrders(initialOrders, { slug: restaurant.slug, tableId });
+
+  useEffect(() => {
+    if (!checkoutRedirectHref || !submitted) return;
+    router.replace(checkoutRedirectHref);
+  }, [checkoutRedirectHref, submitted, router]);
 
   const applyCheckoutResumedState = useCallback(
     async (ctx: CustomerBillResponse) => {
@@ -166,7 +174,6 @@ export function BillPage({
         setContinuationSplit(null);
         setCollectedLedgerActive(false);
         setPersistedResult(null);
-        setPersistedSplitId(null);
         await syncOrders();
         return true;
       }
@@ -438,8 +445,12 @@ export function BillPage({
 
       setContinuationSplit(null);
 
-      setPersistedSplitId(requestResult.bill_split_id);
       setPersistedResult(requestResult.result);
+      const redirectHref = checkoutRedirectAfterBillRequest(tableId, returnPath);
+      if (redirectHref) {
+        router.replace(redirectHref);
+        return;
+      }
       setSubmitted(true);
       if (sessionId) {
         requestOrderReceiptPrintQuiet({
@@ -453,34 +464,6 @@ export function BillPage({
       showToast(t.actionFailed, 'error');
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleConfirmPersonPaidFromWaiter = async (rowIndex: number) => {
-    if (!persistedSplitId) {
-      showToast(t.actionFailed, 'error');
-      return;
-    }
-    const row = results[rowIndex];
-    if (!row || row.paid) return;
-    setPersonPayProcessingIdx(rowIndex);
-    try {
-      const outcome = await requestCheckoutConfirmPayment({
-        slug: restaurant.slug,
-        billSplitId: persistedSplitId,
-        personIndex: rowIndex,
-      });
-      if (!outcome.ok) {
-        showToast(t.actionFailed, 'error');
-        return;
-      }
-
-      setPersistedResult(outcome.result);
-      if (outcome.all_paid) router.refresh();
-    } catch {
-      showToast(t.actionFailed, 'error');
-    } finally {
-      setPersonPayProcessingIdx(null);
     }
   };
 
@@ -653,12 +636,12 @@ export function BillPage({
       <div className="min-h-screen bg-brand-bg max-w-mobile mx-auto flex items-center justify-center p-4">
         <div className="text-center w-full max-w-sm">
           <div className="text-6xl mb-4">🎉</div>
-          <h2 className="font-heading text-3xl text-brand-gold mb-2">{isWaiterFlow ? (lang === 'zh' ? '结账收款' : lang === 'en' ? 'Checkout collection' : 'Recebimento') : t.notified}</h2>
-          <p className="text-brand-text-muted text-sm">{isWaiterFlow ? (lang === 'zh' ? '请逐位确认收款' : lang === 'en' ? 'Please confirm payment person by person' : 'Confirme o pagamento por pessoa') : t.comingSoon}</p>
+          <h2 className="font-heading text-3xl text-brand-gold mb-2">{t.notified}</h2>
+          <p className="text-brand-text-muted text-sm">{t.comingSoon}</p>
           <p className="text-brand-gold font-heading text-2xl mt-6">
             {t.totalLabel} €{total.toFixed(2)}
           </p>
-          {(splitMode || isWaiterFlow) && (
+          {results.length > 0 && (
             <div className="mt-6 bg-brand-card border border-brand-border rounded-xl overflow-hidden text-left">
               <p className="px-4 py-2 text-[13px] text-brand-text-muted border-b border-brand-border">{t.splitResult}</p>
               {results.map((r, i) => (
@@ -671,21 +654,7 @@ export function BillPage({
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-brand-gold font-medium">€{r.amount.toFixed(2)}</span>
-                    {returnPath && (
-                      <button
-                        type="button"
-                        onClick={() => handleConfirmPersonPaidFromWaiter(i)}
-                        disabled={!persistedSplitId || !!r.paid || personPayProcessingIdx === i}
-                        className="text-[11px] px-2 py-1 rounded-md mesa-badge-success border hover:bg-emerald-500/26 disabled:opacity-50"
-                      >
-                        {personPayProcessingIdx === i
-                          ? (lang === 'zh' ? '处理中...' : lang === 'en' ? 'Processing...' : 'Processando...')
-                          : (lang === 'zh' ? '确认收款' : lang === 'en' ? 'Confirm paid' : 'Confirmar pagamento')}
-                      </button>
-                    )}
-                  </div>
+                  <span className="text-brand-gold font-medium">€{r.amount.toFixed(2)}</span>
                 </div>
               ))}
             </div>

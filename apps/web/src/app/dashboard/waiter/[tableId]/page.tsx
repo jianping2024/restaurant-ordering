@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import { WaiterTableDetail } from '@/components/waiter/WaiterTableDetail';
 import { loadDashboardAccess } from '@/lib/dashboard-access';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { loadWaiterTableDetailInitial } from '@/lib/staff-board';
 import { createClient } from '@/lib/supabase/server';
 import type { Buffet } from '@/types';
 
@@ -22,16 +23,22 @@ export default async function DashboardWaiterTablePage({ params }: Props) {
   const { restaurant } = access;
   const supabase = await createClient();
 
-  const { data: buffetRows } = await supabase
-    .from('buffets')
-    .select('*')
-    .eq('restaurant_id', restaurant.id)
-    .order('name');
+  const [{ data: buffetRows }, initialDetail] = await Promise.all([
+    supabase
+      .from('buffets')
+      .select('*')
+      .eq('restaurant_id', restaurant.id)
+      .order('name'),
+    loadWaiterTableDetailInitial(restaurant.id, tableId),
+  ]);
+
+  if (!initialDetail.table) notFound();
 
   return (
     <WaiterTableDetail
       restaurant={{ id: restaurant.id, name: restaurant.name, slug: restaurant.slug }}
       initialBuffets={(buffetRows || []) as Buffet[]}
+      initialDetail={initialDetail}
       tableId={tableId}
       embeddedInDashboard
     />

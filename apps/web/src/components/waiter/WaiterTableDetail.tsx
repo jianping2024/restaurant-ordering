@@ -63,6 +63,8 @@ interface Props {
   /** Demo only — full demo order set. */
   initialOrders?: Order[];
   initialBuffets?: Buffet[];
+  /** Server-rendered table snapshot; avoids client-only loading flash on navigation. */
+  initialDetail?: WaiterTableDetailData | null;
   tableId: string;
   /** Demo only — table label before detail state resolves. */
   displayName?: string;
@@ -75,6 +77,7 @@ function WaiterTableDetailInner({
   tables: demoTablesProp = [],
   initialOrders = [],
   initialBuffets = [],
+  initialDetail = null,
   tableId,
   displayName = '',
   isDemo = false,
@@ -106,6 +109,7 @@ function WaiterTableDetailInner({
     isDemo,
     demoTablesProp,
     initialOrders,
+    initialDetail,
   );
 
   const [itemCodeByMenuId, setItemCodeByMenuId] = useState<Record<string, string>>({});

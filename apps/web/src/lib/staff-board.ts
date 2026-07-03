@@ -260,3 +260,11 @@ export const loadWaiterBoardInitial = cache(async (restaurantId: string) => {
   const admin = createAdminClient();
   return fetchWaiterBoard(admin, restaurantId);
 });
+
+/** SSR initial waiter table detail — same query path as the staff table-detail API. */
+export const loadWaiterTableDetailInitial = cache(
+  async (restaurantId: string, tableId: string) => {
+    const admin = createAdminClient();
+    return fetchWaiterTableDetail(admin, restaurantId, tableId);
+  },
+);

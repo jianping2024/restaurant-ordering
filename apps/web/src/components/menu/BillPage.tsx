@@ -335,6 +335,8 @@ export function BillPage({
       buffetAdultQtyLabel: t.byItemGuestTypeAdult,
       buffetChildQtyLabel: t.byItemGuestTypeChild,
       remove: t.removeConsumer,
+      expandDetails: t.byItemExpandDetails,
+      collapseDetails: t.byItemCollapseDetails,
       byItemProgress: t.byItemProgress,
     }),
     [t],

@@ -6,6 +6,7 @@ import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-ite
 import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import type { UILanguage } from '@/lib/i18n';
+import { useByItemLineExpanded } from '@/lib/use-by-item-line-expanded';
 import { ByItemDishAllocator, type ByItemDishAllocatorLabels } from '@/components/menu/ByItemDishAllocator';
 
 interface Props {
@@ -35,6 +36,8 @@ export function ByItemSplitSection({
   onRememberConsumerName,
   progress,
 }: Props) {
+  const { isLineExpanded, toggleLineExpanded } = useByItemLineExpanded();
+
   const lineQtyLabel = (item: BillSplitOrderLine) =>
     formatOrderItemQuantityLabel(item, {
       headcountStyle: 'localized',
@@ -85,6 +88,8 @@ export function ByItemSplitSection({
             consumerRoster={consumerRoster}
             labels={labels}
             readOnly={lockedLineKeys?.has(spec.key)}
+            expanded={isLineExpanded(spec.key)}
+            onToggleExpand={() => toggleLineExpanded(spec.key)}
             onChange={(rows) => onAllocationChange(spec.key, rows)}
             onRememberConsumerName={onRememberConsumerName}
             title={(

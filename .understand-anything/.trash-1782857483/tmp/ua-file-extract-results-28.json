@@ -1,0 +1,226 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 6,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/print-agent/dev/Dockerfile.agent",
+      "language": "dockerfile",
+      "fileCategory": "infra",
+      "totalLines": 12,
+      "nonEmptyLines": 11,
+      "metrics": {}
+    },
+    {
+      "path": "apps/print-agent/dev/README.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 109,
+      "nonEmptyLines": 77,
+      "sections": [
+        {
+          "heading": "Print agent — local Docker dev (isolated)",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Quick start (3 terminals)",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "One script for everything",
+          "level": 2,
+          "line": 46
+        },
+        {
+          "heading": "Config (`config.docker.json`)",
+          "level": 2,
+          "line": 69
+        },
+        {
+          "heading": "Host ports (optional)",
+          "level": 2,
+          "line": 87
+        },
+        {
+          "heading": "File layout",
+          "level": 2,
+          "line": 99
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 6
+      }
+    },
+    {
+      "path": "apps/print-agent/dev/config.docker.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 28,
+      "nonEmptyLines": 28,
+      "sections": [
+        {
+          "heading": "api_base",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "agentjwt",
+          "level": 1,
+          "line": 3
+        },
+        {
+          "heading": "device_id",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "default_printer",
+          "level": 1,
+          "line": 5
+        },
+        {
+          "heading": "station_printers",
+          "level": 1,
+          "line": 6
+        },
+        {
+          "heading": "schedule",
+          "level": 1,
+          "line": 10
+        },
+        {
+          "heading": "poll",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 7
+      }
+    },
+    {
+      "path": "apps/print-agent/dev/config.example.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 28,
+      "nonEmptyLines": 28,
+      "sections": [
+        {
+          "heading": "api_base",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "agentjwt",
+          "level": 1,
+          "line": 3
+        },
+        {
+          "heading": "device_id",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "default_printer",
+          "level": 1,
+          "line": 5
+        },
+        {
+          "heading": "station_printers",
+          "level": 1,
+          "line": 6
+        },
+        {
+          "heading": "schedule",
+          "level": 1,
+          "line": 10
+        },
+        {
+          "heading": "poll",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 7
+      }
+    },
+    {
+      "path": "apps/print-agent/dev/docker-compose.yml",
+      "language": "yaml",
+      "fileCategory": "infra",
+      "totalLines": 67,
+      "nonEmptyLines": 61,
+      "sections": [
+        {
+          "heading": "name",
+          "level": 1,
+          "line": 6
+        },
+        {
+          "heading": "services",
+          "level": 1,
+          "line": 8
+        },
+        {
+          "heading": "volumes",
+          "level": 1,
+          "line": 62
+        },
+        {
+          "heading": "networks",
+          "level": 1,
+          "line": 65
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "apps/print-agent/dev/print-dev.sh",
+      "language": "shell",
+      "fileCategory": "script",
+      "totalLines": 99,
+      "nonEmptyLines": 90,
+      "functions": [
+        {
+          "name": "dc",
+          "startLine": 12,
+          "endLine": 14,
+          "params": []
+        },
+        {
+          "name": "usage",
+          "startLine": 16,
+          "endLine": 43,
+          "params": []
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    }
+  ]
+}

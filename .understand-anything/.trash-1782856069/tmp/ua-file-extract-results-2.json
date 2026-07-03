@@ -1,0 +1,5554 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 32,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/web/src/components/ui/ReasonConfirmDialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 173,
+      "nonEmptyLines": 164,
+      "functions": [
+        {
+          "name": "ReasonConfirmDialog",
+          "startLine": 34,
+          "endLine": 173,
+          "params": [
+            "{\n  open,\n  onClose,\n  title,\n  message,\n  reasonLabel,\n  reasonPlaceholder,\n  reasonFieldVariant = 'labeled',\n  detailLabel,\n  detailPlaceholder,\n  confirmLabel,\n  cancelLabel,\n  reasonRequiredError,\n  detailRequiredError,\n  reasons,\n  reasonGroup = 'unpaid_close',\n  voidItemWasServed = false,\n  onConfirm,\n  confirming = false,\n  externalError = null,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ReasonConfirmDialog",
+          "line": 34,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ReasonConfirmDialog",
+          "callee": "useState",
+          "lineNumber": 55
+        },
+        {
+          "caller": "ReasonConfirmDialog",
+          "callee": "useState",
+          "lineNumber": 56
+        },
+        {
+          "caller": "ReasonConfirmDialog",
+          "callee": "useState",
+          "lineNumber": 57
+        },
+        {
+          "caller": "ReasonConfirmDialog",
+          "callee": "useEffect",
+          "lineNumber": 61
+        },
+        {
+          "caller": "ReasonConfirmDialog",
+          "callee": "setReason",
+          "lineNumber": 63
+        },
+        {
+          "caller": "ReasonConfirmDialog",
+          "callee": "setDetail",
+          "lineNumber": 64
+        },
+        {
+          "caller": "ReasonConfirmDialog",
+          "callee": "setLocalError",
+          "lineNumber": 65
+        },
+        {
+          "caller": "ReasonConfirmDialog",
+          "callee": "requiresAbnormalReasonDetail",
+          "lineNumber": 70
+        },
+        {
+          "caller": "handleConfirm",
+          "callee": "reason.trim",
+          "lineNumber": 74
+        },
+        {
+          "caller": "handleConfirm",
+          "callee": "setLocalError",
+          "lineNumber": 76
+        },
+        {
+          "caller": "handleConfirm",
+          "callee": "detail.trim",
+          "lineNumber": 79
+        },
+        {
+          "caller": "handleConfirm",
+          "callee": "setLocalError",
+          "lineNumber": 80
+        },
+        {
+          "caller": "handleConfirm",
+          "callee": "setLocalError",
+          "lineNumber": 83
+        },
+        {
+          "caller": "handleConfirm",
+          "callee": "onConfirm",
+          "lineNumber": 84
+        },
+        {
+          "caller": "handleConfirm",
+          "callee": "detail.trim",
+          "lineNumber": 84
+        },
+        {
+          "caller": "ReasonConfirmDialog",
+          "callee": "setReason",
+          "lineNumber": 118
+        },
+        {
+          "caller": "ReasonConfirmDialog",
+          "callee": "setLocalError",
+          "lineNumber": 119
+        },
+        {
+          "caller": "ReasonConfirmDialog",
+          "callee": "reasons.map",
+          "lineNumber": 125
+        },
+        {
+          "caller": "ReasonConfirmDialog",
+          "callee": "setDetail",
+          "lineNumber": 141
+        },
+        {
+          "caller": "ReasonConfirmDialog",
+          "callee": "setLocalError",
+          "lineNumber": 142
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/ui/TimeHmInput.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 76,
+      "nonEmptyLines": 69,
+      "functions": [
+        {
+          "name": "TimeHmInput",
+          "startLine": 16,
+          "endLine": 76,
+          "params": [
+            "{\n  label,\n  value,\n  onChange,\n  className = '',\n  compact = false,\n  onBlur,\n  ...props\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TimeHmInput",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TimeHmInput",
+          "callee": "normalizeHmInput",
+          "lineNumber": 25
+        },
+        {
+          "caller": "TimeHmInput",
+          "callee": "value.trim",
+          "lineNumber": 26
+        },
+        {
+          "caller": "mergedBlur",
+          "callee": "onChange",
+          "lineNumber": 31
+        },
+        {
+          "caller": "mergedBlur",
+          "callee": "value.trim",
+          "lineNumber": 32
+        },
+        {
+          "caller": "mergedBlur",
+          "callee": "onChange",
+          "lineNumber": 33
+        },
+        {
+          "caller": "mergedBlur",
+          "callee": "onBlur",
+          "lineNumber": 35
+        },
+        {
+          "caller": "TimeHmInput",
+          "callee": "onChange",
+          "lineNumber": 47
+        },
+        {
+          "caller": "TimeHmInput",
+          "callee": "formatHmDigitsWhileTyping",
+          "lineNumber": 47
+        },
+        {
+          "caller": "TimeHmInput",
+          "callee": "`${buffetTimeFieldClass} ${invalidClass} ${className}`.trim",
+          "lineNumber": 57
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/ui/Toast.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 99,
+      "nonEmptyLines": 84,
+      "functions": [
+        {
+          "name": "Toast",
+          "startLine": 15,
+          "endLine": 52,
+          "params": [
+            "{ message, type = 'info', duration = 3000, onClose }"
+          ]
+        },
+        {
+          "name": "showToast",
+          "startLine": 64,
+          "endLine": 68,
+          "params": [
+            "message",
+            "type"
+          ]
+        },
+        {
+          "name": "ToastContainer",
+          "startLine": 70,
+          "endLine": 99,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "Toast",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "showToast",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "ToastContainer",
+          "line": 70,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Toast",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "Toast",
+          "callee": "useEffect",
+          "lineNumber": 18
+        },
+        {
+          "caller": "Toast",
+          "callee": "setTimeout",
+          "lineNumber": 19
+        },
+        {
+          "caller": "Toast",
+          "callee": "setVisible",
+          "lineNumber": 20
+        },
+        {
+          "caller": "Toast",
+          "callee": "setTimeout",
+          "lineNumber": 21
+        },
+        {
+          "caller": "Toast",
+          "callee": "clearTimeout",
+          "lineNumber": 23
+        },
+        {
+          "caller": "showToast",
+          "callee": "Date.now().toString",
+          "lineNumber": 65
+        },
+        {
+          "caller": "showToast",
+          "callee": "Date.now",
+          "lineNumber": 65
+        },
+        {
+          "caller": "showToast",
+          "callee": "toastListeners.forEach",
+          "lineNumber": 67
+        },
+        {
+          "caller": "showToast",
+          "callee": "fn",
+          "lineNumber": 67
+        },
+        {
+          "caller": "ToastContainer",
+          "callee": "useState",
+          "lineNumber": 71
+        },
+        {
+          "caller": "ToastContainer",
+          "callee": "useState",
+          "lineNumber": 72
+        },
+        {
+          "caller": "ToastContainer",
+          "callee": "useEffect",
+          "lineNumber": 74
+        },
+        {
+          "caller": "ToastContainer",
+          "callee": "toastListeners.push",
+          "lineNumber": 75
+        },
+        {
+          "caller": "ToastContainer",
+          "callee": "setMounted",
+          "lineNumber": 76
+        },
+        {
+          "caller": "ToastContainer",
+          "callee": "toastListeners.filter",
+          "lineNumber": 78
+        },
+        {
+          "caller": "remove",
+          "callee": "toasts.filter",
+          "lineNumber": 83
+        },
+        {
+          "caller": "remove",
+          "callee": "toastListeners.forEach",
+          "lineNumber": 84
+        },
+        {
+          "caller": "remove",
+          "callee": "fn",
+          "lineNumber": 84
+        },
+        {
+          "caller": "ToastContainer",
+          "callee": "createPortal",
+          "lineNumber": 89
+        },
+        {
+          "caller": "ToastContainer",
+          "callee": "items.map",
+          "lineNumber": 91
+        },
+        {
+          "caller": "ToastContainer",
+          "callee": "remove",
+          "lineNumber": 93
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/waiter/waiter-table-detail-ui.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 21,
+      "nonEmptyLines": 19,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/waiter/waiter-table-detail-ui.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 128,
+      "nonEmptyLines": 115,
+      "functions": [
+        {
+          "name": "buffetStripSectionClass",
+          "startLine": 31,
+          "endLine": 40,
+          "params": [
+            "edge",
+            "extra"
+          ]
+        },
+        {
+          "name": "WaiterDetailCard",
+          "startLine": 42,
+          "endLine": 50,
+          "params": [
+            "{\n  children,\n  className = '',\n}"
+          ]
+        },
+        {
+          "name": "WaiterTablePrimaryButton",
+          "startLine": 58,
+          "endLine": 76,
+          "params": [
+            "{\n  variant = 'gold',\n  icon,\n  className = '',\n  children,\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "WaiterTablePrimaryLink",
+          "startLine": 84,
+          "endLine": 103,
+          "params": [
+            "{\n  icon,\n  className = '',\n  disabled = false,\n  children,\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "WaiterTableSecondaryButton",
+          "startLine": 109,
+          "endLine": 126,
+          "params": [
+            "{\n  icon,\n  className = '',\n  children,\n  ...props\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "WAITER_DETAIL_GUTTER_PX",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "waiterDetailLayout",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "buffetStripSectionClass",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterDetailCard",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterTablePrimaryButton",
+          "line": 58,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterTablePrimaryLink",
+          "line": 84,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterTableSecondaryButton",
+          "line": 109,
+          "isDefault": false
+        },
+        {
+          "name": "buttonIcon",
+          "line": 128,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "buffetStripSectionClass",
+          "callee": "[base, edgeClass, extra].filter(Boolean).join",
+          "lineNumber": 39
+        },
+        {
+          "caller": "buffetStripSectionClass",
+          "callee": "[base, edgeClass, extra].filter",
+          "lineNumber": 39
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 8,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/waiter/waiter-ui.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 7,
+      "nonEmptyLines": 7,
+      "exports": [
+        {
+          "name": "waiterUi",
+          "line": 2,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/buffet-pricing-admin.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 222,
+      "nonEmptyLines": 202,
+      "functions": [
+        {
+          "name": "hmToMinutes",
+          "startLine": 13,
+          "endLine": 18,
+          "params": [
+            "hm"
+          ]
+        },
+        {
+          "name": "getDayKindForDate",
+          "startLine": 21,
+          "endLine": 32,
+          "params": [
+            "dateIso",
+            "overrides"
+          ]
+        },
+        {
+          "name": "getDayKindForDateTime",
+          "startLine": 35,
+          "endLine": 52,
+          "params": [
+            "dateIso",
+            "timeHm",
+            "overrides",
+            "opts"
+          ]
+        },
+        {
+          "name": "dbTimeToHm",
+          "startLine": 55,
+          "endLine": 58,
+          "params": [
+            "db"
+          ]
+        },
+        {
+          "name": "hmToDbTime",
+          "startLine": 61,
+          "endLine": 65,
+          "params": [
+            "hm"
+          ]
+        },
+        {
+          "name": "ruleCoversDate",
+          "startLine": 67,
+          "endLine": 73,
+          "params": [
+            "rule",
+            "dateIso"
+          ]
+        },
+        {
+          "name": "hasActiveRuleForDayKind",
+          "startLine": 75,
+          "endLine": 91,
+          "params": [
+            "rules",
+            "opts"
+          ]
+        },
+        {
+          "name": "datesInRangeInclusive",
+          "startLine": 93,
+          "endLine": 108,
+          "params": [
+            "from",
+            "to"
+          ]
+        },
+        {
+          "name": "rangesOverlap",
+          "startLine": 110,
+          "endLine": 117,
+          "params": [
+            "aFrom",
+            "aTo",
+            "bFrom",
+            "bTo"
+          ]
+        },
+        {
+          "name": "findOverlappingRules",
+          "startLine": 119,
+          "endLine": 144,
+          "params": [
+            "rules",
+            "draft"
+          ]
+        },
+        {
+          "name": "getRuleStatus",
+          "startLine": 148,
+          "endLine": 156,
+          "params": [
+            "rule",
+            "todayIso"
+          ]
+        },
+        {
+          "name": "lisbonWallTimeToUtcIso",
+          "startLine": 159,
+          "endLine": 207,
+          "params": [
+            "date",
+            "time"
+          ]
+        },
+        {
+          "name": "todayIsoLocal",
+          "startLine": 209,
+          "endLine": 215,
+          "params": []
+        },
+        {
+          "name": "nowTimeHmLocal",
+          "startLine": 217,
+          "endLine": 220,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "getDayKindForDate",
+          "line": 21,
+          "isDefault": false
+        },
+        {
+          "name": "getDayKindForDateTime",
+          "line": 35,
+          "isDefault": false
+        },
+        {
+          "name": "dbTimeToHm",
+          "line": 55,
+          "isDefault": false
+        },
+        {
+          "name": "hmToDbTime",
+          "line": 61,
+          "isDefault": false
+        },
+        {
+          "name": "ruleCoversDate",
+          "line": 67,
+          "isDefault": false
+        },
+        {
+          "name": "hasActiveRuleForDayKind",
+          "line": 75,
+          "isDefault": false
+        },
+        {
+          "name": "datesInRangeInclusive",
+          "line": 93,
+          "isDefault": false
+        },
+        {
+          "name": "rangesOverlap",
+          "line": 110,
+          "isDefault": false
+        },
+        {
+          "name": "findOverlappingRules",
+          "line": 119,
+          "isDefault": false
+        },
+        {
+          "name": "getRuleStatus",
+          "line": 148,
+          "isDefault": false
+        },
+        {
+          "name": "lisbonWallTimeToUtcIso",
+          "line": 159,
+          "isDefault": false
+        },
+        {
+          "name": "todayIsoLocal",
+          "line": 209,
+          "isDefault": false
+        },
+        {
+          "name": "nowTimeHmLocal",
+          "line": 217,
+          "isDefault": false
+        },
+        {
+          "name": "CALENDAR_KINDS",
+          "line": 222,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "hmToMinutes",
+          "callee": "normalizeHmInput",
+          "lineNumber": 14
+        },
+        {
+          "caller": "hmToMinutes",
+          "callee": "hm.slice",
+          "lineNumber": 14
+        },
+        {
+          "caller": "hmToMinutes",
+          "callee": "normalized.split(':').map",
+          "lineNumber": 16
+        },
+        {
+          "caller": "hmToMinutes",
+          "callee": "normalized.split",
+          "lineNumber": 16
+        },
+        {
+          "caller": "hmToMinutes",
+          "callee": "parseInt",
+          "lineNumber": 16
+        },
+        {
+          "caller": "getDayKindForDate",
+          "callee": "dateIso.slice",
+          "lineNumber": 25
+        },
+        {
+          "caller": "getDayKindForDate",
+          "callee": "overrides.find",
+          "lineNumber": 26
+        },
+        {
+          "caller": "getDayKindForDate",
+          "callee": "r.on_date.slice",
+          "lineNumber": 26
+        },
+        {
+          "caller": "getDayKindForDate",
+          "callee": "new Date(`${d}T12:00:00`).getDay",
+          "lineNumber": 29
+        },
+        {
+          "caller": "getDayKindForDateTime",
+          "callee": "getDayKindForDate",
+          "lineNumber": 41
+        },
+        {
+          "caller": "getDayKindForDateTime",
+          "callee": "dateIso.slice",
+          "lineNumber": 45
+        },
+        {
+          "caller": "getDayKindForDateTime",
+          "callee": "new Date(`${d}T12:00:00`).getDay",
+          "lineNumber": 46
+        },
+        {
+          "caller": "getDayKindForDateTime",
+          "callee": "hmToMinutes",
+          "lineNumber": 47
+        },
+        {
+          "caller": "getDayKindForDateTime",
+          "callee": "hmToMinutes",
+          "lineNumber": 48
+        },
+        {
+          "caller": "dbTimeToHm",
+          "callee": "normalizeHmInput",
+          "lineNumber": 57
+        },
+        {
+          "caller": "dbTimeToHm",
+          "callee": "db.slice",
+          "lineNumber": 57
+        },
+        {
+          "caller": "dbTimeToHm",
+          "callee": "db.slice",
+          "lineNumber": 57
+        },
+        {
+          "caller": "hmToDbTime",
+          "callee": "normalizeHmInput",
+          "lineNumber": 62
+        },
+        {
+          "caller": "ruleCoversDate",
+          "callee": "dateIso.slice",
+          "lineNumber": 69
+        },
+        {
+          "caller": "ruleCoversDate",
+          "callee": "rule.valid_from?.slice",
+          "lineNumber": 70
+        },
+        {
+          "caller": "ruleCoversDate",
+          "callee": "rule.valid_to?.slice",
+          "lineNumber": 71
+        },
+        {
+          "caller": "hasActiveRuleForDayKind",
+          "callee": "rules.some",
+          "lineNumber": 84
+        },
+        {
+          "caller": "hasActiveRuleForDayKind",
+          "callee": "ruleCoversDate",
+          "lineNumber": 88
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "from.slice",
+          "lineNumber": 94
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "to.slice",
+          "lineNumber": 95
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "cur.getFullYear",
+          "lineNumber": 101
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "String(cur.getMonth() + 1).padStart",
+          "lineNumber": 102
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "String",
+          "lineNumber": 102
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "cur.getMonth",
+          "lineNumber": 102
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "String(cur.getDate()).padStart",
+          "lineNumber": 103
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "String",
+          "lineNumber": 103
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "cur.getDate",
+          "lineNumber": 103
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "out.push",
+          "lineNumber": 104
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "cur.setDate",
+          "lineNumber": 105
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "cur.getDate",
+          "lineNumber": 105
+        },
+        {
+          "caller": "findOverlappingRules",
+          "callee": "rules.filter",
+          "lineNumber": 130
+        },
+        {
+          "caller": "findOverlappingRules",
+          "callee": "rangesOverlap",
+          "lineNumber": 137
+        },
+        {
+          "caller": "findOverlappingRules",
+          "callee": "draft.valid_from.slice",
+          "lineNumber": 138
+        },
+        {
+          "caller": "findOverlappingRules",
+          "callee": "draft.valid_to.slice",
+          "lineNumber": 139
+        },
+        {
+          "caller": "findOverlappingRules",
+          "callee": "r.valid_from?.slice",
+          "lineNumber": 140
+        },
+        {
+          "caller": "findOverlappingRules",
+          "callee": "r.valid_to?.slice",
+          "lineNumber": 141
+        },
+        {
+          "caller": "getRuleStatus",
+          "callee": "todayIso.slice",
+          "lineNumber": 149
+        },
+        {
+          "caller": "getRuleStatus",
+          "callee": "rule.valid_from?.slice",
+          "lineNumber": 150
+        },
+        {
+          "caller": "getRuleStatus",
+          "callee": "rule.valid_to?.slice",
+          "lineNumber": 151
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "date.slice",
+          "lineNumber": 160
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "time.split(':').map",
+          "lineNumber": 161
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "time.split",
+          "lineNumber": 161
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "parseInt",
+          "lineNumber": 161
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "String(hh).padStart",
+          "lineNumber": 162
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "String",
+          "lineNumber": 162
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "String(mm).padStart",
+          "lineNumber": 162
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "String",
+          "lineNumber": 162
+        },
+        {
+          "caller": "read",
+          "callee": "fmt.formatToParts",
+          "lineNumber": 173
+        },
+        {
+          "caller": "get",
+          "callee": "parts.find",
+          "lineNumber": 174
+        },
+        {
+          "caller": "read",
+          "callee": "parseInt",
+          "lineNumber": 176
+        },
+        {
+          "caller": "read",
+          "callee": "get",
+          "lineNumber": 176
+        },
+        {
+          "caller": "read",
+          "callee": "parseInt",
+          "lineNumber": 177
+        },
+        {
+          "caller": "read",
+          "callee": "get",
+          "lineNumber": 177
+        },
+        {
+          "caller": "read",
+          "callee": "parseInt",
+          "lineNumber": 178
+        },
+        {
+          "caller": "read",
+          "callee": "get",
+          "lineNumber": 178
+        },
+        {
+          "caller": "read",
+          "callee": "parseInt",
+          "lineNumber": 179
+        },
+        {
+          "caller": "read",
+          "callee": "get",
+          "lineNumber": 179
+        },
+        {
+          "caller": "read",
+          "callee": "parseInt",
+          "lineNumber": 180
+        },
+        {
+          "caller": "read",
+          "callee": "get",
+          "lineNumber": 180
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "parseInt",
+          "lineNumber": 183
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "d.slice",
+          "lineNumber": 183
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "parseInt",
+          "lineNumber": 184
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "d.slice",
+          "lineNumber": 184
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "parseInt",
+          "lineNumber": 185
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "d.slice",
+          "lineNumber": 185
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "guess.getTime",
+          "lineNumber": 187
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "guess.getTime",
+          "lineNumber": 188
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "Math.floor",
+          "lineNumber": 190
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "read",
+          "lineNumber": 191
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "new Date(mid).toISOString",
+          "lineNumber": 202
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "new Date(guess).toISOString",
+          "lineNumber": 206
+        },
+        {
+          "caller": "todayIsoLocal",
+          "callee": "t.getFullYear",
+          "lineNumber": 211
+        },
+        {
+          "caller": "todayIsoLocal",
+          "callee": "String(t.getMonth() + 1).padStart",
+          "lineNumber": 212
+        },
+        {
+          "caller": "todayIsoLocal",
+          "callee": "String",
+          "lineNumber": 212
+        },
+        {
+          "caller": "todayIsoLocal",
+          "callee": "t.getMonth",
+          "lineNumber": 212
+        },
+        {
+          "caller": "todayIsoLocal",
+          "callee": "String(t.getDate()).padStart",
+          "lineNumber": 213
+        },
+        {
+          "caller": "todayIsoLocal",
+          "callee": "String",
+          "lineNumber": 213
+        },
+        {
+          "caller": "todayIsoLocal",
+          "callee": "t.getDate",
+          "lineNumber": 213
+        },
+        {
+          "caller": "nowTimeHmLocal",
+          "callee": "String(t.getHours()).padStart",
+          "lineNumber": 219
+        },
+        {
+          "caller": "nowTimeHmLocal",
+          "callee": "String",
+          "lineNumber": 219
+        },
+        {
+          "caller": "nowTimeHmLocal",
+          "callee": "t.getHours",
+          "lineNumber": 219
+        },
+        {
+          "caller": "nowTimeHmLocal",
+          "callee": "String(t.getMinutes()).padStart",
+          "lineNumber": 219
+        },
+        {
+          "caller": "nowTimeHmLocal",
+          "callee": "String",
+          "lineNumber": 219
+        },
+        {
+          "caller": "nowTimeHmLocal",
+          "callee": "t.getMinutes",
+          "lineNumber": 219
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 14,
+        "functionCount": 14,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-menu-api.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 28,
+      "nonEmptyLines": 22,
+      "functions": [
+        {
+          "name": "menuApiError",
+          "startLine": 14,
+          "endLine": 16,
+          "params": [
+            "result"
+          ]
+        },
+        {
+          "name": "loadWritableMenuContext",
+          "startLine": 20,
+          "endLine": 26,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "menuApiError",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "readJsonBody",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "loadWritableMenuContext",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "loadWritableFrontdeskContext",
+          "line": 28,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "menuApiError",
+          "callee": "dashboardApiError",
+          "lineNumber": 15
+        },
+        {
+          "caller": "loadWritableMenuContext",
+          "callee": "loadMenuManagementContext",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loadWritableMenuContext",
+          "callee": "NextResponse.json",
+          "lineNumber": 23
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 4,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-menu-client.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 252,
+      "nonEmptyLines": 227,
+      "functions": [
+        {
+          "name": "parseJson",
+          "startLine": 6,
+          "endLine": 8,
+          "params": [
+            "res"
+          ]
+        },
+        {
+          "name": "request",
+          "startLine": 10,
+          "endLine": 24,
+          "params": [
+            "url",
+            "init"
+          ]
+        },
+        {
+          "name": "mapMenuCategoryApiError",
+          "startLine": 47,
+          "endLine": 68,
+          "params": [
+            "code",
+            "message",
+            "labels"
+          ]
+        },
+        {
+          "name": "mapMenuItemApiError",
+          "startLine": 70,
+          "endLine": 96,
+          "params": [
+            "code",
+            "message",
+            "labels"
+          ]
+        },
+        {
+          "name": "createMenuCategoryClient",
+          "startLine": 145,
+          "endLine": 151,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "updateMenuCategoryClient",
+          "startLine": 153,
+          "endLine": 159,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "deleteMenuCategoryClient",
+          "startLine": 161,
+          "endLine": 167,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "createMenuItemClient",
+          "startLine": 169,
+          "endLine": 175,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "updateMenuItemClient",
+          "startLine": 177,
+          "endLine": 183,
+          "params": [
+            "itemId",
+            "input"
+          ]
+        },
+        {
+          "name": "deleteMenuItemClient",
+          "startLine": 185,
+          "endLine": 191,
+          "params": [
+            "itemId"
+          ]
+        },
+        {
+          "name": "batchSetMenuItemsAvailableClient",
+          "startLine": 193,
+          "endLine": 199,
+          "params": [
+            "itemIds",
+            "available"
+          ]
+        },
+        {
+          "name": "moveMenuItemOrderClient",
+          "startLine": 201,
+          "endLine": 207,
+          "params": [
+            "itemId",
+            "direction"
+          ]
+        },
+        {
+          "name": "setMenuItemImageClient",
+          "startLine": 209,
+          "endLine": 220,
+          "params": [
+            "itemId",
+            "options"
+          ]
+        },
+        {
+          "name": "createPrintStationClient",
+          "startLine": 222,
+          "endLine": 228,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "updatePrintStationClient",
+          "startLine": 230,
+          "endLine": 236,
+          "params": [
+            "stationId",
+            "input"
+          ]
+        },
+        {
+          "name": "movePrintStationOrderClient",
+          "startLine": 238,
+          "endLine": 244,
+          "params": [
+            "stationId",
+            "direction"
+          ]
+        },
+        {
+          "name": "deletePrintStationClient",
+          "startLine": 246,
+          "endLine": 252,
+          "params": [
+            "stationId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "mapMenuCategoryApiError",
+          "line": 47,
+          "isDefault": false
+        },
+        {
+          "name": "mapMenuItemApiError",
+          "line": 70,
+          "isDefault": false
+        },
+        {
+          "name": "createMenuCategoryClient",
+          "line": 145,
+          "isDefault": false
+        },
+        {
+          "name": "updateMenuCategoryClient",
+          "line": 153,
+          "isDefault": false
+        },
+        {
+          "name": "deleteMenuCategoryClient",
+          "line": 161,
+          "isDefault": false
+        },
+        {
+          "name": "createMenuItemClient",
+          "line": 169,
+          "isDefault": false
+        },
+        {
+          "name": "updateMenuItemClient",
+          "line": 177,
+          "isDefault": false
+        },
+        {
+          "name": "deleteMenuItemClient",
+          "line": 185,
+          "isDefault": false
+        },
+        {
+          "name": "batchSetMenuItemsAvailableClient",
+          "line": 193,
+          "isDefault": false
+        },
+        {
+          "name": "moveMenuItemOrderClient",
+          "line": 201,
+          "isDefault": false
+        },
+        {
+          "name": "setMenuItemImageClient",
+          "line": 209,
+          "isDefault": false
+        },
+        {
+          "name": "createPrintStationClient",
+          "line": 222,
+          "isDefault": false
+        },
+        {
+          "name": "updatePrintStationClient",
+          "line": 230,
+          "isDefault": false
+        },
+        {
+          "name": "movePrintStationOrderClient",
+          "line": 238,
+          "isDefault": false
+        },
+        {
+          "name": "deletePrintStationClient",
+          "line": 246,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "parseJson",
+          "callee": "res.json().catch",
+          "lineNumber": 7
+        },
+        {
+          "caller": "parseJson",
+          "callee": "res.json",
+          "lineNumber": 7
+        },
+        {
+          "caller": "request",
+          "callee": "fetch",
+          "lineNumber": 15
+        },
+        {
+          "caller": "request",
+          "callee": "await parseJson",
+          "lineNumber": 16
+        },
+        {
+          "caller": "mapMenuCategoryApiError",
+          "callee": "labels.depthExceeded\n        .replace('{max}', String(MAX_MENU_CATEGORY_DEPTH))\n        .replace",
+          "lineNumber": 60
+        },
+        {
+          "caller": "mapMenuCategoryApiError",
+          "callee": "labels.depthExceeded\n        .replace",
+          "lineNumber": 60
+        },
+        {
+          "caller": "mapMenuCategoryApiError",
+          "callee": "String",
+          "lineNumber": 61
+        },
+        {
+          "caller": "mapMenuCategoryApiError",
+          "callee": "String",
+          "lineNumber": 62
+        },
+        {
+          "caller": "createMenuCategoryClient",
+          "callee": "request",
+          "lineNumber": 146
+        },
+        {
+          "caller": "createMenuCategoryClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 149
+        },
+        {
+          "caller": "updateMenuCategoryClient",
+          "callee": "request",
+          "lineNumber": 154
+        },
+        {
+          "caller": "updateMenuCategoryClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 157
+        },
+        {
+          "caller": "deleteMenuCategoryClient",
+          "callee": "request",
+          "lineNumber": 162
+        },
+        {
+          "caller": "deleteMenuCategoryClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 165
+        },
+        {
+          "caller": "createMenuItemClient",
+          "callee": "request",
+          "lineNumber": 170
+        },
+        {
+          "caller": "createMenuItemClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 173
+        },
+        {
+          "caller": "updateMenuItemClient",
+          "callee": "request",
+          "lineNumber": 178
+        },
+        {
+          "caller": "updateMenuItemClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 181
+        },
+        {
+          "caller": "deleteMenuItemClient",
+          "callee": "request",
+          "lineNumber": 186
+        },
+        {
+          "caller": "deleteMenuItemClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 189
+        },
+        {
+          "caller": "batchSetMenuItemsAvailableClient",
+          "callee": "request",
+          "lineNumber": 194
+        },
+        {
+          "caller": "batchSetMenuItemsAvailableClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 197
+        },
+        {
+          "caller": "moveMenuItemOrderClient",
+          "callee": "request",
+          "lineNumber": 202
+        },
+        {
+          "caller": "moveMenuItemOrderClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 205
+        },
+        {
+          "caller": "setMenuItemImageClient",
+          "callee": "form.set",
+          "lineNumber": 214
+        },
+        {
+          "caller": "setMenuItemImageClient",
+          "callee": "form.set",
+          "lineNumber": 215
+        },
+        {
+          "caller": "setMenuItemImageClient",
+          "callee": "request",
+          "lineNumber": 216
+        },
+        {
+          "caller": "setMenuItemImageClient",
+          "callee": "encodeURIComponent",
+          "lineNumber": 216
+        },
+        {
+          "caller": "createPrintStationClient",
+          "callee": "request",
+          "lineNumber": 223
+        },
+        {
+          "caller": "createPrintStationClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 226
+        },
+        {
+          "caller": "updatePrintStationClient",
+          "callee": "request",
+          "lineNumber": 231
+        },
+        {
+          "caller": "updatePrintStationClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 234
+        },
+        {
+          "caller": "movePrintStationOrderClient",
+          "callee": "request",
+          "lineNumber": 239
+        },
+        {
+          "caller": "movePrintStationOrderClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 242
+        },
+        {
+          "caller": "deletePrintStationClient",
+          "callee": "request",
+          "lineNumber": 247
+        },
+        {
+          "caller": "deletePrintStationClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 250
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 15,
+        "functionCount": 17,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-menu-server.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 927,
+      "nonEmptyLines": 835,
+      "functions": [
+        {
+          "name": "uniqueViolation",
+          "startLine": 50,
+          "endLine": 52,
+          "params": [
+            "error"
+          ]
+        },
+        {
+          "name": "categoryDepth",
+          "startLine": 54,
+          "endLine": 58,
+          "params": [
+            "categoryId",
+            "categories"
+          ]
+        },
+        {
+          "name": "loadActiveCategories",
+          "startLine": 60,
+          "endLine": 74,
+          "params": [
+            "admin",
+            "restaurantId"
+          ]
+        },
+        {
+          "name": "loadMenuItems",
+          "startLine": 76,
+          "endLine": 88,
+          "params": [
+            "admin",
+            "restaurantId"
+          ]
+        },
+        {
+          "name": "getCategoryById",
+          "startLine": 90,
+          "endLine": 109,
+          "params": [
+            "admin",
+            "restaurantId",
+            "categoryId"
+          ]
+        },
+        {
+          "name": "createMenuCategory",
+          "startLine": 111,
+          "endLine": 180,
+          "params": [
+            "admin",
+            "restaurantId",
+            "input"
+          ]
+        },
+        {
+          "name": "updateMenuCategory",
+          "startLine": 182,
+          "endLine": 242,
+          "params": [
+            "admin",
+            "restaurantId",
+            "categoryId",
+            "input"
+          ]
+        },
+        {
+          "name": "deleteMenuCategory",
+          "startLine": 244,
+          "endLine": 335,
+          "params": [
+            "admin",
+            "restaurantId",
+            "input"
+          ]
+        },
+        {
+          "name": "validateMenuItemInput",
+          "startLine": 353,
+          "endLine": 388,
+          "params": [
+            "input",
+            "items",
+            "categories",
+            "editingId"
+          ]
+        },
+        {
+          "name": "buildMenuItemPayload",
+          "startLine": 390,
+          "endLine": 415,
+          "params": [
+            "restaurantId",
+            "category",
+            "input",
+            "normalizedCode"
+          ]
+        },
+        {
+          "name": "createMenuItem",
+          "startLine": 417,
+          "endLine": 451,
+          "params": [
+            "admin",
+            "restaurantId",
+            "input"
+          ]
+        },
+        {
+          "name": "moveMenuItemOrder",
+          "startLine": 453,
+          "endLine": 510,
+          "params": [
+            "admin",
+            "restaurantId",
+            "itemId",
+            "direction"
+          ]
+        },
+        {
+          "name": "updateMenuItem",
+          "startLine": 512,
+          "endLine": 562,
+          "params": [
+            "admin",
+            "restaurantId",
+            "itemId",
+            "input"
+          ]
+        },
+        {
+          "name": "deleteMenuItem",
+          "startLine": 564,
+          "endLine": 593,
+          "params": [
+            "admin",
+            "restaurantId",
+            "itemId"
+          ]
+        },
+        {
+          "name": "batchSetMenuItemsAvailable",
+          "startLine": 595,
+          "endLine": 615,
+          "params": [
+            "admin",
+            "restaurantId",
+            "itemIds",
+            "available"
+          ]
+        },
+        {
+          "name": "removeMenuImage",
+          "startLine": 617,
+          "endLine": 625,
+          "params": [
+            "admin",
+            "publicUrl"
+          ]
+        },
+        {
+          "name": "setMenuItemImage",
+          "startLine": 627,
+          "endLine": 689,
+          "params": [
+            "admin",
+            "restaurantId",
+            "itemId",
+            "file",
+            "stripImage"
+          ]
+        },
+        {
+          "name": "createPrintStation",
+          "startLine": 691,
+          "endLine": 733,
+          "params": [
+            "admin",
+            "restaurantId",
+            "input"
+          ]
+        },
+        {
+          "name": "updatePrintStation",
+          "startLine": 735,
+          "endLine": 777,
+          "params": [
+            "admin",
+            "restaurantId",
+            "stationId",
+            "input"
+          ]
+        },
+        {
+          "name": "movePrintStationOrder",
+          "startLine": 779,
+          "endLine": 832,
+          "params": [
+            "admin",
+            "restaurantId",
+            "stationId",
+            "direction"
+          ]
+        },
+        {
+          "name": "deletePrintStation",
+          "startLine": 834,
+          "endLine": 853,
+          "params": [
+            "admin",
+            "restaurantId",
+            "stationId"
+          ]
+        },
+        {
+          "name": "parseCategoryBody",
+          "startLine": 855,
+          "endLine": 868,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "parseCategoryParentId",
+          "startLine": 870,
+          "endLine": 876,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "parsePrintStationBody",
+          "startLine": 878,
+          "endLine": 893,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "parseMenuItemBody",
+          "startLine": 895,
+          "endLine": 927,
+          "params": [
+            "raw"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "createMenuCategory",
+          "line": 111,
+          "isDefault": false
+        },
+        {
+          "name": "updateMenuCategory",
+          "line": 182,
+          "isDefault": false
+        },
+        {
+          "name": "deleteMenuCategory",
+          "line": 244,
+          "isDefault": false
+        },
+        {
+          "name": "createMenuItem",
+          "line": 417,
+          "isDefault": false
+        },
+        {
+          "name": "moveMenuItemOrder",
+          "line": 453,
+          "isDefault": false
+        },
+        {
+          "name": "updateMenuItem",
+          "line": 512,
+          "isDefault": false
+        },
+        {
+          "name": "deleteMenuItem",
+          "line": 564,
+          "isDefault": false
+        },
+        {
+          "name": "batchSetMenuItemsAvailable",
+          "line": 595,
+          "isDefault": false
+        },
+        {
+          "name": "setMenuItemImage",
+          "line": 627,
+          "isDefault": false
+        },
+        {
+          "name": "createPrintStation",
+          "line": 691,
+          "isDefault": false
+        },
+        {
+          "name": "updatePrintStation",
+          "line": 735,
+          "isDefault": false
+        },
+        {
+          "name": "movePrintStationOrder",
+          "line": 779,
+          "isDefault": false
+        },
+        {
+          "name": "deletePrintStation",
+          "line": 834,
+          "isDefault": false
+        },
+        {
+          "name": "parseCategoryBody",
+          "line": 855,
+          "isDefault": false
+        },
+        {
+          "name": "parseCategoryParentId",
+          "line": 870,
+          "isDefault": false
+        },
+        {
+          "name": "parsePrintStationBody",
+          "line": 878,
+          "isDefault": false
+        },
+        {
+          "name": "parseMenuItemBody",
+          "line": 895,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "categoryDepth",
+          "callee": "categories.find",
+          "lineNumber": 55
+        },
+        {
+          "caller": "categoryDepth",
+          "callee": "categoryDepth",
+          "lineNumber": 57
+        },
+        {
+          "caller": "loadActiveCategories",
+          "callee": "admin\n    .from('menu_categories')\n    .select('*')\n    .eq('restaurant_id', restaurantId)\n    .eq('active', true)\n    .order",
+          "lineNumber": 64
+        },
+        {
+          "caller": "loadActiveCategories",
+          "callee": "admin\n    .from('menu_categories')\n    .select('*')\n    .eq('restaurant_id', restaurantId)\n    .eq",
+          "lineNumber": 64
+        },
+        {
+          "caller": "loadActiveCategories",
+          "callee": "admin\n    .from('menu_categories')\n    .select('*')\n    .eq",
+          "lineNumber": 64
+        },
+        {
+          "caller": "loadActiveCategories",
+          "callee": "admin\n    .from('menu_categories')\n    .select",
+          "lineNumber": 64
+        },
+        {
+          "caller": "loadActiveCategories",
+          "callee": "admin\n    .from",
+          "lineNumber": 64
+        },
+        {
+          "caller": "loadMenuItems",
+          "callee": "admin\n    .from('menu_items')\n    .select('*')\n    .eq",
+          "lineNumber": 80
+        },
+        {
+          "caller": "loadMenuItems",
+          "callee": "admin\n    .from('menu_items')\n    .select",
+          "lineNumber": 80
+        },
+        {
+          "caller": "loadMenuItems",
+          "callee": "admin\n    .from",
+          "lineNumber": 80
+        },
+        {
+          "caller": "getCategoryById",
+          "callee": "admin\n    .from('menu_categories')\n    .select('*')\n    .eq('id', categoryId)\n    .eq('restaurant_id', restaurantId)\n    .eq('active', true)\n    .maybeSingle",
+          "lineNumber": 95
+        },
+        {
+          "caller": "getCategoryById",
+          "callee": "admin\n    .from('menu_categories')\n    .select('*')\n    .eq('id', categoryId)\n    .eq('restaurant_id', restaurantId)\n    .eq",
+          "lineNumber": 95
+        },
+        {
+          "caller": "getCategoryById",
+          "callee": "admin\n    .from('menu_categories')\n    .select('*')\n    .eq('id', categoryId)\n    .eq",
+          "lineNumber": 95
+        },
+        {
+          "caller": "getCategoryById",
+          "callee": "admin\n    .from('menu_categories')\n    .select('*')\n    .eq",
+          "lineNumber": 95
+        },
+        {
+          "caller": "getCategoryById",
+          "callee": "admin\n    .from('menu_categories')\n    .select",
+          "lineNumber": 95
+        },
+        {
+          "caller": "getCategoryById",
+          "callee": "admin\n    .from",
+          "lineNumber": 95
+        },
+        {
+          "caller": "createMenuCategory",
+          "callee": "input.name_pt.trim",
+          "lineNumber": 123
+        },
+        {
+          "caller": "createMenuCategory",
+          "callee": "normalizeMenuItemCode",
+          "lineNumber": 127
+        },
+        {
+          "caller": "createMenuCategory",
+          "callee": "parseTableIdParam",
+          "lineNumber": 132
+        },
+        {
+          "caller": "createMenuCategory",
+          "callee": "loadActiveCategories",
+          "lineNumber": 137
+        },
+        {
+          "caller": "createMenuCategory",
+          "callee": "categories.find",
+          "lineNumber": 141
+        },
+        {
+          "caller": "createMenuCategory",
+          "callee": "categoryDepth",
+          "lineNumber": 145
+        },
+        {
+          "caller": "createMenuCategory",
+          "callee": "siblingCategoryHasDuplicateCode",
+          "lineNumber": 150
+        },
+        {
+          "caller": "createMenuCategory",
+          "callee": "categories.filter",
+          "lineNumber": 154
+        },
+        {
+          "caller": "createMenuCategory",
+          "callee": "admin\n    .from('menu_categories')\n    .insert({\n      restaurant_id: restaurantId,\n      parent_id: parentId,\n      name_pt: namePt,\n      name_en: input.name_en?.trim() || null,\n      name_zh: input.name_zh?.trim() || null,\n      item_code: normalizedCode,\n      print_station_id: input.print_station_id || null,\n      sort_order: nextSortOrder(siblings),\n      active: true,\n    })\n    .select()\n    .single",
+          "lineNumber": 155
+        },
+        {
+          "caller": "createMenuCategory",
+          "callee": "admin\n    .from('menu_categories')\n    .insert({\n      restaurant_id: restaurantId,\n      parent_id: parentId,\n      name_pt: namePt,\n      name_en: input.name_en?.trim() || null,\n      name_zh: input.name_zh?.trim() || null,\n      item_code: normalizedCode,\n      print_station_id: input.print_station_id || null,\n      sort_order: nextSortOrder(siblings),\n      active: true,\n    })\n    .select",
+          "lineNumber": 155
+        },
+        {
+          "caller": "createMenuCategory",
+          "callee": "admin\n    .from('menu_categories')\n    .insert",
+          "lineNumber": 155
+        },
+        {
+          "caller": "createMenuCategory",
+          "callee": "admin\n    .from",
+          "lineNumber": 155
+        },
+        {
+          "caller": "createMenuCategory",
+          "callee": "input.name_en?.trim",
+          "lineNumber": 161
+        },
+        {
+          "caller": "createMenuCategory",
+          "callee": "input.name_zh?.trim",
+          "lineNumber": 162
+        },
+        {
+          "caller": "createMenuCategory",
+          "callee": "nextSortOrder",
+          "lineNumber": 165
+        },
+        {
+          "caller": "createMenuCategory",
+          "callee": "uniqueViolation",
+          "lineNumber": 173
+        },
+        {
+          "caller": "createMenuCategory",
+          "callee": "uniqueViolation",
+          "lineNumber": 175
+        },
+        {
+          "caller": "updateMenuCategory",
+          "callee": "parseTableIdParam",
+          "lineNumber": 194
+        },
+        {
+          "caller": "updateMenuCategory",
+          "callee": "getCategoryById",
+          "lineNumber": 199
+        },
+        {
+          "caller": "updateMenuCategory",
+          "callee": "input.name_pt.trim",
+          "lineNumber": 202
+        },
+        {
+          "caller": "updateMenuCategory",
+          "callee": "normalizeMenuItemCode",
+          "lineNumber": 206
+        },
+        {
+          "caller": "updateMenuCategory",
+          "callee": "loadActiveCategories",
+          "lineNumber": 211
+        },
+        {
+          "caller": "updateMenuCategory",
+          "callee": "siblingCategoryHasDuplicateCode",
+          "lineNumber": 215
+        },
+        {
+          "caller": "updateMenuCategory",
+          "callee": "admin\n    .from('menu_categories')\n    .update({\n      name_pt: namePt,\n      name_en: input.name_en?.trim() || null,\n      name_zh: input.name_zh?.trim() || null,\n      item_code: normalizedCode,\n      print_station_id: input.print_station_id || null,\n    })\n    .eq('id', id)\n    .eq('restaurant_id', restaurantId)\n    .select()\n    .single",
+          "lineNumber": 219
+        },
+        {
+          "caller": "updateMenuCategory",
+          "callee": "admin\n    .from('menu_categories')\n    .update({\n      name_pt: namePt,\n      name_en: input.name_en?.trim() || null,\n      name_zh: input.name_zh?.trim() || null,\n      item_code: normalizedCode,\n      print_station_id: input.print_station_id || null,\n    })\n    .eq('id', id)\n    .eq('restaurant_id', restaurantId)\n    .select",
+          "lineNumber": 219
+        },
+        {
+          "caller": "updateMenuCategory",
+          "callee": "admin\n    .from('menu_categories')\n    .update({\n      name_pt: namePt,\n      name_en: input.name_en?.trim() || null,\n      name_zh: input.name_zh?.trim() || null,\n      item_code: normalizedCode,\n      print_station_id: input.print_station_id || null,\n    })\n    .eq('id', id)\n    .eq",
+          "lineNumber": 219
+        },
+        {
+          "caller": "updateMenuCategory",
+          "callee": "admin\n    .from('menu_categories')\n    .update({\n      name_pt: namePt,\n      name_en: input.name_en?.trim() || null,\n      name_zh: input.name_zh?.trim() || null,\n      item_code: normalizedCode,\n      print_station_id: input.print_station_id || null,\n    })\n    .eq",
+          "lineNumber": 219
+        },
+        {
+          "caller": "updateMenuCategory",
+          "callee": "admin\n    .from('menu_categories')\n    .update",
+          "lineNumber": 219
+        },
+        {
+          "caller": "updateMenuCategory",
+          "callee": "admin\n    .from",
+          "lineNumber": 219
+        },
+        {
+          "caller": "updateMenuCategory",
+          "callee": "input.name_en?.trim",
+          "lineNumber": 223
+        },
+        {
+          "caller": "updateMenuCategory",
+          "callee": "input.name_zh?.trim",
+          "lineNumber": 224
+        },
+        {
+          "caller": "updateMenuCategory",
+          "callee": "uniqueViolation",
+          "lineNumber": 235
+        },
+        {
+          "caller": "updateMenuCategory",
+          "callee": "uniqueViolation",
+          "lineNumber": 237
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "parseTableIdParam",
+          "lineNumber": 253
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "loadActiveCategories",
+          "lineNumber": 258
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "categories.find",
+          "lineNumber": 261
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "collectCategorySubtreeIds",
+          "lineNumber": 266
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "loadMenuItems",
+          "lineNumber": 268
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "items.filter",
+          "lineNumber": 271
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "subtreeSet.has",
+          "lineNumber": 272
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "parseTableIdParam",
+          "lineNumber": 276
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "subtreeSet.has",
+          "lineNumber": 280
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "categories.find",
+          "lineNumber": 283
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "menuItemSiblingsInScope",
+          "lineNumber": 287
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "nextSortOrder",
+          "lineNumber": 288
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "[...linkedInSubtree].sort",
+          "lineNumber": 289
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "admin\n        .from('menu_items')\n        .update({\n          category_id: target.id,\n          category: target.name_pt,\n          category_en: target.name_en || target.name_pt,\n          category_zh: target.name_zh || target.name_pt,\n          sort_order: nextOrder++,\n        })\n        .eq('id', item.id)\n        .eq",
+          "lineNumber": 291
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "admin\n        .from('menu_items')\n        .update({\n          category_id: target.id,\n          category: target.name_pt,\n          category_en: target.name_en || target.name_pt,\n          category_zh: target.name_zh || target.name_pt,\n          sort_order: nextOrder++,\n        })\n        .eq",
+          "lineNumber": 291
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "admin\n        .from('menu_items')\n        .update",
+          "lineNumber": 291
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "admin\n        .from",
+          "lineNumber": 291
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "removeMenuImage",
+          "lineNumber": 311
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "admin\n      .from('menu_items')\n      .delete()\n      .eq('restaurant_id', restaurantId)\n      .in",
+          "lineNumber": 313
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "admin\n      .from('menu_items')\n      .delete()\n      .eq",
+          "lineNumber": 313
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "admin\n      .from('menu_items')\n      .delete",
+          "lineNumber": 313
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "admin\n      .from",
+          "lineNumber": 313
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "sortCategoryIdsLeavesFirst",
+          "lineNumber": 323
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "admin\n      .from('menu_categories')\n      .delete()\n      .eq('id', cid)\n      .eq",
+          "lineNumber": 324
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "admin\n      .from('menu_categories')\n      .delete()\n      .eq",
+          "lineNumber": 324
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "admin\n      .from('menu_categories')\n      .delete",
+          "lineNumber": 324
+        },
+        {
+          "caller": "deleteMenuCategory",
+          "callee": "admin\n      .from",
+          "lineNumber": 324
+        },
+        {
+          "caller": "validateMenuItemInput",
+          "callee": "input.name_pt.trim",
+          "lineNumber": 359
+        },
+        {
+          "caller": "validateMenuItemInput",
+          "callee": "Number.isFinite",
+          "lineNumber": 363
+        },
+        {
+          "caller": "validateMenuItemInput",
+          "callee": "isAllowedMenuVatRate",
+          "lineNumber": 366
+        },
+        {
+          "caller": "validateMenuItemInput",
+          "callee": "parseTableIdParam",
+          "lineNumber": 370
+        },
+        {
+          "caller": "validateMenuItemInput",
+          "callee": "categories.find",
+          "lineNumber": 374
+        },
+        {
+          "caller": "validateMenuItemInput",
+          "callee": "normalizeMenuItemCode",
+          "lineNumber": 379
+        },
+        {
+          "caller": "validateMenuItemInput",
+          "callee": "menuItemHasDuplicateCode",
+          "lineNumber": 383
+        },
+        {
+          "caller": "buildMenuItemPayload",
+          "callee": "input.name_pt.trim",
+          "lineNumber": 398
+        },
+        {
+          "caller": "buildMenuItemPayload",
+          "callee": "input.name_en?.trim",
+          "lineNumber": 399
+        },
+        {
+          "caller": "buildMenuItemPayload",
+          "callee": "input.name_zh?.trim",
+          "lineNumber": 400
+        },
+        {
+          "caller": "buildMenuItemPayload",
+          "callee": "input.description_pt?.trim",
+          "lineNumber": 401
+        },
+        {
+          "caller": "buildMenuItemPayload",
+          "callee": "input.description_en?.trim",
+          "lineNumber": 402
+        },
+        {
+          "caller": "createMenuItem",
+          "callee": "loadActiveCategories",
+          "lineNumber": 422
+        },
+        {
+          "caller": "createMenuItem",
+          "callee": "loadMenuItems",
+          "lineNumber": 424
+        },
+        {
+          "caller": "createMenuItem",
+          "callee": "validateMenuItemInput",
+          "lineNumber": 427
+        },
+        {
+          "caller": "createMenuItem",
+          "callee": "normalizeMenuItemCode",
+          "lineNumber": 431
+        },
+        {
+          "caller": "createMenuItem",
+          "callee": "menuItemSiblingsInScope",
+          "lineNumber": 432
+        },
+        {
+          "caller": "createMenuItem",
+          "callee": "admin\n    .from('menu_items')\n    .insert({\n      ...buildMenuItemPayload(restaurantId, category, input, normalizedCode),\n      sort_order: nextSortOrder(categoryItems),\n    })\n    .select()\n    .single",
+          "lineNumber": 433
+        },
+        {
+          "caller": "createMenuItem",
+          "callee": "admin\n    .from('menu_items')\n    .insert({\n      ...buildMenuItemPayload(restaurantId, category, input, normalizedCode),\n      sort_order: nextSortOrder(categoryItems),\n    })\n    .select",
+          "lineNumber": 433
+        },
+        {
+          "caller": "createMenuItem",
+          "callee": "admin\n    .from('menu_items')\n    .insert",
+          "lineNumber": 433
+        },
+        {
+          "caller": "createMenuItem",
+          "callee": "admin\n    .from",
+          "lineNumber": 433
+        },
+        {
+          "caller": "createMenuItem",
+          "callee": "buildMenuItemPayload",
+          "lineNumber": 436
+        },
+        {
+          "caller": "createMenuItem",
+          "callee": "nextSortOrder",
+          "lineNumber": 437
+        },
+        {
+          "caller": "createMenuItem",
+          "callee": "uniqueViolation",
+          "lineNumber": 444
+        },
+        {
+          "caller": "createMenuItem",
+          "callee": "uniqueViolation",
+          "lineNumber": 446
+        },
+        {
+          "caller": "moveMenuItemOrder",
+          "callee": "parseTableIdParam",
+          "lineNumber": 459
+        },
+        {
+          "caller": "moveMenuItemOrder",
+          "callee": "admin\n    .from('menu_items')\n    .select('id, sort_order, category_id, created_at')\n    .eq('id', id)\n    .eq('restaurant_id', restaurantId)\n    .maybeSingle",
+          "lineNumber": 464
+        },
+        {
+          "caller": "moveMenuItemOrder",
+          "callee": "admin\n    .from('menu_items')\n    .select('id, sort_order, category_id, created_at')\n    .eq('id', id)\n    .eq",
+          "lineNumber": 464
+        },
+        {
+          "caller": "moveMenuItemOrder",
+          "callee": "admin\n    .from('menu_items')\n    .select('id, sort_order, category_id, created_at')\n    .eq",
+          "lineNumber": 464
+        },
+        {
+          "caller": "moveMenuItemOrder",
+          "callee": "admin\n    .from('menu_items')\n    .select",
+          "lineNumber": 464
+        },
+        {
+          "caller": "moveMenuItemOrder",
+          "callee": "admin\n    .from",
+          "lineNumber": 464
+        },
+        {
+          "caller": "moveMenuItemOrder",
+          "callee": "admin\n    .from('menu_items')\n    .select('id, sort_order, category_id, created_at')\n    .eq",
+          "lineNumber": 477
+        },
+        {
+          "caller": "moveMenuItemOrder",
+          "callee": "admin\n    .from('menu_items')\n    .select",
+          "lineNumber": 477
+        },
+        {
+          "caller": "moveMenuItemOrder",
+          "callee": "admin\n    .from",
+          "lineNumber": 477
+        },
+        {
+          "caller": "moveMenuItemOrder",
+          "callee": "siblingsQuery.eq",
+          "lineNumber": 482
+        },
+        {
+          "caller": "moveMenuItemOrder",
+          "callee": "siblingsQuery.is",
+          "lineNumber": 483
+        },
+        {
+          "caller": "moveMenuItemOrder",
+          "callee": "sortBySortOrderThenCreatedAt",
+          "lineNumber": 490
+        },
+        {
+          "caller": "moveMenuItemOrder",
+          "callee": "ordered.findIndex",
+          "lineNumber": 491
+        },
+        {
+          "caller": "moveMenuItemOrder",
+          "callee": "Math.max",
+          "lineNumber": 503
+        },
+        {
+          "caller": "moveMenuItemOrder",
+          "callee": "ordered.map",
+          "lineNumber": 503
+        },
+        {
+          "caller": "moveMenuItemOrder",
+          "callee": "persistMenuItemSortOrderSwap",
+          "lineNumber": 504
+        },
+        {
+          "caller": "updateMenuItem",
+          "callee": "parseTableIdParam",
+          "lineNumber": 518
+        },
+        {
+          "caller": "updateMenuItem",
+          "callee": "loadActiveCategories",
+          "lineNumber": 523
+        },
+        {
+          "caller": "updateMenuItem",
+          "callee": "loadMenuItems",
+          "lineNumber": 525
+        },
+        {
+          "caller": "updateMenuItem",
+          "callee": "items.find",
+          "lineNumber": 528
+        },
+        {
+          "caller": "updateMenuItem",
+          "callee": "validateMenuItemInput",
+          "lineNumber": 533
+        },
+        {
+          "caller": "updateMenuItem",
+          "callee": "normalizeMenuItemCode",
+          "lineNumber": 537
+        },
+        {
+          "caller": "updateMenuItem",
+          "callee": "buildMenuItemPayload",
+          "lineNumber": 540
+        },
+        {
+          "caller": "updateMenuItem",
+          "callee": "nextSortOrder",
+          "lineNumber": 542
+        },
+        {
+          "caller": "updateMenuItem",
+          "callee": "menuItemSiblingsInScope",
+          "lineNumber": 542
+        },
+        {
+          "caller": "updateMenuItem",
+          "callee": "admin\n    .from('menu_items')\n    .update(updatePayload)\n    .eq('id', id)\n    .eq('restaurant_id', restaurantId)\n    .select()\n    .single",
+          "lineNumber": 545
+        },
+        {
+          "caller": "updateMenuItem",
+          "callee": "admin\n    .from('menu_items')\n    .update(updatePayload)\n    .eq('id', id)\n    .eq('restaurant_id', restaurantId)\n    .select",
+          "lineNumber": 545
+        },
+        {
+          "caller": "updateMenuItem",
+          "callee": "admin\n    .from('menu_items')\n    .update(updatePayload)\n    .eq('id', id)\n    .eq",
+          "lineNumber": 545
+        },
+        {
+          "caller": "updateMenuItem",
+          "callee": "admin\n    .from('menu_items')\n    .update(updatePayload)\n    .eq",
+          "lineNumber": 545
+        },
+        {
+          "caller": "updateMenuItem",
+          "callee": "admin\n    .from('menu_items')\n    .update",
+          "lineNumber": 545
+        },
+        {
+          "caller": "updateMenuItem",
+          "callee": "admin\n    .from",
+          "lineNumber": 545
+        },
+        {
+          "caller": "updateMenuItem",
+          "callee": "uniqueViolation",
+          "lineNumber": 555
+        },
+        {
+          "caller": "updateMenuItem",
+          "callee": "uniqueViolation",
+          "lineNumber": 557
+        },
+        {
+          "caller": "deleteMenuItem",
+          "callee": "parseTableIdParam",
+          "lineNumber": 569
+        },
+        {
+          "caller": "deleteMenuItem",
+          "callee": "admin\n    .from('menu_items')\n    .select('id, image_url')\n    .eq('id', id)\n    .eq('restaurant_id', restaurantId)\n    .maybeSingle",
+          "lineNumber": 574
+        },
+        {
+          "caller": "deleteMenuItem",
+          "callee": "admin\n    .from('menu_items')\n    .select('id, image_url')\n    .eq('id', id)\n    .eq",
+          "lineNumber": 574
+        },
+        {
+          "caller": "deleteMenuItem",
+          "callee": "admin\n    .from('menu_items')\n    .select('id, image_url')\n    .eq",
+          "lineNumber": 574
+        },
+        {
+          "caller": "deleteMenuItem",
+          "callee": "admin\n    .from('menu_items')\n    .select",
+          "lineNumber": 574
+        },
+        {
+          "caller": "deleteMenuItem",
+          "callee": "admin\n    .from",
+          "lineNumber": 574
+        },
+        {
+          "caller": "deleteMenuItem",
+          "callee": "removeMenuImage",
+          "lineNumber": 587
+        },
+        {
+          "caller": "deleteMenuItem",
+          "callee": "admin.from('menu_items').delete().eq('id', id).eq",
+          "lineNumber": 588
+        },
+        {
+          "caller": "deleteMenuItem",
+          "callee": "admin.from('menu_items').delete().eq",
+          "lineNumber": 588
+        },
+        {
+          "caller": "deleteMenuItem",
+          "callee": "admin.from('menu_items').delete",
+          "lineNumber": 588
+        },
+        {
+          "caller": "deleteMenuItem",
+          "callee": "admin.from",
+          "lineNumber": 588
+        },
+        {
+          "caller": "batchSetMenuItemsAvailable",
+          "callee": "itemIds.map((raw) => parseTableIdParam(raw)).filter",
+          "lineNumber": 601
+        },
+        {
+          "caller": "batchSetMenuItemsAvailable",
+          "callee": "itemIds.map",
+          "lineNumber": 601
+        },
+        {
+          "caller": "batchSetMenuItemsAvailable",
+          "callee": "parseTableIdParam",
+          "lineNumber": 601
+        },
+        {
+          "caller": "batchSetMenuItemsAvailable",
+          "callee": "admin\n    .from('menu_items')\n    .update({ available })\n    .eq('restaurant_id', restaurantId)\n    .in",
+          "lineNumber": 606
+        },
+        {
+          "caller": "batchSetMenuItemsAvailable",
+          "callee": "admin\n    .from('menu_items')\n    .update({ available })\n    .eq",
+          "lineNumber": 606
+        },
+        {
+          "caller": "batchSetMenuItemsAvailable",
+          "callee": "admin\n    .from('menu_items')\n    .update",
+          "lineNumber": 606
+        },
+        {
+          "caller": "batchSetMenuItemsAvailable",
+          "callee": "admin\n    .from",
+          "lineNumber": 606
+        },
+        {
+          "caller": "removeMenuImage",
+          "callee": "pathFromMenuImagePublicUrl",
+          "lineNumber": 622
+        },
+        {
+          "caller": "removeMenuImage",
+          "callee": "admin.storage.from('menu-images').remove",
+          "lineNumber": 624
+        },
+        {
+          "caller": "removeMenuImage",
+          "callee": "admin.storage.from",
+          "lineNumber": 624
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "parseTableIdParam",
+          "lineNumber": 634
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "admin\n    .from('menu_items')\n    .select('*')\n    .eq('id', id)\n    .eq('restaurant_id', restaurantId)\n    .maybeSingle",
+          "lineNumber": 639
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "admin\n    .from('menu_items')\n    .select('*')\n    .eq('id', id)\n    .eq",
+          "lineNumber": 639
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "admin\n    .from('menu_items')\n    .select('*')\n    .eq",
+          "lineNumber": 639
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "admin\n    .from('menu_items')\n    .select",
+          "lineNumber": 639
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "admin\n    .from",
+          "lineNumber": 639
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "removeMenuImage",
+          "lineNumber": 654
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "ALLOWED_IMAGE_MIME.has",
+          "lineNumber": 657
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "removeMenuImage",
+          "lineNumber": 660
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "menuImageObjectPath",
+          "lineNumber": 661
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "Buffer.from",
+          "lineNumber": 662
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "file.arrayBuffer",
+          "lineNumber": 662
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "admin.storage.from('menu-images').upload",
+          "lineNumber": 663
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "admin.storage.from",
+          "lineNumber": 663
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "admin.storage.from('menu-images').getPublicUrl",
+          "lineNumber": 670
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "admin.storage.from",
+          "lineNumber": 670
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "admin\n    .from('menu_items')\n    .update({ image_url: imageUrl })\n    .eq('id', id)\n    .eq('restaurant_id', restaurantId)\n    .select()\n    .single",
+          "lineNumber": 678
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "admin\n    .from('menu_items')\n    .update({ image_url: imageUrl })\n    .eq('id', id)\n    .eq('restaurant_id', restaurantId)\n    .select",
+          "lineNumber": 678
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "admin\n    .from('menu_items')\n    .update({ image_url: imageUrl })\n    .eq('id', id)\n    .eq",
+          "lineNumber": 678
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "admin\n    .from('menu_items')\n    .update({ image_url: imageUrl })\n    .eq",
+          "lineNumber": 678
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "admin\n    .from('menu_items')\n    .update",
+          "lineNumber": 678
+        },
+        {
+          "caller": "setMenuItemImage",
+          "callee": "admin\n    .from",
+          "lineNumber": 678
+        },
+        {
+          "caller": "createPrintStation",
+          "callee": "input.name_pt.trim",
+          "lineNumber": 701
+        },
+        {
+          "caller": "createPrintStation",
+          "callee": "PRINT_STATION_LAYOUTS.has",
+          "lineNumber": 705
+        },
+        {
+          "caller": "createPrintStation",
+          "callee": "admin\n    .from('print_stations')\n    .select('sort_order')\n    .eq",
+          "lineNumber": 709
+        },
+        {
+          "caller": "createPrintStation",
+          "callee": "admin\n    .from('print_stations')\n    .select",
+          "lineNumber": 709
+        },
+        {
+          "caller": "createPrintStation",
+          "callee": "admin\n    .from",
+          "lineNumber": 709
+        },
+        {
+          "caller": "createPrintStation",
+          "callee": "admin\n    .from('print_stations')\n    .insert({\n      restaurant_id: restaurantId,\n      name_pt: namePt,\n      name_en: input.name_en?.trim() || null,\n      name_zh: input.name_zh?.trim() || null,\n      ticket_layout: input.ticket_layout,\n      sort_order: nextSortOrder(rows ?? []),\n    })\n    .select()\n    .single",
+          "lineNumber": 717
+        },
+        {
+          "caller": "createPrintStation",
+          "callee": "admin\n    .from('print_stations')\n    .insert({\n      restaurant_id: restaurantId,\n      name_pt: namePt,\n      name_en: input.name_en?.trim() || null,\n      name_zh: input.name_zh?.trim() || null,\n      ticket_layout: input.ticket_layout,\n      sort_order: nextSortOrder(rows ?? []),\n    })\n    .select",
+          "lineNumber": 717
+        },
+        {
+          "caller": "createPrintStation",
+          "callee": "admin\n    .from('print_stations')\n    .insert",
+          "lineNumber": 717
+        },
+        {
+          "caller": "createPrintStation",
+          "callee": "admin\n    .from",
+          "lineNumber": 717
+        },
+        {
+          "caller": "createPrintStation",
+          "callee": "input.name_en?.trim",
+          "lineNumber": 722
+        },
+        {
+          "caller": "createPrintStation",
+          "callee": "input.name_zh?.trim",
+          "lineNumber": 723
+        },
+        {
+          "caller": "createPrintStation",
+          "callee": "nextSortOrder",
+          "lineNumber": 725
+        },
+        {
+          "caller": "updatePrintStation",
+          "callee": "parseTableIdParam",
+          "lineNumber": 746
+        },
+        {
+          "caller": "updatePrintStation",
+          "callee": "input.name_pt.trim",
+          "lineNumber": 750
+        },
+        {
+          "caller": "updatePrintStation",
+          "callee": "PRINT_STATION_LAYOUTS.has",
+          "lineNumber": 754
+        },
+        {
+          "caller": "updatePrintStation",
+          "callee": "admin\n    .from('print_stations')\n    .update({\n      name_pt: namePt,\n      name_en: input.name_en?.trim() || null,\n      name_zh: input.name_zh?.trim() || null,\n      ticket_layout: input.ticket_layout,\n    })\n    .eq('id', id)\n    .eq('restaurant_id', restaurantId)\n    .select()\n    .single",
+          "lineNumber": 758
+        },
+        {
+          "caller": "updatePrintStation",
+          "callee": "admin\n    .from('print_stations')\n    .update({\n      name_pt: namePt,\n      name_en: input.name_en?.trim() || null,\n      name_zh: input.name_zh?.trim() || null,\n      ticket_layout: input.ticket_layout,\n    })\n    .eq('id', id)\n    .eq('restaurant_id', restaurantId)\n    .select",
+          "lineNumber": 758
+        },
+        {
+          "caller": "updatePrintStation",
+          "callee": "admin\n    .from('print_stations')\n    .update({\n      name_pt: namePt,\n      name_en: input.name_en?.trim() || null,\n      name_zh: input.name_zh?.trim() || null,\n      ticket_layout: input.ticket_layout,\n    })\n    .eq('id', id)\n    .eq",
+          "lineNumber": 758
+        },
+        {
+          "caller": "updatePrintStation",
+          "callee": "admin\n    .from('print_stations')\n    .update({\n      name_pt: namePt,\n      name_en: input.name_en?.trim() || null,\n      name_zh: input.name_zh?.trim() || null,\n      ticket_layout: input.ticket_layout,\n    })\n    .eq",
+          "lineNumber": 758
+        },
+        {
+          "caller": "updatePrintStation",
+          "callee": "admin\n    .from('print_stations')\n    .update",
+          "lineNumber": 758
+        },
+        {
+          "caller": "updatePrintStation",
+          "callee": "admin\n    .from",
+          "lineNumber": 758
+        },
+        {
+          "caller": "updatePrintStation",
+          "callee": "input.name_en?.trim",
+          "lineNumber": 762
+        },
+        {
+          "caller": "updatePrintStation",
+          "callee": "input.name_zh?.trim",
+          "lineNumber": 763
+        },
+        {
+          "caller": "movePrintStationOrder",
+          "callee": "parseTableIdParam",
+          "lineNumber": 785
+        },
+        {
+          "caller": "movePrintStationOrder",
+          "callee": "admin\n    .from('print_stations')\n    .select('id, sort_order, created_at')\n    .eq",
+          "lineNumber": 790
+        },
+        {
+          "caller": "movePrintStationOrder",
+          "callee": "admin\n    .from('print_stations')\n    .select",
+          "lineNumber": 790
+        },
+        {
+          "caller": "movePrintStationOrder",
+          "callee": "admin\n    .from",
+          "lineNumber": 790
+        },
+        {
+          "caller": "movePrintStationOrder",
+          "callee": "sortBySortOrderThenCreatedAt",
+          "lineNumber": 798
+        },
+        {
+          "caller": "movePrintStationOrder",
+          "callee": "ordered.findIndex",
+          "lineNumber": 799
+        },
+        {
+          "caller": "movePrintStationOrder",
+          "callee": "swapAdjacentSortOrders",
+          "lineNumber": 811
+        },
+        {
+          "caller": "movePrintStationOrder",
+          "callee": "admin\n    .from('print_stations')\n    .update({ sort_order: sortOrderA })\n    .eq('id', a.id)\n    .eq",
+          "lineNumber": 813
+        },
+        {
+          "caller": "movePrintStationOrder",
+          "callee": "admin\n    .from('print_stations')\n    .update({ sort_order: sortOrderA })\n    .eq",
+          "lineNumber": 813
+        },
+        {
+          "caller": "movePrintStationOrder",
+          "callee": "admin\n    .from('print_stations')\n    .update",
+          "lineNumber": 813
+        },
+        {
+          "caller": "movePrintStationOrder",
+          "callee": "admin\n    .from",
+          "lineNumber": 813
+        },
+        {
+          "caller": "movePrintStationOrder",
+          "callee": "admin\n    .from('print_stations')\n    .update({ sort_order: sortOrderB })\n    .eq('id', b.id)\n    .eq",
+          "lineNumber": 822
+        },
+        {
+          "caller": "movePrintStationOrder",
+          "callee": "admin\n    .from('print_stations')\n    .update({ sort_order: sortOrderB })\n    .eq",
+          "lineNumber": 822
+        },
+        {
+          "caller": "movePrintStationOrder",
+          "callee": "admin\n    .from('print_stations')\n    .update",
+          "lineNumber": 822
+        },
+        {
+          "caller": "movePrintStationOrder",
+          "callee": "admin\n    .from",
+          "lineNumber": 822
+        },
+        {
+          "caller": "deletePrintStation",
+          "callee": "parseTableIdParam",
+          "lineNumber": 839
+        },
+        {
+          "caller": "deletePrintStation",
+          "callee": "admin\n    .from('print_stations')\n    .delete()\n    .eq('id', id)\n    .eq",
+          "lineNumber": 844
+        },
+        {
+          "caller": "deletePrintStation",
+          "callee": "admin\n    .from('print_stations')\n    .delete()\n    .eq",
+          "lineNumber": 844
+        },
+        {
+          "caller": "deletePrintStation",
+          "callee": "admin\n    .from('print_stations')\n    .delete",
+          "lineNumber": 844
+        },
+        {
+          "caller": "deletePrintStation",
+          "callee": "admin\n    .from",
+          "lineNumber": 844
+        },
+        {
+          "caller": "parsePrintStationBody",
+          "callee": "PRINT_STATION_LAYOUTS.has",
+          "lineNumber": 884
+        },
+        {
+          "caller": "parseMenuItemBody",
+          "callee": "Number",
+          "lineNumber": 896
+        },
+        {
+          "caller": "parseMenuItemBody",
+          "callee": "parseMenuVatRate",
+          "lineNumber": 897
+        },
+        {
+          "caller": "parseMenuItemBody",
+          "callee": "String",
+          "lineNumber": 897
+        },
+        {
+          "caller": "parseMenuItemBody",
+          "callee": "Array.isArray",
+          "lineNumber": 908
+        },
+        {
+          "caller": "parseMenuItemBody",
+          "callee": "raw.note_preset_keys.some",
+          "lineNumber": 908
+        }
+      ],
+      "metrics": {
+        "importCount": 10,
+        "exportCount": 17,
+        "functionCount": 25,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-menu.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 165,
+      "nonEmptyLines": 151,
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-menu.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 57,
+      "nonEmptyLines": 52,
+      "functions": [
+        {
+          "name": "loadDashboardMenu",
+          "startLine": 13,
+          "endLine": 57,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "loadDashboardMenu",
+          "line": 13,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loadDashboardMenu",
+          "callee": "loadMenuManagementContext",
+          "lineNumber": 14
+        },
+        {
+          "caller": "loadDashboardMenu",
+          "callee": "Promise.all",
+          "lineNumber": 20
+        },
+        {
+          "caller": "loadDashboardMenu",
+          "callee": "ctx.admin\n        .from('menu_items')\n        .select('*')\n        .eq('restaurant_id', ctx.restaurantId)\n        .order('category_id')\n        .order",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loadDashboardMenu",
+          "callee": "ctx.admin\n        .from('menu_items')\n        .select('*')\n        .eq('restaurant_id', ctx.restaurantId)\n        .order",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loadDashboardMenu",
+          "callee": "ctx.admin\n        .from('menu_items')\n        .select('*')\n        .eq",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loadDashboardMenu",
+          "callee": "ctx.admin\n        .from('menu_items')\n        .select",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loadDashboardMenu",
+          "callee": "ctx.admin\n        .from",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loadDashboardMenu",
+          "callee": "ctx.admin\n        .from('menu_categories')\n        .select('*')\n        .eq('restaurant_id', ctx.restaurantId)\n        .eq('active', true)\n        .order",
+          "lineNumber": 27
+        },
+        {
+          "caller": "loadDashboardMenu",
+          "callee": "ctx.admin\n        .from('menu_categories')\n        .select('*')\n        .eq('restaurant_id', ctx.restaurantId)\n        .eq",
+          "lineNumber": 27
+        },
+        {
+          "caller": "loadDashboardMenu",
+          "callee": "ctx.admin\n        .from('menu_categories')\n        .select('*')\n        .eq",
+          "lineNumber": 27
+        },
+        {
+          "caller": "loadDashboardMenu",
+          "callee": "ctx.admin\n        .from('menu_categories')\n        .select",
+          "lineNumber": 27
+        },
+        {
+          "caller": "loadDashboardMenu",
+          "callee": "ctx.admin\n        .from",
+          "lineNumber": 27
+        },
+        {
+          "caller": "loadDashboardMenu",
+          "callee": "ctx.admin\n        .from('print_stations')\n        .select('*')\n        .eq('restaurant_id', ctx.restaurantId)\n        .order('sort_order', { ascending: true })\n        .order",
+          "lineNumber": 33
+        },
+        {
+          "caller": "loadDashboardMenu",
+          "callee": "ctx.admin\n        .from('print_stations')\n        .select('*')\n        .eq('restaurant_id', ctx.restaurantId)\n        .order",
+          "lineNumber": 33
+        },
+        {
+          "caller": "loadDashboardMenu",
+          "callee": "ctx.admin\n        .from('print_stations')\n        .select('*')\n        .eq",
+          "lineNumber": 33
+        },
+        {
+          "caller": "loadDashboardMenu",
+          "callee": "ctx.admin\n        .from('print_stations')\n        .select",
+          "lineNumber": 33
+        },
+        {
+          "caller": "loadDashboardMenu",
+          "callee": "ctx.admin\n        .from",
+          "lineNumber": 33
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-table-groups-client.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 86,
+      "nonEmptyLines": 77,
+      "functions": [
+        {
+          "name": "parseJson",
+          "startLine": 5,
+          "endLine": 7,
+          "params": [
+            "res"
+          ]
+        },
+        {
+          "name": "request",
+          "startLine": 9,
+          "endLine": 23,
+          "params": [
+            "url",
+            "init"
+          ]
+        },
+        {
+          "name": "createTableGroupClient",
+          "startLine": 30,
+          "endLine": 40,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "updateTableGroupClient",
+          "startLine": 42,
+          "endLine": 53,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "moveTableGroupOrderClient",
+          "startLine": 55,
+          "endLine": 61,
+          "params": [
+            "groupId",
+            "direction"
+          ]
+        },
+        {
+          "name": "deleteTableGroupClient",
+          "startLine": 63,
+          "endLine": 69,
+          "params": [
+            "groupId"
+          ]
+        },
+        {
+          "name": "mapTableGroupApiError",
+          "startLine": 71,
+          "endLine": 86,
+          "params": [
+            "code",
+            "message",
+            "labels"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "createTableGroupClient",
+          "line": 30,
+          "isDefault": false
+        },
+        {
+          "name": "updateTableGroupClient",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "moveTableGroupOrderClient",
+          "line": 55,
+          "isDefault": false
+        },
+        {
+          "name": "deleteTableGroupClient",
+          "line": 63,
+          "isDefault": false
+        },
+        {
+          "name": "mapTableGroupApiError",
+          "line": 71,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "parseJson",
+          "callee": "res.json().catch",
+          "lineNumber": 6
+        },
+        {
+          "caller": "parseJson",
+          "callee": "res.json",
+          "lineNumber": 6
+        },
+        {
+          "caller": "request",
+          "callee": "fetch",
+          "lineNumber": 14
+        },
+        {
+          "caller": "request",
+          "callee": "await parseJson",
+          "lineNumber": 15
+        },
+        {
+          "caller": "createTableGroupClient",
+          "callee": "request",
+          "lineNumber": 35
+        },
+        {
+          "caller": "createTableGroupClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 38
+        },
+        {
+          "caller": "updateTableGroupClient",
+          "callee": "request",
+          "lineNumber": 48
+        },
+        {
+          "caller": "updateTableGroupClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 51
+        },
+        {
+          "caller": "moveTableGroupOrderClient",
+          "callee": "request",
+          "lineNumber": 56
+        },
+        {
+          "caller": "moveTableGroupOrderClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 59
+        },
+        {
+          "caller": "deleteTableGroupClient",
+          "callee": "request",
+          "lineNumber": 64
+        },
+        {
+          "caller": "deleteTableGroupClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 67
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 5,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/menu-admin.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 86,
+      "nonEmptyLines": 78,
+      "functions": [
+        {
+          "name": "getMenuCategoryLabel",
+          "startLine": 7,
+          "endLine": 11,
+          "params": [
+            "c",
+            "lang"
+          ]
+        },
+        {
+          "name": "getMenuItemDisplayName",
+          "startLine": 13,
+          "endLine": 17,
+          "params": [
+            "item",
+            "lang"
+          ]
+        },
+        {
+          "name": "categoryTicketCodePreview",
+          "startLine": 20,
+          "endLine": 31,
+          "params": [
+            "categoryId",
+            "categories"
+          ]
+        },
+        {
+          "name": "collectCategorySubtreeIds",
+          "startLine": 34,
+          "endLine": 49,
+          "params": [
+            "rootId",
+            "categories"
+          ]
+        },
+        {
+          "name": "categoryHasDescendants",
+          "startLine": 51,
+          "endLine": 56,
+          "params": [
+            "categoryId",
+            "categories"
+          ]
+        },
+        {
+          "name": "sortCategoryIdsLeavesFirst",
+          "startLine": 59,
+          "endLine": 70,
+          "params": [
+            "ids",
+            "categories"
+          ]
+        },
+        {
+          "name": "itemMatchesSearch",
+          "startLine": 72,
+          "endLine": 86,
+          "params": [
+            "item",
+            "query"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "MAX_MENU_CATEGORY_DEPTH",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "getMenuCategoryLabel",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "getMenuItemDisplayName",
+          "line": 13,
+          "isDefault": false
+        },
+        {
+          "name": "categoryTicketCodePreview",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "collectCategorySubtreeIds",
+          "line": 34,
+          "isDefault": false
+        },
+        {
+          "name": "categoryHasDescendants",
+          "line": 51,
+          "isDefault": false
+        },
+        {
+          "name": "sortCategoryIdsLeavesFirst",
+          "line": 59,
+          "isDefault": false
+        },
+        {
+          "name": "itemMatchesSearch",
+          "line": 72,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getMenuCategoryLabel",
+          "callee": "c.name_en?.trim",
+          "lineNumber": 8
+        },
+        {
+          "caller": "getMenuCategoryLabel",
+          "callee": "c.name_zh?.trim",
+          "lineNumber": 9
+        },
+        {
+          "caller": "getMenuItemDisplayName",
+          "callee": "item.name_en?.trim",
+          "lineNumber": 14
+        },
+        {
+          "caller": "getMenuItemDisplayName",
+          "callee": "item.name_zh?.trim",
+          "lineNumber": 15
+        },
+        {
+          "caller": "categoryTicketCodePreview",
+          "callee": "categoryCodePathFromLeaf",
+          "lineNumber": 24
+        },
+        {
+          "caller": "categoryTicketCodePreview",
+          "callee": "formatMenuPrintDisplayName({\n    categoryPath: path,\n    itemCode: null,\n    itemName: '…',\n  }).replace",
+          "lineNumber": 26
+        },
+        {
+          "caller": "categoryTicketCodePreview",
+          "callee": "formatMenuPrintDisplayName",
+          "lineNumber": 26
+        },
+        {
+          "caller": "walk",
+          "callee": "ids.push",
+          "lineNumber": 42
+        },
+        {
+          "caller": "walk",
+          "callee": "walk",
+          "lineNumber": 43
+        },
+        {
+          "caller": "collectCategorySubtreeIds",
+          "callee": "walk",
+          "lineNumber": 47
+        },
+        {
+          "caller": "categoryHasDescendants",
+          "callee": "categories.some",
+          "lineNumber": 55
+        },
+        {
+          "caller": "depth",
+          "callee": "categories.find",
+          "lineNumber": 65
+        },
+        {
+          "caller": "depth",
+          "callee": "set.has",
+          "lineNumber": 66
+        },
+        {
+          "caller": "depth",
+          "callee": "depth",
+          "lineNumber": 67
+        },
+        {
+          "caller": "sortCategoryIdsLeavesFirst",
+          "callee": "[...ids].sort",
+          "lineNumber": 69
+        },
+        {
+          "caller": "sortCategoryIdsLeavesFirst",
+          "callee": "depth",
+          "lineNumber": 69
+        },
+        {
+          "caller": "sortCategoryIdsLeavesFirst",
+          "callee": "depth",
+          "lineNumber": 69
+        },
+        {
+          "caller": "itemMatchesSearch",
+          "callee": "query.trim().toLowerCase",
+          "lineNumber": 73
+        },
+        {
+          "caller": "itemMatchesSearch",
+          "callee": "query.trim",
+          "lineNumber": 73
+        },
+        {
+          "caller": "itemMatchesSearch",
+          "callee": "[\n    item.name_pt,\n    item.name_en,\n    item.name_zh,\n    item.item_code,\n    item.category,\n  ]\n    .filter(Boolean)\n    .join(' ')\n    .toLowerCase",
+          "lineNumber": 75
+        },
+        {
+          "caller": "itemMatchesSearch",
+          "callee": "[\n    item.name_pt,\n    item.name_en,\n    item.name_zh,\n    item.item_code,\n    item.category,\n  ]\n    .filter(Boolean)\n    .join",
+          "lineNumber": 75
+        },
+        {
+          "caller": "itemMatchesSearch",
+          "callee": "[\n    item.name_pt,\n    item.name_en,\n    item.name_zh,\n    item.item_code,\n    item.category,\n  ]\n    .filter",
+          "lineNumber": 75
+        },
+        {
+          "caller": "itemMatchesSearch",
+          "callee": "hay.includes",
+          "lineNumber": 85
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 8,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/menu-code-uniqueness.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 40,
+      "nonEmptyLines": 36,
+      "functions": [
+        {
+          "name": "menuCodeKey",
+          "startLine": 5,
+          "endLine": 8,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "siblingCategoryHasDuplicateCode",
+          "startLine": 10,
+          "endLine": 23,
+          "params": [
+            "categories",
+            "parentId",
+            "code",
+            "excludeCategoryId"
+          ]
+        },
+        {
+          "name": "menuItemHasDuplicateCode",
+          "startLine": 25,
+          "endLine": 36,
+          "params": [
+            "items",
+            "code",
+            "excludeItemId"
+          ]
+        },
+        {
+          "name": "isPostgresUniqueViolation",
+          "startLine": 38,
+          "endLine": 40,
+          "params": [
+            "error"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "menuCodeKey",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "siblingCategoryHasDuplicateCode",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "menuItemHasDuplicateCode",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "isPostgresUniqueViolation",
+          "line": 38,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "menuCodeKey",
+          "callee": "normalizeMenuItemCode",
+          "lineNumber": 6
+        },
+        {
+          "caller": "menuCodeKey",
+          "callee": "normalized.toLowerCase",
+          "lineNumber": 7
+        },
+        {
+          "caller": "siblingCategoryHasDuplicateCode",
+          "callee": "menuCodeKey",
+          "lineNumber": 16
+        },
+        {
+          "caller": "siblingCategoryHasDuplicateCode",
+          "callee": "categories.some",
+          "lineNumber": 18
+        },
+        {
+          "caller": "siblingCategoryHasDuplicateCode",
+          "callee": "menuCodeKey",
+          "lineNumber": 21
+        },
+        {
+          "caller": "menuItemHasDuplicateCode",
+          "callee": "menuCodeKey",
+          "lineNumber": 30
+        },
+        {
+          "caller": "menuItemHasDuplicateCode",
+          "callee": "items.some",
+          "lineNumber": 32
+        },
+        {
+          "caller": "menuItemHasDuplicateCode",
+          "callee": "menuCodeKey",
+          "lineNumber": 34
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/menu-image.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 89,
+      "nonEmptyLines": 77,
+      "functions": [
+        {
+          "name": "extensionForImageMime",
+          "startLine": 20,
+          "endLine": 33,
+          "params": [
+            "mime"
+          ]
+        },
+        {
+          "name": "menuImageObjectPath",
+          "startLine": 35,
+          "endLine": 37,
+          "params": [
+            "restaurantId",
+            "menuItemId",
+            "mime"
+          ]
+        },
+        {
+          "name": "validateMenuImageFile",
+          "startLine": 40,
+          "endLine": 47,
+          "params": [
+            "file",
+            "messages"
+          ]
+        },
+        {
+          "name": "compressMenuImageForUpload",
+          "startLine": 54,
+          "endLine": 74,
+          "params": [
+            "file"
+          ]
+        },
+        {
+          "name": "pathFromMenuImagePublicUrl",
+          "startLine": 76,
+          "endLine": 79,
+          "params": [
+            "url"
+          ]
+        },
+        {
+          "name": "removeMenuImageFromStorage",
+          "startLine": 81,
+          "endLine": 89,
+          "params": [
+            "supabase",
+            "publicUrl"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "MENU_IMAGE_MAX_BYTES",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "MENU_IMAGE_ACCEPT",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "extensionForImageMime",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "menuImageObjectPath",
+          "line": 35,
+          "isDefault": false
+        },
+        {
+          "name": "validateMenuImageFile",
+          "line": 40,
+          "isDefault": false
+        },
+        {
+          "name": "compressMenuImageForUpload",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "pathFromMenuImagePublicUrl",
+          "line": 76,
+          "isDefault": false
+        },
+        {
+          "name": "removeMenuImageFromStorage",
+          "line": 81,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "menuImageObjectPath",
+          "callee": "extensionForImageMime",
+          "lineNumber": 36
+        },
+        {
+          "caller": "validateMenuImageFile",
+          "callee": "ALLOWED_MIME.has",
+          "lineNumber": 44
+        },
+        {
+          "caller": "compressMenuImageForUpload",
+          "callee": "ALLOWED_MIME.has",
+          "lineNumber": 55
+        },
+        {
+          "caller": "compressMenuImageForUpload",
+          "callee": "imageCompression",
+          "lineNumber": 59
+        },
+        {
+          "caller": "compressMenuImageForUpload",
+          "callee": "Date.now",
+          "lineNumber": 69
+        },
+        {
+          "caller": "pathFromMenuImagePublicUrl",
+          "callee": "/\\/object\\/public\\/menu-images\\/(.+)$/.exec",
+          "lineNumber": 77
+        },
+        {
+          "caller": "pathFromMenuImagePublicUrl",
+          "callee": "url.trim",
+          "lineNumber": 77
+        },
+        {
+          "caller": "pathFromMenuImagePublicUrl",
+          "callee": "decodeURIComponent",
+          "lineNumber": 78
+        },
+        {
+          "caller": "removeMenuImageFromStorage",
+          "callee": "pathFromMenuImagePublicUrl",
+          "lineNumber": 86
+        },
+        {
+          "caller": "removeMenuImageFromStorage",
+          "callee": "supabase.storage.from('menu-images').remove",
+          "lineNumber": 88
+        },
+        {
+          "caller": "removeMenuImageFromStorage",
+          "callee": "supabase.storage.from",
+          "lineNumber": 88
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 8,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/menu-item-order.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 64,
+      "nonEmptyLines": 58,
+      "functions": [
+        {
+          "name": "item",
+          "startLine": 9,
+          "endLine": 22,
+          "params": [
+            "partial"
+          ]
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/menu-item-order.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 28,
+      "nonEmptyLines": 24,
+      "functions": [
+        {
+          "name": "menuItemSortScope",
+          "startLine": 5,
+          "endLine": 7,
+          "params": [
+            "categoryId"
+          ]
+        },
+        {
+          "name": "canReorderVisibleMenuItems",
+          "startLine": 10,
+          "endLine": 14,
+          "params": [
+            "items",
+            "searchQuery"
+          ]
+        },
+        {
+          "name": "compareMenuItemsForDisplay",
+          "startLine": 16,
+          "endLine": 18,
+          "params": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "name": "menuItemSiblingsInScope",
+          "startLine": 20,
+          "endLine": 28,
+          "params": [
+            "items",
+            "categoryId",
+            "excludeId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "menuItemSortScope",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "canReorderVisibleMenuItems",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "compareMenuItemsForDisplay",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "menuItemSiblingsInScope",
+          "line": 20,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "canReorderVisibleMenuItems",
+          "callee": "searchQuery.trim",
+          "lineNumber": 11
+        },
+        {
+          "caller": "canReorderVisibleMenuItems",
+          "callee": "menuItemSortScope",
+          "lineNumber": 12
+        },
+        {
+          "caller": "canReorderVisibleMenuItems",
+          "callee": "items.every",
+          "lineNumber": 13
+        },
+        {
+          "caller": "canReorderVisibleMenuItems",
+          "callee": "menuItemSortScope",
+          "lineNumber": 13
+        },
+        {
+          "caller": "compareMenuItemsForDisplay",
+          "callee": "compareSortOrderThenCreatedAt",
+          "lineNumber": 17
+        },
+        {
+          "caller": "menuItemSiblingsInScope",
+          "callee": "items.filter",
+          "lineNumber": 25
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/menu-manager-tab-preference.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 26,
+      "nonEmptyLines": 24,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/menu-manager-tab-preference.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 40,
+      "nonEmptyLines": 32,
+      "functions": [
+        {
+          "name": "menuManagerTabStorageKey",
+          "startLine": 7,
+          "endLine": 9,
+          "params": [
+            "restaurantId"
+          ]
+        },
+        {
+          "name": "isMenuManagerTab",
+          "startLine": 11,
+          "endLine": 13,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "loadSavedMenuManagerTab",
+          "startLine": 15,
+          "endLine": 23,
+          "params": [
+            "restaurantId"
+          ]
+        },
+        {
+          "name": "saveMenuManagerTab",
+          "startLine": 25,
+          "endLine": 32,
+          "params": [
+            "restaurantId",
+            "tab"
+          ]
+        },
+        {
+          "name": "menuManagerTabQuery",
+          "startLine": 34,
+          "endLine": 36,
+          "params": [
+            "tab"
+          ]
+        },
+        {
+          "name": "menuManagerPath",
+          "startLine": 38,
+          "endLine": 40,
+          "params": [
+            "tab"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "MENU_MANAGER_DEFAULT_TAB",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "menuManagerTabStorageKey",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "isMenuManagerTab",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "loadSavedMenuManagerTab",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "saveMenuManagerTab",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "menuManagerTabQuery",
+          "line": 34,
+          "isDefault": false
+        },
+        {
+          "name": "menuManagerPath",
+          "line": 38,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loadSavedMenuManagerTab",
+          "callee": "localStorage.getItem",
+          "lineNumber": 18
+        },
+        {
+          "caller": "loadSavedMenuManagerTab",
+          "callee": "menuManagerTabStorageKey",
+          "lineNumber": 18
+        },
+        {
+          "caller": "loadSavedMenuManagerTab",
+          "callee": "isMenuManagerTab",
+          "lineNumber": 19
+        },
+        {
+          "caller": "saveMenuManagerTab",
+          "callee": "localStorage.setItem",
+          "lineNumber": 28
+        },
+        {
+          "caller": "saveMenuManagerTab",
+          "callee": "menuManagerTabStorageKey",
+          "lineNumber": 28
+        },
+        {
+          "caller": "menuManagerPath",
+          "callee": "menuManagerTabQuery",
+          "lineNumber": 39
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 7,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/menu-print-label.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 49,
+      "nonEmptyLines": 46,
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/menu-print-label.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 138,
+      "nonEmptyLines": 124,
+      "functions": [
+        {
+          "name": "normalizeMenuItemCode",
+          "startLine": 24,
+          "endLine": 28,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "categoryCodePathFromLeaf",
+          "startLine": 31,
+          "endLine": 51,
+          "params": [
+            "leafCategoryId",
+            "categories"
+          ]
+        },
+        {
+          "name": "formatMenuPrintDisplayName",
+          "startLine": 54,
+          "endLine": 67,
+          "params": [
+            "params"
+          ]
+        },
+        {
+          "name": "orderItemBaseName",
+          "startLine": 69,
+          "endLine": 73,
+          "params": [
+            "item"
+          ]
+        },
+        {
+          "name": "orderItemReceiptLineLabel",
+          "startLine": 76,
+          "endLine": 82,
+          "params": [
+            "item"
+          ]
+        },
+        {
+          "name": "topLevelCategoryId",
+          "startLine": 85,
+          "endLine": 102,
+          "params": [
+            "leafCategoryId",
+            "categories"
+          ]
+        },
+        {
+          "name": "formatTopCategoryTicketHeader",
+          "startLine": 105,
+          "endLine": 138,
+          "params": [
+            "cat",
+            "locale"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "normalizeMenuItemCode",
+          "line": 24,
+          "isDefault": false
+        },
+        {
+          "name": "categoryCodePathFromLeaf",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "formatMenuPrintDisplayName",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "orderItemBaseName",
+          "line": 69,
+          "isDefault": false
+        },
+        {
+          "name": "orderItemReceiptLineLabel",
+          "line": 76,
+          "isDefault": false
+        },
+        {
+          "name": "topLevelCategoryId",
+          "line": 85,
+          "isDefault": false
+        },
+        {
+          "name": "formatTopCategoryTicketHeader",
+          "line": 105,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "normalizeMenuItemCode",
+          "callee": "(raw ?? '').trim",
+          "lineNumber": 25
+        },
+        {
+          "caller": "normalizeMenuItemCode",
+          "callee": "s.slice",
+          "lineNumber": 27
+        },
+        {
+          "caller": "categoryCodePathFromLeaf",
+          "callee": "categories.map",
+          "lineNumber": 36
+        },
+        {
+          "caller": "categoryCodePathFromLeaf",
+          "callee": "guard.has",
+          "lineNumber": 41
+        },
+        {
+          "caller": "categoryCodePathFromLeaf",
+          "callee": "guard.add",
+          "lineNumber": 42
+        },
+        {
+          "caller": "categoryCodePathFromLeaf",
+          "callee": "byId.get",
+          "lineNumber": 43
+        },
+        {
+          "caller": "categoryCodePathFromLeaf",
+          "callee": "normalizeMenuItemCode",
+          "lineNumber": 45
+        },
+        {
+          "caller": "categoryCodePathFromLeaf",
+          "callee": "path.push",
+          "lineNumber": 46
+        },
+        {
+          "caller": "categoryCodePathFromLeaf",
+          "callee": "path.reverse",
+          "lineNumber": 50
+        },
+        {
+          "caller": "formatMenuPrintDisplayName",
+          "callee": "params.itemName.trim",
+          "lineNumber": 59
+        },
+        {
+          "caller": "formatMenuPrintDisplayName",
+          "callee": "params.categoryPath\n    .map((c) => c.trim())\n    .filter",
+          "lineNumber": 60
+        },
+        {
+          "caller": "formatMenuPrintDisplayName",
+          "callee": "params.categoryPath\n    .map",
+          "lineNumber": 60
+        },
+        {
+          "caller": "formatMenuPrintDisplayName",
+          "callee": "c.trim",
+          "lineNumber": 61
+        },
+        {
+          "caller": "formatMenuPrintDisplayName",
+          "callee": "normalizeMenuItemCode",
+          "lineNumber": 63
+        },
+        {
+          "caller": "formatMenuPrintDisplayName",
+          "callee": "segments.push",
+          "lineNumber": 64
+        },
+        {
+          "caller": "formatMenuPrintDisplayName",
+          "callee": "segments.join",
+          "lineNumber": 66
+        },
+        {
+          "caller": "orderItemBaseName",
+          "callee": "(item.name_pt || item.name || item.name_en || item.name_zh || '').trim",
+          "lineNumber": 72
+        },
+        {
+          "caller": "orderItemReceiptLineLabel",
+          "callee": "formatMenuPrintDisplayName",
+          "lineNumber": 77
+        },
+        {
+          "caller": "orderItemReceiptLineLabel",
+          "callee": "orderItemBaseName",
+          "lineNumber": 80
+        },
+        {
+          "caller": "topLevelCategoryId",
+          "callee": "categories.map",
+          "lineNumber": 90
+        },
+        {
+          "caller": "topLevelCategoryId",
+          "callee": "guard.has",
+          "lineNumber": 94
+        },
+        {
+          "caller": "topLevelCategoryId",
+          "callee": "guard.add",
+          "lineNumber": 95
+        },
+        {
+          "caller": "topLevelCategoryId",
+          "callee": "byId.get",
+          "lineNumber": 97
+        },
+        {
+          "caller": "formatTopCategoryTicketHeader",
+          "callee": "normalizeMenuItemCode",
+          "lineNumber": 109
+        },
+        {
+          "caller": "formatTopCategoryTicketHeader",
+          "callee": "(cat.name_pt || '').trim",
+          "lineNumber": 110
+        },
+        {
+          "caller": "formatTopCategoryTicketHeader",
+          "callee": "(cat.name_en || '').trim",
+          "lineNumber": 111
+        },
+        {
+          "caller": "formatTopCategoryTicketHeader",
+          "callee": "(cat.name_zh || '').trim",
+          "lineNumber": 112
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 7,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/menu-vat-rate.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 45,
+      "nonEmptyLines": 40,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/menu-vat-rate.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 21,
+      "nonEmptyLines": 16,
+      "functions": [
+        {
+          "name": "parseMenuVatRate",
+          "startLine": 8,
+          "endLine": 13,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "normalizeMenuVatRate",
+          "startLine": 15,
+          "endLine": 17,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "isAllowedMenuVatRate",
+          "startLine": 19,
+          "endLine": 21,
+          "params": [
+            "value"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "MENU_VAT_RATE_OPTIONS",
+          "line": 2,
+          "isDefault": false
+        },
+        {
+          "name": "DEFAULT_MENU_VAT_RATE",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "parseMenuVatRate",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "normalizeMenuVatRate",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "isAllowedMenuVatRate",
+          "line": 19,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "parseMenuVatRate",
+          "callee": "Number",
+          "lineNumber": 10
+        },
+        {
+          "caller": "parseMenuVatRate",
+          "callee": "Number.isFinite",
+          "lineNumber": 11
+        },
+        {
+          "caller": "normalizeMenuVatRate",
+          "callee": "parseMenuVatRate",
+          "lineNumber": 16
+        },
+        {
+          "caller": "isAllowedMenuVatRate",
+          "callee": "(MENU_VAT_RATE_OPTIONS as readonly number[]).includes",
+          "lineNumber": 20
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 5,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/number-input.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 55,
+      "nonEmptyLines": 47,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/number-input.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 137,
+      "nonEmptyLines": 117,
+      "functions": [
+        {
+          "name": "hmDigitsOnly",
+          "startLine": 4,
+          "endLine": 6,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "formatHmDigitsWhileTyping",
+          "startLine": 12,
+          "endLine": 27,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "normalizeHmFromDigits",
+          "startLine": 29,
+          "endLine": 51,
+          "params": [
+            "digits"
+          ]
+        },
+        {
+          "name": "normalizeHmInput",
+          "startLine": 54,
+          "endLine": 77,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "parseNonNegativeInt",
+          "startLine": 80,
+          "endLine": 95,
+          "params": [
+            "raw",
+            "opts"
+          ]
+        },
+        {
+          "name": "unifyDecimalSeparators",
+          "startLine": 98,
+          "endLine": 102,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "normalizeDecimalInput",
+          "startLine": 105,
+          "endLine": 120,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "parseDecimalInput",
+          "startLine": 122,
+          "endLine": 131,
+          "params": [
+            "raw",
+            "opts"
+          ]
+        },
+        {
+          "name": "formatDecimalInputValue",
+          "startLine": 134,
+          "endLine": 137,
+          "params": [
+            "n"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "formatHmDigitsWhileTyping",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "normalizeHmInput",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "parseNonNegativeInt",
+          "line": 80,
+          "isDefault": false
+        },
+        {
+          "name": "normalizeDecimalInput",
+          "line": 105,
+          "isDefault": false
+        },
+        {
+          "name": "parseDecimalInput",
+          "line": 122,
+          "isDefault": false
+        },
+        {
+          "name": "formatDecimalInputValue",
+          "line": 134,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "hmDigitsOnly",
+          "callee": "raw.replace(/\\D/g, '').slice",
+          "lineNumber": 5
+        },
+        {
+          "caller": "hmDigitsOnly",
+          "callee": "raw.replace",
+          "lineNumber": 5
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "hmDigitsOnly",
+          "lineNumber": 13
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "parseInt",
+          "lineNumber": 16
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "digits.slice",
+          "lineNumber": 16
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "digits.slice",
+          "lineNumber": 17
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "parseInt",
+          "lineNumber": 21
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "digits.slice",
+          "lineNumber": 21
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "digits.slice",
+          "lineNumber": 22
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "digits.slice",
+          "lineNumber": 26
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "digits.slice",
+          "lineNumber": 26
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "parseInt",
+          "lineNumber": 33
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "parseInt",
+          "lineNumber": 39
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "digits.padStart",
+          "lineNumber": 41
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "digits.padStart",
+          "lineNumber": 44
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "padded.slice",
+          "lineNumber": 45
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "padded.slice",
+          "lineNumber": 46
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "TIME_RE.test",
+          "lineNumber": 48
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "t.split",
+          "lineNumber": 49
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "hh.padStart",
+          "lineNumber": 50
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "raw.trim",
+          "lineNumber": 55
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "s.match",
+          "lineNumber": 58
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "parseInt",
+          "lineNumber": 60
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "parseInt",
+          "lineNumber": 64
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "parseInt",
+          "lineNumber": 64
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "String(h).padStart",
+          "lineNumber": 66
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "String",
+          "lineNumber": 66
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "String(mm).padStart",
+          "lineNumber": 66
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "String",
+          "lineNumber": 66
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "/^\\d{1,4}$/.test",
+          "lineNumber": 69
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "normalizeHmFromDigits",
+          "lineNumber": 70
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "s.slice",
+          "lineNumber": 73
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "TIME_RE.test",
+          "lineNumber": 74
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "t.split",
+          "lineNumber": 75
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "h.padStart",
+          "lineNumber": 76
+        },
+        {
+          "caller": "parseNonNegativeInt",
+          "callee": "raw.trim().replace",
+          "lineNumber": 84
+        },
+        {
+          "caller": "parseNonNegativeInt",
+          "callee": "raw.trim",
+          "lineNumber": 84
+        },
+        {
+          "caller": "parseNonNegativeInt",
+          "callee": "parseInt",
+          "lineNumber": 88
+        },
+        {
+          "caller": "parseNonNegativeInt",
+          "callee": "Number.isFinite",
+          "lineNumber": 89
+        },
+        {
+          "caller": "parseNonNegativeInt",
+          "callee": "Math.max",
+          "lineNumber": 92
+        },
+        {
+          "caller": "parseNonNegativeInt",
+          "callee": "Math.min",
+          "lineNumber": 93
+        },
+        {
+          "caller": "unifyDecimalSeparators",
+          "callee": "raw\n    .replace(/[，。．]/g, '.')\n    .replace",
+          "lineNumber": 99
+        },
+        {
+          "caller": "unifyDecimalSeparators",
+          "callee": "raw\n    .replace",
+          "lineNumber": 99
+        },
+        {
+          "caller": "normalizeDecimalInput",
+          "callee": "unifyDecimalSeparators(raw).replace",
+          "lineNumber": 106
+        },
+        {
+          "caller": "normalizeDecimalInput",
+          "callee": "unifyDecimalSeparators",
+          "lineNumber": 106
+        },
+        {
+          "caller": "normalizeDecimalInput",
+          "callee": "cleaned.includes",
+          "lineNumber": 108
+        },
+        {
+          "caller": "normalizeDecimalInput",
+          "callee": "cleaned.split",
+          "lineNumber": 109
+        },
+        {
+          "caller": "normalizeDecimalInput",
+          "callee": "decimalParts.join('').slice",
+          "lineNumber": 110
+        },
+        {
+          "caller": "normalizeDecimalInput",
+          "callee": "decimalParts.join",
+          "lineNumber": 110
+        },
+        {
+          "caller": "normalizeDecimalInput",
+          "callee": "normalizedInt.replace",
+          "lineNumber": 114
+        },
+        {
+          "caller": "parseDecimalInput",
+          "callee": "normalizeDecimalInput",
+          "lineNumber": 123
+        },
+        {
+          "caller": "parseDecimalInput",
+          "callee": "parseFloat",
+          "lineNumber": 125
+        },
+        {
+          "caller": "parseDecimalInput",
+          "callee": "Number.isFinite",
+          "lineNumber": 126
+        },
+        {
+          "caller": "parseDecimalInput",
+          "callee": "Math.max",
+          "lineNumber": 128
+        },
+        {
+          "caller": "parseDecimalInput",
+          "callee": "Math.min",
+          "lineNumber": 129
+        },
+        {
+          "caller": "formatDecimalInputValue",
+          "callee": "Number.isFinite",
+          "lineNumber": 135
+        },
+        {
+          "caller": "formatDecimalInputValue",
+          "callee": "String",
+          "lineNumber": 136
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 6,
+        "functionCount": 9,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/print-station-admin.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 19,
+      "nonEmptyLines": 17,
+      "functions": [
+        {
+          "name": "getPrintStationDisplayName",
+          "startLine": 4,
+          "endLine": 8,
+          "params": [
+            "station",
+            "lang"
+          ]
+        },
+        {
+          "name": "countPrintStationBindings",
+          "startLine": 10,
+          "endLine": 19,
+          "params": [
+            "stationId",
+            "categories",
+            "items"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "getPrintStationDisplayName",
+          "line": 4,
+          "isDefault": false
+        },
+        {
+          "name": "countPrintStationBindings",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getPrintStationDisplayName",
+          "callee": "station.name_en?.trim",
+          "lineNumber": 5
+        },
+        {
+          "caller": "getPrintStationDisplayName",
+          "callee": "station.name_zh?.trim",
+          "lineNumber": 6
+        },
+        {
+          "caller": "countPrintStationBindings",
+          "callee": "categories.filter",
+          "lineNumber": 16
+        },
+        {
+          "caller": "countPrintStationBindings",
+          "callee": "items.filter",
+          "lineNumber": 17
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/print-station-resolve.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 31,
+      "nonEmptyLines": 29,
+      "functions": [
+        {
+          "name": "resolveEffectivePrintStationId",
+          "startLine": 12,
+          "endLine": 31,
+          "params": [
+            "itemPrintStationId",
+            "categoryId",
+            "categories"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "resolveEffectivePrintStationId",
+          "line": 12,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "resolveEffectivePrintStationId",
+          "callee": "categories.map",
+          "lineNumber": 19
+        },
+        {
+          "caller": "resolveEffectivePrintStationId",
+          "callee": "seen.has",
+          "lineNumber": 22
+        },
+        {
+          "caller": "resolveEffectivePrintStationId",
+          "callee": "seen.add",
+          "lineNumber": 23
+        },
+        {
+          "caller": "resolveEffectivePrintStationId",
+          "callee": "byId.get",
+          "lineNumber": 24
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/sort-order-persist.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 47,
+      "nonEmptyLines": 41,
+      "functions": [
+        {
+          "name": "persistMenuItemSortOrderSwap",
+          "startLine": 5,
+          "endLine": 47,
+          "params": [
+            "admin",
+            "restaurantId",
+            "rowA",
+            "rowB",
+            "scopeMaxSortOrder"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "persistMenuItemSortOrderSwap",
+          "line": 5,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "persistMenuItemSortOrderSwap",
+          "callee": "adjacentSortOrderSwapSteps",
+          "lineNumber": 12
+        },
+        {
+          "caller": "persistMenuItemSortOrderSwap",
+          "callee": "admin\n    .from('menu_items')\n    .update({ sort_order: tempOrder })\n    .eq('id', rowA.id)\n    .eq",
+          "lineNumber": 19
+        },
+        {
+          "caller": "persistMenuItemSortOrderSwap",
+          "callee": "admin\n    .from('menu_items')\n    .update({ sort_order: tempOrder })\n    .eq",
+          "lineNumber": 19
+        },
+        {
+          "caller": "persistMenuItemSortOrderSwap",
+          "callee": "admin\n    .from('menu_items')\n    .update",
+          "lineNumber": 19
+        },
+        {
+          "caller": "persistMenuItemSortOrderSwap",
+          "callee": "admin\n    .from",
+          "lineNumber": 19
+        },
+        {
+          "caller": "persistMenuItemSortOrderSwap",
+          "callee": "admin\n    .from('menu_items')\n    .update({ sort_order: finalSortOrderB })\n    .eq('id', rowB.id)\n    .eq",
+          "lineNumber": 28
+        },
+        {
+          "caller": "persistMenuItemSortOrderSwap",
+          "callee": "admin\n    .from('menu_items')\n    .update({ sort_order: finalSortOrderB })\n    .eq",
+          "lineNumber": 28
+        },
+        {
+          "caller": "persistMenuItemSortOrderSwap",
+          "callee": "admin\n    .from('menu_items')\n    .update",
+          "lineNumber": 28
+        },
+        {
+          "caller": "persistMenuItemSortOrderSwap",
+          "callee": "admin\n    .from",
+          "lineNumber": 28
+        },
+        {
+          "caller": "persistMenuItemSortOrderSwap",
+          "callee": "admin\n    .from('menu_items')\n    .update({ sort_order: finalSortOrderA })\n    .eq('id', rowA.id)\n    .eq",
+          "lineNumber": 37
+        },
+        {
+          "caller": "persistMenuItemSortOrderSwap",
+          "callee": "admin\n    .from('menu_items')\n    .update({ sort_order: finalSortOrderA })\n    .eq",
+          "lineNumber": 37
+        },
+        {
+          "caller": "persistMenuItemSortOrderSwap",
+          "callee": "admin\n    .from('menu_items')\n    .update",
+          "lineNumber": 37
+        },
+        {
+          "caller": "persistMenuItemSortOrderSwap",
+          "callee": "admin\n    .from",
+          "lineNumber": 37
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/sort-order.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 107,
+      "nonEmptyLines": 97,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/sort-order.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 73,
+      "nonEmptyLines": 66,
+      "functions": [
+        {
+          "name": "nextSortOrder",
+          "startLine": 5,
+          "endLine": 8,
+          "params": [
+            "existing"
+          ]
+        },
+        {
+          "name": "compareSortOrder",
+          "startLine": 10,
+          "endLine": 15,
+          "params": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "name": "compareSortOrderThenCreatedAt",
+          "startLine": 17,
+          "endLine": 22,
+          "params": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "name": "sortBySortOrderThenCreatedAt",
+          "startLine": 24,
+          "endLine": 28,
+          "params": [
+            "rows"
+          ]
+        },
+        {
+          "name": "swapAdjacentSortOrders",
+          "startLine": 31,
+          "endLine": 36,
+          "params": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "name": "adjacentSortOrderSwapSteps",
+          "startLine": 42,
+          "endLine": 56,
+          "params": [
+            "rowA",
+            "rowB",
+            "scopeMaxSortOrder"
+          ]
+        },
+        {
+          "name": "applyAdjacentSortOrderSwap",
+          "startLine": 59,
+          "endLine": 73,
+          "params": [
+            "rows",
+            "itemIdA",
+            "itemIdB"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "nextSortOrder",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "compareSortOrder",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "compareSortOrderThenCreatedAt",
+          "line": 17,
+          "isDefault": false
+        },
+        {
+          "name": "sortBySortOrderThenCreatedAt",
+          "line": 24,
+          "isDefault": false
+        },
+        {
+          "name": "swapAdjacentSortOrders",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "adjacentSortOrderSwapSteps",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "applyAdjacentSortOrderSwap",
+          "line": 59,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "nextSortOrder",
+          "callee": "Math.max",
+          "lineNumber": 7
+        },
+        {
+          "caller": "nextSortOrder",
+          "callee": "existing.map",
+          "lineNumber": 7
+        },
+        {
+          "caller": "compareSortOrderThenCreatedAt",
+          "callee": "compareSortOrder",
+          "lineNumber": 21
+        },
+        {
+          "caller": "compareSortOrderThenCreatedAt",
+          "callee": "a.created_at.localeCompare",
+          "lineNumber": 21
+        },
+        {
+          "caller": "sortBySortOrderThenCreatedAt",
+          "callee": "[...rows].sort",
+          "lineNumber": 27
+        },
+        {
+          "caller": "adjacentSortOrderSwapSteps",
+          "callee": "swapAdjacentSortOrders",
+          "lineNumber": 47
+        },
+        {
+          "caller": "applyAdjacentSortOrderSwap",
+          "callee": "rows.find",
+          "lineNumber": 64
+        },
+        {
+          "caller": "applyAdjacentSortOrderSwap",
+          "callee": "rows.find",
+          "lineNumber": 65
+        },
+        {
+          "caller": "applyAdjacentSortOrderSwap",
+          "callee": "swapAdjacentSortOrders",
+          "lineNumber": 67
+        },
+        {
+          "caller": "applyAdjacentSortOrderSwap",
+          "callee": "rows.map",
+          "lineNumber": 68
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 7,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/tables-manager-tab-preference.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 41,
+      "nonEmptyLines": 33,
+      "functions": [
+        {
+          "name": "tablesManagerTabStorageKey",
+          "startLine": 7,
+          "endLine": 9,
+          "params": [
+            "restaurantId"
+          ]
+        },
+        {
+          "name": "isTablesManagerTab",
+          "startLine": 11,
+          "endLine": 13,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "parseTablesManagerTab",
+          "startLine": 15,
+          "endLine": 18,
+          "params": [
+            "tab"
+          ]
+        },
+        {
+          "name": "loadSavedTablesManagerTab",
+          "startLine": 20,
+          "endLine": 28,
+          "params": [
+            "restaurantId"
+          ]
+        },
+        {
+          "name": "saveTablesManagerTab",
+          "startLine": 30,
+          "endLine": 37,
+          "params": [
+            "restaurantId",
+            "tab"
+          ]
+        },
+        {
+          "name": "tablesManagerPath",
+          "startLine": 39,
+          "endLine": 41,
+          "params": [
+            "tab"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TABLES_MANAGER_DEFAULT_TAB",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "tablesManagerTabStorageKey",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "isTablesManagerTab",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "parseTablesManagerTab",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "loadSavedTablesManagerTab",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "saveTablesManagerTab",
+          "line": 30,
+          "isDefault": false
+        },
+        {
+          "name": "tablesManagerPath",
+          "line": 39,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "parseTablesManagerTab",
+          "callee": "isTablesManagerTab",
+          "lineNumber": 16
+        },
+        {
+          "caller": "loadSavedTablesManagerTab",
+          "callee": "localStorage.getItem",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loadSavedTablesManagerTab",
+          "callee": "tablesManagerTabStorageKey",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loadSavedTablesManagerTab",
+          "callee": "isTablesManagerTab",
+          "lineNumber": 24
+        },
+        {
+          "caller": "saveTablesManagerTab",
+          "callee": "localStorage.setItem",
+          "lineNumber": 33
+        },
+        {
+          "caller": "saveTablesManagerTab",
+          "callee": "tablesManagerTabStorageKey",
+          "lineNumber": 33
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 7,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    }
+  ]
+}

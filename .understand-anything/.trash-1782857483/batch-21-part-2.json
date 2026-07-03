@@ -1,0 +1,1087 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "type": "file",
+      "name": "analytics.service.ts",
+      "filePath": "apps/web/src/lib/analytics/analytics.service.ts",
+      "summary": "价值分析核心服务，编排仓储查询、过滤合格会话并组装完整 ValueOverview 响应。",
+      "tags": [
+        "service",
+        "analytics",
+        "orchestration"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/analytics.types.ts",
+      "type": "file",
+      "name": "analytics.types.ts",
+      "filePath": "apps/web/src/lib/analytics/analytics.types.ts",
+      "summary": "价值分析模块 TypeScript 类型定义与常量，描述概览结构、趋势行与查询限制。",
+      "tags": [
+        "type-definition",
+        "analytics",
+        "constants"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "type": "file",
+      "name": "build-overview.ts",
+      "filePath": "apps/web/src/lib/analytics/build-overview.ts",
+      "summary": "将原始会话与订单数据构建为营收趋势、客户趋势及热销/库存参考菜品列表。",
+      "tags": [
+        "utility",
+        "analytics",
+        "aggregation",
+        "i18n"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/date-window.ts",
+      "type": "file",
+      "name": "date-window.ts",
+      "filePath": "apps/web/src/lib/analytics/date-window.ts",
+      "summary": "解析分析日期范围参数（7d/30d）并在 Lisbon 时区计算 UTC 查询窗口与日期键序列。",
+      "tags": [
+        "utility",
+        "date",
+        "timezone",
+        "analytics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "type": "file",
+      "name": "load-owner-analytics-context.ts",
+      "filePath": "apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "summary": "加载店主分析 API 上下文，校验 dashboard 权限并创建 Supabase admin 客户端。",
+      "tags": [
+        "middleware",
+        "auth",
+        "analytics",
+        "supabase"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "type": "file",
+      "name": "qualifying.ts",
+      "filePath": "apps/web/src/lib/analytics/qualifying.ts",
+      "summary": "判定桌台会话是否计入分析（有支付分账或正营收），并计算会话营收与客人数。",
+      "tags": [
+        "utility",
+        "analytics",
+        "billing",
+        "buffet"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "type": "file",
+      "name": "lisbon-calendar.ts",
+      "filePath": "apps/web/src/lib/lisbon-calendar.ts",
+      "summary": "Lisbon 时区日历工具，提供日期键序列、UTC 日起点与会话 ISO 时间窗口判断。",
+      "tags": [
+        "utility",
+        "timezone",
+        "calendar",
+        "analytics"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "使用 Intl.DateTimeFormat 与 UTC 日期运算处理跨时区日界。"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.service.ts:filterQualifyingSessions",
+      "type": "function",
+      "name": "filterQualifyingSessions",
+      "filePath": "apps/web/src/lib/analytics/analytics.service.ts",
+      "lineRange": [
+        32,
+        42
+      ],
+      "summary": "过滤出符合分析条件的桌台会话。",
+      "tags": [
+        "utility",
+        "filter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.service.ts:collectOrdersForSessions",
+      "type": "function",
+      "name": "collectOrdersForSessions",
+      "filePath": "apps/web/src/lib/analytics/analytics.service.ts",
+      "lineRange": [
+        44,
+        54
+      ],
+      "summary": "收集指定会话的全部订单。",
+      "tags": [
+        "utility",
+        "aggregation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.service.ts:emptyOverview",
+      "type": "function",
+      "name": "emptyOverview",
+      "filePath": "apps/web/src/lib/analytics/analytics.service.ts",
+      "lineRange": [
+        56,
+        70
+      ],
+      "summary": "构建空数据的价值概览占位结构。",
+      "tags": [
+        "utility",
+        "factory"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "type": "function",
+      "name": "getValueOverview",
+      "filePath": "apps/web/src/lib/analytics/analytics.service.ts",
+      "lineRange": [
+        72,
+        143
+      ],
+      "summary": "主编排函数：查询、过滤、聚合并返回完整 ValueOverview。",
+      "tags": [
+        "service",
+        "analytics",
+        "orchestration"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/build-overview.ts:buildRevenueTrend",
+      "type": "function",
+      "name": "buildRevenueTrend",
+      "filePath": "apps/web/src/lib/analytics/build-overview.ts",
+      "lineRange": [
+        15,
+        34
+      ],
+      "summary": "按日汇总合格会话营收趋势。",
+      "tags": [
+        "utility",
+        "aggregation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/build-overview.ts:buildCustomerTrend",
+      "type": "function",
+      "name": "buildCustomerTrend",
+      "filePath": "apps/web/src/lib/analytics/build-overview.ts",
+      "lineRange": [
+        36,
+        67
+      ],
+      "summary": "按日汇总成人与儿童客数趋势。",
+      "tags": [
+        "utility",
+        "aggregation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/build-overview.ts:baseItemFields",
+      "type": "function",
+      "name": "baseItemFields",
+      "filePath": "apps/web/src/lib/analytics/build-overview.ts",
+      "lineRange": [
+        79,
+        92
+      ],
+      "summary": "为菜品排行行填充 ID、名称与多语言分类字段。",
+      "tags": [
+        "utility",
+        "i18n"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/build-overview.ts:mapTopConsumedItems",
+      "type": "function",
+      "name": "mapTopConsumedItems",
+      "filePath": "apps/web/src/lib/analytics/build-overview.ts",
+      "lineRange": [
+        94,
+        103
+      ],
+      "summary": "将聚合排行映射为 Top 消费菜品 DTO。",
+      "tags": [
+        "utility",
+        "mapping"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/build-overview.ts:mapStockReferenceItems",
+      "type": "function",
+      "name": "mapStockReferenceItems",
+      "filePath": "apps/web/src/lib/analytics/build-overview.ts",
+      "lineRange": [
+        105,
+        115
+      ],
+      "summary": "将聚合排行映射为库存参考菜品 DTO。",
+      "tags": [
+        "utility",
+        "mapping"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/date-window.ts:parseAnalyticsRange",
+      "type": "function",
+      "name": "parseAnalyticsRange",
+      "filePath": "apps/web/src/lib/analytics/date-window.ts",
+      "lineRange": [
+        9,
+        13
+      ],
+      "summary": "解析 range 查询参数为 7d 或 30d。",
+      "tags": [
+        "utility",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/date-window.ts:resolveAnalyticsDateWindow",
+      "type": "function",
+      "name": "resolveAnalyticsDateWindow",
+      "filePath": "apps/web/src/lib/analytics/date-window.ts",
+      "lineRange": [
+        15,
+        33
+      ],
+      "summary": "计算 Lisbon 时区下的 UTC 起止时间与日期键序列。",
+      "tags": [
+        "utility",
+        "date",
+        "timezone"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/load-owner-analytics-context.ts:loadOwnerAnalyticsContext",
+      "type": "function",
+      "name": "loadOwnerAnalyticsContext",
+      "filePath": "apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "lineRange": [
+        11,
+        32
+      ],
+      "summary": "校验店主权限并返回 admin 客户端与餐厅 ID。",
+      "tags": [
+        "middleware",
+        "auth"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/qualifying.ts:isQualifyingSession",
+      "type": "function",
+      "name": "isQualifyingSession",
+      "filePath": "apps/web/src/lib/analytics/qualifying.ts",
+      "lineRange": [
+        5,
+        14
+      ],
+      "summary": "判断会话是否有支付分账或正营收。",
+      "tags": [
+        "utility",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/qualifying.ts:sessionRevenue",
+      "type": "function",
+      "name": "sessionRevenue",
+      "filePath": "apps/web/src/lib/analytics/qualifying.ts",
+      "lineRange": [
+        16,
+        38
+      ],
+      "summary": "计算会话营收，优先使用已支付分账金额。",
+      "tags": [
+        "utility",
+        "billing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/qualifying.ts:sessionGuestCounts",
+      "type": "function",
+      "name": "sessionGuestCounts",
+      "filePath": "apps/web/src/lib/analytics/qualifying.ts",
+      "lineRange": [
+        40,
+        46
+      ],
+      "summary": "从订单聚合自助餐成人与儿童客数。",
+      "tags": [
+        "utility",
+        "buffet"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/lisbon-calendar.ts:calendarDateInTimezone",
+      "type": "function",
+      "name": "calendarDateInTimezone",
+      "filePath": "apps/web/src/lib/lisbon-calendar.ts",
+      "lineRange": [
+        3,
+        10
+      ],
+      "summary": "将 Date 格式化为指定时区的 YYYY-MM-DD。",
+      "tags": [
+        "utility",
+        "timezone"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/lisbon-calendar.ts:addCalendarDays",
+      "type": "function",
+      "name": "addCalendarDays",
+      "filePath": "apps/web/src/lib/lisbon-calendar.ts",
+      "lineRange": [
+        12,
+        16
+      ],
+      "summary": "对日历日期字符串加减天数。",
+      "tags": [
+        "utility",
+        "date"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/lisbon-calendar.ts:daysBetweenInclusive",
+      "type": "function",
+      "name": "daysBetweenInclusive",
+      "filePath": "apps/web/src/lib/lisbon-calendar.ts",
+      "lineRange": [
+        18,
+        24
+      ],
+      "summary": "计算两日期之间含端点的天数。",
+      "tags": [
+        "utility",
+        "date"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/lisbon-calendar.ts:lisbonDayStartUtcIso",
+      "type": "function",
+      "name": "lisbonDayStartUtcIso",
+      "filePath": "apps/web/src/lib/lisbon-calendar.ts",
+      "lineRange": [
+        26,
+        39
+      ],
+      "summary": "获取 Lisbon 日历日对应的 UTC 起始 ISO 时间。",
+      "tags": [
+        "utility",
+        "timezone"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/lisbon-calendar.ts:buildDateKeySeries",
+      "type": "function",
+      "name": "buildDateKeySeries",
+      "filePath": "apps/web/src/lib/lisbon-calendar.ts",
+      "lineRange": [
+        41,
+        49
+      ],
+      "summary": "生成起止日期间的连续日期键数组。",
+      "tags": [
+        "utility",
+        "date"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/lisbon-calendar.ts:sessionDateKeyFromIso",
+      "type": "function",
+      "name": "sessionDateKeyFromIso",
+      "filePath": "apps/web/src/lib/lisbon-calendar.ts",
+      "lineRange": [
+        51,
+        53
+      ],
+      "summary": "从会话 closed_at ISO 提取 Lisbon 日期键。",
+      "tags": [
+        "utility",
+        "timezone"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/lisbon-calendar.ts:isIsoInWindow",
+      "type": "function",
+      "name": "isIsoInWindow",
+      "filePath": "apps/web/src/lib/lisbon-calendar.ts",
+      "lineRange": [
+        55,
+        57
+      ],
+      "summary": "判断 ISO 时间是否在 UTC 查询窗口内。",
+      "tags": [
+        "utility",
+        "validation"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.service.ts:filterQualifyingSessions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.service.ts:collectOrdersForSessions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.service.ts:emptyOverview",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:buildRevenueTrend",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:buildCustomerTrend",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:baseItemFields",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:mapTopConsumedItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:mapStockReferenceItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/date-window.ts",
+      "target": "function:apps/web/src/lib/analytics/date-window.ts:parseAnalyticsRange",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/date-window.ts",
+      "target": "function:apps/web/src/lib/analytics/date-window.ts:resolveAnalyticsDateWindow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "target": "function:apps/web/src/lib/analytics/load-owner-analytics-context.ts:loadOwnerAnalyticsContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "function:apps/web/src/lib/analytics/qualifying.ts:isQualifyingSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "function:apps/web/src/lib/analytics/qualifying.ts:sessionRevenue",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "function:apps/web/src/lib/analytics/qualifying.ts:sessionGuestCounts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:calendarDateInTimezone",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:addCalendarDays",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:daysBetweenInclusive",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:lisbonDayStartUtcIso",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:buildDateKeySeries",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:sessionDateKeyFromIso",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:isIsoInWindow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:buildRevenueTrend",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:buildCustomerTrend",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:mapTopConsumedItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:mapStockReferenceItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/date-window.ts",
+      "target": "function:apps/web/src/lib/analytics/date-window.ts:parseAnalyticsRange",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/date-window.ts",
+      "target": "function:apps/web/src/lib/analytics/date-window.ts:resolveAnalyticsDateWindow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "target": "function:apps/web/src/lib/analytics/load-owner-analytics-context.ts:loadOwnerAnalyticsContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "function:apps/web/src/lib/analytics/qualifying.ts:isQualifyingSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "function:apps/web/src/lib/analytics/qualifying.ts:sessionRevenue",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "function:apps/web/src/lib/analytics/qualifying.ts:sessionGuestCounts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:calendarDateInTimezone",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:addCalendarDays",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:daysBetweenInclusive",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:lisbonDayStartUtcIso",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:buildDateKeySeries",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:sessionDateKeyFromIso",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:isIsoInWindow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "file:apps/web/src/lib/analytics/date-window.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "file:apps/web/src/lib/audit/money.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/date-window.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/date-window.ts",
+      "target": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "file:apps/web/src/lib/audit/money.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "file:apps/web/src/lib/buffet-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "file:apps/web/src/lib/format-dashboard-date.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.service.ts:filterQualifyingSessions",
+      "target": "function:apps/web/src/lib/analytics/qualifying.ts:isQualifyingSession",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "target": "function:apps/web/src/lib/analytics/date-window.ts:resolveAnalyticsDateWindow",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchClosedSessionsInWindow",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchOrdersBySessionIds",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBillSplitsBySessionIds",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:buildRevenueTrend",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:buildCustomerTrend",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "target": "function:apps/web/src/lib/analytics/aggregate-items.ts:aggregateMenuItemsFromOrders",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "target": "function:apps/web/src/lib/analytics/aggregate-items.ts:rankMenuItemAggs",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:isIsoInWindow",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/build-overview.ts:buildRevenueTrend",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:sessionDateKeyFromIso",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/build-overview.ts:buildRevenueTrend",
+      "target": "function:apps/web/src/lib/analytics/qualifying.ts:sessionRevenue",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/build-overview.ts:buildRevenueTrend",
+      "target": "function:apps/web/src/lib/audit/money.ts:auditMoney",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/build-overview.ts:buildCustomerTrend",
+      "target": "function:apps/web/src/lib/analytics/qualifying.ts:sessionGuestCounts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/date-window.ts:resolveAnalyticsDateWindow",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:calendarDateInTimezone",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/date-window.ts:resolveAnalyticsDateWindow",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:lisbonDayStartUtcIso",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/date-window.ts:resolveAnalyticsDateWindow",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:buildDateKeySeries",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/load-owner-analytics-context.ts:loadOwnerAnalyticsContext",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:loadDashboardAccess",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/load-owner-analytics-context.ts:loadOwnerAnalyticsContext",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/qualifying.ts:sessionRevenue",
+      "target": "function:apps/web/src/lib/audit/money.ts:auditMoney",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/qualifying.ts:sessionGuestCounts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:aggregateBuffetForOrders",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/lisbon-calendar.ts:lisbonDayStartUtcIso",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:calendarDateInTimezone",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/lisbon-calendar.ts:buildDateKeySeries",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:addCalendarDays",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/lisbon-calendar.ts:sessionDateKeyFromIso",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:calendarDateInTimezone",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/date-window.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

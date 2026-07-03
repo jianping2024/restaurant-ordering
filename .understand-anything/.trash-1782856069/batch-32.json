@@ -1,0 +1,1251 @@
+{
+  "nodes": [
+    {
+      "id": "config:.env.local.example",
+      "type": "config",
+      "name": ".env.local.example",
+      "filePath": ".env.local.example",
+      "summary": "环境变量示例文件，列出本地/云端运行所需配置项。",
+      "tags": [
+        "configuration",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/next.config.mjs",
+      "type": "file",
+      "name": "next.config.mjs",
+      "filePath": "apps/ops/next.config.mjs",
+      "summary": "源码文件 apps/ops/next.config.mjs，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/postcss.config.mjs",
+      "type": "file",
+      "name": "postcss.config.mjs",
+      "filePath": "apps/ops/postcss.config.mjs",
+      "summary": "源码文件 apps/ops/postcss.config.mjs，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/app/globals.css",
+      "type": "file",
+      "name": "globals.css",
+      "filePath": "apps/ops/src/app/globals.css",
+      "summary": "源码文件 apps/ops/src/app/globals.css，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/app/layout.tsx",
+      "type": "file",
+      "name": "layout.tsx",
+      "filePath": "apps/ops/src/app/layout.tsx",
+      "summary": "Next.js 布局组件，包裹子路由并提供共享 Provider 与样式。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/app/layout.tsx:RootLayout",
+      "type": "function",
+      "name": "RootLayout",
+      "filePath": "apps/ops/src/app/layout.tsx",
+      "lineRange": [
+        10,
+        16
+      ],
+      "summary": "React 页面/布局组件 RootLayout。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/app/ops/(console)/restaurants/new/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/new/page.tsx",
+      "summary": "Next.js 页面入口 restaurants/new，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/ops/src/app/ops/(console)/restaurants/new/page.tsx:NewRestaurantPage",
+      "type": "function",
+      "name": "NewRestaurantPage",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/new/page.tsx",
+      "lineRange": [
+        13,
+        137
+      ],
+      "summary": "React 页面/布局组件 NewRestaurantPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/ops/src/app/ops/(console)/restaurants/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/page.tsx",
+      "summary": "Next.js 页面入口 (console)/restaurants，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/app/ops/(console)/restaurants/page.tsx:RestaurantsPage",
+      "type": "function",
+      "name": "RestaurantsPage",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/page.tsx",
+      "lineRange": [
+        4,
+        10
+      ],
+      "summary": "React 页面/布局组件 RestaurantsPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/app/ops/(console)/restaurants/RestaurantsListClient.tsx",
+      "type": "file",
+      "name": "RestaurantsListClient.tsx",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/RestaurantsListClient.tsx",
+      "summary": "源码文件 apps/ops/src/app/ops/(console)/restaurants/RestaurantsListClient.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/ops/src/app/ops/(console)/restaurants/RestaurantsListClient.tsx:RestaurantsListClient",
+      "type": "function",
+      "name": "RestaurantsListClient",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/RestaurantsListClient.tsx",
+      "lineRange": [
+        17,
+        182
+      ],
+      "summary": "导出的 React 组件或类 RestaurantsListClient。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/ops/src/app/ops/bootstrap/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/ops/src/app/ops/bootstrap/page.tsx",
+      "summary": "Next.js 页面入口 ops/bootstrap，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/ops/src/app/ops/bootstrap/page.tsx:OpsBootstrapPage",
+      "type": "function",
+      "name": "OpsBootstrapPage",
+      "filePath": "apps/ops/src/app/ops/bootstrap/page.tsx",
+      "lineRange": [
+        8,
+        110
+      ],
+      "summary": "React 页面/布局组件 OpsBootstrapPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/ops/src/app/ops/login/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/ops/src/app/ops/login/page.tsx",
+      "summary": "Next.js 页面入口 ops/login，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/ops/src/app/ops/login/page.tsx:OpsLoginForm",
+      "type": "function",
+      "name": "OpsLoginForm",
+      "filePath": "apps/ops/src/app/ops/login/page.tsx",
+      "lineRange": [
+        8,
+        82
+      ],
+      "summary": "函数 OpsLoginForm，实现 page 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/ops/src/app/ops/login/page.tsx:OpsLoginPage",
+      "type": "function",
+      "name": "OpsLoginPage",
+      "filePath": "apps/ops/src/app/ops/login/page.tsx",
+      "lineRange": [
+        84,
+        92
+      ],
+      "summary": "React 页面/布局组件 OpsLoginPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/app/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/ops/src/app/page.tsx",
+      "summary": "Next.js 页面入口 src/app，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/app/page.tsx:OpsHomePage",
+      "type": "function",
+      "name": "OpsHomePage",
+      "filePath": "apps/ops/src/app/page.tsx",
+      "lineRange": [
+        3,
+        5
+      ],
+      "summary": "React 页面/布局组件 OpsHomePage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/middleware.ts",
+      "type": "file",
+      "name": "middleware.ts",
+      "filePath": "apps/ops/src/middleware.ts",
+      "summary": "源码文件 apps/ops/src/middleware.ts，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/middleware.ts:middleware",
+      "type": "function",
+      "name": "middleware",
+      "filePath": "apps/ops/src/middleware.ts",
+      "lineRange": [
+        10,
+        53
+      ],
+      "summary": "函数 middleware，实现 middleware 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/tailwind.config.ts",
+      "type": "file",
+      "name": "tailwind.config.ts",
+      "filePath": "apps/ops/tailwind.config.ts",
+      "summary": "源码文件 apps/ops/tailwind.config.ts，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/agent_bootstrap.go",
+      "type": "file",
+      "name": "agent_bootstrap.go",
+      "filePath": "apps/print-agent/agent_bootstrap.go",
+      "summary": "Go 模块 agent_bootstrap.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/agent_bootstrap.go:initAgentSession",
+      "type": "function",
+      "name": "initAgentSession",
+      "filePath": "apps/print-agent/agent_bootstrap.go",
+      "lineRange": [
+        17,
+        118
+      ],
+      "summary": "函数 initAgentSession，实现 agent_bootstrap 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/agent_bootstrap.go:Error",
+      "type": "function",
+      "name": "Error",
+      "filePath": "apps/print-agent/agent_bootstrap.go",
+      "lineRange": [
+        124,
+        124
+      ],
+      "summary": "导出的 React 组件或类 Error。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/agent_entry_stub.go",
+      "type": "file",
+      "name": "agent_entry_stub.go",
+      "filePath": "apps/print-agent/agent_entry_stub.go",
+      "summary": "Go 模块 agent_entry_stub.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/agent_entry_windows.go",
+      "type": "file",
+      "name": "agent_entry_windows.go",
+      "filePath": "apps/print-agent/agent_entry_windows.go",
+      "summary": "Go 模块 agent_entry_windows.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/print-agent/agent_entry_windows.go:runAgent",
+      "type": "function",
+      "name": "runAgent",
+      "filePath": "apps/print-agent/agent_entry_windows.go",
+      "lineRange": [
+        48,
+        60
+      ],
+      "summary": "函数 runAgent，实现 agent_entry_windows 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/agent_entry_windows.go:runAgentTrayFirst",
+      "type": "function",
+      "name": "runAgentTrayFirst",
+      "filePath": "apps/print-agent/agent_entry_windows.go",
+      "lineRange": [
+        62,
+        108
+      ],
+      "summary": "函数 runAgentTrayFirst，实现 agent_entry_windows 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/agent_entry_windows.go:onTrayReady",
+      "type": "function",
+      "name": "onTrayReady",
+      "filePath": "apps/print-agent/agent_entry_windows.go",
+      "lineRange": [
+        110,
+        243
+      ],
+      "summary": "函数 onTrayReady，实现 agent_entry_windows 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:apps/print-agent/agent_entry_windows.go:trayRuntime",
+      "type": "class",
+      "name": "trayRuntime",
+      "filePath": "apps/print-agent/agent_entry_windows.go",
+      "lineRange": [
+        17,
+        27
+      ],
+      "summary": "类 trayRuntime，封装 agent_entry_windows 中的状态与行为。",
+      "tags": [
+        "data-model",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/agent_log_windows.go",
+      "type": "file",
+      "name": "agent_log_windows.go",
+      "filePath": "apps/print-agent/agent_log_windows.go",
+      "summary": "Go 模块 agent_log_windows.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/agent_log_windows.go:agentDataDir",
+      "type": "function",
+      "name": "agentDataDir",
+      "filePath": "apps/print-agent/agent_log_windows.go",
+      "lineRange": [
+        18,
+        27
+      ],
+      "summary": "函数 agentDataDir，实现 agent_log_windows 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/agent_log_windows.go:initWindowsAgentLog",
+      "type": "function",
+      "name": "initWindowsAgentLog",
+      "filePath": "apps/print-agent/agent_log_windows.go",
+      "lineRange": [
+        29,
+        42
+      ],
+      "summary": "函数 initWindowsAgentLog，实现 agent_log_windows 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/agent_log_windows.go:rotateAgentLog",
+      "type": "function",
+      "name": "rotateAgentLog",
+      "filePath": "apps/print-agent/agent_log_windows.go",
+      "lineRange": [
+        44,
+        59
+      ],
+      "summary": "函数 rotateAgentLog，实现 agent_log_windows 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/agent_log.go",
+      "type": "file",
+      "name": "agent_log.go",
+      "filePath": "apps/print-agent/agent_log.go",
+      "summary": "Go 模块 agent_log.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/agent_log.go:agentLogTech",
+      "type": "function",
+      "name": "agentLogTech",
+      "filePath": "apps/print-agent/agent_log.go",
+      "lineRange": [
+        46,
+        56
+      ],
+      "summary": "函数 agentLogTech，实现 agent_log 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/agent_patch.go",
+      "type": "file",
+      "name": "agent_patch.go",
+      "filePath": "apps/print-agent/agent_patch.go",
+      "summary": "Go 模块 agent_patch.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/agent_patch.go:patchJobStatus",
+      "type": "function",
+      "name": "patchJobStatus",
+      "filePath": "apps/print-agent/agent_patch.go",
+      "lineRange": [
+        9,
+        29
+      ],
+      "summary": "函数 patchJobStatus，实现 agent_patch 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/agent_poll.go",
+      "type": "file",
+      "name": "agent_poll.go",
+      "filePath": "apps/print-agent/agent_poll.go",
+      "summary": "Go 模块 agent_poll.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/print-agent/agent_poll.go:runPollLoop",
+      "type": "function",
+      "name": "runPollLoop",
+      "filePath": "apps/print-agent/agent_poll.go",
+      "lineRange": [
+        10,
+        277
+      ],
+      "summary": "函数 runPollLoop，实现 agent_poll 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/print-agent/agent_poll.go:sleepOrCancel",
+      "type": "function",
+      "name": "sleepOrCancel",
+      "filePath": "apps/print-agent/agent_poll.go",
+      "lineRange": [
+        279,
+        293
+      ],
+      "summary": "函数 sleepOrCancel，实现 agent_poll 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/agent_queue_test.go",
+      "type": "file",
+      "name": "agent_queue_test.go",
+      "filePath": "apps/print-agent/agent_queue_test.go",
+      "summary": "Go 单元测试 agent_queue_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/agent_queue_test.go:TestDeferBlockedHead_singleClears",
+      "type": "function",
+      "name": "TestDeferBlockedHead_singleClears",
+      "filePath": "apps/print-agent/agent_queue_test.go",
+      "lineRange": [
+        5,
+        12
+      ],
+      "summary": "导出的 React 组件或类 TestDeferBlockedHead_singleClears。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/agent_queue_test.go:TestDeferBlockedHead_rotatesThenExhausts",
+      "type": "function",
+      "name": "TestDeferBlockedHead_rotatesThenExhausts",
+      "filePath": "apps/print-agent/agent_queue_test.go",
+      "lineRange": [
+        14,
+        26
+      ],
+      "summary": "导出的 React 组件或类 TestDeferBlockedHead_rotatesThenExhausts。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/agent_queue.go",
+      "type": "file",
+      "name": "agent_queue.go",
+      "filePath": "apps/print-agent/agent_queue.go",
+      "summary": "Go 模块 agent_queue.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/agent_queue.go:deferBlockedHead",
+      "type": "function",
+      "name": "deferBlockedHead",
+      "filePath": "apps/print-agent/agent_queue.go",
+      "lineRange": [
+        5,
+        20
+      ],
+      "summary": "函数 deferBlockedHead，实现 agent_queue 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/agent_status_test.go",
+      "type": "file",
+      "name": "agent_status_test.go",
+      "filePath": "apps/print-agent/agent_status_test.go",
+      "summary": "Go 单元测试 agent_status_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/agent_status_test.go:TestTrayLevelForSummary",
+      "type": "function",
+      "name": "TestTrayLevelForSummary",
+      "filePath": "apps/print-agent/agent_status_test.go",
+      "lineRange": [
+        5,
+        21
+      ],
+      "summary": "导出的 React 组件或类 TestTrayLevelForSummary。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/agent_status_test.go:TestTrayUserSummaryLocalized",
+      "type": "function",
+      "name": "TestTrayUserSummaryLocalized",
+      "filePath": "apps/print-agent/agent_status_test.go",
+      "lineRange": [
+        23,
+        33
+      ],
+      "summary": "导出的 React 组件或类 TestTrayUserSummaryLocalized。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/agent_status.go",
+      "type": "file",
+      "name": "agent_status.go",
+      "filePath": "apps/print-agent/agent_status.go",
+      "summary": "Go 模块 agent_status.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/agent_status.go:trayLevelForSummary",
+      "type": "function",
+      "name": "trayLevelForSummary",
+      "filePath": "apps/print-agent/agent_status.go",
+      "lineRange": [
+        40,
+        49
+      ],
+      "summary": "函数 trayLevelForSummary，实现 agent_status 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/agent_status.go:trayUserSummary",
+      "type": "function",
+      "name": "trayUserSummary",
+      "filePath": "apps/print-agent/agent_status.go",
+      "lineRange": [
+        66,
+        101
+      ],
+      "summary": "函数 trayUserSummary，实现 agent_status 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/agent_status.go:trayUserDetail",
+      "type": "function",
+      "name": "trayUserDetail",
+      "filePath": "apps/print-agent/agent_status.go",
+      "lineRange": [
+        103,
+        140
+      ],
+      "summary": "函数 trayUserDetail，实现 agent_status 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/agent_status.go:menuStatusLine",
+      "type": "function",
+      "name": "menuStatusLine",
+      "filePath": "apps/print-agent/agent_status.go",
+      "lineRange": [
+        152,
+        163
+      ],
+      "summary": "函数 menuStatusLine，实现 agent_status 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:apps/print-agent/agent_status.go:agentStatus",
+      "type": "class",
+      "name": "agentStatus",
+      "filePath": "apps/print-agent/agent_status.go",
+      "lineRange": [
+        20,
+        24
+      ],
+      "summary": "类 agentStatus，封装 agent_status 中的状态与行为。",
+      "tags": [
+        "data-model",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/brand_test.go",
+      "type": "file",
+      "name": "brand_test.go",
+      "filePath": "apps/print-agent/brand_test.go",
+      "summary": "Go 单元测试 brand_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/brand_test.go:TestBrandConstants",
+      "type": "function",
+      "name": "TestBrandConstants",
+      "filePath": "apps/print-agent/brand_test.go",
+      "lineRange": [
+        5,
+        15
+      ],
+      "summary": "导出的 React 组件或类 TestBrandConstants。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/ops/src/app/layout.tsx",
+      "target": "function:apps/ops/src/app/layout.tsx:RootLayout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/ops/src/app/layout.tsx",
+      "target": "function:apps/ops/src/app/layout.tsx:RootLayout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/app/layout.tsx",
+      "target": "file:apps/ops/src/app/globals.css",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/new/page.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/new/page.tsx:NewRestaurantPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/new/page.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/new/page.tsx:NewRestaurantPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/page.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/page.tsx:RestaurantsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/page.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/page.tsx:RestaurantsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/page.tsx",
+      "target": "file:apps/ops/src/app/ops/(console)/restaurants/RestaurantsListClient.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/RestaurantsListClient.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/RestaurantsListClient.tsx:RestaurantsListClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/RestaurantsListClient.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/RestaurantsListClient.tsx:RestaurantsListClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/bootstrap/page.tsx",
+      "target": "function:apps/ops/src/app/ops/bootstrap/page.tsx:OpsBootstrapPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/bootstrap/page.tsx",
+      "target": "function:apps/ops/src/app/ops/bootstrap/page.tsx:OpsBootstrapPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/login/page.tsx",
+      "target": "function:apps/ops/src/app/ops/login/page.tsx:OpsLoginForm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/login/page.tsx",
+      "target": "function:apps/ops/src/app/ops/login/page.tsx:OpsLoginPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/login/page.tsx",
+      "target": "function:apps/ops/src/app/ops/login/page.tsx:OpsLoginPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/app/page.tsx",
+      "target": "function:apps/ops/src/app/page.tsx:OpsHomePage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/ops/src/app/page.tsx",
+      "target": "function:apps/ops/src/app/page.tsx:OpsHomePage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/middleware.ts",
+      "target": "function:apps/ops/src/middleware.ts:middleware",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/ops/src/middleware.ts",
+      "target": "function:apps/ops/src/middleware.ts:middleware",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/agent_bootstrap.go",
+      "target": "function:apps/print-agent/agent_bootstrap.go:initAgentSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_bootstrap.go",
+      "target": "function:apps/print-agent/agent_bootstrap.go:Error",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_bootstrap.go",
+      "target": "function:apps/print-agent/agent_bootstrap.go:Error",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/agent_entry_windows.go",
+      "target": "function:apps/print-agent/agent_entry_windows.go:runAgent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_entry_windows.go",
+      "target": "function:apps/print-agent/agent_entry_windows.go:runAgentTrayFirst",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_entry_windows.go",
+      "target": "function:apps/print-agent/agent_entry_windows.go:onTrayReady",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_entry_windows.go",
+      "target": "class:apps/print-agent/agent_entry_windows.go:trayRuntime",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/agent_entry_windows.go:runAgent",
+      "target": "function:apps/print-agent/agent_entry_windows.go:runAgentTrayFirst",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/agent_entry_windows.go:runAgentTrayFirst",
+      "target": "function:apps/print-agent/agent_entry_windows.go:onTrayReady",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/agent_log_windows.go",
+      "target": "function:apps/print-agent/agent_log_windows.go:agentDataDir",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_log_windows.go",
+      "target": "function:apps/print-agent/agent_log_windows.go:initWindowsAgentLog",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_log_windows.go",
+      "target": "function:apps/print-agent/agent_log_windows.go:rotateAgentLog",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/agent_log_windows.go:initWindowsAgentLog",
+      "target": "function:apps/print-agent/agent_log_windows.go:agentDataDir",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/agent_log_windows.go:initWindowsAgentLog",
+      "target": "function:apps/print-agent/agent_log_windows.go:rotateAgentLog",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/agent_log.go",
+      "target": "function:apps/print-agent/agent_log.go:agentLogTech",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_patch.go",
+      "target": "function:apps/print-agent/agent_patch.go:patchJobStatus",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_poll.go",
+      "target": "function:apps/print-agent/agent_poll.go:runPollLoop",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_poll.go",
+      "target": "function:apps/print-agent/agent_poll.go:sleepOrCancel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/agent_poll.go:runPollLoop",
+      "target": "function:apps/print-agent/agent_poll.go:sleepOrCancel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/agent_poll.go:runPollLoop",
+      "target": "function:apps/print-agent/agent_poll.go:sleepOrCancel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/agent_poll.go:runPollLoop",
+      "target": "function:apps/print-agent/agent_poll.go:sleepOrCancel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/agent_poll.go:runPollLoop",
+      "target": "function:apps/print-agent/agent_poll.go:sleepOrCancel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/agent_poll.go:runPollLoop",
+      "target": "function:apps/print-agent/agent_poll.go:sleepOrCancel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/agent_poll.go:runPollLoop",
+      "target": "function:apps/print-agent/agent_poll.go:sleepOrCancel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/agent_poll.go:runPollLoop",
+      "target": "function:apps/print-agent/agent_poll.go:sleepOrCancel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/agent_poll.go:runPollLoop",
+      "target": "function:apps/print-agent/agent_poll.go:sleepOrCancel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/agent_poll.go:runPollLoop",
+      "target": "function:apps/print-agent/agent_poll.go:sleepOrCancel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/agent_queue_test.go",
+      "target": "function:apps/print-agent/agent_queue_test.go:TestDeferBlockedHead_singleClears",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_queue_test.go",
+      "target": "function:apps/print-agent/agent_queue_test.go:TestDeferBlockedHead_singleClears",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/agent_queue_test.go",
+      "target": "function:apps/print-agent/agent_queue_test.go:TestDeferBlockedHead_rotatesThenExhausts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_queue_test.go",
+      "target": "function:apps/print-agent/agent_queue_test.go:TestDeferBlockedHead_rotatesThenExhausts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/agent_queue.go",
+      "target": "function:apps/print-agent/agent_queue.go:deferBlockedHead",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_status_test.go",
+      "target": "function:apps/print-agent/agent_status_test.go:TestTrayLevelForSummary",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_status_test.go",
+      "target": "function:apps/print-agent/agent_status_test.go:TestTrayLevelForSummary",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/agent_status_test.go",
+      "target": "function:apps/print-agent/agent_status_test.go:TestTrayUserSummaryLocalized",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_status_test.go",
+      "target": "function:apps/print-agent/agent_status_test.go:TestTrayUserSummaryLocalized",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/agent_status.go",
+      "target": "function:apps/print-agent/agent_status.go:trayLevelForSummary",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_status.go",
+      "target": "function:apps/print-agent/agent_status.go:trayUserSummary",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_status.go",
+      "target": "function:apps/print-agent/agent_status.go:trayUserDetail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_status.go",
+      "target": "function:apps/print-agent/agent_status.go:menuStatusLine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/agent_status.go",
+      "target": "class:apps/print-agent/agent_status.go:agentStatus",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/brand_test.go",
+      "target": "function:apps/print-agent/brand_test.go:TestBrandConstants",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/brand_test.go",
+      "target": "function:apps/print-agent/brand_test.go:TestBrandConstants",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

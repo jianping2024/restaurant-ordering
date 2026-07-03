@@ -1,0 +1,907 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/print-agent/job_route_test.go",
+      "type": "file",
+      "name": "job_route_test.go",
+      "filePath": "apps/print-agent/job_route_test.go",
+      "summary": "Go 单元测试 job_route_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/job_route_test.go:TestReorderQueueAwayFromPrinter",
+      "type": "function",
+      "name": "TestReorderQueueAwayFromPrinter",
+      "filePath": "apps/print-agent/job_route_test.go",
+      "lineRange": [
+        5,
+        23
+      ],
+      "summary": "导出的 React 组件或类 TestReorderQueueAwayFromPrinter。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/job_route_test.go:TestReorderQueueAwayFromPrinter_allSameBlocked",
+      "type": "function",
+      "name": "TestReorderQueueAwayFromPrinter_allSameBlocked",
+      "filePath": "apps/print-agent/job_route_test.go",
+      "lineRange": [
+        25,
+        34
+      ],
+      "summary": "导出的 React 组件或类 TestReorderQueueAwayFromPrinter_allSameBlocked。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/job_route_test.go:TestJobRouteStationID",
+      "type": "function",
+      "name": "TestJobRouteStationID",
+      "filePath": "apps/print-agent/job_route_test.go",
+      "lineRange": [
+        36,
+        42
+      ],
+      "summary": "导出的 React 组件或类 TestJobRouteStationID。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/job_route.go",
+      "type": "file",
+      "name": "job_route.go",
+      "filePath": "apps/print-agent/job_route.go",
+      "summary": "Go 模块 job_route.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/job_route.go:jobRouteStationID",
+      "type": "function",
+      "name": "jobRouteStationID",
+      "filePath": "apps/print-agent/job_route.go",
+      "lineRange": [
+        9,
+        34
+      ],
+      "summary": "函数 jobRouteStationID，实现 job_route 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/job_route.go:reorderQueueAwayFromPrinter",
+      "type": "function",
+      "name": "reorderQueueAwayFromPrinter",
+      "filePath": "apps/print-agent/job_route.go",
+      "lineRange": [
+        38,
+        59
+      ],
+      "summary": "函数 reorderQueueAwayFromPrinter，实现 job_route 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/log_strings.go",
+      "type": "file",
+      "name": "log_strings.go",
+      "filePath": "apps/print-agent/log_strings.go",
+      "summary": "Go 模块 log_strings.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/log_strings.go:init",
+      "type": "function",
+      "name": "init",
+      "filePath": "apps/print-agent/log_strings.go",
+      "lineRange": [
+        3,
+        13
+      ],
+      "summary": "函数 init，实现 log_strings 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/log_strings.go:logStringsZH",
+      "type": "function",
+      "name": "logStringsZH",
+      "filePath": "apps/print-agent/log_strings.go",
+      "lineRange": [
+        15,
+        64
+      ],
+      "summary": "函数 logStringsZH，实现 log_strings 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/log_strings.go:logStringsEN",
+      "type": "function",
+      "name": "logStringsEN",
+      "filePath": "apps/print-agent/log_strings.go",
+      "lineRange": [
+        66,
+        115
+      ],
+      "summary": "函数 logStringsEN，实现 log_strings 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/log_strings.go:logStringsPT",
+      "type": "function",
+      "name": "logStringsPT",
+      "filePath": "apps/print-agent/log_strings.go",
+      "lineRange": [
+        117,
+        166
+      ],
+      "summary": "函数 logStringsPT，实现 log_strings 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/main.go",
+      "type": "file",
+      "name": "main.go",
+      "filePath": "apps/print-agent/main.go",
+      "summary": "Go 打印代理主程序入口，启动 HTTP 服务与打印机轮询。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/print-agent/main.go:claim",
+      "type": "function",
+      "name": "claim",
+      "filePath": "apps/print-agent/main.go",
+      "lineRange": [
+        30,
+        69
+      ],
+      "summary": "函数 claim，实现 main 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/main.go:fetchPending",
+      "type": "function",
+      "name": "fetchPending",
+      "filePath": "apps/print-agent/main.go",
+      "lineRange": [
+        79,
+        101
+      ],
+      "summary": "数据加载函数 fetchPending，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/main.go:patchJob",
+      "type": "function",
+      "name": "patchJob",
+      "filePath": "apps/print-agent/main.go",
+      "lineRange": [
+        103,
+        121
+      ],
+      "summary": "函数 patchJob，实现 main 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/main.go:summarizeJobPayload",
+      "type": "function",
+      "name": "summarizeJobPayload",
+      "filePath": "apps/print-agent/main.go",
+      "lineRange": [
+        123,
+        150
+      ],
+      "summary": "函数 summarizeJobPayload，实现 main 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/main.go:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "apps/print-agent/main.go",
+      "lineRange": [
+        152,
+        226
+      ],
+      "summary": "函数 main，实现 main 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/notify_credential_stub.go",
+      "type": "file",
+      "name": "notify_credential_stub.go",
+      "filePath": "apps/print-agent/notify_credential_stub.go",
+      "summary": "Go 模块 notify_credential_stub.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/notify_credential_windows.go",
+      "type": "file",
+      "name": "notify_credential_windows.go",
+      "filePath": "apps/print-agent/notify_credential_windows.go",
+      "summary": "Go 模块 notify_credential_windows.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/notify_credential_windows.go:maybeNotifyCredentialRenewal",
+      "type": "function",
+      "name": "maybeNotifyCredentialRenewal",
+      "filePath": "apps/print-agent/notify_credential_windows.go",
+      "lineRange": [
+        14,
+        41
+      ],
+      "summary": "函数 maybeNotifyCredentialRenewal，实现 notify_credential_windows 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/notify_version_stub.go",
+      "type": "file",
+      "name": "notify_version_stub.go",
+      "filePath": "apps/print-agent/notify_version_stub.go",
+      "summary": "Go 模块 notify_version_stub.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/notify_version_windows.go",
+      "type": "file",
+      "name": "notify_version_windows.go",
+      "filePath": "apps/print-agent/notify_version_windows.go",
+      "summary": "Go 模块 notify_version_windows.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/notify_version_windows.go:maybeNotifyVersionUpgrade",
+      "type": "function",
+      "name": "maybeNotifyVersionUpgrade",
+      "filePath": "apps/print-agent/notify_version_windows.go",
+      "lineRange": [
+        14,
+        36
+      ],
+      "summary": "函数 maybeNotifyVersionUpgrade，实现 notify_version_windows 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/notify_windows.go",
+      "type": "file",
+      "name": "notify_windows.go",
+      "filePath": "apps/print-agent/notify_windows.go",
+      "summary": "Go 模块 notify_windows.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/notify_windows.go:maybeNotifyTrayReady",
+      "type": "function",
+      "name": "maybeNotifyTrayReady",
+      "filePath": "apps/print-agent/notify_windows.go",
+      "lineRange": [
+        11,
+        24
+      ],
+      "summary": "函数 maybeNotifyTrayReady，实现 notify_windows 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/pair_wizard_test.go",
+      "type": "file",
+      "name": "pair_wizard_test.go",
+      "filePath": "apps/print-agent/pair_wizard_test.go",
+      "summary": "Go 单元测试 pair_wizard_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/pair_wizard_test.go:TestNormalizeAPIBase",
+      "type": "function",
+      "name": "TestNormalizeAPIBase",
+      "filePath": "apps/print-agent/pair_wizard_test.go",
+      "lineRange": [
+        5,
+        14
+      ],
+      "summary": "导出的 React 组件或类 TestNormalizeAPIBase。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/pair_wizard_test.go:TestDedupePrinterList",
+      "type": "function",
+      "name": "TestDedupePrinterList",
+      "filePath": "apps/print-agent/pair_wizard_test.go",
+      "lineRange": [
+        16,
+        28
+      ],
+      "summary": "导出的 React 组件或类 TestDedupePrinterList。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/pair_wizard.go",
+      "type": "file",
+      "name": "pair_wizard.go",
+      "filePath": "apps/print-agent/pair_wizard.go",
+      "summary": "Go 模块 pair_wizard.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/pair_wizard.go:normalizeAPIBase",
+      "type": "function",
+      "name": "normalizeAPIBase",
+      "filePath": "apps/print-agent/pair_wizard.go",
+      "lineRange": [
+        36,
+        52
+      ],
+      "summary": "解析/规范化工具函数 normalizeAPIBase。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/pair_wizard.go:pickLocalListenAddr",
+      "type": "function",
+      "name": "pickLocalListenAddr",
+      "filePath": "apps/print-agent/pair_wizard.go",
+      "lineRange": [
+        54,
+        65
+      ],
+      "summary": "函数 pickLocalListenAddr，实现 pair_wizard 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/pair_wizard.go:runPairingWizard",
+      "type": "function",
+      "name": "runPairingWizard",
+      "filePath": "apps/print-agent/pair_wizard.go",
+      "lineRange": [
+        69,
+        102
+      ],
+      "summary": "函数 runPairingWizard，实现 pair_wizard 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/poll_log_throttle.go",
+      "type": "file",
+      "name": "poll_log_throttle.go",
+      "filePath": "apps/print-agent/poll_log_throttle.go",
+      "summary": "Go 模块 poll_log_throttle.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/poll_log_throttle.go:allow",
+      "type": "function",
+      "name": "allow",
+      "filePath": "apps/print-agent/poll_log_throttle.go",
+      "lineRange": [
+        9,
+        22
+      ],
+      "summary": "函数 allow，实现 poll_log_throttle 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/poll.go",
+      "type": "file",
+      "name": "poll.go",
+      "filePath": "apps/print-agent/poll.go",
+      "summary": "Go 模块 poll.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/poll.go:defaultPollConfig",
+      "type": "function",
+      "name": "defaultPollConfig",
+      "filePath": "apps/print-agent/poll.go",
+      "lineRange": [
+        18,
+        28
+      ],
+      "summary": "函数 defaultPollConfig，实现 poll 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/poll.go:normalized",
+      "type": "function",
+      "name": "normalized",
+      "filePath": "apps/print-agent/poll.go",
+      "lineRange": [
+        30,
+        61
+      ],
+      "summary": "解析/规范化工具函数 normalized。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/poll.go:newPollController",
+      "type": "function",
+      "name": "newPollController",
+      "filePath": "apps/print-agent/poll.go",
+      "lineRange": [
+        70,
+        81
+      ],
+      "summary": "函数 newPollController，实现 poll 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/poll.go:closedSleep",
+      "type": "function",
+      "name": "closedSleep",
+      "filePath": "apps/print-agent/poll.go",
+      "lineRange": [
+        101,
+        117
+      ],
+      "summary": "函数 closedSleep，实现 poll 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/poll.go:phase",
+      "type": "function",
+      "name": "phase",
+      "filePath": "apps/print-agent/poll.go",
+      "lineRange": [
+        130,
+        151
+      ],
+      "summary": "函数 phase，实现 poll 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/poll.go:sleepFor",
+      "type": "function",
+      "name": "sleepFor",
+      "filePath": "apps/print-agent/poll.go",
+      "lineRange": [
+        153,
+        172
+      ],
+      "summary": "函数 sleepFor，实现 poll 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:apps/print-agent/poll.go:pollController",
+      "type": "class",
+      "name": "pollController",
+      "filePath": "apps/print-agent/poll.go",
+      "lineRange": [
+        63,
+        68
+      ],
+      "summary": "类 pollController，封装 poll 中的状态与行为。",
+      "tags": [
+        "data-model",
+        "typescript"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/print-agent/job_route_test.go",
+      "target": "function:apps/print-agent/job_route_test.go:TestReorderQueueAwayFromPrinter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/job_route_test.go",
+      "target": "function:apps/print-agent/job_route_test.go:TestReorderQueueAwayFromPrinter",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/job_route_test.go",
+      "target": "function:apps/print-agent/job_route_test.go:TestReorderQueueAwayFromPrinter_allSameBlocked",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/job_route_test.go",
+      "target": "function:apps/print-agent/job_route_test.go:TestReorderQueueAwayFromPrinter_allSameBlocked",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/job_route_test.go",
+      "target": "function:apps/print-agent/job_route_test.go:TestJobRouteStationID",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/job_route_test.go",
+      "target": "function:apps/print-agent/job_route_test.go:TestJobRouteStationID",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/job_route.go",
+      "target": "function:apps/print-agent/job_route.go:jobRouteStationID",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/job_route.go",
+      "target": "function:apps/print-agent/job_route.go:reorderQueueAwayFromPrinter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/log_strings.go",
+      "target": "function:apps/print-agent/log_strings.go:init",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/log_strings.go",
+      "target": "function:apps/print-agent/log_strings.go:logStringsZH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/log_strings.go",
+      "target": "function:apps/print-agent/log_strings.go:logStringsEN",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/log_strings.go",
+      "target": "function:apps/print-agent/log_strings.go:logStringsPT",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/log_strings.go:init",
+      "target": "function:apps/print-agent/log_strings.go:logStringsZH",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/log_strings.go:init",
+      "target": "function:apps/print-agent/log_strings.go:logStringsEN",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/log_strings.go:init",
+      "target": "function:apps/print-agent/log_strings.go:logStringsPT",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/main.go",
+      "target": "function:apps/print-agent/main.go:claim",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/main.go",
+      "target": "function:apps/print-agent/main.go:fetchPending",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/main.go",
+      "target": "function:apps/print-agent/main.go:patchJob",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/main.go",
+      "target": "function:apps/print-agent/main.go:summarizeJobPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/main.go",
+      "target": "function:apps/print-agent/main.go:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/notify_credential_windows.go",
+      "target": "function:apps/print-agent/notify_credential_windows.go:maybeNotifyCredentialRenewal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/notify_version_windows.go",
+      "target": "function:apps/print-agent/notify_version_windows.go:maybeNotifyVersionUpgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/notify_windows.go",
+      "target": "function:apps/print-agent/notify_windows.go:maybeNotifyTrayReady",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/pair_wizard_test.go",
+      "target": "function:apps/print-agent/pair_wizard_test.go:TestNormalizeAPIBase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/pair_wizard_test.go",
+      "target": "function:apps/print-agent/pair_wizard_test.go:TestNormalizeAPIBase",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/pair_wizard_test.go",
+      "target": "function:apps/print-agent/pair_wizard_test.go:TestDedupePrinterList",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/pair_wizard_test.go",
+      "target": "function:apps/print-agent/pair_wizard_test.go:TestDedupePrinterList",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/pair_wizard.go",
+      "target": "function:apps/print-agent/pair_wizard.go:normalizeAPIBase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/pair_wizard.go",
+      "target": "function:apps/print-agent/pair_wizard.go:pickLocalListenAddr",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/pair_wizard.go",
+      "target": "function:apps/print-agent/pair_wizard.go:runPairingWizard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/pair_wizard.go:runPairingWizard",
+      "target": "function:apps/print-agent/pair_wizard.go:pickLocalListenAddr",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/pair_wizard.go:runPairingWizard",
+      "target": "function:apps/print-agent/pair_wizard.go:normalizeAPIBase",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/poll_log_throttle.go",
+      "target": "function:apps/print-agent/poll_log_throttle.go:allow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/poll.go",
+      "target": "function:apps/print-agent/poll.go:defaultPollConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/poll.go",
+      "target": "function:apps/print-agent/poll.go:normalized",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/poll.go",
+      "target": "function:apps/print-agent/poll.go:newPollController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/poll.go",
+      "target": "function:apps/print-agent/poll.go:closedSleep",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/poll.go",
+      "target": "function:apps/print-agent/poll.go:phase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/poll.go",
+      "target": "function:apps/print-agent/poll.go:sleepFor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/poll.go",
+      "target": "class:apps/print-agent/poll.go:pollController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/poll.go:normalized",
+      "target": "function:apps/print-agent/poll.go:defaultPollConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

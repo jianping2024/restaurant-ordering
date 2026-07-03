@@ -1,0 +1,1166 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/components/menu/BillPage.tsx",
+      "type": "file",
+      "name": "BillPage.tsx",
+      "filePath": "apps/web/src/components/menu/BillPage.tsx",
+      "summary": "顾客结账核心客户端组件，整合账单同步、按人/按菜分账、NIF 校验、结账请求与收据打印。",
+      "tags": [
+        "component",
+        "customer",
+        "checkout",
+        "billing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/menu/BillPage.tsx:BillPage",
+      "type": "function",
+      "name": "BillPage",
+      "filePath": "apps/web/src/components/menu/BillPage.tsx",
+      "lineRange": [
+        64,
+        1109
+      ],
+      "summary": "结账页状态机：账单轮询、分账编辑、结账与支付确认全流程。",
+      "tags": [
+        "component",
+        "checkout"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "type": "file",
+      "name": "BuffetDishAllocator.tsx",
+      "filePath": "apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "summary": "自助餐按人头分账行编辑器，管理消费人姓名与人数分配并检测超额分配。",
+      "tags": [
+        "component",
+        "bill-split",
+        "buffet"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/menu/BuffetDishAllocator.tsx:isRowBuffetOverAllocated",
+      "type": "function",
+      "name": "isRowBuffetOverAllocated",
+      "filePath": "apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "lineRange": [
+        48,
+        67
+      ],
+      "summary": "检测自助餐分账行人数是否超过桌台总人数。",
+      "tags": [
+        "validation",
+        "buffet"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/menu/BuffetDishAllocator.tsx:BuffetDishAllocator",
+      "type": "function",
+      "name": "BuffetDishAllocator",
+      "filePath": "apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "lineRange": [
+        69,
+        185
+      ],
+      "summary": "自助餐分账 UI，编辑每行消费人与 headcount。",
+      "tags": [
+        "component",
+        "buffet"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx",
+      "type": "file",
+      "name": "ByItemConsumerRowRemoveButton.tsx",
+      "filePath": "apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx",
+      "summary": "按菜分账消费行的删除按钮，含无障碍 trash 图标。",
+      "tags": [
+        "component",
+        "bill-split",
+        "ui"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx:TrashIcon",
+      "type": "function",
+      "name": "TrashIcon",
+      "filePath": "apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx",
+      "lineRange": [
+        10,
+        22
+      ],
+      "summary": "内联 SVG 垃圾桶图标。",
+      "tags": [
+        "ui",
+        "icon"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx:ByItemConsumerRowRemoveButton",
+      "type": "function",
+      "name": "ByItemConsumerRowRemoveButton",
+      "filePath": "apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx",
+      "lineRange": [
+        24,
+        37
+      ],
+      "summary": "删除按菜分账消费行的按钮组件。",
+      "tags": [
+        "component",
+        "bill-split"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "type": "file",
+      "name": "ByItemDishAllocator.tsx",
+      "filePath": "apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "summary": "按菜品分账分配器，支持普通菜品行与自助餐行（MenuByItemDishAllocator）两种展示。",
+      "tags": [
+        "component",
+        "bill-split",
+        "menu"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/menu/ByItemDishAllocator.tsx:ByItemDishAllocator",
+      "type": "function",
+      "name": "ByItemDishAllocator",
+      "filePath": "apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "lineRange": [
+        40,
+        77
+      ],
+      "summary": "单菜品分账分配器，渲染多消费人数量行。",
+      "tags": [
+        "component",
+        "bill-split"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/menu/ByItemDishAllocator.tsx:MenuByItemDishAllocator",
+      "type": "function",
+      "name": "MenuByItemDishAllocator",
+      "filePath": "apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "lineRange": [
+        79,
+        182
+      ],
+      "summary": "菜单场景下的按菜分账分配器变体，含菜品列表布局。",
+      "tags": [
+        "component",
+        "bill-split"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/menu/ByItemQtyInput.tsx",
+      "type": "file",
+      "name": "ByItemQtyInput.tsx",
+      "filePath": "apps/web/src/components/menu/ByItemQtyInput.tsx",
+      "summary": "按菜分账数量输入控件，封装份数校验与格式化逻辑。",
+      "tags": [
+        "component",
+        "bill-split",
+        "form"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/menu/ByItemQtyInput.tsx:ByItemQtyInput",
+      "type": "function",
+      "name": "ByItemQtyInput",
+      "filePath": "apps/web/src/components/menu/ByItemQtyInput.tsx",
+      "lineRange": [
+        22,
+        71
+      ],
+      "summary": "份数输入框，联动 bill-split-by-item 校验规则。",
+      "tags": [
+        "component",
+        "form"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/menu/ByItemSplitSection.tsx",
+      "type": "file",
+      "name": "ByItemSplitSection.tsx",
+      "filePath": "apps/web/src/components/menu/ByItemSplitSection.tsx",
+      "summary": "账单页按菜分账区块，汇总订单行并嵌入 ByItemDishAllocator。",
+      "tags": [
+        "component",
+        "bill-split",
+        "billing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/menu/ByItemSplitSection.tsx:ByItemSplitSection",
+      "type": "function",
+      "name": "ByItemSplitSection",
+      "filePath": "apps/web/src/components/menu/ByItemSplitSection.tsx",
+      "lineRange": [
+        25,
+        104
+      ],
+      "summary": "按菜分账区块，构建订单行并协调分配器状态。",
+      "tags": [
+        "component",
+        "bill-split"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/menu/CartDrawer.tsx",
+      "type": "file",
+      "name": "CartDrawer.tsx",
+      "filePath": "apps/web/src/components/menu/CartDrawer.tsx",
+      "summary": "菜单购物车侧滑抽屉，编辑 line 数量/备注、展示合计并提交追加订单。",
+      "tags": [
+        "component",
+        "cart",
+        "ordering"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/menu/CartDrawer.tsx:CartDrawer",
+      "type": "function",
+      "name": "CartDrawer",
+      "filePath": "apps/web/src/components/menu/CartDrawer.tsx",
+      "lineRange": [
+        46,
+        192
+      ],
+      "summary": "购物车抽屉 UI，管理 line items 并触发下单。",
+      "tags": [
+        "component",
+        "cart"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/menu/CartQtyStepper.tsx",
+      "type": "file",
+      "name": "CartQtyStepper.tsx",
+      "filePath": "apps/web/src/components/menu/CartQtyStepper.tsx",
+      "summary": "购物车数量步进器，基于 IntegerInput 增减菜品份数。",
+      "tags": [
+        "component",
+        "cart",
+        "form"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/menu/CartQtyStepper.tsx:CartQtyStepper",
+      "type": "function",
+      "name": "CartQtyStepper",
+      "filePath": "apps/web/src/components/menu/CartQtyStepper.tsx",
+      "lineRange": [
+        16,
+        80
+      ],
+      "summary": "菜品加购数量步进控件。",
+      "tags": [
+        "component",
+        "cart"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/menu/ConsumerNameCombobox.test.ts",
+      "type": "file",
+      "name": "ConsumerNameCombobox.test.ts",
+      "filePath": "apps/web/src/components/menu/ConsumerNameCombobox.test.ts",
+      "summary": "ConsumerNameCombobox 与 consumer-name-roster 逻辑的单元测试。",
+      "tags": [
+        "test",
+        "bill-split",
+        "consumer-name"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/menu/ConsumerNameCombobox.tsx",
+      "type": "file",
+      "name": "ConsumerNameCombobox.tsx",
+      "filePath": "apps/web/src/components/menu/ConsumerNameCombobox.tsx",
+      "summary": "消费人名下拉补全输入框，结合活跃名册提供建议与键盘导航。",
+      "tags": [
+        "component",
+        "bill-split",
+        "combobox"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/menu/ConsumerNameCombobox.tsx:ConsumerNameCombobox",
+      "type": "function",
+      "name": "ConsumerNameCombobox",
+      "filePath": "apps/web/src/components/menu/ConsumerNameCombobox.tsx",
+      "lineRange": [
+        18,
+        153
+      ],
+      "summary": "消费人名输入与下拉建议组合框。",
+      "tags": [
+        "component",
+        "combobox"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/menu/MenuItemCard.tsx",
+      "type": "file",
+      "name": "MenuItemCard.tsx",
+      "filePath": "apps/web/src/components/menu/MenuItemCard.tsx",
+      "summary": "单个菜品卡片 UI，展示价格、描述与 CartQtyStepper 加购控件。",
+      "tags": [
+        "component",
+        "menu",
+        "card"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/menu/MenuItemCard.tsx:MenuItemCard",
+      "type": "function",
+      "name": "MenuItemCard",
+      "filePath": "apps/web/src/components/menu/MenuItemCard.tsx",
+      "lineRange": [
+        15,
+        84
+      ],
+      "summary": "菜单单项卡片，含图片、价格与加购步进器。",
+      "tags": [
+        "component",
+        "menu"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "type": "file",
+      "name": "MenuPage.tsx",
+      "filePath": "apps/web/src/components/menu/MenuPage.tsx",
+      "summary": "顾客点餐主客户端页面，分类浏览菜单、管理购物车、地理门禁校验与下单提交。",
+      "tags": [
+        "component",
+        "customer",
+        "menu",
+        "ordering"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/menu/MenuPage.tsx:MenuPage",
+      "type": "function",
+      "name": "MenuPage",
+      "filePath": "apps/web/src/components/menu/MenuPage.tsx",
+      "lineRange": [
+        59,
+        624
+      ],
+      "summary": "点餐主页：分类 tabs、菜品网格、购物车与提交订单。",
+      "tags": [
+        "component",
+        "menu"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/components/waiter/WaiterOrderQtyMinus.tsx",
+      "type": "file",
+      "name": "WaiterOrderQtyMinus.tsx",
+      "filePath": "apps/web/src/components/waiter/WaiterOrderQtyMinus.tsx",
+      "summary": "服务员端订单项减量按钮，用于调整已点菜品数量。",
+      "tags": [
+        "component",
+        "waiter",
+        "ordering"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterOrderQtyMinus.tsx:WaiterOrderQtyMinus",
+      "type": "function",
+      "name": "WaiterOrderQtyMinus",
+      "filePath": "apps/web/src/components/waiter/WaiterOrderQtyMinus.tsx",
+      "lineRange": [
+        10,
+        22
+      ],
+      "summary": "服务员减量按钮，触发父级 onDecrease 回调。",
+      "tags": [
+        "component",
+        "waiter"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/components/menu/ByItemSplitSection.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/components/ui/Toast.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/lib/bill-split-draft.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/lib/customer-bill-checkout-resume.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/lib/customer-bill-sync.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/lib/menu-item-code.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/lib/number-input.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/lib/order-list-display.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/lib/pt-nif.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/lib/request-checkout-confirm-payment.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/lib/request-checkout-request.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/lib/request-customer-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/lib/request-order-receipt-print.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/lib/split-person-label.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/lib/use-bill-orders.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/lib/use-by-item-split-state.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "function:apps/web/src/components/menu/BillPage.tsx:BillPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "function:apps/web/src/components/menu/BillPage.tsx:BillPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "target": "file:apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "target": "file:apps/web/src/components/menu/ConsumerNameCombobox.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "target": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "target": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "target": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "target": "function:apps/web/src/components/menu/BuffetDishAllocator.tsx:isRowBuffetOverAllocated",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "target": "function:apps/web/src/components/menu/BuffetDishAllocator.tsx:BuffetDishAllocator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "target": "function:apps/web/src/components/menu/BuffetDishAllocator.tsx:BuffetDishAllocator",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx",
+      "target": "function:apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx:TrashIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx",
+      "target": "function:apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx:ByItemConsumerRowRemoveButton",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx",
+      "target": "function:apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx:ByItemConsumerRowRemoveButton",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "target": "file:apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "target": "file:apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "target": "file:apps/web/src/components/menu/ByItemQtyInput.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "target": "file:apps/web/src/components/menu/ConsumerNameCombobox.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "target": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "target": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "target": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "target": "function:apps/web/src/components/menu/ByItemDishAllocator.tsx:ByItemDishAllocator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "target": "function:apps/web/src/components/menu/ByItemDishAllocator.tsx:ByItemDishAllocator",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "target": "function:apps/web/src/components/menu/ByItemDishAllocator.tsx:MenuByItemDishAllocator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemQtyInput.tsx",
+      "target": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemQtyInput.tsx",
+      "target": "function:apps/web/src/components/menu/ByItemQtyInput.tsx:ByItemQtyInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemQtyInput.tsx",
+      "target": "function:apps/web/src/components/menu/ByItemQtyInput.tsx:ByItemQtyInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemSplitSection.tsx",
+      "target": "file:apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemSplitSection.tsx",
+      "target": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemSplitSection.tsx",
+      "target": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemSplitSection.tsx",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemSplitSection.tsx",
+      "target": "file:apps/web/src/lib/menu-item-code.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemSplitSection.tsx",
+      "target": "file:apps/web/src/lib/order-list-display.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemSplitSection.tsx",
+      "target": "function:apps/web/src/components/menu/ByItemSplitSection.tsx:ByItemSplitSection",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemSplitSection.tsx",
+      "target": "function:apps/web/src/components/menu/ByItemSplitSection.tsx:ByItemSplitSection",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/menu/CartDrawer.tsx",
+      "target": "file:apps/web/src/components/menu/CartQtyStepper.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/CartDrawer.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/CartDrawer.tsx",
+      "target": "file:apps/web/src/lib/cart-totals.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/CartDrawer.tsx",
+      "target": "file:apps/web/src/lib/note-presets.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/CartDrawer.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/CartDrawer.tsx",
+      "target": "function:apps/web/src/components/menu/CartDrawer.tsx:CartDrawer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/menu/CartDrawer.tsx",
+      "target": "function:apps/web/src/components/menu/CartDrawer.tsx:CartDrawer",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/menu/CartQtyStepper.tsx",
+      "target": "file:apps/web/src/components/ui/IntegerInput.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/CartQtyStepper.tsx",
+      "target": "function:apps/web/src/components/menu/CartQtyStepper.tsx:CartQtyStepper",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/menu/CartQtyStepper.tsx",
+      "target": "function:apps/web/src/components/menu/CartQtyStepper.tsx:CartQtyStepper",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ConsumerNameCombobox.test.ts",
+      "target": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ConsumerNameCombobox.tsx",
+      "target": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ConsumerNameCombobox.tsx",
+      "target": "function:apps/web/src/components/menu/ConsumerNameCombobox.tsx:ConsumerNameCombobox",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ConsumerNameCombobox.tsx",
+      "target": "function:apps/web/src/components/menu/ConsumerNameCombobox.tsx:ConsumerNameCombobox",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuItemCard.tsx",
+      "target": "file:apps/web/src/components/menu/CartQtyStepper.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuItemCard.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuItemCard.tsx",
+      "target": "function:apps/web/src/components/menu/MenuItemCard.tsx:MenuItemCard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuItemCard.tsx",
+      "target": "function:apps/web/src/components/menu/MenuItemCard.tsx:MenuItemCard",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "file:apps/web/src/components/menu/CartDrawer.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "file:apps/web/src/components/menu/MenuItemCard.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "file:apps/web/src/components/ui/Toast.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "file:apps/web/src/lib/auto-enqueue-station-tickets.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "file:apps/web/src/lib/cart-totals.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "file:apps/web/src/lib/customer-geo-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "file:apps/web/src/lib/customer-menu-order-gate.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "file:apps/web/src/lib/guest-table-ordering.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "file:apps/web/src/lib/i18n/menu-page-messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "file:apps/web/src/lib/order-list-display.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "file:apps/web/src/lib/order-status.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "file:apps/web/src/lib/request-customer-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "function:apps/web/src/components/menu/MenuPage.tsx:MenuPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "function:apps/web/src/components/menu/MenuPage.tsx:MenuPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterOrderQtyMinus.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterOrderQtyMinus.tsx:WaiterOrderQtyMinus",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterOrderQtyMinus.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterOrderQtyMinus.tsx:WaiterOrderQtyMinus",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BillPage.tsx",
+      "target": "file:apps/web/src/components/menu/ByItemSplitSection.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemSplitSection.tsx",
+      "target": "file:apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "target": "file:apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "target": "file:apps/web/src/components/menu/ByItemQtyInput.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "target": "file:apps/web/src/components/menu/ConsumerNameCombobox.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "target": "file:apps/web/src/components/menu/ConsumerNameCombobox.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "target": "file:apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "file:apps/web/src/components/menu/CartDrawer.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "target": "file:apps/web/src/components/menu/MenuItemCard.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/menu/MenuItemCard.tsx",
+      "target": "file:apps/web/src/components/menu/CartQtyStepper.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/menu/CartDrawer.tsx",
+      "target": "file:apps/web/src/components/menu/CartQtyStepper.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/menu/ConsumerNameCombobox.tsx",
+      "target": "file:apps/web/src/components/menu/ConsumerNameCombobox.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:apps/web/src/components/menu/MenuPage.tsx:MenuPage",
+      "target": "function:apps/web/src/lib/auto-enqueue-station-tickets.ts:autoEnqueueStationTicketsAfterSubmit",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

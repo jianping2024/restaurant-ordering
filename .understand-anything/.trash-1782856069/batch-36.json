@@ -1,0 +1,1424 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/print-agent/tray_locale_windows.go",
+      "type": "file",
+      "name": "tray_locale_windows.go",
+      "filePath": "apps/print-agent/tray_locale_windows.go",
+      "summary": "Go 模块 tray_locale_windows.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/tray_shutdown_windows.go",
+      "type": "file",
+      "name": "tray_shutdown_windows.go",
+      "filePath": "apps/print-agent/tray_shutdown_windows.go",
+      "summary": "Go 模块 tray_shutdown_windows.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/tray_shutdown_windows.go:stopTrayAgentWork",
+      "type": "function",
+      "name": "stopTrayAgentWork",
+      "filePath": "apps/print-agent/tray_shutdown_windows.go",
+      "lineRange": [
+        18,
+        27
+      ],
+      "summary": "函数 stopTrayAgentWork，实现 tray_shutdown_windows 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/tray_shutdown_windows.go:requestTrayRestart",
+      "type": "function",
+      "name": "requestTrayRestart",
+      "filePath": "apps/print-agent/tray_shutdown_windows.go",
+      "lineRange": [
+        31,
+        46
+      ],
+      "summary": "函数 requestTrayRestart，实现 tray_shutdown_windows 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/tray_shutdown_windows.go:requestTrayExit",
+      "type": "function",
+      "name": "requestTrayExit",
+      "filePath": "apps/print-agent/tray_shutdown_windows.go",
+      "lineRange": [
+        50,
+        59
+      ],
+      "summary": "函数 requestTrayExit，实现 tray_shutdown_windows 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/tray_ui_locale_test.go",
+      "type": "file",
+      "name": "tray_ui_locale_test.go",
+      "filePath": "apps/print-agent/tray_ui_locale_test.go",
+      "summary": "Go 单元测试 tray_ui_locale_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/tray_ui_locale_test.go:TestSetTrayUILocalePersists",
+      "type": "function",
+      "name": "TestSetTrayUILocalePersists",
+      "filePath": "apps/print-agent/tray_ui_locale_test.go",
+      "lineRange": [
+        11,
+        27
+      ],
+      "summary": "导出的 React 组件或类 TestSetTrayUILocalePersists。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/tray_ui_locale_test.go:TestUILocaleOptionTitleMarksCurrent",
+      "type": "function",
+      "name": "TestUILocaleOptionTitleMarksCurrent",
+      "filePath": "apps/print-agent/tray_ui_locale_test.go",
+      "lineRange": [
+        29,
+        36
+      ],
+      "summary": "导出的 React 组件或类 TestUILocaleOptionTitleMarksCurrent。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/tray_ui_locale_test.go:TestSetTrayUILocaleCreatesConfig",
+      "type": "function",
+      "name": "TestSetTrayUILocaleCreatesConfig",
+      "filePath": "apps/print-agent/tray_ui_locale_test.go",
+      "lineRange": [
+        38,
+        51
+      ],
+      "summary": "导出的 React 组件或类 TestSetTrayUILocaleCreatesConfig。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/tray_ui_locale_windows.go",
+      "type": "file",
+      "name": "tray_ui_locale_windows.go",
+      "filePath": "apps/print-agent/tray_ui_locale_windows.go",
+      "summary": "Go 模块 tray_ui_locale_windows.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/ui_i18n.go",
+      "type": "file",
+      "name": "ui_i18n.go",
+      "filePath": "apps/print-agent/ui_i18n.go",
+      "summary": "Go 模块 ui_i18n.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/print-agent/ui_i18n.go:uiT",
+      "type": "function",
+      "name": "uiT",
+      "filePath": "apps/print-agent/ui_i18n.go",
+      "lineRange": [
+        6,
+        16
+      ],
+      "summary": "函数 uiT，实现 ui_i18n 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/ui_i18n.go:uiStringsZH",
+      "type": "function",
+      "name": "uiStringsZH",
+      "filePath": "apps/print-agent/ui_i18n.go",
+      "lineRange": [
+        42,
+        213
+      ],
+      "summary": "函数 uiStringsZH，实现 ui_i18n 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/ui_i18n.go:uiStringsEN",
+      "type": "function",
+      "name": "uiStringsEN",
+      "filePath": "apps/print-agent/ui_i18n.go",
+      "lineRange": [
+        215,
+        386
+      ],
+      "summary": "函数 uiStringsEN，实现 ui_i18n 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/ui_i18n.go:uiStringsPT",
+      "type": "function",
+      "name": "uiStringsPT",
+      "filePath": "apps/print-agent/ui_i18n.go",
+      "lineRange": [
+        388,
+        559
+      ],
+      "summary": "函数 uiStringsPT，实现 ui_i18n 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/ui_locale_test.go",
+      "type": "file",
+      "name": "ui_locale_test.go",
+      "filePath": "apps/print-agent/ui_locale_test.go",
+      "summary": "Go 单元测试 ui_locale_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/ui_locale_test.go:TestNormalizeUILocale",
+      "type": "function",
+      "name": "TestNormalizeUILocale",
+      "filePath": "apps/print-agent/ui_locale_test.go",
+      "lineRange": [
+        5,
+        14
+      ],
+      "summary": "导出的 React 组件或类 TestNormalizeUILocale。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/ui_locale_test.go:TestUILocaleDefaultZh",
+      "type": "function",
+      "name": "TestUILocaleDefaultZh",
+      "filePath": "apps/print-agent/ui_locale_test.go",
+      "lineRange": [
+        16,
+        25
+      ],
+      "summary": "导出的 React 组件或类 TestUILocaleDefaultZh。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/ui_locale.go",
+      "type": "file",
+      "name": "ui_locale.go",
+      "filePath": "apps/print-agent/ui_locale.go",
+      "summary": "Go 模块 ui_locale.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/ui_locale.go:normalizeUILocale",
+      "type": "function",
+      "name": "normalizeUILocale",
+      "filePath": "apps/print-agent/ui_locale.go",
+      "lineRange": [
+        7,
+        16
+      ],
+      "summary": "解析/规范化工具函数 normalizeUILocale。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/ui_locale.go:normalizePrintLocale",
+      "type": "function",
+      "name": "normalizePrintLocale",
+      "filePath": "apps/print-agent/ui_locale.go",
+      "lineRange": [
+        19,
+        32
+      ],
+      "summary": "解析/规范化工具函数 normalizePrintLocale。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/VERSION",
+      "type": "file",
+      "name": "VERSION",
+      "filePath": "apps/print-agent/VERSION",
+      "summary": "源码文件 apps/print-agent/VERSION，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/version_compare_test.go",
+      "type": "file",
+      "name": "version_compare_test.go",
+      "filePath": "apps/print-agent/version_compare_test.go",
+      "summary": "Go 单元测试 version_compare_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/version_compare_test.go:TestAgentVersionOlderThan",
+      "type": "function",
+      "name": "TestAgentVersionOlderThan",
+      "filePath": "apps/print-agent/version_compare_test.go",
+      "lineRange": [
+        5,
+        21
+      ],
+      "summary": "导出的 React 组件或类 TestAgentVersionOlderThan。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/version_compare.go",
+      "type": "file",
+      "name": "version_compare.go",
+      "filePath": "apps/print-agent/version_compare.go",
+      "summary": "Go 模块 version_compare.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/version_compare.go:agentVersionOlderThan",
+      "type": "function",
+      "name": "agentVersionOlderThan",
+      "filePath": "apps/print-agent/version_compare.go",
+      "lineRange": [
+        9,
+        24
+      ],
+      "summary": "函数 agentVersionOlderThan，实现 version_compare 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/version_compare.go:parseSemverTriple",
+      "type": "function",
+      "name": "parseSemverTriple",
+      "filePath": "apps/print-agent/version_compare.go",
+      "lineRange": [
+        26,
+        52
+      ],
+      "summary": "解析/规范化工具函数 parseSemverTriple。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/version.go",
+      "type": "file",
+      "name": "version.go",
+      "filePath": "apps/print-agent/version.go",
+      "summary": "Go 模块 version.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/winspool_job_status_test.go",
+      "type": "file",
+      "name": "winspool_job_status_test.go",
+      "filePath": "apps/print-agent/winspool_job_status_test.go",
+      "summary": "Go 单元测试 winspool_job_status_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/winspool_job_status_test.go:TestWinspoolJobStatusIsProblem",
+      "type": "function",
+      "name": "TestWinspoolJobStatusIsProblem",
+      "filePath": "apps/print-agent/winspool_job_status_test.go",
+      "lineRange": [
+        5,
+        18
+      ],
+      "summary": "导出的 React 组件或类 TestWinspoolJobStatusIsProblem。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/winspool_job_status.go",
+      "type": "file",
+      "name": "winspool_job_status.go",
+      "filePath": "apps/print-agent/winspool_job_status.go",
+      "summary": "Go 模块 winspool_job_status.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/wizard_announce_stub.go",
+      "type": "file",
+      "name": "wizard_announce_stub.go",
+      "filePath": "apps/print-agent/wizard_announce_stub.go",
+      "summary": "Go 模块 wizard_announce_stub.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/wizard_announce_windows.go",
+      "type": "file",
+      "name": "wizard_announce_windows.go",
+      "filePath": "apps/print-agent/wizard_announce_windows.go",
+      "summary": "Go 模块 wizard_announce_windows.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/wizard_mapping_test.go",
+      "type": "file",
+      "name": "wizard_mapping_test.go",
+      "filePath": "apps/print-agent/wizard_mapping_test.go",
+      "summary": "Go 单元测试 wizard_mapping_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_mapping_test.go:TestApplyPrinterSetupClearsAllMappings",
+      "type": "function",
+      "name": "TestApplyPrinterSetupClearsAllMappings",
+      "filePath": "apps/print-agent/wizard_mapping_test.go",
+      "lineRange": [
+        5,
+        23
+      ],
+      "summary": "导出的 React 组件或类 TestApplyPrinterSetupClearsAllMappings。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_mapping_test.go:TestApplyPrinterSetupKeepsValidMappings",
+      "type": "function",
+      "name": "TestApplyPrinterSetupKeepsValidMappings",
+      "filePath": "apps/print-agent/wizard_mapping_test.go",
+      "lineRange": [
+        25,
+        41
+      ],
+      "summary": "导出的 React 组件或类 TestApplyPrinterSetupKeepsValidMappings。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/wizard_persist.go",
+      "type": "file",
+      "name": "wizard_persist.go",
+      "filePath": "apps/print-agent/wizard_persist.go",
+      "summary": "Go 模块 wizard_persist.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_persist.go:persistStationPrinterSetup",
+      "type": "function",
+      "name": "persistStationPrinterSetup",
+      "filePath": "apps/print-agent/wizard_persist.go",
+      "lineRange": [
+        9,
+        54
+      ],
+      "summary": "函数 persistStationPrinterSetup，实现 wizard_persist 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/wizard_routes.go",
+      "type": "file",
+      "name": "wizard_routes.go",
+      "filePath": "apps/print-agent/wizard_routes.go",
+      "summary": "Go 模块 wizard_routes.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_routes.go:discoverAllPrinters",
+      "type": "function",
+      "name": "discoverAllPrinters",
+      "filePath": "apps/print-agent/wizard_routes.go",
+      "lineRange": [
+        23,
+        55
+      ],
+      "summary": "函数 discoverAllPrinters，实现 wizard_routes 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_routes.go:dedupePrinterList",
+      "type": "function",
+      "name": "dedupePrinterList",
+      "filePath": "apps/print-agent/wizard_routes.go",
+      "lineRange": [
+        57,
+        78
+      ],
+      "summary": "函数 dedupePrinterList，实现 wizard_routes 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_routes.go:writeConfigureState",
+      "type": "function",
+      "name": "writeConfigureState",
+      "filePath": "apps/print-agent/wizard_routes.go",
+      "lineRange": [
+        90,
+        107
+      ],
+      "summary": "函数 writeConfigureState，实现 wizard_routes 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_routes.go:registerUILocaleRoute",
+      "type": "function",
+      "name": "registerUILocaleRoute",
+      "filePath": "apps/print-agent/wizard_routes.go",
+      "lineRange": [
+        109,
+        143
+      ],
+      "summary": "函数 registerUILocaleRoute，实现 wizard_routes 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_routes.go:applyPrinterSetup",
+      "type": "function",
+      "name": "applyPrinterSetup",
+      "filePath": "apps/print-agent/wizard_routes.go",
+      "lineRange": [
+        145,
+        168
+      ],
+      "summary": "函数 applyPrinterSetup，实现 wizard_routes 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_routes.go:registerPrinterWizardRoutes",
+      "type": "function",
+      "name": "registerPrinterWizardRoutes",
+      "filePath": "apps/print-agent/wizard_routes.go",
+      "lineRange": [
+        170,
+        250
+      ],
+      "summary": "函数 registerPrinterWizardRoutes，实现 wizard_routes 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_routes.go:registerPairWizardRoute",
+      "type": "function",
+      "name": "registerPairWizardRoute",
+      "filePath": "apps/print-agent/wizard_routes.go",
+      "lineRange": [
+        252,
+        306
+      ],
+      "summary": "函数 registerPairWizardRoute，实现 wizard_routes 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/wizard_server_test.go",
+      "type": "file",
+      "name": "wizard_server_test.go",
+      "filePath": "apps/print-agent/wizard_server_test.go",
+      "summary": "Go 单元测试 wizard_server_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_server_test.go:TestShutdownHTTPServerNil",
+      "type": "function",
+      "name": "TestShutdownHTTPServerNil",
+      "filePath": "apps/print-agent/wizard_server_test.go",
+      "lineRange": [
+        10,
+        12
+      ],
+      "summary": "导出的 React 组件或类 TestShutdownHTTPServerNil。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_server_test.go:TestShutdownAllWizardServersEmpty",
+      "type": "function",
+      "name": "TestShutdownAllWizardServersEmpty",
+      "filePath": "apps/print-agent/wizard_server_test.go",
+      "lineRange": [
+        14,
+        16
+      ],
+      "summary": "导出的 React 组件或类 TestShutdownAllWizardServersEmpty。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_server_test.go:TestShutdownHTTPServerStopsListener",
+      "type": "function",
+      "name": "TestShutdownHTTPServerStopsListener",
+      "filePath": "apps/print-agent/wizard_server_test.go",
+      "lineRange": [
+        18,
+        37
+      ],
+      "summary": "导出的 React 组件或类 TestShutdownHTTPServerStopsListener。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/wizard_server.go",
+      "type": "file",
+      "name": "wizard_server.go",
+      "filePath": "apps/print-agent/wizard_server.go",
+      "summary": "Go 模块 wizard_server.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_server.go:untrackWizardServer",
+      "type": "function",
+      "name": "untrackWizardServer",
+      "filePath": "apps/print-agent/wizard_server.go",
+      "lineRange": [
+        24,
+        36
+      ],
+      "summary": "函数 untrackWizardServer，实现 wizard_server 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_server.go:waitLocalWizard",
+      "type": "function",
+      "name": "waitLocalWizard",
+      "filePath": "apps/print-agent/wizard_server.go",
+      "lineRange": [
+        59,
+        70
+      ],
+      "summary": "函数 waitLocalWizard，实现 wizard_server 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/wizard_test_print_test.go",
+      "type": "file",
+      "name": "wizard_test_print_test.go",
+      "filePath": "apps/print-agent/wizard_test_print_test.go",
+      "summary": "Go 单元测试 wizard_test_print_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_test_print_test.go:TestRunTestPrintForStationNeedsMapping",
+      "type": "function",
+      "name": "TestRunTestPrintForStationNeedsMapping",
+      "filePath": "apps/print-agent/wizard_test_print_test.go",
+      "lineRange": [
+        8,
+        13
+      ],
+      "summary": "导出的 React 组件或类 TestRunTestPrintForStationNeedsMapping。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_test_print_test.go:TestRunTestPrintForStationPicksFirstMapped",
+      "type": "function",
+      "name": "TestRunTestPrintForStationPicksFirstMapped",
+      "filePath": "apps/print-agent/wizard_test_print_test.go",
+      "lineRange": [
+        15,
+        27
+      ],
+      "summary": "导出的 React 组件或类 TestRunTestPrintForStationPicksFirstMapped。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/wizard_test_print.go",
+      "type": "file",
+      "name": "wizard_test_print.go",
+      "filePath": "apps/print-agent/wizard_test_print.go",
+      "summary": "Go 模块 wizard_test_print.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_test_print.go:runTestPrintForStation",
+      "type": "function",
+      "name": "runTestPrintForStation",
+      "filePath": "apps/print-agent/wizard_test_print.go",
+      "lineRange": [
+        13,
+        65
+      ],
+      "summary": "函数 runTestPrintForStation，实现 wizard_test_print 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/wizard_ui_shared_test.go",
+      "type": "file",
+      "name": "wizard_ui_shared_test.go",
+      "filePath": "apps/print-agent/wizard_ui_shared_test.go",
+      "summary": "Go 单元测试 wizard_ui_shared_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_ui_shared_test.go:TestIsWizardStaticPath",
+      "type": "function",
+      "name": "TestIsWizardStaticPath",
+      "filePath": "apps/print-agent/wizard_ui_shared_test.go",
+      "lineRange": [
+        8,
+        15
+      ],
+      "summary": "导出的 React 组件或类 TestIsWizardStaticPath。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_ui_shared_test.go:TestWizardUISharedJSEmbedded",
+      "type": "function",
+      "name": "TestWizardUISharedJSEmbedded",
+      "filePath": "apps/print-agent/wizard_ui_shared_test.go",
+      "lineRange": [
+        17,
+        28
+      ],
+      "summary": "导出的 React 组件或类 TestWizardUISharedJSEmbedded。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_ui_shared_test.go:TestConfigureUIUsesSharedWizardJS",
+      "type": "function",
+      "name": "TestConfigureUIUsesSharedWizardJS",
+      "filePath": "apps/print-agent/wizard_ui_shared_test.go",
+      "lineRange": [
+        30,
+        38
+      ],
+      "summary": "导出的 React 组件或类 TestConfigureUIUsesSharedWizardJS。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_ui_shared_test.go:TestSetupUIUsesSharedWizardJS",
+      "type": "function",
+      "name": "TestSetupUIUsesSharedWizardJS",
+      "filePath": "apps/print-agent/wizard_ui_shared_test.go",
+      "lineRange": [
+        40,
+        48
+      ],
+      "summary": "导出的 React 组件或类 TestSetupUIUsesSharedWizardJS。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/wizard_ui_shared_test.go:TestMappingSaveI18nKeys",
+      "type": "function",
+      "name": "TestMappingSaveI18nKeys",
+      "filePath": "apps/print-agent/wizard_ui_shared_test.go",
+      "lineRange": [
+        50,
+        59
+      ],
+      "summary": "导出的 React 组件或类 TestMappingSaveI18nKeys。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/wizard_ui_shared.go",
+      "type": "file",
+      "name": "wizard_ui_shared.go",
+      "filePath": "apps/print-agent/wizard_ui_shared.go",
+      "summary": "Go 模块 wizard_ui_shared.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/wizard_ui_shared.js",
+      "type": "file",
+      "name": "wizard_ui_shared.js",
+      "filePath": "apps/print-agent/wizard_ui_shared.js",
+      "summary": "源码文件 apps/print-agent/wizard_ui_shared.js，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility",
+        "printing"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/print-agent/tray_shutdown_windows.go",
+      "target": "function:apps/print-agent/tray_shutdown_windows.go:stopTrayAgentWork",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_shutdown_windows.go",
+      "target": "function:apps/print-agent/tray_shutdown_windows.go:requestTrayRestart",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_shutdown_windows.go",
+      "target": "function:apps/print-agent/tray_shutdown_windows.go:requestTrayExit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/tray_shutdown_windows.go:requestTrayRestart",
+      "target": "function:apps/print-agent/tray_shutdown_windows.go:stopTrayAgentWork",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/tray_shutdown_windows.go:requestTrayExit",
+      "target": "function:apps/print-agent/tray_shutdown_windows.go:stopTrayAgentWork",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/tray_ui_locale_test.go",
+      "target": "function:apps/print-agent/tray_ui_locale_test.go:TestSetTrayUILocalePersists",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_ui_locale_test.go",
+      "target": "function:apps/print-agent/tray_ui_locale_test.go:TestSetTrayUILocalePersists",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/tray_ui_locale_test.go",
+      "target": "function:apps/print-agent/tray_ui_locale_test.go:TestUILocaleOptionTitleMarksCurrent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_ui_locale_test.go",
+      "target": "function:apps/print-agent/tray_ui_locale_test.go:TestUILocaleOptionTitleMarksCurrent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/tray_ui_locale_test.go",
+      "target": "function:apps/print-agent/tray_ui_locale_test.go:TestSetTrayUILocaleCreatesConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_ui_locale_test.go",
+      "target": "function:apps/print-agent/tray_ui_locale_test.go:TestSetTrayUILocaleCreatesConfig",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/ui_i18n.go",
+      "target": "function:apps/print-agent/ui_i18n.go:uiT",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/ui_i18n.go",
+      "target": "function:apps/print-agent/ui_i18n.go:uiStringsZH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/ui_i18n.go",
+      "target": "function:apps/print-agent/ui_i18n.go:uiStringsEN",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/ui_i18n.go",
+      "target": "function:apps/print-agent/ui_i18n.go:uiStringsPT",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/ui_locale_test.go",
+      "target": "function:apps/print-agent/ui_locale_test.go:TestNormalizeUILocale",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/ui_locale_test.go",
+      "target": "function:apps/print-agent/ui_locale_test.go:TestNormalizeUILocale",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/ui_locale_test.go",
+      "target": "function:apps/print-agent/ui_locale_test.go:TestUILocaleDefaultZh",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/ui_locale_test.go",
+      "target": "function:apps/print-agent/ui_locale_test.go:TestUILocaleDefaultZh",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/ui_locale.go",
+      "target": "function:apps/print-agent/ui_locale.go:normalizeUILocale",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/ui_locale.go",
+      "target": "function:apps/print-agent/ui_locale.go:normalizePrintLocale",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/version_compare_test.go",
+      "target": "function:apps/print-agent/version_compare_test.go:TestAgentVersionOlderThan",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/version_compare_test.go",
+      "target": "function:apps/print-agent/version_compare_test.go:TestAgentVersionOlderThan",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/version_compare.go",
+      "target": "function:apps/print-agent/version_compare.go:agentVersionOlderThan",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/version_compare.go",
+      "target": "function:apps/print-agent/version_compare.go:parseSemverTriple",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/version_compare.go:agentVersionOlderThan",
+      "target": "function:apps/print-agent/version_compare.go:parseSemverTriple",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/version_compare.go:agentVersionOlderThan",
+      "target": "function:apps/print-agent/version_compare.go:parseSemverTriple",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/winspool_job_status_test.go",
+      "target": "function:apps/print-agent/winspool_job_status_test.go:TestWinspoolJobStatusIsProblem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/winspool_job_status_test.go",
+      "target": "function:apps/print-agent/winspool_job_status_test.go:TestWinspoolJobStatusIsProblem",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/wizard_mapping_test.go",
+      "target": "function:apps/print-agent/wizard_mapping_test.go:TestApplyPrinterSetupClearsAllMappings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_mapping_test.go",
+      "target": "function:apps/print-agent/wizard_mapping_test.go:TestApplyPrinterSetupClearsAllMappings",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/wizard_mapping_test.go",
+      "target": "function:apps/print-agent/wizard_mapping_test.go:TestApplyPrinterSetupKeepsValidMappings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_mapping_test.go",
+      "target": "function:apps/print-agent/wizard_mapping_test.go:TestApplyPrinterSetupKeepsValidMappings",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/wizard_persist.go",
+      "target": "function:apps/print-agent/wizard_persist.go:persistStationPrinterSetup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_routes.go",
+      "target": "function:apps/print-agent/wizard_routes.go:discoverAllPrinters",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_routes.go",
+      "target": "function:apps/print-agent/wizard_routes.go:dedupePrinterList",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_routes.go",
+      "target": "function:apps/print-agent/wizard_routes.go:writeConfigureState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_routes.go",
+      "target": "function:apps/print-agent/wizard_routes.go:registerUILocaleRoute",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_routes.go",
+      "target": "function:apps/print-agent/wizard_routes.go:applyPrinterSetup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_routes.go",
+      "target": "function:apps/print-agent/wizard_routes.go:registerPrinterWizardRoutes",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_routes.go",
+      "target": "function:apps/print-agent/wizard_routes.go:registerPairWizardRoute",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/wizard_routes.go:discoverAllPrinters",
+      "target": "function:apps/print-agent/wizard_routes.go:dedupePrinterList",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/wizard_routes.go:discoverAllPrinters",
+      "target": "function:apps/print-agent/wizard_routes.go:dedupePrinterList",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/wizard_routes.go:registerPrinterWizardRoutes",
+      "target": "function:apps/print-agent/wizard_routes.go:writeConfigureState",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/wizard_server_test.go",
+      "target": "function:apps/print-agent/wizard_server_test.go:TestShutdownHTTPServerNil",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_server_test.go",
+      "target": "function:apps/print-agent/wizard_server_test.go:TestShutdownHTTPServerNil",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/wizard_server_test.go",
+      "target": "function:apps/print-agent/wizard_server_test.go:TestShutdownAllWizardServersEmpty",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_server_test.go",
+      "target": "function:apps/print-agent/wizard_server_test.go:TestShutdownAllWizardServersEmpty",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/wizard_server_test.go",
+      "target": "function:apps/print-agent/wizard_server_test.go:TestShutdownHTTPServerStopsListener",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_server_test.go",
+      "target": "function:apps/print-agent/wizard_server_test.go:TestShutdownHTTPServerStopsListener",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/wizard_server.go",
+      "target": "function:apps/print-agent/wizard_server.go:untrackWizardServer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_server.go",
+      "target": "function:apps/print-agent/wizard_server.go:waitLocalWizard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/wizard_server.go:waitLocalWizard",
+      "target": "function:apps/print-agent/wizard_server.go:untrackWizardServer",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/wizard_test_print_test.go",
+      "target": "function:apps/print-agent/wizard_test_print_test.go:TestRunTestPrintForStationNeedsMapping",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_test_print_test.go",
+      "target": "function:apps/print-agent/wizard_test_print_test.go:TestRunTestPrintForStationNeedsMapping",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/wizard_test_print_test.go",
+      "target": "function:apps/print-agent/wizard_test_print_test.go:TestRunTestPrintForStationPicksFirstMapped",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_test_print_test.go",
+      "target": "function:apps/print-agent/wizard_test_print_test.go:TestRunTestPrintForStationPicksFirstMapped",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/wizard_test_print.go",
+      "target": "function:apps/print-agent/wizard_test_print.go:runTestPrintForStation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_ui_shared_test.go",
+      "target": "function:apps/print-agent/wizard_ui_shared_test.go:TestIsWizardStaticPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_ui_shared_test.go",
+      "target": "function:apps/print-agent/wizard_ui_shared_test.go:TestIsWizardStaticPath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/wizard_ui_shared_test.go",
+      "target": "function:apps/print-agent/wizard_ui_shared_test.go:TestWizardUISharedJSEmbedded",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_ui_shared_test.go",
+      "target": "function:apps/print-agent/wizard_ui_shared_test.go:TestWizardUISharedJSEmbedded",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/wizard_ui_shared_test.go",
+      "target": "function:apps/print-agent/wizard_ui_shared_test.go:TestConfigureUIUsesSharedWizardJS",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_ui_shared_test.go",
+      "target": "function:apps/print-agent/wizard_ui_shared_test.go:TestConfigureUIUsesSharedWizardJS",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/wizard_ui_shared_test.go",
+      "target": "function:apps/print-agent/wizard_ui_shared_test.go:TestSetupUIUsesSharedWizardJS",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_ui_shared_test.go",
+      "target": "function:apps/print-agent/wizard_ui_shared_test.go:TestSetupUIUsesSharedWizardJS",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/wizard_ui_shared_test.go",
+      "target": "function:apps/print-agent/wizard_ui_shared_test.go:TestMappingSaveI18nKeys",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/wizard_ui_shared_test.go",
+      "target": "function:apps/print-agent/wizard_ui_shared_test.go:TestMappingSaveI18nKeys",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

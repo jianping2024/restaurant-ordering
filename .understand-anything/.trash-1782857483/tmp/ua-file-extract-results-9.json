@@ -1,0 +1,2596 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 27,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 36,
+      "nonEmptyLines": 30,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 8,
+          "endLine": 36,
+          "params": [
+            "_req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 14
+        },
+        {
+          "caller": "GET",
+          "callee": "staffAuthFromRequest",
+          "lineNumber": 17
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 19
+        },
+        {
+          "caller": "GET",
+          "callee": "createAdminClient",
+          "lineNumber": 24
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 26
+        },
+        {
+          "caller": "GET",
+          "callee": "fetchKitchenBoard",
+          "lineNumber": 29
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 31
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 31,
+      "nonEmptyLines": 26,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 8,
+          "endLine": 31,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 14
+        },
+        {
+          "caller": "GET",
+          "callee": "openTableAuthFromRequest",
+          "lineNumber": 17
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 19
+        },
+        {
+          "caller": "GET",
+          "callee": "createAdminClient",
+          "lineNumber": 24
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 26
+        },
+        {
+          "caller": "GET",
+          "callee": "fetchWaiterBoard",
+          "lineNumber": 29
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 30
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 112,
+      "nonEmptyLines": 97,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 11,
+          "endLine": 112,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 11,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 18
+        },
+        {
+          "caller": "POST",
+          "callee": "openTableAuthFromRequest",
+          "lineNumber": 21
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 23
+        },
+        {
+          "caller": "POST",
+          "callee": "req.json",
+          "lineNumber": 33
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 35
+        },
+        {
+          "caller": "POST",
+          "callee": "Number",
+          "lineNumber": 38
+        },
+        {
+          "caller": "POST",
+          "callee": "Number.isInteger",
+          "lineNumber": 39
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 40
+        },
+        {
+          "caller": "POST",
+          "callee": "createAdminClient",
+          "lineNumber": 49
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 51
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('orders')\n    .select('id, restaurant_id, updated_at, session_id, table_id, display_name, items, status')\n    .eq('id', orderId)\n    .maybeSingle",
+          "lineNumber": 54
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('orders')\n    .select('id, restaurant_id, updated_at, session_id, table_id, display_name, items, status')\n    .eq",
+          "lineNumber": 54
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('orders')\n    .select",
+          "lineNumber": 54
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from",
+          "lineNumber": 54
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 61
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 65
+        },
+        {
+          "caller": "POST",
+          "callee": "sessionIdBlocksWaiterMutation",
+          "lineNumber": 69
+        },
+        {
+          "caller": "POST",
+          "callee": "sessionBillingResponse",
+          "lineNumber": 70
+        },
+        {
+          "caller": "POST",
+          "callee": "loadStaffAuditActor",
+          "lineNumber": 73
+        },
+        {
+          "caller": "POST",
+          "callee": "decrementOrderItemWithAudit",
+          "lineNumber": 79
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 103
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 106
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 108
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 111
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 22,
+      "nonEmptyLines": 18,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 7,
+          "endLine": 22,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 4,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 7,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 13
+        },
+        {
+          "caller": "POST",
+          "callee": "staffAuthFromRequest",
+          "lineNumber": 16
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 18
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 21
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 73,
+      "nonEmptyLines": 62,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 9,
+          "endLine": 73,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 9,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 15
+        },
+        {
+          "caller": "POST",
+          "callee": "openTableAuthFromRequest",
+          "lineNumber": 18
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 20
+        },
+        {
+          "caller": "POST",
+          "callee": "req.json",
+          "lineNumber": 25
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 27
+        },
+        {
+          "caller": "POST",
+          "callee": "parseTableIdParam",
+          "lineNumber": 31
+        },
+        {
+          "caller": "POST",
+          "callee": "parseTableIdParam",
+          "lineNumber": 32
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 35
+        },
+        {
+          "caller": "POST",
+          "callee": "tableIdsEqual",
+          "lineNumber": 37
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 38
+        },
+        {
+          "caller": "POST",
+          "callee": "createAdminClient",
+          "lineNumber": 43
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 45
+        },
+        {
+          "caller": "POST",
+          "callee": "tableSessionBlocksWaiterMutation",
+          "lineNumber": 48
+        },
+        {
+          "caller": "POST",
+          "callee": "sessionBillingResponse",
+          "lineNumber": 49
+        },
+        {
+          "caller": "POST",
+          "callee": "admin.rpc",
+          "lineNumber": 54
+        },
+        {
+          "caller": "POST",
+          "callee": "admin.rpc",
+          "lineNumber": 59
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 66
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 72
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/abnormal-operations/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 15,
+      "nonEmptyLines": 13,
+      "functions": [
+        {
+          "name": "AbnormalOperationsPage",
+          "startLine": 5,
+          "endLine": 15,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "AbnormalOperationsPage",
+          "line": 5,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "AbnormalOperationsPage",
+          "callee": "loadDashboardAccess",
+          "lineNumber": 6
+        },
+        {
+          "caller": "AbnormalOperationsPage",
+          "callee": "redirect",
+          "lineNumber": 8
+        },
+        {
+          "caller": "AbnormalOperationsPage",
+          "callee": "notFound",
+          "lineNumber": 11
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/checkout/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 39,
+      "nonEmptyLines": 35,
+      "functions": [
+        {
+          "name": "CheckoutRequestsPage",
+          "startLine": 7,
+          "endLine": 39,
+          "params": [
+            "{\n  searchParams,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "CheckoutRequestsPage",
+          "line": 7,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "CheckoutRequestsPage",
+          "callee": "loadDashboardAccess",
+          "lineNumber": 12
+        },
+        {
+          "caller": "CheckoutRequestsPage",
+          "callee": "redirect",
+          "lineNumber": 13
+        },
+        {
+          "caller": "CheckoutRequestsPage",
+          "callee": "redirect",
+          "lineNumber": 14
+        },
+        {
+          "caller": "CheckoutRequestsPage",
+          "callee": "createClient",
+          "lineNumber": 17
+        },
+        {
+          "caller": "CheckoutRequestsPage",
+          "callee": "searchParams.table_id.trim",
+          "lineNumber": 19
+        },
+        {
+          "caller": "CheckoutRequestsPage",
+          "callee": "supabase\n    .from('bill_splits')\n    .select('*')\n    .eq('restaurant_id', restaurant.id)\n    .eq('status', 'requested')\n    .not('session_id', 'is', null)\n    .order('created_at', { ascending: true })\n    .limit",
+          "lineNumber": 21
+        },
+        {
+          "caller": "CheckoutRequestsPage",
+          "callee": "supabase\n    .from('bill_splits')\n    .select('*')\n    .eq('restaurant_id', restaurant.id)\n    .eq('status', 'requested')\n    .not('session_id', 'is', null)\n    .order",
+          "lineNumber": 21
+        },
+        {
+          "caller": "CheckoutRequestsPage",
+          "callee": "supabase\n    .from('bill_splits')\n    .select('*')\n    .eq('restaurant_id', restaurant.id)\n    .eq('status', 'requested')\n    .not",
+          "lineNumber": 21
+        },
+        {
+          "caller": "CheckoutRequestsPage",
+          "callee": "supabase\n    .from('bill_splits')\n    .select('*')\n    .eq('restaurant_id', restaurant.id)\n    .eq",
+          "lineNumber": 21
+        },
+        {
+          "caller": "CheckoutRequestsPage",
+          "callee": "supabase\n    .from('bill_splits')\n    .select('*')\n    .eq",
+          "lineNumber": 21
+        },
+        {
+          "caller": "CheckoutRequestsPage",
+          "callee": "supabase\n    .from('bill_splits')\n    .select",
+          "lineNumber": 21
+        },
+        {
+          "caller": "CheckoutRequestsPage",
+          "callee": "supabase\n    .from",
+          "lineNumber": 21
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/settings/buffet/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 22,
+      "nonEmptyLines": 19,
+      "functions": [
+        {
+          "name": "SettingsBuffetPage",
+          "startLine": 4,
+          "endLine": 22,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "SettingsBuffetPage",
+          "line": 4,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SettingsBuffetPage",
+          "callee": "createClient",
+          "lineNumber": 5
+        },
+        {
+          "caller": "SettingsBuffetPage",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 6
+        },
+        {
+          "caller": "SettingsBuffetPage",
+          "callee": "supabase\n    .from('restaurants')\n    .select('id, buffet_friday_weekend_from')\n    .eq('owner_id', user!.id)\n    .single",
+          "lineNumber": 7
+        },
+        {
+          "caller": "SettingsBuffetPage",
+          "callee": "supabase\n    .from('restaurants')\n    .select('id, buffet_friday_weekend_from')\n    .eq",
+          "lineNumber": 7
+        },
+        {
+          "caller": "SettingsBuffetPage",
+          "callee": "supabase\n    .from('restaurants')\n    .select",
+          "lineNumber": 7
+        },
+        {
+          "caller": "SettingsBuffetPage",
+          "callee": "supabase\n    .from",
+          "lineNumber": 7
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/settings/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 15,
+      "nonEmptyLines": 12,
+      "functions": [
+        {
+          "name": "SettingsPage",
+          "startLine": 4,
+          "endLine": 15,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "SettingsPage",
+          "line": 4,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SettingsPage",
+          "callee": "createClient",
+          "lineNumber": 5
+        },
+        {
+          "caller": "SettingsPage",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 6
+        },
+        {
+          "caller": "SettingsPage",
+          "callee": "supabase\n    .from('restaurants')\n    .select('id, name, slug, address, phone, geo_latitude, geo_longitude, order_radius_meters, country_code, feature_flags')\n    .eq('owner_id', user!.id)\n    .single",
+          "lineNumber": 8
+        },
+        {
+          "caller": "SettingsPage",
+          "callee": "supabase\n    .from('restaurants')\n    .select('id, name, slug, address, phone, geo_latitude, geo_longitude, order_radius_meters, country_code, feature_flags')\n    .eq",
+          "lineNumber": 8
+        },
+        {
+          "caller": "SettingsPage",
+          "callee": "supabase\n    .from('restaurants')\n    .select",
+          "lineNumber": 8
+        },
+        {
+          "caller": "SettingsPage",
+          "callee": "supabase\n    .from",
+          "lineNumber": 8
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/settings/staff/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 30,
+      "nonEmptyLines": 25,
+      "functions": [
+        {
+          "name": "SettingsStaffPage",
+          "startLine": 6,
+          "endLine": 30,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "SettingsStaffPage",
+          "line": 6,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SettingsStaffPage",
+          "callee": "createClient",
+          "lineNumber": 7
+        },
+        {
+          "caller": "SettingsStaffPage",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 10
+        },
+        {
+          "caller": "SettingsStaffPage",
+          "callee": "redirect",
+          "lineNumber": 11
+        },
+        {
+          "caller": "SettingsStaffPage",
+          "callee": "supabase\n    .from('restaurants')\n    .select('id')\n    .eq('owner_id', user.id)\n    .single",
+          "lineNumber": 13
+        },
+        {
+          "caller": "SettingsStaffPage",
+          "callee": "supabase\n    .from('restaurants')\n    .select('id')\n    .eq",
+          "lineNumber": 13
+        },
+        {
+          "caller": "SettingsStaffPage",
+          "callee": "supabase\n    .from('restaurants')\n    .select",
+          "lineNumber": 13
+        },
+        {
+          "caller": "SettingsStaffPage",
+          "callee": "supabase\n    .from",
+          "lineNumber": 13
+        },
+        {
+          "caller": "SettingsStaffPage",
+          "callee": "redirect",
+          "lineNumber": 19
+        },
+        {
+          "caller": "SettingsStaffPage",
+          "callee": "supabase\n    .from('restaurant_staff_accounts')\n    .select('*')\n    .eq('restaurant_id', restaurant.id)\n    .order",
+          "lineNumber": 21
+        },
+        {
+          "caller": "SettingsStaffPage",
+          "callee": "supabase\n    .from('restaurant_staff_accounts')\n    .select('*')\n    .eq",
+          "lineNumber": 21
+        },
+        {
+          "caller": "SettingsStaffPage",
+          "callee": "supabase\n    .from('restaurant_staff_accounts')\n    .select",
+          "lineNumber": 21
+        },
+        {
+          "caller": "SettingsStaffPage",
+          "callee": "supabase\n    .from",
+          "lineNumber": 21
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/audit/load-owner-dashboard-actor.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 19,
+      "nonEmptyLines": 17,
+      "functions": [
+        {
+          "name": "loadOwnerDashboardAuditActor",
+          "startLine": 5,
+          "endLine": 19,
+          "params": [
+            "restaurant"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "loadOwnerDashboardAuditActor",
+          "line": 5,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loadOwnerDashboardAuditActor",
+          "callee": "createClient",
+          "lineNumber": 9
+        },
+        {
+          "caller": "loadOwnerDashboardAuditActor",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 12
+        },
+        {
+          "caller": "loadOwnerDashboardAuditActor",
+          "callee": "ownerAuditActor",
+          "lineNumber": 17
+        },
+        {
+          "caller": "loadOwnerDashboardAuditActor",
+          "callee": "resolveOwnerOperatorName",
+          "lineNumber": 17
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/auth/login-rate-limit.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 83,
+      "nonEmptyLines": 74,
+      "functions": [
+        {
+          "name": "bucket",
+          "startLine": 10,
+          "endLine": 17,
+          "params": [
+            "key"
+          ]
+        },
+        {
+          "name": "keys",
+          "startLine": 19,
+          "endLine": 23,
+          "params": [
+            "email",
+            "ip"
+          ]
+        },
+        {
+          "name": "evaluate",
+          "startLine": 25,
+          "endLine": 39,
+          "params": [
+            "key"
+          ]
+        },
+        {
+          "name": "worstRetry",
+          "startLine": 41,
+          "endLine": 49,
+          "params": [
+            "results"
+          ]
+        },
+        {
+          "name": "authLoginRateLimitCheck",
+          "startLine": 51,
+          "endLine": 58,
+          "params": [
+            "email",
+            "ip"
+          ]
+        },
+        {
+          "name": "authLoginRecordFailure",
+          "startLine": 61,
+          "endLine": 76,
+          "params": [
+            "email",
+            "ip"
+          ]
+        },
+        {
+          "name": "authLoginRecordSuccess",
+          "startLine": 78,
+          "endLine": 83,
+          "params": [
+            "email",
+            "ip"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "authLoginRateLimitCheck",
+          "line": 51,
+          "isDefault": false
+        },
+        {
+          "name": "authLoginRecordFailure",
+          "line": 61,
+          "isDefault": false
+        },
+        {
+          "name": "authLoginRecordSuccess",
+          "line": 78,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "bucket",
+          "callee": "buckets.get",
+          "lineNumber": 11
+        },
+        {
+          "caller": "bucket",
+          "callee": "Date.now",
+          "lineNumber": 13
+        },
+        {
+          "caller": "bucket",
+          "callee": "buckets.set",
+          "lineNumber": 14
+        },
+        {
+          "caller": "keys",
+          "callee": "email.trim().toLowerCase",
+          "lineNumber": 20
+        },
+        {
+          "caller": "keys",
+          "callee": "email.trim",
+          "lineNumber": 20
+        },
+        {
+          "caller": "evaluate",
+          "callee": "bucket",
+          "lineNumber": 26
+        },
+        {
+          "caller": "evaluate",
+          "callee": "Date.now",
+          "lineNumber": 27
+        },
+        {
+          "caller": "evaluate",
+          "callee": "Math.ceil",
+          "lineNumber": 29
+        },
+        {
+          "caller": "evaluate",
+          "callee": "Math.ceil",
+          "lineNumber": 36
+        },
+        {
+          "caller": "worstRetry",
+          "callee": "Math.max",
+          "lineNumber": 46
+        },
+        {
+          "caller": "authLoginRateLimitCheck",
+          "callee": "worstRetry",
+          "lineNumber": 55
+        },
+        {
+          "caller": "authLoginRateLimitCheck",
+          "callee": "keys(email, ip).map",
+          "lineNumber": 55
+        },
+        {
+          "caller": "authLoginRateLimitCheck",
+          "callee": "keys",
+          "lineNumber": 55
+        },
+        {
+          "caller": "authLoginRecordFailure",
+          "callee": "keys",
+          "lineNumber": 62
+        },
+        {
+          "caller": "authLoginRecordFailure",
+          "callee": "bucket",
+          "lineNumber": 63
+        },
+        {
+          "caller": "authLoginRecordFailure",
+          "callee": "Date.now",
+          "lineNumber": 64
+        },
+        {
+          "caller": "authLoginRecordFailure",
+          "callee": "Date.now",
+          "lineNumber": 72
+        },
+        {
+          "caller": "authLoginRecordSuccess",
+          "callee": "keys",
+          "lineNumber": 79
+        },
+        {
+          "caller": "authLoginRecordSuccess",
+          "callee": "bucket",
+          "lineNumber": 80
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/auth/post-login-redirect.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 105,
+      "nonEmptyLines": 89,
+      "functions": [
+        {
+          "name": "resolvePostLoginRedirect",
+          "startLine": 14,
+          "endLine": 105,
+          "params": [
+            "supabase",
+            "userId",
+            "userMetadata"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "resolvePostLoginRedirect",
+          "line": 14,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "parseStaffUserMetadata",
+          "lineNumber": 19
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "supabase\n    .from('restaurants')\n    .select('id')\n    .eq('owner_id', userId)\n    .maybeSingle",
+          "lineNumber": 21
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "supabase\n    .from('restaurants')\n    .select('id')\n    .eq",
+          "lineNumber": 21
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "supabase\n    .from('restaurants')\n    .select",
+          "lineNumber": 21
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "supabase\n    .from",
+          "lineNumber": 21
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "supabase\n    .from('restaurant_staff_accounts')\n    .select('role, restaurant_id, disabled_at')\n    .eq('user_id', userId)\n    .maybeSingle",
+          "lineNumber": 35
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "supabase\n    .from('restaurant_staff_accounts')\n    .select('role, restaurant_id, disabled_at')\n    .eq",
+          "lineNumber": 35
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "supabase\n    .from('restaurant_staff_accounts')\n    .select",
+          "lineNumber": 35
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "supabase\n    .from",
+          "lineNumber": 35
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "createAdminClient",
+          "lineNumber": 58
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "admin\n    .from('restaurants')\n    .select('suspended_at')\n    .eq('id', account.restaurant_id)\n    .maybeSingle",
+          "lineNumber": 63
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "admin\n    .from('restaurants')\n    .select('suspended_at')\n    .eq",
+          "lineNumber": 63
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "admin\n    .from('restaurants')\n    .select",
+          "lineNumber": 63
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "admin\n    .from",
+          "lineNumber": 63
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "isRestaurantSuspended",
+          "lineNumber": 72
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "String",
+          "lineNumber": 76
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "isStaffRole",
+          "lineNumber": 77
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "supabase\n      .from('restaurants_public')\n      .select('slug')\n      .eq('id', account.restaurant_id)\n      .maybeSingle",
+          "lineNumber": 83
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "supabase\n      .from('restaurants_public')\n      .select('slug')\n      .eq",
+          "lineNumber": 83
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "supabase\n      .from('restaurants_public')\n      .select",
+          "lineNumber": 83
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "supabase\n      .from",
+          "lineNumber": 83
+        },
+        {
+          "caller": "resolvePostLoginRedirect",
+          "callee": "staffRolePath",
+          "lineNumber": 100
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/auto-close-active-sessions.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 34,
+      "nonEmptyLines": 30,
+      "functions": [
+        {
+          "name": "isNightlyAutoCloseDue",
+          "startLine": 9,
+          "endLine": 12,
+          "params": [
+            "now"
+          ]
+        },
+        {
+          "name": "closeAllOpenBillingSessions",
+          "startLine": 19,
+          "endLine": 34,
+          "params": [
+            "admin"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "NIGHTLY_AUTO_CLOSE_TIMEZONE",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "NIGHTLY_AUTO_CLOSE_HOUR",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "isNightlyAutoCloseDue",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "closeAllOpenBillingSessions",
+          "line": 19,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "isNightlyAutoCloseDue",
+          "callee": "getZonedCalendarParts",
+          "lineNumber": 10
+        },
+        {
+          "caller": "closeAllOpenBillingSessions",
+          "callee": "admin\n    .from('table_sessions')\n    .select('restaurant_id, table_id')\n    .in",
+          "lineNumber": 20
+        },
+        {
+          "caller": "closeAllOpenBillingSessions",
+          "callee": "admin\n    .from('table_sessions')\n    .select",
+          "lineNumber": 20
+        },
+        {
+          "caller": "closeAllOpenBillingSessions",
+          "callee": "admin\n    .from",
+          "lineNumber": 20
+        },
+        {
+          "caller": "closeAllOpenBillingSessions",
+          "callee": "closeActiveTableSessionWithOperationalCleanup",
+          "lineNumber": 30
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 4,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 82,
+      "nonEmptyLines": 74,
+      "functions": [
+        {
+          "name": "authorizeCheckoutConfirmPayment",
+          "startLine": 18,
+          "endLine": 82,
+          "params": [
+            "slug",
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "authorizeCheckoutConfirmPayment",
+          "line": 18,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "authorizeCheckoutConfirmPayment",
+          "callee": "createAdminClient",
+          "lineNumber": 24
+        },
+        {
+          "caller": "authorizeCheckoutConfirmPayment",
+          "callee": "staffAuthFromRequestWithRoles",
+          "lineNumber": 29
+        },
+        {
+          "caller": "authorizeCheckoutConfirmPayment",
+          "callee": "admin\n      .from('restaurants')\n      .select('print_locale')\n      .eq('id', staffCtx.restaurant_id)\n      .single",
+          "lineNumber": 31
+        },
+        {
+          "caller": "authorizeCheckoutConfirmPayment",
+          "callee": "admin\n      .from('restaurants')\n      .select('print_locale')\n      .eq",
+          "lineNumber": 31
+        },
+        {
+          "caller": "authorizeCheckoutConfirmPayment",
+          "callee": "admin\n      .from('restaurants')\n      .select",
+          "lineNumber": 31
+        },
+        {
+          "caller": "authorizeCheckoutConfirmPayment",
+          "callee": "admin\n      .from",
+          "lineNumber": 31
+        },
+        {
+          "caller": "authorizeCheckoutConfirmPayment",
+          "callee": "loadStaffAuditActor",
+          "lineNumber": 36
+        },
+        {
+          "caller": "authorizeCheckoutConfirmPayment",
+          "callee": "createClient",
+          "lineNumber": 49
+        },
+        {
+          "caller": "authorizeCheckoutConfirmPayment",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 52
+        },
+        {
+          "caller": "authorizeCheckoutConfirmPayment",
+          "callee": "admin\n    .from('restaurants')\n    .select('id, name, print_locale')\n    .eq('slug', slug)\n    .eq('owner_id', user.id)\n    .maybeSingle",
+          "lineNumber": 57
+        },
+        {
+          "caller": "authorizeCheckoutConfirmPayment",
+          "callee": "admin\n    .from('restaurants')\n    .select('id, name, print_locale')\n    .eq('slug', slug)\n    .eq",
+          "lineNumber": 57
+        },
+        {
+          "caller": "authorizeCheckoutConfirmPayment",
+          "callee": "admin\n    .from('restaurants')\n    .select('id, name, print_locale')\n    .eq",
+          "lineNumber": 57
+        },
+        {
+          "caller": "authorizeCheckoutConfirmPayment",
+          "callee": "admin\n    .from('restaurants')\n    .select",
+          "lineNumber": 57
+        },
+        {
+          "caller": "authorizeCheckoutConfirmPayment",
+          "callee": "admin\n    .from",
+          "lineNumber": 57
+        },
+        {
+          "caller": "authorizeCheckoutConfirmPayment",
+          "callee": "loadOwnerDashboardAuditActor",
+          "lineNumber": 68
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/close-active-table-session-with-cleanup.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 57,
+      "nonEmptyLines": 48,
+      "functions": [
+        {
+          "name": "closeActiveTableSessionWithOperationalCleanup",
+          "startLine": 22,
+          "endLine": 57,
+          "params": [
+            "admin",
+            "restaurantId",
+            "tableId",
+            "closedReason",
+            "audit"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "closeActiveTableSessionWithOperationalCleanup",
+          "line": 22,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "closeActiveTableSessionWithOperationalCleanup",
+          "callee": "admin.rpc",
+          "lineNumber": 29
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-access.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 61,
+      "nonEmptyLines": 56,
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-access.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 285,
+      "nonEmptyLines": 238,
+      "functions": [
+        {
+          "name": "isActiveStaffRole",
+          "startLine": 49,
+          "endLine": 67,
+          "params": [
+            "supabase",
+            "userId",
+            "userMetadata",
+            "role"
+          ]
+        },
+        {
+          "name": "loadDashboardAccess",
+          "startLine": 69,
+          "endLine": 152,
+          "params": []
+        },
+        {
+          "name": "isOwnerDashboardUser",
+          "startLine": 154,
+          "endLine": 164,
+          "params": [
+            "supabase",
+            "userId"
+          ]
+        },
+        {
+          "name": "isCashierStaffUser",
+          "startLine": 166,
+          "endLine": 172,
+          "params": [
+            "supabase",
+            "userId",
+            "userMetadata"
+          ]
+        },
+        {
+          "name": "isFrontdeskStaffUser",
+          "startLine": 174,
+          "endLine": 180,
+          "params": [
+            "supabase",
+            "userId",
+            "userMetadata"
+          ]
+        },
+        {
+          "name": "loadFrontdeskOperationalContext",
+          "startLine": 183,
+          "endLine": 229,
+          "params": [
+            "options"
+          ]
+        },
+        {
+          "name": "loadMenuManagementContext",
+          "startLine": 236,
+          "endLine": 262,
+          "params": [
+            "options"
+          ]
+        },
+        {
+          "name": "loadOverviewDashboardContext",
+          "startLine": 265,
+          "endLine": 285,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "isCashierCheckoutPath",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "isDashboardSettingsPath",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "isFrontdeskOperationalPath",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "isOwnerDashboardPath",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "isOwnerOperationalPath",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "loadDashboardAccess",
+          "line": 69,
+          "isDefault": false
+        },
+        {
+          "name": "isOwnerDashboardUser",
+          "line": 154,
+          "isDefault": false
+        },
+        {
+          "name": "isCashierStaffUser",
+          "line": 166,
+          "isDefault": false
+        },
+        {
+          "name": "isFrontdeskStaffUser",
+          "line": 174,
+          "isDefault": false
+        },
+        {
+          "name": "loadFrontdeskOperationalContext",
+          "line": 183,
+          "isDefault": false
+        },
+        {
+          "name": "loadMenuManagementContext",
+          "line": 236,
+          "isDefault": false
+        },
+        {
+          "name": "loadOverviewDashboardContext",
+          "line": 265,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "isActiveStaffRole",
+          "callee": "supabase\n    .from('restaurant_staff_accounts')\n    .select('role, disabled_at')\n    .eq('user_id', userId)\n    .maybeSingle",
+          "lineNumber": 55
+        },
+        {
+          "caller": "isActiveStaffRole",
+          "callee": "supabase\n    .from('restaurant_staff_accounts')\n    .select('role, disabled_at')\n    .eq",
+          "lineNumber": 55
+        },
+        {
+          "caller": "isActiveStaffRole",
+          "callee": "supabase\n    .from('restaurant_staff_accounts')\n    .select",
+          "lineNumber": 55
+        },
+        {
+          "caller": "isActiveStaffRole",
+          "callee": "supabase\n    .from",
+          "lineNumber": 55
+        },
+        {
+          "caller": "isActiveStaffRole",
+          "callee": "parseStaffUserMetadata",
+          "lineNumber": 65
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "createClient",
+          "lineNumber": 70
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 73
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "supabase\n    .from('restaurants')\n    .select(OWNER_RESTAURANT_SELECT)\n    .eq('owner_id', user.id)\n    .maybeSingle",
+          "lineNumber": 77
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "supabase\n    .from('restaurants')\n    .select(OWNER_RESTAURANT_SELECT)\n    .eq",
+          "lineNumber": 77
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "supabase\n    .from('restaurants')\n    .select",
+          "lineNumber": 77
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "supabase\n    .from",
+          "lineNumber": 77
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "supabase\n    .from('restaurant_staff_accounts')\n    .select('restaurant_id, disabled_at, role')\n    .eq('user_id', user.id)\n    .maybeSingle",
+          "lineNumber": 91
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "supabase\n    .from('restaurant_staff_accounts')\n    .select('restaurant_id, disabled_at, role')\n    .eq",
+          "lineNumber": 91
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "supabase\n    .from('restaurant_staff_accounts')\n    .select",
+          "lineNumber": 91
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "supabase\n    .from",
+          "lineNumber": 91
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "supabase\n      .from('restaurants_public')\n      .select('id, name, slug')\n      .eq('id', account.restaurant_id)\n      .maybeSingle",
+          "lineNumber": 102
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "supabase\n      .from('restaurants_public')\n      .select('id, name, slug')\n      .eq",
+          "lineNumber": 102
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "supabase\n      .from('restaurants_public')\n      .select",
+          "lineNumber": 102
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "supabase\n      .from",
+          "lineNumber": 102
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "createAdminClient",
+          "lineNumber": 123
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "admin\n      .from('restaurants')\n      .select(FRONTDESK_RESTAURANT_SELECT)\n      .eq('id', account.restaurant_id)\n      .maybeSingle",
+          "lineNumber": 128
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "admin\n      .from('restaurants')\n      .select(FRONTDESK_RESTAURANT_SELECT)\n      .eq",
+          "lineNumber": 128
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "admin\n      .from('restaurants')\n      .select",
+          "lineNumber": 128
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "admin\n      .from",
+          "lineNumber": 128
+        },
+        {
+          "caller": "loadDashboardAccess",
+          "callee": "parseStaffUserMetadata",
+          "lineNumber": 146
+        },
+        {
+          "caller": "isOwnerDashboardUser",
+          "callee": "supabase\n    .from('restaurants')\n    .select('id')\n    .eq('owner_id', userId)\n    .maybeSingle",
+          "lineNumber": 158
+        },
+        {
+          "caller": "isOwnerDashboardUser",
+          "callee": "supabase\n    .from('restaurants')\n    .select('id')\n    .eq",
+          "lineNumber": 158
+        },
+        {
+          "caller": "isOwnerDashboardUser",
+          "callee": "supabase\n    .from('restaurants')\n    .select",
+          "lineNumber": 158
+        },
+        {
+          "caller": "isOwnerDashboardUser",
+          "callee": "supabase\n    .from",
+          "lineNumber": 158
+        },
+        {
+          "caller": "isCashierStaffUser",
+          "callee": "isActiveStaffRole",
+          "lineNumber": 171
+        },
+        {
+          "caller": "isFrontdeskStaffUser",
+          "callee": "isActiveStaffRole",
+          "lineNumber": 179
+        },
+        {
+          "caller": "loadFrontdeskOperationalContext",
+          "callee": "createClient",
+          "lineNumber": 186
+        },
+        {
+          "caller": "loadFrontdeskOperationalContext",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 189
+        },
+        {
+          "caller": "loadFrontdeskOperationalContext",
+          "callee": "createAdminClient",
+          "lineNumber": 196
+        },
+        {
+          "caller": "loadFrontdeskOperationalContext",
+          "callee": "admin\n    .from('restaurant_staff_accounts')\n    .select('restaurant_id, disabled_at, role')\n    .eq('user_id', user.id)\n    .maybeSingle",
+          "lineNumber": 201
+        },
+        {
+          "caller": "loadFrontdeskOperationalContext",
+          "callee": "admin\n    .from('restaurant_staff_accounts')\n    .select('restaurant_id, disabled_at, role')\n    .eq",
+          "lineNumber": 201
+        },
+        {
+          "caller": "loadFrontdeskOperationalContext",
+          "callee": "admin\n    .from('restaurant_staff_accounts')\n    .select",
+          "lineNumber": 201
+        },
+        {
+          "caller": "loadFrontdeskOperationalContext",
+          "callee": "admin\n    .from",
+          "lineNumber": 201
+        },
+        {
+          "caller": "loadFrontdeskOperationalContext",
+          "callee": "admin\n    .from('restaurants')\n    .select('id, suspended_at')\n    .eq('id', account.restaurant_id)\n    .maybeSingle",
+          "lineNumber": 211
+        },
+        {
+          "caller": "loadFrontdeskOperationalContext",
+          "callee": "admin\n    .from('restaurants')\n    .select('id, suspended_at')\n    .eq",
+          "lineNumber": 211
+        },
+        {
+          "caller": "loadFrontdeskOperationalContext",
+          "callee": "admin\n    .from('restaurants')\n    .select",
+          "lineNumber": 211
+        },
+        {
+          "caller": "loadFrontdeskOperationalContext",
+          "callee": "admin\n    .from",
+          "lineNumber": 211
+        },
+        {
+          "caller": "loadFrontdeskOperationalContext",
+          "callee": "isRestaurantSuspended",
+          "lineNumber": 223
+        },
+        {
+          "caller": "loadMenuManagementContext",
+          "callee": "loadDashboardAccess",
+          "lineNumber": 239
+        },
+        {
+          "caller": "loadMenuManagementContext",
+          "callee": "createAdminClient",
+          "lineNumber": 249
+        },
+        {
+          "caller": "loadMenuManagementContext",
+          "callee": "isRestaurantSuspended",
+          "lineNumber": 256
+        },
+        {
+          "caller": "loadOverviewDashboardContext",
+          "callee": "loadDashboardAccess",
+          "lineNumber": 266
+        },
+        {
+          "caller": "loadOverviewDashboardContext",
+          "callee": "loadFrontdeskOperationalContext",
+          "lineNumber": 274
+        },
+        {
+          "caller": "loadOverviewDashboardContext",
+          "callee": "createAdminClient",
+          "lineNumber": 279
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 12,
+        "functionCount": 8,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-feature-registry.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 104,
+      "nonEmptyLines": 92,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-feature-registry.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 297,
+      "nonEmptyLines": 283,
+      "functions": [
+        {
+          "name": "navItemsForRole",
+          "startLine": 137,
+          "endLine": 147,
+          "params": [
+            "role"
+          ]
+        },
+        {
+          "name": "middlewareAllowsPath",
+          "startLine": 273,
+          "endLine": 281,
+          "params": [
+            "role",
+            "pathname"
+          ]
+        },
+        {
+          "name": "navPathsForRole",
+          "startLine": 283,
+          "endLine": 288,
+          "params": [
+            "role"
+          ]
+        },
+        {
+          "name": "featureByPath",
+          "startLine": 290,
+          "endLine": 297,
+          "params": [
+            "pathname"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "DASHBOARD_NAV_ITEMS",
+          "line": 49,
+          "isDefault": false
+        },
+        {
+          "name": "OWNER_NAV_ITEM_IDS",
+          "line": 119,
+          "isDefault": false
+        },
+        {
+          "name": "FRONTDESK_NAV_ITEM_IDS",
+          "line": 126,
+          "isDefault": false
+        },
+        {
+          "name": "CASHIER_NAV_ITEM_IDS",
+          "line": 135,
+          "isDefault": false
+        },
+        {
+          "name": "navItemsForRole",
+          "line": 137,
+          "isDefault": false
+        },
+        {
+          "name": "OWNER_NAV_PATHS",
+          "line": 149,
+          "isDefault": false
+        },
+        {
+          "name": "FRONTDESK_NAV_PATHS",
+          "line": 150,
+          "isDefault": false
+        },
+        {
+          "name": "CASHIER_NAV_PATHS",
+          "line": 151,
+          "isDefault": false
+        },
+        {
+          "name": "DASHBOARD_FEATURES",
+          "line": 157,
+          "isDefault": false
+        },
+        {
+          "name": "middlewareAllowsPath",
+          "line": 273,
+          "isDefault": false
+        },
+        {
+          "name": "navPathsForRole",
+          "line": 283,
+          "isDefault": false
+        },
+        {
+          "name": "featureByPath",
+          "line": 290,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "navItemsForRole",
+          "callee": "ids.map",
+          "lineNumber": 146
+        },
+        {
+          "caller": "middlewareAllowsPath",
+          "callee": "isOwnerDashboardPath",
+          "lineNumber": 274
+        },
+        {
+          "caller": "middlewareAllowsPath",
+          "callee": "isDashboardSettingsPath",
+          "lineNumber": 276
+        },
+        {
+          "caller": "middlewareAllowsPath",
+          "callee": "isFrontdeskOperationalPath",
+          "lineNumber": 277
+        },
+        {
+          "caller": "middlewareAllowsPath",
+          "callee": "isCashierCheckoutPath",
+          "lineNumber": 279
+        },
+        {
+          "caller": "featureByPath",
+          "callee": "DASHBOARD_FEATURES.find",
+          "lineNumber": 291
+        },
+        {
+          "caller": "featureByPath",
+          "callee": "pathname.startsWith",
+          "lineNumber": 294
+        },
+        {
+          "caller": "featureByPath",
+          "callee": "f.aliases?.some",
+          "lineNumber": 295
+        },
+        {
+          "caller": "featureByPath",
+          "callee": "pathname.startsWith",
+          "lineNumber": 295
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 12,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-paths.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 35,
+      "nonEmptyLines": 30,
+      "functions": [
+        {
+          "name": "isDashboardSettingsPath",
+          "startLine": 1,
+          "endLine": 3,
+          "params": [
+            "pathname"
+          ]
+        },
+        {
+          "name": "isOwnerOperationalPath",
+          "startLine": 6,
+          "endLine": 13,
+          "params": [
+            "pathname"
+          ]
+        },
+        {
+          "name": "isOwnerOverviewPath",
+          "startLine": 15,
+          "endLine": 17,
+          "params": [
+            "pathname"
+          ]
+        },
+        {
+          "name": "isOwnerDashboardPath",
+          "startLine": 19,
+          "endLine": 25,
+          "params": [
+            "pathname"
+          ]
+        },
+        {
+          "name": "isCashierCheckoutPath",
+          "startLine": 27,
+          "endLine": 29,
+          "params": [
+            "pathname"
+          ]
+        },
+        {
+          "name": "isFrontdeskOperationalPath",
+          "startLine": 31,
+          "endLine": 35,
+          "params": [
+            "pathname"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "isDashboardSettingsPath",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "isOwnerOperationalPath",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "isOwnerOverviewPath",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "isOwnerDashboardPath",
+          "line": 19,
+          "isDefault": false
+        },
+        {
+          "name": "isCashierCheckoutPath",
+          "line": 27,
+          "isDefault": false
+        },
+        {
+          "name": "isFrontdeskOperationalPath",
+          "line": 31,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "isDashboardSettingsPath",
+          "callee": "pathname.startsWith",
+          "lineNumber": 2
+        },
+        {
+          "caller": "isOwnerOperationalPath",
+          "callee": "pathname.startsWith",
+          "lineNumber": 9
+        },
+        {
+          "caller": "isOwnerOperationalPath",
+          "callee": "pathname.startsWith",
+          "lineNumber": 11
+        },
+        {
+          "caller": "isOwnerDashboardPath",
+          "callee": "isOwnerOverviewPath",
+          "lineNumber": 21
+        },
+        {
+          "caller": "isOwnerDashboardPath",
+          "callee": "isDashboardSettingsPath",
+          "lineNumber": 22
+        },
+        {
+          "caller": "isOwnerDashboardPath",
+          "callee": "isOwnerOperationalPath",
+          "lineNumber": 23
+        },
+        {
+          "caller": "isCashierCheckoutPath",
+          "callee": "pathname.startsWith",
+          "lineNumber": 28
+        },
+        {
+          "caller": "isFrontdeskOperationalPath",
+          "callee": "pathname.startsWith",
+          "lineNumber": 32
+        },
+        {
+          "caller": "isFrontdeskOperationalPath",
+          "callee": "isDashboardSettingsPath",
+          "lineNumber": 33
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 6,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/db-migration-error.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 7,
+      "nonEmptyLines": 7,
+      "functions": [
+        {
+          "name": "isDbMigrationRequiredError",
+          "startLine": 2,
+          "endLine": 7,
+          "params": [
+            "error"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "isDbMigrationRequiredError",
+          "line": 2,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "isDbMigrationRequiredError",
+          "callee": "/column/i.test",
+          "lineNumber": 6
+        },
+        {
+          "caller": "isDbMigrationRequiredError",
+          "callee": "/does not exist/i.test",
+          "lineNumber": 6
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/expire-stale-print-jobs.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 42,
+      "nonEmptyLines": 37,
+      "functions": [
+        {
+          "name": "expireStalePrintJobs",
+          "startLine": 12,
+          "endLine": 30,
+          "params": [
+            "admin"
+          ]
+        },
+        {
+          "name": "maybeExpireStalePrintJobs",
+          "startLine": 33,
+          "endLine": 42,
+          "params": [
+            "admin",
+            "nowMs"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "expireStalePrintJobs",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "maybeExpireStalePrintJobs",
+          "line": 33,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "expireStalePrintJobs",
+          "callee": "printJobMaxAgeCutoffIso",
+          "lineNumber": 15
+        },
+        {
+          "caller": "expireStalePrintJobs",
+          "callee": "admin\n    .from('print_jobs')\n    .update({\n      status: 'failed',\n      error_message: PRINT_JOB_EXPIRED_ERROR_MESSAGE,\n    })\n    .in('status', ['pending', 'processing'])\n    .lt('created_at', cutoff)\n    .select",
+          "lineNumber": 16
+        },
+        {
+          "caller": "expireStalePrintJobs",
+          "callee": "admin\n    .from('print_jobs')\n    .update({\n      status: 'failed',\n      error_message: PRINT_JOB_EXPIRED_ERROR_MESSAGE,\n    })\n    .in('status', ['pending', 'processing'])\n    .lt",
+          "lineNumber": 16
+        },
+        {
+          "caller": "expireStalePrintJobs",
+          "callee": "admin\n    .from('print_jobs')\n    .update({\n      status: 'failed',\n      error_message: PRINT_JOB_EXPIRED_ERROR_MESSAGE,\n    })\n    .in",
+          "lineNumber": 16
+        },
+        {
+          "caller": "expireStalePrintJobs",
+          "callee": "admin\n    .from('print_jobs')\n    .update",
+          "lineNumber": 16
+        },
+        {
+          "caller": "expireStalePrintJobs",
+          "callee": "admin\n    .from",
+          "lineNumber": 16
+        },
+        {
+          "caller": "maybeExpireStalePrintJobs",
+          "callee": "Date.now",
+          "lineNumber": 35
+        },
+        {
+          "caller": "maybeExpireStalePrintJobs",
+          "callee": "expireStalePrintJobs",
+          "lineNumber": 41
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/fetch-receipt-printers.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 24,
+      "nonEmptyLines": 23,
+      "functions": [
+        {
+          "name": "fetchReceiptPrinters",
+          "startLine": 4,
+          "endLine": 24,
+          "params": [
+            "params"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "fetchReceiptPrinters",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "fetchReceiptPrinters",
+          "callee": "fetch",
+          "lineNumber": 12
+        },
+        {
+          "caller": "fetchReceiptPrinters",
+          "callee": "res.json",
+          "lineNumber": 16
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/print-agent-auth.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 35,
+      "nonEmptyLines": 31,
+      "functions": [
+        {
+          "name": "getBearerToken",
+          "startLine": 5,
+          "endLine": 9,
+          "params": [
+            "req"
+          ]
+        },
+        {
+          "name": "verifyAgentBearer",
+          "startLine": 12,
+          "endLine": 20,
+          "params": [
+            "req"
+          ]
+        },
+        {
+          "name": "verifyActiveAgentBearer",
+          "startLine": 23,
+          "endLine": 31,
+          "params": [
+            "req",
+            "admin"
+          ]
+        },
+        {
+          "name": "isUuid",
+          "startLine": 33,
+          "endLine": 35,
+          "params": [
+            "v"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "getBearerToken",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "verifyAgentBearer",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "verifyActiveAgentBearer",
+          "line": 23,
+          "isDefault": false
+        },
+        {
+          "name": "isUuid",
+          "line": 33,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getBearerToken",
+          "callee": "req.headers.get",
+          "lineNumber": 6
+        },
+        {
+          "caller": "getBearerToken",
+          "callee": "h?.toLowerCase().startsWith",
+          "lineNumber": 7
+        },
+        {
+          "caller": "getBearerToken",
+          "callee": "h?.toLowerCase",
+          "lineNumber": 7
+        },
+        {
+          "caller": "getBearerToken",
+          "callee": "h.slice(7).trim",
+          "lineNumber": 8
+        },
+        {
+          "caller": "getBearerToken",
+          "callee": "h.slice",
+          "lineNumber": 8
+        },
+        {
+          "caller": "verifyAgentBearer",
+          "callee": "getBearerToken",
+          "lineNumber": 15
+        },
+        {
+          "caller": "verifyAgentBearer",
+          "callee": "verifyPrintAgentJwt",
+          "lineNumber": 17
+        },
+        {
+          "caller": "verifyActiveAgentBearer",
+          "callee": "verifyAgentBearer",
+          "lineNumber": 27
+        },
+        {
+          "caller": "verifyActiveAgentBearer",
+          "callee": "isPrintAgentDeviceActiveInDb",
+          "lineNumber": 29
+        },
+        {
+          "caller": "isUuid",
+          "callee": "/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test",
+          "lineNumber": 34
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/print-agent-claim-rate-limit.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 48,
+      "nonEmptyLines": 42,
+      "functions": [
+        {
+          "name": "bucket",
+          "startLine": 10,
+          "endLine": 17,
+          "params": [
+            "key"
+          ]
+        },
+        {
+          "name": "claimRateLimitCheck",
+          "startLine": 19,
+          "endLine": 34,
+          "params": [
+            "ip"
+          ]
+        },
+        {
+          "name": "claimRecordFailure",
+          "startLine": 36,
+          "endLine": 43,
+          "params": [
+            "ip"
+          ]
+        },
+        {
+          "name": "claimRecordSuccess",
+          "startLine": 45,
+          "endLine": 48,
+          "params": [
+            "ip"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "claimRateLimitCheck",
+          "line": 19,
+          "isDefault": false
+        },
+        {
+          "name": "claimRecordFailure",
+          "line": 36,
+          "isDefault": false
+        },
+        {
+          "name": "claimRecordSuccess",
+          "line": 45,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "bucket",
+          "callee": "claimBuckets.get",
+          "lineNumber": 11
+        },
+        {
+          "caller": "bucket",
+          "callee": "Date.now",
+          "lineNumber": 13
+        },
+        {
+          "caller": "bucket",
+          "callee": "claimBuckets.set",
+          "lineNumber": 14
+        },
+        {
+          "caller": "claimRateLimitCheck",
+          "callee": "bucket",
+          "lineNumber": 20
+        },
+        {
+          "caller": "claimRateLimitCheck",
+          "callee": "Date.now",
+          "lineNumber": 21
+        },
+        {
+          "caller": "claimRateLimitCheck",
+          "callee": "Math.ceil",
+          "lineNumber": 23
+        },
+        {
+          "caller": "claimRateLimitCheck",
+          "callee": "Math.ceil",
+          "lineNumber": 30
+        },
+        {
+          "caller": "claimRecordFailure",
+          "callee": "bucket",
+          "lineNumber": 37
+        },
+        {
+          "caller": "claimRecordFailure",
+          "callee": "Date.now",
+          "lineNumber": 40
+        },
+        {
+          "caller": "claimRecordSuccess",
+          "callee": "bucket",
+          "lineNumber": 46
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/print-agent-config.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 23,
+      "nonEmptyLines": 20,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    }
+  ]
+}

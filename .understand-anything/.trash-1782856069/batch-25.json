@@ -1,0 +1,273 @@
+{
+  "nodes": [
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql",
+      "type": "table",
+      "name": "20240101000000_initial_schema.sql",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "数据库迁移脚本 20240101000000_initial_schema.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "table:supabase/migrations/20260529120000_restaurant_feature_flags.sql",
+      "type": "table",
+      "name": "20260529120000_restaurant_feature_flags.sql",
+      "filePath": "supabase/migrations/20260529120000_restaurant_feature_flags.sql",
+      "summary": "数据库迁移脚本 20260529120000_restaurant_feature_flags.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20260623120000_checkout_request_and_session_close_rpc.sql",
+      "type": "table",
+      "name": "20260623120000_checkout_request_and_session_close_rpc.sql",
+      "filePath": "supabase/migrations/20260623120000_checkout_request_and_session_close_rpc.sql",
+      "summary": "数据库迁移脚本 20260623120000_checkout_request_and_session_close_rpc.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "table:supabase/migrations/20260623150000_bill_splits_customer_nif.sql",
+      "type": "table",
+      "name": "20260623150000_bill_splits_customer_nif.sql",
+      "filePath": "supabase/migrations/20260623150000_bill_splits_customer_nif.sql",
+      "summary": "数据库迁移脚本 20260623150000_bill_splits_customer_nif.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20260624120000_platform_admin.sql",
+      "type": "table",
+      "name": "20260624120000_platform_admin.sql",
+      "filePath": "supabase/migrations/20260624120000_platform_admin.sql",
+      "summary": "数据库迁移脚本 20260624120000_platform_admin.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20260625120000_restaurant_suspension.sql",
+      "type": "table",
+      "name": "20260625120000_restaurant_suspension.sql",
+      "filePath": "supabase/migrations/20260625120000_restaurant_suspension.sql",
+      "summary": "数据库迁移脚本 20260625120000_restaurant_suspension.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20260626120000_restaurants_country_code.sql",
+      "type": "table",
+      "name": "20260626120000_restaurants_country_code.sql",
+      "filePath": "supabase/migrations/20260626120000_restaurants_country_code.sql",
+      "summary": "数据库迁移脚本 20260626120000_restaurants_country_code.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20260627115000_frontdesk_menu_management.sql",
+      "type": "table",
+      "name": "20260627115000_frontdesk_menu_management.sql",
+      "filePath": "supabase/migrations/20260627115000_frontdesk_menu_management.sql",
+      "summary": "数据库迁移脚本 20260627115000_frontdesk_menu_management.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration",
+        "menu"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20260627120000_print_agent_support_tokens.sql",
+      "type": "table",
+      "name": "20260627120000_print_agent_support_tokens.sql",
+      "filePath": "supabase/migrations/20260627120000_print_agent_support_tokens.sql",
+      "summary": "数据库迁移脚本 20260627120000_print_agent_support_tokens.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20260628120000_restaurant_table_groups.sql",
+      "type": "table",
+      "name": "20260628120000_restaurant_table_groups.sql",
+      "filePath": "supabase/migrations/20260628120000_restaurant_table_groups.sql",
+      "summary": "数据库迁移脚本 20260628120000_restaurant_table_groups.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20260629120000_staff_frontdesk_role.sql",
+      "type": "table",
+      "name": "20260629120000_staff_frontdesk_role.sql",
+      "filePath": "supabase/migrations/20260629120000_staff_frontdesk_role.sql",
+      "summary": "数据库迁移脚本 20260629120000_staff_frontdesk_role.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20260629130000_resume_ordering_preserve_partial_split.sql",
+      "type": "table",
+      "name": "20260629130000_resume_ordering_preserve_partial_split.sql",
+      "filePath": "supabase/migrations/20260629130000_resume_ordering_preserve_partial_split.sql",
+      "summary": "数据库迁移脚本 20260629130000_resume_ordering_preserve_partial_split.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20260630120000_table_sessions_opened_by_user_id.sql",
+      "type": "table",
+      "name": "20260630120000_table_sessions_opened_by_user_id.sql",
+      "filePath": "supabase/migrations/20260630120000_table_sessions_opened_by_user_id.sql",
+      "summary": "数据库迁移脚本 20260630120000_table_sessions_opened_by_user_id.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20260701120000_abnormal_operations.sql",
+      "type": "table",
+      "name": "20260701120000_abnormal_operations.sql",
+      "filePath": "supabase/migrations/20260701120000_abnormal_operations.sql",
+      "summary": "数据库迁移脚本 20260701120000_abnormal_operations.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20260702120000_operation_logs_and_manual_close.sql",
+      "type": "table",
+      "name": "20260702120000_operation_logs_and_manual_close.sql",
+      "filePath": "supabase/migrations/20260702120000_operation_logs_and_manual_close.sql",
+      "summary": "数据库迁移脚本 20260702120000_operation_logs_and_manual_close.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "table:supabase/migrations/20260703120000_table_sessions_closed_at_analytics.sql",
+      "type": "table",
+      "name": "20260703120000_table_sessions_closed_at_analytics.sql",
+      "filePath": "supabase/migrations/20260703120000_table_sessions_closed_at_analytics.sql",
+      "summary": "数据库迁移脚本 20260703120000_table_sessions_closed_at_analytics.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20260704120000_menu_items_vat_rate.sql",
+      "type": "table",
+      "name": "20260704120000_menu_items_vat_rate.sql",
+      "filePath": "supabase/migrations/20260704120000_menu_items_vat_rate.sql",
+      "summary": "数据库迁移脚本 20260704120000_menu_items_vat_rate.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration",
+        "menu"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20260705120000_menu_items_sort_order_unique.sql",
+      "type": "table",
+      "name": "20260705120000_menu_items_sort_order_unique.sql",
+      "filePath": "supabase/migrations/20260705120000_menu_items_sort_order_unique.sql",
+      "summary": "数据库迁移脚本 20260705120000_menu_items_sort_order_unique.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration",
+        "menu"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20260706120000_bill_split_checkout_discount.sql",
+      "type": "table",
+      "name": "20260706120000_bill_split_checkout_discount.sql",
+      "filePath": "supabase/migrations/20260706120000_bill_split_checkout_discount.sql",
+      "summary": "数据库迁移脚本 20260706120000_bill_split_checkout_discount.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20260708120000_drop_confirm_bill_split_payment_legacy_overload.sql",
+      "type": "table",
+      "name": "20260708120000_drop_confirm_bill_split_payment_legacy_overload.sql",
+      "filePath": "supabase/migrations/20260708120000_drop_confirm_bill_split_payment_legacy_overload.sql",
+      "summary": "数据库迁移脚本 20260708120000_drop_confirm_bill_split_payment_legacy_overload.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql",
+      "type": "table",
+      "name": "20260709120000_session_collected_payments_resume_ordering.sql",
+      "filePath": "supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql",
+      "summary": "数据库迁移脚本 20260709120000_session_collected_payments_resume_ordering.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "table:supabase/migrations/20260710120000_resume_ordering_preserve_by_item_split.sql",
+      "type": "table",
+      "name": "20260710120000_resume_ordering_preserve_by_item_split.sql",
+      "filePath": "supabase/migrations/20260710120000_resume_ordering_preserve_by_item_split.sql",
+      "summary": "数据库迁移脚本 20260710120000_resume_ordering_preserve_by_item_split.sql，定义表结构变更与 RLS 策略。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": []
+}

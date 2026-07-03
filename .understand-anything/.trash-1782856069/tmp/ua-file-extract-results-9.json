@@ -1,0 +1,5989 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 29,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/web/src/app/[slug]/bill/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 111,
+      "nonEmptyLines": 101,
+      "functions": [
+        {
+          "name": "BillRoute",
+          "startLine": 19,
+          "endLine": 111,
+          "params": [
+            "{ params, searchParams }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "BillRoute",
+          "line": 19,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "BillRoute",
+          "callee": "createAdminClient",
+          "lineNumber": 25
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "notFound",
+          "lineNumber": 27
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "loadCustomerRestaurantGate",
+          "lineNumber": 29
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "notFound",
+          "lineNumber": 30
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "resolveCustomerTableContext",
+          "lineNumber": 36
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "notFound",
+          "lineNumber": 41
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "resolveWaiterMenuReturnHref",
+          "lineNumber": 43
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "redirect",
+          "lineNumber": 47
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "redirect",
+          "lineNumber": 49
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "encodeURIComponent",
+          "lineNumber": 49
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "Promise.all",
+          "lineNumber": 52
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "loadCustomerSessionOrders",
+          "lineNumber": 53
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "loadCustomerExistingSplit",
+          "lineNumber": 59
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "distinctMenuItemIdsFromOrders",
+          "lineNumber": 62
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "admin\n      .from('menu_items')\n      .select('id, item_code')\n      .eq('restaurant_id', restaurant.id)\n      .in",
+          "lineNumber": 65
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "admin\n      .from('menu_items')\n      .select('id, item_code')\n      .eq",
+          "lineNumber": 65
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "admin\n      .from('menu_items')\n      .select",
+          "lineNumber": 65
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "admin\n      .from",
+          "lineNumber": 65
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "menuItemCodeLookupFromRows",
+          "lineNumber": 70
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "Promise.all",
+          "lineNumber": 78
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "admin\n        .from('feedback_sessions')\n        .select('completed_at, skipped_at')\n        .eq('session_id', sessionId)\n        .maybeSingle",
+          "lineNumber": 79
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "admin\n        .from('feedback_sessions')\n        .select('completed_at, skipped_at')\n        .eq",
+          "lineNumber": 79
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "admin\n        .from('feedback_sessions')\n        .select",
+          "lineNumber": 79
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "admin\n        .from",
+          "lineNumber": 79
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "admin\n        .from('session_collected_payments')\n        .select('id', { count: 'exact', head: true })\n        .eq('restaurant_id', restaurant.id)\n        .eq",
+          "lineNumber": 84
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "admin\n        .from('session_collected_payments')\n        .select('id', { count: 'exact', head: true })\n        .eq",
+          "lineNumber": 84
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "admin\n        .from('session_collected_payments')\n        .select",
+          "lineNumber": 84
+        },
+        {
+          "caller": "BillRoute",
+          "callee": "admin\n        .from",
+          "lineNumber": 84
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/[slug]/kitchen/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 22,
+      "nonEmptyLines": 17,
+      "functions": [
+        {
+          "name": "KitchenPage",
+          "startLine": 9,
+          "endLine": 22,
+          "params": [
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "KitchenPage",
+          "line": 9,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "KitchenPage",
+          "callee": "createClient",
+          "lineNumber": 11
+        },
+        {
+          "caller": "KitchenPage",
+          "callee": "supabase\n    .from('restaurants_public')\n    .select('id, name, slug')\n    .eq('slug', slug)\n    .single",
+          "lineNumber": 13
+        },
+        {
+          "caller": "KitchenPage",
+          "callee": "supabase\n    .from('restaurants_public')\n    .select('id, name, slug')\n    .eq",
+          "lineNumber": 13
+        },
+        {
+          "caller": "KitchenPage",
+          "callee": "supabase\n    .from('restaurants_public')\n    .select",
+          "lineNumber": 13
+        },
+        {
+          "caller": "KitchenPage",
+          "callee": "supabase\n    .from",
+          "lineNumber": 13
+        },
+        {
+          "caller": "KitchenPage",
+          "callee": "notFound",
+          "lineNumber": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 75,
+      "nonEmptyLines": 64,
+      "functions": [
+        {
+          "name": "isWaiterCheckoutPendingTable",
+          "startLine": 15,
+          "endLine": 20,
+          "params": [
+            "detail"
+          ]
+        },
+        {
+          "name": "WaiterTablePage",
+          "startLine": 22,
+          "endLine": 75,
+          "params": [
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "WaiterTablePage",
+          "line": 22,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "WaiterTablePage",
+          "callee": "parseTableIdParam",
+          "lineNumber": 24
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "notFound",
+          "lineNumber": 25
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "createClient",
+          "lineNumber": 27
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "supabase\n    .from('restaurants_public')\n    .select('id, name, slug')\n    .eq('slug', slug)\n    .single",
+          "lineNumber": 29
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "supabase\n    .from('restaurants_public')\n    .select('id, name, slug')\n    .eq",
+          "lineNumber": 29
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "supabase\n    .from('restaurants_public')\n    .select",
+          "lineNumber": 29
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "supabase\n    .from",
+          "lineNumber": 29
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "notFound",
+          "lineNumber": 35
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "staffAuthForPage",
+          "lineNumber": 37
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "Promise.all",
+          "lineNumber": 39
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "supabase\n      .from('buffets')\n      .select('*')\n      .eq('restaurant_id', restaurant.id)\n      .order",
+          "lineNumber": 40
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "supabase\n      .from('buffets')\n      .select('*')\n      .eq",
+          "lineNumber": 40
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "supabase\n      .from('buffets')\n      .select",
+          "lineNumber": 40
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "supabase\n      .from",
+          "lineNumber": 40
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "loadWaiterTableInitial(auth.restaurant_id, tableId).catch",
+          "lineNumber": 46
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "loadWaiterTableInitial",
+          "lineNumber": 46
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "Promise.resolve",
+          "lineNumber": 47
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "isWaiterCheckoutPendingTable",
+          "lineNumber": 50
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "redirect",
+          "lineNumber": 51
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "waiterBoardHref",
+          "lineNumber": 51
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "distinctMenuItemIdsFromOrders",
+          "lineNumber": 54
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "supabase\n      .from('menu_items')\n      .select('id, item_code')\n      .eq('restaurant_id', restaurant.id)\n      .in",
+          "lineNumber": 57
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "supabase\n      .from('menu_items')\n      .select('id, item_code')\n      .eq",
+          "lineNumber": 57
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "supabase\n      .from('menu_items')\n      .select",
+          "lineNumber": 57
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "supabase\n      .from",
+          "lineNumber": 57
+        },
+        {
+          "caller": "WaiterTablePage",
+          "callee": "menuItemCodeLookupFromRows",
+          "lineNumber": 62
+        }
+      ],
+      "metrics": {
+        "importCount": 8,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/[slug]/waiter/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 40,
+      "nonEmptyLines": 34,
+      "functions": [
+        {
+          "name": "WaiterPage",
+          "startLine": 11,
+          "endLine": 40,
+          "params": [
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "WaiterPage",
+          "line": 11,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "WaiterPage",
+          "callee": "createClient",
+          "lineNumber": 13
+        },
+        {
+          "caller": "WaiterPage",
+          "callee": "supabase\n    .from('restaurants_public')\n    .select('id, name, slug')\n    .eq('slug', slug)\n    .single",
+          "lineNumber": 15
+        },
+        {
+          "caller": "WaiterPage",
+          "callee": "supabase\n    .from('restaurants_public')\n    .select('id, name, slug')\n    .eq",
+          "lineNumber": 15
+        },
+        {
+          "caller": "WaiterPage",
+          "callee": "supabase\n    .from('restaurants_public')\n    .select",
+          "lineNumber": 15
+        },
+        {
+          "caller": "WaiterPage",
+          "callee": "supabase\n    .from",
+          "lineNumber": 15
+        },
+        {
+          "caller": "WaiterPage",
+          "callee": "notFound",
+          "lineNumber": 21
+        },
+        {
+          "caller": "WaiterPage",
+          "callee": "staffAuthForPage",
+          "lineNumber": 23
+        },
+        {
+          "caller": "WaiterPage",
+          "callee": "loadWaiterBoardInitial(auth.restaurant_id).catch",
+          "lineNumber": 25
+        },
+        {
+          "caller": "WaiterPage",
+          "callee": "loadWaiterBoardInitial",
+          "lineNumber": 25
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/dashboard/buffet/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 205,
+      "nonEmptyLines": 181,
+      "functions": [
+        {
+          "name": "jsonData",
+          "startLine": 26,
+          "endLine": 28,
+          "params": [
+            "data"
+          ]
+        },
+        {
+          "name": "GET",
+          "startLine": 30,
+          "endLine": 37,
+          "params": []
+        },
+        {
+          "name": "POST",
+          "startLine": 39,
+          "endLine": 99,
+          "params": [
+            "req"
+          ]
+        },
+        {
+          "name": "PATCH",
+          "startLine": 101,
+          "endLine": 174,
+          "params": [
+            "req"
+          ]
+        },
+        {
+          "name": "DELETE",
+          "startLine": 176,
+          "endLine": 205,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 24,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 30,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 39,
+          "isDefault": false
+        },
+        {
+          "name": "PATCH",
+          "line": 101,
+          "isDefault": false
+        },
+        {
+          "name": "DELETE",
+          "line": 176,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "jsonData",
+          "callee": "NextResponse.json",
+          "lineNumber": 27
+        },
+        {
+          "caller": "GET",
+          "callee": "loadWritableOwnerContext",
+          "lineNumber": 31
+        },
+        {
+          "caller": "GET",
+          "callee": "loadBuffetDashboard",
+          "lineNumber": 34
+        },
+        {
+          "caller": "GET",
+          "callee": "dashboardApiError",
+          "lineNumber": 35
+        },
+        {
+          "caller": "GET",
+          "callee": "jsonData",
+          "lineNumber": 36
+        },
+        {
+          "caller": "POST",
+          "callee": "loadWritableOwnerContext",
+          "lineNumber": 40
+        },
+        {
+          "caller": "POST",
+          "callee": "readJsonBody",
+          "lineNumber": 43
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 48
+        },
+        {
+          "caller": "POST",
+          "callee": "createBuffet",
+          "lineNumber": 50
+        },
+        {
+          "caller": "POST",
+          "callee": "dashboardApiError",
+          "lineNumber": 51
+        },
+        {
+          "caller": "POST",
+          "callee": "jsonData",
+          "lineNumber": 52
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 57
+        },
+        {
+          "caller": "POST",
+          "callee": "createBuffetTimeSlot",
+          "lineNumber": 60
+        },
+        {
+          "caller": "POST",
+          "callee": "dashboardApiError",
+          "lineNumber": 64
+        },
+        {
+          "caller": "POST",
+          "callee": "jsonData",
+          "lineNumber": 65
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 70
+        },
+        {
+          "caller": "POST",
+          "callee": "createBuffetPriceRule",
+          "lineNumber": 72
+        },
+        {
+          "caller": "POST",
+          "callee": "dashboardApiError",
+          "lineNumber": 77
+        },
+        {
+          "caller": "POST",
+          "callee": "jsonData",
+          "lineNumber": 78
+        },
+        {
+          "caller": "POST",
+          "callee": "Array.isArray",
+          "lineNumber": 82
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 83
+        },
+        {
+          "caller": "POST",
+          "callee": "body.rows.filter",
+          "lineNumber": 85
+        },
+        {
+          "caller": "POST",
+          "callee": "upsertBuffetCalendarOverrides",
+          "lineNumber": 93
+        },
+        {
+          "caller": "POST",
+          "callee": "dashboardApiError",
+          "lineNumber": 94
+        },
+        {
+          "caller": "POST",
+          "callee": "jsonData",
+          "lineNumber": 95
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 98
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loadWritableOwnerContext",
+          "lineNumber": 102
+        },
+        {
+          "caller": "PATCH",
+          "callee": "readJsonBody",
+          "lineNumber": 105
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 116
+        },
+        {
+          "caller": "PATCH",
+          "callee": "updateBuffetFridayPolicy",
+          "lineNumber": 118
+        },
+        {
+          "caller": "PATCH",
+          "callee": "dashboardApiError",
+          "lineNumber": 119
+        },
+        {
+          "caller": "PATCH",
+          "callee": "jsonData",
+          "lineNumber": 120
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 124
+        },
+        {
+          "caller": "PATCH",
+          "callee": "updateBuffet",
+          "lineNumber": 132
+        },
+        {
+          "caller": "PATCH",
+          "callee": "dashboardApiError",
+          "lineNumber": 133
+        },
+        {
+          "caller": "PATCH",
+          "callee": "jsonData",
+          "lineNumber": 134
+        },
+        {
+          "caller": "PATCH",
+          "callee": "updateBuffetTimeSlot",
+          "lineNumber": 140
+        },
+        {
+          "caller": "PATCH",
+          "callee": "dashboardApiError",
+          "lineNumber": 141
+        },
+        {
+          "caller": "PATCH",
+          "callee": "jsonData",
+          "lineNumber": 142
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 147
+        },
+        {
+          "caller": "PATCH",
+          "callee": "updateBuffetPriceRule",
+          "lineNumber": 149
+        },
+        {
+          "caller": "PATCH",
+          "callee": "dashboardApiError",
+          "lineNumber": 155
+        },
+        {
+          "caller": "PATCH",
+          "callee": "jsonData",
+          "lineNumber": 156
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 161
+        },
+        {
+          "caller": "PATCH",
+          "callee": "toggleBuffetPriceRuleActive",
+          "lineNumber": 163
+        },
+        {
+          "caller": "PATCH",
+          "callee": "dashboardApiError",
+          "lineNumber": 169
+        },
+        {
+          "caller": "PATCH",
+          "callee": "jsonData",
+          "lineNumber": 170
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 173
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loadWritableOwnerContext",
+          "lineNumber": 177
+        },
+        {
+          "caller": "DELETE",
+          "callee": "readJsonBody",
+          "lineNumber": 180
+        },
+        {
+          "caller": "DELETE",
+          "callee": "deleteBuffet",
+          "lineNumber": 184
+        },
+        {
+          "caller": "DELETE",
+          "callee": "dashboardApiError",
+          "lineNumber": 185
+        },
+        {
+          "caller": "DELETE",
+          "callee": "jsonData",
+          "lineNumber": 186
+        },
+        {
+          "caller": "DELETE",
+          "callee": "deleteBuffetTimeSlot",
+          "lineNumber": 189
+        },
+        {
+          "caller": "DELETE",
+          "callee": "dashboardApiError",
+          "lineNumber": 190
+        },
+        {
+          "caller": "DELETE",
+          "callee": "jsonData",
+          "lineNumber": 191
+        },
+        {
+          "caller": "DELETE",
+          "callee": "deleteBuffetPriceRule",
+          "lineNumber": 194
+        },
+        {
+          "caller": "DELETE",
+          "callee": "dashboardApiError",
+          "lineNumber": 195
+        },
+        {
+          "caller": "DELETE",
+          "callee": "jsonData",
+          "lineNumber": 196
+        },
+        {
+          "caller": "DELETE",
+          "callee": "deleteBuffetCalendarOverride",
+          "lineNumber": 199
+        },
+        {
+          "caller": "DELETE",
+          "callee": "dashboardApiError",
+          "lineNumber": 200
+        },
+        {
+          "caller": "DELETE",
+          "callee": "jsonData",
+          "lineNumber": 201
+        },
+        {
+          "caller": "DELETE",
+          "callee": "NextResponse.json",
+          "lineNumber": 204
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 5,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 94,
+      "nonEmptyLines": 80,
+      "functions": [
+        {
+          "name": "jsonGroups",
+          "startLine": 16,
+          "endLine": 18,
+          "params": [
+            "payload"
+          ]
+        },
+        {
+          "name": "POST",
+          "startLine": 20,
+          "endLine": 40,
+          "params": [
+            "req"
+          ]
+        },
+        {
+          "name": "PATCH",
+          "startLine": 42,
+          "endLine": 79,
+          "params": [
+            "req"
+          ]
+        },
+        {
+          "name": "DELETE",
+          "startLine": 81,
+          "endLine": 94,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "PATCH",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "DELETE",
+          "line": 81,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "jsonGroups",
+          "callee": "NextResponse.json",
+          "lineNumber": 17
+        },
+        {
+          "caller": "POST",
+          "callee": "loadWritableFrontdeskContext",
+          "lineNumber": 21
+        },
+        {
+          "caller": "POST",
+          "callee": "readJsonBody",
+          "lineNumber": 24
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 27
+        },
+        {
+          "caller": "POST",
+          "callee": "createTableGroup",
+          "lineNumber": 30
+        },
+        {
+          "caller": "POST",
+          "callee": "Array.isArray",
+          "lineNumber": 33
+        },
+        {
+          "caller": "POST",
+          "callee": "body.table_ids.filter",
+          "lineNumber": 34
+        },
+        {
+          "caller": "POST",
+          "callee": "dashboardApiError",
+          "lineNumber": 38
+        },
+        {
+          "caller": "POST",
+          "callee": "jsonGroups",
+          "lineNumber": 39
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loadWritableFrontdeskContext",
+          "lineNumber": 43
+        },
+        {
+          "caller": "PATCH",
+          "callee": "readJsonBody",
+          "lineNumber": 46
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 51
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 54
+        },
+        {
+          "caller": "PATCH",
+          "callee": "moveTableGroupOrder",
+          "lineNumber": 56
+        },
+        {
+          "caller": "PATCH",
+          "callee": "dashboardApiError",
+          "lineNumber": 62
+        },
+        {
+          "caller": "PATCH",
+          "callee": "jsonGroups",
+          "lineNumber": 63
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 67
+        },
+        {
+          "caller": "PATCH",
+          "callee": "updateTableGroup",
+          "lineNumber": 70
+        },
+        {
+          "caller": "PATCH",
+          "callee": "Array.isArray",
+          "lineNumber": 73
+        },
+        {
+          "caller": "PATCH",
+          "callee": "body.table_ids.filter",
+          "lineNumber": 74
+        },
+        {
+          "caller": "PATCH",
+          "callee": "dashboardApiError",
+          "lineNumber": 77
+        },
+        {
+          "caller": "PATCH",
+          "callee": "jsonGroups",
+          "lineNumber": 78
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loadWritableFrontdeskContext",
+          "lineNumber": 82
+        },
+        {
+          "caller": "DELETE",
+          "callee": "readJsonBody",
+          "lineNumber": 85
+        },
+        {
+          "caller": "DELETE",
+          "callee": "NextResponse.json",
+          "lineNumber": 88
+        },
+        {
+          "caller": "DELETE",
+          "callee": "deleteTableGroup",
+          "lineNumber": 91
+        },
+        {
+          "caller": "DELETE",
+          "callee": "dashboardApiError",
+          "lineNumber": 92
+        },
+        {
+          "caller": "DELETE",
+          "callee": "jsonGroups",
+          "lineNumber": 93
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/dashboard/tables/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 187,
+      "nonEmptyLines": 163,
+      "functions": [
+        {
+          "name": "jsonTables",
+          "startLine": 14,
+          "endLine": 16,
+          "params": [
+            "tables"
+          ]
+        },
+        {
+          "name": "POST",
+          "startLine": 18,
+          "endLine": 57,
+          "params": [
+            "req"
+          ]
+        },
+        {
+          "name": "PATCH",
+          "startLine": 59,
+          "endLine": 123,
+          "params": [
+            "req"
+          ]
+        },
+        {
+          "name": "DELETE",
+          "startLine": 125,
+          "endLine": 187,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "PATCH",
+          "line": 59,
+          "isDefault": false
+        },
+        {
+          "name": "DELETE",
+          "line": 125,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "jsonTables",
+          "callee": "NextResponse.json",
+          "lineNumber": 15
+        },
+        {
+          "caller": "POST",
+          "callee": "loadFrontdeskDashboardTables",
+          "lineNumber": 19
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 21
+        },
+        {
+          "caller": "POST",
+          "callee": "req.json",
+          "lineNumber": 26
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 28
+        },
+        {
+          "caller": "POST",
+          "callee": "Math.floor",
+          "lineNumber": 31
+        },
+        {
+          "caller": "POST",
+          "callee": "isValidTableAddCount",
+          "lineNumber": 32
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 33
+        },
+        {
+          "caller": "POST",
+          "callee": "nextDefaultTableDisplayNames",
+          "lineNumber": 36
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.tables.map",
+          "lineNumber": 37
+        },
+        {
+          "caller": "POST",
+          "callee": "Math.max",
+          "lineNumber": 40
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.tables.map",
+          "lineNumber": 40
+        },
+        {
+          "caller": "POST",
+          "callee": "displayNames.map",
+          "lineNumber": 41
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin.from('restaurant_tables').insert",
+          "lineNumber": 47
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin.from",
+          "lineNumber": 47
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 49
+        },
+        {
+          "caller": "POST",
+          "callee": "loadFrontdeskDashboardTables",
+          "lineNumber": 52
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 54
+        },
+        {
+          "caller": "POST",
+          "callee": "jsonTables",
+          "lineNumber": 56
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loadFrontdeskDashboardTables",
+          "lineNumber": 60
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 62
+        },
+        {
+          "caller": "PATCH",
+          "callee": "req.json",
+          "lineNumber": 67
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 69
+        },
+        {
+          "caller": "PATCH",
+          "callee": "Array.isArray",
+          "lineNumber": 72
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 73
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.tables.map",
+          "lineNumber": 76
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 81
+        },
+        {
+          "caller": "PATCH",
+          "callee": "parseTableIdParam",
+          "lineNumber": 84
+        },
+        {
+          "caller": "PATCH",
+          "callee": "normalizeTableDisplayName",
+          "lineNumber": 85
+        },
+        {
+          "caller": "PATCH",
+          "callee": "currentById.has",
+          "lineNumber": 86
+        },
+        {
+          "caller": "PATCH",
+          "callee": "isValidTableDisplayName",
+          "lineNumber": 86
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 87
+        },
+        {
+          "caller": "PATCH",
+          "callee": "updates.push",
+          "lineNumber": 89
+        },
+        {
+          "caller": "PATCH",
+          "callee": "currentById.get",
+          "lineNumber": 92
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 97
+        },
+        {
+          "caller": "PATCH",
+          "callee": "updates.map",
+          "lineNumber": 99
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 101
+        },
+        {
+          "caller": "PATCH",
+          "callee": "currentById.get",
+          "lineNumber": 105
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n      .from('restaurant_tables')\n      .update({ display_name: row.display_name })\n      .eq('id', row.id)\n      .eq('restaurant_id', loaded.restaurant.id)\n      .is",
+          "lineNumber": 107
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n      .from('restaurant_tables')\n      .update({ display_name: row.display_name })\n      .eq('id', row.id)\n      .eq",
+          "lineNumber": 107
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n      .from('restaurant_tables')\n      .update({ display_name: row.display_name })\n      .eq",
+          "lineNumber": 107
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n      .from('restaurant_tables')\n      .update",
+          "lineNumber": 107
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n      .from",
+          "lineNumber": 107
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 114
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loadFrontdeskDashboardTables",
+          "lineNumber": 118
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 120
+        },
+        {
+          "caller": "PATCH",
+          "callee": "jsonTables",
+          "lineNumber": 122
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loadFrontdeskDashboardTables",
+          "lineNumber": 126
+        },
+        {
+          "caller": "DELETE",
+          "callee": "NextResponse.json",
+          "lineNumber": 128
+        },
+        {
+          "caller": "DELETE",
+          "callee": "req.json",
+          "lineNumber": 133
+        },
+        {
+          "caller": "DELETE",
+          "callee": "NextResponse.json",
+          "lineNumber": 135
+        },
+        {
+          "caller": "DELETE",
+          "callee": "parseTableIdParam",
+          "lineNumber": 138
+        },
+        {
+          "caller": "DELETE",
+          "callee": "NextResponse.json",
+          "lineNumber": 140
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_tables')\n    .select('id')\n    .eq('id', tableId)\n    .eq('restaurant_id', loaded.restaurant.id)\n    .is('deleted_at', null)\n    .maybeSingle",
+          "lineNumber": 143
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_tables')\n    .select('id')\n    .eq('id', tableId)\n    .eq('restaurant_id', loaded.restaurant.id)\n    .is",
+          "lineNumber": 143
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_tables')\n    .select('id')\n    .eq('id', tableId)\n    .eq",
+          "lineNumber": 143
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_tables')\n    .select('id')\n    .eq",
+          "lineNumber": 143
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_tables')\n    .select",
+          "lineNumber": 143
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from",
+          "lineNumber": 143
+        },
+        {
+          "caller": "DELETE",
+          "callee": "NextResponse.json",
+          "lineNumber": 151
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('table_sessions')\n    .select('id')\n    .eq('restaurant_id', loaded.restaurant.id)\n    .eq('table_id', tableId)\n    .in('status', ['open', 'billing'])\n    .limit(1)\n    .maybeSingle",
+          "lineNumber": 154
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('table_sessions')\n    .select('id')\n    .eq('restaurant_id', loaded.restaurant.id)\n    .eq('table_id', tableId)\n    .in('status', ['open', 'billing'])\n    .limit",
+          "lineNumber": 154
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('table_sessions')\n    .select('id')\n    .eq('restaurant_id', loaded.restaurant.id)\n    .eq('table_id', tableId)\n    .in",
+          "lineNumber": 154
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('table_sessions')\n    .select('id')\n    .eq('restaurant_id', loaded.restaurant.id)\n    .eq",
+          "lineNumber": 154
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('table_sessions')\n    .select('id')\n    .eq",
+          "lineNumber": 154
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('table_sessions')\n    .select",
+          "lineNumber": 154
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from",
+          "lineNumber": 154
+        },
+        {
+          "caller": "DELETE",
+          "callee": "NextResponse.json",
+          "lineNumber": 163
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_table_group_members')\n    .delete()\n    .eq('table_id', tableId)\n    .eq",
+          "lineNumber": 166
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_table_group_members')\n    .delete()\n    .eq",
+          "lineNumber": 166
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_table_group_members')\n    .delete",
+          "lineNumber": 166
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from",
+          "lineNumber": 166
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_tables')\n    .update({ deleted_at: new Date().toISOString() })\n    .eq('id', tableId)\n    .eq('restaurant_id', loaded.restaurant.id)\n    .is",
+          "lineNumber": 172
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_tables')\n    .update({ deleted_at: new Date().toISOString() })\n    .eq('id', tableId)\n    .eq",
+          "lineNumber": 172
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_tables')\n    .update({ deleted_at: new Date().toISOString() })\n    .eq",
+          "lineNumber": 172
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_tables')\n    .update",
+          "lineNumber": 172
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from",
+          "lineNumber": 172
+        },
+        {
+          "caller": "DELETE",
+          "callee": "new Date().toISOString",
+          "lineNumber": 174
+        },
+        {
+          "caller": "DELETE",
+          "callee": "NextResponse.json",
+          "lineNumber": 179
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loadFrontdeskDashboardTables",
+          "lineNumber": 182
+        },
+        {
+          "caller": "DELETE",
+          "callee": "NextResponse.json",
+          "lineNumber": 184
+        },
+        {
+          "caller": "DELETE",
+          "callee": "jsonTables",
+          "lineNumber": 186
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 36,
+      "nonEmptyLines": 30,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 8,
+          "endLine": 36,
+          "params": [
+            "_req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 14
+        },
+        {
+          "caller": "GET",
+          "callee": "staffAuthFromRequest",
+          "lineNumber": 17
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 19
+        },
+        {
+          "caller": "GET",
+          "callee": "createAdminClient",
+          "lineNumber": 24
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 26
+        },
+        {
+          "caller": "GET",
+          "callee": "fetchKitchenBoard",
+          "lineNumber": 29
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 31
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 31,
+      "nonEmptyLines": 26,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 8,
+          "endLine": 31,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 14
+        },
+        {
+          "caller": "GET",
+          "callee": "openTableAuthFromRequest",
+          "lineNumber": 17
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 19
+        },
+        {
+          "caller": "GET",
+          "callee": "createAdminClient",
+          "lineNumber": 24
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 26
+        },
+        {
+          "caller": "GET",
+          "callee": "fetchWaiterBoard",
+          "lineNumber": 29
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 30
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 22,
+      "nonEmptyLines": 18,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 7,
+          "endLine": 22,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 4,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 7,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 13
+        },
+        {
+          "caller": "POST",
+          "callee": "staffAuthFromRequest",
+          "lineNumber": 16
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 18
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 21
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 44,
+      "nonEmptyLines": 38,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 9,
+          "endLine": 44,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 9,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "parseTableIdParam",
+          "lineNumber": 14
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 16
+        },
+        {
+          "caller": "GET",
+          "callee": "url.searchParams.get",
+          "lineNumber": 20
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 22
+        },
+        {
+          "caller": "GET",
+          "callee": "openTableAuthFromRequest",
+          "lineNumber": 25
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 27
+        },
+        {
+          "caller": "GET",
+          "callee": "createAdminClient",
+          "lineNumber": 32
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 34
+        },
+        {
+          "caller": "GET",
+          "callee": "fetchWaiterTableActionTargets",
+          "lineNumber": 37
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 43
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 38,
+      "nonEmptyLines": 32,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 9,
+          "endLine": 38,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 9,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "parseTableIdParam",
+          "lineNumber": 15
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 17
+        },
+        {
+          "caller": "GET",
+          "callee": "openTableAuthFromRequest",
+          "lineNumber": 20
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 22
+        },
+        {
+          "caller": "GET",
+          "callee": "createAdminClient",
+          "lineNumber": 27
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 29
+        },
+        {
+          "caller": "GET",
+          "callee": "fetchWaiterTableDetail",
+          "lineNumber": 32
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 34
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 37
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/orders/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 34,
+      "nonEmptyLines": 29,
+      "functions": [
+        {
+          "name": "OrdersPage",
+          "startLine": 6,
+          "endLine": 34,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "OrdersPage",
+          "line": 6,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "OrdersPage",
+          "callee": "loadFrontdeskDashboardTables",
+          "lineNumber": 7
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "notFound",
+          "lineNumber": 8
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from('orders')\n    .select('*')\n    .eq('restaurant_id', loaded.restaurant.id)\n    .order('created_at', { ascending: false })\n    .limit",
+          "lineNumber": 10
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from('orders')\n    .select('*')\n    .eq('restaurant_id', loaded.restaurant.id)\n    .order",
+          "lineNumber": 10
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from('orders')\n    .select('*')\n    .eq",
+          "lineNumber": 10
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from('orders')\n    .select",
+          "lineNumber": 10
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from",
+          "lineNumber": 10
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from('table_sessions')\n    .select('id')\n    .eq('restaurant_id', loaded.restaurant.id)\n    .eq",
+          "lineNumber": 17
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from('table_sessions')\n    .select('id')\n    .eq",
+          "lineNumber": 17
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from('table_sessions')\n    .select",
+          "lineNumber": 17
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from",
+          "lineNumber": 17
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "(closedSessions || []).map",
+          "lineNumber": 23
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "(orders || []).filter",
+          "lineNumber": 24
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "closedSessionIds.has",
+          "lineNumber": 25
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 70,
+      "nonEmptyLines": 61,
+      "functions": [
+        {
+          "name": "isFrontdeskCheckoutPendingTable",
+          "startLine": 15,
+          "endLine": 20,
+          "params": [
+            "detail"
+          ]
+        },
+        {
+          "name": "DashboardWaiterTablePage",
+          "startLine": 22,
+          "endLine": 70,
+          "params": [
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "DashboardWaiterTablePage",
+          "line": 22,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "loadDashboardAccess",
+          "lineNumber": 23
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "redirect",
+          "lineNumber": 25
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "parseTableIdParam",
+          "lineNumber": 29
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "notFound",
+          "lineNumber": 30
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "createClient",
+          "lineNumber": 33
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "Promise.all",
+          "lineNumber": 35
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "supabase\n      .from('buffets')\n      .select('*')\n      .eq('restaurant_id', restaurant.id)\n      .order",
+          "lineNumber": 36
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "supabase\n      .from('buffets')\n      .select('*')\n      .eq",
+          "lineNumber": 36
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "supabase\n      .from('buffets')\n      .select",
+          "lineNumber": 36
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "supabase\n      .from",
+          "lineNumber": 36
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "loadWaiterTableInitial(restaurant.id, tableId).catch",
+          "lineNumber": 41
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "loadWaiterTableInitial",
+          "lineNumber": 41
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "isFrontdeskCheckoutPendingTable",
+          "lineNumber": 44
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "redirect",
+          "lineNumber": 45
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "dashboardCheckoutTableHref",
+          "lineNumber": 45
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "distinctMenuItemIdsFromOrders",
+          "lineNumber": 48
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "supabase\n      .from('menu_items')\n      .select('id, item_code')\n      .eq('restaurant_id', restaurant.id)\n      .in",
+          "lineNumber": 51
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "supabase\n      .from('menu_items')\n      .select('id, item_code')\n      .eq",
+          "lineNumber": 51
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "supabase\n      .from('menu_items')\n      .select",
+          "lineNumber": 51
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "supabase\n      .from",
+          "lineNumber": 51
+        },
+        {
+          "caller": "DashboardWaiterTablePage",
+          "callee": "menuItemCodeLookupFromRows",
+          "lineNumber": 56
+        }
+      ],
+      "metrics": {
+        "importCount": 8,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/waiter/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 33,
+      "nonEmptyLines": 30,
+      "functions": [
+        {
+          "name": "DashboardWaiterPage",
+          "startLine": 6,
+          "endLine": 33,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "DashboardWaiterPage",
+          "line": 6,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "DashboardWaiterPage",
+          "callee": "loadDashboardAccess",
+          "lineNumber": 7
+        },
+        {
+          "caller": "DashboardWaiterPage",
+          "callee": "redirect",
+          "lineNumber": 9
+        },
+        {
+          "caller": "DashboardWaiterPage",
+          "callee": "loadWaiterBoardInitial",
+          "lineNumber": 15
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/demo/kitchen/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 15,
+      "nonEmptyLines": 13,
+      "functions": [
+        {
+          "name": "DemoKitchenPage",
+          "startLine": 7,
+          "endLine": 15,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "metadata",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "DemoKitchenPage",
+          "line": 7,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "DemoKitchenPage",
+          "callee": "DEMO_ORDERS.filter",
+          "lineNumber": 11
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/demo/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 8,
+      "nonEmptyLines": 6,
+      "functions": [
+        {
+          "name": "DemoHubPage",
+          "startLine": 6,
+          "endLine": 8,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "metadata",
+          "line": 4,
+          "isDefault": false
+        },
+        {
+          "name": "DemoHubPage",
+          "line": 6,
+          "isDefault": true
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/demo/waiter/[tableId]/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 35,
+      "nonEmptyLines": 31,
+      "functions": [
+        {
+          "name": "DemoWaiterTablePage",
+          "startLine": 13,
+          "endLine": 35,
+          "params": [
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "metadata",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "DemoWaiterTablePage",
+          "line": 13,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "DemoWaiterTablePage",
+          "callee": "parseTableIdParam",
+          "lineNumber": 15
+        },
+        {
+          "caller": "DemoWaiterTablePage",
+          "callee": "DEMO_TABLES.find",
+          "lineNumber": 16
+        },
+        {
+          "caller": "DemoWaiterTablePage",
+          "callee": "notFound",
+          "lineNumber": 18
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/demo/waiter/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 16,
+      "nonEmptyLines": 14,
+      "functions": [
+        {
+          "name": "DemoWaiterPage",
+          "startLine": 7,
+          "endLine": 16,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "metadata",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "DemoWaiterPage",
+          "line": 7,
+          "isDefault": true
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/OrdersHistoryManager.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 353,
+      "nonEmptyLines": 325,
+      "functions": [
+        {
+          "name": "OrdersHistoryManager",
+          "startLine": 38,
+          "endLine": 353,
+          "params": [
+            "{ initialOrders, tables = [], pageTitle }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "OrdersHistoryManager",
+          "line": 38,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useLanguage",
+          "lineNumber": 39
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "getMessages",
+          "lineNumber": 40
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "getMessages",
+          "lineNumber": 41
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useState",
+          "lineNumber": 43
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useState",
+          "lineNumber": 44
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useState",
+          "lineNumber": 45
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useState",
+          "lineNumber": 46
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useRef",
+          "lineNumber": 47
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useEffect",
+          "lineNumber": 49
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "setOrders",
+          "lineNumber": 50
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useMemo",
+          "lineNumber": 53
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "mergeTablesWithOrderHistory(tables, orders).map",
+          "lineNumber": 55
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "mergeTablesWithOrderHistory",
+          "lineNumber": 55
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useMemo",
+          "lineNumber": 62
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useMemo",
+          "lineNumber": 111
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "selectedTables.map",
+          "lineNumber": 112
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "orders.filter",
+          "lineNumber": 113
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "selectedTableIds.has",
+          "lineNumber": 114
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "fromTs.setHours",
+          "lineNumber": 118
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "new Date(order.created_at).getTime",
+          "lineNumber": 119
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "fromTs.getTime",
+          "lineNumber": 119
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "toTs.setHours",
+          "lineNumber": 123
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "new Date(order.created_at).getTime",
+          "lineNumber": 124
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "toTs.getTime",
+          "lineNumber": 124
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "toTs.setHours",
+          "lineNumber": 127
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "new Date(order.created_at).getTime",
+          "lineNumber": 128
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "toTs.getTime",
+          "lineNumber": 128
+        },
+        {
+          "caller": "latestOrderTime",
+          "callee": "new Date(\n      Math.max(...sourceOrders.map((order) => new Date(order.created_at).getTime())),\n    ).toLocaleString",
+          "lineNumber": 135
+        },
+        {
+          "caller": "latestOrderTime",
+          "callee": "Math.max",
+          "lineNumber": 136
+        },
+        {
+          "caller": "latestOrderTime",
+          "callee": "sourceOrders.map",
+          "lineNumber": 136
+        },
+        {
+          "caller": "latestOrderTime",
+          "callee": "new Date(order.created_at).getTime",
+          "lineNumber": 136
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useMemo",
+          "lineNumber": 139
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "format",
+          "lineNumber": 141
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "format",
+          "lineNumber": 141
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "format",
+          "lineNumber": 142
+        },
+        {
+          "caller": "applyPreset",
+          "callee": "startOfToday",
+          "lineNumber": 147
+        },
+        {
+          "caller": "applyPreset",
+          "callee": "setDateRange",
+          "lineNumber": 149
+        },
+        {
+          "caller": "applyPreset",
+          "callee": "setDateRange",
+          "lineNumber": 153
+        },
+        {
+          "caller": "applyPreset",
+          "callee": "subDays",
+          "lineNumber": 153
+        },
+        {
+          "caller": "applyPreset",
+          "callee": "setDateRange",
+          "lineNumber": 156
+        },
+        {
+          "caller": "applyPreset",
+          "callee": "startOfMonth",
+          "lineNumber": 156
+        },
+        {
+          "caller": "applyPreset",
+          "callee": "endOfMonth",
+          "lineNumber": 156
+        },
+        {
+          "caller": "clearRange",
+          "callee": "setDateRange",
+          "lineNumber": 159
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useEffect",
+          "lineNumber": 161
+        },
+        {
+          "caller": "onPointerDown",
+          "callee": "pickerRef.current?.contains",
+          "lineNumber": 164
+        },
+        {
+          "caller": "onPointerDown",
+          "callee": "setPickerOpen",
+          "lineNumber": 165
+        },
+        {
+          "caller": "onEsc",
+          "callee": "setPickerOpen",
+          "lineNumber": 169
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "document.addEventListener",
+          "lineNumber": 171
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "document.addEventListener",
+          "lineNumber": 172
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "document.removeEventListener",
+          "lineNumber": 174
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "document.removeEventListener",
+          "lineNumber": 175
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useMemo",
+          "lineNumber": 179
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "orderListGuestLabelsFromLang",
+          "lineNumber": 179
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "window.open",
+          "lineNumber": 182
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "printOrders.flatMap",
+          "lineNumber": 185
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "order.items.filter",
+          "lineNumber": 186
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "lineItems.map(item => `\n      <tr>\n        <td style=\"padding:6px 0;\">${item.emoji} ${item.name_pt}</td>\n        <td style=\"padding:6px 0; text-align:center;\">${formatOrderListItemPrintQty(item, buffetGuestLabels)}</td>\n        <td style=\"padding:6px 0; text-align:right;\">€${(item.price * item.qty).toFixed(2)}</td>\n      </tr>\n    `).join",
+          "lineNumber": 188
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "lineItems.map",
+          "lineNumber": 188
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "formatOrderListItemPrintQty",
+          "lineNumber": 191
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "(item.price * item.qty).toFixed",
+          "lineNumber": 192
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "printOrders.reduce",
+          "lineNumber": 195
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "printWindow.document.write",
+          "lineNumber": 197
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "latestOrderTime",
+          "lineNumber": 204
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "totalAmount.toFixed",
+          "lineNumber": 216
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "printWindow.document.close",
+          "lineNumber": 221
+        },
+        {
+          "caller": "renderItemChips",
+          "callee": "chips.map",
+          "lineNumber": 228
+        },
+        {
+          "caller": "renderListCard",
+          "callee": "renderItemChips",
+          "lineNumber": 244
+        },
+        {
+          "caller": "renderMetaAmount",
+          "callee": "amount.toFixed",
+          "lineNumber": 249
+        },
+        {
+          "caller": "renderHistoryOrderCard",
+          "callee": "renderListCard",
+          "lineNumber": 263
+        },
+        {
+          "caller": "renderHistoryOrderCard",
+          "callee": "latestOrderTime",
+          "lineNumber": 270
+        },
+        {
+          "caller": "renderHistoryOrderCard",
+          "callee": "countOrderListItems",
+          "lineNumber": 273
+        },
+        {
+          "caller": "renderHistoryOrderCard",
+          "callee": "renderMetaAmount",
+          "lineNumber": 276
+        },
+        {
+          "caller": "renderHistoryOrderCard",
+          "callee": "renderPrintButton",
+          "lineNumber": 277
+        },
+        {
+          "caller": "renderHistoryOrderCard",
+          "callee": "handlePrintOrders",
+          "lineNumber": 277
+        },
+        {
+          "caller": "renderHistoryOrderCard",
+          "callee": "buildOrderListDisplayChips",
+          "lineNumber": 279
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "setSelectedTables",
+          "lineNumber": 293
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "setPickerOpen",
+          "lineNumber": 307
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "applyPreset",
+          "lineNumber": 315
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "applyPreset",
+          "lineNumber": 316
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "applyPreset",
+          "lineNumber": 317
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "setPickerOpen",
+          "lineNumber": 329
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "filteredOrders.map",
+          "lineNumber": 348
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 587,
+      "nonEmptyLines": 552,
+      "functions": [
+        {
+          "name": "KitchenDisplay",
+          "startLine": 62,
+          "endLine": 72,
+          "params": [
+            "props"
+          ]
+        },
+        {
+          "name": "KitchenDisplayInner",
+          "startLine": 74,
+          "endLine": 378,
+          "params": [
+            "{\n  restaurant,\n  initialOrders = [],\n  initialActiveTableIds = [],\n  isDemo = false,\n  handleSignOut,\n  exitLabel,\n  confirmBeforeSignOut,\n}"
+          ]
+        },
+        {
+          "name": "OpenTablePlaceholder",
+          "startLine": 380,
+          "endLine": 400,
+          "params": [
+            "{\n  table,\n  labels,\n}"
+          ]
+        },
+        {
+          "name": "OrderCard",
+          "startLine": 403,
+          "endLine": 587,
+          "params": [
+            "{\n  order,\n  onItemStatusChange,\n  labels,\n  locale,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "KitchenDisplay",
+          "line": 62,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useLanguage",
+          "lineNumber": 83
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "getMessages",
+          "lineNumber": 84
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useState",
+          "lineNumber": 87
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useState",
+          "lineNumber": 88
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useState",
+          "lineNumber": 89
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useState",
+          "lineNumber": 90
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useState",
+          "lineNumber": 91
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useState",
+          "lineNumber": 92
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useState",
+          "lineNumber": 93
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useRef",
+          "lineNumber": 94
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "initialOrders.map",
+          "lineNumber": 94
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "createClient",
+          "lineNumber": 95
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useMemo",
+          "lineNumber": 98
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "orders.filter",
+          "lineNumber": 99
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useMemo",
+          "lineNumber": 103
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "boardOrders.map",
+          "lineNumber": 104
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "activeTableIds.filter",
+          "lineNumber": 105
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "busy.has",
+          "lineNumber": 105
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useMemo",
+          "lineNumber": 108
+        },
+        {
+          "caller": "tableLabel",
+          "callee": "fallback?.trim",
+          "lineNumber": 110
+        },
+        {
+          "caller": "tableLabel",
+          "callee": "tableMetaById.get",
+          "lineNumber": 111
+        },
+        {
+          "caller": "tableLabel",
+          "callee": "tableId.slice",
+          "lineNumber": 112
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "boardOrders.forEach",
+          "lineNumber": 115
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "byTable.get",
+          "lineNumber": 116
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "list.push",
+          "lineNumber": 117
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "byTable.set",
+          "lineNumber": 118
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "byTable.forEach",
+          "lineNumber": 120
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "list.sort",
+          "lineNumber": 121
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "new Date(a.created_at).getTime",
+          "lineNumber": 122
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "new Date(b.created_at).getTime",
+          "lineNumber": 122
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "Array.from",
+          "lineNumber": 125
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "byTable.keys",
+          "lineNumber": 125
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "Array.from(tableIds).sort",
+          "lineNumber": 126
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "Array.from",
+          "lineNumber": 126
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "tableMetaById.get",
+          "lineNumber": 127
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "tableLabel",
+          "lineNumber": 127
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "tableMetaById.get",
+          "lineNumber": 128
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "tableLabel",
+          "lineNumber": 128
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "compareRestaurantTables",
+          "lineNumber": 129
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "byTable.get",
+          "lineNumber": 134
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "list.forEach",
+          "lineNumber": 136
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "cols.push",
+          "lineNumber": 136
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "activeTableIds.includes",
+          "lineNumber": 137
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "cols.push",
+          "lineNumber": 138
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "tableLabel",
+          "lineNumber": 141
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useCallback",
+          "lineNumber": 148
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "fetchKitchenBoardClient",
+          "lineNumber": 149
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "board.orders.forEach",
+          "lineNumber": 150
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "prevOrderIds.current.has",
+          "lineNumber": 151
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "playCheckoutRequestChime",
+          "lineNumber": 152
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "prevOrderIds.current.add",
+          "lineNumber": 153
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "setOrders",
+          "lineNumber": 156
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "setActiveTableIds",
+          "lineNumber": 157
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "setTableMetaById",
+          "lineNumber": 158
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "setVoidReasonError",
+          "lineNumber": 164
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "setPendingVoid",
+          "lineNumber": 165
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "setUpdateConflict",
+          "lineNumber": 169
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "order.items.map",
+          "lineNumber": 170
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "new Date().toISOString",
+          "lineNumber": 175
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "new Date().toISOString",
+          "lineNumber": 176
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "new Date().toISOString",
+          "lineNumber": 177
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "deriveOrderStatusFromItems",
+          "lineNumber": 182
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "supabase\n        .from('orders')\n        .update({ items: nextItems, status: nextOrderStatus })\n        .eq('id', order.id)\n        .eq",
+          "lineNumber": 183
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "supabase\n        .from('orders')\n        .update({ items: nextItems, status: nextOrderStatus })\n        .eq",
+          "lineNumber": 183
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "supabase\n        .from('orders')\n        .update",
+          "lineNumber": 183
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "supabase\n        .from",
+          "lineNumber": 183
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "new Date().toISOString",
+          "lineNumber": 189
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "setOrders",
+          "lineNumber": 197
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "prev.filter",
+          "lineNumber": 197
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "setOrders",
+          "lineNumber": 199
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "prev.map",
+          "lineNumber": 200
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "fetch",
+          "lineNumber": 207
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "encodeURIComponent",
+          "lineNumber": 208
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "JSON.stringify",
+          "lineNumber": 213
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "refreshKitchenBoard",
+          "lineNumber": 218
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "setUpdateConflict",
+          "lineNumber": 223
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "refreshKitchenBoard",
+          "lineNumber": 224
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "setVoidingItem",
+          "lineNumber": 234
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "setVoidReasonError",
+          "lineNumber": 235
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "setUpdateConflict",
+          "lineNumber": 236
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "order.items.map",
+          "lineNumber": 238
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "new Date().toISOString",
+          "lineNumber": 243
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "patchStaffOrderItemsClient",
+          "lineNumber": 248
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "setPendingVoid",
+          "lineNumber": 256
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "refreshKitchenBoard",
+          "lineNumber": 257
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "voidItemReasonErrorMessage",
+          "lineNumber": 261
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "setVoidReasonError",
+          "lineNumber": 263
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "setUpdateConflict",
+          "lineNumber": 267
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "refreshKitchenBoard",
+          "lineNumber": 268
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "setVoidingItem",
+          "lineNumber": 274
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useRestaurantRealtimeRefresh",
+          "lineNumber": 278
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "handleSignOut",
+          "lineNumber": 319
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "t.openTablesIdleNote.replace",
+          "lineNumber": 329
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "String",
+          "lineNumber": 329
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "kitchenColumns.map",
+          "lineNumber": 348
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "setPendingVoid",
+          "lineNumber": 367
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "setVoidReasonError",
+          "lineNumber": 368
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "useState",
+          "lineNumber": 425
+        },
+        {
+          "caller": "handleItemStatusChange",
+          "callee": "setUpdating",
+          "lineNumber": 428
+        },
+        {
+          "caller": "handleItemStatusChange",
+          "callee": "onItemStatusChange",
+          "lineNumber": 429
+        },
+        {
+          "caller": "handleItemStatusChange",
+          "callee": "setUpdating",
+          "lineNumber": 430
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "time.toLocaleString",
+          "lineNumber": 434
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "order.items.filter",
+          "lineNumber": 446
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "isBuffetBaseItem",
+          "lineNumber": 446
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "itemsEveryVoided",
+          "lineNumber": 449
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "kitchenLines.forEach",
+          "lineNumber": 451
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "batchOrder.includes",
+          "lineNumber": 453
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "batchOrder.push",
+          "lineNumber": 453
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "batchOrder.map",
+          "lineNumber": 491
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "order.items\n            .map((item, idx) => ({ item, idx }))\n            .filter",
+          "lineNumber": 492
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "order.items\n            .map",
+          "lineNumber": 492
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "isBuffetBaseItem",
+          "lineNumber": 496
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "new Date(batchItems[0].item.added_at as string).toLocaleString",
+          "lineNumber": 500
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "batchItems.map",
+          "lineNumber": 515
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "normalizeOrderItemStatus",
+          "lineNumber": 516
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "handleItemStatusChange",
+          "lineNumber": 550
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "handleItemStatusChange",
+          "lineNumber": 559
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "handleItemStatusChange",
+          "lineNumber": 568
+        }
+      ],
+      "metrics": {
+        "importCount": 15,
+        "exportCount": 1,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 719,
+      "nonEmptyLines": 673,
+      "functions": [
+        {
+          "name": "WaiterTableCard",
+          "startLine": 84,
+          "endLine": 178,
+          "params": [
+            "{\n  card,\n  href,\n  checkoutRequestedTableIds,\n  checkoutRequestedAtByTableId,\n  sessionMetaByTableId,\n  nowMs,\n  lang,\n  pinned = false,\n  frontdeskCheckoutLink = false,\n  clickable = true,\n}"
+          ]
+        },
+        {
+          "name": "BoardKpiCard",
+          "startLine": 180,
+          "endLine": 214,
+          "params": [
+            "{\n  active,\n  count,\n  label,\n  hint,\n  tone,\n  onClick,\n}"
+          ]
+        },
+        {
+          "name": "WaiterBoardSectionBlock",
+          "startLine": 216,
+          "endLine": 263,
+          "params": [
+            "{\n  section,\n  visibleTableIds,\n  expanded,\n  onToggle,\n  sectionTableCountLabel,\n  children,\n}"
+          ]
+        },
+        {
+          "name": "WaiterBoardInner",
+          "startLine": 265,
+          "endLine": 693,
+          "params": [
+            "{\n  restaurant,\n  tables: tablesProp = [],\n  initialOrders = [],\n  initialCheckoutRequestedTableIds = [],\n  initialSessionMetaByTableId = {},\n  initialCheckoutRequestedAtByTableId = {},\n  initialGroups = [],\n  initialMembers = [],\n  isDemo = false,\n  embeddedInDashboard = false,\n  handleSignOut,\n  exitLabel,\n  confirmBeforeSignOut,\n}"
+          ]
+        },
+        {
+          "name": "WaiterDisplay",
+          "startLine": 695,
+          "endLine": 719,
+          "params": [
+            "props"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "WaiterDisplay",
+          "line": 695,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "WaiterTableCard",
+          "callee": "import",
+          "lineNumber": 100
+        },
+        {
+          "caller": "WaiterTableCard",
+          "callee": "isTableCheckoutRequested",
+          "lineNumber": 109
+        },
+        {
+          "caller": "WaiterTableCard",
+          "callee": "classifyWaiterTableBoardState",
+          "lineNumber": 110
+        },
+        {
+          "caller": "WaiterTableCard",
+          "callee": "buildWaiterTableCardSubtitle",
+          "lineNumber": 121
+        },
+        {
+          "caller": "WaiterTableCard",
+          "callee": "checkoutRequestedAtForTable",
+          "lineNumber": 127
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useLanguage",
+          "lineNumber": 280
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "getMessages",
+          "lineNumber": 282
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useWaiterOrders",
+          "lineNumber": 291
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useMemo",
+          "lineNumber": 303
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "demoSessionMetaFromOrders",
+          "lineNumber": 304
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useMemo",
+          "lineNumber": 307
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "activeSessionIdByTableIdFromMeta",
+          "lineNumber": 308
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useState",
+          "lineNumber": 311
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "Date.now",
+          "lineNumber": 311
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useState",
+          "lineNumber": 312
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useState",
+          "lineNumber": 313
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useState",
+          "lineNumber": 314
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useState",
+          "lineNumber": 315
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useEffect",
+          "lineNumber": 317
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "setCollapsedPrefsHydrated",
+          "lineNumber": 318
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "loadWaiterBoardCollapsedSectionIds",
+          "lineNumber": 319
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "setCollapsedSectionIds",
+          "lineNumber": 320
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "setCollapsedPrefsHydrated",
+          "lineNumber": 321
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useEffect",
+          "lineNumber": 324
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "saveWaiterBoardCollapsedSectionIds",
+          "lineNumber": 326
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useEffect",
+          "lineNumber": 329
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "setInterval",
+          "lineNumber": 330
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "setNowMs",
+          "lineNumber": 330
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "Date.now",
+          "lineNumber": 330
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "clearInterval",
+          "lineNumber": 331
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useRef",
+          "lineNumber": 334
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useEffect",
+          "lineNumber": 335
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "checkoutRequestedTableIds.filter",
+          "lineNumber": 340
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "prev.some",
+          "lineNumber": 341
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "tableIdsEqual",
+          "lineNumber": 341
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "tables.find",
+          "lineNumber": 344
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "tableIdsEqual",
+          "lineNumber": 344
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "showToast",
+          "lineNumber": 345
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "t.checkoutToast.replace",
+          "lineNumber": 345
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useMemo",
+          "lineNumber": 349
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "ordersForWaiterTableView",
+          "lineNumber": 352
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "map.set",
+          "lineNumber": 353
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "buildWaiterTableCard",
+          "lineNumber": 353
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useMemo",
+          "lineNumber": 358
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "tables.filter",
+          "lineNumber": 359
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "isWaiterTableCheckoutPending",
+          "lineNumber": 360
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "pendingTables\n      .map((table) => cardByTableId.get(table.id))\n      .filter",
+          "lineNumber": 366
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "pendingTables\n      .map",
+          "lineNumber": 366
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "cardByTableId.get",
+          "lineNumber": 367
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "sortWaiterTableCards",
+          "lineNumber": 369
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useMemo",
+          "lineNumber": 377
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "checkoutPinnedCards.map",
+          "lineNumber": 378
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useMemo",
+          "lineNumber": 382
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "buildWaiterBoardSections",
+          "lineNumber": 383
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useMemo",
+          "lineNumber": 387
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "tables.map",
+          "lineNumber": 388
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "tableSearch.trim",
+          "lineNumber": 392
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useMemo",
+          "lineNumber": 394
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "computeWaiterBoardStats",
+          "lineNumber": 396
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "tables.map",
+          "lineNumber": 397
+        },
+        {
+          "caller": "tableHref",
+          "callee": "classifyWaiterTableBoardState",
+          "lineNumber": 406
+        },
+        {
+          "caller": "tableHref",
+          "callee": "dashboardCheckoutTableHref",
+          "lineNumber": 412
+        },
+        {
+          "caller": "tableHref",
+          "callee": "waiterTableHref",
+          "lineNumber": 415
+        },
+        {
+          "caller": "isFrontdeskCheckoutLink",
+          "callee": "classifyWaiterTableBoardState",
+          "lineNumber": 420
+        },
+        {
+          "caller": "isTableCardClickable",
+          "callee": "isWaiterBoardTableCardClickable",
+          "lineNumber": 427
+        },
+        {
+          "caller": "isTableCardClickable",
+          "callee": "classifyWaiterTableBoardState",
+          "lineNumber": 429
+        },
+        {
+          "caller": "renderTableCard",
+          "callee": "tableHref",
+          "lineNumber": 447
+        },
+        {
+          "caller": "renderTableCard",
+          "callee": "isFrontdeskCheckoutLink",
+          "lineNumber": 454
+        },
+        {
+          "caller": "renderTableCard",
+          "callee": "isTableCardClickable",
+          "lineNumber": 455
+        },
+        {
+          "caller": "renderSectionCards",
+          "callee": "visibleBoardTableIds",
+          "lineNumber": 460
+        },
+        {
+          "caller": "renderSectionCards",
+          "callee": "visibleIds\n      .map((id) => cardByTableId.get(id))\n      .filter",
+          "lineNumber": 461
+        },
+        {
+          "caller": "renderSectionCards",
+          "callee": "visibleIds\n      .map",
+          "lineNumber": 461
+        },
+        {
+          "caller": "renderSectionCards",
+          "callee": "cardByTableId.get",
+          "lineNumber": 462
+        },
+        {
+          "caller": "renderSectionCards",
+          "callee": "sortWaiterTableCards",
+          "lineNumber": 464
+        },
+        {
+          "caller": "renderSectionCards",
+          "callee": "sorted.map",
+          "lineNumber": 470
+        },
+        {
+          "caller": "renderSectionCards",
+          "callee": "renderTableCard",
+          "lineNumber": 470
+        },
+        {
+          "caller": "sectionTableCountLabel",
+          "callee": "t.sectionTableCount.replace",
+          "lineNumber": 474
+        },
+        {
+          "caller": "sectionTableCountLabel",
+          "callee": "String",
+          "lineNumber": 474
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useMemo",
+          "lineNumber": 476
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "checkoutPinnedCards.filter",
+          "lineNumber": 478
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "tableMatchesWaiterBoardSearch",
+          "lineNumber": 479
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useCallback",
+          "lineNumber": 485
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "filterWaiterBoardTableIds",
+          "lineNumber": 487
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "byStatus.filter",
+          "lineNumber": 495
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "checkoutPinnedTableIds.has",
+          "lineNumber": 495
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "filterWaiterBoardTableIdsBySearch",
+          "lineNumber": 497
+        },
+        {
+          "caller": "toggleSectionCollapsed",
+          "callee": "setCollapsedSectionIds",
+          "lineNumber": 514
+        },
+        {
+          "caller": "toggleSectionCollapsed",
+          "callee": "next.has",
+          "lineNumber": 516
+        },
+        {
+          "caller": "toggleSectionCollapsed",
+          "callee": "next.delete",
+          "lineNumber": 516
+        },
+        {
+          "caller": "toggleSectionCollapsed",
+          "callee": "next.add",
+          "lineNumber": 517
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "useMemo",
+          "lineNumber": 522
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "boardSections.some",
+          "lineNumber": 524
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "visibleBoardTableIds",
+          "lineNumber": 525
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "setBoardFilter",
+          "lineNumber": 584
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "setBoardFilter",
+          "lineNumber": 591
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "setBoardFilter",
+          "lineNumber": 598
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "BOARD_FILTERS.map",
+          "lineNumber": 603
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "setBoardFilter",
+          "lineNumber": 611
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "filterLabel",
+          "lineNumber": 618
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "setTableSearch",
+          "lineNumber": 629
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "setTableSearch",
+          "lineNumber": 637
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "formatCheckoutPinnedSectionTitle",
+          "lineNumber": 654
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "formatCheckoutPinnedSectionTitle",
+          "lineNumber": 661
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "visibleCheckoutPinnedCards.map",
+          "lineNumber": 668
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "renderTableCard",
+          "lineNumber": 668
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "boardSections.map",
+          "lineNumber": 674
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "visibleBoardTableIds",
+          "lineNumber": 675
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "collapsedSectionIds.has",
+          "lineNumber": 676
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "toggleSectionCollapsed",
+          "lineNumber": 683
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "sectionTableCountLabel",
+          "lineNumber": 684
+        },
+        {
+          "caller": "WaiterBoardInner",
+          "callee": "renderSectionCards",
+          "lineNumber": 686
+        }
+      ],
+      "metrics": {
+        "importCount": 17,
+        "exportCount": 1,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/waiter/useWaiterOrders.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 87,
+      "nonEmptyLines": 82,
+      "functions": [
+        {
+          "name": "useWaiterOrders",
+          "startLine": 18,
+          "endLine": 87,
+          "params": [
+            "restaurant",
+            "initialOrders",
+            "initialCheckoutRequestedTableIds",
+            "initialTables",
+            "enabled",
+            "initialSessionMetaByTableId",
+            "initialCheckoutRequestedAtByTableId",
+            "initialGroups",
+            "initialMembers"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "useWaiterOrders",
+          "line": 18,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "useWaiterOrders",
+          "callee": "useState",
+          "lineNumber": 30
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "useState",
+          "lineNumber": 31
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "useState",
+          "lineNumber": 34
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "useState",
+          "lineNumber": 37
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "useState",
+          "lineNumber": 40
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "useState",
+          "lineNumber": 41
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "useState",
+          "lineNumber": 42
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "useState",
+          "lineNumber": 43
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "useMemo",
+          "lineNumber": 44
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "createClient",
+          "lineNumber": 44
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "useMemo",
+          "lineNumber": 45
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "activeSessionIdByTableIdFromMeta",
+          "lineNumber": 46
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "useCallback",
+          "lineNumber": 50
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "fetchWaiterBoardClient",
+          "lineNumber": 52
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "setOrders",
+          "lineNumber": 53
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "setSessionMetaByTableId",
+          "lineNumber": 54
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "setCheckoutRequestedTableIds",
+          "lineNumber": 55
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "setCheckoutRequestedAtByTableId",
+          "lineNumber": 56
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "setTables",
+          "lineNumber": 57
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "setGroups",
+          "lineNumber": 58
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "setMembers",
+          "lineNumber": 59
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "setBoardLoaded",
+          "lineNumber": 60
+        },
+        {
+          "caller": "useWaiterOrders",
+          "callee": "useRestaurantRealtimeRefresh",
+          "lineNumber": 64
+        }
+      ],
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 120,
+      "nonEmptyLines": 108,
+      "functions": [
+        {
+          "name": "useWaiterTableDetail",
+          "startLine": 32,
+          "endLine": 120,
+          "params": [
+            "restaurant",
+            "tableId",
+            "initial",
+            "enabled",
+            "isDemo",
+            "demoTables",
+            "demoOrders"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "useWaiterTableDetail",
+          "line": 32,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "useState",
+          "lineNumber": 41
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "useState",
+          "lineNumber": 42
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "useState",
+          "lineNumber": 45
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "useState",
+          "lineNumber": 48
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "useState",
+          "lineNumber": 49
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "useState",
+          "lineNumber": 52
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "useMemo",
+          "lineNumber": 53
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "createClient",
+          "lineNumber": 53
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "useMemo",
+          "lineNumber": 55
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "demoSessionMetaFromOrders",
+          "lineNumber": 56
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "useMemo",
+          "lineNumber": 60
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "useMemo",
+          "lineNumber": 66
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "activeSessionIdByTableIdFromMeta",
+          "lineNumber": 67
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "activeSessionIdByTableIdFromMeta",
+          "lineNumber": 68
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "useCallback",
+          "lineNumber": 71
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "setTable",
+          "lineNumber": 72
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "setOrderRows",
+          "lineNumber": 73
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "setSessionMeta",
+          "lineNumber": 74
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "setCheckoutRequested",
+          "lineNumber": 75
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "setCheckoutRequestedAt",
+          "lineNumber": 76
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "setDetailLoaded",
+          "lineNumber": 77
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "useCallback",
+          "lineNumber": 81
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "fetchWaiterTableDetailClient",
+          "lineNumber": 83
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "applyDetail",
+          "lineNumber": 84
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "useRestaurantRealtimeRefresh",
+          "lineNumber": 87
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "useMemo",
+          "lineNumber": 96
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "demoTables.find",
+          "lineNumber": 97
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "useMemo",
+          "lineNumber": 101
+        },
+        {
+          "caller": "useWaiterTableDetail",
+          "callee": "ordersForWaiterTableView",
+          "lineNumber": 103
+        }
+      ],
+      "metrics": {
+        "importCount": 8,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/checkout-notification-sound.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 37,
+      "nonEmptyLines": 35,
+      "functions": [
+        {
+          "name": "playCheckoutRequestChime",
+          "startLine": 2,
+          "endLine": 37,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "playCheckoutRequestChime",
+          "line": 2,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "playCheckoutRequestChime",
+          "callee": "ctx.resume",
+          "lineNumber": 6
+        },
+        {
+          "caller": "playTone",
+          "callee": "ctx.createOscillator",
+          "lineNumber": 15
+        },
+        {
+          "caller": "playTone",
+          "callee": "ctx.createGain",
+          "lineNumber": 16
+        },
+        {
+          "caller": "playTone",
+          "callee": "gain.gain.setValueAtTime",
+          "lineNumber": 19
+        },
+        {
+          "caller": "playTone",
+          "callee": "gain.gain.linearRampToValueAtTime",
+          "lineNumber": 20
+        },
+        {
+          "caller": "playTone",
+          "callee": "gain.gain.exponentialRampToValueAtTime",
+          "lineNumber": 21
+        },
+        {
+          "caller": "playTone",
+          "callee": "osc.connect",
+          "lineNumber": 22
+        },
+        {
+          "caller": "playTone",
+          "callee": "gain.connect",
+          "lineNumber": 23
+        },
+        {
+          "caller": "playTone",
+          "callee": "osc.start",
+          "lineNumber": 24
+        },
+        {
+          "caller": "playTone",
+          "callee": "osc.stop",
+          "lineNumber": 25
+        },
+        {
+          "caller": "playCheckoutRequestChime",
+          "callee": "playTone",
+          "lineNumber": 32
+        },
+        {
+          "caller": "playCheckoutRequestChime",
+          "callee": "playTone",
+          "lineNumber": 33
+        },
+        {
+          "caller": "playCheckoutRequestChime",
+          "callee": "ctx.close",
+          "lineNumber": 33
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-api-shared.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 52,
+      "nonEmptyLines": 44,
+      "functions": [
+        {
+          "name": "dashboardApiError",
+          "startLine": 10,
+          "endLine": 15,
+          "params": [
+            "result"
+          ]
+        },
+        {
+          "name": "readJsonBody",
+          "startLine": 17,
+          "endLine": 23,
+          "params": [
+            "req"
+          ]
+        },
+        {
+          "name": "loadWritableFrontdeskContext",
+          "startLine": 25,
+          "endLine": 31,
+          "params": []
+        },
+        {
+          "name": "loadWritableOwnerContext",
+          "startLine": 33,
+          "endLine": 46,
+          "params": []
+        },
+        {
+          "name": "uniqueViolation",
+          "startLine": 48,
+          "endLine": 50,
+          "params": [
+            "error"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "dashboardApiError",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "readJsonBody",
+          "line": 17,
+          "isDefault": false
+        },
+        {
+          "name": "loadWritableFrontdeskContext",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "loadWritableOwnerContext",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "uniqueViolation",
+          "line": 52,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "dashboardApiError",
+          "callee": "NextResponse.json",
+          "lineNumber": 11
+        },
+        {
+          "caller": "readJsonBody",
+          "callee": "req.json",
+          "lineNumber": 19
+        },
+        {
+          "caller": "readJsonBody",
+          "callee": "NextResponse.json",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loadWritableFrontdeskContext",
+          "callee": "loadFrontdeskOperationalContext",
+          "lineNumber": 26
+        },
+        {
+          "caller": "loadWritableFrontdeskContext",
+          "callee": "NextResponse.json",
+          "lineNumber": 28
+        },
+        {
+          "caller": "loadWritableOwnerContext",
+          "callee": "loadOwnerRestaurantWithSlug",
+          "lineNumber": 37
+        },
+        {
+          "caller": "loadWritableOwnerContext",
+          "callee": "NextResponse.json",
+          "lineNumber": 39
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 5,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 160,
+      "nonEmptyLines": 142,
+      "functions": [
+        {
+          "name": "parseJson",
+          "startLine": 6,
+          "endLine": 8,
+          "params": [
+            "res"
+          ]
+        },
+        {
+          "name": "request",
+          "startLine": 10,
+          "endLine": 24,
+          "params": [
+            "url",
+            "init"
+          ]
+        },
+        {
+          "name": "fetchBuffetDashboardClient",
+          "startLine": 26,
+          "endLine": 28,
+          "params": []
+        },
+        {
+          "name": "createBuffetClient",
+          "startLine": 30,
+          "endLine": 36,
+          "params": [
+            "name"
+          ]
+        },
+        {
+          "name": "createBuffetSlotClient",
+          "startLine": 38,
+          "endLine": 44,
+          "params": [
+            "name",
+            "sortOrder"
+          ]
+        },
+        {
+          "name": "createBuffetRuleClient",
+          "startLine": 46,
+          "endLine": 52,
+          "params": [
+            "rule"
+          ]
+        },
+        {
+          "name": "upsertBuffetCalendarClient",
+          "startLine": 54,
+          "endLine": 62,
+          "params": [
+            "rows"
+          ]
+        },
+        {
+          "name": "updateBuffetClient",
+          "startLine": 64,
+          "endLine": 73,
+          "params": [
+            "id",
+            "patch"
+          ]
+        },
+        {
+          "name": "updateBuffetSlotClient",
+          "startLine": 75,
+          "endLine": 81,
+          "params": [
+            "id",
+            "patch"
+          ]
+        },
+        {
+          "name": "updateBuffetRuleClient",
+          "startLine": 83,
+          "endLine": 89,
+          "params": [
+            "id",
+            "rule"
+          ]
+        },
+        {
+          "name": "toggleBuffetRuleActiveClient",
+          "startLine": 91,
+          "endLine": 97,
+          "params": [
+            "id",
+            "isActive"
+          ]
+        },
+        {
+          "name": "updateBuffetFridayPolicyClient",
+          "startLine": 99,
+          "endLine": 105,
+          "params": [
+            "buffetFridayWeekendFrom"
+          ]
+        },
+        {
+          "name": "deleteBuffetClient",
+          "startLine": 107,
+          "endLine": 113,
+          "params": [
+            "id"
+          ]
+        },
+        {
+          "name": "deleteBuffetSlotClient",
+          "startLine": 115,
+          "endLine": 121,
+          "params": [
+            "id"
+          ]
+        },
+        {
+          "name": "deleteBuffetRuleClient",
+          "startLine": 123,
+          "endLine": 129,
+          "params": [
+            "id"
+          ]
+        },
+        {
+          "name": "deleteBuffetCalendarClient",
+          "startLine": 131,
+          "endLine": 137,
+          "params": [
+            "onDate"
+          ]
+        },
+        {
+          "name": "applyBuffetDashboardData",
+          "startLine": 139,
+          "endLine": 160,
+          "params": [
+            "data",
+            "handlers"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "fetchBuffetDashboardClient",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "createBuffetClient",
+          "line": 30,
+          "isDefault": false
+        },
+        {
+          "name": "createBuffetSlotClient",
+          "line": 38,
+          "isDefault": false
+        },
+        {
+          "name": "createBuffetRuleClient",
+          "line": 46,
+          "isDefault": false
+        },
+        {
+          "name": "upsertBuffetCalendarClient",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "updateBuffetClient",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "updateBuffetSlotClient",
+          "line": 75,
+          "isDefault": false
+        },
+        {
+          "name": "updateBuffetRuleClient",
+          "line": 83,
+          "isDefault": false
+        },
+        {
+          "name": "toggleBuffetRuleActiveClient",
+          "line": 91,
+          "isDefault": false
+        },
+        {
+          "name": "updateBuffetFridayPolicyClient",
+          "line": 99,
+          "isDefault": false
+        },
+        {
+          "name": "deleteBuffetClient",
+          "line": 107,
+          "isDefault": false
+        },
+        {
+          "name": "deleteBuffetSlotClient",
+          "line": 115,
+          "isDefault": false
+        },
+        {
+          "name": "deleteBuffetRuleClient",
+          "line": 123,
+          "isDefault": false
+        },
+        {
+          "name": "deleteBuffetCalendarClient",
+          "line": 131,
+          "isDefault": false
+        },
+        {
+          "name": "applyBuffetDashboardData",
+          "line": 139,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "parseJson",
+          "callee": "res.json().catch",
+          "lineNumber": 7
+        },
+        {
+          "caller": "parseJson",
+          "callee": "res.json",
+          "lineNumber": 7
+        },
+        {
+          "caller": "request",
+          "callee": "fetch",
+          "lineNumber": 15
+        },
+        {
+          "caller": "request",
+          "callee": "await parseJson",
+          "lineNumber": 16
+        },
+        {
+          "caller": "fetchBuffetDashboardClient",
+          "callee": "request",
+          "lineNumber": 27
+        },
+        {
+          "caller": "createBuffetClient",
+          "callee": "request",
+          "lineNumber": 31
+        },
+        {
+          "caller": "createBuffetClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 34
+        },
+        {
+          "caller": "createBuffetSlotClient",
+          "callee": "request",
+          "lineNumber": 39
+        },
+        {
+          "caller": "createBuffetSlotClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 42
+        },
+        {
+          "caller": "createBuffetRuleClient",
+          "callee": "request",
+          "lineNumber": 47
+        },
+        {
+          "caller": "createBuffetRuleClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 50
+        },
+        {
+          "caller": "upsertBuffetCalendarClient",
+          "callee": "request",
+          "lineNumber": 57
+        },
+        {
+          "caller": "upsertBuffetCalendarClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 60
+        },
+        {
+          "caller": "updateBuffetClient",
+          "callee": "import",
+          "lineNumber": 66
+        },
+        {
+          "caller": "updateBuffetClient",
+          "callee": "request",
+          "lineNumber": 68
+        },
+        {
+          "caller": "updateBuffetClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 71
+        },
+        {
+          "caller": "updateBuffetSlotClient",
+          "callee": "request",
+          "lineNumber": 76
+        },
+        {
+          "caller": "updateBuffetSlotClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 79
+        },
+        {
+          "caller": "updateBuffetRuleClient",
+          "callee": "request",
+          "lineNumber": 84
+        },
+        {
+          "caller": "updateBuffetRuleClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 87
+        },
+        {
+          "caller": "toggleBuffetRuleActiveClient",
+          "callee": "request",
+          "lineNumber": 92
+        },
+        {
+          "caller": "toggleBuffetRuleActiveClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 95
+        },
+        {
+          "caller": "updateBuffetFridayPolicyClient",
+          "callee": "request",
+          "lineNumber": 100
+        },
+        {
+          "caller": "updateBuffetFridayPolicyClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 103
+        },
+        {
+          "caller": "deleteBuffetClient",
+          "callee": "request",
+          "lineNumber": 108
+        },
+        {
+          "caller": "deleteBuffetClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 111
+        },
+        {
+          "caller": "deleteBuffetSlotClient",
+          "callee": "request",
+          "lineNumber": 116
+        },
+        {
+          "caller": "deleteBuffetSlotClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 119
+        },
+        {
+          "caller": "deleteBuffetRuleClient",
+          "callee": "request",
+          "lineNumber": 124
+        },
+        {
+          "caller": "deleteBuffetRuleClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 127
+        },
+        {
+          "caller": "deleteBuffetCalendarClient",
+          "callee": "request",
+          "lineNumber": 132
+        },
+        {
+          "caller": "deleteBuffetCalendarClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 135
+        },
+        {
+          "caller": "applyBuffetDashboardData",
+          "callee": "handlers.setBuffets",
+          "lineNumber": 152
+        },
+        {
+          "caller": "applyBuffetDashboardData",
+          "callee": "handlers.setSlots",
+          "lineNumber": 153
+        },
+        {
+          "caller": "applyBuffetDashboardData",
+          "callee": "handlers.setRules",
+          "lineNumber": 154
+        },
+        {
+          "caller": "applyBuffetDashboardData",
+          "callee": "handlers.setCalendarRows",
+          "lineNumber": 155
+        },
+        {
+          "caller": "applyBuffetDashboardData",
+          "callee": "handlers.setFridayWeekendFrom",
+          "lineNumber": 157
+        },
+        {
+          "caller": "applyBuffetDashboardData",
+          "callee": "handlers.setFridayEnabled",
+          "lineNumber": 158
+        },
+        {
+          "caller": "applyBuffetDashboardData",
+          "callee": "handlers.setFridayDraftFrom",
+          "lineNumber": 159
+        },
+        {
+          "caller": "applyBuffetDashboardData",
+          "callee": "handlers.dbTimeToHm",
+          "lineNumber": 159
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 15,
+        "functionCount": 17,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 365,
+      "nonEmptyLines": 322,
+      "functions": [
+        {
+          "name": "loadBuffetDashboard",
+          "startLine": 14,
+          "endLine": 67,
+          "params": [
+            "admin",
+            "restaurantId"
+          ]
+        },
+        {
+          "name": "createBuffet",
+          "startLine": 69,
+          "endLine": 87,
+          "params": [
+            "admin",
+            "restaurantId",
+            "name"
+          ]
+        },
+        {
+          "name": "deleteBuffet",
+          "startLine": 89,
+          "endLine": 103,
+          "params": [
+            "admin",
+            "restaurantId",
+            "buffetId"
+          ]
+        },
+        {
+          "name": "updateBuffet",
+          "startLine": 105,
+          "endLine": 120,
+          "params": [
+            "admin",
+            "restaurantId",
+            "buffetId",
+            "patch"
+          ]
+        },
+        {
+          "name": "createBuffetTimeSlot",
+          "startLine": 122,
+          "endLine": 143,
+          "params": [
+            "admin",
+            "restaurantId",
+            "input"
+          ]
+        },
+        {
+          "name": "deleteBuffetTimeSlot",
+          "startLine": 145,
+          "endLine": 163,
+          "params": [
+            "admin",
+            "restaurantId",
+            "slotId"
+          ]
+        },
+        {
+          "name": "updateBuffetTimeSlot",
+          "startLine": 165,
+          "endLine": 184,
+          "params": [
+            "admin",
+            "restaurantId",
+            "slotId",
+            "patch"
+          ]
+        },
+        {
+          "name": "parseRuleInput",
+          "startLine": 199,
+          "endLine": 227,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "createBuffetPriceRule",
+          "startLine": 229,
+          "endLine": 246,
+          "params": [
+            "admin",
+            "restaurantId",
+            "raw"
+          ]
+        },
+        {
+          "name": "updateBuffetPriceRule",
+          "startLine": 248,
+          "endLine": 269,
+          "params": [
+            "admin",
+            "restaurantId",
+            "ruleId",
+            "raw"
+          ]
+        },
+        {
+          "name": "deleteBuffetPriceRule",
+          "startLine": 271,
+          "endLine": 289,
+          "params": [
+            "admin",
+            "restaurantId",
+            "ruleId"
+          ]
+        },
+        {
+          "name": "toggleBuffetPriceRuleActive",
+          "startLine": 291,
+          "endLine": 310,
+          "params": [
+            "admin",
+            "restaurantId",
+            "ruleId",
+            "isActive"
+          ]
+        },
+        {
+          "name": "upsertBuffetCalendarOverrides",
+          "startLine": 312,
+          "endLine": 329,
+          "params": [
+            "admin",
+            "restaurantId",
+            "rows"
+          ]
+        },
+        {
+          "name": "deleteBuffetCalendarOverride",
+          "startLine": 331,
+          "endLine": 349,
+          "params": [
+            "admin",
+            "restaurantId",
+            "onDate"
+          ]
+        },
+        {
+          "name": "updateBuffetFridayPolicy",
+          "startLine": 351,
+          "endLine": 365,
+          "params": [
+            "admin",
+            "restaurantId",
+            "buffetFridayWeekendFrom"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "loadBuffetDashboard",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "createBuffet",
+          "line": 69,
+          "isDefault": false
+        },
+        {
+          "name": "deleteBuffet",
+          "line": 89,
+          "isDefault": false
+        },
+        {
+          "name": "updateBuffet",
+          "line": 105,
+          "isDefault": false
+        },
+        {
+          "name": "createBuffetTimeSlot",
+          "line": 122,
+          "isDefault": false
+        },
+        {
+          "name": "deleteBuffetTimeSlot",
+          "line": 145,
+          "isDefault": false
+        },
+        {
+          "name": "updateBuffetTimeSlot",
+          "line": 165,
+          "isDefault": false
+        },
+        {
+          "name": "createBuffetPriceRule",
+          "line": 229,
+          "isDefault": false
+        },
+        {
+          "name": "updateBuffetPriceRule",
+          "line": 248,
+          "isDefault": false
+        },
+        {
+          "name": "deleteBuffetPriceRule",
+          "line": 271,
+          "isDefault": false
+        },
+        {
+          "name": "toggleBuffetPriceRuleActive",
+          "line": 291,
+          "isDefault": false
+        },
+        {
+          "name": "upsertBuffetCalendarOverrides",
+          "line": 312,
+          "isDefault": false
+        },
+        {
+          "name": "deleteBuffetCalendarOverride",
+          "line": 331,
+          "isDefault": false
+        },
+        {
+          "name": "updateBuffetFridayPolicy",
+          "line": 351,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "Promise.all",
+          "lineNumber": 18
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin.from('buffets').select('*').eq('restaurant_id', restaurantId).order",
+          "lineNumber": 19
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin.from('buffets').select('*').eq",
+          "lineNumber": 19
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin.from('buffets').select",
+          "lineNumber": 19
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin.from",
+          "lineNumber": 19
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin\n      .from('buffet_time_slots')\n      .select('*')\n      .eq('restaurant_id', restaurantId)\n      .order('sort_order')\n      .order",
+          "lineNumber": 20
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin\n      .from('buffet_time_slots')\n      .select('*')\n      .eq('restaurant_id', restaurantId)\n      .order",
+          "lineNumber": 20
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin\n      .from('buffet_time_slots')\n      .select('*')\n      .eq",
+          "lineNumber": 20
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin\n      .from('buffet_time_slots')\n      .select",
+          "lineNumber": 20
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin\n      .from",
+          "lineNumber": 20
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin\n      .from('buffet_price_rules')\n      .select('*')\n      .eq('restaurant_id', restaurantId)\n      .order",
+          "lineNumber": 26
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin\n      .from('buffet_price_rules')\n      .select('*')\n      .eq",
+          "lineNumber": 26
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin\n      .from('buffet_price_rules')\n      .select",
+          "lineNumber": 26
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin\n      .from",
+          "lineNumber": 26
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin\n      .from('buffet_calendar_overrides')\n      .select('on_date, kind')\n      .eq('restaurant_id', restaurantId)\n      .order",
+          "lineNumber": 31
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin\n      .from('buffet_calendar_overrides')\n      .select('on_date, kind')\n      .eq",
+          "lineNumber": 31
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin\n      .from('buffet_calendar_overrides')\n      .select",
+          "lineNumber": 31
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin\n      .from",
+          "lineNumber": 31
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin\n      .from('restaurants')\n      .select('buffet_friday_weekend_from')\n      .eq('id', restaurantId)\n      .maybeSingle",
+          "lineNumber": 36
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin\n      .from('restaurants')\n      .select('buffet_friday_weekend_from')\n      .eq",
+          "lineNumber": 36
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin\n      .from('restaurants')\n      .select",
+          "lineNumber": 36
+        },
+        {
+          "caller": "loadBuffetDashboard",
+          "callee": "admin\n      .from",
+          "lineNumber": 36
+        },
+        {
+          "caller": "createBuffet",
+          "callee": "name.trim",
+          "lineNumber": 74
+        },
+        {
+          "caller": "createBuffet",
+          "callee": "admin.from('buffets').insert",
+          "lineNumber": 77
+        },
+        {
+          "caller": "createBuffet",
+          "callee": "admin.from",
+          "lineNumber": 77
+        },
+        {
+          "caller": "createBuffet",
+          "callee": "loadBuffetDashboard",
+          "lineNumber": 84
+        },
+        {
+          "caller": "deleteBuffet",
+          "callee": "parseTableIdParam",
+          "lineNumber": 94
+        },
+        {
+          "caller": "deleteBuffet",
+          "callee": "admin.from('buffets').delete().eq('id', id).eq",
+          "lineNumber": 97
+        },
+        {
+          "caller": "deleteBuffet",
+          "callee": "admin.from('buffets').delete().eq",
+          "lineNumber": 97
+        },
+        {
+          "caller": "deleteBuffet",
+          "callee": "admin.from('buffets').delete",
+          "lineNumber": 97
+        },
+        {
+          "caller": "deleteBuffet",
+          "callee": "admin.from",
+          "lineNumber": 97
+        },
+        {
+          "caller": "deleteBuffet",
+          "callee": "loadBuffetDashboard",
+          "lineNumber": 100
+        },
+        {
+          "caller": "updateBuffet",
+          "callee": "parseTableIdParam",
+          "lineNumber": 111
+        },
+        {
+          "caller": "updateBuffet",
+          "callee": "admin.from('buffets').update(patch).eq('id', id).eq",
+          "lineNumber": 114
+        },
+        {
+          "caller": "updateBuffet",
+          "callee": "admin.from('buffets').update(patch).eq",
+          "lineNumber": 114
+        },
+        {
+          "caller": "updateBuffet",
+          "callee": "admin.from('buffets').update",
+          "lineNumber": 114
+        },
+        {
+          "caller": "updateBuffet",
+          "callee": "admin.from",
+          "lineNumber": 114
+        },
+        {
+          "caller": "updateBuffet",
+          "callee": "loadBuffetDashboard",
+          "lineNumber": 117
+        },
+        {
+          "caller": "createBuffetTimeSlot",
+          "callee": "input.name.trim",
+          "lineNumber": 127
+        },
+        {
+          "caller": "createBuffetTimeSlot",
+          "callee": "admin.from('buffet_time_slots').insert",
+          "lineNumber": 130
+        },
+        {
+          "caller": "createBuffetTimeSlot",
+          "callee": "admin.from",
+          "lineNumber": 130
+        },
+        {
+          "caller": "createBuffetTimeSlot",
+          "callee": "loadBuffetDashboard",
+          "lineNumber": 140
+        },
+        {
+          "caller": "deleteBuffetTimeSlot",
+          "callee": "parseTableIdParam",
+          "lineNumber": 150
+        },
+        {
+          "caller": "deleteBuffetTimeSlot",
+          "callee": "admin\n    .from('buffet_time_slots')\n    .delete()\n    .eq('id', id)\n    .eq",
+          "lineNumber": 153
+        },
+        {
+          "caller": "deleteBuffetTimeSlot",
+          "callee": "admin\n    .from('buffet_time_slots')\n    .delete()\n    .eq",
+          "lineNumber": 153
+        },
+        {
+          "caller": "deleteBuffetTimeSlot",
+          "callee": "admin\n    .from('buffet_time_slots')\n    .delete",
+          "lineNumber": 153
+        },
+        {
+          "caller": "deleteBuffetTimeSlot",
+          "callee": "admin\n    .from",
+          "lineNumber": 153
+        },
+        {
+          "caller": "deleteBuffetTimeSlot",
+          "callee": "loadBuffetDashboard",
+          "lineNumber": 160
+        },
+        {
+          "caller": "updateBuffetTimeSlot",
+          "callee": "parseTableIdParam",
+          "lineNumber": 171
+        },
+        {
+          "caller": "updateBuffetTimeSlot",
+          "callee": "admin\n    .from('buffet_time_slots')\n    .update(patch)\n    .eq('id', id)\n    .eq",
+          "lineNumber": 174
+        },
+        {
+          "caller": "updateBuffetTimeSlot",
+          "callee": "admin\n    .from('buffet_time_slots')\n    .update(patch)\n    .eq",
+          "lineNumber": 174
+        },
+        {
+          "caller": "updateBuffetTimeSlot",
+          "callee": "admin\n    .from('buffet_time_slots')\n    .update",
+          "lineNumber": 174
+        },
+        {
+          "caller": "updateBuffetTimeSlot",
+          "callee": "admin\n    .from",
+          "lineNumber": 174
+        },
+        {
+          "caller": "updateBuffetTimeSlot",
+          "callee": "loadBuffetDashboard",
+          "lineNumber": 181
+        },
+        {
+          "caller": "parseRuleInput",
+          "callee": "Number",
+          "lineNumber": 209
+        },
+        {
+          "caller": "parseRuleInput",
+          "callee": "Number",
+          "lineNumber": 210
+        },
+        {
+          "caller": "parseRuleInput",
+          "callee": "Number",
+          "lineNumber": 211
+        },
+        {
+          "caller": "parseRuleInput",
+          "callee": "Number.isFinite",
+          "lineNumber": 212
+        },
+        {
+          "caller": "parseRuleInput",
+          "callee": "Number.isFinite",
+          "lineNumber": 212
+        },
+        {
+          "caller": "parseRuleInput",
+          "callee": "Number.isFinite",
+          "lineNumber": 212
+        },
+        {
+          "caller": "parseRuleInput",
+          "callee": "raw.note.trim",
+          "lineNumber": 225
+        },
+        {
+          "caller": "createBuffetPriceRule",
+          "callee": "parseRuleInput",
+          "lineNumber": 234
+        },
+        {
+          "caller": "createBuffetPriceRule",
+          "callee": "admin.from('buffet_price_rules').insert",
+          "lineNumber": 237
+        },
+        {
+          "caller": "createBuffetPriceRule",
+          "callee": "admin.from",
+          "lineNumber": 237
+        },
+        {
+          "caller": "createBuffetPriceRule",
+          "callee": "loadBuffetDashboard",
+          "lineNumber": 243
+        },
+        {
+          "caller": "updateBuffetPriceRule",
+          "callee": "parseTableIdParam",
+          "lineNumber": 254
+        },
+        {
+          "caller": "updateBuffetPriceRule",
+          "callee": "parseRuleInput",
+          "lineNumber": 256
+        },
+        {
+          "caller": "updateBuffetPriceRule",
+          "callee": "admin\n    .from('buffet_price_rules')\n    .update(parsed)\n    .eq('id', id)\n    .eq",
+          "lineNumber": 259
+        },
+        {
+          "caller": "updateBuffetPriceRule",
+          "callee": "admin\n    .from('buffet_price_rules')\n    .update(parsed)\n    .eq",
+          "lineNumber": 259
+        },
+        {
+          "caller": "updateBuffetPriceRule",
+          "callee": "admin\n    .from('buffet_price_rules')\n    .update",
+          "lineNumber": 259
+        },
+        {
+          "caller": "updateBuffetPriceRule",
+          "callee": "admin\n    .from",
+          "lineNumber": 259
+        },
+        {
+          "caller": "updateBuffetPriceRule",
+          "callee": "loadBuffetDashboard",
+          "lineNumber": 266
+        },
+        {
+          "caller": "deleteBuffetPriceRule",
+          "callee": "parseTableIdParam",
+          "lineNumber": 276
+        },
+        {
+          "caller": "deleteBuffetPriceRule",
+          "callee": "admin\n    .from('buffet_price_rules')\n    .delete()\n    .eq('id', id)\n    .eq",
+          "lineNumber": 279
+        },
+        {
+          "caller": "deleteBuffetPriceRule",
+          "callee": "admin\n    .from('buffet_price_rules')\n    .delete()\n    .eq",
+          "lineNumber": 279
+        },
+        {
+          "caller": "deleteBuffetPriceRule",
+          "callee": "admin\n    .from('buffet_price_rules')\n    .delete",
+          "lineNumber": 279
+        },
+        {
+          "caller": "deleteBuffetPriceRule",
+          "callee": "admin\n    .from",
+          "lineNumber": 279
+        },
+        {
+          "caller": "deleteBuffetPriceRule",
+          "callee": "loadBuffetDashboard",
+          "lineNumber": 286
+        },
+        {
+          "caller": "toggleBuffetPriceRuleActive",
+          "callee": "parseTableIdParam",
+          "lineNumber": 297
+        },
+        {
+          "caller": "toggleBuffetPriceRuleActive",
+          "callee": "admin\n    .from('buffet_price_rules')\n    .update({ is_active: isActive })\n    .eq('id', id)\n    .eq",
+          "lineNumber": 300
+        },
+        {
+          "caller": "toggleBuffetPriceRuleActive",
+          "callee": "admin\n    .from('buffet_price_rules')\n    .update({ is_active: isActive })\n    .eq",
+          "lineNumber": 300
+        },
+        {
+          "caller": "toggleBuffetPriceRuleActive",
+          "callee": "admin\n    .from('buffet_price_rules')\n    .update",
+          "lineNumber": 300
+        },
+        {
+          "caller": "toggleBuffetPriceRuleActive",
+          "callee": "admin\n    .from",
+          "lineNumber": 300
+        },
+        {
+          "caller": "toggleBuffetPriceRuleActive",
+          "callee": "loadBuffetDashboard",
+          "lineNumber": 307
+        },
+        {
+          "caller": "upsertBuffetCalendarOverrides",
+          "callee": "admin.from('buffet_calendar_overrides').upsert",
+          "lineNumber": 317
+        },
+        {
+          "caller": "upsertBuffetCalendarOverrides",
+          "callee": "admin.from",
+          "lineNumber": 317
+        },
+        {
+          "caller": "upsertBuffetCalendarOverrides",
+          "callee": "rows.map",
+          "lineNumber": 318
+        },
+        {
+          "caller": "upsertBuffetCalendarOverrides",
+          "callee": "r.on_date.slice",
+          "lineNumber": 320
+        },
+        {
+          "caller": "upsertBuffetCalendarOverrides",
+          "callee": "loadBuffetDashboard",
+          "lineNumber": 326
+        },
+        {
+          "caller": "deleteBuffetCalendarOverride",
+          "callee": "onDate.slice",
+          "lineNumber": 336
+        },
+        {
+          "caller": "deleteBuffetCalendarOverride",
+          "callee": "admin\n    .from('buffet_calendar_overrides')\n    .delete()\n    .eq('restaurant_id', restaurantId)\n    .eq",
+          "lineNumber": 339
+        },
+        {
+          "caller": "deleteBuffetCalendarOverride",
+          "callee": "admin\n    .from('buffet_calendar_overrides')\n    .delete()\n    .eq",
+          "lineNumber": 339
+        },
+        {
+          "caller": "deleteBuffetCalendarOverride",
+          "callee": "admin\n    .from('buffet_calendar_overrides')\n    .delete",
+          "lineNumber": 339
+        },
+        {
+          "caller": "deleteBuffetCalendarOverride",
+          "callee": "admin\n    .from",
+          "lineNumber": 339
+        },
+        {
+          "caller": "deleteBuffetCalendarOverride",
+          "callee": "loadBuffetDashboard",
+          "lineNumber": 346
+        },
+        {
+          "caller": "updateBuffetFridayPolicy",
+          "callee": "admin\n    .from('restaurants')\n    .update({ buffet_friday_weekend_from: buffetFridayWeekendFrom })\n    .eq",
+          "lineNumber": 356
+        },
+        {
+          "caller": "updateBuffetFridayPolicy",
+          "callee": "admin\n    .from('restaurants')\n    .update",
+          "lineNumber": 356
+        },
+        {
+          "caller": "updateBuffetFridayPolicy",
+          "callee": "admin\n    .from",
+          "lineNumber": 356
+        },
+        {
+          "caller": "updateBuffetFridayPolicy",
+          "callee": "loadBuffetDashboard",
+          "lineNumber": 362
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 14,
+        "functionCount": 15,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-table-groups-client.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 86,
+      "nonEmptyLines": 77,
+      "functions": [
+        {
+          "name": "parseJson",
+          "startLine": 5,
+          "endLine": 7,
+          "params": [
+            "res"
+          ]
+        },
+        {
+          "name": "request",
+          "startLine": 9,
+          "endLine": 23,
+          "params": [
+            "url",
+            "init"
+          ]
+        },
+        {
+          "name": "createTableGroupClient",
+          "startLine": 30,
+          "endLine": 40,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "updateTableGroupClient",
+          "startLine": 42,
+          "endLine": 53,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "moveTableGroupOrderClient",
+          "startLine": 55,
+          "endLine": 61,
+          "params": [
+            "groupId",
+            "direction"
+          ]
+        },
+        {
+          "name": "deleteTableGroupClient",
+          "startLine": 63,
+          "endLine": 69,
+          "params": [
+            "groupId"
+          ]
+        },
+        {
+          "name": "mapTableGroupApiError",
+          "startLine": 71,
+          "endLine": 86,
+          "params": [
+            "code",
+            "message",
+            "labels"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "createTableGroupClient",
+          "line": 30,
+          "isDefault": false
+        },
+        {
+          "name": "updateTableGroupClient",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "moveTableGroupOrderClient",
+          "line": 55,
+          "isDefault": false
+        },
+        {
+          "name": "deleteTableGroupClient",
+          "line": 63,
+          "isDefault": false
+        },
+        {
+          "name": "mapTableGroupApiError",
+          "line": 71,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "parseJson",
+          "callee": "res.json().catch",
+          "lineNumber": 6
+        },
+        {
+          "caller": "parseJson",
+          "callee": "res.json",
+          "lineNumber": 6
+        },
+        {
+          "caller": "request",
+          "callee": "fetch",
+          "lineNumber": 14
+        },
+        {
+          "caller": "request",
+          "callee": "await parseJson",
+          "lineNumber": 15
+        },
+        {
+          "caller": "createTableGroupClient",
+          "callee": "request",
+          "lineNumber": 35
+        },
+        {
+          "caller": "createTableGroupClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 38
+        },
+        {
+          "caller": "updateTableGroupClient",
+          "callee": "request",
+          "lineNumber": 48
+        },
+        {
+          "caller": "updateTableGroupClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 51
+        },
+        {
+          "caller": "moveTableGroupOrderClient",
+          "callee": "request",
+          "lineNumber": 56
+        },
+        {
+          "caller": "moveTableGroupOrderClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 59
+        },
+        {
+          "caller": "deleteTableGroupClient",
+          "callee": "request",
+          "lineNumber": 64
+        },
+        {
+          "caller": "deleteTableGroupClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 67
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 5,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    }
+  ]
+}

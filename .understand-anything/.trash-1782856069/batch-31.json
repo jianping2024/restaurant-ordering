@@ -1,0 +1,41 @@
+{
+  "nodes": [
+    {
+      "id": "config:apps/web/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "apps/web/package.json",
+      "summary": "npm 工作区包清单，声明依赖、脚本与构建配置。",
+      "tags": [
+        "configuration",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:apps/web/tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "apps/web/tsconfig.json",
+      "summary": "TypeScript 编译配置，定义严格模式与路径别名。",
+      "tags": [
+        "configuration",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:apps/web/vercel.json",
+      "type": "config",
+      "name": "vercel.json",
+      "filePath": "apps/web/vercel.json",
+      "summary": "配置文件 vercel.json，控制项目构建或运行时行为。",
+      "tags": [
+        "configuration",
+        "build-system"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": []
+}

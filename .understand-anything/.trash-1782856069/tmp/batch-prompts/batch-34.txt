@@ -1,0 +1,46 @@
+Analyze these files and produce GraphNode and GraphEdge objects.
+Project root: `/Users/chenjianping/Documents/restaurant-ordering`
+Project: `undefined` — undefined
+Languages: ["config","css","dockerfile","go","html","iss","javascript","json","markdown","mod","mts","powershell","python","shell","sql","sum","txt","typescript","unknown","yaml"]
+Batch: `34/38`
+Skill directory: `/Users/chenjianping/.cursor/plugins/cache/understand-anything/understand-anything/54754a6f97051d1d76c8758353d8ea41afe502a6/skills/understand`
+Output: `/Users/chenjianping/Documents/restaurant-ordering/.understand-anything/intermediate/batch-34.json`
+
+Pre-resolved import data:
+```json
+{"apps/print-agent/job_route_test.go":[],"apps/print-agent/job_route.go":[],"apps/print-agent/log_strings.go":[],"apps/print-agent/main.go":[],"apps/print-agent/notify_credential_stub.go":[],"apps/print-agent/notify_credential_windows.go":[],"apps/print-agent/notify_version_stub.go":[],"apps/print-agent/notify_version_windows.go":[],"apps/print-agent/notify_windows.go":[],"apps/print-agent/pair_wizard_test.go":[],"apps/print-agent/pair_wizard.go":[],"apps/print-agent/poll_log_throttle.go":[],"apps/print-agent/poll.go":[],"apps/print-agent/printer_discover_cache_test.go":[],"apps/print-agent/printer_discover_cache.go":[],"apps/print-agent/printer_io_errors_test.go":[],"apps/print-agent/printer_io_errors.go":[],"apps/print-agent/printer_readiness_test.go":[],"apps/print-agent/printer_readiness.go":[],"apps/print-agent/printer_target_test.go":[],"apps/print-agent/printer_target.go":[],"apps/print-agent/receipt_defer.go":[],"apps/print-agent/remote_config.go":[],"apps/print-agent/routing_sync_test.go":[],"apps/print-agent/routing_sync.go":[]}
+```
+
+Cross-batch neighbors:
+```json
+{}
+```
+
+Files:
+1. `apps/print-agent/job_route_test.go` (42 lines, language: `go`, fileCategory: `code`)
+2. `apps/print-agent/job_route.go` (59 lines, language: `go`, fileCategory: `code`)
+3. `apps/print-agent/log_strings.go` (166 lines, language: `go`, fileCategory: `code`)
+4. `apps/print-agent/main.go` (226 lines, language: `go`, fileCategory: `code`)
+5. `apps/print-agent/notify_credential_stub.go` (5 lines, language: `go`, fileCategory: `code`)
+6. `apps/print-agent/notify_credential_windows.go` (41 lines, language: `go`, fileCategory: `code`)
+7. `apps/print-agent/notify_version_stub.go` (5 lines, language: `go`, fileCategory: `code`)
+8. `apps/print-agent/notify_version_windows.go` (36 lines, language: `go`, fileCategory: `code`)
+9. `apps/print-agent/notify_windows.go` (24 lines, language: `go`, fileCategory: `code`)
+10. `apps/print-agent/pair_wizard_test.go` (28 lines, language: `go`, fileCategory: `code`)
+11. `apps/print-agent/pair_wizard.go` (108 lines, language: `go`, fileCategory: `code`)
+12. `apps/print-agent/poll_log_throttle.go` (22 lines, language: `go`, fileCategory: `code`)
+13. `apps/print-agent/poll.go` (172 lines, language: `go`, fileCategory: `code`)
+14. `apps/print-agent/printer_discover_cache_test.go` (39 lines, language: `go`, fileCategory: `code`)
+15. `apps/print-agent/printer_discover_cache.go` (47 lines, language: `go`, fileCategory: `code`)
+16. `apps/print-agent/printer_io_errors_test.go` (25 lines, language: `go`, fileCategory: `code`)
+17. `apps/print-agent/printer_io_errors.go` (42 lines, language: `go`, fileCategory: `code`)
+18. `apps/print-agent/printer_readiness_test.go` (25 lines, language: `go`, fileCategory: `code`)
+19. `apps/print-agent/printer_readiness.go` (57 lines, language: `go`, fileCategory: `code`)
+20. `apps/print-agent/printer_target_test.go` (25 lines, language: `go`, fileCategory: `code`)
+21. `apps/print-agent/printer_target.go` (69 lines, language: `go`, fileCategory: `code`)
+22. `apps/print-agent/receipt_defer.go` (86 lines, language: `go`, fileCategory: `code`)
+23. `apps/print-agent/remote_config.go` (145 lines, language: `go`, fileCategory: `code`)
+24. `apps/print-agent/routing_sync_test.go` (40 lines, language: `go`, fileCategory: `code`)
+25. `apps/print-agent/routing_sync.go` (105 lines, language: `go`, fileCategory: `code`)
+
+> **Language directive**: Generate all textual content in **zh** (Chinese). Keep technical terms in English when no standard translation exists.

@@ -1,0 +1,2067 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 15,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/web/src/app/api/analytics/value-overview/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 47,
+      "nonEmptyLines": 41,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 9,
+          "endLine": 47,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 9,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "loadOwnerAnalyticsContext",
+          "lineNumber": 10
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 12
+        },
+        {
+          "caller": "GET",
+          "callee": "analyticsValueOverviewRateLimitCheck",
+          "lineNumber": 18
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 20
+        },
+        {
+          "caller": "GET",
+          "callee": "String",
+          "lineNumber": 22
+        },
+        {
+          "caller": "GET",
+          "callee": "parseAnalyticsRange",
+          "lineNumber": 26
+        },
+        {
+          "caller": "GET",
+          "callee": "new URL(req.url).searchParams.get",
+          "lineNumber": 26
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 28
+        },
+        {
+          "caller": "GET",
+          "callee": "getValueOverview",
+          "lineNumber": 31
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 34
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 46
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/value-analytics/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 15,
+      "nonEmptyLines": 13,
+      "functions": [
+        {
+          "name": "ValueAnalyticsPage",
+          "startLine": 5,
+          "endLine": 15,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ValueAnalyticsPage",
+          "line": 5,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ValueAnalyticsPage",
+          "callee": "loadDashboardAccess",
+          "lineNumber": 6
+        },
+        {
+          "caller": "ValueAnalyticsPage",
+          "callee": "redirect",
+          "lineNumber": 8
+        },
+        {
+          "caller": "ValueAnalyticsPage",
+          "callee": "notFound",
+          "lineNumber": 11
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 360,
+      "nonEmptyLines": 326,
+      "functions": [
+        {
+          "name": "localizedName",
+          "startLine": 28,
+          "endLine": 35,
+          "params": [
+            "row",
+            "lang"
+          ]
+        },
+        {
+          "name": "localizedCategory",
+          "startLine": 37,
+          "endLine": 44,
+          "params": [
+            "row",
+            "lang"
+          ]
+        },
+        {
+          "name": "isOverviewEmpty",
+          "startLine": 46,
+          "endLine": 52,
+          "params": [
+            "data"
+          ]
+        },
+        {
+          "name": "formatMoney",
+          "startLine": 54,
+          "endLine": 56,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "presetBtnClass",
+          "startLine": 61,
+          "endLine": 67,
+          "params": [
+            "active"
+          ]
+        },
+        {
+          "name": "StateCard",
+          "startLine": 69,
+          "endLine": 75,
+          "params": [
+            "{ children }"
+          ]
+        },
+        {
+          "name": "LoadingSkeleton",
+          "startLine": 77,
+          "endLine": 94,
+          "params": []
+        },
+        {
+          "name": "ValueAnalyticsKpiGrid",
+          "startLine": 103,
+          "endLine": 122,
+          "params": [
+            "{ items }"
+          ]
+        },
+        {
+          "name": "ValueAnalyticsPageClient",
+          "startLine": 124,
+          "endLine": 360,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ValueAnalyticsPageClient",
+          "line": 124,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "isOverviewEmpty",
+          "callee": "data.revenueTrend.some",
+          "lineNumber": 48
+        },
+        {
+          "caller": "isOverviewEmpty",
+          "callee": "data.customerTrend.some",
+          "lineNumber": 49
+        },
+        {
+          "caller": "formatMoney",
+          "callee": "value.toFixed",
+          "lineNumber": 55
+        },
+        {
+          "caller": "LoadingSkeleton",
+          "callee": "Array.from({ length: 4 }).map",
+          "lineNumber": 81
+        },
+        {
+          "caller": "LoadingSkeleton",
+          "callee": "Array.from",
+          "lineNumber": 81
+        },
+        {
+          "caller": "ValueAnalyticsKpiGrid",
+          "callee": "items.map",
+          "lineNumber": 106
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "useLanguage",
+          "lineNumber": 125
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "getMessages",
+          "lineNumber": 126
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "useState",
+          "lineNumber": 128
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "useState",
+          "lineNumber": 129
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "useState",
+          "lineNumber": 130
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "useCallback",
+          "lineNumber": 132
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "setState",
+          "lineNumber": 133
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "fetch",
+          "lineNumber": 135
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "setState",
+          "lineNumber": 137
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "setState",
+          "lineNumber": 141
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "res.json",
+          "lineNumber": 144
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "setData",
+          "lineNumber": 145
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "setState",
+          "lineNumber": 146
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "isOverviewEmpty",
+          "lineNumber": 146
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "setState",
+          "lineNumber": 148
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "useEffect",
+          "lineNumber": 152
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "load",
+          "lineNumber": 153
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "useMemo",
+          "lineNumber": 156
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "buildTrendChartPoints",
+          "lineNumber": 158
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "useMemo",
+          "lineNumber": 162
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "buildTrendChartPoints",
+          "lineNumber": 165
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "useMemo",
+          "lineNumber": 174
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "data.revenueTrend.reduce",
+          "lineNumber": 177
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "data.customerTrend.reduce",
+          "lineNumber": 178
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "formatMoney",
+          "lineNumber": 186
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "String",
+          "lineNumber": 191
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "formatMoney",
+          "lineNumber": 196
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "localizedName",
+          "lineNumber": 201
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "useMemo",
+          "lineNumber": 208
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "presetBtnClass",
+          "lineNumber": 240
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "setRange",
+          "lineNumber": 241
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "presetBtnClass",
+          "lineNumber": 247
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "setRange",
+          "lineNumber": 248
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "load",
+          "lineNumber": 261
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "String",
+          "lineNumber": 291
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "localizedName",
+          "lineNumber": 306
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "localizedCategory",
+          "lineNumber": 311
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "formatMoney",
+          "lineNumber": 322
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "localizedName",
+          "lineNumber": 335
+        },
+        {
+          "caller": "ValueAnalyticsPageClient",
+          "callee": "localizedCategory",
+          "lineNumber": 340
+        }
+      ],
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 1,
+        "functionCount": 9,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 131,
+      "nonEmptyLines": 123,
+      "functions": [
+        {
+          "name": "formatDateLabel",
+          "startLine": 35,
+          "endLine": 37,
+          "params": [
+            "date"
+          ]
+        },
+        {
+          "name": "buildTrendChartPoints",
+          "startLine": 39,
+          "endLine": 51,
+          "params": [
+            "rows",
+            "pickValue",
+            "pickGuests"
+          ]
+        },
+        {
+          "name": "renderTrendTooltip",
+          "startLine": 53,
+          "endLine": 88,
+          "params": [
+            "valueFormatter",
+            "variant",
+            "tooltipLabels"
+          ]
+        },
+        {
+          "name": "ValueAnalyticsTrendChart",
+          "startLine": 90,
+          "endLine": 131,
+          "params": [
+            "{\n  title,\n  data,\n  yAxisLabel,\n  valueFormatter,\n  variant,\n  tooltipLabels,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "buildTrendChartPoints",
+          "line": 39,
+          "isDefault": false
+        },
+        {
+          "name": "ValueAnalyticsTrendChart",
+          "line": 90,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "formatDateLabel",
+          "callee": "format",
+          "lineNumber": 36
+        },
+        {
+          "caller": "formatDateLabel",
+          "callee": "parseISO",
+          "lineNumber": 36
+        },
+        {
+          "caller": "buildTrendChartPoints",
+          "callee": "rows.map",
+          "lineNumber": 44
+        },
+        {
+          "caller": "buildTrendChartPoints",
+          "callee": "formatDateLabel",
+          "lineNumber": 46
+        },
+        {
+          "caller": "buildTrendChartPoints",
+          "callee": "pickValue",
+          "lineNumber": 47
+        },
+        {
+          "caller": "buildTrendChartPoints",
+          "callee": "pickGuests",
+          "lineNumber": 48
+        },
+        {
+          "caller": "buildTrendChartPoints",
+          "callee": "pickGuests",
+          "lineNumber": 49
+        },
+        {
+          "caller": "renderTrendTooltip",
+          "callee": "valueFormatter",
+          "lineNumber": 73
+        },
+        {
+          "caller": "ValueAnalyticsTrendChart",
+          "callee": "renderTrendTooltip",
+          "lineNumber": 116
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/analytics/aggregate-items.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 63,
+      "nonEmptyLines": 54,
+      "functions": [
+        {
+          "name": "isCountableMenuLine",
+          "startLine": 15,
+          "endLine": 20,
+          "params": [
+            "item",
+            "orderStatus"
+          ]
+        },
+        {
+          "name": "aggregateMenuItemsFromOrders",
+          "startLine": 22,
+          "endLine": 52,
+          "params": [
+            "orders"
+          ]
+        },
+        {
+          "name": "rankMenuItemAggs",
+          "startLine": 54,
+          "endLine": 63,
+          "params": [
+            "map",
+            "limit"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "isCountableMenuLine",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "aggregateMenuItemsFromOrders",
+          "line": 22,
+          "isDefault": false
+        },
+        {
+          "name": "rankMenuItemAggs",
+          "line": 54,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "isCountableMenuLine",
+          "callee": "isBuffetBaseItem",
+          "lineNumber": 16
+        },
+        {
+          "caller": "isCountableMenuLine",
+          "callee": "normalizeOrderItemStatus",
+          "lineNumber": 17
+        },
+        {
+          "caller": "isCountableMenuLine",
+          "callee": "Number",
+          "lineNumber": 18
+        },
+        {
+          "caller": "aggregateMenuItemsFromOrders",
+          "callee": "isCountableMenuLine",
+          "lineNumber": 27
+        },
+        {
+          "caller": "aggregateMenuItemsFromOrders",
+          "callee": "Number",
+          "lineNumber": 30
+        },
+        {
+          "caller": "aggregateMenuItemsFromOrders",
+          "callee": "auditMoney",
+          "lineNumber": 31
+        },
+        {
+          "caller": "aggregateMenuItemsFromOrders",
+          "callee": "Number",
+          "lineNumber": 31
+        },
+        {
+          "caller": "aggregateMenuItemsFromOrders",
+          "callee": "map.get",
+          "lineNumber": 32
+        },
+        {
+          "caller": "aggregateMenuItemsFromOrders",
+          "callee": "map.set",
+          "lineNumber": 35
+        },
+        {
+          "caller": "aggregateMenuItemsFromOrders",
+          "callee": "auditMoney",
+          "lineNumber": 47
+        },
+        {
+          "caller": "rankMenuItemAggs",
+          "callee": "Array.from(map.values())\n    .sort(\n      (a, b) =>\n        b.consumedQuantity - a.consumedQuantity ||\n        b.amount - a.amount ||\n        a.itemId.localeCompare(b.itemId),\n    )\n    .slice",
+          "lineNumber": 55
+        },
+        {
+          "caller": "rankMenuItemAggs",
+          "callee": "Array.from(map.values())\n    .sort",
+          "lineNumber": 55
+        },
+        {
+          "caller": "rankMenuItemAggs",
+          "callee": "Array.from",
+          "lineNumber": 55
+        },
+        {
+          "caller": "rankMenuItemAggs",
+          "callee": "map.values",
+          "lineNumber": 55
+        },
+        {
+          "caller": "rankMenuItemAggs",
+          "callee": "a.itemId.localeCompare",
+          "lineNumber": 60
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 15,
+      "nonEmptyLines": 12,
+      "functions": [
+        {
+          "name": "analyticsValueOverviewRateLimitCheck",
+          "startLine": 8,
+          "endLine": 15,
+          "params": [
+            "ownerId",
+            "restaurantId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "analyticsValueOverviewRateLimitCheck",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "analyticsValueOverviewRateLimitCheck",
+          "callee": "checkInMemoryRateLimit",
+          "lineNumber": 9
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 179,
+      "nonEmptyLines": 160,
+      "functions": [
+        {
+          "name": "withAnalyticsQueryTimeout",
+          "startLine": 13,
+          "endLine": 28,
+          "params": [
+            "promise",
+            "timeoutMs"
+          ]
+        },
+        {
+          "name": "chunkIds",
+          "startLine": 30,
+          "endLine": 36,
+          "params": [
+            "ids"
+          ]
+        },
+        {
+          "name": "fetchClosedSessionsInWindow",
+          "startLine": 38,
+          "endLine": 73,
+          "params": [
+            "admin",
+            "restaurantId",
+            "startUtc",
+            "endExclusiveUtc"
+          ]
+        },
+        {
+          "name": "fetchBySessionIds",
+          "startLine": 75,
+          "endLine": 103,
+          "params": [
+            "admin",
+            "table",
+            "restaurantId",
+            "sessionIds",
+            "select"
+          ]
+        },
+        {
+          "name": "fetchOrdersBySessionIds",
+          "startLine": 105,
+          "endLine": 117,
+          "params": [
+            "admin",
+            "restaurantId",
+            "sessionIds"
+          ]
+        },
+        {
+          "name": "fetchBillSplitsBySessionIds",
+          "startLine": 119,
+          "endLine": 131,
+          "params": [
+            "admin",
+            "restaurantId",
+            "sessionIds"
+          ]
+        },
+        {
+          "name": "fetchMenuCategoriesByItemIds",
+          "startLine": 135,
+          "endLine": 157,
+          "params": [
+            "admin",
+            "restaurantId",
+            "itemIds"
+          ]
+        },
+        {
+          "name": "groupOrdersBySession",
+          "startLine": 159,
+          "endLine": 168,
+          "params": [
+            "orders"
+          ]
+        },
+        {
+          "name": "groupSplitsBySession",
+          "startLine": 170,
+          "endLine": 179,
+          "params": [
+            "splits"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "withAnalyticsQueryTimeout",
+          "line": 13,
+          "isDefault": false
+        },
+        {
+          "name": "fetchClosedSessionsInWindow",
+          "line": 38,
+          "isDefault": false
+        },
+        {
+          "name": "fetchOrdersBySessionIds",
+          "line": 105,
+          "isDefault": false
+        },
+        {
+          "name": "fetchBillSplitsBySessionIds",
+          "line": 119,
+          "isDefault": false
+        },
+        {
+          "name": "fetchMenuCategoriesByItemIds",
+          "line": 135,
+          "isDefault": false
+        },
+        {
+          "name": "groupOrdersBySession",
+          "line": 159,
+          "isDefault": false
+        },
+        {
+          "name": "groupSplitsBySession",
+          "line": 170,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "withAnalyticsQueryTimeout",
+          "callee": "Promise.race",
+          "lineNumber": 19
+        },
+        {
+          "caller": "withAnalyticsQueryTimeout",
+          "callee": "setTimeout",
+          "lineNumber": 22
+        },
+        {
+          "caller": "withAnalyticsQueryTimeout",
+          "callee": "reject",
+          "lineNumber": 22
+        },
+        {
+          "caller": "withAnalyticsQueryTimeout",
+          "callee": "clearTimeout",
+          "lineNumber": 26
+        },
+        {
+          "caller": "chunkIds",
+          "callee": "chunks.push",
+          "lineNumber": 33
+        },
+        {
+          "caller": "chunkIds",
+          "callee": "ids.slice",
+          "lineNumber": 33
+        },
+        {
+          "caller": "fetchClosedSessionsInWindow",
+          "callee": "withAnalyticsQueryTimeout",
+          "lineNumber": 45
+        },
+        {
+          "caller": "fetchClosedSessionsInWindow",
+          "callee": "admin\n        .from('table_sessions')\n        .select('id, closed_at')\n        .eq('restaurant_id', restaurantId)\n        .eq('status', 'closed')\n        .not('closed_at', 'is', null)\n        .gte('closed_at', startUtc)\n        .lt",
+          "lineNumber": 46
+        },
+        {
+          "caller": "fetchClosedSessionsInWindow",
+          "callee": "admin\n        .from('table_sessions')\n        .select('id, closed_at')\n        .eq('restaurant_id', restaurantId)\n        .eq('status', 'closed')\n        .not('closed_at', 'is', null)\n        .gte",
+          "lineNumber": 46
+        },
+        {
+          "caller": "fetchClosedSessionsInWindow",
+          "callee": "admin\n        .from('table_sessions')\n        .select('id, closed_at')\n        .eq('restaurant_id', restaurantId)\n        .eq('status', 'closed')\n        .not",
+          "lineNumber": 46
+        },
+        {
+          "caller": "fetchClosedSessionsInWindow",
+          "callee": "admin\n        .from('table_sessions')\n        .select('id, closed_at')\n        .eq('restaurant_id', restaurantId)\n        .eq",
+          "lineNumber": 46
+        },
+        {
+          "caller": "fetchClosedSessionsInWindow",
+          "callee": "admin\n        .from('table_sessions')\n        .select('id, closed_at')\n        .eq",
+          "lineNumber": 46
+        },
+        {
+          "caller": "fetchClosedSessionsInWindow",
+          "callee": "admin\n        .from('table_sessions')\n        .select",
+          "lineNumber": 46
+        },
+        {
+          "caller": "fetchClosedSessionsInWindow",
+          "callee": "admin\n        .from",
+          "lineNumber": 46
+        },
+        {
+          "caller": "fetchBySessionIds",
+          "callee": "chunkIds",
+          "lineNumber": 86
+        },
+        {
+          "caller": "fetchBySessionIds",
+          "callee": "withAnalyticsQueryTimeout",
+          "lineNumber": 87
+        },
+        {
+          "caller": "fetchBySessionIds",
+          "callee": "admin.from(table).select(select).eq('restaurant_id', restaurantId).in",
+          "lineNumber": 88
+        },
+        {
+          "caller": "fetchBySessionIds",
+          "callee": "admin.from(table).select(select).eq",
+          "lineNumber": 88
+        },
+        {
+          "caller": "fetchBySessionIds",
+          "callee": "admin.from(table).select",
+          "lineNumber": 88
+        },
+        {
+          "caller": "fetchBySessionIds",
+          "callee": "admin.from",
+          "lineNumber": 88
+        },
+        {
+          "caller": "fetchBySessionIds",
+          "callee": "rows.push",
+          "lineNumber": 93
+        },
+        {
+          "caller": "fetchOrdersBySessionIds",
+          "callee": "fetchBySessionIds",
+          "lineNumber": 110
+        },
+        {
+          "caller": "fetchBillSplitsBySessionIds",
+          "callee": "fetchBySessionIds",
+          "lineNumber": 124
+        },
+        {
+          "caller": "fetchMenuCategoriesByItemIds",
+          "callee": "chunkIds",
+          "lineNumber": 143
+        },
+        {
+          "caller": "fetchMenuCategoriesByItemIds",
+          "callee": "admin\n      .from('menu_items')\n      .select('id, category, category_en, category_zh')\n      .eq('restaurant_id', restaurantId)\n      .in",
+          "lineNumber": 145
+        },
+        {
+          "caller": "fetchMenuCategoriesByItemIds",
+          "callee": "admin\n      .from('menu_items')\n      .select('id, category, category_en, category_zh')\n      .eq",
+          "lineNumber": 145
+        },
+        {
+          "caller": "fetchMenuCategoriesByItemIds",
+          "callee": "admin\n      .from('menu_items')\n      .select",
+          "lineNumber": 145
+        },
+        {
+          "caller": "fetchMenuCategoriesByItemIds",
+          "callee": "admin\n      .from",
+          "lineNumber": 145
+        },
+        {
+          "caller": "fetchMenuCategoriesByItemIds",
+          "callee": "map.set",
+          "lineNumber": 152
+        },
+        {
+          "caller": "groupOrdersBySession",
+          "callee": "map.get",
+          "lineNumber": 163
+        },
+        {
+          "caller": "groupOrdersBySession",
+          "callee": "list.push",
+          "lineNumber": 164
+        },
+        {
+          "caller": "groupOrdersBySession",
+          "callee": "map.set",
+          "lineNumber": 165
+        },
+        {
+          "caller": "groupSplitsBySession",
+          "callee": "map.get",
+          "lineNumber": 174
+        },
+        {
+          "caller": "groupSplitsBySession",
+          "callee": "list.push",
+          "lineNumber": 175
+        },
+        {
+          "caller": "groupSplitsBySession",
+          "callee": "map.set",
+          "lineNumber": 176
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 7,
+        "functionCount": 9,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/analytics/analytics.service.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 233,
+      "nonEmptyLines": 217,
+      "functions": [
+        {
+          "name": "menuItem",
+          "startLine": 13,
+          "endLine": 21,
+          "params": [
+            "partial"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "lt",
+          "callee": "Promise.resolve",
+          "lineNumber": 205
+        },
+        {
+          "caller": "in",
+          "callee": "Promise.resolve",
+          "lineNumber": 208
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/analytics/analytics.service.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 143,
+      "nonEmptyLines": 127,
+      "functions": [
+        {
+          "name": "filterQualifyingSessions",
+          "startLine": 32,
+          "endLine": 42,
+          "params": [
+            "sessions",
+            "ordersBySession",
+            "splitsBySession"
+          ]
+        },
+        {
+          "name": "collectOrdersForSessions",
+          "startLine": 44,
+          "endLine": 54,
+          "params": [
+            "sessions",
+            "ordersBySession"
+          ]
+        },
+        {
+          "name": "emptyOverview",
+          "startLine": 56,
+          "endLine": 70,
+          "params": [
+            "range",
+            "dateKeys"
+          ]
+        },
+        {
+          "name": "getValueOverview",
+          "startLine": 72,
+          "endLine": 143,
+          "params": [
+            "admin",
+            "restaurantId",
+            "range",
+            "now"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "getValueOverview",
+          "line": 72,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "filterQualifyingSessions",
+          "callee": "sessions.filter",
+          "lineNumber": 37
+        },
+        {
+          "caller": "filterQualifyingSessions",
+          "callee": "ordersBySession.get",
+          "lineNumber": 38
+        },
+        {
+          "caller": "filterQualifyingSessions",
+          "callee": "splitsBySession.get",
+          "lineNumber": 39
+        },
+        {
+          "caller": "filterQualifyingSessions",
+          "callee": "isQualifyingSession",
+          "lineNumber": 40
+        },
+        {
+          "caller": "collectOrdersForSessions",
+          "callee": "ordersBySession.get",
+          "lineNumber": 50
+        },
+        {
+          "caller": "collectOrdersForSessions",
+          "callee": "orders.push",
+          "lineNumber": 51
+        },
+        {
+          "caller": "emptyOverview",
+          "callee": "dateKeys.map",
+          "lineNumber": 59
+        },
+        {
+          "caller": "emptyOverview",
+          "callee": "dateKeys.map",
+          "lineNumber": 60
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "resolveAnalyticsDateWindow",
+          "lineNumber": 78
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "resolveAnalyticsDateWindow",
+          "lineNumber": 79
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "fetchClosedSessionsInWindow",
+          "lineNumber": 81
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "emptyOverview",
+          "lineNumber": 93
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "allSessions.map",
+          "lineNumber": 96
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "Promise.all",
+          "lineNumber": 97
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "fetchOrdersBySessionIds",
+          "lineNumber": 98
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "fetchBillSplitsBySessionIds",
+          "lineNumber": 99
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "groupOrdersBySession",
+          "lineNumber": 109
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "groupSplitsBySession",
+          "lineNumber": 110
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "filterQualifyingSessions",
+          "lineNumber": 111
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "qualifying.filter",
+          "lineNumber": 113
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "isIsoInWindow",
+          "lineNumber": 114
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "qualifying.filter",
+          "lineNumber": 116
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "isIsoInWindow",
+          "lineNumber": 117
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "buildRevenueTrend",
+          "lineNumber": 120
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "buildCustomerTrend",
+          "lineNumber": 121
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "collectOrdersForSessions",
+          "lineNumber": 123
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "collectOrdersForSessions",
+          "lineNumber": 124
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "rankMenuItemAggs",
+          "lineNumber": 126
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "aggregateMenuItemsFromOrders",
+          "lineNumber": 126
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "rankMenuItemAggs",
+          "lineNumber": 127
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "aggregateMenuItemsFromOrders",
+          "lineNumber": 127
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "Array.from",
+          "lineNumber": 129
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "[...rangeRanked, ...stockRanked].map",
+          "lineNumber": 129
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "fetchMenuCategoriesByItemIds",
+          "lineNumber": 130
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "mapTopConsumedItems",
+          "lineNumber": 138
+        },
+        {
+          "caller": "getValueOverview",
+          "callee": "mapStockReferenceItems",
+          "lineNumber": 139
+        }
+      ],
+      "metrics": {
+        "importCount": 8,
+        "exportCount": 1,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/analytics/analytics.types.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 77,
+      "nonEmptyLines": 67,
+      "exports": [
+        {
+          "name": "STOCK_REFERENCE_DISCLAIMER_ZH",
+          "line": 73,
+          "isDefault": false
+        },
+        {
+          "name": "ANALYTICS_MAX_CLOSED_SESSIONS",
+          "line": 76,
+          "isDefault": false
+        },
+        {
+          "name": "ANALYTICS_QUERY_TIMEOUT_MS",
+          "line": 77,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/analytics/build-overview.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 115,
+      "nonEmptyLines": 105,
+      "functions": [
+        {
+          "name": "buildRevenueTrend",
+          "startLine": 15,
+          "endLine": 34,
+          "params": [
+            "dateKeys",
+            "sessions",
+            "ordersBySession",
+            "splitsBySession"
+          ]
+        },
+        {
+          "name": "buildCustomerTrend",
+          "startLine": 36,
+          "endLine": 67,
+          "params": [
+            "dateKeys",
+            "sessions",
+            "ordersBySession"
+          ]
+        },
+        {
+          "name": "localizedCategoryFields",
+          "startLine": 69,
+          "endLine": 77,
+          "params": [
+            "cat"
+          ]
+        },
+        {
+          "name": "baseItemFields",
+          "startLine": 79,
+          "endLine": 92,
+          "params": [
+            "row",
+            "index",
+            "categories"
+          ]
+        },
+        {
+          "name": "mapTopConsumedItems",
+          "startLine": 94,
+          "endLine": 103,
+          "params": [
+            "ranked",
+            "categories"
+          ]
+        },
+        {
+          "name": "mapStockReferenceItems",
+          "startLine": 105,
+          "endLine": 115,
+          "params": [
+            "ranked",
+            "categories"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "buildRevenueTrend",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "buildCustomerTrend",
+          "line": 36,
+          "isDefault": false
+        },
+        {
+          "name": "mapTopConsumedItems",
+          "line": 94,
+          "isDefault": false
+        },
+        {
+          "name": "mapStockReferenceItems",
+          "line": 105,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "buildRevenueTrend",
+          "callee": "daily.set",
+          "lineNumber": 22
+        },
+        {
+          "caller": "buildRevenueTrend",
+          "callee": "sessionDateKeyFromIso",
+          "lineNumber": 26
+        },
+        {
+          "caller": "buildRevenueTrend",
+          "callee": "ordersBySession.get",
+          "lineNumber": 27
+        },
+        {
+          "caller": "buildRevenueTrend",
+          "callee": "splitsBySession.get",
+          "lineNumber": 28
+        },
+        {
+          "caller": "buildRevenueTrend",
+          "callee": "sessionRevenue",
+          "lineNumber": 29
+        },
+        {
+          "caller": "buildRevenueTrend",
+          "callee": "daily.set",
+          "lineNumber": 30
+        },
+        {
+          "caller": "buildRevenueTrend",
+          "callee": "auditMoney",
+          "lineNumber": 30
+        },
+        {
+          "caller": "buildRevenueTrend",
+          "callee": "daily.get",
+          "lineNumber": 30
+        },
+        {
+          "caller": "buildRevenueTrend",
+          "callee": "dateKeys.map",
+          "lineNumber": 33
+        },
+        {
+          "caller": "buildRevenueTrend",
+          "callee": "daily.get",
+          "lineNumber": 33
+        },
+        {
+          "caller": "buildCustomerTrend",
+          "callee": "adultsByDay.set",
+          "lineNumber": 44
+        },
+        {
+          "caller": "buildCustomerTrend",
+          "callee": "childrenByDay.set",
+          "lineNumber": 45
+        },
+        {
+          "caller": "buildCustomerTrend",
+          "callee": "sessionDateKeyFromIso",
+          "lineNumber": 50
+        },
+        {
+          "caller": "buildCustomerTrend",
+          "callee": "ordersBySession.get",
+          "lineNumber": 51
+        },
+        {
+          "caller": "buildCustomerTrend",
+          "callee": "sessionGuestCounts",
+          "lineNumber": 52
+        },
+        {
+          "caller": "buildCustomerTrend",
+          "callee": "adultsByDay.set",
+          "lineNumber": 53
+        },
+        {
+          "caller": "buildCustomerTrend",
+          "callee": "adultsByDay.get",
+          "lineNumber": 53
+        },
+        {
+          "caller": "buildCustomerTrend",
+          "callee": "childrenByDay.set",
+          "lineNumber": 54
+        },
+        {
+          "caller": "buildCustomerTrend",
+          "callee": "childrenByDay.get",
+          "lineNumber": 54
+        },
+        {
+          "caller": "buildCustomerTrend",
+          "callee": "dateKeys.map",
+          "lineNumber": 57
+        },
+        {
+          "caller": "buildCustomerTrend",
+          "callee": "adultsByDay.get",
+          "lineNumber": 58
+        },
+        {
+          "caller": "buildCustomerTrend",
+          "callee": "childrenByDay.get",
+          "lineNumber": 59
+        },
+        {
+          "caller": "baseItemFields",
+          "callee": "localizedCategoryFields",
+          "lineNumber": 90
+        },
+        {
+          "caller": "baseItemFields",
+          "callee": "categories.get",
+          "lineNumber": 90
+        },
+        {
+          "caller": "mapTopConsumedItems",
+          "callee": "ranked.map",
+          "lineNumber": 98
+        },
+        {
+          "caller": "mapTopConsumedItems",
+          "callee": "baseItemFields",
+          "lineNumber": 99
+        },
+        {
+          "caller": "mapStockReferenceItems",
+          "callee": "ranked.map",
+          "lineNumber": 109
+        },
+        {
+          "caller": "mapStockReferenceItems",
+          "callee": "baseItemFields",
+          "lineNumber": 110
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 4,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/analytics/date-window.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 33,
+      "nonEmptyLines": 30,
+      "functions": [
+        {
+          "name": "parseAnalyticsRange",
+          "startLine": 9,
+          "endLine": 13,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "resolveAnalyticsDateWindow",
+          "startLine": 15,
+          "endLine": 33,
+          "params": [
+            "range",
+            "now"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "parseAnalyticsRange",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "resolveAnalyticsDateWindow",
+          "line": 15,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "resolveAnalyticsDateWindow",
+          "callee": "calendarDateInTimezone",
+          "lineNumber": 19
+        },
+        {
+          "caller": "resolveAnalyticsDateWindow",
+          "callee": "addCalendarDays",
+          "lineNumber": 21
+        },
+        {
+          "caller": "resolveAnalyticsDateWindow",
+          "callee": "lisbonDayStartUtcIso",
+          "lineNumber": 29
+        },
+        {
+          "caller": "resolveAnalyticsDateWindow",
+          "callee": "lisbonDayStartUtcIso",
+          "lineNumber": 30
+        },
+        {
+          "caller": "resolveAnalyticsDateWindow",
+          "callee": "addCalendarDays",
+          "lineNumber": 30
+        },
+        {
+          "caller": "resolveAnalyticsDateWindow",
+          "callee": "buildDateKeySeries",
+          "lineNumber": 31
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 32,
+      "nonEmptyLines": 27,
+      "functions": [
+        {
+          "name": "loadOwnerAnalyticsContext",
+          "startLine": 11,
+          "endLine": 32,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "loadOwnerAnalyticsContext",
+          "line": 11,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loadOwnerAnalyticsContext",
+          "callee": "loadDashboardAccess",
+          "lineNumber": 12
+        },
+        {
+          "caller": "loadOwnerAnalyticsContext",
+          "callee": "createAdminClient",
+          "lineNumber": 22
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/analytics/qualifying.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 46,
+      "nonEmptyLines": 41,
+      "functions": [
+        {
+          "name": "isQualifyingSession",
+          "startLine": 5,
+          "endLine": 14,
+          "params": [
+            "orders",
+            "splits"
+          ]
+        },
+        {
+          "name": "sessionRevenue",
+          "startLine": 16,
+          "endLine": 38,
+          "params": [
+            "orders",
+            "splits"
+          ]
+        },
+        {
+          "name": "sessionGuestCounts",
+          "startLine": 40,
+          "endLine": 46,
+          "params": [
+            "orders"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "isQualifyingSession",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "sessionRevenue",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "sessionGuestCounts",
+          "line": 40,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "isQualifyingSession",
+          "callee": "splits.some",
+          "lineNumber": 9
+        },
+        {
+          "caller": "isQualifyingSession",
+          "callee": "orders.reduce",
+          "lineNumber": 12
+        },
+        {
+          "caller": "isQualifyingSession",
+          "callee": "Number",
+          "lineNumber": 12
+        },
+        {
+          "caller": "sessionRevenue",
+          "callee": "splits.filter",
+          "lineNumber": 20
+        },
+        {
+          "caller": "sessionRevenue",
+          "callee": "Number",
+          "lineNumber": 27
+        },
+        {
+          "caller": "sessionRevenue",
+          "callee": "paidSplits.reduce",
+          "lineNumber": 32
+        },
+        {
+          "caller": "sessionRevenue",
+          "callee": "Number",
+          "lineNumber": 32
+        },
+        {
+          "caller": "sessionRevenue",
+          "callee": "auditMoney",
+          "lineNumber": 34
+        },
+        {
+          "caller": "sessionRevenue",
+          "callee": "auditMoney",
+          "lineNumber": 37
+        },
+        {
+          "caller": "sessionRevenue",
+          "callee": "orders.reduce",
+          "lineNumber": 37
+        },
+        {
+          "caller": "sessionRevenue",
+          "callee": "Number",
+          "lineNumber": 37
+        },
+        {
+          "caller": "sessionGuestCounts",
+          "callee": "aggregateBuffetForOrders",
+          "lineNumber": 43
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/lisbon-calendar.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 57,
+      "nonEmptyLines": 50,
+      "functions": [
+        {
+          "name": "calendarDateInTimezone",
+          "startLine": 3,
+          "endLine": 10,
+          "params": [
+            "date",
+            "timeZone"
+          ]
+        },
+        {
+          "name": "addCalendarDays",
+          "startLine": 12,
+          "endLine": 16,
+          "params": [
+            "dateStr",
+            "delta"
+          ]
+        },
+        {
+          "name": "daysBetweenInclusive",
+          "startLine": 18,
+          "endLine": 24,
+          "params": [
+            "start",
+            "end"
+          ]
+        },
+        {
+          "name": "lisbonDayStartUtcIso",
+          "startLine": 26,
+          "endLine": 39,
+          "params": [
+            "dateStr"
+          ]
+        },
+        {
+          "name": "buildDateKeySeries",
+          "startLine": 41,
+          "endLine": 49,
+          "params": [
+            "startDate",
+            "endDate"
+          ]
+        },
+        {
+          "name": "sessionDateKeyFromIso",
+          "startLine": 51,
+          "endLine": 53,
+          "params": [
+            "iso"
+          ]
+        },
+        {
+          "name": "isIsoInWindow",
+          "startLine": 55,
+          "endLine": 57,
+          "params": [
+            "iso",
+            "startUtc",
+            "endExclusiveUtc"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "calendarDateInTimezone",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "addCalendarDays",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "daysBetweenInclusive",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "lisbonDayStartUtcIso",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "buildDateKeySeries",
+          "line": 41,
+          "isDefault": false
+        },
+        {
+          "name": "sessionDateKeyFromIso",
+          "line": 51,
+          "isDefault": false
+        },
+        {
+          "name": "isIsoInWindow",
+          "line": 55,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "calendarDateInTimezone",
+          "callee": "new Intl.DateTimeFormat('en-CA', {\n    timeZone,\n    year: 'numeric',\n    month: '2-digit',\n    day: '2-digit',\n  }).format",
+          "lineNumber": 4
+        },
+        {
+          "caller": "addCalendarDays",
+          "callee": "dateStr.split('-').map",
+          "lineNumber": 13
+        },
+        {
+          "caller": "addCalendarDays",
+          "callee": "dateStr.split",
+          "lineNumber": 13
+        },
+        {
+          "caller": "addCalendarDays",
+          "callee": "Date.UTC",
+          "lineNumber": 14
+        },
+        {
+          "caller": "addCalendarDays",
+          "callee": "utc.toISOString().slice",
+          "lineNumber": 15
+        },
+        {
+          "caller": "addCalendarDays",
+          "callee": "utc.toISOString",
+          "lineNumber": 15
+        },
+        {
+          "caller": "daysBetweenInclusive",
+          "callee": "start.split('-').map",
+          "lineNumber": 19
+        },
+        {
+          "caller": "daysBetweenInclusive",
+          "callee": "start.split",
+          "lineNumber": 19
+        },
+        {
+          "caller": "daysBetweenInclusive",
+          "callee": "end.split('-').map",
+          "lineNumber": 20
+        },
+        {
+          "caller": "daysBetweenInclusive",
+          "callee": "end.split",
+          "lineNumber": 20
+        },
+        {
+          "caller": "daysBetweenInclusive",
+          "callee": "Date.UTC",
+          "lineNumber": 21
+        },
+        {
+          "caller": "daysBetweenInclusive",
+          "callee": "Date.UTC",
+          "lineNumber": 22
+        },
+        {
+          "caller": "daysBetweenInclusive",
+          "callee": "Math.floor",
+          "lineNumber": 23
+        },
+        {
+          "caller": "lisbonDayStartUtcIso",
+          "callee": "dateStr.split('-').map",
+          "lineNumber": 27
+        },
+        {
+          "caller": "lisbonDayStartUtcIso",
+          "callee": "dateStr.split",
+          "lineNumber": 27
+        },
+        {
+          "caller": "lisbonDayStartUtcIso",
+          "callee": "Date.UTC",
+          "lineNumber": 28
+        },
+        {
+          "caller": "lisbonDayStartUtcIso",
+          "callee": "calendarDateInTimezone",
+          "lineNumber": 32
+        },
+        {
+          "caller": "lisbonDayStartUtcIso",
+          "callee": "candidate.toISOString",
+          "lineNumber": 34
+        },
+        {
+          "caller": "buildDateKeySeries",
+          "callee": "keys.push",
+          "lineNumber": 45
+        },
+        {
+          "caller": "buildDateKeySeries",
+          "callee": "addCalendarDays",
+          "lineNumber": 46
+        },
+        {
+          "caller": "sessionDateKeyFromIso",
+          "callee": "calendarDateInTimezone",
+          "lineNumber": 52
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 7,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    }
+  ]
+}

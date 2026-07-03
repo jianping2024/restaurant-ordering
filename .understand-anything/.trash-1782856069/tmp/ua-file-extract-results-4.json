@@ -1,0 +1,2701 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 30,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantDetailActions.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 76,
+      "nonEmptyLines": 72,
+      "functions": [
+        {
+          "name": "RestaurantDetailActions",
+          "startLine": 5,
+          "endLine": 76,
+          "params": [
+            "{ restaurantId }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RestaurantDetailActions",
+          "line": 5,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "RestaurantDetailActions",
+          "callee": "useState",
+          "lineNumber": 6
+        },
+        {
+          "caller": "RestaurantDetailActions",
+          "callee": "useState",
+          "lineNumber": 7
+        },
+        {
+          "caller": "RestaurantDetailActions",
+          "callee": "useState",
+          "lineNumber": 8
+        },
+        {
+          "caller": "RestaurantDetailActions",
+          "callee": "useState",
+          "lineNumber": 9
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "setError",
+          "lineNumber": 12
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "setResult",
+          "lineNumber": 13
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "setLoading",
+          "lineNumber": 14
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "fetch",
+          "lineNumber": 16
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "JSON.stringify",
+          "lineNumber": 20
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "res.json",
+          "lineNumber": 25
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "setError",
+          "lineNumber": 27
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "setResult",
+          "lineNumber": 30
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "setPassword",
+          "lineNumber": 31
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "setError",
+          "lineNumber": 33
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "setLoading",
+          "lineNumber": 35
+        },
+        {
+          "caller": "RestaurantDetailActions",
+          "callee": "setPassword",
+          "lineNumber": 53
+        },
+        {
+          "caller": "RestaurantDetailActions",
+          "callee": "resetPassword",
+          "lineNumber": 60
+        },
+        {
+          "caller": "RestaurantDetailActions",
+          "callee": "resetPassword",
+          "lineNumber": 68
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantEditPanel.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 220,
+      "nonEmptyLines": 207,
+      "functions": [
+        {
+          "name": "RestaurantEditPanel",
+          "startLine": 32,
+          "endLine": 220,
+          "params": [
+            "{ restaurantId, initial }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RestaurantEditPanel",
+          "line": 32,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "useState",
+          "lineNumber": 33
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "useState",
+          "lineNumber": 34
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "useState",
+          "lineNumber": 35
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "useState",
+          "lineNumber": 36
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "useState",
+          "lineNumber": 37
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "useState",
+          "lineNumber": 38
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "useState",
+          "lineNumber": 39
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "useState",
+          "lineNumber": 40
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "useState",
+          "lineNumber": 42
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "useState",
+          "lineNumber": 43
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "useState",
+          "lineNumber": 44
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "useState",
+          "lineNumber": 45
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "useState",
+          "lineNumber": 46
+        },
+        {
+          "caller": "save",
+          "callee": "setLoading",
+          "lineNumber": 49
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 50
+        },
+        {
+          "caller": "save",
+          "callee": "setSuccess",
+          "lineNumber": 51
+        },
+        {
+          "caller": "save",
+          "callee": "fetch",
+          "lineNumber": 53
+        },
+        {
+          "caller": "save",
+          "callee": "JSON.stringify",
+          "lineNumber": 57
+        },
+        {
+          "caller": "save",
+          "callee": "address.trim",
+          "lineNumber": 61
+        },
+        {
+          "caller": "save",
+          "callee": "phone.trim",
+          "lineNumber": 62
+        },
+        {
+          "caller": "save",
+          "callee": "res.json().catch",
+          "lineNumber": 69
+        },
+        {
+          "caller": "save",
+          "callee": "res.json",
+          "lineNumber": 69
+        },
+        {
+          "caller": "save",
+          "callee": "setPendingSlug",
+          "lineNumber": 71
+        },
+        {
+          "caller": "save",
+          "callee": "setSlugConfirmOpen",
+          "lineNumber": 72
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 76
+        },
+        {
+          "caller": "save",
+          "callee": "setSlug",
+          "lineNumber": 80
+        },
+        {
+          "caller": "save",
+          "callee": "setPendingSlug",
+          "lineNumber": 81
+        },
+        {
+          "caller": "save",
+          "callee": "setSuccess",
+          "lineNumber": 83
+        },
+        {
+          "caller": "save",
+          "callee": "setLoading",
+          "lineNumber": 85
+        },
+        {
+          "caller": "save",
+          "callee": "setSlugConfirmOpen",
+          "lineNumber": 86
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "e.preventDefault",
+          "lineNumber": 91
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "save",
+          "lineNumber": 92
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "setName",
+          "lineNumber": 109
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "setSlug",
+          "lineNumber": 118
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "e.target.value.trim().toLowerCase",
+          "lineNumber": 118
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "e.target.value.trim",
+          "lineNumber": 118
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "setPlan",
+          "lineNumber": 126
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "setAddress",
+          "lineNumber": 137
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "setPhone",
+          "lineNumber": 145
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "setPrintLocale",
+          "lineNumber": 153
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "setCountryCode",
+          "lineNumber": 165
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "RESTAURANT_COUNTRY_OPTIONS.map",
+          "lineNumber": 168
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "RESTAURANT_FEATURE_DEFINITIONS.map",
+          "lineNumber": 179
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "setFlags",
+          "lineNumber": 184
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "setSlugConfirmOpen",
+          "lineNumber": 207
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "setPendingSlug",
+          "lineNumber": 208
+        },
+        {
+          "caller": "RestaurantEditPanel",
+          "callee": "save",
+          "lineNumber": 216
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantSuspensionActions.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 134,
+      "nonEmptyLines": 127,
+      "functions": [
+        {
+          "name": "RestaurantSuspensionActions",
+          "startLine": 13,
+          "endLine": 134,
+          "params": [
+            "{ restaurantId, suspended, suspensionReason }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RestaurantSuspensionActions",
+          "line": 13,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "RestaurantSuspensionActions",
+          "callee": "useRouter",
+          "lineNumber": 14
+        },
+        {
+          "caller": "RestaurantSuspensionActions",
+          "callee": "useState",
+          "lineNumber": 15
+        },
+        {
+          "caller": "RestaurantSuspensionActions",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "RestaurantSuspensionActions",
+          "callee": "useState",
+          "lineNumber": 17
+        },
+        {
+          "caller": "RestaurantSuspensionActions",
+          "callee": "useState",
+          "lineNumber": 18
+        },
+        {
+          "caller": "RestaurantSuspensionActions",
+          "callee": "useState",
+          "lineNumber": 19
+        },
+        {
+          "caller": "suspend",
+          "callee": "setError",
+          "lineNumber": 22
+        },
+        {
+          "caller": "suspend",
+          "callee": "setLoading",
+          "lineNumber": 23
+        },
+        {
+          "caller": "suspend",
+          "callee": "fetch",
+          "lineNumber": 25
+        },
+        {
+          "caller": "suspend",
+          "callee": "JSON.stringify",
+          "lineNumber": 29
+        },
+        {
+          "caller": "suspend",
+          "callee": "reason.trim",
+          "lineNumber": 29
+        },
+        {
+          "caller": "suspend",
+          "callee": "res.json",
+          "lineNumber": 31
+        },
+        {
+          "caller": "suspend",
+          "callee": "setError",
+          "lineNumber": 33
+        },
+        {
+          "caller": "suspend",
+          "callee": "setConfirmSuspend",
+          "lineNumber": 36
+        },
+        {
+          "caller": "suspend",
+          "callee": "router.refresh",
+          "lineNumber": 37
+        },
+        {
+          "caller": "suspend",
+          "callee": "setError",
+          "lineNumber": 39
+        },
+        {
+          "caller": "suspend",
+          "callee": "setLoading",
+          "lineNumber": 41
+        },
+        {
+          "caller": "resume",
+          "callee": "setError",
+          "lineNumber": 46
+        },
+        {
+          "caller": "resume",
+          "callee": "setLoading",
+          "lineNumber": 47
+        },
+        {
+          "caller": "resume",
+          "callee": "fetch",
+          "lineNumber": 49
+        },
+        {
+          "caller": "resume",
+          "callee": "res.json",
+          "lineNumber": 53
+        },
+        {
+          "caller": "resume",
+          "callee": "setError",
+          "lineNumber": 55
+        },
+        {
+          "caller": "resume",
+          "callee": "setConfirmResume",
+          "lineNumber": 58
+        },
+        {
+          "caller": "resume",
+          "callee": "router.refresh",
+          "lineNumber": 59
+        },
+        {
+          "caller": "resume",
+          "callee": "setError",
+          "lineNumber": 61
+        },
+        {
+          "caller": "resume",
+          "callee": "setLoading",
+          "lineNumber": 63
+        },
+        {
+          "caller": "RestaurantSuspensionActions",
+          "callee": "setConfirmResume",
+          "lineNumber": 85
+        },
+        {
+          "caller": "RestaurantSuspensionActions",
+          "callee": "setReason",
+          "lineNumber": 95
+        },
+        {
+          "caller": "RestaurantSuspensionActions",
+          "callee": "setConfirmSuspend",
+          "lineNumber": 103
+        },
+        {
+          "caller": "RestaurantSuspensionActions",
+          "callee": "setConfirmSuspend",
+          "lineNumber": 113
+        },
+        {
+          "caller": "RestaurantSuspensionActions",
+          "callee": "suspend",
+          "lineNumber": 120
+        },
+        {
+          "caller": "RestaurantSuspensionActions",
+          "callee": "setConfirmResume",
+          "lineNumber": 124
+        },
+        {
+          "caller": "RestaurantSuspensionActions",
+          "callee": "resume",
+          "lineNumber": 130
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/ops/(console)/restaurants/[id]/layout.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "functions": [
+        {
+          "name": "RestaurantDetailLayout",
+          "startLine": 10,
+          "endLine": 23,
+          "params": [
+            "{ children, params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RestaurantDetailLayout",
+          "line": 10,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "RestaurantDetailLayout",
+          "callee": "createAdminClient",
+          "lineNumber": 12
+        },
+        {
+          "caller": "RestaurantDetailLayout",
+          "callee": "admin.from('restaurants').select('id, name').eq('id', id).maybeSingle",
+          "lineNumber": 13
+        },
+        {
+          "caller": "RestaurantDetailLayout",
+          "callee": "admin.from('restaurants').select('id, name').eq",
+          "lineNumber": 13
+        },
+        {
+          "caller": "RestaurantDetailLayout",
+          "callee": "admin.from('restaurants').select",
+          "lineNumber": 13
+        },
+        {
+          "caller": "RestaurantDetailLayout",
+          "callee": "admin.from",
+          "lineNumber": 13
+        },
+        {
+          "caller": "RestaurantDetailLayout",
+          "callee": "notFound",
+          "lineNumber": 15
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 127,
+      "nonEmptyLines": 119,
+      "functions": [
+        {
+          "name": "RestaurantDetailPage",
+          "startLine": 19,
+          "endLine": 127,
+          "params": [
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RestaurantDetailPage",
+          "line": 19,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "RestaurantDetailPage",
+          "callee": "getPlatformAdmin",
+          "lineNumber": 21
+        },
+        {
+          "caller": "RestaurantDetailPage",
+          "callee": "createAdminClient",
+          "lineNumber": 24
+        },
+        {
+          "caller": "RestaurantDetailPage",
+          "callee": "admin\n    .from('restaurants')\n    .select(\n      'id, name, slug, plan, created_at, owner_id, print_locale, country_code, feature_flags, address, phone, suspended_at, suspension_reason',\n    )\n    .eq('id', id)\n    .maybeSingle",
+          "lineNumber": 25
+        },
+        {
+          "caller": "RestaurantDetailPage",
+          "callee": "admin\n    .from('restaurants')\n    .select(\n      'id, name, slug, plan, created_at, owner_id, print_locale, country_code, feature_flags, address, phone, suspended_at, suspension_reason',\n    )\n    .eq",
+          "lineNumber": 25
+        },
+        {
+          "caller": "RestaurantDetailPage",
+          "callee": "admin\n    .from('restaurants')\n    .select",
+          "lineNumber": 25
+        },
+        {
+          "caller": "RestaurantDetailPage",
+          "callee": "admin\n    .from",
+          "lineNumber": 25
+        },
+        {
+          "caller": "RestaurantDetailPage",
+          "callee": "notFound",
+          "lineNumber": 33
+        },
+        {
+          "caller": "RestaurantDetailPage",
+          "callee": "admin.auth.admin.getUserById",
+          "lineNumber": 35
+        },
+        {
+          "caller": "RestaurantDetailPage",
+          "callee": "getTenantAppUrl",
+          "lineNumber": 36
+        },
+        {
+          "caller": "RestaurantDetailPage",
+          "callee": "isRestaurantSuspended",
+          "lineNumber": 38
+        },
+        {
+          "caller": "RestaurantDetailPage",
+          "callee": "normalizeRestaurantFeatureFlags",
+          "lineNumber": 39
+        },
+        {
+          "caller": "RestaurantDetailPage",
+          "callee": "normalizeCountryCode",
+          "lineNumber": 40
+        },
+        {
+          "caller": "RestaurantDetailPage",
+          "callee": "countryCodeLabel",
+          "lineNumber": 69
+        },
+        {
+          "caller": "RestaurantDetailPage",
+          "callee": "new Date(row.created_at).toLocaleString",
+          "lineNumber": 85
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 107,
+      "nonEmptyLines": 100,
+      "functions": [
+        {
+          "name": "RestaurantPrintPanel",
+          "startLine": 16,
+          "endLine": 107,
+          "params": [
+            "{ restaurantId }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RestaurantPrintPanel",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "RestaurantPrintPanel",
+          "callee": "useState",
+          "lineNumber": 17
+        },
+        {
+          "caller": "RestaurantPrintPanel",
+          "callee": "useState",
+          "lineNumber": 18
+        },
+        {
+          "caller": "RestaurantPrintPanel",
+          "callee": "useEffect",
+          "lineNumber": 20
+        },
+        {
+          "caller": "RestaurantPrintPanel",
+          "callee": "(async () => {\n      const res = await fetch(`/api/ops/restaurants/${restaurantId}/print-health`, {\n        credentials: 'include',\n      });\n      if (res.ok) {\n        const json = (await res.json()) as PrintHealth;\n        setHealth(json);\n      }\n    })",
+          "lineNumber": 21
+        },
+        {
+          "caller": "RestaurantPrintPanel",
+          "callee": "fetch",
+          "lineNumber": 22
+        },
+        {
+          "caller": "RestaurantPrintPanel",
+          "callee": "res.json",
+          "lineNumber": 26
+        },
+        {
+          "caller": "RestaurantPrintPanel",
+          "callee": "setHealth",
+          "lineNumber": 27
+        },
+        {
+          "caller": "RestaurantPrintPanel",
+          "callee": "new Date(health.lastHeartbeat).toLocaleString",
+          "lineNumber": 52
+        },
+        {
+          "caller": "RestaurantPrintPanel",
+          "callee": "(\n          [\n            ['devices', '设备'],\n            ['jobs', '任务'],\n            ['pairings', '配对码'],\n          ] as const\n        ).map",
+          "lineNumber": 62
+        },
+        {
+          "caller": "RestaurantPrintPanel",
+          "callee": "setTab",
+          "lineNumber": 72
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/ops/(console)/restaurants/[id]/print/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 8,
+      "nonEmptyLines": 6,
+      "functions": [
+        {
+          "name": "RestaurantPrintPage",
+          "startLine": 5,
+          "endLine": 8,
+          "params": [
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RestaurantPrintPage",
+          "line": 5,
+          "isDefault": true
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/ops/(console)/restaurants/[id]/staff/RestaurantStaffClient.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 164,
+      "nonEmptyLines": 153,
+      "functions": [
+        {
+          "name": "RestaurantStaffClient",
+          "startLine": 22,
+          "endLine": 164,
+          "params": [
+            "{\n  restaurantId,\n  canManage,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RestaurantStaffClient",
+          "line": 22,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "useState",
+          "lineNumber": 29
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "useState",
+          "lineNumber": 30
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "useState",
+          "lineNumber": 31
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "useState",
+          "lineNumber": 32
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "useState",
+          "lineNumber": 33
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "useCallback",
+          "lineNumber": 35
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "setLoading",
+          "lineNumber": 36
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "setError",
+          "lineNumber": 37
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "fetch",
+          "lineNumber": 38
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "setError",
+          "lineNumber": 42
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "setItems",
+          "lineNumber": 43
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "setLoading",
+          "lineNumber": 44
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "res.json",
+          "lineNumber": 47
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "setItems",
+          "lineNumber": 48
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "setLoading",
+          "lineNumber": 49
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "useEffect",
+          "lineNumber": 52
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "load",
+          "lineNumber": 53
+        },
+        {
+          "caller": "patchStaff",
+          "callee": "setActing",
+          "lineNumber": 57
+        },
+        {
+          "caller": "patchStaff",
+          "callee": "setError",
+          "lineNumber": 58
+        },
+        {
+          "caller": "patchStaff",
+          "callee": "fetch",
+          "lineNumber": 60
+        },
+        {
+          "caller": "patchStaff",
+          "callee": "JSON.stringify",
+          "lineNumber": 64
+        },
+        {
+          "caller": "patchStaff",
+          "callee": "res.json().catch",
+          "lineNumber": 67
+        },
+        {
+          "caller": "patchStaff",
+          "callee": "res.json",
+          "lineNumber": 67
+        },
+        {
+          "caller": "patchStaff",
+          "callee": "setError",
+          "lineNumber": 68
+        },
+        {
+          "caller": "patchStaff",
+          "callee": "load",
+          "lineNumber": 71
+        },
+        {
+          "caller": "patchStaff",
+          "callee": "setActing",
+          "lineNumber": 73
+        },
+        {
+          "caller": "patchStaff",
+          "callee": "setConfirmDisable",
+          "lineNumber": 74
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "items.map",
+          "lineNumber": 103
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "patchStaff",
+          "lineNumber": 121
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "setConfirmDisable",
+          "lineNumber": 130
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "setConfirmDisable",
+          "lineNumber": 147
+        },
+        {
+          "caller": "RestaurantStaffClient",
+          "callee": "patchStaff",
+          "lineNumber": 159
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/ops/(console)/restaurants/[id]/staff/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 12,
+      "nonEmptyLines": 9,
+      "functions": [
+        {
+          "name": "RestaurantStaffPage",
+          "startLine": 6,
+          "endLine": 12,
+          "params": [
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RestaurantStaffPage",
+          "line": 6,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "RestaurantStaffPage",
+          "callee": "getPlatformAdmin",
+          "lineNumber": 8
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/ops/(console)/settings/admins/AdminsClient.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 255,
+      "nonEmptyLines": 241,
+      "functions": [
+        {
+          "name": "AdminsClient",
+          "startLine": 18,
+          "endLine": 255,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "AdminsClient",
+          "line": 18,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "AdminsClient",
+          "callee": "useState",
+          "lineNumber": 19
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "useState",
+          "lineNumber": 20
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "useState",
+          "lineNumber": 21
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "useState",
+          "lineNumber": 23
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "useState",
+          "lineNumber": 24
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "useState",
+          "lineNumber": 25
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "useState",
+          "lineNumber": 26
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "useState",
+          "lineNumber": 27
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "useState",
+          "lineNumber": 29
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "useState",
+          "lineNumber": 30
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "useCallback",
+          "lineNumber": 32
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "setLoading",
+          "lineNumber": 33
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "setError",
+          "lineNumber": 34
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "fetch",
+          "lineNumber": 35
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "setError",
+          "lineNumber": 37
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "setItems",
+          "lineNumber": 38
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "setLoading",
+          "lineNumber": 39
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "res.json",
+          "lineNumber": 42
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "setItems",
+          "lineNumber": 43
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "setLoading",
+          "lineNumber": 44
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "useEffect",
+          "lineNumber": 47
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "load",
+          "lineNumber": 48
+        },
+        {
+          "caller": "createAdmin",
+          "callee": "e.preventDefault",
+          "lineNumber": 52
+        },
+        {
+          "caller": "createAdmin",
+          "callee": "setCreating",
+          "lineNumber": 53
+        },
+        {
+          "caller": "createAdmin",
+          "callee": "setError",
+          "lineNumber": 54
+        },
+        {
+          "caller": "createAdmin",
+          "callee": "fetch",
+          "lineNumber": 56
+        },
+        {
+          "caller": "createAdmin",
+          "callee": "JSON.stringify",
+          "lineNumber": 60
+        },
+        {
+          "caller": "createAdmin",
+          "callee": "res.json().catch",
+          "lineNumber": 62
+        },
+        {
+          "caller": "createAdmin",
+          "callee": "res.json",
+          "lineNumber": 62
+        },
+        {
+          "caller": "createAdmin",
+          "callee": "setError",
+          "lineNumber": 64
+        },
+        {
+          "caller": "createAdmin",
+          "callee": "setEmail",
+          "lineNumber": 67
+        },
+        {
+          "caller": "createAdmin",
+          "callee": "setPassword",
+          "lineNumber": 68
+        },
+        {
+          "caller": "createAdmin",
+          "callee": "setDisplayName",
+          "lineNumber": 69
+        },
+        {
+          "caller": "createAdmin",
+          "callee": "setRole",
+          "lineNumber": 70
+        },
+        {
+          "caller": "createAdmin",
+          "callee": "load",
+          "lineNumber": 71
+        },
+        {
+          "caller": "createAdmin",
+          "callee": "setCreating",
+          "lineNumber": 73
+        },
+        {
+          "caller": "patchAdmin",
+          "callee": "setActing",
+          "lineNumber": 78
+        },
+        {
+          "caller": "patchAdmin",
+          "callee": "setError",
+          "lineNumber": 79
+        },
+        {
+          "caller": "patchAdmin",
+          "callee": "fetch",
+          "lineNumber": 81
+        },
+        {
+          "caller": "patchAdmin",
+          "callee": "JSON.stringify",
+          "lineNumber": 85
+        },
+        {
+          "caller": "patchAdmin",
+          "callee": "res.json().catch",
+          "lineNumber": 88
+        },
+        {
+          "caller": "patchAdmin",
+          "callee": "res.json",
+          "lineNumber": 88
+        },
+        {
+          "caller": "patchAdmin",
+          "callee": "setError",
+          "lineNumber": 89
+        },
+        {
+          "caller": "patchAdmin",
+          "callee": "load",
+          "lineNumber": 92
+        },
+        {
+          "caller": "patchAdmin",
+          "callee": "setActing",
+          "lineNumber": 94
+        },
+        {
+          "caller": "patchAdmin",
+          "callee": "setConfirmDisable",
+          "lineNumber": 95
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "setEmail",
+          "lineNumber": 115
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "setPassword",
+          "lineNumber": 126
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "setDisplayName",
+          "lineNumber": 133
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "setRole",
+          "lineNumber": 141
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "items.map",
+          "lineNumber": 177
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "patchAdmin",
+          "lineNumber": 189
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "patchAdmin",
+          "lineNumber": 212
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "setConfirmDisable",
+          "lineNumber": 221
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "setConfirmDisable",
+          "lineNumber": 238
+        },
+        {
+          "caller": "AdminsClient",
+          "callee": "patchAdmin",
+          "lineNumber": 250
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/ops/(console)/settings/admins/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 5,
+      "nonEmptyLines": 4,
+      "functions": [
+        {
+          "name": "AdminsPage",
+          "startLine": 3,
+          "endLine": 5,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "AdminsPage",
+          "line": 3,
+          "isDefault": true
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/ops/(console)/settings/layout.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 14,
+      "nonEmptyLines": 12,
+      "functions": [
+        {
+          "name": "SettingsLayout",
+          "startLine": 4,
+          "endLine": 14,
+          "params": [
+            "{ children }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SettingsLayout",
+          "line": 4,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SettingsLayout",
+          "callee": "getPlatformAdmin",
+          "lineNumber": 5
+        },
+        {
+          "caller": "SettingsLayout",
+          "callee": "redirect",
+          "lineNumber": 7
+        },
+        {
+          "caller": "SettingsLayout",
+          "callee": "redirect",
+          "lineNumber": 10
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/components/OpsShell.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 87,
+      "nonEmptyLines": 81,
+      "functions": [
+        {
+          "name": "OpsShell",
+          "startLine": 16,
+          "endLine": 87,
+          "params": [
+            "{\n  children,\n  displayName,\n  role,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "OpsShell",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "OpsShell",
+          "callee": "usePathname",
+          "lineNumber": 25
+        },
+        {
+          "caller": "OpsShell",
+          "callee": "useRouter",
+          "lineNumber": 26
+        },
+        {
+          "caller": "logout",
+          "callee": "fetch",
+          "lineNumber": 29
+        },
+        {
+          "caller": "logout",
+          "callee": "router.push",
+          "lineNumber": 30
+        },
+        {
+          "caller": "logout",
+          "callee": "router.refresh",
+          "lineNumber": 31
+        },
+        {
+          "caller": "OpsShell",
+          "callee": "NAV.map",
+          "lineNumber": 41
+        },
+        {
+          "caller": "OpsShell",
+          "callee": "item.href.startsWith",
+          "lineNumber": 45
+        },
+        {
+          "caller": "OpsShell",
+          "callee": "pathname.startsWith",
+          "lineNumber": 46
+        },
+        {
+          "caller": "OpsShell",
+          "callee": "pathname.startsWith",
+          "lineNumber": 47
+        },
+        {
+          "caller": "OpsShell",
+          "callee": "pathname.startsWith",
+          "lineNumber": 62
+        },
+        {
+          "caller": "OpsShell",
+          "callee": "logout",
+          "lineNumber": 76
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/components/PrintSubNav.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 35,
+      "nonEmptyLines": 31,
+      "functions": [
+        {
+          "name": "PrintSubNav",
+          "startLine": 12,
+          "endLine": 35,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "PrintSubNav",
+          "line": 12,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "PrintSubNav",
+          "callee": "usePathname",
+          "lineNumber": 13
+        },
+        {
+          "caller": "PrintSubNav",
+          "callee": "TABS.map",
+          "lineNumber": 17
+        },
+        {
+          "caller": "PrintSubNav",
+          "callee": "pathname.startsWith",
+          "lineNumber": 18
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/components/RestaurantDetailTabs.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 47,
+      "nonEmptyLines": 44,
+      "functions": [
+        {
+          "name": "RestaurantDetailTabs",
+          "startLine": 6,
+          "endLine": 47,
+          "params": [
+            "{\n  restaurantId,\n  restaurantName,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RestaurantDetailTabs",
+          "line": 6,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "RestaurantDetailTabs",
+          "callee": "usePathname",
+          "lineNumber": 13
+        },
+        {
+          "caller": "RestaurantDetailTabs",
+          "callee": "tabs.map",
+          "lineNumber": 28
+        },
+        {
+          "caller": "RestaurantDetailTabs",
+          "callee": "pathname.startsWith",
+          "lineNumber": 29
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/components/ui/Button.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 40,
+      "nonEmptyLines": 35,
+      "exports": [
+        {
+          "name": "Button",
+          "line": 22,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/components/ui/ConfirmModal.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 57,
+      "nonEmptyLines": 53,
+      "functions": [
+        {
+          "name": "ConfirmModal",
+          "startLine": 20,
+          "endLine": 57,
+          "params": [
+            "{\n  open,\n  onClose,\n  title,\n  message,\n  confirmLabel,\n  cancelLabel,\n  onConfirm,\n  variant = 'default',\n  confirming = false,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ConfirmModal",
+          "line": 20,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "handleClose",
+          "callee": "onClose",
+          "lineNumber": 33
+        },
+        {
+          "caller": "ConfirmModal",
+          "callee": "onConfirm",
+          "lineNumber": 49
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/components/ui/Modal.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 63,
+      "nonEmptyLines": 56,
+      "functions": [
+        {
+          "name": "Modal",
+          "startLine": 19,
+          "endLine": 63,
+          "params": [
+            "{ open, onClose, title, children, size = 'md' }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Modal",
+          "line": 19,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Modal",
+          "callee": "useEffect",
+          "lineNumber": 20
+        },
+        {
+          "caller": "handler",
+          "callee": "onClose",
+          "lineNumber": 22
+        },
+        {
+          "caller": "Modal",
+          "callee": "document.addEventListener",
+          "lineNumber": 24
+        },
+        {
+          "caller": "Modal",
+          "callee": "document.removeEventListener",
+          "lineNumber": 25
+        },
+        {
+          "caller": "Modal",
+          "callee": "useEffect",
+          "lineNumber": 28
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/lib/ops-audit-log.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 77,
+      "nonEmptyLines": 71,
+      "functions": [
+        {
+          "name": "mockAdmin",
+          "startLine": 17,
+          "endLine": 35,
+          "params": []
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/lib/ops-audit-log.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 124,
+      "nonEmptyLines": 108,
+      "functions": [
+        {
+          "name": "fetchRestaurantNamesMap",
+          "startLine": 31,
+          "endLine": 47,
+          "params": [
+            "admin",
+            "restaurantIds"
+          ]
+        },
+        {
+          "name": "fetchAuditEnrichmentMaps",
+          "startLine": 49,
+          "endLine": 63,
+          "params": [
+            "admin",
+            "rows"
+          ]
+        },
+        {
+          "name": "enrichAuditLogRows",
+          "startLine": 65,
+          "endLine": 82,
+          "params": [
+            "admin",
+            "rows"
+          ]
+        },
+        {
+          "name": "csvCell",
+          "startLine": 84,
+          "endLine": 89,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "auditLogRowsToCsv",
+          "startLine": 91,
+          "endLine": 116,
+          "params": [
+            "rows",
+            "actorEmails",
+            "restaurantNames"
+          ]
+        },
+        {
+          "name": "enrichAuditLogRowsForCsv",
+          "startLine": 118,
+          "endLine": 124,
+          "params": [
+            "admin",
+            "rows"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "AUDIT_LOG_COLUMNS",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "fetchRestaurantNamesMap",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "enrichAuditLogRows",
+          "line": 65,
+          "isDefault": false
+        },
+        {
+          "name": "auditLogRowsToCsv",
+          "line": 91,
+          "isDefault": false
+        },
+        {
+          "name": "enrichAuditLogRowsForCsv",
+          "line": 118,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "fetchRestaurantNamesMap",
+          "callee": "admin\n    .from('restaurants')\n    .select('id, name')\n    .in",
+          "lineNumber": 38
+        },
+        {
+          "caller": "fetchRestaurantNamesMap",
+          "callee": "admin\n    .from('restaurants')\n    .select",
+          "lineNumber": 38
+        },
+        {
+          "caller": "fetchRestaurantNamesMap",
+          "callee": "admin\n    .from",
+          "lineNumber": 38
+        },
+        {
+          "caller": "fetchRestaurantNamesMap",
+          "callee": "names.set",
+          "lineNumber": 44
+        },
+        {
+          "caller": "fetchAuditEnrichmentMaps",
+          "callee": "Array.from",
+          "lineNumber": 50
+        },
+        {
+          "caller": "fetchAuditEnrichmentMaps",
+          "callee": "rows.map((r) => r.actor_user_id).filter",
+          "lineNumber": 51
+        },
+        {
+          "caller": "fetchAuditEnrichmentMaps",
+          "callee": "rows.map",
+          "lineNumber": 51
+        },
+        {
+          "caller": "fetchAuditEnrichmentMaps",
+          "callee": "Array.from",
+          "lineNumber": 53
+        },
+        {
+          "caller": "fetchAuditEnrichmentMaps",
+          "callee": "rows.map((r) => r.restaurant_id).filter",
+          "lineNumber": 54
+        },
+        {
+          "caller": "fetchAuditEnrichmentMaps",
+          "callee": "rows.map",
+          "lineNumber": 54
+        },
+        {
+          "caller": "fetchAuditEnrichmentMaps",
+          "callee": "Promise.all",
+          "lineNumber": 57
+        },
+        {
+          "caller": "fetchAuditEnrichmentMaps",
+          "callee": "fetchUserEmailsMap",
+          "lineNumber": 58
+        },
+        {
+          "caller": "fetchAuditEnrichmentMaps",
+          "callee": "fetchRestaurantNamesMap",
+          "lineNumber": 59
+        },
+        {
+          "caller": "enrichAuditLogRows",
+          "callee": "fetchAuditEnrichmentMaps",
+          "lineNumber": 69
+        },
+        {
+          "caller": "enrichAuditLogRows",
+          "callee": "rows.map",
+          "lineNumber": 71
+        },
+        {
+          "caller": "enrichAuditLogRows",
+          "callee": "restaurantNames.get",
+          "lineNumber": 77
+        },
+        {
+          "caller": "enrichAuditLogRows",
+          "callee": "actorEmails.get",
+          "lineNumber": 80
+        },
+        {
+          "caller": "csvCell",
+          "callee": "/[\",\\n\\r]/.test",
+          "lineNumber": 85
+        },
+        {
+          "caller": "csvCell",
+          "callee": "value.replace",
+          "lineNumber": 86
+        },
+        {
+          "caller": "auditLogRowsToCsv",
+          "callee": "header.join",
+          "lineNumber": 97
+        },
+        {
+          "caller": "auditLogRowsToCsv",
+          "callee": "restaurantNames.get",
+          "lineNumber": 100
+        },
+        {
+          "caller": "auditLogRowsToCsv",
+          "callee": "lines.push",
+          "lineNumber": 101
+        },
+        {
+          "caller": "auditLogRowsToCsv",
+          "callee": "[\n        csvCell(new Date(row.created_at).toISOString()),\n        csvCell(row.actor_user_id ? actorEmails.get(row.actor_user_id) ?? '' : ''),\n        csvCell(platformAuditActionLabel(row.action)),\n        csvCell(row.target_type),\n        csvCell(row.target_id),\n        csvCell(restaurantName),\n        csvCell(row.restaurant_id ?? ''),\n        csvCell(JSON.stringify(row.metadata ?? {})),\n      ].join",
+          "lineNumber": 102
+        },
+        {
+          "caller": "auditLogRowsToCsv",
+          "callee": "csvCell",
+          "lineNumber": 103
+        },
+        {
+          "caller": "auditLogRowsToCsv",
+          "callee": "new Date(row.created_at).toISOString",
+          "lineNumber": 103
+        },
+        {
+          "caller": "auditLogRowsToCsv",
+          "callee": "csvCell",
+          "lineNumber": 104
+        },
+        {
+          "caller": "auditLogRowsToCsv",
+          "callee": "actorEmails.get",
+          "lineNumber": 104
+        },
+        {
+          "caller": "auditLogRowsToCsv",
+          "callee": "csvCell",
+          "lineNumber": 105
+        },
+        {
+          "caller": "auditLogRowsToCsv",
+          "callee": "platformAuditActionLabel",
+          "lineNumber": 105
+        },
+        {
+          "caller": "auditLogRowsToCsv",
+          "callee": "csvCell",
+          "lineNumber": 106
+        },
+        {
+          "caller": "auditLogRowsToCsv",
+          "callee": "csvCell",
+          "lineNumber": 107
+        },
+        {
+          "caller": "auditLogRowsToCsv",
+          "callee": "csvCell",
+          "lineNumber": 108
+        },
+        {
+          "caller": "auditLogRowsToCsv",
+          "callee": "csvCell",
+          "lineNumber": 109
+        },
+        {
+          "caller": "auditLogRowsToCsv",
+          "callee": "csvCell",
+          "lineNumber": 110
+        },
+        {
+          "caller": "auditLogRowsToCsv",
+          "callee": "JSON.stringify",
+          "lineNumber": 110
+        },
+        {
+          "caller": "auditLogRowsToCsv",
+          "callee": "lines.join",
+          "lineNumber": 115
+        },
+        {
+          "caller": "enrichAuditLogRowsForCsv",
+          "callee": "fetchAuditEnrichmentMaps",
+          "lineNumber": 122
+        },
+        {
+          "caller": "enrichAuditLogRowsForCsv",
+          "callee": "auditLogRowsToCsv",
+          "lineNumber": 123
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 5,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/lib/ops-print-summary.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 64,
+      "nonEmptyLines": 58,
+      "functions": [
+        {
+          "name": "mockAdmin",
+          "startLine": 9,
+          "endLine": 25,
+          "params": [
+            "jobs",
+            "restaurants"
+          ]
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/lib/ops-print-summary.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 56,
+      "nonEmptyLines": 48,
+      "functions": [
+        {
+          "name": "listTopPrintFailureRestaurants",
+          "startLine": 12,
+          "endLine": 56,
+          "params": [
+            "admin",
+            "options"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "PRINT_FAIL_WINDOW_MS",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "listTopPrintFailureRestaurants",
+          "line": 12,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "admin\n    .from('print_jobs')\n    .select('restaurant_id')\n    .eq('status', 'failed')\n    .gte",
+          "lineNumber": 16
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "admin\n    .from('print_jobs')\n    .select('restaurant_id')\n    .eq",
+          "lineNumber": 16
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "admin\n    .from('print_jobs')\n    .select",
+          "lineNumber": 16
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "admin\n    .from",
+          "lineNumber": 16
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "failCountByRestaurant.set",
+          "lineNumber": 25
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "failCountByRestaurant.get",
+          "lineNumber": 27
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "Array.from(failCountByRestaurant.entries())\n    .sort((a, b) => b[1] - a[1])\n    .slice(0, options.limit)\n    .map",
+          "lineNumber": 31
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "Array.from(failCountByRestaurant.entries())\n    .sort((a, b) => b[1] - a[1])\n    .slice",
+          "lineNumber": 31
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "Array.from(failCountByRestaurant.entries())\n    .sort",
+          "lineNumber": 31
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "Array.from",
+          "lineNumber": 31
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "failCountByRestaurant.entries",
+          "lineNumber": 31
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "admin\n    .from('restaurants')\n    .select('id, name, slug')\n    .in",
+          "lineNumber": 38
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "admin\n    .from('restaurants')\n    .select",
+          "lineNumber": 38
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "admin\n    .from",
+          "lineNumber": 38
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "(restaurants || []).map",
+          "lineNumber": 43
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "topIds\n    .map((id) => {\n      const row = byId.get(id);\n      if (!row) return null;\n      return {\n        id: row.id,\n        name: row.name,\n        slug: row.slug,\n        failedCount: failCountByRestaurant.get(id) ?? 0,\n      };\n    })\n    .filter",
+          "lineNumber": 44
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "topIds\n    .map",
+          "lineNumber": 44
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "byId.get",
+          "lineNumber": 46
+        },
+        {
+          "caller": "listTopPrintFailureRestaurants",
+          "callee": "failCountByRestaurant.get",
+          "lineNumber": 52
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/lib/ops-user-lookup.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 44,
+      "nonEmptyLines": 39,
+      "functions": [
+        {
+          "name": "mockAdmin",
+          "startLine": 6,
+          "endLine": 12,
+          "params": [
+            "getUserById"
+          ]
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/lib/ops-user-lookup.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 20,
+      "nonEmptyLines": 17,
+      "functions": [
+        {
+          "name": "fetchUserEmailsMap",
+          "startLine": 4,
+          "endLine": 20,
+          "params": [
+            "admin",
+            "userIds"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "fetchUserEmailsMap",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "fetchUserEmailsMap",
+          "callee": "Array.from",
+          "lineNumber": 9
+        },
+        {
+          "caller": "fetchUserEmailsMap",
+          "callee": "Promise.all",
+          "lineNumber": 12
+        },
+        {
+          "caller": "fetchUserEmailsMap",
+          "callee": "unique.map",
+          "lineNumber": 13
+        },
+        {
+          "caller": "fetchUserEmailsMap",
+          "callee": "admin.auth.admin.getUserById",
+          "lineNumber": 14
+        },
+        {
+          "caller": "fetchUserEmailsMap",
+          "callee": "emails.set",
+          "lineNumber": 15
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/lib/platform-audit.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 42,
+      "nonEmptyLines": 38,
+      "functions": [
+        {
+          "name": "platformAuditActionLabel",
+          "startLine": 33,
+          "endLine": 35,
+          "params": [
+            "action"
+          ]
+        },
+        {
+          "name": "writePlatformAudit",
+          "startLine": 37,
+          "endLine": 42,
+          "params": [
+            "admin",
+            "entry"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "PLATFORM_AUDIT_ACTION_LABELS",
+          "line": 13,
+          "isDefault": false
+        },
+        {
+          "name": "platformAuditActionLabel",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "writePlatformAudit",
+          "line": 37,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "writePlatformAudit",
+          "callee": "insertPlatformAdminAudit",
+          "lineNumber": 41
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/lib/platform-auth.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 85,
+      "nonEmptyLines": 75,
+      "functions": [
+        {
+          "name": "getPlatformAdmin",
+          "startLine": 17,
+          "endLine": 43,
+          "params": []
+        },
+        {
+          "name": "requirePlatformAdmin",
+          "startLine": 51,
+          "endLine": 61,
+          "params": []
+        },
+        {
+          "name": "requirePlatformAdminRole",
+          "startLine": 63,
+          "endLine": 76,
+          "params": [
+            "role"
+          ]
+        },
+        {
+          "name": "countPlatformAdmins",
+          "startLine": 78,
+          "endLine": 85,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "getPlatformAdmin",
+          "line": 17,
+          "isDefault": false
+        },
+        {
+          "name": "requirePlatformAdmin",
+          "line": 51,
+          "isDefault": false
+        },
+        {
+          "name": "requirePlatformAdminRole",
+          "line": 63,
+          "isDefault": false
+        },
+        {
+          "name": "countPlatformAdmins",
+          "line": 78,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getPlatformAdmin",
+          "callee": "createClient",
+          "lineNumber": 18
+        },
+        {
+          "caller": "getPlatformAdmin",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 21
+        },
+        {
+          "caller": "getPlatformAdmin",
+          "callee": "createAdminClient",
+          "lineNumber": 24
+        },
+        {
+          "caller": "getPlatformAdmin",
+          "callee": "admin\n    .from('platform_admin_accounts')\n    .select('id, role, display_name')\n    .eq('user_id', user.id)\n    .is('disabled_at', null)\n    .maybeSingle",
+          "lineNumber": 25
+        },
+        {
+          "caller": "getPlatformAdmin",
+          "callee": "admin\n    .from('platform_admin_accounts')\n    .select('id, role, display_name')\n    .eq('user_id', user.id)\n    .is",
+          "lineNumber": 25
+        },
+        {
+          "caller": "getPlatformAdmin",
+          "callee": "admin\n    .from('platform_admin_accounts')\n    .select('id, role, display_name')\n    .eq",
+          "lineNumber": 25
+        },
+        {
+          "caller": "getPlatformAdmin",
+          "callee": "admin\n    .from('platform_admin_accounts')\n    .select",
+          "lineNumber": 25
+        },
+        {
+          "caller": "getPlatformAdmin",
+          "callee": "admin\n    .from",
+          "lineNumber": 25
+        },
+        {
+          "caller": "requirePlatformAdmin",
+          "callee": "getPlatformAdmin",
+          "lineNumber": 52
+        },
+        {
+          "caller": "requirePlatformAdmin",
+          "callee": "NextResponse.json",
+          "lineNumber": 56
+        },
+        {
+          "caller": "requirePlatformAdmin",
+          "callee": "createAdminClient",
+          "lineNumber": 60
+        },
+        {
+          "caller": "requirePlatformAdminRole",
+          "callee": "requirePlatformAdmin",
+          "lineNumber": 66
+        },
+        {
+          "caller": "requirePlatformAdminRole",
+          "callee": "NextResponse.json",
+          "lineNumber": 71
+        },
+        {
+          "caller": "countPlatformAdmins",
+          "callee": "createAdminClient",
+          "lineNumber": 79
+        },
+        {
+          "caller": "countPlatformAdmins",
+          "callee": "admin\n    .from('platform_admin_accounts')\n    .select",
+          "lineNumber": 80
+        },
+        {
+          "caller": "countPlatformAdmins",
+          "callee": "admin\n    .from",
+          "lineNumber": 80
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/lib/supabase-restaurant-join.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 5,
+      "nonEmptyLines": 4,
+      "functions": [
+        {
+          "name": "pickRestaurantJoin",
+          "startLine": 3,
+          "endLine": 5,
+          "params": [
+            "restaurants"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "pickRestaurantJoin",
+          "line": 3,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "pickRestaurantJoin",
+          "callee": "Array.isArray",
+          "lineNumber": 4
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/lib/supabase/admin.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 12,
+      "nonEmptyLines": 11,
+      "functions": [
+        {
+          "name": "createAdminClient",
+          "startLine": 3,
+          "endLine": 12,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "createAdminClient",
+          "line": 3,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "createAdminClient",
+          "callee": "createClient",
+          "lineNumber": 9
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/lib/supabase/server.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 27,
+      "nonEmptyLines": 25,
+      "functions": [
+        {
+          "name": "createClient",
+          "startLine": 4,
+          "endLine": 27,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "createClient",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "createClient",
+          "callee": "cookies",
+          "lineNumber": 5
+        },
+        {
+          "caller": "createClient",
+          "callee": "createServerClient",
+          "lineNumber": 7
+        },
+        {
+          "caller": "getAll",
+          "callee": "cookieStore.getAll",
+          "lineNumber": 13
+        },
+        {
+          "caller": "setAll",
+          "callee": "cookiesToSet.forEach",
+          "lineNumber": 17
+        },
+        {
+          "caller": "setAll",
+          "callee": "cookieStore.set",
+          "lineNumber": 18
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/lib/tenant-app-url.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 6,
+      "nonEmptyLines": 6,
+      "functions": [
+        {
+          "name": "getTenantAppUrl",
+          "startLine": 2,
+          "endLine": 6,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "getTenantAppUrl",
+          "line": 2,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getTenantAppUrl",
+          "callee": "process.env.NEXT_PUBLIC_TENANT_APP_URL?.trim",
+          "lineNumber": 4
+        },
+        {
+          "caller": "getTenantAppUrl",
+          "callee": "process.env.TENANT_APP_URL?.trim",
+          "lineNumber": 4
+        },
+        {
+          "caller": "getTenantAppUrl",
+          "callee": "(fromEnv || 'http://localhost:3000').replace",
+          "lineNumber": 5
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    }
+  ]
+}

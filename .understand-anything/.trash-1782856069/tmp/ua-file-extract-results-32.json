@@ -1,0 +1,4007 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 25,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": ".env.local.example",
+      "language": "config",
+      "fileCategory": "config",
+      "totalLines": 28,
+      "nonEmptyLines": 21,
+      "metrics": {}
+    },
+    {
+      "path": "apps/ops/next.config.mjs",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 9,
+      "nonEmptyLines": 8,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/postcss.config.mjs",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 8,
+      "nonEmptyLines": 7,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/globals.css",
+      "language": "css",
+      "fileCategory": "markup",
+      "totalLines": 3,
+      "nonEmptyLines": 3,
+      "metrics": {}
+    },
+    {
+      "path": "apps/ops/src/app/layout.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 16,
+      "nonEmptyLines": 14,
+      "functions": [
+        {
+          "name": "RootLayout",
+          "startLine": 10,
+          "endLine": 16,
+          "params": [
+            "{ children }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "metadata",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "RootLayout",
+          "line": 10,
+          "isDefault": true
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/ops/(console)/restaurants/new/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 137,
+      "nonEmptyLines": 133,
+      "functions": [
+        {
+          "name": "NewRestaurantPage",
+          "startLine": 13,
+          "endLine": 137,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "NewRestaurantPage",
+          "line": 13,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "NewRestaurantPage",
+          "callee": "useRouter",
+          "lineNumber": 14
+        },
+        {
+          "caller": "NewRestaurantPage",
+          "callee": "useState",
+          "lineNumber": 15
+        },
+        {
+          "caller": "NewRestaurantPage",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "NewRestaurantPage",
+          "callee": "useState",
+          "lineNumber": 17
+        },
+        {
+          "caller": "NewRestaurantPage",
+          "callee": "useState",
+          "lineNumber": 18
+        },
+        {
+          "caller": "NewRestaurantPage",
+          "callee": "useState",
+          "lineNumber": 19
+        },
+        {
+          "caller": "NewRestaurantPage",
+          "callee": "useState",
+          "lineNumber": 20
+        },
+        {
+          "caller": "NewRestaurantPage",
+          "callee": "useState",
+          "lineNumber": 21
+        },
+        {
+          "caller": "NewRestaurantPage",
+          "callee": "useState",
+          "lineNumber": 22
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "e.preventDefault",
+          "lineNumber": 25
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setError",
+          "lineNumber": 26
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setLoading",
+          "lineNumber": 27
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "fetch",
+          "lineNumber": 29
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "JSON.stringify",
+          "lineNumber": 33
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "slug.trim",
+          "lineNumber": 39
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "res.json",
+          "lineNumber": 42
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setError",
+          "lineNumber": 44
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "router.push",
+          "lineNumber": 47
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "router.refresh",
+          "lineNumber": 48
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setError",
+          "lineNumber": 50
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setLoading",
+          "lineNumber": 52
+        },
+        {
+          "caller": "NewRestaurantPage",
+          "callee": "setRestaurantName",
+          "lineNumber": 69
+        },
+        {
+          "caller": "NewRestaurantPage",
+          "callee": "setEmail",
+          "lineNumber": 79
+        },
+        {
+          "caller": "NewRestaurantPage",
+          "callee": "setPassword",
+          "lineNumber": 90
+        },
+        {
+          "caller": "NewRestaurantPage",
+          "callee": "setPrintLocale",
+          "lineNumber": 97
+        },
+        {
+          "caller": "NewRestaurantPage",
+          "callee": "setCountryCode",
+          "lineNumber": 109
+        },
+        {
+          "caller": "NewRestaurantPage",
+          "callee": "RESTAURANT_COUNTRY_OPTIONS.map",
+          "lineNumber": 112
+        },
+        {
+          "caller": "NewRestaurantPage",
+          "callee": "setSlug",
+          "lineNumber": 123
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/ops/(console)/restaurants/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 10,
+      "nonEmptyLines": 9,
+      "functions": [
+        {
+          "name": "RestaurantsPage",
+          "startLine": 4,
+          "endLine": 10,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "RestaurantsPage",
+          "line": 4,
+          "isDefault": true
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/ops/(console)/restaurants/RestaurantsListClient.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 182,
+      "nonEmptyLines": 170,
+      "functions": [
+        {
+          "name": "RestaurantsListClient",
+          "startLine": 17,
+          "endLine": 182,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "RestaurantsListClient",
+          "line": 17,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "useRouter",
+          "lineNumber": 18
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "useSearchParams",
+          "lineNumber": 19
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "Math.max",
+          "lineNumber": 20
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "Number",
+          "lineNumber": 20
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "searchParams.get",
+          "lineNumber": 20
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "searchParams.get",
+          "lineNumber": 21
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "searchParams.get",
+          "lineNumber": 22
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "searchParams.get",
+          "lineNumber": 23
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "useState",
+          "lineNumber": 25
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "useState",
+          "lineNumber": 26
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "useState",
+          "lineNumber": 27
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "useState",
+          "lineNumber": 28
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "useState",
+          "lineNumber": 29
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "useState",
+          "lineNumber": 30
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "useCallback",
+          "lineNumber": 32
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "setLoading",
+          "lineNumber": 33
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "String",
+          "lineNumber": 34
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "params.set",
+          "lineNumber": 35
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "params.set",
+          "lineNumber": 36
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "params.set",
+          "lineNumber": 37
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "fetch",
+          "lineNumber": 38
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "res.json",
+          "lineNumber": 39
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "setItems",
+          "lineNumber": 40
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "setTotal",
+          "lineNumber": 41
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "setLoading",
+          "lineNumber": 42
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "useEffect",
+          "lineNumber": 45
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "load",
+          "lineNumber": 46
+        },
+        {
+          "caller": "onSearch",
+          "callee": "e.preventDefault",
+          "lineNumber": 50
+        },
+        {
+          "caller": "onSearch",
+          "callee": "query.trim",
+          "lineNumber": 52
+        },
+        {
+          "caller": "onSearch",
+          "callee": "params.set",
+          "lineNumber": 52
+        },
+        {
+          "caller": "onSearch",
+          "callee": "query.trim",
+          "lineNumber": 52
+        },
+        {
+          "caller": "onSearch",
+          "callee": "params.set",
+          "lineNumber": 53
+        },
+        {
+          "caller": "onSearch",
+          "callee": "ownerEmailFilter.trim",
+          "lineNumber": 54
+        },
+        {
+          "caller": "onSearch",
+          "callee": "params.set",
+          "lineNumber": 54
+        },
+        {
+          "caller": "onSearch",
+          "callee": "ownerEmailFilter.trim",
+          "lineNumber": 54
+        },
+        {
+          "caller": "onSearch",
+          "callee": "router.push",
+          "lineNumber": 55
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "Math.max",
+          "lineNumber": 58
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "Math.ceil",
+          "lineNumber": 58
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "[\n    q ? `q=${encodeURIComponent(q)}` : '',\n    plan ? `plan=${encodeURIComponent(plan)}` : '',\n    ownerEmail ? `ownerEmail=${encodeURIComponent(ownerEmail)}` : '',\n  ]\n    .filter(Boolean)\n    .join",
+          "lineNumber": 59
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "[\n    q ? `q=${encodeURIComponent(q)}` : '',\n    plan ? `plan=${encodeURIComponent(plan)}` : '',\n    ownerEmail ? `ownerEmail=${encodeURIComponent(ownerEmail)}` : '',\n  ]\n    .filter",
+          "lineNumber": 59
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "encodeURIComponent",
+          "lineNumber": 60
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "encodeURIComponent",
+          "lineNumber": 61
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "encodeURIComponent",
+          "lineNumber": 62
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "setQuery",
+          "lineNumber": 82
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "setPlanFilter",
+          "lineNumber": 88
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "setOwnerEmailFilter",
+          "lineNumber": 97
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "items.map",
+          "lineNumber": 123
+        },
+        {
+          "caller": "RestaurantsListClient",
+          "callee": "new Date(r.createdAt).toLocaleString",
+          "lineNumber": 141
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/ops/bootstrap/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 110,
+      "nonEmptyLines": 106,
+      "functions": [
+        {
+          "name": "OpsBootstrapPage",
+          "startLine": 8,
+          "endLine": 110,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "OpsBootstrapPage",
+          "line": 8,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "OpsBootstrapPage",
+          "callee": "useRouter",
+          "lineNumber": 9
+        },
+        {
+          "caller": "OpsBootstrapPage",
+          "callee": "useState",
+          "lineNumber": 10
+        },
+        {
+          "caller": "OpsBootstrapPage",
+          "callee": "useState",
+          "lineNumber": 11
+        },
+        {
+          "caller": "OpsBootstrapPage",
+          "callee": "useState",
+          "lineNumber": 12
+        },
+        {
+          "caller": "OpsBootstrapPage",
+          "callee": "useState",
+          "lineNumber": 13
+        },
+        {
+          "caller": "OpsBootstrapPage",
+          "callee": "useState",
+          "lineNumber": 14
+        },
+        {
+          "caller": "OpsBootstrapPage",
+          "callee": "useState",
+          "lineNumber": 15
+        },
+        {
+          "caller": "OpsBootstrapPage",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "e.preventDefault",
+          "lineNumber": 19
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setError",
+          "lineNumber": 20
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setSuccess",
+          "lineNumber": 21
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setLoading",
+          "lineNumber": 22
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "fetch",
+          "lineNumber": 24
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "JSON.stringify",
+          "lineNumber": 27
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "res.json().catch",
+          "lineNumber": 29
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "res.json",
+          "lineNumber": 29
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setError",
+          "lineNumber": 32
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setError",
+          "lineNumber": 34
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setError",
+          "lineNumber": 36
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setSuccess",
+          "lineNumber": 40
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setTimeout",
+          "lineNumber": 41
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "router.push",
+          "lineNumber": 41
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setError",
+          "lineNumber": 43
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setLoading",
+          "lineNumber": 45
+        },
+        {
+          "caller": "OpsBootstrapPage",
+          "callee": "setAdminSecret",
+          "lineNumber": 67
+        },
+        {
+          "caller": "OpsBootstrapPage",
+          "callee": "setDisplayName",
+          "lineNumber": 74
+        },
+        {
+          "caller": "OpsBootstrapPage",
+          "callee": "setEmail",
+          "lineNumber": 84
+        },
+        {
+          "caller": "OpsBootstrapPage",
+          "callee": "setPassword",
+          "lineNumber": 95
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/ops/login/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 92,
+      "nonEmptyLines": 86,
+      "functions": [
+        {
+          "name": "OpsLoginForm",
+          "startLine": 8,
+          "endLine": 82,
+          "params": []
+        },
+        {
+          "name": "OpsLoginPage",
+          "startLine": 84,
+          "endLine": 92,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "OpsLoginPage",
+          "line": 84,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "OpsLoginForm",
+          "callee": "useRouter",
+          "lineNumber": 9
+        },
+        {
+          "caller": "OpsLoginForm",
+          "callee": "useSearchParams",
+          "lineNumber": 10
+        },
+        {
+          "caller": "OpsLoginForm",
+          "callee": "searchParams.get",
+          "lineNumber": 11
+        },
+        {
+          "caller": "OpsLoginForm",
+          "callee": "useState",
+          "lineNumber": 13
+        },
+        {
+          "caller": "OpsLoginForm",
+          "callee": "useState",
+          "lineNumber": 14
+        },
+        {
+          "caller": "OpsLoginForm",
+          "callee": "useState",
+          "lineNumber": 15
+        },
+        {
+          "caller": "OpsLoginForm",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "e.preventDefault",
+          "lineNumber": 19
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setError",
+          "lineNumber": 20
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setLoading",
+          "lineNumber": 21
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "fetch",
+          "lineNumber": 23
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "JSON.stringify",
+          "lineNumber": 27
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "res.json().catch",
+          "lineNumber": 29
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "res.json",
+          "lineNumber": 29
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setError",
+          "lineNumber": 31
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "router.push",
+          "lineNumber": 38
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "router.refresh",
+          "lineNumber": 39
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setError",
+          "lineNumber": 41
+        },
+        {
+          "caller": "onSubmit",
+          "callee": "setLoading",
+          "lineNumber": 43
+        },
+        {
+          "caller": "OpsLoginForm",
+          "callee": "setEmail",
+          "lineNumber": 61
+        },
+        {
+          "caller": "OpsLoginForm",
+          "callee": "setPassword",
+          "lineNumber": 71
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/app/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 5,
+      "nonEmptyLines": 4,
+      "functions": [
+        {
+          "name": "OpsHomePage",
+          "startLine": 3,
+          "endLine": 5,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "OpsHomePage",
+          "line": 3,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "OpsHomePage",
+          "callee": "redirect",
+          "lineNumber": 4
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/src/middleware.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 57,
+      "nonEmptyLines": 47,
+      "functions": [
+        {
+          "name": "isPublicOpsPath",
+          "startLine": 6,
+          "endLine": 8,
+          "params": [
+            "pathname"
+          ]
+        },
+        {
+          "name": "middleware",
+          "startLine": 10,
+          "endLine": 53,
+          "params": [
+            "request"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "middleware",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "config",
+          "line": 55,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "isPublicOpsPath",
+          "callee": "PUBLIC_PREFIXES.some",
+          "lineNumber": 7
+        },
+        {
+          "caller": "isPublicOpsPath",
+          "callee": "pathname.startsWith",
+          "lineNumber": 7
+        },
+        {
+          "caller": "middleware",
+          "callee": "pathname.startsWith",
+          "lineNumber": 12
+        },
+        {
+          "caller": "middleware",
+          "callee": "NextResponse.next",
+          "lineNumber": 13
+        },
+        {
+          "caller": "middleware",
+          "callee": "NextResponse.next",
+          "lineNumber": 16
+        },
+        {
+          "caller": "middleware",
+          "callee": "createServerClient",
+          "lineNumber": 18
+        },
+        {
+          "caller": "getAll",
+          "callee": "request.cookies.getAll",
+          "lineNumber": 24
+        },
+        {
+          "caller": "setAll",
+          "callee": "cookiesToSet.forEach",
+          "lineNumber": 27
+        },
+        {
+          "caller": "setAll",
+          "callee": "request.cookies.set",
+          "lineNumber": 27
+        },
+        {
+          "caller": "setAll",
+          "callee": "NextResponse.next",
+          "lineNumber": 28
+        },
+        {
+          "caller": "setAll",
+          "callee": "cookiesToSet.forEach",
+          "lineNumber": 29
+        },
+        {
+          "caller": "setAll",
+          "callee": "response.cookies.set",
+          "lineNumber": 30
+        },
+        {
+          "caller": "middleware",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 39
+        },
+        {
+          "caller": "middleware",
+          "callee": "isPublicOpsPath",
+          "lineNumber": 41
+        },
+        {
+          "caller": "middleware",
+          "callee": "request.nextUrl.clone",
+          "lineNumber": 46
+        },
+        {
+          "caller": "middleware",
+          "callee": "url.searchParams.set",
+          "lineNumber": 48
+        },
+        {
+          "caller": "middleware",
+          "callee": "NextResponse.redirect",
+          "lineNumber": 49
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/ops/tailwind.config.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 11,
+      "nonEmptyLines": 9,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/agent_bootstrap.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 124,
+      "nonEmptyLines": 111,
+      "functions": [
+        {
+          "name": "initAgentSession",
+          "startLine": 17,
+          "endLine": 118,
+          "params": [
+            "runCtx",
+            "args"
+          ]
+        },
+        {
+          "name": "Error",
+          "startLine": 124,
+          "endLine": 124,
+          "params": []
+        }
+      ],
+      "classes": [
+        {
+          "name": "agentSession",
+          "startLine": 10,
+          "endLine": 15,
+          "methods": [],
+          "properties": [
+            "cfgPath",
+            "cfg",
+            "pc",
+            "hb"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Error",
+          "line": 124,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "initAgentSession",
+          "callee": "context.Background",
+          "lineNumber": 19
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "flag.NewFlagSet",
+          "lineNumber": 21
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "fs.String",
+          "lineNumber": 22
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "fs.String",
+          "lineNumber": 23
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "fs.String",
+          "lineNumber": 24
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "fs.String",
+          "lineNumber": 25
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "fs.Bool",
+          "lineNumber": 26
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "fs.Parse",
+          "lineNumber": 27
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "defaultConfigPath",
+          "lineNumber": 31
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "loadConfig",
+          "lineNumber": 34
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "deviceIDForPairing",
+          "lineNumber": 37
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "claim",
+          "lineNumber": 38
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 38
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 42
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "saveConfig",
+          "lineNumber": 46
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "agentLogLocale",
+          "lineNumber": 49
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "localeFromConfigPath",
+          "lineNumber": 49
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 51
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "agentLogLocale",
+          "lineNumber": 56
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "localeFromConfigPath",
+          "lineNumber": 56
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "context.WithTimeout",
+          "lineNumber": 57
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "cancel",
+          "lineNumber": 58
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "runPairingWizard",
+          "lineNumber": 59
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "runCtx.Err",
+          "lineNumber": 60
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "runCtx.Err",
+          "lineNumber": 61
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "loadConfig",
+          "lineNumber": 65
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 77
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "saveConfig",
+          "lineNumber": 80
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "applyCloudRuntimeConfig",
+          "lineNumber": 83
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "cfg.hasPrinterRouting",
+          "lineNumber": 85
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "agentLogLocale",
+          "lineNumber": 86
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "localeFromConfigPath",
+          "lineNumber": 86
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "context.WithTimeout",
+          "lineNumber": 87
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "setupCancel",
+          "lineNumber": 88
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "runSetupWizard",
+          "lineNumber": 89
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "runCtx.Err",
+          "lineNumber": 90
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "runCtx.Err",
+          "lineNumber": 91
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "loadConfig",
+          "lineNumber": 95
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "cfg.hasPrinterRouting",
+          "lineNumber": 100
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "agentLog",
+          "lineNumber": 101
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "syncRoutingToCloud",
+          "lineNumber": 104
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "len",
+          "lineNumber": 108
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "newPollController",
+          "lineNumber": 110
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "agentLog",
+          "lineNumber": 114
+        },
+        {
+          "caller": "initAgentSession",
+          "callee": "logAgentStartup",
+          "lineNumber": 115
+        },
+        {
+          "caller": "Error",
+          "callee": "string",
+          "lineNumber": 124
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "apps/print-agent/agent_entry_stub.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 16,
+      "nonEmptyLines": 13,
+      "functions": [
+        {
+          "name": "runAgent",
+          "startLine": 10,
+          "endLine": 16,
+          "params": [
+            "args"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "runAgent",
+          "callee": "initAgentSession",
+          "lineNumber": 11
+        },
+        {
+          "caller": "runAgent",
+          "callee": "context.Background",
+          "lineNumber": 11
+        },
+        {
+          "caller": "runAgent",
+          "callee": "log.Fatal",
+          "lineNumber": 13
+        },
+        {
+          "caller": "runAgent",
+          "callee": "runPollLoop",
+          "lineNumber": 15
+        },
+        {
+          "caller": "runAgent",
+          "callee": "context.Background",
+          "lineNumber": 15
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/agent_entry_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 243,
+      "nonEmptyLines": 223,
+      "functions": [
+        {
+          "name": "snapshot",
+          "startLine": 29,
+          "endLine": 33,
+          "params": []
+        },
+        {
+          "name": "uiLocale",
+          "startLine": 35,
+          "endLine": 38,
+          "params": []
+        },
+        {
+          "name": "syncConfigFromDisk",
+          "startLine": 40,
+          "endLine": 46,
+          "params": []
+        },
+        {
+          "name": "runAgent",
+          "startLine": 48,
+          "endLine": 60,
+          "params": [
+            "args"
+          ]
+        },
+        {
+          "name": "runAgentTrayFirst",
+          "startLine": 62,
+          "endLine": 108,
+          "params": [
+            "args"
+          ]
+        },
+        {
+          "name": "onTrayReady",
+          "startLine": 110,
+          "endLine": 243,
+          "params": [
+            "rt"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "trayRuntime",
+          "startLine": 17,
+          "endLine": 27,
+          "methods": [
+            "snapshot",
+            "uiLocale",
+            "syncConfigFromDisk"
+          ],
+          "properties": [
+            "mu",
+            "ctx",
+            "sess",
+            "initErr",
+            "initDone",
+            "status",
+            "cancel",
+            "configureURL"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "snapshot",
+          "callee": "rt.mu.Lock",
+          "lineNumber": 30
+        },
+        {
+          "caller": "snapshot",
+          "callee": "rt.mu.Unlock",
+          "lineNumber": 31
+        },
+        {
+          "caller": "uiLocale",
+          "callee": "loadTrayUILocale",
+          "lineNumber": 37
+        },
+        {
+          "caller": "syncConfigFromDisk",
+          "callee": "rt.snapshot",
+          "lineNumber": 41
+        },
+        {
+          "caller": "syncConfigFromDisk",
+          "callee": "reloadAgentSessionConfig",
+          "lineNumber": 45
+        },
+        {
+          "caller": "runAgent",
+          "callee": "agentArgsWantConsole",
+          "lineNumber": 49
+        },
+        {
+          "caller": "runAgent",
+          "callee": "initAgentSession",
+          "lineNumber": 50
+        },
+        {
+          "caller": "runAgent",
+          "callee": "context.Background",
+          "lineNumber": 50
+        },
+        {
+          "caller": "runAgent",
+          "callee": "showConsoleWindow",
+          "lineNumber": 52
+        },
+        {
+          "caller": "runAgent",
+          "callee": "log.Fatal",
+          "lineNumber": 53
+        },
+        {
+          "caller": "runAgent",
+          "callee": "runPollLoop",
+          "lineNumber": 55
+        },
+        {
+          "caller": "runAgent",
+          "callee": "context.Background",
+          "lineNumber": 55
+        },
+        {
+          "caller": "runAgent",
+          "callee": "runAgentTrayFirst",
+          "lineNumber": 59
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "initWindowsAgentLog",
+          "lineNumber": 63
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "hideConsoleWindow",
+          "lineNumber": 64
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "context.WithCancel",
+          "lineNumber": 66
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "context.Background",
+          "lineNumber": 66
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "func() { onConfigureWizardReady = nil }",
+          "lineNumber": 73
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "rt.status.set",
+          "lineNumber": 74
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "func() {\n\t\trt.status.set(\"Setting up\", \"Complete pairing or printer mapping in the browser if it opened\")\n\t\tsess, _, err := initAgentSession(ctx, args)\n\t\trt.mu.Lock()\n\t\trt.sess = sess\n\t\trt.initErr = err\n\t\trt.initDone = true\n\t\trt.mu.Unlock()\n\t\tif err != nil {\n\t\t\tif errors.Is(err, context.Canceled) {\n\t\t\t\tlog.Println(\"tray: init cancelled\")\n\t\t\t\treturn\n\t\t\t}\n\t\t\trt.status.set(\"Error\", err.Error())\n\t\t\tloc := loadTrayUILocale()\n\t\t\tmessageBoxOK(uiT(loc, \"about_title\"), err.Error())\n\t\t\trequestTrayExit(rt)\n\t\t\treturn\n\t\t}\n\t\trt.status.set(\"Ready\", \"Connected to Mesa\")\n\t\tstartTrayLocalHTTP(rt)\n\t\tgo runPollLoop(ctx, sess, rt.status)\n\t}",
+          "lineNumber": 76
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "rt.status.set",
+          "lineNumber": 77
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "initAgentSession",
+          "lineNumber": 78
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "rt.mu.Lock",
+          "lineNumber": 79
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "rt.mu.Unlock",
+          "lineNumber": 83
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "errors.Is",
+          "lineNumber": 85
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "log.Println",
+          "lineNumber": 86
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "rt.status.set",
+          "lineNumber": 89
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "err.Error",
+          "lineNumber": 89
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "loadTrayUILocale",
+          "lineNumber": 90
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "messageBoxOK",
+          "lineNumber": 91
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "uiT",
+          "lineNumber": 91
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "err.Error",
+          "lineNumber": 91
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "requestTrayExit",
+          "lineNumber": 92
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "rt.status.set",
+          "lineNumber": 95
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "startTrayLocalHTTP",
+          "lineNumber": 96
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "runPollLoop",
+          "lineNumber": 97
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "runtime.LockOSThread",
+          "lineNumber": 100
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "systray.Run",
+          "lineNumber": 101
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "onTrayReady",
+          "lineNumber": 102
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "stopTrayAgentWork",
+          "lineNumber": 104
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "exitTrayAgent",
+          "lineNumber": 105
+        },
+        {
+          "caller": "runAgentTrayFirst",
+          "callee": "exitTrayAgent",
+          "lineNumber": 107
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "log.Println",
+          "lineNumber": 111
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.status.level",
+          "lineNumber": 114
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "trayIconForLevel",
+          "lineNumber": 119
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "len",
+          "lineNumber": 119
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.SetIcon",
+          "lineNumber": 120
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "applyTrayIcon",
+          "lineNumber": 123
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.uiLocale",
+          "lineNumber": 125
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.SetTitle",
+          "lineNumber": 126
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 126
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.SetTooltip",
+          "lineNumber": 127
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.status.tooltip",
+          "lineNumber": 127
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "maybeNotifyTrayReady",
+          "lineNumber": 128
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "func() {\n\t\ttime.Sleep(3 * time.Second)\n\t\tmaybeNotifyCredentialRenewal()\n\t}",
+          "lineNumber": 129
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "time.Sleep",
+          "lineNumber": 130
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "maybeNotifyCredentialRenewal",
+          "lineNumber": 131
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.AddMenuItem",
+          "lineNumber": 134
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.status.menuStatusLine",
+          "lineNumber": 134
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "mStatus.Disable",
+          "lineNumber": 135
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.AddSeparator",
+          "lineNumber": 136
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.AddMenuItem",
+          "lineNumber": 137
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 137
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 137
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.AddMenuItem",
+          "lineNumber": 138
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 138
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 138
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.AddMenuItem",
+          "lineNumber": 139
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 139
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 139
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.AddSeparator",
+          "lineNumber": 140
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.AddMenuItem",
+          "lineNumber": 141
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 141
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 141
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "mUILang.AddSubMenuItem",
+          "lineNumber": 142
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiLocaleOptionTitle",
+          "lineNumber": 142
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "mUILang.AddSubMenuItem",
+          "lineNumber": 143
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiLocaleOptionTitle",
+          "lineNumber": 143
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "mUILang.AddSubMenuItem",
+          "lineNumber": 144
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiLocaleOptionTitle",
+          "lineNumber": 144
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.AddSeparator",
+          "lineNumber": 145
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.AddMenuItem",
+          "lineNumber": 146
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 146
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 146
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.AddSeparator",
+          "lineNumber": 147
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.AddMenuItem",
+          "lineNumber": 148
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 148
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 148
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.AddMenuItem",
+          "lineNumber": 149
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 149
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 149
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.AddMenuItem",
+          "lineNumber": 150
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 150
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 150
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "func() {\n\t\ttick := time.NewTicker(2 * time.Second)\n\t\tdefer tick.Stop()\n\t\tvar lastLoc string\n\t\tfor range tick.C {\n\t\t\trt.syncConfigFromDisk()\n\t\t\tloc = rt.uiLocale()\n\t\t\tif loc != lastLoc {\n\t\t\t\tlastLoc = loc\n\t\t\t\tsystray.SetTitle(uiT(loc, \"tray_title\"))\n\t\t\t\tapplyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mRestart, mQuit, loc)\n\t\t\t\tapplyTrayUILocaleSubmenu(mUILang, mLangZh, mLangEn, mLangPt, loc)\n\t\t\t}\n\t\t\tmStatus.SetTitle(rt.status.menuStatusLine(loc))\n\t\t\ttip := rt.status.tooltip(Version, loc)\n\t\t\tif cfg, err := loadConfig(defaultConfigPath()); err == nil && cfg != nil {\n\t\t\t\tif suffix := cfg.credentialStatusSuffix(loc, time.Now()); suffix != \"\" {\n\t\t\t\t\ttip += \"\\n\" + suffix\n\t\t\t\t}\n\t\t\t}\n\t\t\tsystray.SetTooltip(tip)\n\t\t\tapplyTrayIcon()\n\t\t}\n\t}",
+          "lineNumber": 152
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "time.NewTicker",
+          "lineNumber": 153
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "tick.Stop",
+          "lineNumber": 154
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.syncConfigFromDisk",
+          "lineNumber": 157
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.uiLocale",
+          "lineNumber": 158
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.SetTitle",
+          "lineNumber": 161
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 161
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "applyTrayMenuLabels",
+          "lineNumber": 162
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "applyTrayUILocaleSubmenu",
+          "lineNumber": 163
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "mStatus.SetTitle",
+          "lineNumber": 165
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.status.menuStatusLine",
+          "lineNumber": 165
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.status.tooltip",
+          "lineNumber": 166
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "loadConfig",
+          "lineNumber": 167
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "defaultConfigPath",
+          "lineNumber": 167
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "cfg.credentialStatusSuffix",
+          "lineNumber": 168
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "time.Now",
+          "lineNumber": 168
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.SetTooltip",
+          "lineNumber": 172
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "applyTrayIcon",
+          "lineNumber": 173
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "normalizeUILocale",
+          "lineNumber": 178
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.uiLocale",
+          "lineNumber": 178
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "normalizeUILocale",
+          "lineNumber": 179
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "setTrayUILocale",
+          "lineNumber": 183
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "messageBoxOK",
+          "lineNumber": 184
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 184
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "err.Error",
+          "lineNumber": 184
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "agentLogLocale",
+          "lineNumber": 187
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiLocaleOptionLogLabel",
+          "lineNumber": 187
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.SetTitle",
+          "lineNumber": 189
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 189
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "applyTrayMenuLabels",
+          "lineNumber": 190
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "applyTrayUILocaleSubmenu",
+          "lineNumber": 191
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "systray.SetTooltip",
+          "lineNumber": 192
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.status.tooltip",
+          "lineNumber": 192
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "func() {\n\t\tfor {\n\t\t\tselect {\n\t\t\tcase <-mLangZh.ClickedCh:\n\t\t\t\tapplyTrayUILocaleChoice(\"zh\")\n\t\t\tcase <-mLangEn.ClickedCh:\n\t\t\t\tapplyTrayUILocaleChoice(\"en\")\n\t\t\tcase <-mLangPt.ClickedCh:\n\t\t\t\tapplyTrayUILocaleChoice(\"pt\")\n\t\t\tcase <-mSettings.ClickedCh:\n\t\t\t\trt.startTrayConfigureWizard(\"\")\n\t\t\tcase <-mOpenLog.ClickedCh:\n\t\t\t\tif err := openAgentLog(); err != nil {\n\t\t\t\t\tlog.Println(\"tray:\", err)\n\t\t\t\t\tloc := rt.uiLocale()\n\t\t\t\t\tmessageBoxOK(uiT(loc, \"about_title\"), fmt.Sprintf(uiT(loc, \"open_log_fail\"), err.Error()))\n\t\t\t\t}\n\t\t\tcase <-mOpenLogDir.ClickedCh:\n\t\t\t\tif err := openAgentLogFolder(); err != nil {\n\t\t\t\t\tlog.Println(\"tray:\", err)\n\t\t\t\t\tloc := rt.uiLocale()\n\t\t\t\t\tmessageBoxOK(uiT(loc, \"about_title\"), fmt.Sprintf(uiT(loc, \"open_log_dir_fail\"), err.Error()))\n\t\t\t\t}\n\t\t\tcase <-mShowConsole.ClickedCh:\n\t\t\t\tshown := toggleConsoleWindow()\n\t\t\t\t_, err, done := rt.snapshot()\n\t\t\t\tif shown && done && err != nil {\n\t\t\t\t\tlog.Println(err)\n\t\t\t\t}\n\t\t\tcase <-mAbout.ClickedCh:\n\t\t\t\tmessageBoxOK(uiT(rt.uiLocale(), \"about_title\"), trayAboutText(rt, rt.uiLocale()))\n\t\t\tcase <-mRestart.ClickedCh:\n\t\t\t\tloc := rt.uiLocale()\n\t\t\t\tif !confirmTrayRestart(loc) {\n\t\t\t\t\tcontinue\n\t\t\t\t}\n\t\t\t\trequestTrayRestart(rt)\n\t\t\t\treturn\n\t\t\tcase <-mQuit.ClickedCh:\n\t\t\t\tloc := rt.uiLocale()\n\t\t\t\tif !confirmTrayExit(loc) {\n\t\t\t\t\tcontinue\n\t\t\t\t}\n\t\t\t\trequestTrayExit(rt)\n\t\t\t\treturn\n\t\t\t}\n\t\t}\n\t}",
+          "lineNumber": 195
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "applyTrayUILocaleChoice",
+          "lineNumber": 199
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "applyTrayUILocaleChoice",
+          "lineNumber": 201
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "applyTrayUILocaleChoice",
+          "lineNumber": 203
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.startTrayConfigureWizard",
+          "lineNumber": 205
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "openAgentLog",
+          "lineNumber": 207
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "log.Println",
+          "lineNumber": 208
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.uiLocale",
+          "lineNumber": 209
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "messageBoxOK",
+          "lineNumber": 210
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 210
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 210
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 210
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "err.Error",
+          "lineNumber": 210
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "openAgentLogFolder",
+          "lineNumber": 213
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "log.Println",
+          "lineNumber": 214
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.uiLocale",
+          "lineNumber": 215
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "messageBoxOK",
+          "lineNumber": 216
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 216
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 216
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 216
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "err.Error",
+          "lineNumber": 216
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "toggleConsoleWindow",
+          "lineNumber": 219
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.snapshot",
+          "lineNumber": 220
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "log.Println",
+          "lineNumber": 222
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "messageBoxOK",
+          "lineNumber": 225
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "uiT",
+          "lineNumber": 225
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.uiLocale",
+          "lineNumber": 225
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "trayAboutText",
+          "lineNumber": 225
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.uiLocale",
+          "lineNumber": 225
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.uiLocale",
+          "lineNumber": 227
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "confirmTrayRestart",
+          "lineNumber": 228
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "requestTrayRestart",
+          "lineNumber": 231
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "rt.uiLocale",
+          "lineNumber": 234
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "confirmTrayExit",
+          "lineNumber": 235
+        },
+        {
+          "caller": "onTrayReady",
+          "callee": "requestTrayExit",
+          "lineNumber": 238
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 6,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "apps/print-agent/agent_log_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 63,
+      "nonEmptyLines": 55,
+      "functions": [
+        {
+          "name": "agentDataDir",
+          "startLine": 18,
+          "endLine": 27,
+          "params": []
+        },
+        {
+          "name": "initWindowsAgentLog",
+          "startLine": 29,
+          "endLine": 42,
+          "params": []
+        },
+        {
+          "name": "rotateAgentLog",
+          "startLine": 44,
+          "endLine": 59,
+          "params": [
+            "path"
+          ]
+        },
+        {
+          "name": "rotatedAgentLogPath",
+          "startLine": 61,
+          "endLine": 63,
+          "params": [
+            "path",
+            "n"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "agentDataDir",
+          "callee": "os.Getenv",
+          "lineNumber": 19
+        },
+        {
+          "caller": "agentDataDir",
+          "callee": "filepath.Join",
+          "lineNumber": 20
+        },
+        {
+          "caller": "agentDataDir",
+          "callee": "os.UserHomeDir",
+          "lineNumber": 22
+        },
+        {
+          "caller": "agentDataDir",
+          "callee": "filepath.Join",
+          "lineNumber": 24
+        },
+        {
+          "caller": "agentDataDir",
+          "callee": "os.TempDir",
+          "lineNumber": 24
+        },
+        {
+          "caller": "agentDataDir",
+          "callee": "filepath.Join",
+          "lineNumber": 26
+        },
+        {
+          "caller": "initWindowsAgentLog",
+          "callee": "agentDataDir",
+          "lineNumber": 30
+        },
+        {
+          "caller": "initWindowsAgentLog",
+          "callee": "os.MkdirAll",
+          "lineNumber": 31
+        },
+        {
+          "caller": "initWindowsAgentLog",
+          "callee": "filepath.Join",
+          "lineNumber": 34
+        },
+        {
+          "caller": "initWindowsAgentLog",
+          "callee": "rotateAgentLog",
+          "lineNumber": 35
+        },
+        {
+          "caller": "initWindowsAgentLog",
+          "callee": "os.OpenFile",
+          "lineNumber": 36
+        },
+        {
+          "caller": "initWindowsAgentLog",
+          "callee": "log.SetOutput",
+          "lineNumber": 40
+        },
+        {
+          "caller": "initWindowsAgentLog",
+          "callee": "io.MultiWriter",
+          "lineNumber": 40
+        },
+        {
+          "caller": "initWindowsAgentLog",
+          "callee": "agentLogLocale",
+          "lineNumber": 41
+        },
+        {
+          "caller": "initWindowsAgentLog",
+          "callee": "loadTrayUILocale",
+          "lineNumber": 41
+        },
+        {
+          "caller": "rotateAgentLog",
+          "callee": "os.Stat",
+          "lineNumber": 45
+        },
+        {
+          "caller": "rotateAgentLog",
+          "callee": "info.Size",
+          "lineNumber": 46
+        },
+        {
+          "caller": "rotateAgentLog",
+          "callee": "rotatedAgentLogPath",
+          "lineNumber": 51
+        },
+        {
+          "caller": "rotateAgentLog",
+          "callee": "os.Remove",
+          "lineNumber": 52
+        },
+        {
+          "caller": "rotateAgentLog",
+          "callee": "os.Rename",
+          "lineNumber": 54
+        },
+        {
+          "caller": "rotateAgentLog",
+          "callee": "os.Rename",
+          "lineNumber": 57
+        },
+        {
+          "caller": "rotateAgentLog",
+          "callee": "rotatedAgentLogPath",
+          "lineNumber": 57
+        },
+        {
+          "caller": "rotatedAgentLogPath",
+          "callee": "strconv.Itoa",
+          "lineNumber": 62
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/agent_log.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 56,
+      "nonEmptyLines": 50,
+      "functions": [
+        {
+          "name": "localeForLog",
+          "startLine": 8,
+          "endLine": 16,
+          "params": [
+            "cfg"
+          ]
+        },
+        {
+          "name": "localeFromConfigPath",
+          "startLine": 18,
+          "endLine": 23,
+          "params": [
+            "path"
+          ]
+        },
+        {
+          "name": "agentLog",
+          "startLine": 26,
+          "endLine": 33,
+          "params": [
+            "cfg",
+            "key"
+          ]
+        },
+        {
+          "name": "agentLogLocale",
+          "startLine": 36,
+          "endLine": 43,
+          "params": [
+            "loc",
+            "key"
+          ]
+        },
+        {
+          "name": "agentLogTech",
+          "startLine": 46,
+          "endLine": 56,
+          "params": [
+            "cfg",
+            "key",
+            "tech"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "localeForLog",
+          "callee": "cfg.uiLocale",
+          "lineNumber": 10
+        },
+        {
+          "caller": "localeForLog",
+          "callee": "loadConfig",
+          "lineNumber": 12
+        },
+        {
+          "caller": "localeForLog",
+          "callee": "defaultConfigPath",
+          "lineNumber": 12
+        },
+        {
+          "caller": "localeForLog",
+          "callee": "c.uiLocale",
+          "lineNumber": 13
+        },
+        {
+          "caller": "localeFromConfigPath",
+          "callee": "loadConfig",
+          "lineNumber": 19
+        },
+        {
+          "caller": "localeFromConfigPath",
+          "callee": "c.uiLocale",
+          "lineNumber": 20
+        },
+        {
+          "caller": "agentLog",
+          "callee": "localeForLog",
+          "lineNumber": 27
+        },
+        {
+          "caller": "agentLog",
+          "callee": "uiT",
+          "lineNumber": 28
+        },
+        {
+          "caller": "agentLog",
+          "callee": "len",
+          "lineNumber": 29
+        },
+        {
+          "caller": "agentLog",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 30
+        },
+        {
+          "caller": "agentLog",
+          "callee": "log.Println",
+          "lineNumber": 32
+        },
+        {
+          "caller": "agentLogLocale",
+          "callee": "normalizeUILocale",
+          "lineNumber": 37
+        },
+        {
+          "caller": "agentLogLocale",
+          "callee": "uiT",
+          "lineNumber": 38
+        },
+        {
+          "caller": "agentLogLocale",
+          "callee": "len",
+          "lineNumber": 39
+        },
+        {
+          "caller": "agentLogLocale",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 40
+        },
+        {
+          "caller": "agentLogLocale",
+          "callee": "log.Println",
+          "lineNumber": 42
+        },
+        {
+          "caller": "agentLogTech",
+          "callee": "localeForLog",
+          "lineNumber": 47
+        },
+        {
+          "caller": "agentLogTech",
+          "callee": "uiT",
+          "lineNumber": 48
+        },
+        {
+          "caller": "agentLogTech",
+          "callee": "len",
+          "lineNumber": 49
+        },
+        {
+          "caller": "agentLogTech",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 50
+        },
+        {
+          "caller": "agentLogTech",
+          "callee": "log.Println",
+          "lineNumber": 55
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/agent_patch.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 29,
+      "nonEmptyLines": 27,
+      "functions": [
+        {
+          "name": "patchJobStatus",
+          "startLine": 9,
+          "endLine": 29,
+          "params": [
+            "ctx",
+            "cfg",
+            "jobID",
+            "patch",
+            "action"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "patchJobStatus",
+          "callee": "patchJob",
+          "lineNumber": 14
+        },
+        {
+          "caller": "patchJobStatus",
+          "callee": "try",
+          "lineNumber": 16
+        },
+        {
+          "caller": "patchJobStatus",
+          "callee": "agentLogTech",
+          "lineNumber": 20
+        },
+        {
+          "caller": "patchJobStatus",
+          "callee": "err.Error",
+          "lineNumber": 20
+        },
+        {
+          "caller": "patchJobStatus",
+          "callee": "sleepOrCancel",
+          "lineNumber": 21
+        },
+        {
+          "caller": "patchJobStatus",
+          "callee": "try",
+          "lineNumber": 22
+        },
+        {
+          "caller": "patchJobStatus",
+          "callee": "agentLog",
+          "lineNumber": 24
+        },
+        {
+          "caller": "patchJobStatus",
+          "callee": "agentLogTech",
+          "lineNumber": 27
+        },
+        {
+          "caller": "patchJobStatus",
+          "callee": "err2.Error",
+          "lineNumber": 27
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/agent_poll.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 293,
+      "nonEmptyLines": 282,
+      "functions": [
+        {
+          "name": "runPollLoop",
+          "startLine": 10,
+          "endLine": 277,
+          "params": [
+            "ctx",
+            "sess",
+            "status"
+          ]
+        },
+        {
+          "name": "sleepOrCancel",
+          "startLine": 279,
+          "endLine": 293,
+          "params": [
+            "ctx",
+            "d"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "runPollLoop",
+          "callee": "status.set",
+          "lineNumber": 21
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "reloadAgentSessionConfig",
+          "lineNumber": 24
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "setStatus",
+          "lineNumber": 27
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "setStatus",
+          "lineNumber": 30
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "throttle.allow",
+          "lineNumber": 36
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 37
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "ctx.Done",
+          "lineNumber": 43
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "setStatus",
+          "lineNumber": 44
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "reloadAgentSessionConfig",
+          "lineNumber": 49
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "sleepOrCancel",
+          "lineNumber": 52
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.scheduleOpen",
+          "lineNumber": 56
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "postHeartbeat",
+          "lineNumber": 58
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLogTech",
+          "lineNumber": 59
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "hbErr.Error",
+          "lineNumber": 59
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLogTech",
+          "lineNumber": 63
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "err.Error",
+          "lineNumber": 63
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "setStatus",
+          "lineNumber": 64
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "err.Error",
+          "lineNumber": 64
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "sleepOrCancel",
+          "lineNumber": 65
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.sleepFor",
+          "lineNumber": 65
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.closedSleep",
+          "lineNumber": 71
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 72
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "wait.Round",
+          "lineNumber": 72
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "setStatus",
+          "lineNumber": 73
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 75
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "setStatus",
+          "lineNumber": 76
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "sleepOrCancel",
+          "lineNumber": 80
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.sleepFor",
+          "lineNumber": 80
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 84
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "len",
+          "lineNumber": 88
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "fetchPending",
+          "lineNumber": 89
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.phase",
+          "lineNumber": 90
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "len",
+          "lineNumber": 90
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "throttle.allow",
+          "lineNumber": 92
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLogTech",
+          "lineNumber": 93
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "err.Error",
+          "lineNumber": 93
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "setStatus",
+          "lineNumber": 96
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "err.Error",
+          "lineNumber": 96
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "sleepOrCancel",
+          "lineNumber": 97
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.sleepFor",
+          "lineNumber": 97
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "len",
+          "lineNumber": 100
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "setStatus",
+          "lineNumber": 106
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "setStatus",
+          "lineNumber": 108
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "setStatus",
+          "lineNumber": 110
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "sleepOrCancel",
+          "lineNumber": 112
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.sleepFor",
+          "lineNumber": 112
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.markActivity",
+          "lineNumber": 119
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 120
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "len",
+          "lineNumber": 120
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "setStatus",
+          "lineNumber": 121
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "strconv.Itoa",
+          "lineNumber": 121
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "len",
+          "lineNumber": 121
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "jobPrintExpired",
+          "lineNumber": 125
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "patchJobStatus",
+          "lineNumber": 126
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "errPrintJobExpired.Error",
+          "lineNumber": 128
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 130
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 132
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.markActivity",
+          "lineNumber": 137
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "cfg.printerTargetForJob",
+          "lineNumber": 140
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "errors.Is",
+          "lineNumber": 142
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "throttle.allow",
+          "lineNumber": 143
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 144
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "setStatus",
+          "lineNumber": 147
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "deferBlockedHead",
+          "lineNumber": 149
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "throttle.allow",
+          "lineNumber": 151
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 152
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.markActivity",
+          "lineNumber": 154
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "logBatchAllBlocked",
+          "lineNumber": 157
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "sleepOrCancel",
+          "lineNumber": 158
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.sleepFor",
+          "lineNumber": 158
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.markActivity",
+          "lineNumber": 159
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "patchJobStatus",
+          "lineNumber": 162
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "err.Error",
+          "lineNumber": 164
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 166
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "jobRouteStationID",
+          "lineNumber": 166
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "err.Error",
+          "lineNumber": 166
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 168
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.markActivity",
+          "lineNumber": 173
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "preparePrint",
+          "lineNumber": 176
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "errors.Is",
+          "lineNumber": 177
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "targetKey",
+          "lineNumber": 178
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "jobRouteStationID",
+          "lineNumber": 179
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "throttle.allow",
+          "lineNumber": 180
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 181
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "throttle.allow",
+          "lineNumber": 184
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 185
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "prepErr.Error",
+          "lineNumber": 185
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "setStatus",
+          "lineNumber": 188
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "reorderQueueAwayFromPrinter",
+          "lineNumber": 189
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "len",
+          "lineNumber": 189
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "len",
+          "lineNumber": 193
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "throttle.allow",
+          "lineNumber": 194
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 195
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.markActivity",
+          "lineNumber": 197
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "deferBlockedHead",
+          "lineNumber": 203
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "throttle.allow",
+          "lineNumber": 205
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "targetKey",
+          "lineNumber": 205
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 206
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.markActivity",
+          "lineNumber": 208
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "logBatchAllBlocked",
+          "lineNumber": 211
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "targetKey",
+          "lineNumber": 211
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "sleepOrCancel",
+          "lineNumber": 212
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.sleepFor",
+          "lineNumber": 212
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.markActivity",
+          "lineNumber": 213
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "patchJobStatus",
+          "lineNumber": 216
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "prepErr.Error",
+          "lineNumber": 218
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 220
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "prepErr.Error",
+          "lineNumber": 220
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 222
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.markActivity",
+          "lineNumber": 227
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 230
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "jobRouteStationID",
+          "lineNumber": 230
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "setStatus",
+          "lineNumber": 231
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "summarizeJobPayload",
+          "lineNumber": 231
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "patchJobStatus",
+          "lineNumber": 232
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "deferBlockedHead",
+          "lineNumber": 234
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "throttle.allow",
+          "lineNumber": 236
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 237
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.markActivity",
+          "lineNumber": 239
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "logBatchAllBlocked",
+          "lineNumber": 242
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "sleepOrCancel",
+          "lineNumber": 243
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.sleepFor",
+          "lineNumber": 243
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "escposFromJob",
+          "lineNumber": 246
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "printToTarget",
+          "lineNumber": 247
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "patchJobStatus",
+          "lineNumber": 248
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "err.Error",
+          "lineNumber": 250
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "sess.hb.recordPrint",
+          "lineNumber": 252
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 253
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "jobRouteStationID",
+          "lineNumber": 253
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "err.Error",
+          "lineNumber": 253
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 255
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "setStatus",
+          "lineNumber": 257
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "err.Error",
+          "lineNumber": 257
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "patchJobStatus",
+          "lineNumber": 259
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 260
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "summarizeJobPayload",
+          "lineNumber": 260
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "sess.hb.recordPrint",
+          "lineNumber": 261
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "setStatus",
+          "lineNumber": 262
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "agentLog",
+          "lineNumber": 264
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "sess.hb.recordPrint",
+          "lineNumber": 265
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.markActivity",
+          "lineNumber": 271
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "len",
+          "lineNumber": 273
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "sleepOrCancel",
+          "lineNumber": 274
+        },
+        {
+          "caller": "runPollLoop",
+          "callee": "pc.sleepFor",
+          "lineNumber": 274
+        },
+        {
+          "caller": "sleepOrCancel",
+          "callee": "ctx.Done",
+          "lineNumber": 282
+        },
+        {
+          "caller": "sleepOrCancel",
+          "callee": "time.NewTimer",
+          "lineNumber": 287
+        },
+        {
+          "caller": "sleepOrCancel",
+          "callee": "t.Stop",
+          "lineNumber": 288
+        },
+        {
+          "caller": "sleepOrCancel",
+          "callee": "ctx.Done",
+          "lineNumber": 290
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/agent_queue_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 26,
+      "nonEmptyLines": 23,
+      "functions": [
+        {
+          "name": "TestDeferBlockedHead_singleClears",
+          "startLine": 5,
+          "endLine": 12,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestDeferBlockedHead_rotatesThenExhausts",
+          "startLine": 14,
+          "endLine": 26,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestDeferBlockedHead_singleClears",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "TestDeferBlockedHead_rotatesThenExhausts",
+          "line": 14,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestDeferBlockedHead_singleClears",
+          "callee": "t.Parallel",
+          "lineNumber": 6
+        },
+        {
+          "caller": "TestDeferBlockedHead_singleClears",
+          "callee": "deferBlockedHead",
+          "lineNumber": 8
+        },
+        {
+          "caller": "TestDeferBlockedHead_singleClears",
+          "callee": "t.Fatalf",
+          "lineNumber": 10
+        },
+        {
+          "caller": "TestDeferBlockedHead_rotatesThenExhausts",
+          "callee": "t.Parallel",
+          "lineNumber": 15
+        },
+        {
+          "caller": "TestDeferBlockedHead_rotatesThenExhausts",
+          "callee": "deferBlockedHead",
+          "lineNumber": 18
+        },
+        {
+          "caller": "TestDeferBlockedHead_rotatesThenExhausts",
+          "callee": "len",
+          "lineNumber": 19
+        },
+        {
+          "caller": "TestDeferBlockedHead_rotatesThenExhausts",
+          "callee": "t.Fatalf",
+          "lineNumber": 20
+        },
+        {
+          "caller": "TestDeferBlockedHead_rotatesThenExhausts",
+          "callee": "deferBlockedHead",
+          "lineNumber": 22
+        },
+        {
+          "caller": "TestDeferBlockedHead_rotatesThenExhausts",
+          "callee": "t.Fatalf",
+          "lineNumber": 24
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/agent_queue.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 20,
+      "nonEmptyLines": 19,
+      "functions": [
+        {
+          "name": "deferBlockedHead",
+          "startLine": 5,
+          "endLine": 20,
+          "params": [
+            "queue",
+            "spins"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "deferBlockedHead",
+          "callee": "len",
+          "lineNumber": 6
+        },
+        {
+          "caller": "deferBlockedHead",
+          "callee": "len",
+          "lineNumber": 14
+        },
+        {
+          "caller": "deferBlockedHead",
+          "callee": "append",
+          "lineNumber": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/agent_status_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 33,
+      "nonEmptyLines": 30,
+      "functions": [
+        {
+          "name": "TestTrayLevelForSummary",
+          "startLine": 5,
+          "endLine": 21,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestTrayUserSummaryLocalized",
+          "startLine": 23,
+          "endLine": 33,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestTrayLevelForSummary",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "TestTrayUserSummaryLocalized",
+          "line": 23,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestTrayLevelForSummary",
+          "callee": "trayLevelForSummary",
+          "lineNumber": 17
+        },
+        {
+          "caller": "TestTrayLevelForSummary",
+          "callee": "t.Fatalf",
+          "lineNumber": 18
+        },
+        {
+          "caller": "TestTrayUserSummaryLocalized",
+          "callee": "trayUserSummary",
+          "lineNumber": 24
+        },
+        {
+          "caller": "TestTrayUserSummaryLocalized",
+          "callee": "t.Fatalf",
+          "lineNumber": 25
+        },
+        {
+          "caller": "TestTrayUserSummaryLocalized",
+          "callee": "trayUserSummary",
+          "lineNumber": 27
+        },
+        {
+          "caller": "TestTrayUserSummaryLocalized",
+          "callee": "t.Fatalf",
+          "lineNumber": 28
+        },
+        {
+          "caller": "TestTrayUserSummaryLocalized",
+          "callee": "testPrintPhrase",
+          "lineNumber": 30
+        },
+        {
+          "caller": "TestTrayUserSummaryLocalized",
+          "callee": "t.Fatalf",
+          "lineNumber": 31
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/agent_status.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 163,
+      "nonEmptyLines": 150,
+      "functions": [
+        {
+          "name": "set",
+          "startLine": 26,
+          "endLine": 31,
+          "params": [
+            "summary",
+            "detail"
+          ]
+        },
+        {
+          "name": "level",
+          "startLine": 33,
+          "endLine": 38,
+          "params": []
+        },
+        {
+          "name": "trayLevelForSummary",
+          "startLine": 40,
+          "endLine": 49,
+          "params": [
+            "summary"
+          ]
+        },
+        {
+          "name": "userSummary",
+          "startLine": 51,
+          "endLine": 56,
+          "params": [
+            "locale"
+          ]
+        },
+        {
+          "name": "userDetail",
+          "startLine": 58,
+          "endLine": 64,
+          "params": [
+            "locale"
+          ]
+        },
+        {
+          "name": "trayUserSummary",
+          "startLine": 66,
+          "endLine": 101,
+          "params": [
+            "summary",
+            "locale"
+          ]
+        },
+        {
+          "name": "trayUserDetail",
+          "startLine": 103,
+          "endLine": 140,
+          "params": [
+            "summary",
+            "detail",
+            "locale"
+          ]
+        },
+        {
+          "name": "tooltip",
+          "startLine": 142,
+          "endLine": 150,
+          "params": [
+            "version",
+            "locale"
+          ]
+        },
+        {
+          "name": "menuStatusLine",
+          "startLine": 152,
+          "endLine": 163,
+          "params": [
+            "locale"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "agentStatus",
+          "startLine": 20,
+          "endLine": 24,
+          "methods": [
+            "set",
+            "level",
+            "userSummary",
+            "userDetail",
+            "tooltip",
+            "menuStatusLine"
+          ],
+          "properties": [
+            "mu",
+            "summary",
+            "detail"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "set",
+          "callee": "s.mu.Lock",
+          "lineNumber": 27
+        },
+        {
+          "caller": "set",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 28
+        },
+        {
+          "caller": "set",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 29
+        },
+        {
+          "caller": "set",
+          "callee": "s.mu.Unlock",
+          "lineNumber": 30
+        },
+        {
+          "caller": "level",
+          "callee": "s.mu.RLock",
+          "lineNumber": 34
+        },
+        {
+          "caller": "level",
+          "callee": "s.mu.RUnlock",
+          "lineNumber": 36
+        },
+        {
+          "caller": "level",
+          "callee": "trayLevelForSummary",
+          "lineNumber": 37
+        },
+        {
+          "caller": "userSummary",
+          "callee": "s.mu.RLock",
+          "lineNumber": 52
+        },
+        {
+          "caller": "userSummary",
+          "callee": "s.mu.RUnlock",
+          "lineNumber": 54
+        },
+        {
+          "caller": "userSummary",
+          "callee": "trayUserSummary",
+          "lineNumber": 55
+        },
+        {
+          "caller": "userDetail",
+          "callee": "s.mu.RLock",
+          "lineNumber": 59
+        },
+        {
+          "caller": "userDetail",
+          "callee": "s.mu.RUnlock",
+          "lineNumber": 62
+        },
+        {
+          "caller": "userDetail",
+          "callee": "trayUserDetail",
+          "lineNumber": 63
+        },
+        {
+          "caller": "trayUserSummary",
+          "callee": "uiT",
+          "lineNumber": 95
+        },
+        {
+          "caller": "trayUserSummary",
+          "callee": "uiT",
+          "lineNumber": 98
+        },
+        {
+          "caller": "trayUserDetail",
+          "callee": "uiT",
+          "lineNumber": 108
+        },
+        {
+          "caller": "trayUserDetail",
+          "callee": "uiT",
+          "lineNumber": 110
+        },
+        {
+          "caller": "trayUserDetail",
+          "callee": "uiT",
+          "lineNumber": 112
+        },
+        {
+          "caller": "trayUserDetail",
+          "callee": "uiT",
+          "lineNumber": 114
+        },
+        {
+          "caller": "trayUserDetail",
+          "callee": "uiT",
+          "lineNumber": 119
+        },
+        {
+          "caller": "trayUserDetail",
+          "callee": "uiT",
+          "lineNumber": 123
+        },
+        {
+          "caller": "trayUserDetail",
+          "callee": "uiT",
+          "lineNumber": 126
+        },
+        {
+          "caller": "trayUserDetail",
+          "callee": "uiT",
+          "lineNumber": 129
+        },
+        {
+          "caller": "trayUserDetail",
+          "callee": "strings.Contains",
+          "lineNumber": 131
+        },
+        {
+          "caller": "trayUserDetail",
+          "callee": "uiT",
+          "lineNumber": 132
+        },
+        {
+          "caller": "trayUserDetail",
+          "callee": "uiT",
+          "lineNumber": 137
+        },
+        {
+          "caller": "tooltip",
+          "callee": "s.userSummary",
+          "lineNumber": 143
+        },
+        {
+          "caller": "tooltip",
+          "callee": "s.userDetail",
+          "lineNumber": 144
+        },
+        {
+          "caller": "tooltip",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 145
+        },
+        {
+          "caller": "tooltip",
+          "callee": "uiT",
+          "lineNumber": 145
+        },
+        {
+          "caller": "menuStatusLine",
+          "callee": "uiT",
+          "lineNumber": 153
+        },
+        {
+          "caller": "menuStatusLine",
+          "callee": "s.userSummary",
+          "lineNumber": 153
+        },
+        {
+          "caller": "menuStatusLine",
+          "callee": "s.userDetail",
+          "lineNumber": 154
+        },
+        {
+          "caller": "menuStatusLine",
+          "callee": "len",
+          "lineNumber": 154
+        },
+        {
+          "caller": "menuStatusLine",
+          "callee": "loadConfig",
+          "lineNumber": 157
+        },
+        {
+          "caller": "menuStatusLine",
+          "callee": "defaultConfigPath",
+          "lineNumber": 157
+        },
+        {
+          "caller": "menuStatusLine",
+          "callee": "cfg.credentialStatusSuffix",
+          "lineNumber": 158
+        },
+        {
+          "caller": "menuStatusLine",
+          "callee": "time.Now",
+          "lineNumber": 158
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 9,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "apps/print-agent/brand_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 15,
+      "nonEmptyLines": 13,
+      "functions": [
+        {
+          "name": "TestBrandConstants",
+          "startLine": 5,
+          "endLine": 15,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestBrandConstants",
+          "line": 5,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestBrandConstants",
+          "callee": "t.Fatalf",
+          "lineNumber": 7
+        },
+        {
+          "caller": "TestBrandConstants",
+          "callee": "t.Fatalf",
+          "lineNumber": 10
+        },
+        {
+          "caller": "TestBrandConstants",
+          "callee": "t.Fatalf",
+          "lineNumber": 13
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    }
+  ]
+}

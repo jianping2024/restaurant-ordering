@@ -1,0 +1,46 @@
+Analyze these files and produce GraphNode and GraphEdge objects.
+Project root: `/Users/chenjianping/Documents/restaurant-ordering`
+Project: `undefined` — undefined
+Languages: ["config","css","dockerfile","go","html","iss","javascript","json","markdown","mod","mts","powershell","python","shell","sql","sum","txt","typescript","unknown","yaml"]
+Batch: `36/38`
+Skill directory: `/Users/chenjianping/.cursor/plugins/cache/understand-anything/understand-anything/54754a6f97051d1d76c8758353d8ea41afe502a6/skills/understand`
+Output: `/Users/chenjianping/Documents/restaurant-ordering/.understand-anything/intermediate/batch-36.json`
+
+Pre-resolved import data:
+```json
+{"apps/print-agent/tray_locale_windows.go":[],"apps/print-agent/tray_shutdown_windows.go":[],"apps/print-agent/tray_ui_locale_test.go":[],"apps/print-agent/tray_ui_locale_windows.go":[],"apps/print-agent/ui_i18n.go":[],"apps/print-agent/ui_locale_test.go":[],"apps/print-agent/ui_locale.go":[],"apps/print-agent/VERSION":[],"apps/print-agent/version_compare_test.go":[],"apps/print-agent/version_compare.go":[],"apps/print-agent/version.go":[],"apps/print-agent/winspool_job_status_test.go":[],"apps/print-agent/winspool_job_status.go":[],"apps/print-agent/wizard_announce_stub.go":[],"apps/print-agent/wizard_announce_windows.go":[],"apps/print-agent/wizard_mapping_test.go":[],"apps/print-agent/wizard_persist.go":[],"apps/print-agent/wizard_routes.go":[],"apps/print-agent/wizard_server_test.go":[],"apps/print-agent/wizard_server.go":[],"apps/print-agent/wizard_test_print_test.go":[],"apps/print-agent/wizard_test_print.go":[],"apps/print-agent/wizard_ui_shared_test.go":[],"apps/print-agent/wizard_ui_shared.go":[],"apps/print-agent/wizard_ui_shared.js":[]}
+```
+
+Cross-batch neighbors:
+```json
+{}
+```
+
+Files:
+1. `apps/print-agent/tray_locale_windows.go` (11 lines, language: `go`, fileCategory: `code`)
+2. `apps/print-agent/tray_shutdown_windows.go` (68 lines, language: `go`, fileCategory: `code`)
+3. `apps/print-agent/tray_ui_locale_test.go` (51 lines, language: `go`, fileCategory: `code`)
+4. `apps/print-agent/tray_ui_locale_windows.go` (25 lines, language: `go`, fileCategory: `code`)
+5. `apps/print-agent/ui_i18n.go` (559 lines, language: `go`, fileCategory: `code`)
+6. `apps/print-agent/ui_locale_test.go` (25 lines, language: `go`, fileCategory: `code`)
+7. `apps/print-agent/ui_locale.go` (48 lines, language: `go`, fileCategory: `code`)
+8. `apps/print-agent/VERSION` (1 lines, language: `unknown`, fileCategory: `code`)
+9. `apps/print-agent/version_compare_test.go` (21 lines, language: `go`, fileCategory: `code`)
+10. `apps/print-agent/version_compare.go` (52 lines, language: `go`, fileCategory: `code`)
+11. `apps/print-agent/version.go` (4 lines, language: `go`, fileCategory: `code`)
+12. `apps/print-agent/winspool_job_status_test.go` (18 lines, language: `go`, fileCategory: `code`)
+13. `apps/print-agent/winspool_job_status.go` (12 lines, language: `go`, fileCategory: `code`)
+14. `apps/print-agent/wizard_announce_stub.go` (10 lines, language: `go`, fileCategory: `code`)
+15. `apps/print-agent/wizard_announce_windows.go` (17 lines, language: `go`, fileCategory: `code`)
+16. `apps/print-agent/wizard_mapping_test.go` (41 lines, language: `go`, fileCategory: `code`)
+17. `apps/print-agent/wizard_persist.go` (54 lines, language: `go`, fileCategory: `code`)
+18. `apps/print-agent/wizard_routes.go` (306 lines, language: `go`, fileCategory: `code`)
+19. `apps/print-agent/wizard_server_test.go` (36 lines, language: `go`, fileCategory: `code`)
+20. `apps/print-agent/wizard_server.go` (70 lines, language: `go`, fileCategory: `code`)
+21. `apps/print-agent/wizard_test_print_test.go` (27 lines, language: `go`, fileCategory: `code`)
+22. `apps/print-agent/wizard_test_print.go` (65 lines, language: `go`, fileCategory: `code`)
+23. `apps/print-agent/wizard_ui_shared_test.go` (59 lines, language: `go`, fileCategory: `code`)
+24. `apps/print-agent/wizard_ui_shared.go` (21 lines, language: `go`, fileCategory: `code`)
+25. `apps/print-agent/wizard_ui_shared.js` (98 lines, language: `javascript`, fileCategory: `code`)
+
+> **Language directive**: Generate all textual content in **zh** (Chinese). Keep technical terms in English when no standard translation exists.

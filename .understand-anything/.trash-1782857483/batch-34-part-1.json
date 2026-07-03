@@ -1,0 +1,1026 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/print-agent/job_route_test.go",
+      "type": "file",
+      "name": "job_route_test.go",
+      "filePath": "apps/print-agent/job_route_test.go",
+      "summary": "测试打印任务路由逻辑，包括队列重排与工位 ID 解析。",
+      "tags": [
+        "test",
+        "print-agent",
+        "routing",
+        "queue"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/job_route.go",
+      "type": "file",
+      "name": "job_route.go",
+      "filePath": "apps/print-agent/job_route.go",
+      "summary": "从打印任务 payload 解析工位 ID，并在打印机阻塞时重排待处理队列。",
+      "tags": [
+        "print-agent",
+        "routing",
+        "queue",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/log_strings.go",
+      "type": "file",
+      "name": "log_strings.go",
+      "filePath": "apps/print-agent/log_strings.go",
+      "summary": "初始化多语言（中文/英文/葡萄牙语）日志与 UI 字符串映射表。",
+      "tags": [
+        "print-agent",
+        "i18n",
+        "logging",
+        "utility"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Go init 函数在包加载时注册 locale 字符串表。"
+    },
+    {
+      "id": "file:apps/print-agent/main.go",
+      "type": "file",
+      "name": "main.go",
+      "filePath": "apps/print-agent/main.go",
+      "summary": "Print agent CLI 入口：设备配对、配置向导、API 认领与主轮询循环。",
+      "tags": [
+        "entry-point",
+        "print-agent",
+        "cli",
+        "api-handler"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Go main 包入口，通过子命令分发 discover/pair/configure/setup/agent 模式。"
+    },
+    {
+      "id": "file:apps/print-agent/notify_credential_stub.go",
+      "type": "file",
+      "name": "notify_credential_stub.go",
+      "filePath": "apps/print-agent/notify_credential_stub.go",
+      "summary": "非 Windows 平台的凭证续期通知空实现（build tag stub）。",
+      "tags": [
+        "print-agent",
+        "stub",
+        "build-tag"
+      ],
+      "complexity": "simple",
+      "languageNotes": "使用 //go:build !windows 条件编译。"
+    },
+    {
+      "id": "file:apps/print-agent/notify_credential_windows.go",
+      "type": "file",
+      "name": "notify_credential_windows.go",
+      "filePath": "apps/print-agent/notify_credential_windows.go",
+      "summary": "Windows 平台在凭证即将过期时弹出 MessageBox 提醒并限频通知。",
+      "tags": [
+        "print-agent",
+        "windows",
+        "notification",
+        "credential"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/notify_version_stub.go",
+      "type": "file",
+      "name": "notify_version_stub.go",
+      "filePath": "apps/print-agent/notify_version_stub.go",
+      "summary": "非 Windows 平台的版本升级通知空实现。",
+      "tags": [
+        "print-agent",
+        "stub",
+        "build-tag"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/notify_version_windows.go",
+      "type": "file",
+      "name": "notify_version_windows.go",
+      "filePath": "apps/print-agent/notify_version_windows.go",
+      "summary": "Windows 平台检测到云端推荐版本较新时弹出升级提醒。",
+      "tags": [
+        "print-agent",
+        "windows",
+        "notification",
+        "version"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/notify_windows.go",
+      "type": "file",
+      "name": "notify_windows.go",
+      "filePath": "apps/print-agent/notify_windows.go",
+      "summary": "Windows 托盘就绪后首次启动弹出提示消息框。",
+      "tags": [
+        "print-agent",
+        "windows",
+        "notification",
+        "tray"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/pair_wizard_test.go",
+      "type": "file",
+      "name": "pair_wizard_test.go",
+      "filePath": "apps/print-agent/pair_wizard_test.go",
+      "summary": "测试 API base URL 规范化与打印机列表去重逻辑。",
+      "tags": [
+        "test",
+        "print-agent",
+        "pairing",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/pair_wizard.go",
+      "type": "file",
+      "name": "pair_wizard.go",
+      "filePath": "apps/print-agent/pair_wizard.go",
+      "summary": "本地 HTTP 配对向导：启动临时 Web 服务器完成设备与餐厅绑定。",
+      "tags": [
+        "print-agent",
+        "pairing",
+        "wizard",
+        "http-server"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/poll_log_throttle.go",
+      "type": "file",
+      "name": "poll_log_throttle.go",
+      "filePath": "apps/print-agent/poll_log_throttle.go",
+      "summary": "轮询日志限流器，按 key 控制重复日志输出间隔。",
+      "tags": [
+        "print-agent",
+        "logging",
+        "throttle",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/poll.go",
+      "type": "file",
+      "name": "poll.go",
+      "filePath": "apps/print-agent/poll.go",
+      "summary": "自适应轮询控制器：根据营业时段、忙闲状态与错误情况动态调整 sleep 间隔。",
+      "tags": [
+        "print-agent",
+        "polling",
+        "scheduling",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/print-agent/job_route_test.go:TestReorderQueueAwayFromPrinter",
+      "type": "function",
+      "name": "TestReorderQueueAwayFromPrinter",
+      "filePath": "apps/print-agent/job_route_test.go",
+      "lineRange": [
+        5,
+        23
+      ],
+      "summary": "验证阻塞打印机时队列重排将非阻塞任务前置。",
+      "tags": [
+        "test",
+        "queue"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/job_route_test.go:TestReorderQueueAwayFromPrinter_allSameBlocked",
+      "type": "function",
+      "name": "TestReorderQueueAwayFromPrinter_allSameBlocked",
+      "filePath": "apps/print-agent/job_route_test.go",
+      "lineRange": [
+        25,
+        34
+      ],
+      "summary": "验证全部任务指向同一阻塞打印机时队列保持不变。",
+      "tags": [
+        "test",
+        "queue"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/job_route_test.go:TestJobRouteStationID",
+      "type": "function",
+      "name": "TestJobRouteStationID",
+      "filePath": "apps/print-agent/job_route_test.go",
+      "lineRange": [
+        36,
+        42
+      ],
+      "summary": "验证从任务 payload 正确解析工位 station ID。",
+      "tags": [
+        "test",
+        "routing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/job_route.go:jobRouteStationID",
+      "type": "function",
+      "name": "jobRouteStationID",
+      "filePath": "apps/print-agent/job_route.go",
+      "lineRange": [
+        9,
+        34
+      ],
+      "summary": "从 kitchen/receipt 任务 JSON payload 提取工位 ID。",
+      "tags": [
+        "routing",
+        "parsing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/job_route.go:reorderQueueAwayFromPrinter",
+      "type": "function",
+      "name": "reorderQueueAwayFromPrinter",
+      "filePath": "apps/print-agent/job_route.go",
+      "lineRange": [
+        38,
+        59
+      ],
+      "summary": "将指向非阻塞打印机的任务移到队列前面优先处理。",
+      "tags": [
+        "queue",
+        "routing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/log_strings.go:init",
+      "type": "function",
+      "name": "init",
+      "filePath": "apps/print-agent/log_strings.go",
+      "lineRange": [
+        3,
+        13
+      ],
+      "summary": "包初始化时加载 zh/en/pt 三套字符串表。",
+      "tags": [
+        "i18n",
+        "initialization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/log_strings.go:logStringsZH",
+      "type": "function",
+      "name": "logStringsZH",
+      "filePath": "apps/print-agent/log_strings.go",
+      "lineRange": [
+        15,
+        64
+      ],
+      "summary": "返回中文日志与 UI 字符串键值映射。",
+      "tags": [
+        "i18n",
+        "zh"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/log_strings.go:logStringsEN",
+      "type": "function",
+      "name": "logStringsEN",
+      "filePath": "apps/print-agent/log_strings.go",
+      "lineRange": [
+        66,
+        115
+      ],
+      "summary": "返回英文日志与 UI 字符串键值映射。",
+      "tags": [
+        "i18n",
+        "en"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/log_strings.go:logStringsPT",
+      "type": "function",
+      "name": "logStringsPT",
+      "filePath": "apps/print-agent/log_strings.go",
+      "lineRange": [
+        117,
+        166
+      ],
+      "summary": "返回葡萄牙语日志与 UI 字符串键值映射。",
+      "tags": [
+        "i18n",
+        "pt"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/main.go:claim",
+      "type": "function",
+      "name": "claim",
+      "filePath": "apps/print-agent/main.go",
+      "lineRange": [
+        30,
+        69
+      ],
+      "summary": "使用配对码向 API 认领设备并获取 JWT。",
+      "tags": [
+        "api-handler",
+        "pairing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/main.go:fetchPending",
+      "type": "function",
+      "name": "fetchPending",
+      "filePath": "apps/print-agent/main.go",
+      "lineRange": [
+        79,
+        101
+      ],
+      "summary": "拉取待处理打印任务列表。",
+      "tags": [
+        "api-handler",
+        "polling"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/main.go:patchJob",
+      "type": "function",
+      "name": "patchJob",
+      "filePath": "apps/print-agent/main.go",
+      "lineRange": [
+        103,
+        121
+      ],
+      "summary": "PATCH 更新打印任务状态（完成/失败等）。",
+      "tags": [
+        "api-handler",
+        "print-job"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/main.go:summarizeJobPayload",
+      "type": "function",
+      "name": "summarizeJobPayload",
+      "filePath": "apps/print-agent/main.go",
+      "lineRange": [
+        123,
+        150
+      ],
+      "summary": "将任务 payload 格式化为可读日志摘要。",
+      "tags": [
+        "logging",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/main.go:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "apps/print-agent/main.go",
+      "lineRange": [
+        152,
+        226
+      ],
+      "summary": "CLI 入口：解析子命令并启动 agent 或向导流程。",
+      "tags": [
+        "entry-point",
+        "cli"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/print-agent/notify_credential_windows.go:maybeNotifyCredentialRenewal",
+      "type": "function",
+      "name": "maybeNotifyCredentialRenewal",
+      "filePath": "apps/print-agent/notify_credential_windows.go",
+      "lineRange": [
+        14,
+        41
+      ],
+      "summary": "凭证进入提醒窗口时弹出 Windows 消息框（每日限一次）。",
+      "tags": [
+        "notification",
+        "credential"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/notify_version_windows.go:maybeNotifyVersionUpgrade",
+      "type": "function",
+      "name": "maybeNotifyVersionUpgrade",
+      "filePath": "apps/print-agent/notify_version_windows.go",
+      "lineRange": [
+        14,
+        36
+      ],
+      "summary": "检测到 agent 版本落后时弹出升级提醒。",
+      "tags": [
+        "notification",
+        "version"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/notify_windows.go:maybeNotifyTrayReady",
+      "type": "function",
+      "name": "maybeNotifyTrayReady",
+      "filePath": "apps/print-agent/notify_windows.go",
+      "lineRange": [
+        11,
+        24
+      ],
+      "summary": "托盘首次就绪时弹出启动成功提示。",
+      "tags": [
+        "notification",
+        "tray"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/pair_wizard_test.go:TestNormalizeAPIBase",
+      "type": "function",
+      "name": "TestNormalizeAPIBase",
+      "filePath": "apps/print-agent/pair_wizard_test.go",
+      "lineRange": [
+        5,
+        14
+      ],
+      "summary": "验证 API base URL 规范化（去尾斜杠、补协议）。",
+      "tags": [
+        "test",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/pair_wizard_test.go:TestDedupePrinterList",
+      "type": "function",
+      "name": "TestDedupePrinterList",
+      "filePath": "apps/print-agent/pair_wizard_test.go",
+      "lineRange": [
+        16,
+        28
+      ],
+      "summary": "验证打印机列表按地址去重。",
+      "tags": [
+        "test",
+        "printer"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/pair_wizard.go:normalizeAPIBase",
+      "type": "function",
+      "name": "normalizeAPIBase",
+      "filePath": "apps/print-agent/pair_wizard.go",
+      "lineRange": [
+        36,
+        52
+      ],
+      "summary": "规范化用户输入的 API 基础 URL。",
+      "tags": [
+        "validation",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/pair_wizard.go:pickLocalListenAddr",
+      "type": "function",
+      "name": "pickLocalListenAddr",
+      "filePath": "apps/print-agent/pair_wizard.go",
+      "lineRange": [
+        54,
+        65
+      ],
+      "summary": "从起始端口起探测可用本地监听地址。",
+      "tags": [
+        "network",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/pair_wizard.go:runPairingWizard",
+      "type": "function",
+      "name": "runPairingWizard",
+      "filePath": "apps/print-agent/pair_wizard.go",
+      "lineRange": [
+        69,
+        102
+      ],
+      "summary": "启动本地配对 Web 服务器并等待用户完成绑定。",
+      "tags": [
+        "pairing",
+        "wizard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/pair_wizard.go:writePairJSON",
+      "type": "function",
+      "name": "writePairJSON",
+      "filePath": "apps/print-agent/pair_wizard.go",
+      "lineRange": [
+        104,
+        108
+      ],
+      "summary": "向 HTTP 响应写入 JSON 格式的配对状态。",
+      "tags": [
+        "http",
+        "serialization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/poll_log_throttle.go:allow",
+      "type": "function",
+      "name": "allow",
+      "filePath": "apps/print-agent/poll_log_throttle.go",
+      "lineRange": [
+        9,
+        22
+      ],
+      "summary": "检查给定 key 是否已过限流间隔，允许则更新最后时间。",
+      "tags": [
+        "throttle",
+        "logging"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/poll.go:defaultPollConfig",
+      "type": "function",
+      "name": "defaultPollConfig",
+      "filePath": "apps/print-agent/poll.go",
+      "lineRange": [
+        18,
+        28
+      ],
+      "summary": "返回默认轮询间隔配置值。",
+      "tags": [
+        "config",
+        "polling"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/poll.go:normalized",
+      "type": "function",
+      "name": "normalized",
+      "filePath": "apps/print-agent/poll.go",
+      "lineRange": [
+        30,
+        61
+      ],
+      "summary": "规范化轮询配置，填充缺失字段并使用默认值。",
+      "tags": [
+        "config",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/poll.go:newPollController",
+      "type": "function",
+      "name": "newPollController",
+      "filePath": "apps/print-agent/poll.go",
+      "lineRange": [
+        70,
+        81
+      ],
+      "summary": "创建轮询控制器，绑定营业时段与配置。",
+      "tags": [
+        "factory",
+        "polling"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/poll.go:phase",
+      "type": "function",
+      "name": "phase",
+      "filePath": "apps/print-agent/poll.go",
+      "lineRange": [
+        130,
+        151
+      ],
+      "summary": "根据待处理任务、错误与活动时间判定当前轮询阶段。",
+      "tags": [
+        "polling",
+        "scheduling"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/poll.go:sleepFor",
+      "type": "function",
+      "name": "sleepFor",
+      "filePath": "apps/print-agent/poll.go",
+      "lineRange": [
+        153,
+        172
+      ],
+      "summary": "按轮询阶段返回对应 sleep 时长。",
+      "tags": [
+        "polling",
+        "scheduling"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:apps/print-agent/poll.go:pollController",
+      "type": "class",
+      "name": "pollController",
+      "filePath": "apps/print-agent/poll.go",
+      "lineRange": [
+        63,
+        68
+      ],
+      "summary": "管理轮询节奏的状态机控制器，含配置与营业时段。",
+      "tags": [
+        "polling",
+        "state-machine"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/print-agent/job_route_test.go",
+      "target": "function:apps/print-agent/job_route_test.go:TestReorderQueueAwayFromPrinter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/job_route_test.go",
+      "target": "function:apps/print-agent/job_route_test.go:TestReorderQueueAwayFromPrinter",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/job_route_test.go",
+      "target": "function:apps/print-agent/job_route_test.go:TestReorderQueueAwayFromPrinter_allSameBlocked",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/job_route_test.go",
+      "target": "function:apps/print-agent/job_route_test.go:TestReorderQueueAwayFromPrinter_allSameBlocked",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/job_route_test.go",
+      "target": "function:apps/print-agent/job_route_test.go:TestJobRouteStationID",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/job_route_test.go",
+      "target": "function:apps/print-agent/job_route_test.go:TestJobRouteStationID",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/job_route.go",
+      "target": "function:apps/print-agent/job_route.go:jobRouteStationID",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/job_route.go",
+      "target": "function:apps/print-agent/job_route.go:reorderQueueAwayFromPrinter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/job_route.go:reorderQueueAwayFromPrinter",
+      "target": "function:apps/print-agent/job_route.go:jobRouteStationID",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/log_strings.go",
+      "target": "function:apps/print-agent/log_strings.go:init",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/log_strings.go",
+      "target": "function:apps/print-agent/log_strings.go:logStringsZH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/log_strings.go",
+      "target": "function:apps/print-agent/log_strings.go:logStringsEN",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/log_strings.go",
+      "target": "function:apps/print-agent/log_strings.go:logStringsPT",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/log_strings.go:init",
+      "target": "function:apps/print-agent/log_strings.go:logStringsZH",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/log_strings.go:init",
+      "target": "function:apps/print-agent/log_strings.go:logStringsEN",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/log_strings.go:init",
+      "target": "function:apps/print-agent/log_strings.go:logStringsPT",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/main.go",
+      "target": "function:apps/print-agent/main.go:claim",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/main.go",
+      "target": "function:apps/print-agent/main.go:fetchPending",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/main.go",
+      "target": "function:apps/print-agent/main.go:patchJob",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/main.go",
+      "target": "function:apps/print-agent/main.go:summarizeJobPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/main.go",
+      "target": "function:apps/print-agent/main.go:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/main.go:main",
+      "target": "function:apps/print-agent/pair_wizard.go:runPairingWizard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/notify_credential_windows.go",
+      "target": "function:apps/print-agent/notify_credential_windows.go:maybeNotifyCredentialRenewal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/notify_version_windows.go",
+      "target": "function:apps/print-agent/notify_version_windows.go:maybeNotifyVersionUpgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/notify_windows.go",
+      "target": "function:apps/print-agent/notify_windows.go:maybeNotifyTrayReady",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/pair_wizard_test.go",
+      "target": "function:apps/print-agent/pair_wizard_test.go:TestNormalizeAPIBase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/pair_wizard_test.go",
+      "target": "function:apps/print-agent/pair_wizard_test.go:TestDedupePrinterList",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/pair_wizard_test.go",
+      "target": "function:apps/print-agent/pair_wizard_test.go:TestNormalizeAPIBase",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/pair_wizard_test.go",
+      "target": "function:apps/print-agent/pair_wizard_test.go:TestDedupePrinterList",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/pair_wizard.go",
+      "target": "function:apps/print-agent/pair_wizard.go:normalizeAPIBase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/pair_wizard.go",
+      "target": "function:apps/print-agent/pair_wizard.go:pickLocalListenAddr",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/pair_wizard.go",
+      "target": "function:apps/print-agent/pair_wizard.go:runPairingWizard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/pair_wizard.go",
+      "target": "function:apps/print-agent/pair_wizard.go:writePairJSON",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/pair_wizard.go:runPairingWizard",
+      "target": "function:apps/print-agent/pair_wizard.go:pickLocalListenAddr",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/pair_wizard.go:runPairingWizard",
+      "target": "function:apps/print-agent/pair_wizard.go:normalizeAPIBase",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/poll_log_throttle.go",
+      "target": "function:apps/print-agent/poll_log_throttle.go:allow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/poll.go",
+      "target": "function:apps/print-agent/poll.go:defaultPollConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/poll.go",
+      "target": "function:apps/print-agent/poll.go:normalized",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/poll.go",
+      "target": "function:apps/print-agent/poll.go:newPollController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/poll.go",
+      "target": "function:apps/print-agent/poll.go:phase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/poll.go",
+      "target": "function:apps/print-agent/poll.go:sleepFor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/poll.go",
+      "target": "class:apps/print-agent/poll.go:pollController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/poll.go:normalized",
+      "target": "function:apps/print-agent/poll.go:defaultPollConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/poll.go:newPollController",
+      "target": "function:apps/print-agent/poll.go:normalized",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/poll.go:sleepFor",
+      "target": "function:apps/print-agent/poll.go:phase",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/job_route.go",
+      "target": "file:apps/print-agent/job_route_test.go",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/pair_wizard.go",
+      "target": "file:apps/print-agent/pair_wizard_test.go",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:apps/print-agent/job_route_test.go:TestReorderQueueAwayFromPrinter",
+      "target": "function:apps/print-agent/job_route.go:reorderQueueAwayFromPrinter",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/job_route_test.go:TestReorderQueueAwayFromPrinter_allSameBlocked",
+      "target": "function:apps/print-agent/job_route.go:reorderQueueAwayFromPrinter",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/job_route_test.go:TestJobRouteStationID",
+      "target": "function:apps/print-agent/job_route.go:jobRouteStationID",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/pair_wizard_test.go:TestNormalizeAPIBase",
+      "target": "function:apps/print-agent/pair_wizard.go:normalizeAPIBase",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

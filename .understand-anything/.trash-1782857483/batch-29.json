@@ -1,0 +1,139 @@
+{
+  "nodes": [
+    {
+      "id": "document:apps/print-agent/installer/WINDOWS-README.txt",
+      "type": "document",
+      "name": "WINDOWS-README.txt",
+      "filePath": "apps/print-agent/installer/WINDOWS-README.txt",
+      "summary": "Windows 版 Mesa Print Agent 完整用户手册，涵盖安装向导可选任务、首次 Dashboard 配对与打印机映射流程、托盘图标状态、config.json 配置示例及命令行调试入口。",
+      "tags": ["documentation", "windows-installer", "print-agent", "deployment", "onboarding"],
+      "complexity": "moderate",
+      "languageNotes": "随安装包分发至程序目录，并在开始菜单提供快捷入口。"
+    },
+    {
+      "id": "document:apps/print-agent/installer/wizard-after.txt",
+      "type": "document",
+      "name": "wizard-after.txt",
+      "filePath": "apps/print-agent/installer/wizard-after.txt",
+      "summary": "Inno Setup 安装完成页（InfoAfter）文案，引导用户保持托盘代理运行并通过 Mesa Dashboard Print assistant 完成配对、扫描打印机与站点映射。",
+      "tags": ["documentation", "installer-wizard", "onboarding", "print-agent", "windows-installer"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:apps/print-agent/installer/wizard-before.txt",
+      "type": "document",
+      "name": "wizard-before.txt",
+      "filePath": "apps/print-agent/installer/wizard-before.txt",
+      "summary": "Inno Setup 安装前信息页（InfoBefore）文案，说明 SmartScreen 绕过、USB 驱动前置条件、Setup 与便携 zip 的差异，以及配对/映射需在浏览器 Dashboard 中完成。",
+      "tags": ["documentation", "installer-wizard", "windows-installer", "print-agent", "deployment"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:apps/print-agent/installer/WINDOWS-README.txt",
+      "target": "file:apps/print-agent/main.go",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/installer/WINDOWS-README.txt",
+      "target": "file:apps/print-agent/config.go",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/installer/WINDOWS-README.txt",
+      "target": "file:apps/print-agent/discover.go",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/installer/WINDOWS-README.txt",
+      "target": "file:apps/print-agent/pair_wizard.go",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/installer/WINDOWS-README.txt",
+      "target": "file:apps/print-agent/configure_wizard.go",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/installer/WINDOWS-README.txt",
+      "target": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/installer/WINDOWS-README.txt",
+      "target": "document:apps/print-agent/installer/wizard-before.txt",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/installer/WINDOWS-README.txt",
+      "target": "document:apps/print-agent/installer/wizard-after.txt",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/installer/wizard-after.txt",
+      "target": "file:apps/print-agent/main.go",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/installer/wizard-after.txt",
+      "target": "file:apps/print-agent/pair_wizard.go",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/installer/wizard-after.txt",
+      "target": "file:apps/print-agent/configure_wizard.go",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/installer/wizard-after.txt",
+      "target": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/installer/wizard-after.txt",
+      "target": "file:apps/print-agent/installer/mesa-print-agent.iss",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/installer/wizard-before.txt",
+      "target": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/installer/wizard-before.txt",
+      "target": "file:apps/print-agent/installer/mesa-print-agent.iss",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

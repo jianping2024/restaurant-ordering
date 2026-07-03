@@ -1,0 +1,1854 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "type": "file",
+      "name": "waiter-table-detail-icons.tsx",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "summary": "源码文件 apps/web/src/components/waiter/waiter-table-detail-icons.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "waiter"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterTableIcon",
+      "type": "function",
+      "name": "WaiterTableIcon",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "lineRange": [
+        3,
+        10
+      ],
+      "summary": "导出的 React 组件或类 WaiterTableIcon。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterClockIcon",
+      "type": "function",
+      "name": "WaiterClockIcon",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "lineRange": [
+        12,
+        19
+      ],
+      "summary": "导出的 React 组件或类 WaiterClockIcon。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterPlusIcon",
+      "type": "function",
+      "name": "WaiterPlusIcon",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "lineRange": [
+        21,
+        27
+      ],
+      "summary": "导出的 React 组件或类 WaiterPlusIcon。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterTransferIcon",
+      "type": "function",
+      "name": "WaiterTransferIcon",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "lineRange": [
+        29,
+        35
+      ],
+      "summary": "导出的 React 组件或类 WaiterTransferIcon。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterMergeIcon",
+      "type": "function",
+      "name": "WaiterMergeIcon",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "lineRange": [
+        37,
+        45
+      ],
+      "summary": "导出的 React 组件或类 WaiterMergeIcon。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterBillIcon",
+      "type": "function",
+      "name": "WaiterBillIcon",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "lineRange": [
+        47,
+        54
+      ],
+      "summary": "导出的 React 组件或类 WaiterBillIcon。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterPowerIcon",
+      "type": "function",
+      "name": "WaiterPowerIcon",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "lineRange": [
+        56,
+        63
+      ],
+      "summary": "导出的 React 组件或类 WaiterPowerIcon。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterClocheIcon",
+      "type": "function",
+      "name": "WaiterClocheIcon",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "lineRange": [
+        65,
+        72
+      ],
+      "summary": "导出的 React 组件或类 WaiterClocheIcon。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/auth/sign-out-client.ts",
+      "type": "file",
+      "name": "sign-out-client.ts",
+      "filePath": "apps/web/src/lib/auth/sign-out-client.ts",
+      "summary": "服务端/客户端共享工具库 sign-out-client.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/auth/sign-out-client.ts:signOutFromSupabase",
+      "type": "function",
+      "name": "signOutFromSupabase",
+      "filePath": "apps/web/src/lib/auth/sign-out-client.ts",
+      "lineRange": [
+        5,
+        8
+      ],
+      "summary": "函数 signOutFromSupabase，实现 sign-out-client 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/auth/sign-out-client.ts:dashboardSignOutAndRedirect",
+      "type": "function",
+      "name": "dashboardSignOutAndRedirect",
+      "filePath": "apps/web/src/lib/auth/sign-out-client.ts",
+      "lineRange": [
+        10,
+        17
+      ],
+      "summary": "函数 dashboardSignOutAndRedirect，实现 sign-out-client 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "type": "file",
+      "name": "sign-out-confirm.tsx",
+      "filePath": "apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "summary": "服务端/客户端共享工具库 sign-out-confirm.tsx，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/auth/sign-out-confirm.tsx:SignOutConfirmModal",
+      "type": "function",
+      "name": "SignOutConfirmModal",
+      "filePath": "apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "lineRange": [
+        15,
+        37
+      ],
+      "summary": "导出的 React 组件或类 SignOutConfirmModal。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/auth/sign-out-confirm.tsx:useSignOutConfirmState",
+      "type": "function",
+      "name": "useSignOutConfirmState",
+      "filePath": "apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "lineRange": [
+        39,
+        64
+      ],
+      "summary": "React Hook useSignOutConfirmState，封装可复用状态与副作用逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-notification-sound.ts",
+      "type": "file",
+      "name": "checkout-notification-sound.ts",
+      "filePath": "apps/web/src/lib/checkout-notification-sound.ts",
+      "summary": "服务端/客户端共享工具库 checkout-notification-sound.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-notification-sound.ts:playCheckoutRequestChime",
+      "type": "function",
+      "name": "playCheckoutRequestChime",
+      "filePath": "apps/web/src/lib/checkout-notification-sound.ts",
+      "lineRange": [
+        2,
+        37
+      ],
+      "summary": "函数 playCheckoutRequestChime，实现 checkout-notification-sound 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-request-count-sync.test.ts",
+      "type": "file",
+      "name": "checkout-request-count-sync.test.ts",
+      "filePath": "apps/web/src/lib/checkout-request-count-sync.test.ts",
+      "summary": "服务端/客户端共享工具库 checkout-request-count-sync.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-request-count-sync.ts",
+      "type": "file",
+      "name": "checkout-request-count-sync.ts",
+      "filePath": "apps/web/src/lib/checkout-request-count-sync.ts",
+      "summary": "服务端/客户端共享工具库 checkout-request-count-sync.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-request-count-sync.ts:invalidateCheckoutRequestCount",
+      "type": "function",
+      "name": "invalidateCheckoutRequestCount",
+      "filePath": "apps/web/src/lib/checkout-request-count-sync.ts",
+      "lineRange": [
+        4,
+        7
+      ],
+      "summary": "函数 invalidateCheckoutRequestCount，实现 checkout-request-count-sync 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "file",
+      "name": "messages.ts",
+      "filePath": "apps/web/src/lib/i18n/messages.ts",
+      "summary": "服务端/客户端共享工具库 messages.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/i18n/messages.ts:getMessages",
+      "type": "function",
+      "name": "getMessages",
+      "filePath": "apps/web/src/lib/i18n/messages.ts",
+      "lineRange": [
+        2928,
+        2930
+      ],
+      "summary": "函数 getMessages，实现 messages 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/ops-app-url.test.ts",
+      "type": "file",
+      "name": "ops-app-url.test.ts",
+      "filePath": "apps/web/src/lib/ops-app-url.test.ts",
+      "summary": "服务端/客户端共享工具库 ops-app-url.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/ops-app-url.ts",
+      "type": "file",
+      "name": "ops-app-url.ts",
+      "filePath": "apps/web/src/lib/ops-app-url.ts",
+      "summary": "服务端/客户端共享工具库 ops-app-url.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/ops-app-url.ts:getOpsAppUrl",
+      "type": "function",
+      "name": "getOpsAppUrl",
+      "filePath": "apps/web/src/lib/ops-app-url.ts",
+      "lineRange": [
+        2,
+        7
+      ],
+      "summary": "函数 getOpsAppUrl，实现 ops-app-url 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "type": "file",
+      "name": "patch-staff-order-items-client.ts",
+      "filePath": "apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "summary": "服务端/客户端共享工具库 patch-staff-order-items-client.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts:patchStaffOrderItemsClient",
+      "type": "function",
+      "name": "patchStaffOrderItemsClient",
+      "filePath": "apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "lineRange": [
+        18,
+        38
+      ],
+      "summary": "函数 patchStaffOrderItemsClient，实现 patch-staff-order-items-client 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/pairing-code-countdown.ts",
+      "type": "file",
+      "name": "pairing-code-countdown.ts",
+      "filePath": "apps/web/src/lib/pairing-code-countdown.ts",
+      "summary": "服务端/客户端共享工具库 pairing-code-countdown.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/pairing-code-countdown.ts:formatPairingCountdown",
+      "type": "function",
+      "name": "formatPairingCountdown",
+      "filePath": "apps/web/src/lib/pairing-code-countdown.ts",
+      "lineRange": [
+        2,
+        10
+      ],
+      "summary": "函数 formatPairingCountdown，实现 pairing-code-countdown 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/pairing-code-countdown.ts:pairingExpiryRemainingMs",
+      "type": "function",
+      "name": "pairingExpiryRemainingMs",
+      "filePath": "apps/web/src/lib/pairing-code-countdown.ts",
+      "lineRange": [
+        12,
+        14
+      ],
+      "summary": "函数 pairingExpiryRemainingMs，实现 pairing-code-countdown 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "type": "file",
+      "name": "print-agent-credential-expiry.ts",
+      "filePath": "apps/web/src/lib/print-agent-credential-expiry.ts",
+      "summary": "服务端/客户端共享工具库 print-agent-credential-expiry.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-credential-expiry.ts:devicesNeedingRenewal",
+      "type": "function",
+      "name": "devicesNeedingRenewal",
+      "filePath": "apps/web/src/lib/print-agent-credential-expiry.ts",
+      "lineRange": [
+        10,
+        22
+      ],
+      "summary": "函数 devicesNeedingRenewal，实现 print-agent-credential-expiry 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-credential-expiry.ts:daysUntilValidUntil",
+      "type": "function",
+      "name": "daysUntilValidUntil",
+      "filePath": "apps/web/src/lib/print-agent-credential-expiry.ts",
+      "lineRange": [
+        24,
+        29
+      ],
+      "summary": "函数 daysUntilValidUntil，实现 print-agent-credential-expiry 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-credential-expiry.ts:formatValidUntilDate",
+      "type": "function",
+      "name": "formatValidUntilDate",
+      "filePath": "apps/web/src/lib/print-agent-credential-expiry.ts",
+      "lineRange": [
+        31,
+        37
+      ],
+      "summary": "函数 formatValidUntilDate，实现 print-agent-credential-expiry 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-credential.ts",
+      "type": "file",
+      "name": "print-agent-credential.ts",
+      "filePath": "apps/web/src/lib/print-agent-credential.ts",
+      "summary": "服务端/客户端共享工具库 print-agent-credential.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "type": "file",
+      "name": "print-agent-devices-server.ts",
+      "filePath": "apps/web/src/lib/print-agent-devices-server.ts",
+      "summary": "服务端/客户端共享工具库 print-agent-devices-server.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevicesNeedingRenewal",
+      "type": "function",
+      "name": "loadPrintAgentDevicesNeedingRenewal",
+      "filePath": "apps/web/src/lib/print-agent-devices-server.ts",
+      "lineRange": [
+        7,
+        22
+      ],
+      "summary": "数据加载函数 loadPrintAgentDevicesNeedingRenewal，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevices",
+      "type": "function",
+      "name": "loadPrintAgentDevices",
+      "filePath": "apps/web/src/lib/print-agent-devices-server.ts",
+      "lineRange": [
+        24,
+        49
+      ],
+      "summary": "数据加载函数 loadPrintAgentDevices，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-devices-server.ts:loadOnlinePrintAgentDevices",
+      "type": "function",
+      "name": "loadOnlinePrintAgentDevices",
+      "filePath": "apps/web/src/lib/print-agent-devices-server.ts",
+      "lineRange": [
+        52,
+        57
+      ],
+      "summary": "数据加载函数 loadOnlinePrintAgentDevices，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-download.test.ts",
+      "type": "file",
+      "name": "print-agent-download.test.ts",
+      "filePath": "apps/web/src/lib/print-agent-download.test.ts",
+      "summary": "服务端/客户端共享工具库 print-agent-download.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-download.ts",
+      "type": "file",
+      "name": "print-agent-download.ts",
+      "filePath": "apps/web/src/lib/print-agent-download.ts",
+      "summary": "服务端/客户端共享工具库 print-agent-download.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-download.ts:isPrintAgentDownloadArtifact",
+      "type": "function",
+      "name": "isPrintAgentDownloadArtifact",
+      "filePath": "apps/web/src/lib/print-agent-download.ts",
+      "lineRange": [
+        51,
+        53
+      ],
+      "summary": "函数 isPrintAgentDownloadArtifact，实现 print-agent-download 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentGithubRepo",
+      "type": "function",
+      "name": "getPrintAgentGithubRepo",
+      "filePath": "apps/web/src/lib/print-agent-download.ts",
+      "lineRange": [
+        55,
+        59
+      ],
+      "summary": "函数 getPrintAgentGithubRepo，实现 print-agent-download 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentVersion",
+      "type": "function",
+      "name": "getPrintAgentVersion",
+      "filePath": "apps/web/src/lib/print-agent-download.ts",
+      "lineRange": [
+        62,
+        73
+      ],
+      "summary": "函数 getPrintAgentVersion，实现 print-agent-download 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-download.ts:isPinnedPrintAgentReleaseAvailable",
+      "type": "function",
+      "name": "isPinnedPrintAgentReleaseAvailable",
+      "filePath": "apps/web/src/lib/print-agent-download.ts",
+      "lineRange": [
+        94,
+        102
+      ],
+      "summary": "函数 isPinnedPrintAgentReleaseAvailable，实现 print-agent-download 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-download.ts:resolvePrintAgentGitHubDownloadUrl",
+      "type": "function",
+      "name": "resolvePrintAgentGitHubDownloadUrl",
+      "filePath": "apps/web/src/lib/print-agent-download.ts",
+      "lineRange": [
+        105,
+        122
+      ],
+      "summary": "函数 resolvePrintAgentGitHubDownloadUrl，实现 print-agent-download 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-download.ts:findLatestPublishedPrintAgentRelease",
+      "type": "function",
+      "name": "findLatestPublishedPrintAgentRelease",
+      "filePath": "apps/web/src/lib/print-agent-download.ts",
+      "lineRange": [
+        125,
+        154
+      ],
+      "summary": "函数 findLatestPublishedPrintAgentRelease，实现 print-agent-download 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentDownloadUrls",
+      "type": "function",
+      "name": "getPrintAgentDownloadUrls",
+      "filePath": "apps/web/src/lib/print-agent-download.ts",
+      "lineRange": [
+        157,
+        174
+      ],
+      "summary": "函数 getPrintAgentDownloadUrls，实现 print-agent-download 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-heartbeat.ts",
+      "type": "file",
+      "name": "print-agent-heartbeat.ts",
+      "filePath": "apps/web/src/lib/print-agent-heartbeat.ts",
+      "summary": "服务端/客户端共享工具库 print-agent-heartbeat.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-heartbeat.ts:isPrintAgentDeviceOnline",
+      "type": "function",
+      "name": "isPrintAgentDeviceOnline",
+      "filePath": "apps/web/src/lib/print-agent-heartbeat.ts",
+      "lineRange": [
+        18,
+        26
+      ],
+      "summary": "函数 isPrintAgentDeviceOnline，实现 print-agent-heartbeat 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-heartbeat.ts:formatLastSeenRelative",
+      "type": "function",
+      "name": "formatLastSeenRelative",
+      "filePath": "apps/web/src/lib/print-agent-heartbeat.ts",
+      "lineRange": [
+        28,
+        50
+      ],
+      "summary": "函数 formatLastSeenRelative，实现 print-agent-heartbeat 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-local.ts",
+      "type": "file",
+      "name": "print-agent-local.ts",
+      "filePath": "apps/web/src/lib/print-agent-local.ts",
+      "summary": "服务端/客户端共享工具库 print-agent-local.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-local.ts:buildPrintAgentConfigureUrl",
+      "type": "function",
+      "name": "buildPrintAgentConfigureUrl",
+      "filePath": "apps/web/src/lib/print-agent-local.ts",
+      "lineRange": [
+        7,
+        19
+      ],
+      "summary": "函数 buildPrintAgentConfigureUrl，实现 print-agent-local 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-local.ts:printAgentLocalHealthUrl",
+      "type": "function",
+      "name": "printAgentLocalHealthUrl",
+      "filePath": "apps/web/src/lib/print-agent-local.ts",
+      "lineRange": [
+        21,
+        23
+      ],
+      "summary": "函数 printAgentLocalHealthUrl，实现 print-agent-local 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-local.ts:probeLocalPrintAgent",
+      "type": "function",
+      "name": "probeLocalPrintAgent",
+      "filePath": "apps/web/src/lib/print-agent-local.ts",
+      "lineRange": [
+        26,
+        48
+      ],
+      "summary": "函数 probeLocalPrintAgent，实现 print-agent-local 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-local.ts:openPrintAgentConfigure",
+      "type": "function",
+      "name": "openPrintAgentConfigure",
+      "filePath": "apps/web/src/lib/print-agent-local.ts",
+      "lineRange": [
+        55,
+        81
+      ],
+      "summary": "函数 openPrintAgentConfigure，实现 print-agent-local 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/restaurant-features.ts",
+      "type": "file",
+      "name": "restaurant-features.ts",
+      "filePath": "apps/web/src/lib/restaurant-features.ts",
+      "summary": "服务端/客户端共享工具库 restaurant-features.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/settings-nav.ts",
+      "type": "file",
+      "name": "settings-nav.ts",
+      "filePath": "apps/web/src/lib/settings-nav.ts",
+      "summary": "服务端/客户端共享工具库 settings-nav.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/settings-nav.ts:getActiveSettingsNavItem",
+      "type": "function",
+      "name": "getActiveSettingsNavItem",
+      "filePath": "apps/web/src/lib/settings-nav.ts",
+      "lineRange": [
+        73,
+        75
+      ],
+      "summary": "函数 getActiveSettingsNavItem，实现 settings-nav 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/settings-nav.ts:isSettingsWideLayout",
+      "type": "function",
+      "name": "isSettingsWideLayout",
+      "filePath": "apps/web/src/lib/settings-nav.ts",
+      "lineRange": [
+        77,
+        79
+      ],
+      "summary": "React 页面/布局组件 isSettingsWideLayout。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/site-origin.ts",
+      "type": "file",
+      "name": "site-origin.ts",
+      "filePath": "apps/web/src/lib/site-origin.ts",
+      "summary": "服务端/客户端共享工具库 site-origin.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/site-origin.ts:getSiteOrigin",
+      "type": "function",
+      "name": "getSiteOrigin",
+      "filePath": "apps/web/src/lib/site-origin.ts",
+      "lineRange": [
+        4,
+        14
+      ],
+      "summary": "函数 getSiteOrigin，实现 site-origin 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-auth-client.ts",
+      "type": "file",
+      "name": "staff-auth-client.ts",
+      "filePath": "apps/web/src/lib/staff-auth-client.ts",
+      "summary": "服务端/客户端共享工具库 staff-auth-client.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-auth-client.ts:resolveStaffSession",
+      "type": "function",
+      "name": "resolveStaffSession",
+      "filePath": "apps/web/src/lib/staff-auth-client.ts",
+      "lineRange": [
+        15,
+        60
+      ],
+      "summary": "函数 resolveStaffSession，实现 staff-auth-client 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-auth-client.ts:staffSignOut",
+      "type": "function",
+      "name": "staffSignOut",
+      "filePath": "apps/web/src/lib/staff-auth-client.ts",
+      "lineRange": [
+        62,
+        64
+      ],
+      "summary": "函数 staffSignOut，实现 staff-auth-client 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "file",
+      "name": "client.ts",
+      "filePath": "apps/web/src/lib/supabase/client.ts",
+      "summary": "服务端/客户端共享工具库 client.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/supabase/client.ts:createClient",
+      "type": "function",
+      "name": "createClient",
+      "filePath": "apps/web/src/lib/supabase/client.ts",
+      "lineRange": [
+        4,
+        9
+      ],
+      "summary": "CRUD 操作函数 createClient。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/use-checkout-request-count.ts",
+      "type": "file",
+      "name": "use-checkout-request-count.ts",
+      "filePath": "apps/web/src/lib/use-checkout-request-count.ts",
+      "summary": "服务端/客户端共享工具库 use-checkout-request-count.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/use-checkout-request-count.ts:useCheckoutRequestCount",
+      "type": "function",
+      "name": "useCheckoutRequestCount",
+      "filePath": "apps/web/src/lib/use-checkout-request-count.ts",
+      "lineRange": [
+        13,
+        78
+      ],
+      "summary": "React Hook useCheckoutRequestCount，封装可复用状态与副作用逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterTableIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterTableIcon",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterClockIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterClockIcon",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterPlusIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterPlusIcon",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterTransferIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterTransferIcon",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterMergeIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterMergeIcon",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterBillIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterBillIcon",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterPowerIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterPowerIcon",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterClocheIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterClocheIcon",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-client.ts",
+      "target": "function:apps/web/src/lib/auth/sign-out-client.ts:signOutFromSupabase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-client.ts",
+      "target": "function:apps/web/src/lib/auth/sign-out-client.ts:signOutFromSupabase",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-client.ts",
+      "target": "function:apps/web/src/lib/auth/sign-out-client.ts:dashboardSignOutAndRedirect",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-client.ts",
+      "target": "function:apps/web/src/lib/auth/sign-out-client.ts:dashboardSignOutAndRedirect",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-client.ts",
+      "target": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/auth/sign-out-client.ts:dashboardSignOutAndRedirect",
+      "target": "function:apps/web/src/lib/auth/sign-out-client.ts:signOutFromSupabase",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "target": "function:apps/web/src/lib/auth/sign-out-confirm.tsx:SignOutConfirmModal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "target": "function:apps/web/src/lib/auth/sign-out-confirm.tsx:SignOutConfirmModal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "target": "function:apps/web/src/lib/auth/sign-out-confirm.tsx:useSignOutConfirmState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "target": "function:apps/web/src/lib/auth/sign-out-confirm.tsx:useSignOutConfirmState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "target": "file:apps/web/src/components/ui/ConfirmModal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-notification-sound.ts",
+      "target": "function:apps/web/src/lib/checkout-notification-sound.ts:playCheckoutRequestChime",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-notification-sound.ts",
+      "target": "function:apps/web/src/lib/checkout-notification-sound.ts:playCheckoutRequestChime",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-count-sync.test.ts",
+      "target": "file:apps/web/src/lib/checkout-request-count-sync.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-count-sync.ts",
+      "target": "function:apps/web/src/lib/checkout-request-count-sync.ts:invalidateCheckoutRequestCount",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-count-sync.ts",
+      "target": "function:apps/web/src/lib/checkout-request-count-sync.ts:invalidateCheckoutRequestCount",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/i18n/messages.ts",
+      "target": "function:apps/web/src/lib/i18n/messages.ts:getMessages",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/i18n/messages.ts",
+      "target": "function:apps/web/src/lib/i18n/messages.ts:getMessages",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/i18n/messages.ts",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/i18n/messages.ts",
+      "target": "file:apps/web/src/lib/i18n/brand-tokens.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/ops-app-url.test.ts",
+      "target": "file:apps/web/src/lib/ops-app-url.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/ops-app-url.ts",
+      "target": "function:apps/web/src/lib/ops-app-url.ts:getOpsAppUrl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/ops-app-url.ts",
+      "target": "function:apps/web/src/lib/ops-app-url.ts:getOpsAppUrl",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "target": "function:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts:patchStaffOrderItemsClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "target": "function:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts:patchStaffOrderItemsClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/pairing-code-countdown.ts",
+      "target": "function:apps/web/src/lib/pairing-code-countdown.ts:formatPairingCountdown",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/pairing-code-countdown.ts",
+      "target": "function:apps/web/src/lib/pairing-code-countdown.ts:formatPairingCountdown",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/pairing-code-countdown.ts",
+      "target": "function:apps/web/src/lib/pairing-code-countdown.ts:pairingExpiryRemainingMs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/pairing-code-countdown.ts",
+      "target": "function:apps/web/src/lib/pairing-code-countdown.ts:pairingExpiryRemainingMs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "target": "function:apps/web/src/lib/print-agent-credential-expiry.ts:devicesNeedingRenewal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "target": "function:apps/web/src/lib/print-agent-credential-expiry.ts:devicesNeedingRenewal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "target": "function:apps/web/src/lib/print-agent-credential-expiry.ts:daysUntilValidUntil",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "target": "function:apps/web/src/lib/print-agent-credential-expiry.ts:daysUntilValidUntil",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "target": "function:apps/web/src/lib/print-agent-credential-expiry.ts:formatValidUntilDate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "target": "function:apps/web/src/lib/print-agent-credential-expiry.ts:formatValidUntilDate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "target": "file:apps/web/src/lib/print-agent-credential.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevicesNeedingRenewal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevicesNeedingRenewal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevices",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevices",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "function:apps/web/src/lib/print-agent-devices-server.ts:loadOnlinePrintAgentDevices",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "function:apps/web/src/lib/print-agent-devices-server.ts:loadOnlinePrintAgentDevices",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "file:apps/web/src/lib/print-agent-heartbeat.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "file:apps/web/src/lib/print-agent-routing.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-devices-server.ts:loadOnlinePrintAgentDevices",
+      "target": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevices",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.test.ts",
+      "target": "file:apps/web/src/lib/print-agent-download.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:isPrintAgentDownloadArtifact",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:isPrintAgentDownloadArtifact",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentGithubRepo",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentGithubRepo",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentVersion",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentVersion",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:isPinnedPrintAgentReleaseAvailable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:isPinnedPrintAgentReleaseAvailable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:resolvePrintAgentGitHubDownloadUrl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:resolvePrintAgentGitHubDownloadUrl",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:findLatestPublishedPrintAgentRelease",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:findLatestPublishedPrintAgentRelease",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentDownloadUrls",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentDownloadUrls",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-download.ts:isPinnedPrintAgentReleaseAvailable",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentGithubRepo",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-download.ts:isPinnedPrintAgentReleaseAvailable",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentVersion",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-download.ts:resolvePrintAgentGitHubDownloadUrl",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentGithubRepo",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-download.ts:resolvePrintAgentGitHubDownloadUrl",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentVersion",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-download.ts:findLatestPublishedPrintAgentRelease",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentGithubRepo",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentDownloadUrls",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentGithubRepo",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentDownloadUrls",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentVersion",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-heartbeat.ts",
+      "target": "function:apps/web/src/lib/print-agent-heartbeat.ts:isPrintAgentDeviceOnline",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-heartbeat.ts",
+      "target": "function:apps/web/src/lib/print-agent-heartbeat.ts:isPrintAgentDeviceOnline",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-heartbeat.ts",
+      "target": "function:apps/web/src/lib/print-agent-heartbeat.ts:formatLastSeenRelative",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-heartbeat.ts",
+      "target": "function:apps/web/src/lib/print-agent-heartbeat.ts:formatLastSeenRelative",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-local.ts",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:buildPrintAgentConfigureUrl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-local.ts",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:buildPrintAgentConfigureUrl",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-local.ts",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:printAgentLocalHealthUrl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-local.ts",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:printAgentLocalHealthUrl",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-local.ts",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:probeLocalPrintAgent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-local.ts",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:probeLocalPrintAgent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-local.ts",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:openPrintAgentConfigure",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-local.ts",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:openPrintAgentConfigure",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-local.ts:probeLocalPrintAgent",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:printAgentLocalHealthUrl",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-local.ts:openPrintAgentConfigure",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:buildPrintAgentConfigureUrl",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-local.ts:openPrintAgentConfigure",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:probeLocalPrintAgent",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/settings-nav.ts",
+      "target": "function:apps/web/src/lib/settings-nav.ts:getActiveSettingsNavItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/settings-nav.ts",
+      "target": "function:apps/web/src/lib/settings-nav.ts:getActiveSettingsNavItem",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/settings-nav.ts",
+      "target": "function:apps/web/src/lib/settings-nav.ts:isSettingsWideLayout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/settings-nav.ts",
+      "target": "function:apps/web/src/lib/settings-nav.ts:isSettingsWideLayout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/site-origin.ts",
+      "target": "function:apps/web/src/lib/site-origin.ts:getSiteOrigin",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/site-origin.ts",
+      "target": "function:apps/web/src/lib/site-origin.ts:getSiteOrigin",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "function:apps/web/src/lib/staff-auth-client.ts:resolveStaffSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "function:apps/web/src/lib/staff-auth-client.ts:resolveStaffSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "function:apps/web/src/lib/staff-auth-client.ts:staffSignOut",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "function:apps/web/src/lib/staff-auth-client.ts:staffSignOut",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "file:apps/web/src/lib/auth/sign-out-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/client.ts",
+      "target": "function:apps/web/src/lib/supabase/client.ts:createClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/client.ts",
+      "target": "function:apps/web/src/lib/supabase/client.ts:createClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/use-checkout-request-count.ts",
+      "target": "function:apps/web/src/lib/use-checkout-request-count.ts:useCheckoutRequestCount",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/use-checkout-request-count.ts",
+      "target": "function:apps/web/src/lib/use-checkout-request-count.ts:useCheckoutRequestCount",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/use-checkout-request-count.ts",
+      "target": "file:apps/web/src/lib/checkout-request-count-sync.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/use-checkout-request-count.ts",
+      "target": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/use-checkout-request-count.ts",
+      "target": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

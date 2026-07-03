@@ -1,0 +1,173 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {
+      "path": "apps/web/src/app/api/analytics/value-overview/route.ts",
+      "language": "typescript",
+      "sizeLines": 47,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/dashboard/value-analytics/page.tsx",
+      "language": "typescript",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "language": "typescript",
+      "sizeLines": 360,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "language": "typescript",
+      "sizeLines": 131,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/analytics/aggregate-items.ts",
+      "language": "typescript",
+      "sizeLines": 63,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "language": "typescript",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "language": "typescript",
+      "sizeLines": 179,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/analytics/analytics.service.test.ts",
+      "language": "typescript",
+      "sizeLines": 233,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/analytics/analytics.service.ts",
+      "language": "typescript",
+      "sizeLines": 143,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/analytics/analytics.types.ts",
+      "language": "typescript",
+      "sizeLines": 77,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/analytics/build-overview.ts",
+      "language": "typescript",
+      "sizeLines": 115,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/analytics/date-window.ts",
+      "language": "typescript",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "language": "typescript",
+      "sizeLines": 32,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/analytics/qualifying.ts",
+      "language": "typescript",
+      "sizeLines": 46,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/lisbon-calendar.ts",
+      "language": "typescript",
+      "sizeLines": 57,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "apps/web/src/app/api/analytics/value-overview/route.ts": [
+      "apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "apps/web/src/lib/analytics/analytics.service.ts",
+      "apps/web/src/lib/analytics/date-window.ts",
+      "apps/web/src/lib/analytics/load-owner-analytics-context.ts"
+    ],
+    "apps/web/src/app/dashboard/value-analytics/page.tsx": [
+      "apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "apps/web/src/lib/dashboard-access.ts"
+    ],
+    "apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx": [
+      "apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx",
+      "apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/lib/analytics/analytics.types.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx": [],
+    "apps/web/src/lib/analytics/aggregate-items.ts": [
+      "apps/web/src/lib/audit/money.ts",
+      "apps/web/src/lib/order-items.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/analytics/analytics.rate-limit.ts": [
+      "apps/web/src/lib/in-memory-rate-limit.ts"
+    ],
+    "apps/web/src/lib/analytics/analytics.repository.ts": [
+      "apps/web/src/lib/analytics/analytics.types.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/analytics/analytics.service.test.ts": [
+      "apps/web/src/lib/analytics/aggregate-items.ts",
+      "apps/web/src/lib/analytics/analytics.service.ts",
+      "apps/web/src/lib/analytics/build-overview.ts",
+      "apps/web/src/lib/analytics/date-window.ts",
+      "apps/web/src/lib/analytics/qualifying.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/analytics/analytics.service.ts": [
+      "apps/web/src/lib/analytics/aggregate-items.ts",
+      "apps/web/src/lib/analytics/analytics.repository.ts",
+      "apps/web/src/lib/analytics/analytics.types.ts",
+      "apps/web/src/lib/analytics/build-overview.ts",
+      "apps/web/src/lib/analytics/date-window.ts",
+      "apps/web/src/lib/analytics/qualifying.ts",
+      "apps/web/src/lib/lisbon-calendar.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/analytics/analytics.types.ts": [],
+    "apps/web/src/lib/analytics/build-overview.ts": [
+      "apps/web/src/lib/analytics/aggregate-items.ts",
+      "apps/web/src/lib/analytics/analytics.types.ts",
+      "apps/web/src/lib/analytics/qualifying.ts",
+      "apps/web/src/lib/audit/money.ts",
+      "apps/web/src/lib/lisbon-calendar.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/analytics/date-window.ts": [
+      "apps/web/src/lib/analytics/analytics.types.ts",
+      "apps/web/src/lib/lisbon-calendar.ts"
+    ],
+    "apps/web/src/lib/analytics/load-owner-analytics-context.ts": [
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/lib/analytics/qualifying.ts": [
+      "apps/web/src/lib/audit/money.ts",
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/lisbon-calendar.ts": [
+      "apps/web/src/lib/format-dashboard-date.ts"
+    ]
+  }
+}

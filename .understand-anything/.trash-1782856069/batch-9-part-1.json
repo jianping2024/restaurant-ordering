@@ -1,0 +1,918 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/app/[slug]/bill/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/[slug]/bill/page.tsx",
+      "summary": "Next.js 页面入口 [slug]/bill，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/[slug]/bill/page.tsx:BillRoute",
+      "type": "function",
+      "name": "BillRoute",
+      "filePath": "apps/web/src/app/[slug]/bill/page.tsx",
+      "lineRange": [
+        19,
+        111
+      ],
+      "summary": "导出的 React 组件或类 BillRoute。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/[slug]/kitchen/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/[slug]/kitchen/page.tsx",
+      "summary": "Next.js 页面入口 [slug]/kitchen，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "kitchen"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/[slug]/kitchen/page.tsx:KitchenPage",
+      "type": "function",
+      "name": "KitchenPage",
+      "filePath": "apps/web/src/app/[slug]/kitchen/page.tsx",
+      "lineRange": [
+        9,
+        22
+      ],
+      "summary": "React 页面/布局组件 KitchenPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "summary": "Next.js 页面入口 waiter/[tableId]，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "waiter"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx:WaiterTablePage",
+      "type": "function",
+      "name": "WaiterTablePage",
+      "filePath": "apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "lineRange": [
+        22,
+        75
+      ],
+      "summary": "React 页面/布局组件 WaiterTablePage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/[slug]/waiter/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/[slug]/waiter/page.tsx",
+      "summary": "Next.js 页面入口 [slug]/waiter，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/[slug]/waiter/page.tsx:WaiterPage",
+      "type": "function",
+      "name": "WaiterPage",
+      "filePath": "apps/web/src/app/[slug]/waiter/page.tsx",
+      "lineRange": [
+        11,
+        40
+      ],
+      "summary": "React 页面/布局组件 WaiterPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/dashboard/buffet/route.ts",
+      "summary": "Next.js API 路由 dashboard/buffet，处理 HTTP 请求与租户隔离校验。",
+      "tags": [
+        "api-handler",
+        "nextjs",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/buffet/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/dashboard/buffet/route.ts",
+      "lineRange": [
+        30,
+        37
+      ],
+      "summary": "处理 HTTP GET 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/buffet/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/dashboard/buffet/route.ts",
+      "lineRange": [
+        39,
+        99
+      ],
+      "summary": "处理 HTTP POST 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/buffet/route.ts:PATCH",
+      "type": "function",
+      "name": "PATCH",
+      "filePath": "apps/web/src/app/api/dashboard/buffet/route.ts",
+      "lineRange": [
+        101,
+        174
+      ],
+      "summary": "处理 HTTP PATCH 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/buffet/route.ts:DELETE",
+      "type": "function",
+      "name": "DELETE",
+      "filePath": "apps/web/src/app/api/dashboard/buffet/route.ts",
+      "lineRange": [
+        176,
+        205
+      ],
+      "summary": "处理 HTTP DELETE 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "summary": "Next.js API 路由 dashboard/table-groups，处理 HTTP 请求与租户隔离校验。",
+      "tags": [
+        "api-handler",
+        "nextjs",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "lineRange": [
+        20,
+        40
+      ],
+      "summary": "处理 HTTP POST 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:PATCH",
+      "type": "function",
+      "name": "PATCH",
+      "filePath": "apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "lineRange": [
+        42,
+        79
+      ],
+      "summary": "处理 HTTP PATCH 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:DELETE",
+      "type": "function",
+      "name": "DELETE",
+      "filePath": "apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "lineRange": [
+        81,
+        94
+      ],
+      "summary": "处理 HTTP DELETE 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/dashboard/tables/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/dashboard/tables/route.ts",
+      "summary": "Next.js API 路由 dashboard/tables，处理 HTTP 请求与租户隔离校验。",
+      "tags": [
+        "api-handler",
+        "nextjs",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/tables/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/dashboard/tables/route.ts",
+      "lineRange": [
+        18,
+        57
+      ],
+      "summary": "处理 HTTP POST 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/tables/route.ts:PATCH",
+      "type": "function",
+      "name": "PATCH",
+      "filePath": "apps/web/src/app/api/dashboard/tables/route.ts",
+      "lineRange": [
+        59,
+        123
+      ],
+      "summary": "处理 HTTP PATCH 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/tables/route.ts:DELETE",
+      "type": "function",
+      "name": "DELETE",
+      "filePath": "apps/web/src/app/api/dashboard/tables/route.ts",
+      "lineRange": [
+        125,
+        187
+      ],
+      "summary": "处理 HTTP DELETE 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "summary": "Next.js API 路由 restaurants/[slug]/staff/kitchen/board，处理 HTTP 请求与租户隔离校验。",
+      "tags": [
+        "api-handler",
+        "nextjs",
+        "kitchen"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "lineRange": [
+        8,
+        36
+      ],
+      "summary": "处理 HTTP GET 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "summary": "Next.js API 路由 restaurants/[slug]/staff/waiter/board，处理 HTTP 请求与租户隔离校验。",
+      "tags": [
+        "api-handler",
+        "nextjs",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "lineRange": [
+        8,
+        31
+      ],
+      "summary": "处理 HTTP GET 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts",
+      "summary": "Next.js API 路由 restaurants/[slug]/staff/waiter/sessions/close，处理 HTTP 请求与租户隔离校验。",
+      "tags": [
+        "api-handler",
+        "nextjs",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts",
+      "lineRange": [
+        7,
+        22
+      ],
+      "summary": "处理 HTTP POST 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts",
+      "summary": "Next.js API 路由 restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets，处理 HTTP 请求与租户隔离校验。",
+      "tags": [
+        "api-handler",
+        "nextjs",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts",
+      "lineRange": [
+        9,
+        44
+      ],
+      "summary": "处理 HTTP GET 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts",
+      "summary": "Next.js API 路由 restaurants/[slug]/staff/waiter/tables/[tableId]，处理 HTTP 请求与租户隔离校验。",
+      "tags": [
+        "api-handler",
+        "nextjs",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts",
+      "lineRange": [
+        9,
+        38
+      ],
+      "summary": "处理 HTTP GET 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/orders/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/orders/page.tsx",
+      "summary": "Next.js 页面入口 dashboard/orders，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/orders/page.tsx:OrdersPage",
+      "type": "function",
+      "name": "OrdersPage",
+      "filePath": "apps/web/src/app/dashboard/orders/page.tsx",
+      "lineRange": [
+        6,
+        34
+      ],
+      "summary": "React 页面/布局组件 OrdersPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "summary": "Next.js 页面入口 waiter/[tableId]，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "dashboard",
+        "waiter"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx:DashboardWaiterTablePage",
+      "type": "function",
+      "name": "DashboardWaiterTablePage",
+      "filePath": "apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "lineRange": [
+        22,
+        70
+      ],
+      "summary": "React 页面/布局组件 DashboardWaiterTablePage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/waiter/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/waiter/page.tsx",
+      "summary": "Next.js 页面入口 dashboard/waiter，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "dashboard",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/waiter/page.tsx:DashboardWaiterPage",
+      "type": "function",
+      "name": "DashboardWaiterPage",
+      "filePath": "apps/web/src/app/dashboard/waiter/page.tsx",
+      "lineRange": [
+        6,
+        33
+      ],
+      "summary": "React 页面/布局组件 DashboardWaiterPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/app/[slug]/bill/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/bill/page.tsx:BillRoute",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/bill/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/bill/page.tsx:BillRoute",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/kitchen/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/kitchen/page.tsx:KitchenPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/kitchen/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/kitchen/page.tsx:KitchenPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx:WaiterTablePage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx:WaiterTablePage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/waiter/page.tsx:WaiterPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/waiter/page.tsx:WaiterPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/buffet/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/buffet/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/buffet/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/buffet/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/buffet/route.ts:PATCH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/buffet/route.ts:PATCH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/buffet/route.ts:DELETE",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/buffet/route.ts:DELETE",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:PATCH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:PATCH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:DELETE",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:DELETE",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/tables/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/tables/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/tables/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/tables/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/tables/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/tables/route.ts:PATCH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/tables/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/tables/route.ts:PATCH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/tables/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/tables/route.ts:DELETE",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/tables/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/tables/route.ts:DELETE",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "target": "file:apps/web/src/lib/staff-board.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "target": "file:apps/web/src/lib/staff-board.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/orders/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/orders/page.tsx:OrdersPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/orders/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/orders/page.tsx:OrdersPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx:DashboardWaiterTablePage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx:DashboardWaiterTablePage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/waiter/page.tsx:DashboardWaiterPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/waiter/page.tsx:DashboardWaiterPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

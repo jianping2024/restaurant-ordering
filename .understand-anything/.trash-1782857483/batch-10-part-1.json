@@ -1,0 +1,2140 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "type": "file",
+      "name": "WaiterTableDetailLayout.tsx",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "summary": "服务员桌台详情页布局组件集，包含自助餐面板、已点菜品列表、结账工具栏与关台操作等子面板。",
+      "tags": [
+        "component",
+        "waiter",
+        "table-detail",
+        "ui"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:BuffetPanelSection",
+      "type": "function",
+      "name": "BuffetPanelSection",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "lineRange": [
+        33,
+        51
+      ],
+      "summary": "自助餐面板外层分区容器，统一内边距与标题样式。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:WaiterCheckoutPendingBanner",
+      "type": "function",
+      "name": "WaiterCheckoutPendingBanner",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "lineRange": [
+        53,
+        64
+      ],
+      "summary": "展示桌台有待处理结账请求的横幅提示。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:BuffetGuestCounter",
+      "type": "function",
+      "name": "BuffetGuestCounter",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "lineRange": [
+        82,
+        108
+      ],
+      "summary": "自助餐客数步进器，支持增减与上限校验。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:BuffetPriceMeta",
+      "type": "function",
+      "name": "BuffetPriceMeta",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "lineRange": [
+        110,
+        133
+      ],
+      "summary": "展示自助餐单价、小计与价格模板元信息。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:WaiterTableBuffetPanel",
+      "type": "function",
+      "name": "WaiterTableBuffetPanel",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "lineRange": [
+        135,
+        215
+      ],
+      "summary": "已开台自助餐主面板，整合客数、价格与继续点餐入口。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:ContinueOrderingControl",
+      "type": "function",
+      "name": "ContinueOrderingControl",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "lineRange": [
+        217,
+        243
+      ],
+      "summary": "跳转继续点餐的控制按钮与链接逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:ToolbarCloseTableControl",
+      "type": "function",
+      "name": "ToolbarCloseTableControl",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "lineRange": [
+        245,
+        295
+      ],
+      "summary": "关台操作控件，集成 CloseTableSessionAction。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:GoToBillControl",
+      "type": "function",
+      "name": "GoToBillControl",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "lineRange": [
+        297,
+        329
+      ],
+      "summary": "跳转账单/结账页的控制按钮。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:WaiterTableOccupiedToolbar",
+      "type": "function",
+      "name": "WaiterTableOccupiedToolbar",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "lineRange": [
+        348,
+        415
+      ],
+      "summary": "占用中桌台的顶部工具栏，含结账、账单与关台操作。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:WaiterTableOrderedItemsPanel",
+      "type": "function",
+      "name": "WaiterTableOrderedItemsPanel",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "lineRange": [
+        426,
+        470
+      ],
+      "summary": "已点菜品列表面板，支持数量调整与作废展示。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/components/waiter/waiter-table-card.test.ts",
+      "type": "file",
+      "name": "waiter-table-card.test.ts",
+      "filePath": "apps/web/src/components/waiter/waiter-table-card.test.ts",
+      "summary": "waiter-table-card 模块单元测试，验证桌台卡片数据构建与活跃订单金额汇总。",
+      "tags": [
+        "test",
+        "waiter",
+        "table-card"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "type": "file",
+      "name": "waiter-table-card.ts",
+      "filePath": "apps/web/src/components/waiter/waiter-table-card.ts",
+      "summary": "将桌台、订单与自助餐状态聚合为服务员看板卡片视图的数据构建器。",
+      "tags": [
+        "utility",
+        "waiter",
+        "data-model"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-card.ts:buildWaiterTableCard",
+      "type": "function",
+      "name": "buildWaiterTableCard",
+      "filePath": "apps/web/src/components/waiter/waiter-table-card.ts",
+      "lineRange": [
+        31,
+        113
+      ],
+      "summary": "聚合桌台元数据、订单摘要、自助餐状态生成卡片视图模型。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-card.ts:sumActiveOrderItemsTotal",
+      "type": "function",
+      "name": "sumActiveOrderItemsTotal",
+      "filePath": "apps/web/src/components/waiter/waiter-table-card.ts",
+      "lineRange": [
+        116,
+        126
+      ],
+      "summary": "汇总非作废订单行的金额合计。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/auto-enqueue-station-tickets.ts",
+      "type": "file",
+      "name": "auto-enqueue-station-tickets.ts",
+      "filePath": "apps/web/src/lib/auto-enqueue-station-tickets.ts",
+      "summary": "顾客下单后自动将厨房工位小票入队，并通过 Toast 提示结果。",
+      "tags": [
+        "service",
+        "kitchen",
+        "print"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/auto-enqueue-station-tickets.ts:autoEnqueueStationTicketsAfterSubmit",
+      "type": "function",
+      "name": "autoEnqueueStationTicketsAfterSubmit",
+      "filePath": "apps/web/src/lib/auto-enqueue-station-tickets.ts",
+      "lineRange": [
+        17,
+        49
+      ],
+      "summary": "下单成功后按订单项自动入队厨房工位小票并提示。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "type": "file",
+      "name": "bill-split-by-item-lines.ts",
+      "filePath": "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "summary": "从订单行构建按菜品拆账的 line spec 与拆分行模型，供拆账 UI 与校验使用。",
+      "tags": [
+        "utility",
+        "bill-split",
+        "type-definition"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item-lines.ts:buildBillSplitOrderLines",
+      "type": "function",
+      "name": "buildBillSplitOrderLines",
+      "filePath": "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "lineRange": [
+        38,
+        46
+      ],
+      "summary": "从订单列表构建可拆账的 order line 集合。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item-lines.ts:buildByItemLineSpec",
+      "type": "function",
+      "name": "buildByItemLineSpec",
+      "filePath": "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "lineRange": [
+        48,
+        68
+      ],
+      "summary": "为单条订单行构建 ByItemLineSpec 拆账规格。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item-lines.ts:buildByItemLineSpecs",
+      "type": "function",
+      "name": "buildByItemLineSpecs",
+      "filePath": "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "lineRange": [
+        70,
+        72
+      ],
+      "summary": "批量构建所有订单行的 line spec。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item-lines.ts:byItemSplitLineFromOrderLine",
+      "type": "function",
+      "name": "byItemSplitLineFromOrderLine",
+      "filePath": "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "lineRange": [
+        74,
+        97
+      ],
+      "summary": "将订单行映射为 ByItemSplitLine 拆分行模型。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/bill-split-by-item.test.ts",
+      "type": "file",
+      "name": "bill-split-by-item.test.ts",
+      "filePath": "apps/web/src/lib/bill-split-by-item.test.ts",
+      "summary": "按菜品拆账核心逻辑的单元测试，覆盖数量解析、自助餐份额与分配校验。",
+      "tags": [
+        "test",
+        "bill-split"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.test.ts:row",
+      "type": "function",
+      "name": "row",
+      "filePath": "apps/web/src/lib/bill-split-by-item.test.ts",
+      "lineRange": [
+        23,
+        35
+      ],
+      "summary": "row：bill-split-by-item.test 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.test.ts:buffetSpec",
+      "type": "function",
+      "name": "buffetSpec",
+      "filePath": "apps/web/src/lib/bill-split-by-item.test.ts",
+      "lineRange": [
+        56,
+        72
+      ],
+      "summary": "buffetSpec：bill-split-by-item.test 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "type": "file",
+      "name": "bill-split-by-item.ts",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "summary": "按菜品/自助餐拆账的核心领域库，含数量解析、份额计算、分配状态与拆账结果汇总。",
+      "tags": [
+        "utility",
+        "bill-split",
+        "validation",
+        "serialization"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:sanitizeQtyDigits",
+      "type": "function",
+      "name": "sanitizeQtyDigits",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        54,
+        56
+      ],
+      "summary": "清理数量输入中的非数字字符。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:validateQtyParts",
+      "type": "function",
+      "name": "validateQtyParts",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        58,
+        94
+      ],
+      "summary": "校验分数数量各部分的合法性与总和。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:parseConsumerRowQty",
+      "type": "function",
+      "name": "parseConsumerRowQty",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        96,
+        105
+      ],
+      "summary": "解析消费行的数量字段为 RationalQty。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:qtyPartsIssueLabel",
+      "type": "function",
+      "name": "qtyPartsIssueLabel",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        107,
+        116
+      ],
+      "summary": "将数量校验问题映射为用户可见标签。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:getQtyPartsRowHint",
+      "type": "function",
+      "name": "getQtyPartsRowHint",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        118,
+        126
+      ],
+      "summary": "为消费行数量输入生成提示文案。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:createByItemConsumerRow",
+      "type": "function",
+      "name": "createByItemConsumerRow",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        128,
+        137
+      ],
+      "summary": "创建新的按菜品消费分配行。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:removeByItemConsumerRow",
+      "type": "function",
+      "name": "removeByItemConsumerRow",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        140,
+        147
+      ],
+      "summary": "移除指定消费分配行并维护索引。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:parseBuffetHeadcountInput",
+      "type": "function",
+      "name": "parseBuffetHeadcountInput",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        155,
+        160
+      ],
+      "summary": "解析自助餐人数输入为整数。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:resolveBuffetRowCounts",
+      "type": "function",
+      "name": "resolveBuffetRowCounts",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        163,
+        172
+      ],
+      "summary": "根据分配解析自助餐各消费行份额数。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:parseBuffetConsumerRows",
+      "type": "function",
+      "name": "parseBuffetConsumerRows",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        174,
+        184
+      ],
+      "summary": "解析自助餐消费行集合。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:buffetSharesFromAllocations",
+      "type": "function",
+      "name": "buffetSharesFromAllocations",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        186,
+        207
+      ],
+      "summary": "buffetSharesFromAllocations：bill-split-by-item 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:withDefaultByItemLineRows",
+      "type": "function",
+      "name": "withDefaultByItemLineRows",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        210,
+        221
+      ],
+      "summary": "为拆分行填充默认消费行结构。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:parseConsumerRows",
+      "type": "function",
+      "name": "parseConsumerRows",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        227,
+        238
+      ],
+      "summary": "解析按菜品消费行输入数组。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:buffetCountSummary",
+      "type": "function",
+      "name": "buffetCountSummary",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        247,
+        264
+      ],
+      "summary": "buffetCountSummary：bill-split-by-item 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:evaluateBuffetLineShares",
+      "type": "function",
+      "name": "evaluateBuffetLineShares",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        266,
+        332
+      ],
+      "summary": "evaluateBuffetLineShares：bill-split-by-item 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:getBuffetLineStatusFromRows",
+      "type": "function",
+      "name": "getBuffetLineStatusFromRows",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        334,
+        354
+      ],
+      "summary": "从消费行计算自助餐行分配状态。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:getBuffetLineStatusFromShares",
+      "type": "function",
+      "name": "getBuffetLineStatusFromShares",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        356,
+        371
+      ],
+      "summary": "从份额数组计算自助餐行状态。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:evaluateByItemLineShares",
+      "type": "function",
+      "name": "evaluateByItemLineShares",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        397,
+        423
+      ],
+      "summary": "evaluateByItemLineShares：bill-split-by-item 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:getByItemLineStatusFromRows",
+      "type": "function",
+      "name": "getByItemLineStatusFromRows",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        425,
+        461
+      ],
+      "summary": "从消费行计算普通菜品行分配状态。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:getByItemLineStatusFromShares",
+      "type": "function",
+      "name": "getByItemLineStatusFromShares",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        463,
+        474
+      ],
+      "summary": "从份额计算普通菜品行状态。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:buffetStatusParts",
+      "type": "function",
+      "name": "buffetStatusParts",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        493,
+        511
+      ],
+      "summary": "buffetStatusParts：bill-split-by-item 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:byItemLineStatusSummary",
+      "type": "function",
+      "name": "byItemLineStatusSummary",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        516,
+        605
+      ],
+      "summary": "汇总单行拆账状态为用户可读摘要。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:isByItemLineComplete",
+      "type": "function",
+      "name": "isByItemLineComplete",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        607,
+        609
+      ],
+      "summary": "判断单行拆账是否已完全分配。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:countByItemAllocationProgress",
+      "type": "function",
+      "name": "countByItemAllocationProgress",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        611,
+        621
+      ],
+      "summary": "统计拆账分配进度（已完成行数/总行数）。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:isRowQtyOverAllocated",
+      "type": "function",
+      "name": "isRowQtyOverAllocated",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        623,
+        636
+      ],
+      "summary": "检测消费行是否超额分配。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:lineAllocationComplete",
+      "type": "function",
+      "name": "lineAllocationComplete",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        638,
+        645
+      ],
+      "summary": "判断普通菜品行分配是否完成。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:byItemLinePriceShare",
+      "type": "function",
+      "name": "byItemLinePriceShare",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        647,
+        676
+      ],
+      "summary": "计算单行各消费人的价格份额。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:buffetLineAllocationComplete",
+      "type": "function",
+      "name": "buffetLineAllocationComplete",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        678,
+        687
+      ],
+      "summary": "判断自助餐行分配是否完成。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:buildByItemAllocationsFromRows",
+      "type": "function",
+      "name": "buildByItemAllocationsFromRows",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        689,
+        704
+      ],
+      "summary": "从消费行构建分配映射。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:buildByItemAllocationsFromPersons",
+      "type": "function",
+      "name": "buildByItemAllocationsFromPersons",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        706,
+        751
+      ],
+      "summary": "从 split persons 反向构建分配。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:calcByItemSplitResults",
+      "type": "function",
+      "name": "calcByItemSplitResults",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        753,
+        806
+      ],
+      "summary": "计算按菜品拆账最终结果（金额与人）。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:buildSplitPersonsFromAllocations",
+      "type": "function",
+      "name": "buildSplitPersonsFromAllocations",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        808,
+        830
+      ],
+      "summary": "从分配映射构建 SplitPerson 列表。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:consumersForLineFromPersons",
+      "type": "function",
+      "name": "consumersForLineFromPersons",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        832,
+        870
+      ],
+      "summary": "从 persons 提取某行的消费者列表。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:buffetShareUnitPrice",
+      "type": "function",
+      "name": "buffetShareUnitPrice",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        872,
+        879
+      ],
+      "summary": "计算自助餐单人份额单价。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:shareQtyLabel",
+      "type": "function",
+      "name": "shareQtyLabel",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        881,
+        883
+      ],
+      "summary": "格式化份额数量为展示标签。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:legacyEqualShareQtyLabel",
+      "type": "function",
+      "name": "legacyEqualShareQtyLabel",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        888,
+        892
+      ],
+      "summary": "遗留均分模式下的数量标签。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:legacyEqualLineShare",
+      "type": "function",
+      "name": "legacyEqualLineShare",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        895,
+        909
+      ],
+      "summary": "遗留均分模式下计算行份额。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-by-item.ts:legacyAssigneeIdsForKey",
+      "type": "function",
+      "name": "legacyAssigneeIdsForKey",
+      "filePath": "apps/web/src/lib/bill-split-by-item.ts",
+      "lineRange": [
+        912,
+        923
+      ],
+      "summary": "遗留模式下获取行的 assignee ID 列表。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/bill-split-draft.test.ts",
+      "type": "file",
+      "name": "bill-split-draft.test.ts",
+      "filePath": "apps/web/src/lib/bill-split-draft.test.ts",
+      "summary": "拆账草稿 computeSplitResults 与 validateSplitDraft 的单元测试。",
+      "tags": [
+        "test",
+        "bill-split"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-draft.test.ts:menuLine",
+      "type": "function",
+      "name": "menuLine",
+      "filePath": "apps/web/src/lib/bill-split-draft.test.ts",
+      "lineRange": [
+        8,
+        20
+      ],
+      "summary": "menuLine：bill-split-draft.test 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/bill-split-draft.ts",
+      "type": "file",
+      "name": "bill-split-draft.ts",
+      "filePath": "apps/web/src/lib/bill-split-draft.ts",
+      "summary": "拆账草稿层：汇总分配结果并调用校验，供账单页提交前使用。",
+      "tags": [
+        "utility",
+        "bill-split",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-draft.ts:computeSplitResults",
+      "type": "function",
+      "name": "computeSplitResults",
+      "filePath": "apps/web/src/lib/bill-split-draft.ts",
+      "lineRange": [
+        22,
+        61
+      ],
+      "summary": "根据草稿消费行计算拆账结果与应付明细。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-draft.ts:validateSplitDraft",
+      "type": "function",
+      "name": "validateSplitDraft",
+      "filePath": "apps/web/src/lib/bill-split-draft.ts",
+      "lineRange": [
+        63,
+        74
+      ],
+      "summary": "校验拆账草稿完整性与金额一致性。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:BuffetPanelSection",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:WaiterCheckoutPendingBanner",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:WaiterCheckoutPendingBanner",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:BuffetGuestCounter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:BuffetPriceMeta",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:WaiterTableBuffetPanel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:WaiterTableBuffetPanel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:ContinueOrderingControl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:ToolbarCloseTableControl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:GoToBillControl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:WaiterTableOccupiedToolbar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:WaiterTableOccupiedToolbar",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:WaiterTableOrderedItemsPanel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:WaiterTableOrderedItemsPanel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "file:apps/web/src/components/dashboard/CloseTableSessionAction.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "file:apps/web/src/components/menu/CartQtyStepper.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "file:apps/web/src/components/waiter/waiter-messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "file:apps/web/src/components/waiter/waiter-table-detail-ui.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "file:apps/web/src/components/waiter/WaiterOrderQtyMinus.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "file:apps/web/src/lib/buffet-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-card.test.ts",
+      "target": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-card.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "target": "file:apps/web/src/components/waiter/waiter-table-card.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "target": "function:apps/web/src/components/waiter/waiter-table-card.ts:buildWaiterTableCard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "target": "function:apps/web/src/components/waiter/waiter-table-card.ts:buildWaiterTableCard",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "target": "function:apps/web/src/components/waiter/waiter-table-card.ts:sumActiveOrderItemsTotal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "target": "function:apps/web/src/components/waiter/waiter-table-card.ts:sumActiveOrderItemsTotal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "target": "file:apps/web/src/lib/buffet-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "target": "file:apps/web/src/lib/cart-totals.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "target": "file:apps/web/src/lib/menu-item-code.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "target": "file:apps/web/src/lib/order-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "target": "file:apps/web/src/lib/order-list-display.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "target": "file:apps/web/src/lib/order-status.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "target": "file:apps/web/src/lib/table-guest-count.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/auto-enqueue-station-tickets.ts",
+      "target": "function:apps/web/src/lib/auto-enqueue-station-tickets.ts:autoEnqueueStationTicketsAfterSubmit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/auto-enqueue-station-tickets.ts",
+      "target": "function:apps/web/src/lib/auto-enqueue-station-tickets.ts:autoEnqueueStationTicketsAfterSubmit",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auto-enqueue-station-tickets.ts",
+      "target": "file:apps/web/src/components/ui/Toast.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/auto-enqueue-station-tickets.ts",
+      "target": "file:apps/web/src/lib/i18n/menu-page-messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/auto-enqueue-station-tickets.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item-lines.ts:buildBillSplitOrderLines",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item-lines.ts:buildBillSplitOrderLines",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item-lines.ts:buildByItemLineSpec",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item-lines.ts:buildByItemLineSpec",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item-lines.ts:buildByItemLineSpecs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item-lines.ts:buildByItemLineSpecs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item-lines.ts:byItemSplitLineFromOrderLine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item-lines.ts:byItemSplitLineFromOrderLine",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "target": "file:apps/web/src/lib/order-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.test.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.test.ts:row",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.test.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.test.ts:buffetSpec",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.test.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.test.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.test.ts",
+      "target": "file:apps/web/src/lib/bill-split-validate.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:sanitizeQtyDigits",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:sanitizeQtyDigits",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:validateQtyParts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:validateQtyParts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:parseConsumerRowQty",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:parseConsumerRowQty",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:qtyPartsIssueLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:qtyPartsIssueLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:getQtyPartsRowHint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:getQtyPartsRowHint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:createByItemConsumerRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:createByItemConsumerRow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:removeByItemConsumerRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:removeByItemConsumerRow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:parseBuffetHeadcountInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:parseBuffetHeadcountInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:resolveBuffetRowCounts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:resolveBuffetRowCounts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:parseBuffetConsumerRows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:parseBuffetConsumerRows",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:buffetSharesFromAllocations",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:withDefaultByItemLineRows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:withDefaultByItemLineRows",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:parseConsumerRows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:parseConsumerRows",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:buffetCountSummary",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:evaluateBuffetLineShares",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:getBuffetLineStatusFromRows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:getBuffetLineStatusFromRows",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:getBuffetLineStatusFromShares",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:getBuffetLineStatusFromShares",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:evaluateByItemLineShares",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:getByItemLineStatusFromRows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:getByItemLineStatusFromRows",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:getByItemLineStatusFromShares",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:getByItemLineStatusFromShares",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:buffetStatusParts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:byItemLineStatusSummary",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:byItemLineStatusSummary",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:isByItemLineComplete",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:isByItemLineComplete",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:countByItemAllocationProgress",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:countByItemAllocationProgress",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:isRowQtyOverAllocated",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:isRowQtyOverAllocated",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:lineAllocationComplete",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:lineAllocationComplete",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:byItemLinePriceShare",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:byItemLinePriceShare",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:buffetLineAllocationComplete",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:buffetLineAllocationComplete",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:buildByItemAllocationsFromRows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:buildByItemAllocationsFromRows",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:buildByItemAllocationsFromPersons",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:buildByItemAllocationsFromPersons",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:calcByItemSplitResults",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:calcByItemSplitResults",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:buildSplitPersonsFromAllocations",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:buildSplitPersonsFromAllocations",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:consumersForLineFromPersons",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:consumersForLineFromPersons",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:buffetShareUnitPrice",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:buffetShareUnitPrice",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:shareQtyLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:shareQtyLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:legacyEqualShareQtyLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:legacyEqualShareQtyLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:legacyEqualLineShare",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:legacyEqualLineShare",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:legacyAssigneeIdsForKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:legacyAssigneeIdsForKey",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "file:apps/web/src/lib/rational-qty.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-draft.test.ts",
+      "target": "function:apps/web/src/lib/bill-split-draft.test.ts:menuLine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-draft.test.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-draft.test.ts",
+      "target": "file:apps/web/src/lib/bill-split-draft.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-draft.test.ts",
+      "target": "file:apps/web/src/lib/customer-bill-sync.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-draft.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-draft.ts",
+      "target": "file:apps/web/src/lib/bill-split-draft.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-draft.ts",
+      "target": "function:apps/web/src/lib/bill-split-draft.ts:computeSplitResults",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-draft.ts",
+      "target": "function:apps/web/src/lib/bill-split-draft.ts:computeSplitResults",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-draft.ts",
+      "target": "function:apps/web/src/lib/bill-split-draft.ts:validateSplitDraft",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-draft.ts",
+      "target": "function:apps/web/src/lib/bill-split-draft.ts:validateSplitDraft",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-draft.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-draft.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-draft.ts",
+      "target": "file:apps/web/src/lib/bill-split-validate.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-draft.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-card.ts:buildWaiterTableCard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx:WaiterTableBuffetPanel",
+      "target": "function:apps/web/src/lib/buffet-order.ts:formatBuffetHeadcountLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/bill-split-draft.ts:computeSplitResults",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:calcByItemSplitResults",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/bill-split-draft.ts:validateSplitDraft",
+      "target": "function:apps/web/src/lib/bill-split-validate.ts:validateBillSplit",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/waiter/waiter-table-card.ts:buildWaiterTableCard",
+      "target": "function:apps/web/src/lib/buffet-order.ts:aggregateBuffetForOrders",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

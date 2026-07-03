@@ -1,0 +1,1382 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/pt-nif.test.ts",
+      "type": "file",
+      "name": "pt-nif.test.ts",
+      "filePath": "apps/web/src/lib/pt-nif.test.ts",
+      "summary": "葡萄牙 NIF（税号）校验与格式化函数的单元测试，覆盖合法/非法输入与边界情况。",
+      "tags": [
+        "test",
+        "validation",
+        "pt-nif"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/pt-nif.ts",
+      "type": "file",
+      "name": "pt-nif.ts",
+      "filePath": "apps/web/src/lib/pt-nif.ts",
+      "summary": "提供葡萄牙 NIF 税号的规范化、格式化、校验与解析工具，用于结账发票信息 /checkout/request API。",
+      "tags": [
+        "utility",
+        "validation",
+        "pt-nif"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/pt-nif.ts:normalizePortugueseNif",
+      "type": "function",
+      "name": "normalizePortugueseNif",
+      "filePath": "apps/web/src/lib/pt-nif.ts",
+      "lineRange": [
+        2,
+        4
+      ],
+      "summary": "去除 NIF 非数字字符并截取前 9 位。",
+      "tags": [
+        "utility",
+        "pt-nif",
+        "normalization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/pt-nif.ts:formatPortugueseNif",
+      "type": "function",
+      "name": "formatPortugueseNif",
+      "filePath": "apps/web/src/lib/pt-nif.ts",
+      "lineRange": [
+        7,
+        12
+      ],
+      "summary": "将 NIF 格式化为 XXX XXX XXX 显示形式。",
+      "tags": [
+        "utility",
+        "pt-nif",
+        "formatting"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/pt-nif.ts:validatePortugueseNif",
+      "type": "function",
+      "name": "validatePortugueseNif",
+      "filePath": "apps/web/src/lib/pt-nif.ts",
+      "lineRange": [
+        15,
+        28
+      ],
+      "summary": "按葡萄牙 NIF 校验算法验证 9 位税号有效性。",
+      "tags": [
+        "validation",
+        "pt-nif"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/pt-nif.ts:parsePortugueseNif",
+      "type": "function",
+      "name": "parsePortugueseNif",
+      "filePath": "apps/web/src/lib/pt-nif.ts",
+      "lineRange": [
+        31,
+        36
+      ],
+      "summary": "规范化并校验 NIF，返回 digits 或 null。",
+      "tags": [
+        "validation",
+        "pt-nif",
+        "parsing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/rational-qty.test.ts",
+      "type": "file",
+      "name": "rational-qty.test.ts",
+      "filePath": "apps/web/src/lib/rational-qty.test.ts",
+      "summary": "有理数数量解析、运算与格式化逻辑的单元测试。",
+      "tags": [
+        "test",
+        "rational-qty",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/rational-qty.ts",
+      "type": "file",
+      "name": "rational-qty.ts",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "summary": "实现分数/小数数量解析与有理数运算，支持按菜品分账时的精确数量分配与比较。",
+      "tags": [
+        "utility",
+        "rational-qty",
+        "bill-split"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:gcd",
+      "type": "function",
+      "name": "gcd",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        3,
+        12
+      ],
+      "summary": "计算两个整数的最大公约数，用于分数约分。",
+      "tags": [
+        "utility",
+        "math"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:normalizeRational",
+      "type": "function",
+      "name": "normalizeRational",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        14,
+        23
+      ],
+      "summary": "将有理数约分为最简分数并处理符号。",
+      "tags": [
+        "utility",
+        "rational-qty"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:rationalFromInt",
+      "type": "function",
+      "name": "rationalFromInt",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        25,
+        28
+      ],
+      "summary": "从整数构造规范有理数。",
+      "tags": [
+        "utility",
+        "rational-qty"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:rationalFromNumber",
+      "type": "function",
+      "name": "rationalFromNumber",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        30,
+        34
+      ],
+      "summary": "从浮点数构造近似有理数。",
+      "tags": [
+        "utility",
+        "rational-qty"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:parseQtyInput",
+      "type": "function",
+      "name": "parseQtyInput",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        37,
+        71
+      ],
+      "summary": "解析多种数量输入格式（整数、小数、分数、带整数分数）。",
+      "tags": [
+        "validation",
+        "rational-qty",
+        "parsing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:addRationals",
+      "type": "function",
+      "name": "addRationals",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        73,
+        75
+      ],
+      "summary": "两有理数相加并规范化。",
+      "tags": [
+        "utility",
+        "rational-qty"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:sumRationals",
+      "type": "function",
+      "name": "sumRationals",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        77,
+        79
+      ],
+      "summary": "对有理数数组求和。",
+      "tags": [
+        "utility",
+        "rational-qty"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:rationalsEqual",
+      "type": "function",
+      "name": "rationalsEqual",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        81,
+        85
+      ],
+      "summary": "比较两有理数是否相等。",
+      "tags": [
+        "utility",
+        "rational-qty"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:rationalToNumber",
+      "type": "function",
+      "name": "rationalToNumber",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        87,
+        90
+      ],
+      "summary": "将有理数转换为浮点数。",
+      "tags": [
+        "utility",
+        "rational-qty"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:formatRational",
+      "type": "function",
+      "name": "formatRational",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        92,
+        103
+      ],
+      "summary": "将有理数格式化为可读字符串（整数或分数）。",
+      "tags": [
+        "utility",
+        "rational-qty",
+        "formatting"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:compareRationalSumToTarget",
+      "type": "function",
+      "name": "compareRationalSumToTarget",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        105,
+        111
+      ],
+      "summary": "比较份额总和与目标数量的关系（不足/相等/超出）。",
+      "tags": [
+        "validation",
+        "rational-qty",
+        "bill-split"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/receipt-payer-label.ts",
+      "type": "file",
+      "name": "receipt-payer-label.ts",
+      "filePath": "apps/web/src/lib/receipt-payer-label.ts",
+      "summary": "将分账付款人名称转换为适合收据打印的本地化标签，处理整桌付款与匿名占位符。",
+      "tags": [
+        "utility",
+        "receipt",
+        "i18n"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/receipt-payer-label.ts:receiptPayerNameForPrint",
+      "type": "function",
+      "name": "receiptPayerNameForPrint",
+      "filePath": "apps/web/src/lib/receipt-payer-label.ts",
+      "lineRange": [
+        14,
+        30
+      ],
+      "summary": "生成收据上的付款人显示名，本地化整桌付款与 Person N 占位符。",
+      "tags": [
+        "utility",
+        "receipt",
+        "i18n"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/request-checkout-request.ts",
+      "type": "file",
+      "name": "request-checkout-request.ts",
+      "filePath": "apps/web/src/lib/request-checkout-request.ts",
+      "summary": "客户端 fetch 封装，向餐厅 checkout/request API 提交结账请求并解析响应。",
+      "tags": [
+        "api-handler",
+        "checkout",
+        "client"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/request-checkout-request.ts:requestCheckoutRequest",
+      "type": "function",
+      "name": "requestCheckoutRequest",
+      "filePath": "apps/web/src/lib/request-checkout-request.ts",
+      "lineRange": [
+        3,
+        44
+      ],
+      "summary": "POST 结账请求到 /api/restaurants/[slug]/checkout/request。",
+      "tags": [
+        "api-handler",
+        "checkout"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/request-customer-context.ts",
+      "type": "file",
+      "name": "request-customer-context.ts",
+      "filePath": "apps/web/src/lib/request-customer-context.ts",
+      "summary": "从服务端拉取顾客会话与账单上下文（session/bill API），供菜单页与 BillPage 初始化。",
+      "tags": [
+        "api-handler",
+        "customer",
+        "client"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/request-customer-context.ts:requestCustomerSessionContext",
+      "type": "function",
+      "name": "requestCustomerSessionContext",
+      "filePath": "apps/web/src/lib/request-customer-context.ts",
+      "lineRange": [
+        29,
+        33
+      ],
+      "summary": "拉取顾客会话上下文（点餐门控、session 状态）。",
+      "tags": [
+        "api-handler",
+        "customer"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/request-customer-context.ts:requestCustomerBillContext",
+      "type": "function",
+      "name": "requestCustomerBillContext",
+      "filePath": "apps/web/src/lib/request-customer-context.ts",
+      "lineRange": [
+        35,
+        39
+      ],
+      "summary": "拉取顾客账单上下文（订单、分账状态）。",
+      "tags": [
+        "api-handler",
+        "customer"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/request-order-receipt-print.ts",
+      "type": "file",
+      "name": "request-order-receipt-print.ts",
+      "filePath": "apps/web/src/lib/request-order-receipt-print.ts",
+      "summary": "请求服务端触发订单/分账收据打印，支持 quiet 模式与 checkout/split 变体解析。",
+      "tags": [
+        "api-handler",
+        "print",
+        "receipt"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/request-order-receipt-print.ts:requestOrderReceiptPrint",
+      "type": "function",
+      "name": "requestOrderReceiptPrint",
+      "filePath": "apps/web/src/lib/request-order-receipt-print.ts",
+      "lineRange": [
+        32,
+        92
+      ],
+      "summary": "请求服务端入队收据打印任务，处理错误与变体。",
+      "tags": [
+        "api-handler",
+        "print",
+        "receipt"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/request-order-receipt-print.ts:requestOrderReceiptPrintQuiet",
+      "type": "function",
+      "name": "requestOrderReceiptPrintQuiet",
+      "filePath": "apps/web/src/lib/request-order-receipt-print.ts",
+      "lineRange": [
+        95,
+        97
+      ],
+      "summary": "静默版收据打印请求，吞掉非关键错误。",
+      "tags": [
+        "api-handler",
+        "print"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/resolve-append-cart-items.test.ts",
+      "type": "file",
+      "name": "resolve-append-cart-items.test.ts",
+      "filePath": "apps/web/src/lib/resolve-append-cart-items.test.ts",
+      "summary": "追加购物车行解析与菜单项解析的集成测试，含 mock Supabase admin 与边界校验。",
+      "tags": [
+        "test",
+        "cart",
+        "append-order"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/resolve-append-cart-items.test.ts:mockAdminForAppend",
+      "type": "function",
+      "name": "mockAdminForAppend",
+      "filePath": "apps/web/src/lib/resolve-append-cart-items.test.ts",
+      "lineRange": [
+        14,
+        40
+      ],
+      "summary": "测试用 Supabase admin mock，模拟 menu_items 与 categories 查询。",
+      "tags": [
+        "test",
+        "mock"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "type": "file",
+      "name": "resolve-append-cart-items.ts",
+      "filePath": "apps/web/src/lib/resolve-append-cart-items.ts",
+      "summary": "将客户端购物车原始行解析为服务端 OrderItem，校验数量/备注并查询菜单与分类元数据。",
+      "tags": [
+        "validation",
+        "cart",
+        "append-order"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/resolve-append-cart-items.ts:generateAppendBatchId",
+      "type": "function",
+      "name": "generateAppendBatchId",
+      "filePath": "apps/web/src/lib/resolve-append-cart-items.ts",
+      "lineRange": [
+        53,
+        55
+      ],
+      "summary": "生成追加订单批次的唯一 batch ID。",
+      "tags": [
+        "utility",
+        "append-order"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/resolve-append-cart-items.ts:parseAppendCartRawItems",
+      "type": "function",
+      "name": "parseAppendCartRawItems",
+      "filePath": "apps/web/src/lib/resolve-append-cart-items.ts",
+      "lineRange": [
+        103,
+        151
+      ],
+      "summary": "解析并合并客户端提交的原始购物车行，校验禁止字段与数量。",
+      "tags": [
+        "validation",
+        "cart"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/resolve-append-cart-items.ts:menuRowToOrderItem",
+      "type": "function",
+      "name": "menuRowToOrderItem",
+      "filePath": "apps/web/src/lib/resolve-append-cart-items.ts",
+      "lineRange": [
+        153,
+        177
+      ],
+      "summary": "将菜单 DB 行与购物车行组合为完整 OrderItem。",
+      "tags": [
+        "serialization",
+        "cart"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/resolve-append-cart-items.ts:resolveAppendCartItems",
+      "type": "function",
+      "name": "resolveAppendCartItems",
+      "filePath": "apps/web/src/lib/resolve-append-cart-items.ts",
+      "lineRange": [
+        182,
+        236
+      ],
+      "summary": "主入口：查询菜单/分类并将购物车行解析为可追加的 OrderItem 列表。",
+      "tags": [
+        "service",
+        "append-order"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/split-person-label.test.ts",
+      "type": "file",
+      "name": "split-person-label.test.ts",
+      "filePath": "apps/web/src/lib/split-person-label.test.ts",
+      "summary": "分账付款人名称本地化与整桌付款标识的单元测试。",
+      "tags": [
+        "test",
+        "i18n",
+        "bill-split"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/split-person-label.ts",
+      "type": "file",
+      "name": "split-person-label.ts",
+      "filePath": "apps/web/src/lib/split-person-label.ts",
+      "summary": "分账付款人显示名本地化工具，识别整桌付款键并提供多语言整桌标签。",
+      "tags": [
+        "utility",
+        "i18n",
+        "bill-split"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/split-person-label.ts:isWholeTablePayerName",
+      "type": "function",
+      "name": "isWholeTablePayerName",
+      "filePath": "apps/web/src/lib/split-person-label.ts",
+      "lineRange": [
+        10,
+        13
+      ],
+      "summary": "判断名称是否为整桌付款标识（含 legacy 标签）。",
+      "tags": [
+        "utility",
+        "bill-split"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/split-person-label.ts:uiLangFromPrintLocale",
+      "type": "function",
+      "name": "uiLangFromPrintLocale",
+      "filePath": "apps/web/src/lib/split-person-label.ts",
+      "lineRange": [
+        15,
+        20
+      ],
+      "summary": "从打印 locale 推断 UI 语言（pt/en/zh）。",
+      "tags": [
+        "utility",
+        "i18n"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/split-person-label.ts:wholeTableLabelForLang",
+      "type": "function",
+      "name": "wholeTableLabelForLang",
+      "filePath": "apps/web/src/lib/split-person-label.ts",
+      "lineRange": [
+        22,
+        24
+      ],
+      "summary": "返回指定语言的整桌付款显示标签。",
+      "tags": [
+        "utility",
+        "i18n"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/split-person-label.ts:localizeSplitPersonName",
+      "type": "function",
+      "name": "localizeSplitPersonName",
+      "filePath": "apps/web/src/lib/split-person-label.ts",
+      "lineRange": [
+        27,
+        36
+      ],
+      "summary": "本地化分账付款人名称，整桌付款返回翻译标签。",
+      "tags": [
+        "utility",
+        "i18n",
+        "bill-split"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "type": "file",
+      "name": "station-ticket-auto-rate-limit.ts",
+      "filePath": "apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "summary": "厨房站票自动入队 API 的内存滑动窗口速率限制，按 IP 与餐厅/订单维度限流。",
+      "tags": [
+        "middleware",
+        "rate-limit",
+        "print"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/station-ticket-auto-rate-limit.ts:touch",
+      "type": "function",
+      "name": "touch",
+      "filePath": "apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "lineRange": [
+        11,
+        23
+      ],
+      "summary": "滑动窗口计数器 touch，超限返回 retryAfter 秒数。",
+      "tags": [
+        "utility",
+        "rate-limit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/station-ticket-auto-rate-limit.ts:autoEnqueueRateLimitCheck",
+      "type": "function",
+      "name": "autoEnqueueRateLimitCheck",
+      "filePath": "apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "lineRange": [
+        26,
+        40
+      ],
+      "summary": "检查 IP 与餐厅/订单维度的自动入队速率限制。",
+      "tags": [
+        "middleware",
+        "rate-limit"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/pt-nif.ts",
+      "target": "function:apps/web/src/lib/pt-nif.ts:normalizePortugueseNif",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/pt-nif.ts",
+      "target": "function:apps/web/src/lib/pt-nif.ts:normalizePortugueseNif",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/pt-nif.ts",
+      "target": "function:apps/web/src/lib/pt-nif.ts:formatPortugueseNif",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/pt-nif.ts",
+      "target": "function:apps/web/src/lib/pt-nif.ts:formatPortugueseNif",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/pt-nif.ts",
+      "target": "function:apps/web/src/lib/pt-nif.ts:validatePortugueseNif",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/pt-nif.ts",
+      "target": "function:apps/web/src/lib/pt-nif.ts:validatePortugueseNif",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/pt-nif.ts",
+      "target": "function:apps/web/src/lib/pt-nif.ts:parsePortugueseNif",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/pt-nif.ts",
+      "target": "function:apps/web/src/lib/pt-nif.ts:parsePortugueseNif",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:gcd",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:normalizeRational",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:normalizeRational",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalFromInt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalFromInt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalFromNumber",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalFromNumber",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:parseQtyInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:parseQtyInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:addRationals",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:addRationals",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:sumRationals",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:sumRationals",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalsEqual",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalsEqual",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalToNumber",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalToNumber",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:formatRational",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:formatRational",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:compareRationalSumToTarget",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:compareRationalSumToTarget",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/receipt-payer-label.ts",
+      "target": "function:apps/web/src/lib/receipt-payer-label.ts:receiptPayerNameForPrint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/receipt-payer-label.ts",
+      "target": "function:apps/web/src/lib/receipt-payer-label.ts:receiptPayerNameForPrint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/request-checkout-request.ts",
+      "target": "function:apps/web/src/lib/request-checkout-request.ts:requestCheckoutRequest",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/request-checkout-request.ts",
+      "target": "function:apps/web/src/lib/request-checkout-request.ts:requestCheckoutRequest",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/request-customer-context.ts",
+      "target": "function:apps/web/src/lib/request-customer-context.ts:requestCustomerSessionContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/request-customer-context.ts",
+      "target": "function:apps/web/src/lib/request-customer-context.ts:requestCustomerSessionContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/request-customer-context.ts",
+      "target": "function:apps/web/src/lib/request-customer-context.ts:requestCustomerBillContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/request-customer-context.ts",
+      "target": "function:apps/web/src/lib/request-customer-context.ts:requestCustomerBillContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/request-order-receipt-print.ts",
+      "target": "function:apps/web/src/lib/request-order-receipt-print.ts:requestOrderReceiptPrint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/request-order-receipt-print.ts",
+      "target": "function:apps/web/src/lib/request-order-receipt-print.ts:requestOrderReceiptPrint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/request-order-receipt-print.ts",
+      "target": "function:apps/web/src/lib/request-order-receipt-print.ts:requestOrderReceiptPrintQuiet",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/request-order-receipt-print.ts",
+      "target": "function:apps/web/src/lib/request-order-receipt-print.ts:requestOrderReceiptPrintQuiet",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.test.ts",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.test.ts:mockAdminForAppend",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:generateAppendBatchId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:generateAppendBatchId",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:parseAppendCartRawItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:parseAppendCartRawItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:menuRowToOrderItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:resolveAppendCartItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:resolveAppendCartItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "function:apps/web/src/lib/split-person-label.ts:isWholeTablePayerName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "function:apps/web/src/lib/split-person-label.ts:isWholeTablePayerName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "function:apps/web/src/lib/split-person-label.ts:uiLangFromPrintLocale",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "function:apps/web/src/lib/split-person-label.ts:uiLangFromPrintLocale",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "function:apps/web/src/lib/split-person-label.ts:wholeTableLabelForLang",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "function:apps/web/src/lib/split-person-label.ts:wholeTableLabelForLang",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "function:apps/web/src/lib/split-person-label.ts:localizeSplitPersonName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "function:apps/web/src/lib/split-person-label.ts:localizeSplitPersonName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "target": "function:apps/web/src/lib/station-ticket-auto-rate-limit.ts:touch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "target": "function:apps/web/src/lib/station-ticket-auto-rate-limit.ts:autoEnqueueRateLimitCheck",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "target": "function:apps/web/src/lib/station-ticket-auto-rate-limit.ts:autoEnqueueRateLimitCheck",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/pt-nif.test.ts",
+      "target": "file:apps/web/src/lib/pt-nif.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.test.ts",
+      "target": "file:apps/web/src/lib/rational-qty.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/receipt-payer-label.ts",
+      "target": "file:apps/web/src/lib/split-person-label.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/request-checkout-request.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/request-customer-context.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/request-order-receipt-print.ts",
+      "target": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.test.ts",
+      "target": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "file:apps/web/src/lib/cart-totals.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "file:apps/web/src/lib/menu-print-label.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.test.ts",
+      "target": "file:apps/web/src/lib/split-person-label.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/pt-nif.ts",
+      "target": "file:apps/web/src/lib/pt-nif.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "file:apps/web/src/lib/rational-qty.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "file:apps/web/src/lib/resolve-append-cart-items.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "file:apps/web/src/lib/split-person-label.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:apps/web/src/lib/receipt-payer-label.ts:receiptPayerNameForPrint",
+      "target": "function:apps/web/src/lib/split-person-label.ts:isWholeTablePayerName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/receipt-payer-label.ts:receiptPayerNameForPrint",
+      "target": "function:apps/web/src/lib/split-person-label.ts:wholeTableLabelForLang",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/receipt-payer-label.ts:receiptPayerNameForPrint",
+      "target": "function:apps/web/src/lib/split-person-label.ts:uiLangFromPrintLocale",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/split-person-label.ts:localizeSplitPersonName",
+      "target": "function:apps/web/src/lib/split-person-label.ts:isWholeTablePayerName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/split-person-label.ts:wholeTableLabelForLang",
+      "target": "function:apps/web/src/lib/i18n/messages.ts:getMessages",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/resolve-append-cart-items.ts:parseAppendCartRawItems",
+      "target": "function:apps/web/src/lib/cart-totals.ts:coerceCartQty",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/resolve-append-cart-items.ts:menuRowToOrderItem",
+      "target": "function:apps/web/src/lib/cart-totals.ts:coerceCartPrice",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/resolve-append-cart-items.ts:menuRowToOrderItem",
+      "target": "function:apps/web/src/lib/menu-print-label.ts:categoryCodePathFromLeaf",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/request-order-receipt-print.ts:requestOrderReceiptPrintQuiet",
+      "target": "function:apps/web/src/lib/request-order-receipt-print.ts:requestOrderReceiptPrint",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/pt-nif.ts:formatPortugueseNif",
+      "target": "function:apps/web/src/lib/pt-nif.ts:normalizePortugueseNif",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/pt-nif.ts:validatePortugueseNif",
+      "target": "function:apps/web/src/lib/pt-nif.ts:normalizePortugueseNif",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/pt-nif.ts:parsePortugueseNif",
+      "target": "function:apps/web/src/lib/pt-nif.ts:validatePortugueseNif",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/resolve-append-cart-items.ts:resolveAppendCartItems",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:menuRowToOrderItem",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/resolve-append-cart-items.ts:resolveAppendCartItems",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:parseAppendCartRawItems",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/station-ticket-auto-rate-limit.ts:autoEnqueueRateLimitCheck",
+      "target": "function:apps/web/src/lib/station-ticket-auto-rate-limit.ts:touch",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/resolve-append-cart-items.ts:resolveAppendCartItems",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:generateAppendBatchId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:sumRationals",
+      "target": "function:apps/web/src/lib/rational-qty.ts:addRationals",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:compareRationalSumToTarget",
+      "target": "function:apps/web/src/lib/rational-qty.ts:sumRationals",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/receipt-payer-label.ts",
+      "target": "file:apps/web/src/lib/split-person-label.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/lib/request-order-receipt-print.ts",
+      "target": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

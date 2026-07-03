@@ -1,0 +1,190 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {
+      "path": "apps/print-agent/wizard_url_hook.go",
+      "language": "go",
+      "sizeLines": 4,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/next.config.mjs",
+      "language": "javascript",
+      "sizeLines": 42,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/postcss.config.mjs",
+      "language": "javascript",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/scripts/phase5-manual.mts",
+      "language": "mts",
+      "sizeLines": 559,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/auth/callback/route.ts",
+      "language": "typescript",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/dashboard/buffet/page.tsx",
+      "language": "typescript",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/dashboard/settings/menu/page.tsx",
+      "language": "typescript",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/dashboard/settings/print-stations/page.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/dashboard/settings/tables/page.tsx",
+      "language": "typescript",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/globals.css",
+      "language": "css",
+      "sizeLines": 280,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "apps/web/src/lib/print-agent-auth.test.ts",
+      "language": "typescript",
+      "sizeLines": 64,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/restaurant-suspension.test.ts",
+      "language": "typescript",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/tailwind.config.ts",
+      "language": "typescript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/package.json",
+      "language": "json",
+      "sizeLines": 16,
+      "fileCategory": "config"
+    },
+    {
+      "path": "packages/shared/src/brand.test.ts",
+      "language": "typescript",
+      "sizeLines": 26,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/brand.ts",
+      "language": "typescript",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/geo-order-restriction.test.ts",
+      "language": "typescript",
+      "sizeLines": 105,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/geo-order-restriction.ts",
+      "language": "typescript",
+      "sizeLines": 74,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/index.ts",
+      "language": "typescript",
+      "sizeLines": 90,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/platform-admin-audit.ts",
+      "language": "typescript",
+      "sizeLines": 27,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/print-agent-credential-ttl.test.ts",
+      "language": "typescript",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/print-agent-credential-ttl.ts",
+      "language": "typescript",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/print-agent-device-active.ts",
+      "language": "typescript",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/print-agent-heartbeat.ts",
+      "language": "typescript",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/print-agent-revoke.ts",
+      "language": "typescript",
+      "sizeLines": 61,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "apps/print-agent/wizard_url_hook.go": [],
+    "apps/web/next.config.mjs": [],
+    "apps/web/postcss.config.mjs": [],
+    "apps/web/scripts/phase5-manual.mts": [],
+    "apps/web/src/app/auth/callback/route.ts": [],
+    "apps/web/src/app/dashboard/buffet/page.tsx": [],
+    "apps/web/src/app/dashboard/settings/menu/page.tsx": [],
+    "apps/web/src/app/dashboard/settings/print-stations/page.tsx": [],
+    "apps/web/src/app/dashboard/settings/tables/page.tsx": [],
+    "apps/web/src/app/globals.css": [],
+    "apps/web/src/lib/print-agent-auth.test.ts": [],
+    "apps/web/src/lib/restaurant-suspension.test.ts": [],
+    "apps/web/tailwind.config.ts": [],
+    "packages/shared/package.json": [],
+    "packages/shared/src/brand.test.ts": [
+      "packages/shared/src/brand.ts"
+    ],
+    "packages/shared/src/brand.ts": [],
+    "packages/shared/src/geo-order-restriction.test.ts": [
+      "packages/shared/src/geo-order-restriction.ts"
+    ],
+    "packages/shared/src/geo-order-restriction.ts": [],
+    "packages/shared/src/index.ts": [],
+    "packages/shared/src/platform-admin-audit.ts": [],
+    "packages/shared/src/print-agent-credential-ttl.test.ts": [
+      "packages/shared/src/print-agent-credential-ttl.ts"
+    ],
+    "packages/shared/src/print-agent-credential-ttl.ts": [],
+    "packages/shared/src/print-agent-device-active.ts": [
+      "packages/shared/src/print-agent-heartbeat.ts"
+    ],
+    "packages/shared/src/print-agent-heartbeat.ts": [],
+    "packages/shared/src/print-agent-revoke.ts": []
+  }
+}

@@ -1,0 +1,1035 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/app/api/auth/login/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/auth/login/route.ts",
+      "summary": "店主邮箱密码登录 API，集成 IP 速率限制、Supabase 认证与登录后跳转解析。",
+      "tags": [
+        "api-handler",
+        "authentication",
+        "rate-limit",
+        "entry-point"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/auth/login/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/auth/login/route.ts",
+      "lineRange": [
+        13,
+        80
+      ],
+      "summary": "处理 POST 请求的主路由处理器，编排鉴权、校验与 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/auth/staff/login/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/auth/staff/login/route.ts",
+      "summary": "员工账号登录 API，校验餐厅绑定、角色元数据，并复用登录限速与跳转逻辑。",
+      "tags": [
+        "api-handler",
+        "authentication",
+        "staff",
+        "rate-limit"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/auth/staff/login/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/auth/staff/login/route.ts",
+      "lineRange": [
+        15,
+        108
+      ],
+      "summary": "处理 POST 请求的主路由处理器，编排鉴权、校验与 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/app/api/cron/nightly-close-sessions/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/cron/nightly-close-sessions/route.ts",
+      "summary": "Vercel Cron 夜间任务：验证密钥后自动关闭逾期未结账会话并过期陈旧打印任务。",
+      "tags": [
+        "api-handler",
+        "cron",
+        "billing",
+        "print-jobs"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/cron/nightly-close-sessions/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/cron/nightly-close-sessions/route.ts",
+      "lineRange": [
+        14,
+        42
+      ],
+      "summary": "处理 GET 请求的主路由处理器，查询资源并返回 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/dashboard/staff/[id]/reset-password/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/dashboard/staff/[id]/reset-password/route.ts",
+      "summary": "店主后台重置指定员工密码，校验权限后通过 Supabase Admin 更新凭据。",
+      "tags": [
+        "api-handler",
+        "staff",
+        "dashboard",
+        "security"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/staff/[id]/reset-password/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/dashboard/staff/[id]/reset-password/route.ts",
+      "lineRange": [
+        13,
+        67
+      ],
+      "summary": "处理 POST 请求的主路由处理器，编排鉴权、校验与 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/dashboard/staff/[id]/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/dashboard/staff/[id]/route.ts",
+      "summary": "单个员工账号的 PATCH 更新与 DELETE 删除，含角色校验与数据库迁移错误处理。",
+      "tags": [
+        "api-handler",
+        "staff",
+        "dashboard",
+        "crud"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/staff/[id]/route.ts:PATCH",
+      "type": "function",
+      "name": "PATCH",
+      "filePath": "apps/web/src/app/api/dashboard/staff/[id]/route.ts",
+      "lineRange": [
+        10,
+        88
+      ],
+      "summary": "处理 PATCH 请求，部分更新资源字段并返回结果。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/staff/[id]/route.ts:DELETE",
+      "type": "function",
+      "name": "DELETE",
+      "filePath": "apps/web/src/app/api/dashboard/staff/[id]/route.ts",
+      "lineRange": [
+        90,
+        124
+      ],
+      "summary": "处理 DELETE 请求，删除目标资源并返回确认。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/dashboard/staff/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/dashboard/staff/route.ts",
+      "summary": "员工账号列表查询与新建，封装登录名规范化、邮箱合成及店主餐厅上下文加载。",
+      "tags": [
+        "api-handler",
+        "staff",
+        "dashboard",
+        "crud"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/staff/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/dashboard/staff/route.ts",
+      "lineRange": [
+        14,
+        34
+      ],
+      "summary": "处理 GET 请求的主路由处理器，查询资源并返回 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/staff/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/dashboard/staff/route.ts",
+      "lineRange": [
+        36,
+        121
+      ],
+      "summary": "处理 POST 请求的主路由处理器，编排鉴权、校验与 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts",
+      "summary": "配置餐厅默认账单小票打印机，校验打印机 ID 并持久化云侧 print-agent 配置。",
+      "tags": [
+        "api-handler",
+        "print-agent",
+        "receipt-printer",
+        "configuration"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts:PATCH",
+      "type": "function",
+      "name": "PATCH",
+      "filePath": "apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts",
+      "lineRange": [
+        16,
+        88
+      ],
+      "summary": "处理 PATCH 请求，部分更新资源字段并返回结果。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/print-agent/claim/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/claim/route.ts",
+      "summary": "打印代理设备凭配对码申领 JWT，含速率限制、设备注册与连接测试任务下发。",
+      "tags": [
+        "api-handler",
+        "print-agent",
+        "authentication",
+        "rate-limit"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/claim/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/print-agent/claim/route.ts",
+      "lineRange": [
+        16,
+        167
+      ],
+      "summary": "处理 POST 请求的主路由处理器，编排鉴权、校验与 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/app/api/print-agent/devices/[id]/revoke/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/devices/[id]/revoke/route.ts",
+      "summary": "店主撤销已配对打印代理设备，将设备标记为失效并阻断后续任务拉取。",
+      "tags": [
+        "api-handler",
+        "print-agent",
+        "security",
+        "revocation"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/devices/[id]/revoke/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/print-agent/devices/[id]/revoke/route.ts",
+      "lineRange": [
+        9,
+        34
+      ],
+      "summary": "处理 POST 请求的主路由处理器，编排鉴权、校验与 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/app/api/auth/login/route.ts",
+      "target": "function:apps/web/src/app/api/auth/login/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/auth/login/route.ts",
+      "target": "function:apps/web/src/app/api/auth/login/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/auth/login/route.ts",
+      "target": "file:apps/web/src/lib/auth/login-rate-limit.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/auth/login/route.ts",
+      "target": "file:apps/web/src/lib/auth/post-login-redirect.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/auth/login/route.ts",
+      "target": "file:apps/web/src/lib/request-client-ip.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/auth/login/route.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/auth/login/route.ts:POST",
+      "target": "function:apps/web/src/lib/request-client-ip.ts:clientIpFromRequest",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/auth/login/route.ts:POST",
+      "target": "function:apps/web/src/lib/auth/login-rate-limit.ts:authLoginRateLimitCheck",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/auth/login/route.ts:POST",
+      "target": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/auth/login/route.ts:POST",
+      "target": "function:apps/web/src/lib/auth/login-rate-limit.ts:authLoginRecordFailure",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/auth/login/route.ts:POST",
+      "target": "function:apps/web/src/lib/auth/post-login-redirect.ts:resolvePostLoginRedirect",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/auth/login/route.ts:POST",
+      "target": "function:apps/web/src/lib/auth/login-rate-limit.ts:authLoginRecordSuccess",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/auth/staff/login/route.ts",
+      "target": "function:apps/web/src/app/api/auth/staff/login/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/auth/staff/login/route.ts",
+      "target": "function:apps/web/src/app/api/auth/staff/login/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/auth/staff/login/route.ts",
+      "target": "file:apps/web/src/lib/auth/login-rate-limit.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/auth/staff/login/route.ts",
+      "target": "file:apps/web/src/lib/auth/post-login-redirect.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/auth/staff/login/route.ts",
+      "target": "file:apps/web/src/lib/request-client-ip.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/auth/staff/login/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/auth/staff/login/route.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/auth/staff/login/route.ts:POST",
+      "target": "function:apps/web/src/lib/request-client-ip.ts:clientIpFromRequest",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/auth/staff/login/route.ts:POST",
+      "target": "function:apps/web/src/lib/auth/login-rate-limit.ts:authLoginRateLimitCheck",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/auth/staff/login/route.ts:POST",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/auth/staff/login/route.ts:POST",
+      "target": "function:apps/web/src/lib/auth/login-rate-limit.ts:authLoginRecordFailure",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/auth/staff/login/route.ts:POST",
+      "target": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/auth/staff/login/route.ts:POST",
+      "target": "function:apps/web/src/lib/auth/post-login-redirect.ts:resolvePostLoginRedirect",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/auth/staff/login/route.ts:POST",
+      "target": "function:apps/web/src/lib/auth/login-rate-limit.ts:authLoginRecordSuccess",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/cron/nightly-close-sessions/route.ts",
+      "target": "function:apps/web/src/app/api/cron/nightly-close-sessions/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/cron/nightly-close-sessions/route.ts",
+      "target": "function:apps/web/src/app/api/cron/nightly-close-sessions/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/cron/nightly-close-sessions/route.ts",
+      "target": "file:apps/web/src/lib/auto-close-active-sessions.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/cron/nightly-close-sessions/route.ts",
+      "target": "file:apps/web/src/lib/expire-stale-print-jobs.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/cron/nightly-close-sessions/route.ts",
+      "target": "file:apps/web/src/lib/run-nightly-auto-close.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/cron/nightly-close-sessions/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/cron/nightly-close-sessions/route.ts",
+      "target": "file:apps/web/src/lib/verify-cron-secret.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/cron/nightly-close-sessions/route.ts:GET",
+      "target": "function:apps/web/src/lib/verify-cron-secret.ts:verifyCronSecret",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/cron/nightly-close-sessions/route.ts:GET",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/cron/nightly-close-sessions/route.ts:GET",
+      "target": "function:apps/web/src/lib/expire-stale-print-jobs.ts:expireStalePrintJobs",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/cron/nightly-close-sessions/route.ts:GET",
+      "target": "function:apps/web/src/lib/run-nightly-auto-close.ts:executeNightlyAutoClose",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/[id]/reset-password/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/staff/[id]/reset-password/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/[id]/reset-password/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/staff/[id]/reset-password/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/[id]/reset-password/route.ts",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/[id]/reset-password/route.ts",
+      "target": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/staff/[id]/reset-password/route.ts:POST",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:loadOwnerRestaurantWithSlug",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/staff/[id]/reset-password/route.ts:POST",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:staffMetadataPayload",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/staff/[id]/reset-password/route.ts:POST",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:mapStaffRow",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/[id]/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/staff/[id]/route.ts:PATCH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/[id]/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/staff/[id]/route.ts:PATCH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/[id]/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/staff/[id]/route.ts:DELETE",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/[id]/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/staff/[id]/route.ts:DELETE",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/[id]/route.ts",
+      "target": "file:apps/web/src/lib/db-migration-error.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/[id]/route.ts",
+      "target": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/staff/[id]/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:loadOwnerRestaurantWithSlug",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/staff/[id]/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/db-migration-error.ts:isDbMigrationRequiredError",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/staff/[id]/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:mapStaffRow",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/staff/[id]/route.ts:DELETE",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:loadOwnerRestaurantWithSlug",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/staff/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/staff/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/staff/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/staff/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/route.ts",
+      "target": "file:apps/web/src/lib/db-migration-error.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/route.ts",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/route.ts",
+      "target": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/staff/route.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/staff/route.ts:GET",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:loadOwnerRestaurantWithSlug",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/staff/route.ts:GET",
+      "target": "function:apps/web/src/lib/db-migration-error.ts:isDbMigrationRequiredError",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/staff/route.ts:POST",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:loadOwnerRestaurantWithSlug",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/staff/route.ts:POST",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:validateStaffCreateBody",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/staff/route.ts:POST",
+      "target": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/staff/route.ts:POST",
+      "target": "function:apps/web/src/lib/db-migration-error.ts:isDbMigrationRequiredError",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/staff/route.ts:POST",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:mapStaffRow",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/staff/route.ts:POST",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:staffMetadataPayload",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts:PATCH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts:PATCH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-config.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts",
+      "target": "file:apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/print-agent-dashboard-auth.ts:getOwnerRestaurantId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:loadRestaurantReceiptPrinterSnapshot",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:assertReceiptPrinterIdAllowed",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:normalizePrintAgentCloudConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/claim/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/claim/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/claim/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/claim/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/claim/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/claim/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-claim-rate-limit.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/claim/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-constants.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/claim/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-jwt.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/claim/route.ts",
+      "target": "file:apps/web/src/lib/request-client-ip.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/claim/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/claim/route.ts:POST",
+      "target": "function:apps/web/src/lib/request-client-ip.ts:clientIpFromRequest",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/claim/route.ts:POST",
+      "target": "function:apps/web/src/lib/print-agent-claim-rate-limit.ts:claimRateLimitCheck",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/claim/route.ts:POST",
+      "target": "function:apps/web/src/lib/print-agent-claim-rate-limit.ts:claimRecordFailure",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/claim/route.ts:POST",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/claim/route.ts:POST",
+      "target": "function:apps/web/src/lib/print-agent-jwt.ts:signPrintAgentJwt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/claim/route.ts:POST",
+      "target": "function:apps/web/src/lib/print-agent-claim-rate-limit.ts:claimRecordSuccess",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/devices/[id]/revoke/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/devices/[id]/revoke/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/devices/[id]/revoke/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/devices/[id]/revoke/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/devices/[id]/revoke/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/devices/[id]/revoke/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/devices/[id]/revoke/route.ts:POST",
+      "target": "function:apps/web/src/lib/print-agent-dashboard-auth.ts:getOwnerRestaurantId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/devices/[id]/revoke/route.ts:POST",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

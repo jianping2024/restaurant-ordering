@@ -1,0 +1,3442 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 25,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/print-agent/job_route_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 42,
+      "nonEmptyLines": 38,
+      "functions": [
+        {
+          "name": "TestReorderQueueAwayFromPrinter",
+          "startLine": 5,
+          "endLine": 23,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestReorderQueueAwayFromPrinter_allSameBlocked",
+          "startLine": 25,
+          "endLine": 34,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestJobRouteStationID",
+          "startLine": 36,
+          "endLine": 42,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestReorderQueueAwayFromPrinter",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "TestReorderQueueAwayFromPrinter_allSameBlocked",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "TestJobRouteStationID",
+          "line": 36,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestReorderQueueAwayFromPrinter",
+          "callee": "t.Parallel",
+          "lineNumber": 6
+        },
+        {
+          "caller": "TestReorderQueueAwayFromPrinter",
+          "callee": "reorderQueueAwayFromPrinter",
+          "lineNumber": 16
+        },
+        {
+          "caller": "TestReorderQueueAwayFromPrinter",
+          "callee": "len",
+          "lineNumber": 17
+        },
+        {
+          "caller": "TestReorderQueueAwayFromPrinter",
+          "callee": "t.Fatalf",
+          "lineNumber": 18
+        },
+        {
+          "caller": "TestReorderQueueAwayFromPrinter",
+          "callee": "t.Fatalf",
+          "lineNumber": 21
+        },
+        {
+          "caller": "TestReorderQueueAwayFromPrinter_allSameBlocked",
+          "callee": "t.Parallel",
+          "lineNumber": 26
+        },
+        {
+          "caller": "TestReorderQueueAwayFromPrinter_allSameBlocked",
+          "callee": "reorderQueueAwayFromPrinter",
+          "lineNumber": 31
+        },
+        {
+          "caller": "TestReorderQueueAwayFromPrinter_allSameBlocked",
+          "callee": "t.Fatalf",
+          "lineNumber": 32
+        },
+        {
+          "caller": "TestJobRouteStationID",
+          "callee": "t.Parallel",
+          "lineNumber": 37
+        },
+        {
+          "caller": "TestJobRouteStationID",
+          "callee": "jobRouteStationID",
+          "lineNumber": 39
+        },
+        {
+          "caller": "TestJobRouteStationID",
+          "callee": "t.Fatalf",
+          "lineNumber": 40
+        },
+        {
+          "caller": "TestJobRouteStationID",
+          "callee": "jobRouteStationID",
+          "lineNumber": 40
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/job_route.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 59,
+      "nonEmptyLines": 56,
+      "functions": [
+        {
+          "name": "jobRouteStationID",
+          "startLine": 9,
+          "endLine": 34,
+          "params": [
+            "job"
+          ]
+        },
+        {
+          "name": "reorderQueueAwayFromPrinter",
+          "startLine": 38,
+          "endLine": 59,
+          "params": [
+            "queue",
+            "cfg",
+            "blockedKey"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "jobRouteStationID",
+          "callee": "json.Unmarshal",
+          "lineNumber": 14
+        },
+        {
+          "caller": "jobRouteStationID",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 15
+        },
+        {
+          "caller": "jobRouteStationID",
+          "callee": "isReceiptPrintJobType",
+          "lineNumber": 19
+        },
+        {
+          "caller": "jobRouteStationID",
+          "callee": "json.Unmarshal",
+          "lineNumber": 23
+        },
+        {
+          "caller": "jobRouteStationID",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 24
+        },
+        {
+          "caller": "jobRouteStationID",
+          "callee": "strings.HasPrefix",
+          "lineNumber": 26
+        },
+        {
+          "caller": "jobRouteStationID",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 27
+        },
+        {
+          "caller": "jobRouteStationID",
+          "callee": "len",
+          "lineNumber": 27
+        },
+        {
+          "caller": "jobRouteStationID",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 33
+        },
+        {
+          "caller": "reorderQueueAwayFromPrinter",
+          "callee": "len",
+          "lineNumber": 39
+        },
+        {
+          "caller": "reorderQueueAwayFromPrinter",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 39
+        },
+        {
+          "caller": "reorderQueueAwayFromPrinter",
+          "callee": "cfg.printerTargetForJob",
+          "lineNumber": 44
+        },
+        {
+          "caller": "reorderQueueAwayFromPrinter",
+          "callee": "append",
+          "lineNumber": 46
+        },
+        {
+          "caller": "reorderQueueAwayFromPrinter",
+          "callee": "targetKey",
+          "lineNumber": 49
+        },
+        {
+          "caller": "reorderQueueAwayFromPrinter",
+          "callee": "append",
+          "lineNumber": 50
+        },
+        {
+          "caller": "reorderQueueAwayFromPrinter",
+          "callee": "append",
+          "lineNumber": 52
+        },
+        {
+          "caller": "reorderQueueAwayFromPrinter",
+          "callee": "len",
+          "lineNumber": 55
+        },
+        {
+          "caller": "reorderQueueAwayFromPrinter",
+          "callee": "append",
+          "lineNumber": 58
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/log_strings.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 166,
+      "nonEmptyLines": 162,
+      "functions": [
+        {
+          "name": "init",
+          "startLine": 3,
+          "endLine": 13,
+          "params": []
+        },
+        {
+          "name": "logStringsZH",
+          "startLine": 15,
+          "endLine": 64,
+          "params": []
+        },
+        {
+          "name": "logStringsEN",
+          "startLine": 66,
+          "endLine": 115,
+          "params": []
+        },
+        {
+          "name": "logStringsPT",
+          "startLine": 117,
+          "endLine": 166,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "init",
+          "callee": "logStringsZH",
+          "lineNumber": 4
+        },
+        {
+          "caller": "init",
+          "callee": "logStringsEN",
+          "lineNumber": 7
+        },
+        {
+          "caller": "init",
+          "callee": "logStringsPT",
+          "lineNumber": 10
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/main.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 226,
+      "nonEmptyLines": 215,
+      "functions": [
+        {
+          "name": "newUUID",
+          "startLine": 21,
+          "endLine": 28,
+          "params": []
+        },
+        {
+          "name": "claim",
+          "startLine": 30,
+          "endLine": 69,
+          "params": [
+            "apiBase",
+            "code",
+            "deviceID"
+          ]
+        },
+        {
+          "name": "fetchPending",
+          "startLine": 79,
+          "endLine": 101,
+          "params": [
+            "ctx",
+            "apiBase",
+            "jwt"
+          ]
+        },
+        {
+          "name": "patchJob",
+          "startLine": 103,
+          "endLine": 121,
+          "params": [
+            "ctx",
+            "apiBase",
+            "jwt",
+            "id",
+            "patch"
+          ]
+        },
+        {
+          "name": "summarizeJobPayload",
+          "startLine": 123,
+          "endLine": 150,
+          "params": [
+            "job"
+          ]
+        },
+        {
+          "name": "main",
+          "startLine": 152,
+          "endLine": 226,
+          "params": []
+        }
+      ],
+      "classes": [
+        {
+          "name": "printJob",
+          "startLine": 71,
+          "endLine": 77,
+          "methods": [],
+          "properties": [
+            "ID",
+            "Type",
+            "Status",
+            "CreatedAt",
+            "Payload"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "newUUID",
+          "callee": "make",
+          "lineNumber": 22
+        },
+        {
+          "caller": "newUUID",
+          "callee": "rand.Read",
+          "lineNumber": 23
+        },
+        {
+          "caller": "newUUID",
+          "callee": "hex.EncodeToString",
+          "lineNumber": 26
+        },
+        {
+          "caller": "claim",
+          "callee": "os.Hostname",
+          "lineNumber": 32
+        },
+        {
+          "caller": "claim",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 33
+        },
+        {
+          "caller": "claim",
+          "callee": "json.Marshal",
+          "lineNumber": 37
+        },
+        {
+          "caller": "claim",
+          "callee": "http.NewRequest",
+          "lineNumber": 38
+        },
+        {
+          "caller": "claim",
+          "callee": "strings.TrimRight",
+          "lineNumber": 38
+        },
+        {
+          "caller": "claim",
+          "callee": "bytes.NewReader",
+          "lineNumber": 38
+        },
+        {
+          "caller": "claim",
+          "callee": "req.Header.Set",
+          "lineNumber": 42
+        },
+        {
+          "caller": "claim",
+          "callee": "http.DefaultClient.Do",
+          "lineNumber": 43
+        },
+        {
+          "caller": "claim",
+          "callee": "res.Body.Close",
+          "lineNumber": 47
+        },
+        {
+          "caller": "claim",
+          "callee": "io.ReadAll",
+          "lineNumber": 48
+        },
+        {
+          "caller": "claim",
+          "callee": "fmt.Errorf",
+          "lineNumber": 50
+        },
+        {
+          "caller": "claim",
+          "callee": "string",
+          "lineNumber": 50
+        },
+        {
+          "caller": "claim",
+          "callee": "json.Unmarshal",
+          "lineNumber": 57
+        },
+        {
+          "caller": "claim",
+          "callee": "fmt.Errorf",
+          "lineNumber": 61
+        },
+        {
+          "caller": "fetchPending",
+          "callee": "http.NewRequestWithContext",
+          "lineNumber": 80
+        },
+        {
+          "caller": "fetchPending",
+          "callee": "strings.TrimRight",
+          "lineNumber": 80
+        },
+        {
+          "caller": "fetchPending",
+          "callee": "req.Header.Set",
+          "lineNumber": 84
+        },
+        {
+          "caller": "fetchPending",
+          "callee": "http.DefaultClient.Do",
+          "lineNumber": 85
+        },
+        {
+          "caller": "fetchPending",
+          "callee": "res.Body.Close",
+          "lineNumber": 89
+        },
+        {
+          "caller": "fetchPending",
+          "callee": "io.ReadAll",
+          "lineNumber": 90
+        },
+        {
+          "caller": "fetchPending",
+          "callee": "fmt.Errorf",
+          "lineNumber": 92
+        },
+        {
+          "caller": "fetchPending",
+          "callee": "string",
+          "lineNumber": 92
+        },
+        {
+          "caller": "fetchPending",
+          "callee": "json.Unmarshal",
+          "lineNumber": 97
+        },
+        {
+          "caller": "patchJob",
+          "callee": "json.Marshal",
+          "lineNumber": 104
+        },
+        {
+          "caller": "patchJob",
+          "callee": "http.NewRequestWithContext",
+          "lineNumber": 105
+        },
+        {
+          "caller": "patchJob",
+          "callee": "strings.TrimRight",
+          "lineNumber": 105
+        },
+        {
+          "caller": "patchJob",
+          "callee": "bytes.NewReader",
+          "lineNumber": 105
+        },
+        {
+          "caller": "patchJob",
+          "callee": "req.Header.Set",
+          "lineNumber": 109
+        },
+        {
+          "caller": "patchJob",
+          "callee": "req.Header.Set",
+          "lineNumber": 110
+        },
+        {
+          "caller": "patchJob",
+          "callee": "http.DefaultClient.Do",
+          "lineNumber": 111
+        },
+        {
+          "caller": "patchJob",
+          "callee": "res.Body.Close",
+          "lineNumber": 115
+        },
+        {
+          "caller": "patchJob",
+          "callee": "io.ReadAll",
+          "lineNumber": 116
+        },
+        {
+          "caller": "patchJob",
+          "callee": "fmt.Errorf",
+          "lineNumber": 118
+        },
+        {
+          "caller": "patchJob",
+          "callee": "string",
+          "lineNumber": 118
+        },
+        {
+          "caller": "summarizeJobPayload",
+          "callee": "parseJobPayload",
+          "lineNumber": 124
+        },
+        {
+          "caller": "summarizeJobPayload",
+          "callee": "p.stationName",
+          "lineNumber": 128
+        },
+        {
+          "caller": "summarizeJobPayload",
+          "callee": "append",
+          "lineNumber": 131
+        },
+        {
+          "caller": "summarizeJobPayload",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 133
+        },
+        {
+          "caller": "summarizeJobPayload",
+          "callee": "append",
+          "lineNumber": 134
+        },
+        {
+          "caller": "summarizeJobPayload",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 136
+        },
+        {
+          "caller": "summarizeJobPayload",
+          "callee": "append",
+          "lineNumber": 137
+        },
+        {
+          "caller": "summarizeJobPayload",
+          "callee": "append",
+          "lineNumber": 144
+        },
+        {
+          "caller": "summarizeJobPayload",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 144
+        },
+        {
+          "caller": "summarizeJobPayload",
+          "callee": "len",
+          "lineNumber": 146
+        },
+        {
+          "caller": "summarizeJobPayload",
+          "callee": "strings.Join",
+          "lineNumber": 149
+        },
+        {
+          "caller": "main",
+          "callee": "windowsPrepareConsole",
+          "lineNumber": 153
+        },
+        {
+          "caller": "main",
+          "callee": "len",
+          "lineNumber": 154
+        },
+        {
+          "caller": "main",
+          "callee": "time.Sleep",
+          "lineNumber": 155
+        },
+        {
+          "caller": "main",
+          "callee": "guardMainAgentSingleInstance",
+          "lineNumber": 156
+        },
+        {
+          "caller": "main",
+          "callee": "runAgent",
+          "lineNumber": 157
+        },
+        {
+          "caller": "main",
+          "callee": "guardMainAgentSingleInstance",
+          "lineNumber": 160
+        },
+        {
+          "caller": "main",
+          "callee": "len",
+          "lineNumber": 161
+        },
+        {
+          "caller": "main",
+          "callee": "runDiscover",
+          "lineNumber": 164
+        },
+        {
+          "caller": "main",
+          "callee": "defaultConfigPath",
+          "lineNumber": 167
+        },
+        {
+          "caller": "main",
+          "callee": "context.WithTimeout",
+          "lineNumber": 168
+        },
+        {
+          "caller": "main",
+          "callee": "context.Background",
+          "lineNumber": 168
+        },
+        {
+          "caller": "main",
+          "callee": "cancel",
+          "lineNumber": 169
+        },
+        {
+          "caller": "main",
+          "callee": "runPairingWizard",
+          "lineNumber": 170
+        },
+        {
+          "caller": "main",
+          "callee": "log.Fatal",
+          "lineNumber": 171
+        },
+        {
+          "caller": "main",
+          "callee": "fmt.Println",
+          "lineNumber": 173
+        },
+        {
+          "caller": "main",
+          "callee": "defaultConfigPath",
+          "lineNumber": 176
+        },
+        {
+          "caller": "main",
+          "callee": "loadConfig",
+          "lineNumber": 178
+        },
+        {
+          "caller": "main",
+          "callee": "context.WithTimeout",
+          "lineNumber": 181
+        },
+        {
+          "caller": "main",
+          "callee": "context.Background",
+          "lineNumber": 181
+        },
+        {
+          "caller": "main",
+          "callee": "cancel",
+          "lineNumber": 182
+        },
+        {
+          "caller": "main",
+          "callee": "runConfigureWizard",
+          "lineNumber": 183
+        },
+        {
+          "caller": "main",
+          "callee": "log.Fatal",
+          "lineNumber": 184
+        },
+        {
+          "caller": "main",
+          "callee": "fmt.Println",
+          "lineNumber": 186
+        },
+        {
+          "caller": "main",
+          "callee": "defaultConfigPath",
+          "lineNumber": 189
+        },
+        {
+          "caller": "main",
+          "callee": "loadConfig",
+          "lineNumber": 190
+        },
+        {
+          "caller": "main",
+          "callee": "log.Fatal",
+          "lineNumber": 192
+        },
+        {
+          "caller": "main",
+          "callee": "context.WithTimeout",
+          "lineNumber": 194
+        },
+        {
+          "caller": "main",
+          "callee": "context.Background",
+          "lineNumber": 194
+        },
+        {
+          "caller": "main",
+          "callee": "cancel",
+          "lineNumber": 195
+        },
+        {
+          "caller": "main",
+          "callee": "runSetupWizard",
+          "lineNumber": 196
+        },
+        {
+          "caller": "main",
+          "callee": "log.Fatal",
+          "lineNumber": 197
+        },
+        {
+          "caller": "main",
+          "callee": "fmt.Println",
+          "lineNumber": 199
+        },
+        {
+          "caller": "main",
+          "callee": "fmt.Printf",
+          "lineNumber": 202
+        },
+        {
+          "caller": "main",
+          "callee": "fmt.Println",
+          "lineNumber": 203
+        },
+        {
+          "caller": "main",
+          "callee": "fmt.Println",
+          "lineNumber": 218
+        },
+        {
+          "caller": "main",
+          "callee": "runAgent",
+          "lineNumber": 221
+        },
+        {
+          "caller": "main",
+          "callee": "runAgent",
+          "lineNumber": 225
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 6,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "apps/print-agent/notify_credential_stub.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 5,
+      "nonEmptyLines": 3,
+      "functions": [
+        {
+          "name": "maybeNotifyCredentialRenewal",
+          "startLine": 5,
+          "endLine": 5,
+          "params": []
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/notify_credential_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 41,
+      "nonEmptyLines": 37,
+      "functions": [
+        {
+          "name": "maybeNotifyCredentialRenewal",
+          "startLine": 14,
+          "endLine": 41,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "loadConfig",
+          "lineNumber": 15
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "defaultConfigPath",
+          "lineNumber": 15
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 16
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "time.Now",
+          "lineNumber": 19
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "cfg.credentialInReminderWindow",
+          "lineNumber": 20
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "cfg.credentialDaysRemaining",
+          "lineNumber": 23
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "filepath.Join",
+          "lineNumber": 27
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "agentDataDir",
+          "lineNumber": 27
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "now.Format",
+          "lineNumber": 27
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "os.Stat",
+          "lineNumber": 28
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "os.MkdirAll",
+          "lineNumber": 31
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "agentDataDir",
+          "lineNumber": 31
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "os.WriteFile",
+          "lineNumber": 32
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "cfg.uiLocale",
+          "lineNumber": 34
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "cfg.validUntilTime",
+          "lineNumber": 35
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "until.Local().Format",
+          "lineNumber": 36
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "until.Local",
+          "lineNumber": 36
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "messageBoxOK",
+          "lineNumber": 37
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "uiT",
+          "lineNumber": 38
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 39
+        },
+        {
+          "caller": "maybeNotifyCredentialRenewal",
+          "callee": "uiT",
+          "lineNumber": 39
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/notify_version_stub.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 5,
+      "nonEmptyLines": 3,
+      "functions": [
+        {
+          "name": "maybeNotifyVersionUpgrade",
+          "startLine": 5,
+          "endLine": 5,
+          "params": [
+            "_"
+          ]
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/notify_version_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 36,
+      "nonEmptyLines": 32,
+      "functions": [
+        {
+          "name": "maybeNotifyVersionUpgrade",
+          "startLine": 14,
+          "endLine": 36,
+          "params": [
+            "recommended"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 15
+        },
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "agentVersionOlderThan",
+          "lineNumber": 16
+        },
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "loadConfig",
+          "lineNumber": 19
+        },
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "defaultConfigPath",
+          "lineNumber": 19
+        },
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 20
+        },
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "time.Now",
+          "lineNumber": 23
+        },
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "filepath.Join",
+          "lineNumber": 24
+        },
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "agentDataDir",
+          "lineNumber": 24
+        },
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "now.Format",
+          "lineNumber": 24
+        },
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "os.Stat",
+          "lineNumber": 25
+        },
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "os.MkdirAll",
+          "lineNumber": 28
+        },
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "agentDataDir",
+          "lineNumber": 28
+        },
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "os.WriteFile",
+          "lineNumber": 29
+        },
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "cfg.uiLocale",
+          "lineNumber": 31
+        },
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "messageBoxOK",
+          "lineNumber": 32
+        },
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "uiT",
+          "lineNumber": 33
+        },
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 34
+        },
+        {
+          "caller": "maybeNotifyVersionUpgrade",
+          "callee": "uiT",
+          "lineNumber": 34
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/notify_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 24,
+      "nonEmptyLines": 21,
+      "functions": [
+        {
+          "name": "maybeNotifyTrayReady",
+          "startLine": 11,
+          "endLine": 24,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "maybeNotifyTrayReady",
+          "callee": "filepath.Join",
+          "lineNumber": 12
+        },
+        {
+          "caller": "maybeNotifyTrayReady",
+          "callee": "agentDataDir",
+          "lineNumber": 12
+        },
+        {
+          "caller": "maybeNotifyTrayReady",
+          "callee": "loadConfig",
+          "lineNumber": 13
+        },
+        {
+          "caller": "maybeNotifyTrayReady",
+          "callee": "defaultConfigPath",
+          "lineNumber": 13
+        },
+        {
+          "caller": "maybeNotifyTrayReady",
+          "callee": "loadTrayUILocale",
+          "lineNumber": 14
+        },
+        {
+          "caller": "maybeNotifyTrayReady",
+          "callee": "cfg.uiLocale",
+          "lineNumber": 17
+        },
+        {
+          "caller": "maybeNotifyTrayReady",
+          "callee": "messageBoxOK",
+          "lineNumber": 20
+        },
+        {
+          "caller": "maybeNotifyTrayReady",
+          "callee": "uiT",
+          "lineNumber": 21
+        },
+        {
+          "caller": "maybeNotifyTrayReady",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 22
+        },
+        {
+          "caller": "maybeNotifyTrayReady",
+          "callee": "uiT",
+          "lineNumber": 22
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/pair_wizard_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 28,
+      "nonEmptyLines": 25,
+      "functions": [
+        {
+          "name": "TestNormalizeAPIBase",
+          "startLine": 5,
+          "endLine": 14,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestDedupePrinterList",
+          "startLine": 16,
+          "endLine": 28,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestNormalizeAPIBase",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "TestDedupePrinterList",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestNormalizeAPIBase",
+          "callee": "normalizeAPIBase",
+          "lineNumber": 6
+        },
+        {
+          "caller": "TestNormalizeAPIBase",
+          "callee": "t.Fatal",
+          "lineNumber": 8
+        },
+        {
+          "caller": "TestNormalizeAPIBase",
+          "callee": "t.Fatalf",
+          "lineNumber": 12
+        },
+        {
+          "caller": "TestDedupePrinterList",
+          "callee": "dedupePrinterList",
+          "lineNumber": 17
+        },
+        {
+          "caller": "TestDedupePrinterList",
+          "callee": "len",
+          "lineNumber": 22
+        },
+        {
+          "caller": "TestDedupePrinterList",
+          "callee": "t.Fatalf",
+          "lineNumber": 23
+        },
+        {
+          "caller": "TestDedupePrinterList",
+          "callee": "len",
+          "lineNumber": 23
+        },
+        {
+          "caller": "TestDedupePrinterList",
+          "callee": "t.Fatalf",
+          "lineNumber": 26
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/pair_wizard.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 108,
+      "nonEmptyLines": 93,
+      "functions": [
+        {
+          "name": "registerPairWebRoutes",
+          "startLine": 28,
+          "endLine": 34,
+          "params": [
+            "mux",
+            "configPath",
+            "cfg",
+            "logPrefix",
+            "onSuccess"
+          ]
+        },
+        {
+          "name": "normalizeAPIBase",
+          "startLine": 36,
+          "endLine": 52,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "pickLocalListenAddr",
+          "startLine": 54,
+          "endLine": 65,
+          "params": [
+            "startPort"
+          ]
+        },
+        {
+          "name": "runPairingWizard",
+          "startLine": 69,
+          "endLine": 102,
+          "params": [
+            "ctx",
+            "configPath",
+            "prefillAPI"
+          ]
+        },
+        {
+          "name": "writePairJSON",
+          "startLine": 104,
+          "endLine": 108,
+          "params": [
+            "w",
+            "status",
+            "v"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "registerPairWebRoutes",
+          "callee": "mux.HandleFunc",
+          "lineNumber": 29
+        },
+        {
+          "caller": "registerPairWebRoutes",
+          "callee": "w.Header().Set",
+          "lineNumber": 30
+        },
+        {
+          "caller": "registerPairWebRoutes",
+          "callee": "w.Header",
+          "lineNumber": 30
+        },
+        {
+          "caller": "registerPairWebRoutes",
+          "callee": "w.Write",
+          "lineNumber": 31
+        },
+        {
+          "caller": "registerPairWebRoutes",
+          "callee": "registerPairWizardRoute",
+          "lineNumber": 33
+        },
+        {
+          "caller": "normalizeAPIBase",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 37
+        },
+        {
+          "caller": "normalizeAPIBase",
+          "callee": "fmt.Errorf",
+          "lineNumber": 39
+        },
+        {
+          "caller": "normalizeAPIBase",
+          "callee": "strings.Index",
+          "lineNumber": 41
+        },
+        {
+          "caller": "normalizeAPIBase",
+          "callee": "strings.TrimRight",
+          "lineNumber": 42
+        },
+        {
+          "caller": "normalizeAPIBase",
+          "callee": "strings.Index",
+          "lineNumber": 44
+        },
+        {
+          "caller": "normalizeAPIBase",
+          "callee": "strings.TrimRight",
+          "lineNumber": 45
+        },
+        {
+          "caller": "normalizeAPIBase",
+          "callee": "strings.TrimRight",
+          "lineNumber": 47
+        },
+        {
+          "caller": "normalizeAPIBase",
+          "callee": "strings.HasPrefix",
+          "lineNumber": 48
+        },
+        {
+          "caller": "normalizeAPIBase",
+          "callee": "strings.HasPrefix",
+          "lineNumber": 48
+        },
+        {
+          "caller": "normalizeAPIBase",
+          "callee": "fmt.Errorf",
+          "lineNumber": 49
+        },
+        {
+          "caller": "pickLocalListenAddr",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 56
+        },
+        {
+          "caller": "pickLocalListenAddr",
+          "callee": "net.Listen",
+          "lineNumber": 57
+        },
+        {
+          "caller": "pickLocalListenAddr",
+          "callee": "ln.Close",
+          "lineNumber": 61
+        },
+        {
+          "caller": "pickLocalListenAddr",
+          "callee": "fmt.Errorf",
+          "lineNumber": 64
+        },
+        {
+          "caller": "runPairingWizard",
+          "callee": "pickLocalListenAddr",
+          "lineNumber": 70
+        },
+        {
+          "caller": "runPairingWizard",
+          "callee": "make",
+          "lineNumber": 75
+        },
+        {
+          "caller": "runPairingWizard",
+          "callee": "http.NewServeMux",
+          "lineNumber": 76
+        },
+        {
+          "caller": "runPairingWizard",
+          "callee": "registerPairWebRoutes",
+          "lineNumber": 79
+        },
+        {
+          "caller": "runPairingWizard",
+          "callee": "registerUILocaleRoute",
+          "lineNumber": 80
+        },
+        {
+          "caller": "runPairingWizard",
+          "callee": "mux.HandleFunc",
+          "lineNumber": 81
+        },
+        {
+          "caller": "runPairingWizard",
+          "callee": "reloadConfig",
+          "lineNumber": 82
+        },
+        {
+          "caller": "runPairingWizard",
+          "callee": "writeConfigureState",
+          "lineNumber": 83
+        },
+        {
+          "caller": "runPairingWizard",
+          "callee": "func() {\n\t\tif err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {\n\t\t\tdone <- err\n\t\t}\n\t}",
+          "lineNumber": 87
+        },
+        {
+          "caller": "runPairingWizard",
+          "callee": "srv.ListenAndServe",
+          "lineNumber": 88
+        },
+        {
+          "caller": "runPairingWizard",
+          "callee": "normalizeAPIBase",
+          "lineNumber": 94
+        },
+        {
+          "caller": "runPairingWizard",
+          "callee": "url.QueryEscape",
+          "lineNumber": 95
+        },
+        {
+          "caller": "runPairingWizard",
+          "callee": "agentLogLocale",
+          "lineNumber": 98
+        },
+        {
+          "caller": "runPairingWizard",
+          "callee": "localeFromConfigPath",
+          "lineNumber": 98
+        },
+        {
+          "caller": "runPairingWizard",
+          "callee": "announceWizardURL",
+          "lineNumber": 99
+        },
+        {
+          "caller": "runPairingWizard",
+          "callee": "waitLocalWizard",
+          "lineNumber": 101
+        },
+        {
+          "caller": "writePairJSON",
+          "callee": "w.Header().Set",
+          "lineNumber": 105
+        },
+        {
+          "caller": "writePairJSON",
+          "callee": "w.Header",
+          "lineNumber": 105
+        },
+        {
+          "caller": "writePairJSON",
+          "callee": "w.WriteHeader",
+          "lineNumber": 106
+        },
+        {
+          "caller": "writePairJSON",
+          "callee": "json.NewEncoder(w).Encode",
+          "lineNumber": 107
+        },
+        {
+          "caller": "writePairJSON",
+          "callee": "json.NewEncoder",
+          "lineNumber": 107
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/poll_log_throttle.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 22,
+      "nonEmptyLines": 19,
+      "functions": [
+        {
+          "name": "allow",
+          "startLine": 9,
+          "endLine": 22,
+          "params": [
+            "key",
+            "every"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "pollLogThrottle",
+          "startLine": 5,
+          "endLine": 7,
+          "methods": [
+            "allow"
+          ],
+          "properties": [
+            "last"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "allow",
+          "callee": "make",
+          "lineNumber": 14
+        },
+        {
+          "caller": "allow",
+          "callee": "time.Now",
+          "lineNumber": 16
+        },
+        {
+          "caller": "allow",
+          "callee": "now.Sub",
+          "lineNumber": 17
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "apps/print-agent/poll.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 172,
+      "nonEmptyLines": 158,
+      "functions": [
+        {
+          "name": "defaultPollConfig",
+          "startLine": 18,
+          "endLine": 28,
+          "params": []
+        },
+        {
+          "name": "normalized",
+          "startLine": 30,
+          "endLine": 61,
+          "params": []
+        },
+        {
+          "name": "newPollController",
+          "startLine": 70,
+          "endLine": 81,
+          "params": [
+            "schedule",
+            "poll"
+          ]
+        },
+        {
+          "name": "now",
+          "startLine": 83,
+          "endLine": 88,
+          "params": []
+        },
+        {
+          "name": "markActivity",
+          "startLine": 90,
+          "endLine": 92,
+          "params": []
+        },
+        {
+          "name": "scheduleOpen",
+          "startLine": 94,
+          "endLine": 99,
+          "params": []
+        },
+        {
+          "name": "closedSleep",
+          "startLine": 101,
+          "endLine": 117,
+          "params": []
+        },
+        {
+          "name": "phase",
+          "startLine": 130,
+          "endLine": 151,
+          "params": [
+            "hadPending",
+            "fetchErr"
+          ]
+        },
+        {
+          "name": "sleepFor",
+          "startLine": 153,
+          "endLine": 172,
+          "params": [
+            "phase"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "pollConfig",
+          "startLine": 7,
+          "endLine": 16,
+          "methods": [
+            "normalized"
+          ],
+          "properties": [
+            "IdleIntervalSec",
+            "BusyIntervalSec",
+            "AfterPrintIntervalSec",
+            "WarmIntervalSec",
+            "WarmAfterActivitySec",
+            "ClosedCheckSec",
+            "ErrorIntervalSec",
+            "LegacyFixedIntervalSec"
+          ]
+        },
+        {
+          "name": "pollController",
+          "startLine": 63,
+          "endLine": 68,
+          "methods": [
+            "now",
+            "markActivity",
+            "scheduleOpen",
+            "closedSleep",
+            "phase",
+            "sleepFor"
+          ],
+          "properties": [
+            "cfg",
+            "schedule",
+            "loc",
+            "lastAct"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "normalized",
+          "callee": "defaultPollConfig",
+          "lineNumber": 31
+        },
+        {
+          "caller": "newPollController",
+          "callee": "poll.normalized",
+          "lineNumber": 71
+        },
+        {
+          "caller": "newPollController",
+          "callee": "schedule.enabled",
+          "lineNumber": 73
+        },
+        {
+          "caller": "newPollController",
+          "callee": "schedule.location",
+          "lineNumber": 74
+        },
+        {
+          "caller": "now",
+          "callee": "time.Now().In",
+          "lineNumber": 85
+        },
+        {
+          "caller": "now",
+          "callee": "time.Now",
+          "lineNumber": 85
+        },
+        {
+          "caller": "now",
+          "callee": "time.Now",
+          "lineNumber": 87
+        },
+        {
+          "caller": "markActivity",
+          "callee": "pc.now",
+          "lineNumber": 91
+        },
+        {
+          "caller": "scheduleOpen",
+          "callee": "pc.schedule.enabled",
+          "lineNumber": 95
+        },
+        {
+          "caller": "scheduleOpen",
+          "callee": "pc.schedule.activeAt",
+          "lineNumber": 98
+        },
+        {
+          "caller": "scheduleOpen",
+          "callee": "pc.now().In",
+          "lineNumber": 98
+        },
+        {
+          "caller": "scheduleOpen",
+          "callee": "pc.now",
+          "lineNumber": 98
+        },
+        {
+          "caller": "closedSleep",
+          "callee": "time.Duration",
+          "lineNumber": 103
+        },
+        {
+          "caller": "closedSleep",
+          "callee": "pc.schedule.enabled",
+          "lineNumber": 104
+        },
+        {
+          "caller": "closedSleep",
+          "callee": "pc.schedule.nextOpen",
+          "lineNumber": 107
+        },
+        {
+          "caller": "closedSleep",
+          "callee": "pc.now",
+          "lineNumber": 107
+        },
+        {
+          "caller": "phase",
+          "callee": "pc.scheduleOpen",
+          "lineNumber": 134
+        },
+        {
+          "caller": "phase",
+          "callee": "pc.lastAct.IsZero",
+          "lineNumber": 144
+        },
+        {
+          "caller": "phase",
+          "callee": "time.Duration",
+          "lineNumber": 145
+        },
+        {
+          "caller": "phase",
+          "callee": "pc.now().Sub",
+          "lineNumber": 146
+        },
+        {
+          "caller": "phase",
+          "callee": "pc.now",
+          "lineNumber": 146
+        },
+        {
+          "caller": "sleepFor",
+          "callee": "time.Duration",
+          "lineNumber": 155
+        },
+        {
+          "caller": "sleepFor",
+          "callee": "pc.closedSleep",
+          "lineNumber": 159
+        },
+        {
+          "caller": "sleepFor",
+          "callee": "time.Duration",
+          "lineNumber": 162
+        },
+        {
+          "caller": "sleepFor",
+          "callee": "time.Duration",
+          "lineNumber": 164
+        },
+        {
+          "caller": "sleepFor",
+          "callee": "time.Duration",
+          "lineNumber": 166
+        },
+        {
+          "caller": "sleepFor",
+          "callee": "time.Duration",
+          "lineNumber": 168
+        },
+        {
+          "caller": "sleepFor",
+          "callee": "time.Duration",
+          "lineNumber": 170
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 9,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "apps/print-agent/printer_discover_cache_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 39,
+      "nonEmptyLines": 35,
+      "functions": [
+        {
+          "name": "TestPrintersAPIForceRefresh",
+          "startLine": 9,
+          "endLine": 18,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestDiscoverPrintersForAPICache",
+          "startLine": 20,
+          "endLine": 39,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestPrintersAPIForceRefresh",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "TestDiscoverPrintersForAPICache",
+          "line": 20,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestPrintersAPIForceRefresh",
+          "callee": "httptest.NewRequest",
+          "lineNumber": 10
+        },
+        {
+          "caller": "TestPrintersAPIForceRefresh",
+          "callee": "printersAPIForceRefresh",
+          "lineNumber": 11
+        },
+        {
+          "caller": "TestPrintersAPIForceRefresh",
+          "callee": "t.Fatal",
+          "lineNumber": 12
+        },
+        {
+          "caller": "TestPrintersAPIForceRefresh",
+          "callee": "httptest.NewRequest",
+          "lineNumber": 14
+        },
+        {
+          "caller": "TestPrintersAPIForceRefresh",
+          "callee": "printersAPIForceRefresh",
+          "lineNumber": 15
+        },
+        {
+          "caller": "TestPrintersAPIForceRefresh",
+          "callee": "t.Fatal",
+          "lineNumber": 16
+        },
+        {
+          "caller": "TestDiscoverPrintersForAPICache",
+          "callee": "printerDiscoverMu.Lock",
+          "lineNumber": 21
+        },
+        {
+          "caller": "TestDiscoverPrintersForAPICache",
+          "callee": "time.Now",
+          "lineNumber": 25
+        },
+        {
+          "caller": "TestDiscoverPrintersForAPICache",
+          "callee": "printerDiscoverMu.Unlock",
+          "lineNumber": 27
+        },
+        {
+          "caller": "TestDiscoverPrintersForAPICache",
+          "callee": "discoverPrintersForAPI",
+          "lineNumber": 29
+        },
+        {
+          "caller": "TestDiscoverPrintersForAPICache",
+          "callee": "t.Fatal",
+          "lineNumber": 31
+        },
+        {
+          "caller": "TestDiscoverPrintersForAPICache",
+          "callee": "len",
+          "lineNumber": 33
+        },
+        {
+          "caller": "TestDiscoverPrintersForAPICache",
+          "callee": "t.Fatalf",
+          "lineNumber": 34
+        },
+        {
+          "caller": "TestDiscoverPrintersForAPICache",
+          "callee": "len",
+          "lineNumber": 36
+        },
+        {
+          "caller": "TestDiscoverPrintersForAPICache",
+          "callee": "t.Fatalf",
+          "lineNumber": 37
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/printer_discover_cache.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 47,
+      "nonEmptyLines": 40,
+      "functions": [
+        {
+          "name": "printersAPIForceRefresh",
+          "startLine": 23,
+          "endLine": 26,
+          "params": [
+            "r"
+          ]
+        },
+        {
+          "name": "discoverPrintersForAPI",
+          "startLine": 28,
+          "endLine": 47,
+          "params": [
+            "forceRefresh"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "printerDiscoverSnapshot",
+          "startLine": 12,
+          "endLine": 16,
+          "methods": [],
+          "properties": [
+            "tcp",
+            "winspool",
+            "at"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "printersAPIForceRefresh",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 24
+        },
+        {
+          "caller": "printersAPIForceRefresh",
+          "callee": "r.URL.Query().Get",
+          "lineNumber": 24
+        },
+        {
+          "caller": "printersAPIForceRefresh",
+          "callee": "r.URL.Query",
+          "lineNumber": 24
+        },
+        {
+          "caller": "printersAPIForceRefresh",
+          "callee": "strings.EqualFold",
+          "lineNumber": 25
+        },
+        {
+          "caller": "printersAPIForceRefresh",
+          "callee": "strings.EqualFold",
+          "lineNumber": 25
+        },
+        {
+          "caller": "discoverPrintersForAPI",
+          "callee": "printerDiscoverMu.Lock",
+          "lineNumber": 30
+        },
+        {
+          "caller": "discoverPrintersForAPI",
+          "callee": "printerDiscover.at.IsZero",
+          "lineNumber": 31
+        },
+        {
+          "caller": "discoverPrintersForAPI",
+          "callee": "time.Since",
+          "lineNumber": 31
+        },
+        {
+          "caller": "discoverPrintersForAPI",
+          "callee": "append",
+          "lineNumber": 32
+        },
+        {
+          "caller": "discoverPrintersForAPI",
+          "callee": "append",
+          "lineNumber": 33
+        },
+        {
+          "caller": "discoverPrintersForAPI",
+          "callee": "printerDiscoverMu.Unlock",
+          "lineNumber": 34
+        },
+        {
+          "caller": "discoverPrintersForAPI",
+          "callee": "printerDiscoverMu.Unlock",
+          "lineNumber": 37
+        },
+        {
+          "caller": "discoverPrintersForAPI",
+          "callee": "discoverAllPrinters",
+          "lineNumber": 40
+        },
+        {
+          "caller": "discoverPrintersForAPI",
+          "callee": "printerDiscoverMu.Lock",
+          "lineNumber": 41
+        },
+        {
+          "caller": "discoverPrintersForAPI",
+          "callee": "append",
+          "lineNumber": 42
+        },
+        {
+          "caller": "discoverPrintersForAPI",
+          "callee": "append",
+          "lineNumber": 43
+        },
+        {
+          "caller": "discoverPrintersForAPI",
+          "callee": "time.Now",
+          "lineNumber": 44
+        },
+        {
+          "caller": "discoverPrintersForAPI",
+          "callee": "printerDiscoverMu.Unlock",
+          "lineNumber": 45
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "apps/print-agent/printer_io_errors_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 25,
+      "nonEmptyLines": 23,
+      "functions": [
+        {
+          "name": "TestPrinterIOFailure",
+          "startLine": 9,
+          "endLine": 25,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestPrinterIOFailure",
+          "line": 9,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestPrinterIOFailure",
+          "callee": "printerIOFailure",
+          "lineNumber": 10
+        },
+        {
+          "caller": "TestPrinterIOFailure",
+          "callee": "t.Fatal",
+          "lineNumber": 11
+        },
+        {
+          "caller": "TestPrinterIOFailure",
+          "callee": "printerIOFailure",
+          "lineNumber": 13
+        },
+        {
+          "caller": "TestPrinterIOFailure",
+          "callee": "t.Fatal",
+          "lineNumber": 14
+        },
+        {
+          "caller": "TestPrinterIOFailure",
+          "callee": "printerIOFailure",
+          "lineNumber": 16
+        },
+        {
+          "caller": "TestPrinterIOFailure",
+          "callee": "fmt.Errorf",
+          "lineNumber": 16
+        },
+        {
+          "caller": "TestPrinterIOFailure",
+          "callee": "t.Fatal",
+          "lineNumber": 17
+        },
+        {
+          "caller": "TestPrinterIOFailure",
+          "callee": "printerIOFailure",
+          "lineNumber": 19
+        },
+        {
+          "caller": "TestPrinterIOFailure",
+          "callee": "fmt.Errorf",
+          "lineNumber": 19
+        },
+        {
+          "caller": "TestPrinterIOFailure",
+          "callee": "t.Fatal",
+          "lineNumber": 20
+        },
+        {
+          "caller": "TestPrinterIOFailure",
+          "callee": "printerIOFailure",
+          "lineNumber": 22
+        },
+        {
+          "caller": "TestPrinterIOFailure",
+          "callee": "errors.New",
+          "lineNumber": 22
+        },
+        {
+          "caller": "TestPrinterIOFailure",
+          "callee": "t.Fatal",
+          "lineNumber": 23
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/printer_io_errors.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 42,
+      "nonEmptyLines": 40,
+      "functions": [
+        {
+          "name": "printerIOFailure",
+          "startLine": 11,
+          "endLine": 42,
+          "params": [
+            "err"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "printerIOFailure",
+          "callee": "errors.Is",
+          "lineNumber": 15
+        },
+        {
+          "caller": "printerIOFailure",
+          "callee": "errors.As",
+          "lineNumber": 19
+        },
+        {
+          "caller": "printerIOFailure",
+          "callee": "ne.Timeout",
+          "lineNumber": 19
+        },
+        {
+          "caller": "printerIOFailure",
+          "callee": "ne.Temporary",
+          "lineNumber": 19
+        },
+        {
+          "caller": "printerIOFailure",
+          "callee": "strings.ToLower",
+          "lineNumber": 22
+        },
+        {
+          "caller": "printerIOFailure",
+          "callee": "err.Error",
+          "lineNumber": 22
+        },
+        {
+          "caller": "printerIOFailure",
+          "callee": "strings.Contains",
+          "lineNumber": 37
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/printer_readiness_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 25,
+      "nonEmptyLines": 22,
+      "functions": [
+        {
+          "name": "TestTargetKey",
+          "startLine": 8,
+          "endLine": 15,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestPreparePrintUnknownScheme",
+          "startLine": 17,
+          "endLine": 25,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestTargetKey",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "TestPreparePrintUnknownScheme",
+          "line": 17,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestTargetKey",
+          "callee": "targetKey",
+          "lineNumber": 9
+        },
+        {
+          "caller": "TestTargetKey",
+          "callee": "t.Fatalf",
+          "lineNumber": 10
+        },
+        {
+          "caller": "TestTargetKey",
+          "callee": "targetKey",
+          "lineNumber": 12
+        },
+        {
+          "caller": "TestTargetKey",
+          "callee": "t.Fatalf",
+          "lineNumber": 13
+        },
+        {
+          "caller": "TestPreparePrintUnknownScheme",
+          "callee": "preparePrint",
+          "lineNumber": 18
+        },
+        {
+          "caller": "TestPreparePrintUnknownScheme",
+          "callee": "t.Fatal",
+          "lineNumber": 20
+        },
+        {
+          "caller": "TestPreparePrintUnknownScheme",
+          "callee": "errors.Is",
+          "lineNumber": 22
+        },
+        {
+          "caller": "TestPreparePrintUnknownScheme",
+          "callee": "t.Fatalf",
+          "lineNumber": 23
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/printer_readiness.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 57,
+      "nonEmptyLines": 51,
+      "functions": [
+        {
+          "name": "targetKey",
+          "startLine": 16,
+          "endLine": 25,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "preparePrint",
+          "startLine": 28,
+          "endLine": 33,
+          "params": [
+            "target"
+          ]
+        },
+        {
+          "name": "targetCheckReady",
+          "startLine": 35,
+          "endLine": 44,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "tcpCheckReady",
+          "startLine": 46,
+          "endLine": 57,
+          "params": [
+            "hostPort"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "preparePrint",
+          "callee": "targetCheckReady",
+          "lineNumber": 29
+        },
+        {
+          "caller": "preparePrint",
+          "callee": "fmt.Errorf",
+          "lineNumber": 30
+        },
+        {
+          "caller": "targetCheckReady",
+          "callee": "tcpCheckReady",
+          "lineNumber": 38
+        },
+        {
+          "caller": "targetCheckReady",
+          "callee": "winspoolCheckReady",
+          "lineNumber": 40
+        },
+        {
+          "caller": "targetCheckReady",
+          "callee": "fmt.Errorf",
+          "lineNumber": 42
+        },
+        {
+          "caller": "tcpCheckReady",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 47
+        },
+        {
+          "caller": "tcpCheckReady",
+          "callee": "fmt.Errorf",
+          "lineNumber": 49
+        },
+        {
+          "caller": "tcpCheckReady",
+          "callee": "net.DialTimeout",
+          "lineNumber": 51
+        },
+        {
+          "caller": "tcpCheckReady",
+          "callee": "fmt.Errorf",
+          "lineNumber": 53
+        },
+        {
+          "caller": "tcpCheckReady",
+          "callee": "c.Close",
+          "lineNumber": 55
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/printer_target_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 25,
+      "nonEmptyLines": 23,
+      "functions": [
+        {
+          "name": "TestParsePrinterTarget",
+          "startLine": 5,
+          "endLine": 25,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestParsePrinterTarget",
+          "line": 5,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestParsePrinterTarget",
+          "callee": "parsePrinterTarget",
+          "lineNumber": 17
+        },
+        {
+          "caller": "TestParsePrinterTarget",
+          "callee": "t.Fatalf",
+          "lineNumber": 19
+        },
+        {
+          "caller": "TestParsePrinterTarget",
+          "callee": "t.Fatalf",
+          "lineNumber": 22
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/printer_target.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 69,
+      "nonEmptyLines": 62,
+      "functions": [
+        {
+          "name": "parsePrinterTarget",
+          "startLine": 20,
+          "endLine": 48,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "printerTargetForJob",
+          "startLine": 50,
+          "endLine": 56,
+          "params": [
+            "job"
+          ]
+        },
+        {
+          "name": "hasPrinterRouting",
+          "startLine": 58,
+          "endLine": 60,
+          "params": []
+        },
+        {
+          "name": "hasMappedStations",
+          "startLine": 62,
+          "endLine": 69,
+          "params": []
+        }
+      ],
+      "classes": [
+        {
+          "name": "printerTarget",
+          "startLine": 13,
+          "endLine": 18,
+          "methods": [],
+          "properties": [
+            "Scheme",
+            "TCPHostPort",
+            "WinspoolName",
+            "Display"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "parsePrinterTarget",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 21
+        },
+        {
+          "caller": "parsePrinterTarget",
+          "callee": "fmt.Errorf",
+          "lineNumber": 23
+        },
+        {
+          "caller": "parsePrinterTarget",
+          "callee": "strings.ToLower",
+          "lineNumber": 25
+        },
+        {
+          "caller": "parsePrinterTarget",
+          "callee": "strings.HasPrefix",
+          "lineNumber": 26
+        },
+        {
+          "caller": "parsePrinterTarget",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 27
+        },
+        {
+          "caller": "parsePrinterTarget",
+          "callee": "len",
+          "lineNumber": 27
+        },
+        {
+          "caller": "parsePrinterTarget",
+          "callee": "normalizeHostPort",
+          "lineNumber": 28
+        },
+        {
+          "caller": "parsePrinterTarget",
+          "callee": "fmt.Errorf",
+          "lineNumber": 30
+        },
+        {
+          "caller": "parsePrinterTarget",
+          "callee": "strings.HasPrefix",
+          "lineNumber": 34
+        },
+        {
+          "caller": "parsePrinterTarget",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 35
+        },
+        {
+          "caller": "parsePrinterTarget",
+          "callee": "len",
+          "lineNumber": 35
+        },
+        {
+          "caller": "parsePrinterTarget",
+          "callee": "fmt.Errorf",
+          "lineNumber": 37
+        },
+        {
+          "caller": "parsePrinterTarget",
+          "callee": "strings.Contains",
+          "lineNumber": 42
+        },
+        {
+          "caller": "parsePrinterTarget",
+          "callee": "normalizeHostPort",
+          "lineNumber": 43
+        },
+        {
+          "caller": "printerTargetForJob",
+          "callee": "c.printerAddrForJob",
+          "lineNumber": 51
+        },
+        {
+          "caller": "printerTargetForJob",
+          "callee": "parsePrinterTarget",
+          "lineNumber": 55
+        },
+        {
+          "caller": "hasPrinterRouting",
+          "callee": "c.hasMappedStations",
+          "lineNumber": 59
+        },
+        {
+          "caller": "hasMappedStations",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 64
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 4,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "apps/print-agent/receipt_defer.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 86,
+      "nonEmptyLines": 77,
+      "functions": [
+        {
+          "name": "parseJobCreatedAt",
+          "startLine": 16,
+          "endLine": 31,
+          "params": [
+            "job"
+          ]
+        },
+        {
+          "name": "jobCreatedWithin",
+          "startLine": 33,
+          "endLine": 39,
+          "params": [
+            "job",
+            "within"
+          ]
+        },
+        {
+          "name": "firstMappedStation",
+          "startLine": 41,
+          "endLine": 51,
+          "params": []
+        },
+        {
+          "name": "firstMappedStationAddr",
+          "startLine": 53,
+          "endLine": 60,
+          "params": []
+        },
+        {
+          "name": "mappedStationIDsSorted",
+          "startLine": 62,
+          "endLine": 72,
+          "params": []
+        },
+        {
+          "name": "resolveReceiptRouting",
+          "startLine": 74,
+          "endLine": 86,
+          "params": [
+            "job",
+            "explicitID"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "parseJobCreatedAt",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 17
+        },
+        {
+          "caller": "parseJobCreatedAt",
+          "callee": "time.Parse",
+          "lineNumber": 26
+        },
+        {
+          "caller": "jobCreatedWithin",
+          "callee": "parseJobCreatedAt",
+          "lineNumber": 34
+        },
+        {
+          "caller": "jobCreatedWithin",
+          "callee": "time.Since",
+          "lineNumber": 38
+        },
+        {
+          "caller": "firstMappedStation",
+          "callee": "c.mappedStationIDsSorted",
+          "lineNumber": 45
+        },
+        {
+          "caller": "firstMappedStation",
+          "callee": "len",
+          "lineNumber": 46
+        },
+        {
+          "caller": "firstMappedStation",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 50
+        },
+        {
+          "caller": "firstMappedStationAddr",
+          "callee": "c.firstMappedStation",
+          "lineNumber": 56
+        },
+        {
+          "caller": "firstMappedStationAddr",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 58
+        },
+        {
+          "caller": "mappedStationIDsSorted",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 65
+        },
+        {
+          "caller": "mappedStationIDsSorted",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 65
+        },
+        {
+          "caller": "mappedStationIDsSorted",
+          "callee": "append",
+          "lineNumber": 68
+        },
+        {
+          "caller": "mappedStationIDsSorted",
+          "callee": "sort.Strings",
+          "lineNumber": 70
+        },
+        {
+          "caller": "resolveReceiptRouting",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 75
+        },
+        {
+          "caller": "resolveReceiptRouting",
+          "callee": "c.resolveReceiptPrinterID",
+          "lineNumber": 77
+        },
+        {
+          "caller": "resolveReceiptRouting",
+          "callee": "c.firstMappedStationAddr",
+          "lineNumber": 79
+        },
+        {
+          "caller": "resolveReceiptRouting",
+          "callee": "jobCreatedWithin",
+          "lineNumber": 82
+        },
+        {
+          "caller": "resolveReceiptRouting",
+          "callee": "fmt.Errorf",
+          "lineNumber": 85
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/remote_config.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 145,
+      "nonEmptyLines": 134,
+      "functions": [
+        {
+          "name": "applyCloudRuntimeConfig",
+          "startLine": 26,
+          "endLine": 47,
+          "params": [
+            "cfg",
+            "apiBase"
+          ]
+        },
+        {
+          "name": "logAgentStartup",
+          "startLine": 49,
+          "endLine": 75,
+          "params": [
+            "cfg",
+            "apiBase",
+            "stationCount"
+          ]
+        },
+        {
+          "name": "formatScheduleLines",
+          "startLine": 77,
+          "endLine": 98,
+          "params": [
+            "s"
+          ]
+        },
+        {
+          "name": "fetchCloudRuntimeConfig",
+          "startLine": 100,
+          "endLine": 120,
+          "params": [
+            "url",
+            "jwt"
+          ]
+        },
+        {
+          "name": "fetchPrintStations",
+          "startLine": 122,
+          "endLine": 145,
+          "params": [
+            "apiBase",
+            "jwt"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "remoteCloudConfig",
+          "startLine": 11,
+          "endLine": 15,
+          "methods": [],
+          "properties": [
+            "Schedule",
+            "Poll",
+            "RecommendedAgentVersion"
+          ]
+        },
+        {
+          "name": "printStationRow",
+          "startLine": 17,
+          "endLine": 24,
+          "methods": [],
+          "properties": [
+            "ID",
+            "NamePt",
+            "NameEn",
+            "NameZh",
+            "TicketLayout",
+            "SortOrder"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "applyCloudRuntimeConfig",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 27
+        },
+        {
+          "caller": "applyCloudRuntimeConfig",
+          "callee": "strings.TrimRight",
+          "lineNumber": 31
+        },
+        {
+          "caller": "applyCloudRuntimeConfig",
+          "callee": "fetchCloudRuntimeConfig",
+          "lineNumber": 32
+        },
+        {
+          "caller": "applyCloudRuntimeConfig",
+          "callee": "agentLogTech",
+          "lineNumber": 34
+        },
+        {
+          "caller": "applyCloudRuntimeConfig",
+          "callee": "err.Error",
+          "lineNumber": 34
+        },
+        {
+          "caller": "applyCloudRuntimeConfig",
+          "callee": "remote.Schedule.enabled",
+          "lineNumber": 38
+        },
+        {
+          "caller": "applyCloudRuntimeConfig",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 44
+        },
+        {
+          "caller": "applyCloudRuntimeConfig",
+          "callee": "maybeNotifyVersionUpgrade",
+          "lineNumber": 45
+        },
+        {
+          "caller": "logAgentStartup",
+          "callee": "cfg.Schedule.enabled",
+          "lineNumber": 50
+        },
+        {
+          "caller": "logAgentStartup",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 51
+        },
+        {
+          "caller": "logAgentStartup",
+          "callee": "formatScheduleLines",
+          "lineNumber": 55
+        },
+        {
+          "caller": "logAgentStartup",
+          "callee": "agentLog",
+          "lineNumber": 56
+        },
+        {
+          "caller": "logAgentStartup",
+          "callee": "agentLog",
+          "lineNumber": 58
+        },
+        {
+          "caller": "logAgentStartup",
+          "callee": "agentLog",
+          "lineNumber": 60
+        },
+        {
+          "caller": "logAgentStartup",
+          "callee": "defaultPollConfig",
+          "lineNumber": 63
+        },
+        {
+          "caller": "logAgentStartup",
+          "callee": "cfg.Poll.normalized",
+          "lineNumber": 65
+        },
+        {
+          "caller": "logAgentStartup",
+          "callee": "agentLog",
+          "lineNumber": 67
+        },
+        {
+          "caller": "formatScheduleLines",
+          "callee": "len",
+          "lineNumber": 80
+        },
+        {
+          "caller": "formatScheduleLines",
+          "callee": "append",
+          "lineNumber": 85
+        },
+        {
+          "caller": "formatScheduleLines",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 85
+        },
+        {
+          "caller": "formatScheduleLines",
+          "callee": "append",
+          "lineNumber": 87
+        },
+        {
+          "caller": "formatScheduleLines",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 87
+        },
+        {
+          "caller": "formatScheduleLines",
+          "callee": "strings.Join",
+          "lineNumber": 87
+        },
+        {
+          "caller": "formatScheduleLines",
+          "callee": "add",
+          "lineNumber": 89
+        },
+        {
+          "caller": "formatScheduleLines",
+          "callee": "add",
+          "lineNumber": 90
+        },
+        {
+          "caller": "formatScheduleLines",
+          "callee": "add",
+          "lineNumber": 91
+        },
+        {
+          "caller": "formatScheduleLines",
+          "callee": "add",
+          "lineNumber": 92
+        },
+        {
+          "caller": "formatScheduleLines",
+          "callee": "add",
+          "lineNumber": 93
+        },
+        {
+          "caller": "formatScheduleLines",
+          "callee": "add",
+          "lineNumber": 94
+        },
+        {
+          "caller": "formatScheduleLines",
+          "callee": "add",
+          "lineNumber": 95
+        },
+        {
+          "caller": "formatScheduleLines",
+          "callee": "add",
+          "lineNumber": 96
+        },
+        {
+          "caller": "fetchCloudRuntimeConfig",
+          "callee": "http.NewRequest",
+          "lineNumber": 101
+        },
+        {
+          "caller": "fetchCloudRuntimeConfig",
+          "callee": "req.Header.Set",
+          "lineNumber": 105
+        },
+        {
+          "caller": "fetchCloudRuntimeConfig",
+          "callee": "http.DefaultClient.Do",
+          "lineNumber": 106
+        },
+        {
+          "caller": "fetchCloudRuntimeConfig",
+          "callee": "res.Body.Close",
+          "lineNumber": 110
+        },
+        {
+          "caller": "fetchCloudRuntimeConfig",
+          "callee": "io.ReadAll",
+          "lineNumber": 111
+        },
+        {
+          "caller": "fetchCloudRuntimeConfig",
+          "callee": "fmt.Errorf",
+          "lineNumber": 113
+        },
+        {
+          "caller": "fetchCloudRuntimeConfig",
+          "callee": "string",
+          "lineNumber": 113
+        },
+        {
+          "caller": "fetchCloudRuntimeConfig",
+          "callee": "json.Unmarshal",
+          "lineNumber": 116
+        },
+        {
+          "caller": "fetchPrintStations",
+          "callee": "strings.TrimRight",
+          "lineNumber": 123
+        },
+        {
+          "caller": "fetchPrintStations",
+          "callee": "http.NewRequest",
+          "lineNumber": 124
+        },
+        {
+          "caller": "fetchPrintStations",
+          "callee": "req.Header.Set",
+          "lineNumber": 128
+        },
+        {
+          "caller": "fetchPrintStations",
+          "callee": "http.DefaultClient.Do",
+          "lineNumber": 129
+        },
+        {
+          "caller": "fetchPrintStations",
+          "callee": "res.Body.Close",
+          "lineNumber": 133
+        },
+        {
+          "caller": "fetchPrintStations",
+          "callee": "io.ReadAll",
+          "lineNumber": 134
+        },
+        {
+          "caller": "fetchPrintStations",
+          "callee": "fmt.Errorf",
+          "lineNumber": 136
+        },
+        {
+          "caller": "fetchPrintStations",
+          "callee": "string",
+          "lineNumber": 136
+        },
+        {
+          "caller": "fetchPrintStations",
+          "callee": "json.Unmarshal",
+          "lineNumber": 141
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 5,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "apps/print-agent/routing_sync_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 40,
+      "nonEmptyLines": 37,
+      "functions": [
+        {
+          "name": "TestParseRoutingSyncErrorConflict",
+          "startLine": 8,
+          "endLine": 30,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestParseRoutingSyncErrorGeneric",
+          "startLine": 32,
+          "endLine": 40,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestParseRoutingSyncErrorConflict",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "TestParseRoutingSyncErrorGeneric",
+          "line": 32,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestParseRoutingSyncErrorConflict",
+          "callee": "parseRoutingSyncError",
+          "lineNumber": 19
+        },
+        {
+          "caller": "TestParseRoutingSyncErrorConflict",
+          "callee": "isRoutingSyncConflict",
+          "lineNumber": 20
+        },
+        {
+          "caller": "TestParseRoutingSyncErrorConflict",
+          "callee": "t.Fatalf",
+          "lineNumber": 22
+        },
+        {
+          "caller": "TestParseRoutingSyncErrorConflict",
+          "callee": "len",
+          "lineNumber": 24
+        },
+        {
+          "caller": "TestParseRoutingSyncErrorConflict",
+          "callee": "t.Fatalf",
+          "lineNumber": 25
+        },
+        {
+          "caller": "TestParseRoutingSyncErrorConflict",
+          "callee": "len",
+          "lineNumber": 25
+        },
+        {
+          "caller": "TestParseRoutingSyncErrorConflict",
+          "callee": "t.Fatalf",
+          "lineNumber": 28
+        },
+        {
+          "caller": "TestParseRoutingSyncErrorGeneric",
+          "callee": "parseRoutingSyncError",
+          "lineNumber": 33
+        },
+        {
+          "caller": "TestParseRoutingSyncErrorGeneric",
+          "callee": "isRoutingSyncConflict",
+          "lineNumber": 34
+        },
+        {
+          "caller": "TestParseRoutingSyncErrorGeneric",
+          "callee": "t.Fatal",
+          "lineNumber": 35
+        },
+        {
+          "caller": "TestParseRoutingSyncErrorGeneric",
+          "callee": "err.Error",
+          "lineNumber": 37
+        },
+        {
+          "caller": "TestParseRoutingSyncErrorGeneric",
+          "callee": "t.Fatal",
+          "lineNumber": 38
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/routing_sync.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 105,
+      "nonEmptyLines": 98,
+      "functions": [
+        {
+          "name": "Error",
+          "startLine": 26,
+          "endLine": 34,
+          "params": []
+        },
+        {
+          "name": "parseRoutingSyncError",
+          "startLine": 36,
+          "endLine": 64,
+          "params": [
+            "status",
+            "body"
+          ]
+        },
+        {
+          "name": "syncRoutingToCloud",
+          "startLine": 66,
+          "endLine": 97,
+          "params": [
+            "cfg"
+          ]
+        },
+        {
+          "name": "isRoutingSyncConflict",
+          "startLine": 99,
+          "endLine": 105,
+          "params": [
+            "err"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "RoutingSyncConflict",
+          "startLine": 13,
+          "endLine": 18,
+          "methods": [],
+          "properties": [
+            "StationID",
+            "StationLabel",
+            "OtherDeviceID",
+            "OtherDeviceLabel"
+          ]
+        },
+        {
+          "name": "RoutingSyncError",
+          "startLine": 20,
+          "endLine": 24,
+          "methods": [
+            "Error"
+          ],
+          "properties": [
+            "Code",
+            "Message",
+            "Conflicts"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RoutingSyncConflict",
+          "line": 13,
+          "isDefault": false
+        },
+        {
+          "name": "RoutingSyncError",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "Error",
+          "line": 26,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "parseRoutingSyncError",
+          "callee": "len",
+          "lineNumber": 43
+        },
+        {
+          "caller": "parseRoutingSyncError",
+          "callee": "json.Unmarshal",
+          "lineNumber": 44
+        },
+        {
+          "caller": "parseRoutingSyncError",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 46
+        },
+        {
+          "caller": "parseRoutingSyncError",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 50
+        },
+        {
+          "caller": "parseRoutingSyncError",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 52
+        },
+        {
+          "caller": "parseRoutingSyncError",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 55
+        },
+        {
+          "caller": "parseRoutingSyncError",
+          "callee": "len",
+          "lineNumber": 57
+        },
+        {
+          "caller": "parseRoutingSyncError",
+          "callee": "fmt.Errorf",
+          "lineNumber": 63
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 67
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 67
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "json.Marshal",
+          "lineNumber": 73
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "strings.TrimRight",
+          "lineNumber": 77
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "http.NewRequest",
+          "lineNumber": 78
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "bytes.NewReader",
+          "lineNumber": 78
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "req.Header.Set",
+          "lineNumber": 82
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "req.Header.Set",
+          "lineNumber": 83
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "http.DefaultClient.Do",
+          "lineNumber": 84
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "agentLogTech",
+          "lineNumber": 86
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "err.Error",
+          "lineNumber": 86
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "res.Body.Close",
+          "lineNumber": 89
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "io.ReadAll",
+          "lineNumber": 90
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "io.LimitReader",
+          "lineNumber": 90
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "agentLog",
+          "lineNumber": 92
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "parseRoutingSyncError",
+          "lineNumber": 93
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "agentLog",
+          "lineNumber": 95
+        },
+        {
+          "caller": "syncRoutingToCloud",
+          "callee": "len",
+          "lineNumber": 95
+        },
+        {
+          "caller": "isRoutingSyncConflict",
+          "callee": "errors.As",
+          "lineNumber": 101
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 4,
+        "classCount": 2
+      }
+    }
+  ]
+}

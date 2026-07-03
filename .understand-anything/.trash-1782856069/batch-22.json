@@ -1,0 +1,259 @@
+{
+  "nodes": [
+    {
+      "id": "file:packages/shared/src/country-code.test.ts",
+      "type": "file",
+      "name": "country-code.test.ts",
+      "filePath": "packages/shared/src/country-code.test.ts",
+      "summary": "单元测试 country-code.test.ts，验证相邻业务模块行为。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/country-code.ts",
+      "type": "file",
+      "name": "country-code.ts",
+      "filePath": "packages/shared/src/country-code.ts",
+      "summary": "源码文件 packages/shared/src/country-code.ts，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/country-code.ts:normalizeCountryCode",
+      "type": "function",
+      "name": "normalizeCountryCode",
+      "filePath": "packages/shared/src/country-code.ts",
+      "lineRange": [
+        15,
+        20
+      ],
+      "summary": "解析/规范化工具函数 normalizeCountryCode。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/country-code.ts:countryCodeLabel",
+      "type": "function",
+      "name": "countryCodeLabel",
+      "filePath": "packages/shared/src/country-code.ts",
+      "lineRange": [
+        22,
+        25
+      ],
+      "summary": "函数 countryCodeLabel，实现 country-code 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/create-restaurant.ts",
+      "type": "file",
+      "name": "create-restaurant.ts",
+      "filePath": "packages/shared/src/create-restaurant.ts",
+      "summary": "源码文件 packages/shared/src/create-restaurant.ts，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/shared/src/create-restaurant.ts:validateCreateRestaurantInput",
+      "type": "function",
+      "name": "validateCreateRestaurantInput",
+      "filePath": "packages/shared/src/create-restaurant.ts",
+      "lineRange": [
+        34,
+        57
+      ],
+      "summary": "函数 validateCreateRestaurantInput，实现 create-restaurant 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/create-restaurant.ts:createRestaurantWithOwner",
+      "type": "function",
+      "name": "createRestaurantWithOwner",
+      "filePath": "packages/shared/src/create-restaurant.ts",
+      "lineRange": [
+        59,
+        125
+      ],
+      "summary": "CRUD 操作函数 createRestaurantWithOwner。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/shared/src/slug.ts",
+      "type": "file",
+      "name": "slug.ts",
+      "filePath": "packages/shared/src/slug.ts",
+      "summary": "源码文件 packages/shared/src/slug.ts，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/slug.ts:restaurantNameToSlug",
+      "type": "function",
+      "name": "restaurantNameToSlug",
+      "filePath": "packages/shared/src/slug.ts",
+      "lineRange": [
+        1,
+        9
+      ],
+      "summary": "函数 restaurantNameToSlug，实现 slug 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/slug.ts:defaultRestaurantSlug",
+      "type": "function",
+      "name": "defaultRestaurantSlug",
+      "filePath": "packages/shared/src/slug.ts",
+      "lineRange": [
+        11,
+        14
+      ],
+      "summary": "函数 defaultRestaurantSlug，实现 slug 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:packages/shared/src/country-code.test.ts",
+      "target": "file:packages/shared/src/country-code.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/shared/src/country-code.ts",
+      "target": "function:packages/shared/src/country-code.ts:normalizeCountryCode",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/country-code.ts",
+      "target": "function:packages/shared/src/country-code.ts:normalizeCountryCode",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/country-code.ts",
+      "target": "function:packages/shared/src/country-code.ts:countryCodeLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/country-code.ts",
+      "target": "function:packages/shared/src/country-code.ts:countryCodeLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/create-restaurant.ts",
+      "target": "function:packages/shared/src/create-restaurant.ts:validateCreateRestaurantInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/create-restaurant.ts",
+      "target": "function:packages/shared/src/create-restaurant.ts:validateCreateRestaurantInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/create-restaurant.ts",
+      "target": "function:packages/shared/src/create-restaurant.ts:createRestaurantWithOwner",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/create-restaurant.ts",
+      "target": "function:packages/shared/src/create-restaurant.ts:createRestaurantWithOwner",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/create-restaurant.ts",
+      "target": "file:packages/shared/src/country-code.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/shared/src/create-restaurant.ts",
+      "target": "file:packages/shared/src/slug.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:packages/shared/src/create-restaurant.ts:createRestaurantWithOwner",
+      "target": "function:packages/shared/src/create-restaurant.ts:validateCreateRestaurantInput",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/slug.ts",
+      "target": "function:packages/shared/src/slug.ts:restaurantNameToSlug",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/slug.ts",
+      "target": "function:packages/shared/src/slug.ts:restaurantNameToSlug",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/slug.ts",
+      "target": "function:packages/shared/src/slug.ts:defaultRestaurantSlug",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/slug.ts",
+      "target": "function:packages/shared/src/slug.ts:defaultRestaurantSlug",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/shared/src/slug.ts:defaultRestaurantSlug",
+      "target": "function:packages/shared/src/slug.ts:restaurantNameToSlug",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

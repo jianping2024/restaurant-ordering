@@ -1,0 +1,1865 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 24,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/web/src/app/[slug]/kitchen/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 22,
+      "nonEmptyLines": 17,
+      "functions": [
+        {
+          "name": "KitchenPage",
+          "startLine": 9,
+          "endLine": 22,
+          "params": [
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "KitchenPage",
+          "line": 9,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "KitchenPage",
+          "callee": "createClient",
+          "lineNumber": 11
+        },
+        {
+          "caller": "KitchenPage",
+          "callee": "supabase\n    .from('restaurants_public')\n    .select('id, name, slug')\n    .eq('slug', slug)\n    .single",
+          "lineNumber": 13
+        },
+        {
+          "caller": "KitchenPage",
+          "callee": "supabase\n    .from('restaurants_public')\n    .select('id, name, slug')\n    .eq",
+          "lineNumber": 13
+        },
+        {
+          "caller": "KitchenPage",
+          "callee": "supabase\n    .from('restaurants_public')\n    .select",
+          "lineNumber": 13
+        },
+        {
+          "caller": "KitchenPage",
+          "callee": "supabase\n    .from",
+          "lineNumber": 13
+        },
+        {
+          "caller": "KitchenPage",
+          "callee": "notFound",
+          "lineNumber": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/[slug]/staff/login/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 28,
+      "nonEmptyLines": 24,
+      "functions": [
+        {
+          "name": "StoreStaffLoginPage",
+          "startLine": 5,
+          "endLine": 28,
+          "params": [
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "StoreStaffLoginPage",
+          "line": 5,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "StoreStaffLoginPage",
+          "callee": "createAdminClient",
+          "lineNumber": 8
+        },
+        {
+          "caller": "StoreStaffLoginPage",
+          "callee": "notFound",
+          "lineNumber": 10
+        },
+        {
+          "caller": "StoreStaffLoginPage",
+          "callee": "admin\n    .from('restaurants')\n    .select('name, slug')\n    .eq('slug', params.slug)\n    .maybeSingle",
+          "lineNumber": 13
+        },
+        {
+          "caller": "StoreStaffLoginPage",
+          "callee": "admin\n    .from('restaurants')\n    .select('name, slug')\n    .eq",
+          "lineNumber": 13
+        },
+        {
+          "caller": "StoreStaffLoginPage",
+          "callee": "admin\n    .from('restaurants')\n    .select",
+          "lineNumber": 13
+        },
+        {
+          "caller": "StoreStaffLoginPage",
+          "callee": "admin\n    .from",
+          "lineNumber": 13
+        },
+        {
+          "caller": "StoreStaffLoginPage",
+          "callee": "notFound",
+          "lineNumber": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/admin/create-restaurant/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 22,
+      "nonEmptyLines": 21,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 6,
+          "endLine": 22,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "POST",
+          "line": 6,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "getOpsAppUrl",
+          "lineNumber": 7
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 8
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 24,
+      "nonEmptyLines": 20,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 9,
+          "endLine": 24,
+          "params": [
+            "_req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 9,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "isPrintAgentDownloadArtifact",
+          "lineNumber": 14
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 15
+        },
+        {
+          "caller": "GET",
+          "callee": "resolvePrintAgentGitHubDownloadUrl",
+          "lineNumber": 18
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 20
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.redirect",
+          "lineNumber": 23
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/devices/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 29,
+      "nonEmptyLines": 24,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 8,
+          "endLine": 29,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "createClient",
+          "lineNumber": 9
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 12
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 14
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase\n    .from('restaurants')\n    .select('id')\n    .eq('owner_id', user.id)\n    .maybeSingle",
+          "lineNumber": 17
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase\n    .from('restaurants')\n    .select('id')\n    .eq",
+          "lineNumber": 17
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase\n    .from('restaurants')\n    .select",
+          "lineNumber": 17
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase\n    .from",
+          "lineNumber": 17
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 24
+        },
+        {
+          "caller": "GET",
+          "callee": "loadPrintAgentDevices",
+          "lineNumber": 27
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 28
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/auth/admin/register/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 31,
+      "nonEmptyLines": 29,
+      "functions": [
+        {
+          "name": "AdminRegisterPage",
+          "startLine": 7,
+          "endLine": 31,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "AdminRegisterPage",
+          "line": 7,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "AdminRegisterPage",
+          "callee": "getOpsAppUrl",
+          "lineNumber": 8
+        },
+        {
+          "caller": "AdminRegisterPage",
+          "callee": "redirect",
+          "lineNumber": 10
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/auth/login/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 133,
+      "nonEmptyLines": 119,
+      "functions": [
+        {
+          "name": "LoginPage",
+          "startLine": 20,
+          "endLine": 133,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "LoginPage",
+          "line": 20,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "LoginPage",
+          "callee": "useLanguage",
+          "lineNumber": 21
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "getMessages",
+          "lineNumber": 22
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "useState",
+          "lineNumber": 23
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "useState",
+          "lineNumber": 24
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "useState",
+          "lineNumber": 25
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "useState",
+          "lineNumber": 26
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "useRef",
+          "lineNumber": 27
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "e.preventDefault",
+          "lineNumber": 30
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "setError",
+          "lineNumber": 33
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "setLoading",
+          "lineNumber": 34
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "fetch",
+          "lineNumber": 37
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "JSON.stringify",
+          "lineNumber": 41
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "email.trim",
+          "lineNumber": 41
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "res.json().catch",
+          "lineNumber": 44
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "res.json",
+          "lineNumber": 44
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "Math.max",
+          "lineNumber": 48
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "Math.ceil",
+          "lineNumber": 48
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "setError",
+          "lineNumber": 49
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "t.rateLimitedWithMinutes.replace",
+          "lineNumber": 49
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "String",
+          "lineNumber": 49
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "setLoading",
+          "lineNumber": 50
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "setError",
+          "lineNumber": 57
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "setError",
+          "lineNumber": 59
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "setError",
+          "lineNumber": 61
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "setError",
+          "lineNumber": 63
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "setLoading",
+          "lineNumber": 65
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "window.location.assign",
+          "lineNumber": 70
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "setError",
+          "lineNumber": 72
+        },
+        {
+          "caller": "handleLogin",
+          "callee": "setLoading",
+          "lineNumber": 73
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "setEmail",
+          "lineNumber": 96
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "setPassword",
+          "lineNumber": 105
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/auth/register/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 33,
+      "nonEmptyLines": 30,
+      "functions": [
+        {
+          "name": "RegisterClosedPage",
+          "startLine": 9,
+          "endLine": 33,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "RegisterClosedPage",
+          "line": 9,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "RegisterClosedPage",
+          "callee": "useLanguage",
+          "lineNumber": 10
+        },
+        {
+          "caller": "RegisterClosedPage",
+          "callee": "getMessages",
+          "lineNumber": 11
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/auth/staff/change-password/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 157,
+      "nonEmptyLines": 143,
+      "functions": [
+        {
+          "name": "StaffChangePasswordPage",
+          "startLine": 15,
+          "endLine": 157,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "StaffChangePasswordPage",
+          "line": 15,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "useRouter",
+          "lineNumber": 16
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "useLanguage",
+          "lineNumber": 17
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "getMessages",
+          "lineNumber": 18
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "useState",
+          "lineNumber": 19
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "useState",
+          "lineNumber": 20
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "useState",
+          "lineNumber": 21
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "useState",
+          "lineNumber": 22
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "useState",
+          "lineNumber": 23
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "useState",
+          "lineNumber": 24
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "useRef",
+          "lineNumber": 25
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "useEffect",
+          "lineNumber": 27
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "createClient",
+          "lineNumber": 28
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "supabase.auth.getUser().then",
+          "lineNumber": 29
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 29
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "parseStaffUserMetadata",
+          "lineNumber": 30
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "router.replace",
+          "lineNumber": 32
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "setChecking",
+          "lineNumber": 35
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "e.preventDefault",
+          "lineNumber": 40
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 42
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "staffPasswordValid",
+          "lineNumber": 44
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 45
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 49
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 53
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 58
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "createClient",
+          "lineNumber": 61
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 64
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "parseStaffUserMetadata",
+          "lineNumber": 65
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 67
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 68
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "supabase.auth.signInWithPassword",
+          "lineNumber": 73
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 78
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 79
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "supabase.auth.updateUser",
+          "lineNumber": 84
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 90
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 91
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "router.push",
+          "lineNumber": 96
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "staffRolePath",
+          "lineNumber": 96
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "router.refresh",
+          "lineNumber": 97
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 99
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 100
+        },
+        {
+          "caller": "handleSignOut",
+          "callee": "staffSignOut",
+          "lineNumber": 106
+        },
+        {
+          "caller": "handleSignOut",
+          "callee": "router.replace",
+          "lineNumber": 107
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "handleSignOut",
+          "lineNumber": 121
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "setCurrentPassword",
+          "lineNumber": 129
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "setNewPassword",
+          "lineNumber": 137
+        },
+        {
+          "caller": "StaffChangePasswordPage",
+          "callee": "setConfirmPassword",
+          "lineNumber": 145
+        }
+      ],
+      "metrics": {
+        "importCount": 8,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/auth/staff/login/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 7,
+      "nonEmptyLines": 5,
+      "functions": [
+        {
+          "name": "GlobalStaffLoginPage",
+          "startLine": 5,
+          "endLine": 7,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "GlobalStaffLoginPage",
+          "line": 5,
+          "isDefault": true
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/layout.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 61,
+      "nonEmptyLines": 55,
+      "functions": [
+        {
+          "name": "DashboardLayout",
+          "startLine": 12,
+          "endLine": 61,
+          "params": [
+            "{\n  children,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "DashboardLayout",
+          "line": 12,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "DashboardLayout",
+          "callee": "loadDashboardAccess",
+          "lineNumber": 17
+        },
+        {
+          "caller": "DashboardLayout",
+          "callee": "redirect",
+          "lineNumber": 20
+        },
+        {
+          "caller": "DashboardLayout",
+          "callee": "loadPrintAgentDevicesNeedingRenewal",
+          "lineNumber": 41
+        },
+        {
+          "caller": "DashboardLayout",
+          "callee": "isRestaurantSuspended",
+          "lineNumber": 45
+        }
+      ],
+      "metrics": {
+        "importCount": 8,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/orders/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 34,
+      "nonEmptyLines": 29,
+      "functions": [
+        {
+          "name": "OrdersPage",
+          "startLine": 6,
+          "endLine": 34,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "OrdersPage",
+          "line": 6,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "OrdersPage",
+          "callee": "loadFrontdeskDashboardTables",
+          "lineNumber": 7
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "notFound",
+          "lineNumber": 8
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from('orders')\n    .select('*')\n    .eq('restaurant_id', loaded.restaurant.id)\n    .order('created_at', { ascending: false })\n    .limit",
+          "lineNumber": 10
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from('orders')\n    .select('*')\n    .eq('restaurant_id', loaded.restaurant.id)\n    .order",
+          "lineNumber": 10
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from('orders')\n    .select('*')\n    .eq",
+          "lineNumber": 10
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from('orders')\n    .select",
+          "lineNumber": 10
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from",
+          "lineNumber": 10
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from('table_sessions')\n    .select('id')\n    .eq('restaurant_id', loaded.restaurant.id)\n    .eq",
+          "lineNumber": 17
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from('table_sessions')\n    .select('id')\n    .eq",
+          "lineNumber": 17
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from('table_sessions')\n    .select",
+          "lineNumber": 17
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "loaded.admin\n    .from",
+          "lineNumber": 17
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "(closedSessions || []).map",
+          "lineNumber": 23
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "(orders || []).filter",
+          "lineNumber": 24
+        },
+        {
+          "caller": "OrdersPage",
+          "callee": "closedSessionIds.has",
+          "lineNumber": 25
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/settings/features/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 31,
+      "nonEmptyLines": 27,
+      "functions": [
+        {
+          "name": "SettingsFeaturesPage",
+          "startLine": 9,
+          "endLine": 31,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "SettingsFeaturesPage",
+          "line": 9,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SettingsFeaturesPage",
+          "callee": "createClient",
+          "lineNumber": 10
+        },
+        {
+          "caller": "SettingsFeaturesPage",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 13
+        },
+        {
+          "caller": "SettingsFeaturesPage",
+          "callee": "redirect",
+          "lineNumber": 14
+        },
+        {
+          "caller": "SettingsFeaturesPage",
+          "callee": "supabase\n    .from('restaurants')\n    .select('feature_flags, print_agent_config')\n    .eq('owner_id', user.id)\n    .single",
+          "lineNumber": 16
+        },
+        {
+          "caller": "SettingsFeaturesPage",
+          "callee": "supabase\n    .from('restaurants')\n    .select('feature_flags, print_agent_config')\n    .eq",
+          "lineNumber": 16
+        },
+        {
+          "caller": "SettingsFeaturesPage",
+          "callee": "supabase\n    .from('restaurants')\n    .select",
+          "lineNumber": 16
+        },
+        {
+          "caller": "SettingsFeaturesPage",
+          "callee": "supabase\n    .from",
+          "lineNumber": 16
+        },
+        {
+          "caller": "SettingsFeaturesPage",
+          "callee": "redirect",
+          "lineNumber": 22
+        },
+        {
+          "caller": "SettingsFeaturesPage",
+          "callee": "normalizeRestaurantFeatureFlags",
+          "lineNumber": 27
+        },
+        {
+          "caller": "SettingsFeaturesPage",
+          "callee": "resolvePrintAgentCredentialTtlDays",
+          "lineNumber": 28
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/settings/layout.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 5,
+      "nonEmptyLines": 4,
+      "functions": [
+        {
+          "name": "SettingsLayout",
+          "startLine": 3,
+          "endLine": 5,
+          "params": [
+            "{ children }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SettingsLayout",
+          "line": 3,
+          "isDefault": true
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 94,
+      "nonEmptyLines": 88,
+      "functions": [
+        {
+          "name": "PrintAssistantSettingsPage",
+          "startLine": 27,
+          "endLine": 94,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "PrintAssistantSettingsPage",
+          "line": 27,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "loadDashboardAccess",
+          "lineNumber": 28
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "redirect",
+          "lineNumber": 29
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "redirect",
+          "lineNumber": 30
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "cloudConfigToForm",
+          "lineNumber": 35
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "defaultPrintAgentCloudConfig",
+          "lineNumber": 35
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "createAdminClient",
+          "lineNumber": 38
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "admin\n      .from('restaurants')\n      .select('print_agent_config')\n      .eq('id', rid)\n      .single",
+          "lineNumber": 39
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "admin\n      .from('restaurants')\n      .select('print_agent_config')\n      .eq",
+          "lineNumber": 39
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "admin\n      .from('restaurants')\n      .select",
+          "lineNumber": 39
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "admin\n      .from",
+          "lineNumber": 39
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "Object.keys",
+          "lineNumber": 45
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "normalizePrintAgentCloudConfig",
+          "lineNumber": 46
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "cloudConfigToForm",
+          "lineNumber": 47
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "getSiteOrigin",
+          "lineNumber": 54
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "getPrintAgentDownloadUrls",
+          "lineNumber": 55
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "getPrintAgentVersion",
+          "lineNumber": 56
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "isPinnedPrintAgentReleaseAvailable",
+          "lineNumber": 58
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "findLatestPublishedPrintAgentRelease",
+          "lineNumber": 61
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "Promise.all",
+          "lineNumber": 64
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "loadPrintAgentDevicesNeedingRenewal",
+          "lineNumber": 65
+        },
+        {
+          "caller": "PrintAssistantSettingsPage",
+          "callee": "loadPrintAgentDevices",
+          "lineNumber": 66
+        }
+      ],
+      "metrics": {
+        "importCount": 12,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 106,
+      "nonEmptyLines": 99,
+      "functions": [
+        {
+          "name": "LandingPage",
+          "startLine": 11,
+          "endLine": 106,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "LandingPage",
+          "line": 11,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "LandingPage",
+          "callee": "useLanguage",
+          "lineNumber": 12
+        },
+        {
+          "caller": "LandingPage",
+          "callee": "getMessages",
+          "lineNumber": 13
+        },
+        {
+          "caller": "LandingPage",
+          "callee": "features.map",
+          "lineNumber": 74
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/customer/RestaurantMaintenancePage.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 24,
+      "nonEmptyLines": 20,
+      "functions": [
+        {
+          "name": "RestaurantMaintenancePage",
+          "startLine": 11,
+          "endLine": 24,
+          "params": [
+            "{ restaurantName, reason }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RestaurantMaintenancePage",
+          "line": 11,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "RestaurantMaintenancePage",
+          "callee": "useLanguage",
+          "lineNumber": 12
+        },
+        {
+          "caller": "RestaurantMaintenancePage",
+          "callee": "getMessages",
+          "lineNumber": 13
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/DashboardAccessError.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 60,
+      "nonEmptyLines": 56,
+      "functions": [
+        {
+          "name": "DashboardAccessError",
+          "startLine": 18,
+          "endLine": 60,
+          "params": [
+            "{ message }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "DashboardAccessError",
+          "line": 18,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "DashboardAccessError",
+          "callee": "useRouter",
+          "lineNumber": 19
+        },
+        {
+          "caller": "DashboardAccessError",
+          "callee": "useLanguage",
+          "lineNumber": 20
+        },
+        {
+          "caller": "DashboardAccessError",
+          "callee": "getMessages",
+          "lineNumber": 21
+        },
+        {
+          "caller": "DashboardAccessError",
+          "callee": "useSignOutConfirmState",
+          "lineNumber": 23
+        },
+        {
+          "caller": "DashboardAccessError",
+          "callee": "dashboardSignOutAndRedirect",
+          "lineNumber": 23
+        },
+        {
+          "caller": "DashboardAccessError",
+          "callee": "window.location.reload",
+          "lineNumber": 39
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/DashboardNav.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 134,
+      "nonEmptyLines": 123,
+      "functions": [
+        {
+          "name": "isNavItemActive",
+          "startLine": 23,
+          "endLine": 34,
+          "params": [
+            "pathname",
+            "item"
+          ]
+        },
+        {
+          "name": "DashboardNav",
+          "startLine": 36,
+          "endLine": 134,
+          "params": [
+            "{\n  restaurant,\n  accessMode = 'owner',\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "DashboardNav",
+          "line": 36,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "isNavItemActive",
+          "callee": "pathname.startsWith",
+          "lineNumber": 28
+        },
+        {
+          "caller": "isNavItemActive",
+          "callee": "pathname.startsWith",
+          "lineNumber": 33
+        },
+        {
+          "caller": "DashboardNav",
+          "callee": "isDashboardKitchenShortcutEnabled",
+          "lineNumber": 43
+        },
+        {
+          "caller": "DashboardNav",
+          "callee": "usePathname",
+          "lineNumber": 44
+        },
+        {
+          "caller": "DashboardNav",
+          "callee": "useRouter",
+          "lineNumber": 45
+        },
+        {
+          "caller": "DashboardNav",
+          "callee": "useLanguage",
+          "lineNumber": 46
+        },
+        {
+          "caller": "DashboardNav",
+          "callee": "getMessages",
+          "lineNumber": 47
+        },
+        {
+          "caller": "DashboardNav",
+          "callee": "useState",
+          "lineNumber": 55
+        },
+        {
+          "caller": "DashboardNav",
+          "callee": "useCheckoutRequestCount",
+          "lineNumber": 56
+        },
+        {
+          "caller": "DashboardNav",
+          "callee": "useSignOutConfirmState",
+          "lineNumber": 62
+        },
+        {
+          "caller": "DashboardNav",
+          "callee": "dashboardSignOutAndRedirect",
+          "lineNumber": 62
+        },
+        {
+          "caller": "closeMobile",
+          "callee": "setMobileOpen",
+          "lineNumber": 64
+        },
+        {
+          "caller": "DashboardNav",
+          "callee": "setMobileOpen",
+          "lineNumber": 71
+        },
+        {
+          "caller": "DashboardNav",
+          "callee": "navItems.map",
+          "lineNumber": 101
+        },
+        {
+          "caller": "DashboardNav",
+          "callee": "isNavItemActive",
+          "lineNumber": 105
+        }
+      ],
+      "metrics": {
+        "importCount": 13,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/DashboardNavFooter.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 31,
+      "nonEmptyLines": 28,
+      "functions": [
+        {
+          "name": "DashboardNavFooter",
+          "startLine": 11,
+          "endLine": 31,
+          "params": [
+            "{ logoutLabel, onLogout }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "DashboardNavFooter",
+          "line": 11,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/DashboardNavItem.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 55,
+      "nonEmptyLines": 51,
+      "functions": [
+        {
+          "name": "DashboardNavItem",
+          "startLine": 14,
+          "endLine": 55,
+          "params": [
+            "{\n  href,\n  active,\n  icon,\n  label,\n  onNavigate,\n  external = false,\n  badge,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "DashboardNavItem",
+          "line": 14,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "DashboardNavItem",
+          "callee": "dashboardNavLinkClassName",
+          "lineNumber": 23
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/DashboardSettingsShell.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 55,
+      "nonEmptyLines": 49,
+      "functions": [
+        {
+          "name": "DashboardSettingsShell",
+          "startLine": 13,
+          "endLine": 55,
+          "params": [
+            "{ children }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "DashboardSettingsShell",
+          "line": 13,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "DashboardSettingsShell",
+          "callee": "usePathname",
+          "lineNumber": 14
+        },
+        {
+          "caller": "DashboardSettingsShell",
+          "callee": "useLanguage",
+          "lineNumber": 15
+        },
+        {
+          "caller": "DashboardSettingsShell",
+          "callee": "getMessages",
+          "lineNumber": 16
+        },
+        {
+          "caller": "DashboardSettingsShell",
+          "callee": "getActiveSettingsNavItem",
+          "lineNumber": 17
+        },
+        {
+          "caller": "DashboardSettingsShell",
+          "callee": "isSettingsWideLayout",
+          "lineNumber": 24
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/DashboardSidebarHeader.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 48,
+      "nonEmptyLines": 46,
+      "functions": [
+        {
+          "name": "DashboardSidebarHeader",
+          "startLine": 10,
+          "endLine": 48,
+          "params": [
+            "{\n  logoUrl,\n  restaurantName,\n  onCloseMobile,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "DashboardSidebarHeader",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/FeatureFlagsManager.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 152,
+      "nonEmptyLines": 139,
+      "functions": [
+        {
+          "name": "FeatureFlagsManager",
+          "startLine": 21,
+          "endLine": 152,
+          "params": [
+            "{\n  embedded,\n  initialFlags,\n  initialCredentialTtlDays,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "FeatureFlagsManager",
+          "line": 21,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "FeatureFlagsManager",
+          "callee": "useLanguage",
+          "lineNumber": 26
+        },
+        {
+          "caller": "FeatureFlagsManager",
+          "callee": "getMessages",
+          "lineNumber": 27
+        },
+        {
+          "caller": "FeatureFlagsManager",
+          "callee": "useState",
+          "lineNumber": 28
+        },
+        {
+          "caller": "FeatureFlagsManager",
+          "callee": "useState",
+          "lineNumber": 29
+        },
+        {
+          "caller": "FeatureFlagsManager",
+          "callee": "useState",
+          "lineNumber": 30
+        },
+        {
+          "caller": "FeatureFlagsManager",
+          "callee": "useState",
+          "lineNumber": 31
+        },
+        {
+          "caller": "FeatureFlagsManager",
+          "callee": "useState",
+          "lineNumber": 32
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setSaving",
+          "lineNumber": 35
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 36
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setSuccess",
+          "lineNumber": 37
+        },
+        {
+          "caller": "handleSave",
+          "callee": "fetch",
+          "lineNumber": 39
+        },
+        {
+          "caller": "handleSave",
+          "callee": "JSON.stringify",
+          "lineNumber": 43
+        },
+        {
+          "caller": "handleSave",
+          "callee": "res.json().catch",
+          "lineNumber": 46
+        },
+        {
+          "caller": "handleSave",
+          "callee": "res.json",
+          "lineNumber": 46
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 53
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 54
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 55
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setFlags",
+          "lineNumber": 59
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setCredentialTtlDays",
+          "lineNumber": 60
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setSuccess",
+          "lineNumber": 62
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setTimeout",
+          "lineNumber": 63
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setSuccess",
+          "lineNumber": 63
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 65
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setSaving",
+          "lineNumber": 67
+        },
+        {
+          "caller": "FeatureFlagsManager",
+          "callee": "groupRestaurantFeaturesByModule().map",
+          "lineNumber": 81
+        },
+        {
+          "caller": "FeatureFlagsManager",
+          "callee": "groupRestaurantFeaturesByModule",
+          "lineNumber": 81
+        },
+        {
+          "caller": "FeatureFlagsManager",
+          "callee": "features.map",
+          "lineNumber": 85
+        },
+        {
+          "caller": "FeatureFlagsManager",
+          "callee": "setFlags",
+          "lineNumber": 94
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    }
+  ]
+}

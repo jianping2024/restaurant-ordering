@@ -1,0 +1,3327 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 25,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/print-agent/schedule_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 52,
+      "nonEmptyLines": 49,
+      "functions": [
+        {
+          "name": "TestSchedulePirataWeekdayLunch",
+          "startLine": 8,
+          "endLine": 38,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestPollPhaseWarm",
+          "startLine": 40,
+          "endLine": 52,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestSchedulePirataWeekdayLunch",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "TestPollPhaseWarm",
+          "line": 40,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestSchedulePirataWeekdayLunch",
+          "callee": "time.LoadLocation",
+          "lineNumber": 16
+        },
+        {
+          "caller": "TestSchedulePirataWeekdayLunch",
+          "callee": "t.Fatal",
+          "lineNumber": 18
+        },
+        {
+          "caller": "TestSchedulePirataWeekdayLunch",
+          "callee": "time.Date",
+          "lineNumber": 21
+        },
+        {
+          "caller": "TestSchedulePirataWeekdayLunch",
+          "callee": "s.activeAt",
+          "lineNumber": 22
+        },
+        {
+          "caller": "TestSchedulePirataWeekdayLunch",
+          "callee": "t.Fatalf",
+          "lineNumber": 24
+        },
+        {
+          "caller": "TestSchedulePirataWeekdayLunch",
+          "callee": "time.Date",
+          "lineNumber": 27
+        },
+        {
+          "caller": "TestSchedulePirataWeekdayLunch",
+          "callee": "s.activeAt",
+          "lineNumber": 28
+        },
+        {
+          "caller": "TestSchedulePirataWeekdayLunch",
+          "callee": "t.Fatalf",
+          "lineNumber": 30
+        },
+        {
+          "caller": "TestSchedulePirataWeekdayLunch",
+          "callee": "time.Date",
+          "lineNumber": 33
+        },
+        {
+          "caller": "TestSchedulePirataWeekdayLunch",
+          "callee": "s.activeAt",
+          "lineNumber": 34
+        },
+        {
+          "caller": "TestSchedulePirataWeekdayLunch",
+          "callee": "t.Fatalf",
+          "lineNumber": 36
+        },
+        {
+          "caller": "TestPollPhaseWarm",
+          "callee": "defaultPollConfig",
+          "lineNumber": 42
+        },
+        {
+          "caller": "TestPollPhaseWarm",
+          "callee": "time.Now().Add",
+          "lineNumber": 43
+        },
+        {
+          "caller": "TestPollPhaseWarm",
+          "callee": "time.Now",
+          "lineNumber": 43
+        },
+        {
+          "caller": "TestPollPhaseWarm",
+          "callee": "pc.phase",
+          "lineNumber": 45
+        },
+        {
+          "caller": "TestPollPhaseWarm",
+          "callee": "t.Fatalf",
+          "lineNumber": 46
+        },
+        {
+          "caller": "TestPollPhaseWarm",
+          "callee": "pc.phase",
+          "lineNumber": 46
+        },
+        {
+          "caller": "TestPollPhaseWarm",
+          "callee": "time.Now().Add",
+          "lineNumber": 48
+        },
+        {
+          "caller": "TestPollPhaseWarm",
+          "callee": "time.Now",
+          "lineNumber": 48
+        },
+        {
+          "caller": "TestPollPhaseWarm",
+          "callee": "pc.phase",
+          "lineNumber": 49
+        },
+        {
+          "caller": "TestPollPhaseWarm",
+          "callee": "t.Fatalf",
+          "lineNumber": 50
+        },
+        {
+          "caller": "TestPollPhaseWarm",
+          "callee": "pc.phase",
+          "lineNumber": 50
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/schedule.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 179,
+      "nonEmptyLines": 168,
+      "functions": [
+        {
+          "name": "enabled",
+          "startLine": 31,
+          "endLine": 38,
+          "params": []
+        },
+        {
+          "name": "location",
+          "startLine": 40,
+          "endLine": 50,
+          "params": []
+        },
+        {
+          "name": "windowsFor",
+          "startLine": 52,
+          "endLine": 90,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "parseClock",
+          "startLine": 92,
+          "endLine": 117,
+          "params": [
+            "s"
+          ]
+        },
+        {
+          "name": "activeAt",
+          "startLine": 119,
+          "endLine": 134,
+          "params": [
+            "now"
+          ]
+        },
+        {
+          "name": "windowContains",
+          "startLine": 136,
+          "endLine": 151,
+          "params": [
+            "w",
+            "now"
+          ]
+        },
+        {
+          "name": "nextOpen",
+          "startLine": 154,
+          "endLine": 179,
+          "params": [
+            "now"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "timeWindow",
+          "startLine": 10,
+          "endLine": 13,
+          "methods": [],
+          "properties": [
+            "Start",
+            "End"
+          ]
+        },
+        {
+          "name": "daySchedule",
+          "startLine": 15,
+          "endLine": 17,
+          "methods": [],
+          "properties": [
+            "Windows"
+          ]
+        },
+        {
+          "name": "scheduleConfig",
+          "startLine": 19,
+          "endLine": 29,
+          "methods": [
+            "enabled",
+            "location",
+            "windowsFor",
+            "activeAt",
+            "nextOpen"
+          ],
+          "properties": [
+            "Timezone",
+            "Weekday",
+            "Saturday",
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "location",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 41
+        },
+        {
+          "caller": "location",
+          "callee": "time.LoadLocation",
+          "lineNumber": 45
+        },
+        {
+          "caller": "location",
+          "callee": "fmt.Errorf",
+          "lineNumber": 47
+        },
+        {
+          "caller": "windowsFor",
+          "callee": "t.Weekday",
+          "lineNumber": 56
+        },
+        {
+          "caller": "parseClock",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 93
+        },
+        {
+          "caller": "parseClock",
+          "callee": "fmt.Errorf",
+          "lineNumber": 95
+        },
+        {
+          "caller": "parseClock",
+          "callee": "strings.Split",
+          "lineNumber": 97
+        },
+        {
+          "caller": "parseClock",
+          "callee": "len",
+          "lineNumber": 98
+        },
+        {
+          "caller": "parseClock",
+          "callee": "len",
+          "lineNumber": 98
+        },
+        {
+          "caller": "parseClock",
+          "callee": "fmt.Errorf",
+          "lineNumber": 99
+        },
+        {
+          "caller": "parseClock",
+          "callee": "fmt.Sscanf",
+          "lineNumber": 102
+        },
+        {
+          "caller": "parseClock",
+          "callee": "fmt.Errorf",
+          "lineNumber": 103
+        },
+        {
+          "caller": "parseClock",
+          "callee": "fmt.Sscanf",
+          "lineNumber": 105
+        },
+        {
+          "caller": "parseClock",
+          "callee": "fmt.Errorf",
+          "lineNumber": 106
+        },
+        {
+          "caller": "parseClock",
+          "callee": "len",
+          "lineNumber": 108
+        },
+        {
+          "caller": "parseClock",
+          "callee": "fmt.Sscanf",
+          "lineNumber": 109
+        },
+        {
+          "caller": "parseClock",
+          "callee": "fmt.Errorf",
+          "lineNumber": 110
+        },
+        {
+          "caller": "parseClock",
+          "callee": "fmt.Errorf",
+          "lineNumber": 114
+        },
+        {
+          "caller": "activeAt",
+          "callee": "s.enabled",
+          "lineNumber": 120
+        },
+        {
+          "caller": "activeAt",
+          "callee": "s.windowsFor",
+          "lineNumber": 123
+        },
+        {
+          "caller": "activeAt",
+          "callee": "windowContains",
+          "lineNumber": 125
+        },
+        {
+          "caller": "windowContains",
+          "callee": "parseClock",
+          "lineNumber": 137
+        },
+        {
+          "caller": "windowContains",
+          "callee": "parseClock",
+          "lineNumber": 141
+        },
+        {
+          "caller": "windowContains",
+          "callee": "time.Date",
+          "lineNumber": 145
+        },
+        {
+          "caller": "windowContains",
+          "callee": "now.Year",
+          "lineNumber": 145
+        },
+        {
+          "caller": "windowContains",
+          "callee": "now.Month",
+          "lineNumber": 145
+        },
+        {
+          "caller": "windowContains",
+          "callee": "now.Day",
+          "lineNumber": 145
+        },
+        {
+          "caller": "windowContains",
+          "callee": "now.Location",
+          "lineNumber": 145
+        },
+        {
+          "caller": "windowContains",
+          "callee": "time.Date",
+          "lineNumber": 146
+        },
+        {
+          "caller": "windowContains",
+          "callee": "now.Year",
+          "lineNumber": 146
+        },
+        {
+          "caller": "windowContains",
+          "callee": "now.Month",
+          "lineNumber": 146
+        },
+        {
+          "caller": "windowContains",
+          "callee": "now.Day",
+          "lineNumber": 146
+        },
+        {
+          "caller": "windowContains",
+          "callee": "now.Location",
+          "lineNumber": 146
+        },
+        {
+          "caller": "windowContains",
+          "callee": "end.After",
+          "lineNumber": 147
+        },
+        {
+          "caller": "windowContains",
+          "callee": "fmt.Errorf",
+          "lineNumber": 148
+        },
+        {
+          "caller": "windowContains",
+          "callee": "now.Before",
+          "lineNumber": 150
+        },
+        {
+          "caller": "windowContains",
+          "callee": "now.Before",
+          "lineNumber": 150
+        },
+        {
+          "caller": "nextOpen",
+          "callee": "s.enabled",
+          "lineNumber": 155
+        },
+        {
+          "caller": "nextOpen",
+          "callee": "s.location",
+          "lineNumber": 158
+        },
+        {
+          "caller": "nextOpen",
+          "callee": "now.In",
+          "lineNumber": 162
+        },
+        {
+          "caller": "nextOpen",
+          "callee": "s.activeAt",
+          "lineNumber": 163
+        },
+        {
+          "caller": "nextOpen",
+          "callee": "now.Add",
+          "lineNumber": 171
+        },
+        {
+          "caller": "nextOpen",
+          "callee": "time.Duration",
+          "lineNumber": 171
+        },
+        {
+          "caller": "nextOpen",
+          "callee": "s.activeAt",
+          "lineNumber": 172
+        },
+        {
+          "caller": "nextOpen",
+          "callee": "t.Sub",
+          "lineNumber": 175
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 7,
+        "classCount": 3
+      }
+    },
+    {
+      "path": "apps/print-agent/scripts/gen-tray-status-icons.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 59,
+      "nonEmptyLines": 50,
+      "functions": [
+        {
+          "name": "bgra_pixels",
+          "startLine": 10,
+          "endLine": 20,
+          "params": [
+            "rgb"
+          ]
+        },
+        {
+          "name": "write_ico",
+          "startLine": 23,
+          "endLine": 43,
+          "params": [
+            "path",
+            "rgb"
+          ]
+        },
+        {
+          "name": "main",
+          "startLine": 46,
+          "endLine": 55,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "bgra_pixels",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "write_ico",
+          "line": 23,
+          "isDefault": false
+        },
+        {
+          "name": "main",
+          "line": 46,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "bgra_pixels",
+          "callee": "range",
+          "lineNumber": 14
+        },
+        {
+          "caller": "bgra_pixels",
+          "callee": "range",
+          "lineNumber": 15
+        },
+        {
+          "caller": "bgra_pixels",
+          "callee": "out.extend",
+          "lineNumber": 17
+        },
+        {
+          "caller": "bgra_pixels",
+          "callee": "out.extend",
+          "lineNumber": 19
+        },
+        {
+          "caller": "bgra_pixels",
+          "callee": "bytes",
+          "lineNumber": 20
+        },
+        {
+          "caller": "write_ico",
+          "callee": "bgra_pixels",
+          "lineNumber": 24
+        },
+        {
+          "caller": "write_ico",
+          "callee": "bytes",
+          "lineNumber": 25
+        },
+        {
+          "caller": "write_ico",
+          "callee": "struct.pack",
+          "lineNumber": 26
+        },
+        {
+          "caller": "write_ico",
+          "callee": "len",
+          "lineNumber": 34
+        },
+        {
+          "caller": "write_ico",
+          "callee": "len",
+          "lineNumber": 34
+        },
+        {
+          "caller": "write_ico",
+          "callee": "struct.pack",
+          "lineNumber": 41
+        },
+        {
+          "caller": "write_ico",
+          "callee": "len",
+          "lineNumber": 41
+        },
+        {
+          "caller": "write_ico",
+          "callee": "struct.pack",
+          "lineNumber": 42
+        },
+        {
+          "caller": "write_ico",
+          "callee": "path.write_bytes",
+          "lineNumber": 43
+        },
+        {
+          "caller": "main",
+          "callee": "colors.items",
+          "lineNumber": 52
+        },
+        {
+          "caller": "main",
+          "callee": "write_ico",
+          "lineNumber": 54
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 55
+        },
+        {
+          "caller": "main",
+          "callee": "len",
+          "lineNumber": 55
+        },
+        {
+          "caller": "main",
+          "callee": "out.read_bytes",
+          "lineNumber": 55
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/setup_browser_other.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 23,
+      "nonEmptyLines": 20,
+      "functions": [
+        {
+          "name": "openBrowser",
+          "startLine": 11,
+          "endLine": 23,
+          "params": [
+            "url"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "openBrowser",
+          "callee": "exec.Command",
+          "lineNumber": 15
+        },
+        {
+          "caller": "openBrowser",
+          "callee": "exec.Command",
+          "lineNumber": 17
+        },
+        {
+          "caller": "openBrowser",
+          "callee": "cmd.Start",
+          "lineNumber": 19
+        },
+        {
+          "caller": "openBrowser",
+          "callee": "fmt.Errorf",
+          "lineNumber": 20
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/setup_browser_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 31,
+      "nonEmptyLines": 28,
+      "functions": [
+        {
+          "name": "openBrowser",
+          "startLine": 11,
+          "endLine": 31,
+          "params": [
+            "url"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "openBrowser",
+          "callee": "syscall.NewLazyDLL",
+          "lineNumber": 12
+        },
+        {
+          "caller": "openBrowser",
+          "callee": "shell32.NewProc",
+          "lineNumber": 13
+        },
+        {
+          "caller": "openBrowser",
+          "callee": "syscall.UTF16PtrFromString",
+          "lineNumber": 14
+        },
+        {
+          "caller": "openBrowser",
+          "callee": "syscall.UTF16PtrFromString",
+          "lineNumber": 18
+        },
+        {
+          "caller": "openBrowser",
+          "callee": "shellExecuteW.Call",
+          "lineNumber": 23
+        },
+        {
+          "caller": "openBrowser",
+          "callee": "uintptr",
+          "lineNumber": 23
+        },
+        {
+          "caller": "openBrowser",
+          "callee": "unsafe.Pointer",
+          "lineNumber": 23
+        },
+        {
+          "caller": "openBrowser",
+          "callee": "uintptr",
+          "lineNumber": 23
+        },
+        {
+          "caller": "openBrowser",
+          "callee": "unsafe.Pointer",
+          "lineNumber": 23
+        },
+        {
+          "caller": "openBrowser",
+          "callee": "syscall.Errno",
+          "lineNumber": 25
+        },
+        {
+          "caller": "openBrowser",
+          "callee": "fmt.Errorf",
+          "lineNumber": 26
+        },
+        {
+          "caller": "openBrowser",
+          "callee": "fmt.Errorf",
+          "lineNumber": 28
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/setup_wizard.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 52,
+      "nonEmptyLines": 42,
+      "functions": [
+        {
+          "name": "runSetupWizard",
+          "startLine": 14,
+          "endLine": 52,
+          "params": [
+            "ctx",
+            "configPath",
+            "cfg"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "runSetupWizard",
+          "callee": "pickLocalListenAddr",
+          "lineNumber": 15
+        },
+        {
+          "caller": "runSetupWizard",
+          "callee": "make",
+          "lineNumber": 20
+        },
+        {
+          "caller": "runSetupWizard",
+          "callee": "http.NewServeMux",
+          "lineNumber": 21
+        },
+        {
+          "caller": "runSetupWizard",
+          "callee": "mux.HandleFunc",
+          "lineNumber": 23
+        },
+        {
+          "caller": "runSetupWizard",
+          "callee": "w.Header().Set",
+          "lineNumber": 24
+        },
+        {
+          "caller": "runSetupWizard",
+          "callee": "w.Header",
+          "lineNumber": 24
+        },
+        {
+          "caller": "runSetupWizard",
+          "callee": "w.Write",
+          "lineNumber": 25
+        },
+        {
+          "caller": "runSetupWizard",
+          "callee": "registerPrinterWizardRoutes",
+          "lineNumber": 28
+        },
+        {
+          "caller": "runSetupWizard",
+          "callee": "registerUILocaleRoute",
+          "lineNumber": 29
+        },
+        {
+          "caller": "runSetupWizard",
+          "callee": "mux.HandleFunc",
+          "lineNumber": 31
+        },
+        {
+          "caller": "runSetupWizard",
+          "callee": "http.Error",
+          "lineNumber": 33
+        },
+        {
+          "caller": "runSetupWizard",
+          "callee": "writePairJSON",
+          "lineNumber": 36
+        },
+        {
+          "caller": "runSetupWizard",
+          "callee": "func() {\n\t\tif err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {\n\t\t\tdone <- err\n\t\t}\n\t}",
+          "lineNumber": 41
+        },
+        {
+          "caller": "runSetupWizard",
+          "callee": "srv.ListenAndServe",
+          "lineNumber": 42
+        },
+        {
+          "caller": "runSetupWizard",
+          "callee": "agentLogLocale",
+          "lineNumber": 48
+        },
+        {
+          "caller": "runSetupWizard",
+          "callee": "localeFromConfigPath",
+          "lineNumber": 48
+        },
+        {
+          "caller": "runSetupWizard",
+          "callee": "announceWizardURL",
+          "lineNumber": 49
+        },
+        {
+          "caller": "runSetupWizard",
+          "callee": "waitLocalWizard",
+          "lineNumber": 51
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/single_instance_common_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 23,
+      "nonEmptyLines": 21,
+      "functions": [
+        {
+          "name": "TestIsMainAgentInvocation",
+          "startLine": 5,
+          "endLine": 23,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestIsMainAgentInvocation",
+          "line": 5,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestIsMainAgentInvocation",
+          "callee": "isMainAgentInvocation",
+          "lineNumber": 19
+        },
+        {
+          "caller": "TestIsMainAgentInvocation",
+          "callee": "t.Fatalf",
+          "lineNumber": 20
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/single_instance_common.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 29,
+      "nonEmptyLines": 26,
+      "functions": [
+        {
+          "name": "isMainAgentInvocation",
+          "startLine": 6,
+          "endLine": 20,
+          "params": [
+            "args"
+          ]
+        },
+        {
+          "name": "guardMainAgentSingleInstance",
+          "startLine": 22,
+          "endLine": 29,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "isMainAgentInvocation",
+          "callee": "len",
+          "lineNumber": 7
+        },
+        {
+          "caller": "guardMainAgentSingleInstance",
+          "callee": "isMainAgentInvocation",
+          "lineNumber": 23
+        },
+        {
+          "caller": "guardMainAgentSingleInstance",
+          "callee": "acquireAgentSingleInstance",
+          "lineNumber": 26
+        },
+        {
+          "caller": "guardMainAgentSingleInstance",
+          "callee": "exitAlreadyRunning",
+          "lineNumber": 27
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/single_instance_stub.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 7,
+      "nonEmptyLines": 4,
+      "functions": [
+        {
+          "name": "acquireAgentSingleInstance",
+          "startLine": 5,
+          "endLine": 5,
+          "params": []
+        },
+        {
+          "name": "exitAlreadyRunning",
+          "startLine": 7,
+          "endLine": 7,
+          "params": []
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/single_instance_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 70,
+      "nonEmptyLines": 59,
+      "functions": [
+        {
+          "name": "acquireAgentSingleInstance",
+          "startLine": 20,
+          "endLine": 55,
+          "params": []
+        },
+        {
+          "name": "exitAlreadyRunning",
+          "startLine": 57,
+          "endLine": 61,
+          "params": []
+        },
+        {
+          "name": "releaseAgentSingleInstance",
+          "startLine": 64,
+          "endLine": 70,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "syscall.UTF16PtrFromString",
+          "lineNumber": 24
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "syscall.NewLazyDLL",
+          "lineNumber": 28
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "kernel32.NewProc",
+          "lineNumber": 29
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "kernel32.NewProc",
+          "lineNumber": 30
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "kernel32.NewProc",
+          "lineNumber": 31
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "openMutexW.Call",
+          "lineNumber": 34
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "uintptr",
+          "lineNumber": 34
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "unsafe.Pointer",
+          "lineNumber": 34
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "syscall.CloseHandle",
+          "lineNumber": 35
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "syscall.Handle",
+          "lineNumber": 35
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "log.Println",
+          "lineNumber": 36
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "createMutexW.Call",
+          "lineNumber": 41
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "uintptr",
+          "lineNumber": 41
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "unsafe.Pointer",
+          "lineNumber": 41
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "syscall.Handle",
+          "lineNumber": 45
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "getLastError.Call",
+          "lineNumber": 47
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "syscall.Errno",
+          "lineNumber": 48
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "syscall.CloseHandle",
+          "lineNumber": 49
+        },
+        {
+          "caller": "acquireAgentSingleInstance",
+          "callee": "log.Println",
+          "lineNumber": 51
+        },
+        {
+          "caller": "exitAlreadyRunning",
+          "callee": "loadTrayUILocale",
+          "lineNumber": 58
+        },
+        {
+          "caller": "exitAlreadyRunning",
+          "callee": "messageBoxOK",
+          "lineNumber": 59
+        },
+        {
+          "caller": "exitAlreadyRunning",
+          "callee": "uiT",
+          "lineNumber": 59
+        },
+        {
+          "caller": "exitAlreadyRunning",
+          "callee": "uiT",
+          "lineNumber": 59
+        },
+        {
+          "caller": "exitAlreadyRunning",
+          "callee": "os.Exit",
+          "lineNumber": 60
+        },
+        {
+          "caller": "releaseAgentSingleInstance",
+          "callee": "syscall.CloseHandle",
+          "lineNumber": 68
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/sink_tcp.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 20,
+      "nonEmptyLines": 18,
+      "functions": [
+        {
+          "name": "tcpPrint",
+          "startLine": 9,
+          "endLine": 20,
+          "params": [
+            "hostPort",
+            "data"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "tcpPrint",
+          "callee": "net.DialTimeout",
+          "lineNumber": 10
+        },
+        {
+          "caller": "tcpPrint",
+          "callee": "fmt.Errorf",
+          "lineNumber": 12
+        },
+        {
+          "caller": "tcpPrint",
+          "callee": "c.Close",
+          "lineNumber": 14
+        },
+        {
+          "caller": "tcpPrint",
+          "callee": "c.SetWriteDeadline",
+          "lineNumber": 15
+        },
+        {
+          "caller": "tcpPrint",
+          "callee": "time.Now().Add",
+          "lineNumber": 15
+        },
+        {
+          "caller": "tcpPrint",
+          "callee": "time.Now",
+          "lineNumber": 15
+        },
+        {
+          "caller": "tcpPrint",
+          "callee": "c.Write",
+          "lineNumber": 16
+        },
+        {
+          "caller": "tcpPrint",
+          "callee": "fmt.Errorf",
+          "lineNumber": 17
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/sink_winspool_stub.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 17,
+      "nonEmptyLines": 12,
+      "functions": [
+        {
+          "name": "winspoolPrint",
+          "startLine": 7,
+          "endLine": 9,
+          "params": [
+            "printerName",
+            "data"
+          ]
+        },
+        {
+          "name": "listWinspoolPrinterNames",
+          "startLine": 11,
+          "endLine": 13,
+          "params": []
+        },
+        {
+          "name": "winspoolCheckReady",
+          "startLine": 15,
+          "endLine": 17,
+          "params": [
+            "printerName"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "winspoolPrint",
+          "callee": "fmt.Errorf",
+          "lineNumber": 8
+        },
+        {
+          "caller": "winspoolCheckReady",
+          "callee": "fmt.Errorf",
+          "lineNumber": 16
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/sink_winspool_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 201,
+      "nonEmptyLines": 185,
+      "functions": [
+        {
+          "name": "winspoolOpenPrinter",
+          "startLine": 39,
+          "endLine": 54,
+          "params": [
+            "printerName"
+          ]
+        },
+        {
+          "name": "winspoolJobStatus",
+          "startLine": 56,
+          "endLine": 82,
+          "params": [
+            "h",
+            "jobID"
+          ]
+        },
+        {
+          "name": "winspoolVerifyJobOutcome",
+          "startLine": 84,
+          "endLine": 108,
+          "params": [
+            "h",
+            "jobID",
+            "printerName"
+          ]
+        },
+        {
+          "name": "winspoolCheckReady",
+          "startLine": 116,
+          "endLine": 123,
+          "params": [
+            "printerName"
+          ]
+        },
+        {
+          "name": "winspoolPrint",
+          "startLine": 125,
+          "endLine": 150,
+          "params": [
+            "printerName",
+            "data"
+          ]
+        },
+        {
+          "name": "winspoolPrintRawDoc",
+          "startLine": 152,
+          "endLine": 197,
+          "params": [
+            "h",
+            "printerName",
+            "datatype",
+            "data"
+          ]
+        },
+        {
+          "name": "listWinspoolPrinterNames",
+          "startLine": 199,
+          "endLine": 201,
+          "params": []
+        }
+      ],
+      "classes": [
+        {
+          "name": "jobInfo1",
+          "startLine": 27,
+          "endLine": 37,
+          "methods": [],
+          "properties": [
+            "JobID",
+            "_pad",
+            "pPrinterName",
+            "pMachineName",
+            "pUserName",
+            "pDocument",
+            "pDataType",
+            "pStatus",
+            "Status"
+          ]
+        },
+        {
+          "name": "docInfo1",
+          "startLine": 110,
+          "endLine": 114,
+          "methods": [],
+          "properties": [
+            "pDocName",
+            "pOutputFile",
+            "pDatatype"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "winspoolOpenPrinter",
+          "callee": "windows.UTF16PtrFromString",
+          "lineNumber": 40
+        },
+        {
+          "caller": "winspoolOpenPrinter",
+          "callee": "procOpenPrinterW.Call",
+          "lineNumber": 45
+        },
+        {
+          "caller": "winspoolOpenPrinter",
+          "callee": "uintptr",
+          "lineNumber": 46
+        },
+        {
+          "caller": "winspoolOpenPrinter",
+          "callee": "unsafe.Pointer",
+          "lineNumber": 46
+        },
+        {
+          "caller": "winspoolOpenPrinter",
+          "callee": "uintptr",
+          "lineNumber": 47
+        },
+        {
+          "caller": "winspoolOpenPrinter",
+          "callee": "unsafe.Pointer",
+          "lineNumber": 47
+        },
+        {
+          "caller": "winspoolOpenPrinter",
+          "callee": "fmt.Errorf",
+          "lineNumber": 51
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "procGetJobW.Call",
+          "lineNumber": 58
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "uintptr",
+          "lineNumber": 59
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "uintptr",
+          "lineNumber": 60
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "uintptr",
+          "lineNumber": 64
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "unsafe.Pointer",
+          "lineNumber": 64
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "uint32",
+          "lineNumber": 66
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "unsafe.Sizeof",
+          "lineNumber": 66
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "uint32",
+          "lineNumber": 67
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "unsafe.Sizeof",
+          "lineNumber": 67
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "make",
+          "lineNumber": 69
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "procGetJobW.Call",
+          "lineNumber": 70
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "uintptr",
+          "lineNumber": 71
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "uintptr",
+          "lineNumber": 72
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "uintptr",
+          "lineNumber": 74
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "unsafe.Pointer",
+          "lineNumber": 74
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "uintptr",
+          "lineNumber": 75
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "uintptr",
+          "lineNumber": 76
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "unsafe.Pointer",
+          "lineNumber": 76
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "fmt.Errorf",
+          "lineNumber": 79
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "(*jobInfo1)",
+          "lineNumber": 81
+        },
+        {
+          "caller": "winspoolJobStatus",
+          "callee": "unsafe.Pointer",
+          "lineNumber": 81
+        },
+        {
+          "caller": "winspoolVerifyJobOutcome",
+          "callee": "time.Sleep",
+          "lineNumber": 91
+        },
+        {
+          "caller": "winspoolVerifyJobOutcome",
+          "callee": "winspoolJobStatus",
+          "lineNumber": 92
+        },
+        {
+          "caller": "winspoolVerifyJobOutcome",
+          "callee": "winspoolJobStatusIsProblem",
+          "lineNumber": 97
+        },
+        {
+          "caller": "winspoolVerifyJobOutcome",
+          "callee": "fmt.Errorf",
+          "lineNumber": 98
+        },
+        {
+          "caller": "winspoolVerifyJobOutcome",
+          "callee": "winspoolJobStatusIsProblem",
+          "lineNumber": 104
+        },
+        {
+          "caller": "winspoolVerifyJobOutcome",
+          "callee": "fmt.Errorf",
+          "lineNumber": 105
+        },
+        {
+          "caller": "winspoolCheckReady",
+          "callee": "winspoolOpenPrinter",
+          "lineNumber": 117
+        },
+        {
+          "caller": "winspoolCheckReady",
+          "callee": "procClosePrinter.Call",
+          "lineNumber": 121
+        },
+        {
+          "caller": "winspoolCheckReady",
+          "callee": "uintptr",
+          "lineNumber": 121
+        },
+        {
+          "caller": "winspoolPrint",
+          "callee": "len",
+          "lineNumber": 126
+        },
+        {
+          "caller": "winspoolPrint",
+          "callee": "fmt.Errorf",
+          "lineNumber": 127
+        },
+        {
+          "caller": "winspoolPrint",
+          "callee": "winspoolOpenPrinter",
+          "lineNumber": 129
+        },
+        {
+          "caller": "winspoolPrint",
+          "callee": "fmt.Errorf",
+          "lineNumber": 131
+        },
+        {
+          "caller": "winspoolPrint",
+          "callee": "procClosePrinter.Call",
+          "lineNumber": 133
+        },
+        {
+          "caller": "winspoolPrint",
+          "callee": "uintptr",
+          "lineNumber": 133
+        },
+        {
+          "caller": "winspoolPrint",
+          "callee": "winspoolPrintRawDoc",
+          "lineNumber": 137
+        },
+        {
+          "caller": "winspoolPrint",
+          "callee": "fmt.Errorf",
+          "lineNumber": 142
+        },
+        {
+          "caller": "winspoolPrint",
+          "callee": "fmt.Errorf",
+          "lineNumber": 147
+        },
+        {
+          "caller": "winspoolPrint",
+          "callee": "fmt.Errorf",
+          "lineNumber": 149
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "windows.UTF16PtrFromString",
+          "lineNumber": 153
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "windows.UTF16PtrFromString",
+          "lineNumber": 154
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "procStartDocPrinterW.Call",
+          "lineNumber": 163
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "uintptr",
+          "lineNumber": 164
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "uintptr",
+          "lineNumber": 166
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "unsafe.Pointer",
+          "lineNumber": 166
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "fmt.Errorf",
+          "lineNumber": 169
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "uint32",
+          "lineNumber": 171
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "procStartPagePrinter.Call",
+          "lineNumber": 173
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "uintptr",
+          "lineNumber": 173
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "procEndDocPrinter.Call",
+          "lineNumber": 175
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "uintptr",
+          "lineNumber": 175
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "fmt.Errorf",
+          "lineNumber": 176
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "procWritePrinter.Call",
+          "lineNumber": 180
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "uintptr",
+          "lineNumber": 181
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "uintptr",
+          "lineNumber": 182
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "unsafe.Pointer",
+          "lineNumber": 182
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "uintptr",
+          "lineNumber": 183
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "len",
+          "lineNumber": 183
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "uintptr",
+          "lineNumber": 184
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "unsafe.Pointer",
+          "lineNumber": 184
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "procEndPagePrinter.Call",
+          "lineNumber": 186
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "uintptr",
+          "lineNumber": 186
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "procEndDocPrinter.Call",
+          "lineNumber": 188
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "uintptr",
+          "lineNumber": 188
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "fmt.Errorf",
+          "lineNumber": 189
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "int",
+          "lineNumber": 191
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "len",
+          "lineNumber": 191
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "procEndDocPrinter.Call",
+          "lineNumber": 192
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "uintptr",
+          "lineNumber": 192
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "fmt.Errorf",
+          "lineNumber": 193
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "len",
+          "lineNumber": 193
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "procEndDocPrinter.Call",
+          "lineNumber": 195
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "uintptr",
+          "lineNumber": 195
+        },
+        {
+          "caller": "winspoolPrintRawDoc",
+          "callee": "winspoolVerifyJobOutcome",
+          "lineNumber": 196
+        },
+        {
+          "caller": "listWinspoolPrinterNames",
+          "callee": "printer.ReadNames",
+          "lineNumber": 200
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 7,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "apps/print-agent/sink.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 14,
+      "nonEmptyLines": 12,
+      "functions": [
+        {
+          "name": "printToTarget",
+          "startLine": 5,
+          "endLine": 14,
+          "params": [
+            "t",
+            "data"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "printToTarget",
+          "callee": "tcpPrint",
+          "lineNumber": 8
+        },
+        {
+          "caller": "printToTarget",
+          "callee": "winspoolPrint",
+          "lineNumber": 10
+        },
+        {
+          "caller": "printToTarget",
+          "callee": "fmt.Errorf",
+          "lineNumber": 12
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/spawn_kill_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 35,
+      "nonEmptyLines": 30,
+      "functions": [
+        {
+          "name": "killWindowsPID",
+          "startLine": 11,
+          "endLine": 30,
+          "params": [
+            "pid"
+          ]
+        },
+        {
+          "name": "killCurrentProcess",
+          "startLine": 33,
+          "endLine": 35,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "killWindowsPID",
+          "callee": "syscall.NewLazyDLL",
+          "lineNumber": 16
+        },
+        {
+          "caller": "killWindowsPID",
+          "callee": "kernel32.NewProc",
+          "lineNumber": 17
+        },
+        {
+          "caller": "killWindowsPID",
+          "callee": "kernel32.NewProc",
+          "lineNumber": 18
+        },
+        {
+          "caller": "killWindowsPID",
+          "callee": "kernel32.NewProc",
+          "lineNumber": 19
+        },
+        {
+          "caller": "killWindowsPID",
+          "callee": "openProcess.Call",
+          "lineNumber": 21
+        },
+        {
+          "caller": "killWindowsPID",
+          "callee": "uintptr",
+          "lineNumber": 21
+        },
+        {
+          "caller": "killWindowsPID",
+          "callee": "log.Printf",
+          "lineNumber": 23
+        },
+        {
+          "caller": "killWindowsPID",
+          "callee": "closeHandle.Call",
+          "lineNumber": 26
+        },
+        {
+          "caller": "killWindowsPID",
+          "callee": "terminateProcess.Call",
+          "lineNumber": 27
+        },
+        {
+          "caller": "killWindowsPID",
+          "callee": "log.Printf",
+          "lineNumber": 28
+        },
+        {
+          "caller": "killCurrentProcess",
+          "callee": "killWindowsPID",
+          "lineNumber": 34
+        },
+        {
+          "caller": "killCurrentProcess",
+          "callee": "os.Getpid",
+          "lineNumber": 34
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/spawn_stub.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 13,
+      "nonEmptyLines": 9,
+      "functions": [
+        {
+          "name": "spawnAgentSubcommand",
+          "startLine": 7,
+          "endLine": 9,
+          "params": [
+            "subcmd"
+          ]
+        },
+        {
+          "name": "messageBoxOK",
+          "startLine": 11,
+          "endLine": 13,
+          "params": [
+            "title",
+            "text"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "spawnAgentSubcommand",
+          "callee": "fmt.Errorf",
+          "lineNumber": 8
+        },
+        {
+          "caller": "messageBoxOK",
+          "callee": "fmt.Printf",
+          "lineNumber": 12
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/spawn_tracking_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 51,
+      "nonEmptyLines": 46,
+      "functions": [
+        {
+          "name": "registerSpawnedProcess",
+          "startLine": 16,
+          "endLine": 34,
+          "params": [
+            "cmd"
+          ]
+        },
+        {
+          "name": "terminateSpawnedChildren",
+          "startLine": 37,
+          "endLine": 51,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "registerSpawnedProcess",
+          "callee": "spawnedProcsMu.Lock",
+          "lineNumber": 20
+        },
+        {
+          "caller": "registerSpawnedProcess",
+          "callee": "append",
+          "lineNumber": 21
+        },
+        {
+          "caller": "registerSpawnedProcess",
+          "callee": "spawnedProcsMu.Unlock",
+          "lineNumber": 22
+        },
+        {
+          "caller": "registerSpawnedProcess",
+          "callee": "func() {\n\t\t_ = cmd.Wait()\n\t\tspawnedProcsMu.Lock()\n\t\tdefer spawnedProcsMu.Unlock()\n\t\tfor i, c := range spawnedProcs {\n\t\t\tif c == cmd {\n\t\t\t\tspawnedProcs = append(spawnedProcs[:i], spawnedProcs[i+1:]...)\n\t\t\t\tbreak\n\t\t\t}\n\t\t}\n\t}",
+          "lineNumber": 23
+        },
+        {
+          "caller": "registerSpawnedProcess",
+          "callee": "cmd.Wait",
+          "lineNumber": 24
+        },
+        {
+          "caller": "registerSpawnedProcess",
+          "callee": "spawnedProcsMu.Lock",
+          "lineNumber": 25
+        },
+        {
+          "caller": "registerSpawnedProcess",
+          "callee": "spawnedProcsMu.Unlock",
+          "lineNumber": 26
+        },
+        {
+          "caller": "registerSpawnedProcess",
+          "callee": "append",
+          "lineNumber": 29
+        },
+        {
+          "caller": "terminateSpawnedChildren",
+          "callee": "spawnedProcsMu.Lock",
+          "lineNumber": 38
+        },
+        {
+          "caller": "terminateSpawnedChildren",
+          "callee": "append",
+          "lineNumber": 39
+        },
+        {
+          "caller": "terminateSpawnedChildren",
+          "callee": "spawnedProcsMu.Unlock",
+          "lineNumber": 40
+        },
+        {
+          "caller": "terminateSpawnedChildren",
+          "callee": "cmd.Process.Kill",
+          "lineNumber": 46
+        },
+        {
+          "caller": "terminateSpawnedChildren",
+          "callee": "log.Printf",
+          "lineNumber": 47
+        },
+        {
+          "caller": "terminateSpawnedChildren",
+          "callee": "killWindowsPID",
+          "lineNumber": 49
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/spawn_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 41,
+      "nonEmptyLines": 36,
+      "functions": [
+        {
+          "name": "startHiddenAgentProcess",
+          "startLine": 12,
+          "endLine": 26,
+          "params": []
+        },
+        {
+          "name": "spawnAgentSubcommand",
+          "startLine": 28,
+          "endLine": 35,
+          "params": [
+            "subcmd"
+          ]
+        },
+        {
+          "name": "spawnAgentRestart",
+          "startLine": 38,
+          "endLine": 41,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "startHiddenAgentProcess",
+          "callee": "os.Executable",
+          "lineNumber": 13
+        },
+        {
+          "caller": "startHiddenAgentProcess",
+          "callee": "exec.Command",
+          "lineNumber": 17
+        },
+        {
+          "caller": "startHiddenAgentProcess",
+          "callee": "cmd.Start",
+          "lineNumber": 22
+        },
+        {
+          "caller": "spawnAgentSubcommand",
+          "callee": "startHiddenAgentProcess",
+          "lineNumber": 29
+        },
+        {
+          "caller": "spawnAgentSubcommand",
+          "callee": "fmt.Errorf",
+          "lineNumber": 31
+        },
+        {
+          "caller": "spawnAgentSubcommand",
+          "callee": "registerSpawnedProcess",
+          "lineNumber": 33
+        },
+        {
+          "caller": "spawnAgentRestart",
+          "callee": "startHiddenAgentProcess",
+          "lineNumber": 39
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/text_encoding_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 20,
+      "nonEmptyLines": 17,
+      "functions": [
+        {
+          "name": "TestResolvePaperEncodingAutoGBK",
+          "startLine": 5,
+          "endLine": 13,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestResolvePaperEncodingGBK",
+          "startLine": 15,
+          "endLine": 20,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestResolvePaperEncodingAutoGBK",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "TestResolvePaperEncodingGBK",
+          "line": 15,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestResolvePaperEncodingAutoGBK",
+          "callee": "cfg.resolvePaperEncoding",
+          "lineNumber": 7
+        },
+        {
+          "caller": "TestResolvePaperEncodingAutoGBK",
+          "callee": "t.Fatal",
+          "lineNumber": 8
+        },
+        {
+          "caller": "TestResolvePaperEncodingAutoGBK",
+          "callee": "cfg.resolvePaperEncoding",
+          "lineNumber": 10
+        },
+        {
+          "caller": "TestResolvePaperEncodingAutoGBK",
+          "callee": "t.Fatal",
+          "lineNumber": 11
+        },
+        {
+          "caller": "TestResolvePaperEncodingGBK",
+          "callee": "cfg.resolvePaperEncoding",
+          "lineNumber": 17
+        },
+        {
+          "caller": "TestResolvePaperEncodingGBK",
+          "callee": "t.Fatal",
+          "lineNumber": 18
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/text_encoding.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 56,
+      "nonEmptyLines": 50,
+      "functions": [
+        {
+          "name": "normalizeTextEncoding",
+          "startLine": 13,
+          "endLine": 24,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "resolvePaperEncoding",
+          "startLine": 26,
+          "endLine": 45,
+          "params": [
+            "needChinese"
+          ]
+        },
+        {
+          "name": "loadPaperEncodingForPayload",
+          "startLine": 47,
+          "endLine": 56,
+          "params": [
+            "needChinese"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "normalizeTextEncoding",
+          "callee": "strings.ToLower",
+          "lineNumber": 14
+        },
+        {
+          "caller": "normalizeTextEncoding",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 14
+        },
+        {
+          "caller": "resolvePaperEncoding",
+          "callee": "normalizeTextEncoding",
+          "lineNumber": 32
+        },
+        {
+          "caller": "loadPaperEncodingForPayload",
+          "callee": "loadConfig",
+          "lineNumber": 48
+        },
+        {
+          "caller": "loadPaperEncodingForPayload",
+          "callee": "defaultConfigPath",
+          "lineNumber": 48
+        },
+        {
+          "caller": "loadPaperEncodingForPayload",
+          "callee": "cfg.resolvePaperEncoding",
+          "lineNumber": 55
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/tray_actions_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 104,
+      "nonEmptyLines": 94,
+      "functions": [
+        {
+          "name": "agentLogPath",
+          "startLine": 13,
+          "endLine": 15,
+          "params": []
+        },
+        {
+          "name": "openAgentLog",
+          "startLine": 17,
+          "endLine": 30,
+          "params": []
+        },
+        {
+          "name": "openAgentLogFolder",
+          "startLine": 32,
+          "endLine": 38,
+          "params": []
+        },
+        {
+          "name": "confirmTrayExit",
+          "startLine": 40,
+          "endLine": 45,
+          "params": [
+            "locale"
+          ]
+        },
+        {
+          "name": "confirmTrayRestart",
+          "startLine": 47,
+          "endLine": 52,
+          "params": [
+            "locale"
+          ]
+        },
+        {
+          "name": "trayAboutText",
+          "startLine": 54,
+          "endLine": 72,
+          "params": [
+            "rt",
+            "locale"
+          ]
+        },
+        {
+          "name": "applyTrayUILocaleSubmenu",
+          "startLine": 74,
+          "endLine": 83,
+          "params": [
+            "mUILang",
+            "mLangZh",
+            "mLangEn",
+            "mLangPt",
+            "locale"
+          ]
+        },
+        {
+          "name": "applyTrayMenuLabels",
+          "startLine": 85,
+          "endLine": 104,
+          "params": [
+            "mStatus",
+            "mSettings",
+            "mOpenLog",
+            "mOpenLogDir",
+            "mShowConsole",
+            "mAbout",
+            "mRestart",
+            "mQuit",
+            "locale"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "agentLogPath",
+          "callee": "filepath.Join",
+          "lineNumber": 14
+        },
+        {
+          "caller": "agentLogPath",
+          "callee": "agentDataDir",
+          "lineNumber": 14
+        },
+        {
+          "caller": "openAgentLog",
+          "callee": "agentLogPath",
+          "lineNumber": 18
+        },
+        {
+          "caller": "openAgentLog",
+          "callee": "os.MkdirAll",
+          "lineNumber": 19
+        },
+        {
+          "caller": "openAgentLog",
+          "callee": "filepath.Dir",
+          "lineNumber": 19
+        },
+        {
+          "caller": "openAgentLog",
+          "callee": "os.OpenFile",
+          "lineNumber": 22
+        },
+        {
+          "caller": "openAgentLog",
+          "callee": "f.Close",
+          "lineNumber": 26
+        },
+        {
+          "caller": "openAgentLog",
+          "callee": "exec.Command(\"rundll32\", \"url.dll,FileProtocolHandler\", path).Start",
+          "lineNumber": 29
+        },
+        {
+          "caller": "openAgentLog",
+          "callee": "exec.Command",
+          "lineNumber": 29
+        },
+        {
+          "caller": "openAgentLogFolder",
+          "callee": "agentDataDir",
+          "lineNumber": 33
+        },
+        {
+          "caller": "openAgentLogFolder",
+          "callee": "os.MkdirAll",
+          "lineNumber": 34
+        },
+        {
+          "caller": "openAgentLogFolder",
+          "callee": "exec.Command(\"explorer\", dir).Start",
+          "lineNumber": 37
+        },
+        {
+          "caller": "openAgentLogFolder",
+          "callee": "exec.Command",
+          "lineNumber": 37
+        },
+        {
+          "caller": "confirmTrayExit",
+          "callee": "messageBoxYesNo",
+          "lineNumber": 41
+        },
+        {
+          "caller": "confirmTrayExit",
+          "callee": "uiT",
+          "lineNumber": 42
+        },
+        {
+          "caller": "confirmTrayExit",
+          "callee": "uiT",
+          "lineNumber": 43
+        },
+        {
+          "caller": "confirmTrayRestart",
+          "callee": "messageBoxYesNo",
+          "lineNumber": 48
+        },
+        {
+          "caller": "confirmTrayRestart",
+          "callee": "uiT",
+          "lineNumber": 49
+        },
+        {
+          "caller": "confirmTrayRestart",
+          "callee": "uiT",
+          "lineNumber": 50
+        },
+        {
+          "caller": "trayAboutText",
+          "callee": "uiT",
+          "lineNumber": 55
+        },
+        {
+          "caller": "trayAboutText",
+          "callee": "uiT",
+          "lineNumber": 55
+        },
+        {
+          "caller": "trayAboutText",
+          "callee": "defaultConfigPath",
+          "lineNumber": 55
+        },
+        {
+          "caller": "trayAboutText",
+          "callee": "uiT",
+          "lineNumber": 56
+        },
+        {
+          "caller": "trayAboutText",
+          "callee": "agentLogPath",
+          "lineNumber": 56
+        },
+        {
+          "caller": "trayAboutText",
+          "callee": "loadConfig",
+          "lineNumber": 57
+        },
+        {
+          "caller": "trayAboutText",
+          "callee": "defaultConfigPath",
+          "lineNumber": 57
+        },
+        {
+          "caller": "trayAboutText",
+          "callee": "rt.snapshot",
+          "lineNumber": 59
+        },
+        {
+          "caller": "trayAboutText",
+          "callee": "cfg.credentialAboutLine",
+          "lineNumber": 64
+        },
+        {
+          "caller": "trayAboutText",
+          "callee": "time.Now",
+          "lineNumber": 64
+        },
+        {
+          "caller": "trayAboutText",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 67
+        },
+        {
+          "caller": "trayAboutText",
+          "callee": "uiT",
+          "lineNumber": 68
+        },
+        {
+          "caller": "applyTrayUILocaleSubmenu",
+          "callee": "mUILang.SetTitle",
+          "lineNumber": 78
+        },
+        {
+          "caller": "applyTrayUILocaleSubmenu",
+          "callee": "uiT",
+          "lineNumber": 78
+        },
+        {
+          "caller": "applyTrayUILocaleSubmenu",
+          "callee": "mUILang.SetTooltip",
+          "lineNumber": 79
+        },
+        {
+          "caller": "applyTrayUILocaleSubmenu",
+          "callee": "uiT",
+          "lineNumber": 79
+        },
+        {
+          "caller": "applyTrayUILocaleSubmenu",
+          "callee": "mLangZh.SetTitle",
+          "lineNumber": 80
+        },
+        {
+          "caller": "applyTrayUILocaleSubmenu",
+          "callee": "uiLocaleOptionTitle",
+          "lineNumber": 80
+        },
+        {
+          "caller": "applyTrayUILocaleSubmenu",
+          "callee": "mLangEn.SetTitle",
+          "lineNumber": 81
+        },
+        {
+          "caller": "applyTrayUILocaleSubmenu",
+          "callee": "uiLocaleOptionTitle",
+          "lineNumber": 81
+        },
+        {
+          "caller": "applyTrayUILocaleSubmenu",
+          "callee": "mLangPt.SetTitle",
+          "lineNumber": 82
+        },
+        {
+          "caller": "applyTrayUILocaleSubmenu",
+          "callee": "uiLocaleOptionTitle",
+          "lineNumber": 82
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "mStatus.SetTitle",
+          "lineNumber": 89
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "uiT",
+          "lineNumber": 89
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "mSettings.SetTitle",
+          "lineNumber": 90
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "uiT",
+          "lineNumber": 90
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "mSettings.SetTooltip",
+          "lineNumber": 91
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "uiT",
+          "lineNumber": 91
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "mOpenLog.SetTitle",
+          "lineNumber": 92
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "uiT",
+          "lineNumber": 92
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "mOpenLog.SetTooltip",
+          "lineNumber": 93
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "uiT",
+          "lineNumber": 93
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "mOpenLogDir.SetTitle",
+          "lineNumber": 94
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "uiT",
+          "lineNumber": 94
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "mOpenLogDir.SetTooltip",
+          "lineNumber": 95
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "uiT",
+          "lineNumber": 95
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "mShowConsole.SetTitle",
+          "lineNumber": 96
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "uiT",
+          "lineNumber": 96
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "mShowConsole.SetTooltip",
+          "lineNumber": 97
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "uiT",
+          "lineNumber": 97
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "mAbout.SetTitle",
+          "lineNumber": 98
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "uiT",
+          "lineNumber": 98
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "mAbout.SetTooltip",
+          "lineNumber": 99
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "uiT",
+          "lineNumber": 99
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "mRestart.SetTitle",
+          "lineNumber": 100
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "uiT",
+          "lineNumber": 100
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "mRestart.SetTooltip",
+          "lineNumber": 101
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "uiT",
+          "lineNumber": 101
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "mQuit.SetTitle",
+          "lineNumber": 102
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "uiT",
+          "lineNumber": 102
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "mQuit.SetTooltip",
+          "lineNumber": 103
+        },
+        {
+          "caller": "applyTrayMenuLabels",
+          "callee": "uiT",
+          "lineNumber": 103
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 8,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/tray_configure_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 41,
+      "nonEmptyLines": 35,
+      "functions": [
+        {
+          "name": "startTrayConfigureWizard",
+          "startLine": 11,
+          "endLine": 32,
+          "params": [
+            "launchQuery"
+          ]
+        },
+        {
+          "name": "rememberConfigureWizardURL",
+          "startLine": 34,
+          "endLine": 41,
+          "params": [
+            "url"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "startTrayConfigureWizard",
+          "callee": "defaultConfigPath",
+          "lineNumber": 15
+        },
+        {
+          "caller": "startTrayConfigureWizard",
+          "callee": "loadConfig",
+          "lineNumber": 17
+        },
+        {
+          "caller": "startTrayConfigureWizard",
+          "callee": "trayLocal.listenAddr",
+          "lineNumber": 21
+        },
+        {
+          "caller": "startTrayConfigureWizard",
+          "callee": "log.Println",
+          "lineNumber": 23
+        },
+        {
+          "caller": "startTrayConfigureWizard",
+          "callee": "configureWizardBaseURL",
+          "lineNumber": 27
+        },
+        {
+          "caller": "startTrayConfigureWizard",
+          "callee": "onConfigureWizardReady",
+          "lineNumber": 29
+        },
+        {
+          "caller": "startTrayConfigureWizard",
+          "callee": "announceWizardURL",
+          "lineNumber": 31
+        },
+        {
+          "caller": "rememberConfigureWizardURL",
+          "callee": "rt.mu.Lock",
+          "lineNumber": 38
+        },
+        {
+          "caller": "rememberConfigureWizardURL",
+          "callee": "rt.mu.Unlock",
+          "lineNumber": 40
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/tray_icon.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 33,
+      "nonEmptyLines": 27,
+      "functions": [
+        {
+          "name": "trayIconForLevel",
+          "startLine": 17,
+          "endLine": 33,
+          "params": [
+            "level"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "trayIconForLevel",
+          "callee": "len",
+          "lineNumber": 20
+        },
+        {
+          "caller": "trayIconForLevel",
+          "callee": "len",
+          "lineNumber": 24
+        },
+        {
+          "caller": "trayIconForLevel",
+          "callee": "len",
+          "lineNumber": 28
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/tray_local_http_stub.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 18,
+      "nonEmptyLines": 11,
+      "functions": [
+        {
+          "name": "startTrayLocalHTTP",
+          "startLine": 13,
+          "endLine": 13,
+          "params": [
+            "rt"
+          ]
+        },
+        {
+          "name": "shutdownTrayLocalHTTP",
+          "startLine": 14,
+          "endLine": 14,
+          "params": []
+        },
+        {
+          "name": "runConfigureSession",
+          "startLine": 16,
+          "endLine": 18,
+          "params": [
+            "ctx",
+            "configPath",
+            "prefillAPI",
+            "rawQuery"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "trayRuntime",
+          "startLine": 7,
+          "endLine": 7,
+          "methods": [],
+          "properties": []
+        },
+        {
+          "name": "trayLocalHTTP",
+          "startLine": 9,
+          "endLine": 9,
+          "methods": [
+            "runConfigureSession"
+          ],
+          "properties": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "runConfigureSession",
+          "callee": "runConfigureWizard",
+          "lineNumber": 17
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 3,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "apps/print-agent/tray_local_http_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 165,
+      "nonEmptyLines": 147,
+      "functions": [
+        {
+          "name": "isTrayConfigurePath",
+          "startLine": 25,
+          "endLine": 35,
+          "params": [
+            "path"
+          ]
+        },
+        {
+          "name": "listenAddr",
+          "startLine": 37,
+          "endLine": 41,
+          "params": []
+        },
+        {
+          "name": "mountConfigureRoutes",
+          "startLine": 43,
+          "endLine": 52,
+          "params": [
+            "configPath"
+          ]
+        },
+        {
+          "name": "startTrayLocalHTTP",
+          "startLine": 54,
+          "endLine": 87,
+          "params": [
+            "rt"
+          ]
+        },
+        {
+          "name": "shutdownTrayLocalHTTP",
+          "startLine": 89,
+          "endLine": 100,
+          "params": []
+        },
+        {
+          "name": "setTrayLocalCORS",
+          "startLine": 102,
+          "endLine": 113,
+          "params": [
+            "w",
+            "r"
+          ]
+        },
+        {
+          "name": "serveHTTP",
+          "startLine": 115,
+          "endLine": 147,
+          "params": [
+            "w",
+            "r"
+          ]
+        },
+        {
+          "name": "runConfigureSession",
+          "startLine": 150,
+          "endLine": 165,
+          "params": [
+            "ctx",
+            "configPath",
+            "prefillAPI",
+            "rawQuery"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "trayLocalHTTP",
+          "startLine": 15,
+          "endLine": 21,
+          "methods": [
+            "listenAddr",
+            "mountConfigureRoutes",
+            "serveHTTP",
+            "runConfigureSession"
+          ],
+          "properties": [
+            "mu",
+            "rt",
+            "srv",
+            "addr",
+            "configureMux"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "isTrayConfigurePath",
+          "callee": "isWizardStaticPath",
+          "lineNumber": 26
+        },
+        {
+          "caller": "isTrayConfigurePath",
+          "callee": "strings.HasPrefix",
+          "lineNumber": 33
+        },
+        {
+          "caller": "listenAddr",
+          "callee": "t.mu.Lock",
+          "lineNumber": 38
+        },
+        {
+          "caller": "listenAddr",
+          "callee": "t.mu.Unlock",
+          "lineNumber": 39
+        },
+        {
+          "caller": "mountConfigureRoutes",
+          "callee": "reloadConfig",
+          "lineNumber": 44
+        },
+        {
+          "caller": "mountConfigureRoutes",
+          "callee": "http.NewServeMux",
+          "lineNumber": 46
+        },
+        {
+          "caller": "mountConfigureRoutes",
+          "callee": "registerConfigureWizardRoutes",
+          "lineNumber": 48
+        },
+        {
+          "caller": "mountConfigureRoutes",
+          "callee": "t.mu.Lock",
+          "lineNumber": 49
+        },
+        {
+          "caller": "mountConfigureRoutes",
+          "callee": "t.mu.Unlock",
+          "lineNumber": 51
+        },
+        {
+          "caller": "startTrayLocalHTTP",
+          "callee": "trayLocal.mu.Lock",
+          "lineNumber": 55
+        },
+        {
+          "caller": "startTrayLocalHTTP",
+          "callee": "trayLocal.mu.Unlock",
+          "lineNumber": 57
+        },
+        {
+          "caller": "startTrayLocalHTTP",
+          "callee": "trayLocal.mu.Unlock",
+          "lineNumber": 61
+        },
+        {
+          "caller": "startTrayLocalHTTP",
+          "callee": "defaultConfigPath",
+          "lineNumber": 63
+        },
+        {
+          "caller": "startTrayLocalHTTP",
+          "callee": "pickLocalListenAddr",
+          "lineNumber": 64
+        },
+        {
+          "caller": "startTrayLocalHTTP",
+          "callee": "log.Println",
+          "lineNumber": 66
+        },
+        {
+          "caller": "startTrayLocalHTTP",
+          "callee": "trayLocal.mountConfigureRoutes",
+          "lineNumber": 69
+        },
+        {
+          "caller": "startTrayLocalHTTP",
+          "callee": "http.HandlerFunc",
+          "lineNumber": 73
+        },
+        {
+          "caller": "startTrayLocalHTTP",
+          "callee": "trayLocal.mu.Lock",
+          "lineNumber": 76
+        },
+        {
+          "caller": "startTrayLocalHTTP",
+          "callee": "trayLocal.mu.Unlock",
+          "lineNumber": 79
+        },
+        {
+          "caller": "startTrayLocalHTTP",
+          "callee": "func() {\n\t\tif err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {\n\t\t\tlog.Println(\"tray: local http:\", err)\n\t\t}\n\t}",
+          "lineNumber": 81
+        },
+        {
+          "caller": "startTrayLocalHTTP",
+          "callee": "srv.ListenAndServe",
+          "lineNumber": 82
+        },
+        {
+          "caller": "startTrayLocalHTTP",
+          "callee": "log.Println",
+          "lineNumber": 83
+        },
+        {
+          "caller": "startTrayLocalHTTP",
+          "callee": "log.Println",
+          "lineNumber": 86
+        },
+        {
+          "caller": "shutdownTrayLocalHTTP",
+          "callee": "trayLocal.mu.Lock",
+          "lineNumber": 90
+        },
+        {
+          "caller": "shutdownTrayLocalHTTP",
+          "callee": "trayLocal.mu.Unlock",
+          "lineNumber": 95
+        },
+        {
+          "caller": "shutdownTrayLocalHTTP",
+          "callee": "shutdownHTTPServer",
+          "lineNumber": 99
+        },
+        {
+          "caller": "setTrayLocalCORS",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 103
+        },
+        {
+          "caller": "setTrayLocalCORS",
+          "callee": "r.Header.Get",
+          "lineNumber": 103
+        },
+        {
+          "caller": "setTrayLocalCORS",
+          "callee": "w.Header().Set",
+          "lineNumber": 107
+        },
+        {
+          "caller": "setTrayLocalCORS",
+          "callee": "w.Header",
+          "lineNumber": 107
+        },
+        {
+          "caller": "setTrayLocalCORS",
+          "callee": "w.Header().Set",
+          "lineNumber": 108
+        },
+        {
+          "caller": "setTrayLocalCORS",
+          "callee": "w.Header",
+          "lineNumber": 108
+        },
+        {
+          "caller": "setTrayLocalCORS",
+          "callee": "w.Header().Set",
+          "lineNumber": 109
+        },
+        {
+          "caller": "setTrayLocalCORS",
+          "callee": "w.Header",
+          "lineNumber": 109
+        },
+        {
+          "caller": "setTrayLocalCORS",
+          "callee": "strings.EqualFold",
+          "lineNumber": 110
+        },
+        {
+          "caller": "setTrayLocalCORS",
+          "callee": "r.Header.Get",
+          "lineNumber": 110
+        },
+        {
+          "caller": "setTrayLocalCORS",
+          "callee": "w.Header().Set",
+          "lineNumber": 111
+        },
+        {
+          "caller": "setTrayLocalCORS",
+          "callee": "w.Header",
+          "lineNumber": 111
+        },
+        {
+          "caller": "serveHTTP",
+          "callee": "setTrayLocalCORS",
+          "lineNumber": 117
+        },
+        {
+          "caller": "serveHTTP",
+          "callee": "w.WriteHeader",
+          "lineNumber": 118
+        },
+        {
+          "caller": "serveHTTP",
+          "callee": "setTrayLocalCORS",
+          "lineNumber": 123
+        },
+        {
+          "caller": "serveHTTP",
+          "callee": "writePairJSON",
+          "lineNumber": 124
+        },
+        {
+          "caller": "serveHTTP",
+          "callee": "isTrayConfigurePath",
+          "lineNumber": 131
+        },
+        {
+          "caller": "serveHTTP",
+          "callee": "setTrayLocalCORS",
+          "lineNumber": 132
+        },
+        {
+          "caller": "serveHTTP",
+          "callee": "t.mu.Lock",
+          "lineNumber": 133
+        },
+        {
+          "caller": "serveHTTP",
+          "callee": "t.mu.Unlock",
+          "lineNumber": 135
+        },
+        {
+          "caller": "serveHTTP",
+          "callee": "writePairJSON",
+          "lineNumber": 137
+        },
+        {
+          "caller": "serveHTTP",
+          "callee": "mux.ServeHTTP",
+          "lineNumber": 142
+        },
+        {
+          "caller": "serveHTTP",
+          "callee": "http.NotFound",
+          "lineNumber": 146
+        },
+        {
+          "caller": "runConfigureSession",
+          "callee": "runConfigureWizard",
+          "lineNumber": 152
+        },
+        {
+          "caller": "runConfigureSession",
+          "callee": "t.listenAddr",
+          "lineNumber": 154
+        },
+        {
+          "caller": "runConfigureSession",
+          "callee": "runConfigureWizard",
+          "lineNumber": 156
+        },
+        {
+          "caller": "runConfigureSession",
+          "callee": "configureWizardBaseURL",
+          "lineNumber": 158
+        },
+        {
+          "caller": "runConfigureSession",
+          "callee": "onConfigureWizardReady",
+          "lineNumber": 160
+        },
+        {
+          "caller": "runConfigureSession",
+          "callee": "announceWizardURL",
+          "lineNumber": 162
+        },
+        {
+          "caller": "runConfigureSession",
+          "callee": "ctx.Done",
+          "lineNumber": 163
+        },
+        {
+          "caller": "runConfigureSession",
+          "callee": "ctx.Err",
+          "lineNumber": 164
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 8,
+        "classCount": 1
+      }
+    }
+  ]
+}

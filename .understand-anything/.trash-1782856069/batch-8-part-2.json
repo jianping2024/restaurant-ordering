@@ -1,0 +1,1111 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/number-input.test.ts",
+      "type": "file",
+      "name": "number-input.test.ts",
+      "filePath": "apps/web/src/lib/number-input.test.ts",
+      "summary": "服务端/客户端共享工具库 number-input.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/number-input.ts",
+      "type": "file",
+      "name": "number-input.ts",
+      "filePath": "apps/web/src/lib/number-input.ts",
+      "summary": "服务端/客户端共享工具库 number-input.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/number-input.ts:formatHmDigitsWhileTyping",
+      "type": "function",
+      "name": "formatHmDigitsWhileTyping",
+      "filePath": "apps/web/src/lib/number-input.ts",
+      "lineRange": [
+        12,
+        27
+      ],
+      "summary": "函数 formatHmDigitsWhileTyping，实现 number-input 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/number-input.ts:normalizeHmFromDigits",
+      "type": "function",
+      "name": "normalizeHmFromDigits",
+      "filePath": "apps/web/src/lib/number-input.ts",
+      "lineRange": [
+        29,
+        51
+      ],
+      "summary": "解析/规范化工具函数 normalizeHmFromDigits。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/number-input.ts:normalizeHmInput",
+      "type": "function",
+      "name": "normalizeHmInput",
+      "filePath": "apps/web/src/lib/number-input.ts",
+      "lineRange": [
+        54,
+        77
+      ],
+      "summary": "解析/规范化工具函数 normalizeHmInput。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/number-input.ts:parseNonNegativeInt",
+      "type": "function",
+      "name": "parseNonNegativeInt",
+      "filePath": "apps/web/src/lib/number-input.ts",
+      "lineRange": [
+        80,
+        95
+      ],
+      "summary": "解析/规范化工具函数 parseNonNegativeInt。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/number-input.ts:normalizeDecimalInput",
+      "type": "function",
+      "name": "normalizeDecimalInput",
+      "filePath": "apps/web/src/lib/number-input.ts",
+      "lineRange": [
+        105,
+        120
+      ],
+      "summary": "解析/规范化工具函数 normalizeDecimalInput。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/number-input.ts:parseDecimalInput",
+      "type": "function",
+      "name": "parseDecimalInput",
+      "filePath": "apps/web/src/lib/number-input.ts",
+      "lineRange": [
+        122,
+        131
+      ],
+      "summary": "解析/规范化工具函数 parseDecimalInput。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/number-input.ts:formatDecimalInputValue",
+      "type": "function",
+      "name": "formatDecimalInputValue",
+      "filePath": "apps/web/src/lib/number-input.ts",
+      "lineRange": [
+        134,
+        137
+      ],
+      "summary": "函数 formatDecimalInputValue，实现 number-input 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx",
+      "type": "file",
+      "name": "VoidItemReasonDialog.tsx",
+      "filePath": "apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx",
+      "summary": "服务端/客户端共享工具库 VoidItemReasonDialog.tsx，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx:VoidItemReasonDialog",
+      "type": "function",
+      "name": "VoidItemReasonDialog",
+      "filePath": "apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx",
+      "lineRange": [
+        23,
+        59
+      ],
+      "summary": "导出的 React 组件或类 VoidItemReasonDialog。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/void-item-reason-ui.test.ts",
+      "type": "file",
+      "name": "void-item-reason-ui.test.ts",
+      "filePath": "apps/web/src/lib/order-item-void/void-item-reason-ui.test.ts",
+      "summary": "服务端/客户端共享工具库 void-item-reason-ui.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "type": "file",
+      "name": "void-item-reason-ui.ts",
+      "filePath": "apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "summary": "服务端/客户端共享工具库 void-item-reason-ui.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemDisplayName",
+      "type": "function",
+      "name": "voidItemDisplayName",
+      "filePath": "apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "lineRange": [
+        21,
+        23
+      ],
+      "summary": "函数 voidItemDisplayName，实现 void-item-reason-ui 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemWasServed",
+      "type": "function",
+      "name": "voidItemWasServed",
+      "filePath": "apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "lineRange": [
+        25,
+        27
+      ],
+      "summary": "函数 voidItemWasServed，实现 void-item-reason-ui 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemReasonDialogTitle",
+      "type": "function",
+      "name": "voidItemReasonDialogTitle",
+      "filePath": "apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "lineRange": [
+        29,
+        41
+      ],
+      "summary": "函数 voidItemReasonDialogTitle，实现 void-item-reason-ui 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemReasonDialogCopy",
+      "type": "function",
+      "name": "voidItemReasonDialogCopy",
+      "filePath": "apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "lineRange": [
+        43,
+        58
+      ],
+      "summary": "函数 voidItemReasonDialogCopy，实现 void-item-reason-ui 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemReasonErrorMessage",
+      "type": "function",
+      "name": "voidItemReasonErrorMessage",
+      "filePath": "apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "lineRange": [
+        60,
+        68
+      ],
+      "summary": "函数 voidItemReasonErrorMessage，实现 void-item-reason-ui 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-job-error-hints.ts",
+      "type": "file",
+      "name": "print-job-error-hints.ts",
+      "filePath": "apps/web/src/lib/print-job-error-hints.ts",
+      "summary": "服务端/客户端共享工具库 print-job-error-hints.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-job-error-hints.ts:printJobErrorHint",
+      "type": "function",
+      "name": "printJobErrorHint",
+      "filePath": "apps/web/src/lib/print-job-error-hints.ts",
+      "lineRange": [
+        83,
+        90
+      ],
+      "summary": "函数 printJobErrorHint，实现 print-job-error-hints 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-station-admin.ts",
+      "type": "file",
+      "name": "print-station-admin.ts",
+      "filePath": "apps/web/src/lib/print-station-admin.ts",
+      "summary": "服务端/客户端共享工具库 print-station-admin.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-station-admin.ts:getPrintStationDisplayName",
+      "type": "function",
+      "name": "getPrintStationDisplayName",
+      "filePath": "apps/web/src/lib/print-station-admin.ts",
+      "lineRange": [
+        4,
+        8
+      ],
+      "summary": "函数 getPrintStationDisplayName，实现 print-station-admin 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-station-admin.ts:countPrintStationBindings",
+      "type": "function",
+      "name": "countPrintStationBindings",
+      "filePath": "apps/web/src/lib/print-station-admin.ts",
+      "lineRange": [
+        10,
+        19
+      ],
+      "summary": "函数 countPrintStationBindings，实现 print-station-admin 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/settings-nav.ts",
+      "type": "file",
+      "name": "settings-nav.ts",
+      "filePath": "apps/web/src/lib/settings-nav.ts",
+      "summary": "服务端/客户端共享工具库 settings-nav.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/settings-nav.ts:getActiveSettingsNavItem",
+      "type": "function",
+      "name": "getActiveSettingsNavItem",
+      "filePath": "apps/web/src/lib/settings-nav.ts",
+      "lineRange": [
+        73,
+        75
+      ],
+      "summary": "函数 getActiveSettingsNavItem，实现 settings-nav 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/settings-nav.ts:isSettingsWideLayout",
+      "type": "function",
+      "name": "isSettingsWideLayout",
+      "filePath": "apps/web/src/lib/settings-nav.ts",
+      "lineRange": [
+        77,
+        79
+      ],
+      "summary": "React 页面/布局组件 isSettingsWideLayout。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-auth-client.ts",
+      "type": "file",
+      "name": "staff-auth-client.ts",
+      "filePath": "apps/web/src/lib/staff-auth-client.ts",
+      "summary": "服务端/客户端共享工具库 staff-auth-client.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-auth-client.ts:resolveStaffSession",
+      "type": "function",
+      "name": "resolveStaffSession",
+      "filePath": "apps/web/src/lib/staff-auth-client.ts",
+      "lineRange": [
+        15,
+        60
+      ],
+      "summary": "函数 resolveStaffSession，实现 staff-auth-client 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-auth-client.ts:staffSignOut",
+      "type": "function",
+      "name": "staffSignOut",
+      "filePath": "apps/web/src/lib/staff-auth-client.ts",
+      "lineRange": [
+        62,
+        64
+      ],
+      "summary": "函数 staffSignOut，实现 staff-auth-client 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "file",
+      "name": "client.ts",
+      "filePath": "apps/web/src/lib/supabase/client.ts",
+      "summary": "服务端/客户端共享工具库 client.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/supabase/client.ts:createClient",
+      "type": "function",
+      "name": "createClient",
+      "filePath": "apps/web/src/lib/supabase/client.ts",
+      "lineRange": [
+        4,
+        9
+      ],
+      "summary": "CRUD 操作函数 createClient。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "type": "file",
+      "name": "tables-manager-tab-preference.ts",
+      "filePath": "apps/web/src/lib/tables-manager-tab-preference.ts",
+      "summary": "服务端/客户端共享工具库 tables-manager-tab-preference.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/tables-manager-tab-preference.ts:tablesManagerTabStorageKey",
+      "type": "function",
+      "name": "tablesManagerTabStorageKey",
+      "filePath": "apps/web/src/lib/tables-manager-tab-preference.ts",
+      "lineRange": [
+        7,
+        9
+      ],
+      "summary": "函数 tablesManagerTabStorageKey，实现 tables-manager-tab-preference 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/tables-manager-tab-preference.ts:isTablesManagerTab",
+      "type": "function",
+      "name": "isTablesManagerTab",
+      "filePath": "apps/web/src/lib/tables-manager-tab-preference.ts",
+      "lineRange": [
+        11,
+        13
+      ],
+      "summary": "函数 isTablesManagerTab，实现 tables-manager-tab-preference 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/tables-manager-tab-preference.ts:parseTablesManagerTab",
+      "type": "function",
+      "name": "parseTablesManagerTab",
+      "filePath": "apps/web/src/lib/tables-manager-tab-preference.ts",
+      "lineRange": [
+        15,
+        18
+      ],
+      "summary": "解析/规范化工具函数 parseTablesManagerTab。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/tables-manager-tab-preference.ts:loadSavedTablesManagerTab",
+      "type": "function",
+      "name": "loadSavedTablesManagerTab",
+      "filePath": "apps/web/src/lib/tables-manager-tab-preference.ts",
+      "lineRange": [
+        20,
+        28
+      ],
+      "summary": "数据加载函数 loadSavedTablesManagerTab，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/tables-manager-tab-preference.ts:saveTablesManagerTab",
+      "type": "function",
+      "name": "saveTablesManagerTab",
+      "filePath": "apps/web/src/lib/tables-manager-tab-preference.ts",
+      "lineRange": [
+        30,
+        37
+      ],
+      "summary": "函数 saveTablesManagerTab，实现 tables-manager-tab-preference 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/tables-manager-tab-preference.ts:tablesManagerPath",
+      "type": "function",
+      "name": "tablesManagerPath",
+      "filePath": "apps/web/src/lib/tables-manager-tab-preference.ts",
+      "lineRange": [
+        39,
+        41
+      ],
+      "summary": "函数 tablesManagerPath，实现 tables-manager-tab-preference 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/use-buffet-prices-realtime-refresh.ts",
+      "type": "file",
+      "name": "use-buffet-prices-realtime-refresh.ts",
+      "filePath": "apps/web/src/lib/use-buffet-prices-realtime-refresh.ts",
+      "summary": "服务端/客户端共享工具库 use-buffet-prices-realtime-refresh.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/use-buffet-prices-realtime-refresh.ts:useBuffetPricesRealtimeRefresh",
+      "type": "function",
+      "name": "useBuffetPricesRealtimeRefresh",
+      "filePath": "apps/web/src/lib/use-buffet-prices-realtime-refresh.ts",
+      "lineRange": [
+        10,
+        89
+      ],
+      "summary": "React Hook useBuffetPricesRealtimeRefresh，封装可复用状态与副作用逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-decrement-order-item-client.ts",
+      "type": "file",
+      "name": "waiter-decrement-order-item-client.ts",
+      "filePath": "apps/web/src/lib/waiter-decrement-order-item-client.ts",
+      "summary": "服务端/客户端共享工具库 waiter-decrement-order-item-client.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-decrement-order-item-client.ts:postWaiterDecrementOrderItemClient",
+      "type": "function",
+      "name": "postWaiterDecrementOrderItemClient",
+      "filePath": "apps/web/src/lib/waiter-decrement-order-item-client.ts",
+      "lineRange": [
+        17,
+        42
+      ],
+      "summary": "函数 postWaiterDecrementOrderItemClient，实现 waiter-decrement-order-item-client 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-table-detail-actions.test.ts",
+      "type": "file",
+      "name": "waiter-table-detail-actions.test.ts",
+      "filePath": "apps/web/src/lib/waiter-table-detail-actions.test.ts",
+      "summary": "服务端/客户端共享工具库 waiter-table-detail-actions.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service",
+        "waiter"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-table-detail-actions.ts",
+      "type": "file",
+      "name": "waiter-table-detail-actions.ts",
+      "filePath": "apps/web/src/lib/waiter-table-detail-actions.ts",
+      "summary": "服务端/客户端共享工具库 waiter-table-detail-actions.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-table-detail-actions.ts:resolveWaiterTableDetailActions",
+      "type": "function",
+      "name": "resolveWaiterTableDetailActions",
+      "filePath": "apps/web/src/lib/waiter-table-detail-actions.ts",
+      "lineRange": [
+        13,
+        28
+      ],
+      "summary": "函数 resolveWaiterTableDetailActions，实现 waiter-table-detail-actions 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:formatHmDigitsWhileTyping",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:formatHmDigitsWhileTyping",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:normalizeHmFromDigits",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:normalizeHmInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:normalizeHmInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:parseNonNegativeInt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:parseNonNegativeInt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:normalizeDecimalInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:normalizeDecimalInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:parseDecimalInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:parseDecimalInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:formatDecimalInputValue",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:formatDecimalInputValue",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/number-input.ts:normalizeHmInput",
+      "target": "function:apps/web/src/lib/number-input.ts:normalizeHmFromDigits",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/number-input.ts:parseDecimalInput",
+      "target": "function:apps/web/src/lib/number-input.ts:normalizeDecimalInput",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx",
+      "target": "function:apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx:VoidItemReasonDialog",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx",
+      "target": "function:apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx:VoidItemReasonDialog",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "target": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemDisplayName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "target": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemDisplayName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "target": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemWasServed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "target": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemWasServed",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "target": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemReasonDialogTitle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "target": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemReasonDialogTitle",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "target": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemReasonDialogCopy",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "target": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemReasonDialogCopy",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "target": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemReasonErrorMessage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "target": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemReasonErrorMessage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemReasonDialogTitle",
+      "target": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemDisplayName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemReasonErrorMessage",
+      "target": "function:apps/web/src/lib/order-item-void/void-item-reason-ui.ts:voidItemReasonDialogCopy",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-job-error-hints.ts",
+      "target": "function:apps/web/src/lib/print-job-error-hints.ts:printJobErrorHint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-job-error-hints.ts",
+      "target": "function:apps/web/src/lib/print-job-error-hints.ts:printJobErrorHint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-station-admin.ts",
+      "target": "function:apps/web/src/lib/print-station-admin.ts:getPrintStationDisplayName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-station-admin.ts",
+      "target": "function:apps/web/src/lib/print-station-admin.ts:getPrintStationDisplayName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-station-admin.ts",
+      "target": "function:apps/web/src/lib/print-station-admin.ts:countPrintStationBindings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-station-admin.ts",
+      "target": "function:apps/web/src/lib/print-station-admin.ts:countPrintStationBindings",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/settings-nav.ts",
+      "target": "function:apps/web/src/lib/settings-nav.ts:getActiveSettingsNavItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/settings-nav.ts",
+      "target": "function:apps/web/src/lib/settings-nav.ts:getActiveSettingsNavItem",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/settings-nav.ts",
+      "target": "function:apps/web/src/lib/settings-nav.ts:isSettingsWideLayout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/settings-nav.ts",
+      "target": "function:apps/web/src/lib/settings-nav.ts:isSettingsWideLayout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "function:apps/web/src/lib/staff-auth-client.ts:resolveStaffSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "function:apps/web/src/lib/staff-auth-client.ts:resolveStaffSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "function:apps/web/src/lib/staff-auth-client.ts:staffSignOut",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "function:apps/web/src/lib/staff-auth-client.ts:staffSignOut",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/client.ts",
+      "target": "function:apps/web/src/lib/supabase/client.ts:createClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/client.ts",
+      "target": "function:apps/web/src/lib/supabase/client.ts:createClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:tablesManagerTabStorageKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:tablesManagerTabStorageKey",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:isTablesManagerTab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:isTablesManagerTab",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:parseTablesManagerTab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:parseTablesManagerTab",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:loadSavedTablesManagerTab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:loadSavedTablesManagerTab",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:saveTablesManagerTab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:saveTablesManagerTab",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:tablesManagerPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:tablesManagerPath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/tables-manager-tab-preference.ts:parseTablesManagerTab",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:isTablesManagerTab",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/tables-manager-tab-preference.ts:loadSavedTablesManagerTab",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:tablesManagerTabStorageKey",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/tables-manager-tab-preference.ts:loadSavedTablesManagerTab",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:isTablesManagerTab",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/tables-manager-tab-preference.ts:saveTablesManagerTab",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:tablesManagerTabStorageKey",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/use-buffet-prices-realtime-refresh.ts",
+      "target": "function:apps/web/src/lib/use-buffet-prices-realtime-refresh.ts:useBuffetPricesRealtimeRefresh",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/use-buffet-prices-realtime-refresh.ts",
+      "target": "function:apps/web/src/lib/use-buffet-prices-realtime-refresh.ts:useBuffetPricesRealtimeRefresh",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-decrement-order-item-client.ts",
+      "target": "function:apps/web/src/lib/waiter-decrement-order-item-client.ts:postWaiterDecrementOrderItemClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-decrement-order-item-client.ts",
+      "target": "function:apps/web/src/lib/waiter-decrement-order-item-client.ts:postWaiterDecrementOrderItemClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-detail-actions.ts",
+      "target": "function:apps/web/src/lib/waiter-table-detail-actions.ts:resolveWaiterTableDetailActions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-detail-actions.ts",
+      "target": "function:apps/web/src/lib/waiter-table-detail-actions.ts:resolveWaiterTableDetailActions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

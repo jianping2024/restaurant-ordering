@@ -1,0 +1,46 @@
+Analyze these files and produce GraphNode and GraphEdge objects.
+Project root: `/Users/chenjianping/Documents/restaurant-ordering`
+Project: `undefined` — undefined
+Languages: ["config","css","dockerfile","go","html","iss","javascript","json","markdown","mod","mts","powershell","python","shell","sql","sum","txt","typescript","unknown","yaml"]
+Batch: `32/38`
+Skill directory: `/Users/chenjianping/.cursor/plugins/cache/understand-anything/understand-anything/54754a6f97051d1d76c8758353d8ea41afe502a6/skills/understand`
+Output: `/Users/chenjianping/Documents/restaurant-ordering/.understand-anything/intermediate/batch-32.json`
+
+Pre-resolved import data:
+```json
+{".env.local.example":[],"apps/ops/next.config.mjs":[],"apps/ops/postcss.config.mjs":[],"apps/ops/src/app/globals.css":[],"apps/ops/src/app/layout.tsx":["apps/ops/src/app/globals.css"],"apps/ops/src/app/ops/(console)/restaurants/new/page.tsx":[],"apps/ops/src/app/ops/(console)/restaurants/page.tsx":["apps/ops/src/app/ops/(console)/restaurants/RestaurantsListClient.tsx"],"apps/ops/src/app/ops/(console)/restaurants/RestaurantsListClient.tsx":[],"apps/ops/src/app/ops/bootstrap/page.tsx":[],"apps/ops/src/app/ops/login/page.tsx":[],"apps/ops/src/app/page.tsx":[],"apps/ops/src/middleware.ts":[],"apps/ops/tailwind.config.ts":[],"apps/print-agent/agent_bootstrap.go":[],"apps/print-agent/agent_entry_stub.go":[],"apps/print-agent/agent_entry_windows.go":[],"apps/print-agent/agent_log_windows.go":[],"apps/print-agent/agent_log.go":[],"apps/print-agent/agent_patch.go":[],"apps/print-agent/agent_poll.go":[],"apps/print-agent/agent_queue_test.go":[],"apps/print-agent/agent_queue.go":[],"apps/print-agent/agent_status_test.go":[],"apps/print-agent/agent_status.go":[],"apps/print-agent/brand_test.go":[]}
+```
+
+Cross-batch neighbors:
+```json
+{}
+```
+
+Files:
+1. `.env.local.example` (28 lines, language: `config`, fileCategory: `config`)
+2. `apps/ops/next.config.mjs` (9 lines, language: `javascript`, fileCategory: `code`)
+3. `apps/ops/postcss.config.mjs` (8 lines, language: `javascript`, fileCategory: `code`)
+4. `apps/ops/src/app/globals.css` (3 lines, language: `css`, fileCategory: `markup`)
+5. `apps/ops/src/app/layout.tsx` (16 lines, language: `typescript`, fileCategory: `code`)
+6. `apps/ops/src/app/ops/(console)/restaurants/new/page.tsx` (137 lines, language: `typescript`, fileCategory: `code`)
+7. `apps/ops/src/app/ops/(console)/restaurants/page.tsx` (10 lines, language: `typescript`, fileCategory: `code`)
+8. `apps/ops/src/app/ops/(console)/restaurants/RestaurantsListClient.tsx` (182 lines, language: `typescript`, fileCategory: `code`)
+9. `apps/ops/src/app/ops/bootstrap/page.tsx` (110 lines, language: `typescript`, fileCategory: `code`)
+10. `apps/ops/src/app/ops/login/page.tsx` (92 lines, language: `typescript`, fileCategory: `code`)
+11. `apps/ops/src/app/page.tsx` (5 lines, language: `typescript`, fileCategory: `code`)
+12. `apps/ops/src/middleware.ts` (57 lines, language: `typescript`, fileCategory: `code`)
+13. `apps/ops/tailwind.config.ts` (11 lines, language: `typescript`, fileCategory: `code`)
+14. `apps/print-agent/agent_bootstrap.go` (124 lines, language: `go`, fileCategory: `code`)
+15. `apps/print-agent/agent_entry_stub.go` (16 lines, language: `go`, fileCategory: `code`)
+16. `apps/print-agent/agent_entry_windows.go` (243 lines, language: `go`, fileCategory: `code`)
+17. `apps/print-agent/agent_log_windows.go` (63 lines, language: `go`, fileCategory: `code`)
+18. `apps/print-agent/agent_log.go` (56 lines, language: `go`, fileCategory: `code`)
+19. `apps/print-agent/agent_patch.go` (29 lines, language: `go`, fileCategory: `code`)
+20. `apps/print-agent/agent_poll.go` (293 lines, language: `go`, fileCategory: `code`)
+21. `apps/print-agent/agent_queue_test.go` (26 lines, language: `go`, fileCategory: `code`)
+22. `apps/print-agent/agent_queue.go` (20 lines, language: `go`, fileCategory: `code`)
+23. `apps/print-agent/agent_status_test.go` (33 lines, language: `go`, fileCategory: `code`)
+24. `apps/print-agent/agent_status.go` (163 lines, language: `go`, fileCategory: `code`)
+25. `apps/print-agent/brand_test.go` (15 lines, language: `go`, fileCategory: `code`)
+
+> **Language directive**: Generate all textual content in **zh** (Chinese). Keep technical terms in English when no standard translation exists.

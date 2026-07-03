@@ -1,0 +1,28 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {
+      "path": "apps/print-agent/installer/WINDOWS-README.txt",
+      "language": "txt",
+      "sizeLines": 61,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "apps/print-agent/installer/wizard-after.txt",
+      "language": "txt",
+      "sizeLines": 16,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "apps/print-agent/installer/wizard-before.txt",
+      "language": "txt",
+      "sizeLines": 20,
+      "fileCategory": "docs"
+    }
+  ],
+  "batchImportData": {
+    "apps/print-agent/installer/WINDOWS-README.txt": [],
+    "apps/print-agent/installer/wizard-after.txt": [],
+    "apps/print-agent/installer/wizard-before.txt": []
+  }
+}

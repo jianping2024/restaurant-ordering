@@ -1,0 +1,24 @@
+Analyze these files and produce GraphNode and GraphEdge objects.
+Project root: `/Users/chenjianping/Documents/restaurant-ordering`
+Project: `undefined` — undefined
+Languages: ["config","css","dockerfile","go","html","iss","javascript","json","markdown","mod","mts","powershell","python","shell","sql","sum","txt","typescript","unknown","yaml"]
+Batch: `30/38`
+Skill directory: `/Users/chenjianping/.cursor/plugins/cache/understand-anything/understand-anything/54754a6f97051d1d76c8758353d8ea41afe502a6/skills/understand`
+Output: `/Users/chenjianping/Documents/restaurant-ordering/.understand-anything/intermediate/batch-30.json`
+
+Pre-resolved import data:
+```json
+{"apps/print-agent/scripts/build-release.ps1":[],"apps/print-agent/scripts/verify-single-instance.sh":[],"apps/print-agent/scripts/verify-tray-startup-order.sh":[]}
+```
+
+Cross-batch neighbors:
+```json
+{}
+```
+
+Files:
+1. `apps/print-agent/scripts/build-release.ps1` (86 lines, language: `powershell`, fileCategory: `script`)
+2. `apps/print-agent/scripts/verify-single-instance.sh` (23 lines, language: `shell`, fileCategory: `script`)
+3. `apps/print-agent/scripts/verify-tray-startup-order.sh` (40 lines, language: `shell`, fileCategory: `script`)
+
+> **Language directive**: Generate all textual content in **zh** (Chinese). Keep technical terms in English when no standard translation exists.

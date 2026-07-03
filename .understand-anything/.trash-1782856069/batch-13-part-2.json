@@ -1,0 +1,799 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/station-ticket-enqueue.ts",
+      "type": "file",
+      "name": "station-ticket-enqueue.ts",
+      "filePath": "apps/web/src/lib/station-ticket-enqueue.ts",
+      "summary": "服务端/客户端共享工具库 station-ticket-enqueue.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/station-ticket-enqueue.ts:orderItemBatchKey",
+      "type": "function",
+      "name": "orderItemBatchKey",
+      "filePath": "apps/web/src/lib/station-ticket-enqueue.ts",
+      "lineRange": [
+        26,
+        28
+      ],
+      "summary": "函数 orderItemBatchKey，实现 station-ticket-enqueue 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/station-ticket-enqueue.ts:stationTicketPayloadMatch",
+      "type": "function",
+      "name": "stationTicketPayloadMatch",
+      "filePath": "apps/web/src/lib/station-ticket-enqueue.ts",
+      "lineRange": [
+        69,
+        80
+      ],
+      "summary": "函数 stationTicketPayloadMatch，实现 station-ticket-enqueue 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/station-ticket-enqueue.ts:enqueueStationTicketsForOrder",
+      "type": "function",
+      "name": "enqueueStationTicketsForOrder",
+      "filePath": "apps/web/src/lib/station-ticket-enqueue.ts",
+      "lineRange": [
+        89,
+        383
+      ],
+      "summary": "函数 enqueueStationTicketsForOrder，实现 station-ticket-enqueue 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/lib/table-guest-count.ts",
+      "type": "file",
+      "name": "table-guest-count.ts",
+      "filePath": "apps/web/src/lib/table-guest-count.ts",
+      "summary": "服务端/客户端共享工具库 table-guest-count.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-guest-count.ts:guestCountFromTableOrders",
+      "type": "function",
+      "name": "guestCountFromTableOrders",
+      "filePath": "apps/web/src/lib/table-guest-count.ts",
+      "lineRange": [
+        12,
+        30
+      ],
+      "summary": "函数 guestCountFromTableOrders，实现 table-guest-count 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-guest-count.ts:formatStationTicketOrderTime",
+      "type": "function",
+      "name": "formatStationTicketOrderTime",
+      "filePath": "apps/web/src/lib/table-guest-count.ts",
+      "lineRange": [
+        32,
+        51
+      ],
+      "summary": "函数 formatStationTicketOrderTime，实现 table-guest-count 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-guest-count.ts:stationTicketOrderTimeIso",
+      "type": "function",
+      "name": "stationTicketOrderTimeIso",
+      "filePath": "apps/web/src/lib/table-guest-count.ts",
+      "lineRange": [
+        54,
+        67
+      ],
+      "summary": "函数 stationTicketOrderTimeIso，实现 table-guest-count 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/table-session-open.test.ts",
+      "type": "file",
+      "name": "table-session-open.test.ts",
+      "filePath": "apps/web/src/lib/table-session-open.test.ts",
+      "summary": "服务端/客户端共享工具库 table-session-open.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/table-session-open.ts",
+      "type": "file",
+      "name": "table-session-open.ts",
+      "filePath": "apps/web/src/lib/table-session-open.ts",
+      "summary": "服务端/客户端共享工具库 table-session-open.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-session-open.ts:findActiveTableSession",
+      "type": "function",
+      "name": "findActiveTableSession",
+      "filePath": "apps/web/src/lib/table-session-open.ts",
+      "lineRange": [
+        12,
+        29
+      ],
+      "summary": "函数 findActiveTableSession，实现 table-session-open 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-session-open.ts:insertOpenTableSession",
+      "type": "function",
+      "name": "insertOpenTableSession",
+      "filePath": "apps/web/src/lib/table-session-open.ts",
+      "lineRange": [
+        31,
+        50
+      ],
+      "summary": "函数 insertOpenTableSession，实现 table-session-open 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-session-open.ts:openTableSessionIfAbsent",
+      "type": "function",
+      "name": "openTableSessionIfAbsent",
+      "filePath": "apps/web/src/lib/table-session-open.ts",
+      "lineRange": [
+        53,
+        60
+      ],
+      "summary": "函数 openTableSessionIfAbsent，实现 table-session-open 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-session-open.ts:ensureOpenTableSession",
+      "type": "function",
+      "name": "ensureOpenTableSession",
+      "filePath": "apps/web/src/lib/table-session-open.ts",
+      "lineRange": [
+        63,
+        69
+      ],
+      "summary": "函数 ensureOpenTableSession，实现 table-session-open 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/use-bill-orders.ts",
+      "type": "file",
+      "name": "use-bill-orders.ts",
+      "filePath": "apps/web/src/lib/use-bill-orders.ts",
+      "summary": "服务端/客户端共享工具库 use-bill-orders.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/use-bill-orders.ts:useBillOrders",
+      "type": "function",
+      "name": "useBillOrders",
+      "filePath": "apps/web/src/lib/use-bill-orders.ts",
+      "lineRange": [
+        7,
+        55
+      ],
+      "summary": "React Hook useBillOrders，封装可复用状态与副作用逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/use-by-item-split-state.ts",
+      "type": "file",
+      "name": "use-by-item-split-state.ts",
+      "filePath": "apps/web/src/lib/use-by-item-split-state.ts",
+      "summary": "服务端/客户端共享工具库 use-by-item-split-state.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/use-by-item-split-state.ts:useByItemSplitState",
+      "type": "function",
+      "name": "useByItemSplitState",
+      "filePath": "apps/web/src/lib/use-by-item-split-state.ts",
+      "lineRange": [
+        17,
+        91
+      ],
+      "summary": "React Hook useByItemSplitState，封装可复用状态与副作用逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-board-permissions.test.ts",
+      "type": "file",
+      "name": "waiter-board-permissions.test.ts",
+      "filePath": "apps/web/src/lib/waiter-board-permissions.test.ts",
+      "summary": "服务端/客户端共享工具库 waiter-board-permissions.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-board-query.test.ts",
+      "type": "file",
+      "name": "waiter-board-query.test.ts",
+      "filePath": "apps/web/src/lib/waiter-board-query.test.ts",
+      "summary": "服务端/客户端共享工具库 waiter-board-query.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-board-query.ts",
+      "type": "file",
+      "name": "waiter-board-query.ts",
+      "filePath": "apps/web/src/lib/waiter-board-query.ts",
+      "summary": "服务端/客户端共享工具库 waiter-board-query.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-board-query.ts:sessionMetaByTableIdFromSessions",
+      "type": "function",
+      "name": "sessionMetaByTableIdFromSessions",
+      "filePath": "apps/web/src/lib/waiter-board-query.ts",
+      "lineRange": [
+        6,
+        34
+      ],
+      "summary": "函数 sessionMetaByTableIdFromSessions，实现 waiter-board-query 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-board-query.ts:filterOrdersInActiveSessions",
+      "type": "function",
+      "name": "filterOrdersInActiveSessions",
+      "filePath": "apps/web/src/lib/waiter-board-query.ts",
+      "lineRange": [
+        36,
+        44
+      ],
+      "summary": "函数 filterOrdersInActiveSessions，实现 waiter-board-query 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-table-occupancy.test.ts",
+      "type": "file",
+      "name": "waiter-table-occupancy.test.ts",
+      "filePath": "apps/web/src/lib/waiter-table-occupancy.test.ts",
+      "summary": "服务端/客户端共享工具库 waiter-table-occupancy.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service",
+        "waiter"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-table-orders.test.ts",
+      "type": "file",
+      "name": "waiter-table-orders.test.ts",
+      "filePath": "apps/web/src/lib/waiter-table-orders.test.ts",
+      "summary": "服务端/客户端共享工具库 waiter-table-orders.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-table-orders.test.ts:order",
+      "type": "function",
+      "name": "order",
+      "filePath": "apps/web/src/lib/waiter-table-orders.test.ts",
+      "lineRange": [
+        10,
+        21
+      ],
+      "summary": "函数 order，实现 waiter-table-orders.test 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "apps/web/src/types/index.ts",
+      "summary": "源码文件 apps/web/src/types/index.ts，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/station-ticket-enqueue.ts",
+      "target": "function:apps/web/src/lib/station-ticket-enqueue.ts:orderItemBatchKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/station-ticket-enqueue.ts",
+      "target": "function:apps/web/src/lib/station-ticket-enqueue.ts:orderItemBatchKey",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/station-ticket-enqueue.ts",
+      "target": "function:apps/web/src/lib/station-ticket-enqueue.ts:stationTicketPayloadMatch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/station-ticket-enqueue.ts",
+      "target": "function:apps/web/src/lib/station-ticket-enqueue.ts:enqueueStationTicketsForOrder",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/station-ticket-enqueue.ts",
+      "target": "function:apps/web/src/lib/station-ticket-enqueue.ts:enqueueStationTicketsForOrder",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/station-ticket-enqueue.ts",
+      "target": "file:apps/web/src/lib/menu-print-label.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/station-ticket-enqueue.ts",
+      "target": "file:apps/web/src/lib/order-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/station-ticket-enqueue.ts",
+      "target": "file:apps/web/src/lib/order-status.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/station-ticket-enqueue.ts",
+      "target": "file:apps/web/src/lib/print-station-resolve.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/station-ticket-enqueue.ts",
+      "target": "file:apps/web/src/lib/table-guest-count.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/station-ticket-enqueue.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/station-ticket-enqueue.ts:enqueueStationTicketsForOrder",
+      "target": "function:apps/web/src/lib/station-ticket-enqueue.ts:orderItemBatchKey",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-guest-count.ts",
+      "target": "function:apps/web/src/lib/table-guest-count.ts:guestCountFromTableOrders",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-guest-count.ts",
+      "target": "function:apps/web/src/lib/table-guest-count.ts:guestCountFromTableOrders",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-guest-count.ts",
+      "target": "function:apps/web/src/lib/table-guest-count.ts:formatStationTicketOrderTime",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-guest-count.ts",
+      "target": "function:apps/web/src/lib/table-guest-count.ts:formatStationTicketOrderTime",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-guest-count.ts",
+      "target": "function:apps/web/src/lib/table-guest-count.ts:stationTicketOrderTimeIso",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-guest-count.ts",
+      "target": "function:apps/web/src/lib/table-guest-count.ts:stationTicketOrderTimeIso",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-guest-count.ts",
+      "target": "file:apps/web/src/lib/order-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-guest-count.ts",
+      "target": "file:apps/web/src/lib/order-status.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-guest-count.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session-open.test.ts",
+      "target": "file:apps/web/src/lib/table-session-open.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session-open.ts",
+      "target": "function:apps/web/src/lib/table-session-open.ts:findActiveTableSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session-open.ts",
+      "target": "function:apps/web/src/lib/table-session-open.ts:findActiveTableSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session-open.ts",
+      "target": "function:apps/web/src/lib/table-session-open.ts:insertOpenTableSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session-open.ts",
+      "target": "function:apps/web/src/lib/table-session-open.ts:openTableSessionIfAbsent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session-open.ts",
+      "target": "function:apps/web/src/lib/table-session-open.ts:openTableSessionIfAbsent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session-open.ts",
+      "target": "function:apps/web/src/lib/table-session-open.ts:ensureOpenTableSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session-open.ts",
+      "target": "function:apps/web/src/lib/table-session-open.ts:ensureOpenTableSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session-open.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/table-session-open.ts:openTableSessionIfAbsent",
+      "target": "function:apps/web/src/lib/table-session-open.ts:insertOpenTableSession",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/table-session-open.ts:ensureOpenTableSession",
+      "target": "function:apps/web/src/lib/table-session-open.ts:findActiveTableSession",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/table-session-open.ts:ensureOpenTableSession",
+      "target": "function:apps/web/src/lib/table-session-open.ts:openTableSessionIfAbsent",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/use-bill-orders.ts",
+      "target": "function:apps/web/src/lib/use-bill-orders.ts:useBillOrders",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/use-bill-orders.ts",
+      "target": "function:apps/web/src/lib/use-bill-orders.ts:useBillOrders",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/use-bill-orders.ts",
+      "target": "file:apps/web/src/lib/customer-bill-sync.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/use-bill-orders.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/use-by-item-split-state.ts",
+      "target": "function:apps/web/src/lib/use-by-item-split-state.ts:useByItemSplitState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/use-by-item-split-state.ts",
+      "target": "function:apps/web/src/lib/use-by-item-split-state.ts:useByItemSplitState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/use-by-item-split-state.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/use-by-item-split-state.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/use-by-item-split-state.ts",
+      "target": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/use-by-item-split-state.ts",
+      "target": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/use-by-item-split-state.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-permissions.test.ts",
+      "target": "file:apps/web/src/lib/checkout-request-payload.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-permissions.test.ts",
+      "target": "file:apps/web/src/lib/split-person-label.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-permissions.test.ts",
+      "target": "file:apps/web/src/lib/waiter-board-permissions.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-query.test.ts",
+      "target": "file:apps/web/src/lib/waiter-board-query.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-query.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-query.ts",
+      "target": "function:apps/web/src/lib/waiter-board-query.ts:sessionMetaByTableIdFromSessions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-query.ts",
+      "target": "function:apps/web/src/lib/waiter-board-query.ts:sessionMetaByTableIdFromSessions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-query.ts",
+      "target": "function:apps/web/src/lib/waiter-board-query.ts:filterOrdersInActiveSessions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-query.ts",
+      "target": "function:apps/web/src/lib/waiter-board-query.ts:filterOrdersInActiveSessions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-query.ts",
+      "target": "file:apps/web/src/lib/waiter-board-session.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-query.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-occupancy.test.ts",
+      "target": "file:apps/web/src/lib/waiter-table-occupancy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-occupancy.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-orders.test.ts",
+      "target": "function:apps/web/src/lib/waiter-table-orders.test.ts:order",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-orders.test.ts",
+      "target": "file:apps/web/src/lib/waiter-table-orders.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-orders.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

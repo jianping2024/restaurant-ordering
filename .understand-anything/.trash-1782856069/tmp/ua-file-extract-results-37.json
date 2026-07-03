@@ -1,0 +1,1495 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 25,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/print-agent/wizard_url_hook.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 4,
+      "nonEmptyLines": 3,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/next.config.mjs",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 42,
+      "nonEmptyLines": 39,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/postcss.config.mjs",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 8,
+      "nonEmptyLines": 7,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/scripts/phase5-manual.mts",
+      "language": "mts",
+      "fileCategory": "code",
+      "totalLines": 559,
+      "nonEmptyLines": 521,
+      "metrics": {}
+    },
+    {
+      "path": "apps/web/src/app/auth/callback/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 40,
+      "nonEmptyLines": 35,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 4,
+          "endLine": 40,
+          "params": [
+            "request"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "GET",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "searchParams.get",
+          "lineNumber": 6
+        },
+        {
+          "caller": "GET",
+          "callee": "searchParams.get",
+          "lineNumber": 7
+        },
+        {
+          "caller": "GET",
+          "callee": "nextRaw.startsWith",
+          "lineNumber": 9
+        },
+        {
+          "caller": "GET",
+          "callee": "nextRaw.startsWith",
+          "lineNumber": 9
+        },
+        {
+          "caller": "GET",
+          "callee": "nextRaw.includes",
+          "lineNumber": 9
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.redirect",
+          "lineNumber": 14
+        },
+        {
+          "caller": "GET",
+          "callee": "createServerClient",
+          "lineNumber": 19
+        },
+        {
+          "caller": "getAll",
+          "callee": "request.cookies.getAll",
+          "lineNumber": 25
+        },
+        {
+          "caller": "setAll",
+          "callee": "cookiesToSet.forEach",
+          "lineNumber": 28
+        },
+        {
+          "caller": "setAll",
+          "callee": "response.cookies.set",
+          "lineNumber": 29
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase.auth.exchangeCodeForSession",
+          "lineNumber": 36
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/buffet/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 5,
+      "nonEmptyLines": 4,
+      "functions": [
+        {
+          "name": "LegacyBuffetPage",
+          "startLine": 3,
+          "endLine": 5,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "LegacyBuffetPage",
+          "line": 3,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "LegacyBuffetPage",
+          "callee": "redirect",
+          "lineNumber": 4
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/settings/menu/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 5,
+      "nonEmptyLines": 4,
+      "functions": [
+        {
+          "name": "LegacySettingsMenuPage",
+          "startLine": 3,
+          "endLine": 5,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "LegacySettingsMenuPage",
+          "line": 3,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "LegacySettingsMenuPage",
+          "callee": "redirect",
+          "lineNumber": 4
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/settings/print-stations/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 6,
+      "nonEmptyLines": 5,
+      "functions": [
+        {
+          "name": "SettingsPrintStationsPage",
+          "startLine": 4,
+          "endLine": 6,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "SettingsPrintStationsPage",
+          "line": 4,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SettingsPrintStationsPage",
+          "callee": "redirect",
+          "lineNumber": 5
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/dashboard/settings/tables/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 5,
+      "nonEmptyLines": 4,
+      "functions": [
+        {
+          "name": "SettingsTablesPageRedirect",
+          "startLine": 3,
+          "endLine": 5,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "SettingsTablesPageRedirect",
+          "line": 3,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SettingsTablesPageRedirect",
+          "callee": "redirect",
+          "lineNumber": 4
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/globals.css",
+      "language": "css",
+      "fileCategory": "markup",
+      "totalLines": 280,
+      "nonEmptyLines": 241,
+      "metrics": {}
+    },
+    {
+      "path": "apps/web/src/lib/print-agent-auth.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 64,
+      "nonEmptyLines": 58,
+      "functions": [
+        {
+          "name": "mockDeviceAdmin",
+          "startLine": 9,
+          "endLine": 21,
+          "params": [
+            "row"
+          ]
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/restaurant-suspension.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 15,
+      "nonEmptyLines": 13,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/tailwind.config.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 41,
+      "nonEmptyLines": 40,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/package.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 16,
+      "nonEmptyLines": 16,
+      "sections": [
+        {
+          "heading": "name",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "version",
+          "level": 1,
+          "line": 3
+        },
+        {
+          "heading": "private",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "main",
+          "level": 1,
+          "line": 5
+        },
+        {
+          "heading": "types",
+          "level": 1,
+          "line": 6
+        },
+        {
+          "heading": "exports",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "dependencies",
+          "level": 1,
+          "line": 10
+        },
+        {
+          "heading": "devDependencies",
+          "level": 1,
+          "line": 13
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 8
+      }
+    },
+    {
+      "path": "packages/shared/src/brand.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 26,
+      "nonEmptyLines": 24,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/brand.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 21,
+      "nonEmptyLines": 14,
+      "functions": [
+        {
+          "name": "printAgentLabel",
+          "startLine": 19,
+          "endLine": 21,
+          "params": [
+            "lang"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "PRODUCT_NAME",
+          "line": 2,
+          "isDefault": false
+        },
+        {
+          "name": "OPS_CONSOLE_NAME",
+          "line": 4,
+          "isDefault": false
+        },
+        {
+          "name": "PRINT_AGENT_NAME",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "PRINT_AGENT_TRAY_TITLE",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "PRODUCT_TAGLINE_ZH",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "PRODUCT_SITE_DESCRIPTION_ZH",
+          "line": 13,
+          "isDefault": false
+        },
+        {
+          "name": "PRODUCT_SITE_TITLE",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "printAgentLabel",
+          "line": 19,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 8,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/geo-order-restriction.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 105,
+      "nonEmptyLines": 94,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/geo-order-restriction.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 74,
+      "nonEmptyLines": 67,
+      "functions": [
+        {
+          "name": "readStoredFlag",
+          "startLine": 9,
+          "endLine": 15,
+          "params": [
+            "featureFlags"
+          ]
+        },
+        {
+          "name": "readGeoOrderRestrictionEnabled",
+          "startLine": 23,
+          "endLine": 30,
+          "params": [
+            "featureFlags",
+            "hasCoordinates"
+          ]
+        },
+        {
+          "name": "isGeoOrderRestrictionActive",
+          "startLine": 33,
+          "endLine": 41,
+          "params": [
+            "params"
+          ]
+        },
+        {
+          "name": "isGeoOrderRestrictionActiveForRestaurant",
+          "startLine": 43,
+          "endLine": 51,
+          "params": [
+            "restaurant"
+          ]
+        },
+        {
+          "name": "resolveActiveGeoOrderCoords",
+          "startLine": 54,
+          "endLine": 62,
+          "params": [
+            "restaurant"
+          ]
+        },
+        {
+          "name": "mergeGeoOrderRestrictionFlag",
+          "startLine": 64,
+          "endLine": 74,
+          "params": [
+            "currentFlags",
+            "enabled"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "readGeoOrderRestrictionEnabled",
+          "line": 23,
+          "isDefault": false
+        },
+        {
+          "name": "isGeoOrderRestrictionActive",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "isGeoOrderRestrictionActiveForRestaurant",
+          "line": 43,
+          "isDefault": false
+        },
+        {
+          "name": "resolveActiveGeoOrderCoords",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "mergeGeoOrderRestrictionFlag",
+          "line": 64,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "readStoredFlag",
+          "callee": "Array.isArray",
+          "lineNumber": 10
+        },
+        {
+          "caller": "readGeoOrderRestrictionEnabled",
+          "callee": "readStoredFlag",
+          "lineNumber": 27
+        },
+        {
+          "caller": "isGeoOrderRestrictionActive",
+          "callee": "readStoredFlag",
+          "lineNumber": 40
+        },
+        {
+          "caller": "isGeoOrderRestrictionActiveForRestaurant",
+          "callee": "isGeoOrderRestrictionActive",
+          "lineNumber": 46
+        },
+        {
+          "caller": "resolveActiveGeoOrderCoords",
+          "callee": "isGeoOrderRestrictionActiveForRestaurant",
+          "lineNumber": 57
+        },
+        {
+          "caller": "mergeGeoOrderRestrictionFlag",
+          "callee": "Array.isArray",
+          "lineNumber": 69
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 5,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/index.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 90,
+      "nonEmptyLines": 90,
+      "exports": [
+        {
+          "name": "OPS_CONSOLE_NAME",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "PRINT_AGENT_NAME",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "PRINT_AGENT_TRAY_TITLE",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "PRODUCT_NAME",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "PRODUCT_SITE_DESCRIPTION_ZH",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "PRODUCT_SITE_TITLE",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "PRODUCT_TAGLINE_ZH",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "printAgentLabel",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "createRestaurantWithOwner",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "validateCreateRestaurantInput",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "CreateRestaurantInput",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "CreateRestaurantResult",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "PrintLocale",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "defaultRestaurantSlug",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "restaurantNameToSlug",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "RESTAURANT_COUNTRY_OPTIONS",
+          "line": 19,
+          "isDefault": false
+        },
+        {
+          "name": "countryCodeLabel",
+          "line": 19,
+          "isDefault": false
+        },
+        {
+          "name": "normalizeCountryCode",
+          "line": 19,
+          "isDefault": false
+        },
+        {
+          "name": "RestaurantCountryCode",
+          "line": 19,
+          "isDefault": false
+        },
+        {
+          "name": "isPrintAgentDeviceActiveInDb",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "isPrintAgentDeviceActive",
+          "line": 28,
+          "isDefault": false
+        },
+        {
+          "name": "isPrintAgentDeviceOnline",
+          "line": 28,
+          "isDefault": false
+        },
+        {
+          "name": "PRINT_AGENT_HEARTBEAT_OFFLINE_MS",
+          "line": 28,
+          "isDefault": false
+        },
+        {
+          "name": "revokePrintAgentDevice",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "revokePrintAgentPairing",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "RevokePrintAgentDeviceResult",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "RevokePrintAgentPairingResult",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "isRestaurantSuspended",
+          "line": 39,
+          "isDefault": false
+        },
+        {
+          "name": "kickStaffUserSessions",
+          "line": 40,
+          "isDefault": false
+        },
+        {
+          "name": "setStaffUserBanned",
+          "line": 40,
+          "isDefault": false
+        },
+        {
+          "name": "signPrintAgentJwt",
+          "line": 41,
+          "isDefault": false
+        },
+        {
+          "name": "verifyPrintAgentJwt",
+          "line": 41,
+          "isDefault": false
+        },
+        {
+          "name": "PrintAgentJwtClaims",
+          "line": 41,
+          "isDefault": false
+        },
+        {
+          "name": "PRINT_AGENT_SUPPORT_TOKEN_TTL_SEC",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "signPrintAgentSupportJwt",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "verifyPrintAgentSupportJwt",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "PrintAgentSupportJwtClaims",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "consumePrintAgentSupportToken",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "loadPrintAgentSupportSnapshot",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "PrintAgentSupportSnapshot",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "insertPlatformAdminAudit",
+          "line": 53,
+          "isDefault": false
+        },
+        {
+          "name": "PlatformAdminAuditInsert",
+          "line": 53,
+          "isDefault": false
+        },
+        {
+          "name": "PRINT_AGENT_CREDENTIAL_TTL_DAYS_DEFAULT",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "PRINT_AGENT_CREDENTIAL_TTL_DAYS_MAX",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "PRINT_AGENT_CREDENTIAL_TTL_DAYS_MIN",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "clampPrintAgentCredentialTtlDays",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "parsePrintAgentCredentialTtlDaysPatch",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "printAgentCredentialTtlSec",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "resolvePrintAgentCredentialTtlDays",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "resolvePrintAgentCredentialTtlSec",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "RESTAURANT_FEATURE_DEFINITIONS",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "RESTAURANT_FEATURE_MODULES",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "getRestaurantFeatureModule",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "groupRestaurantFeaturesByModule",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "isDashboardKitchenShortcutEnabled",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "isRestaurantFeatureEnabled",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "mergeRestaurantFeatureFlags",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "normalizeRestaurantFeatureFlags",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "parseFeatureFlagsPatch",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "parseFeatureFlagsRecord",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "ResolvedRestaurantFeatureFlags",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "RestaurantFeatureDefinition",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "RestaurantFeatureFlags",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "RestaurantFeatureKey",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "RestaurantFeatureModuleDefinition",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "RestaurantFeatureModuleGroup",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "RestaurantFeatureModuleId",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "isGeoOrderRestrictionActive",
+          "line": 83,
+          "isDefault": false
+        },
+        {
+          "name": "isGeoOrderRestrictionActiveForRestaurant",
+          "line": 83,
+          "isDefault": false
+        },
+        {
+          "name": "mergeGeoOrderRestrictionFlag",
+          "line": 83,
+          "isDefault": false
+        },
+        {
+          "name": "readGeoOrderRestrictionEnabled",
+          "line": 83,
+          "isDefault": false
+        },
+        {
+          "name": "resolveActiveGeoOrderCoords",
+          "line": 83,
+          "isDefault": false
+        },
+        {
+          "name": "GeoOrderRestrictionFields",
+          "line": 83,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 73,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/platform-admin-audit.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 27,
+      "nonEmptyLines": 25,
+      "functions": [
+        {
+          "name": "insertPlatformAdminAudit",
+          "startLine": 12,
+          "endLine": 27,
+          "params": [
+            "admin",
+            "entry"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "insertPlatformAdminAudit",
+          "line": 12,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "insertPlatformAdminAudit",
+          "callee": "admin.from('platform_admin_audit_log').insert",
+          "lineNumber": 16
+        },
+        {
+          "caller": "insertPlatformAdminAudit",
+          "callee": "admin.from",
+          "lineNumber": 16
+        },
+        {
+          "caller": "insertPlatformAdminAudit",
+          "callee": "console.error",
+          "lineNumber": 25
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/print-agent-credential-ttl.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 36,
+      "nonEmptyLines": 32,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/print-agent-credential-ttl.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 38,
+      "nonEmptyLines": 33,
+      "functions": [
+        {
+          "name": "clampPrintAgentCredentialTtlDays",
+          "startLine": 5,
+          "endLine": 13,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "resolvePrintAgentCredentialTtlDays",
+          "startLine": 15,
+          "endLine": 22,
+          "params": [
+            "rawConfig"
+          ]
+        },
+        {
+          "name": "printAgentCredentialTtlSec",
+          "startLine": 24,
+          "endLine": 26,
+          "params": [
+            "days"
+          ]
+        },
+        {
+          "name": "resolvePrintAgentCredentialTtlSec",
+          "startLine": 28,
+          "endLine": 30,
+          "params": [
+            "rawConfig"
+          ]
+        },
+        {
+          "name": "parsePrintAgentCredentialTtlDaysPatch",
+          "startLine": 32,
+          "endLine": 38,
+          "params": [
+            "body"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "PRINT_AGENT_CREDENTIAL_TTL_DAYS_DEFAULT",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "PRINT_AGENT_CREDENTIAL_TTL_DAYS_MAX",
+          "line": 2,
+          "isDefault": false
+        },
+        {
+          "name": "PRINT_AGENT_CREDENTIAL_TTL_DAYS_MIN",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "clampPrintAgentCredentialTtlDays",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "resolvePrintAgentCredentialTtlDays",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "printAgentCredentialTtlSec",
+          "line": 24,
+          "isDefault": false
+        },
+        {
+          "name": "resolvePrintAgentCredentialTtlSec",
+          "line": 28,
+          "isDefault": false
+        },
+        {
+          "name": "parsePrintAgentCredentialTtlDaysPatch",
+          "line": 32,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "clampPrintAgentCredentialTtlDays",
+          "callee": "Number.isFinite",
+          "lineNumber": 6
+        },
+        {
+          "caller": "clampPrintAgentCredentialTtlDays",
+          "callee": "Math.min",
+          "lineNumber": 9
+        },
+        {
+          "caller": "clampPrintAgentCredentialTtlDays",
+          "callee": "Math.max",
+          "lineNumber": 11
+        },
+        {
+          "caller": "clampPrintAgentCredentialTtlDays",
+          "callee": "Math.round",
+          "lineNumber": 11
+        },
+        {
+          "caller": "resolvePrintAgentCredentialTtlDays",
+          "callee": "Array.isArray",
+          "lineNumber": 16
+        },
+        {
+          "caller": "resolvePrintAgentCredentialTtlDays",
+          "callee": "clampPrintAgentCredentialTtlDays",
+          "lineNumber": 19
+        },
+        {
+          "caller": "printAgentCredentialTtlSec",
+          "callee": "clampPrintAgentCredentialTtlDays",
+          "lineNumber": 25
+        },
+        {
+          "caller": "resolvePrintAgentCredentialTtlSec",
+          "callee": "printAgentCredentialTtlSec",
+          "lineNumber": 29
+        },
+        {
+          "caller": "resolvePrintAgentCredentialTtlSec",
+          "callee": "resolvePrintAgentCredentialTtlDays",
+          "lineNumber": 29
+        },
+        {
+          "caller": "parsePrintAgentCredentialTtlDaysPatch",
+          "callee": "Array.isArray",
+          "lineNumber": 33
+        },
+        {
+          "caller": "parsePrintAgentCredentialTtlDaysPatch",
+          "callee": "Number.isFinite",
+          "lineNumber": 36
+        },
+        {
+          "caller": "parsePrintAgentCredentialTtlDaysPatch",
+          "callee": "clampPrintAgentCredentialTtlDays",
+          "lineNumber": 37
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 8,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/print-agent-device-active.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 19,
+      "nonEmptyLines": 17,
+      "functions": [
+        {
+          "name": "isPrintAgentDeviceActiveInDb",
+          "startLine": 5,
+          "endLine": 19,
+          "params": [
+            "admin",
+            "deviceId",
+            "restaurantId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "isPrintAgentDeviceActiveInDb",
+          "line": 5,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "isPrintAgentDeviceActiveInDb",
+          "callee": "admin\n    .from('print_agent_devices')\n    .select('revoked_at, valid_until')\n    .eq('id', deviceId)\n    .eq('restaurant_id', restaurantId)\n    .maybeSingle",
+          "lineNumber": 10
+        },
+        {
+          "caller": "isPrintAgentDeviceActiveInDb",
+          "callee": "admin\n    .from('print_agent_devices')\n    .select('revoked_at, valid_until')\n    .eq('id', deviceId)\n    .eq",
+          "lineNumber": 10
+        },
+        {
+          "caller": "isPrintAgentDeviceActiveInDb",
+          "callee": "admin\n    .from('print_agent_devices')\n    .select('revoked_at, valid_until')\n    .eq",
+          "lineNumber": 10
+        },
+        {
+          "caller": "isPrintAgentDeviceActiveInDb",
+          "callee": "admin\n    .from('print_agent_devices')\n    .select",
+          "lineNumber": 10
+        },
+        {
+          "caller": "isPrintAgentDeviceActiveInDb",
+          "callee": "admin\n    .from",
+          "lineNumber": 10
+        },
+        {
+          "caller": "isPrintAgentDeviceActiveInDb",
+          "callee": "isPrintAgentDeviceActive",
+          "lineNumber": 18
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/print-agent-heartbeat.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 24,
+      "nonEmptyLines": 22,
+      "functions": [
+        {
+          "name": "isPrintAgentDeviceOnline",
+          "startLine": 4,
+          "endLine": 12,
+          "params": [
+            "lastSeen",
+            "now"
+          ]
+        },
+        {
+          "name": "isPrintAgentDeviceActive",
+          "startLine": 14,
+          "endLine": 24,
+          "params": [
+            "revokedAt",
+            "validUntil",
+            "now"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "PRINT_AGENT_HEARTBEAT_OFFLINE_MS",
+          "line": 2,
+          "isDefault": false
+        },
+        {
+          "name": "isPrintAgentDeviceOnline",
+          "line": 4,
+          "isDefault": false
+        },
+        {
+          "name": "isPrintAgentDeviceActive",
+          "line": 14,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "isPrintAgentDeviceOnline",
+          "callee": "Date.now",
+          "lineNumber": 6
+        },
+        {
+          "caller": "isPrintAgentDeviceOnline",
+          "callee": "new Date(lastSeen).getTime",
+          "lineNumber": 9
+        },
+        {
+          "caller": "isPrintAgentDeviceOnline",
+          "callee": "Number.isNaN",
+          "lineNumber": 10
+        },
+        {
+          "caller": "isPrintAgentDeviceActive",
+          "callee": "Date.now",
+          "lineNumber": 17
+        },
+        {
+          "caller": "isPrintAgentDeviceActive",
+          "callee": "new Date(validUntil).getTime",
+          "lineNumber": 21
+        },
+        {
+          "caller": "isPrintAgentDeviceActive",
+          "callee": "Number.isNaN",
+          "lineNumber": 22
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/print-agent-revoke.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 61,
+      "nonEmptyLines": 55,
+      "functions": [
+        {
+          "name": "revokePrintAgentDevice",
+          "startLine": 12,
+          "endLine": 34,
+          "params": [
+            "admin",
+            "deviceId",
+            "restaurantId"
+          ]
+        },
+        {
+          "name": "revokePrintAgentPairing",
+          "startLine": 37,
+          "endLine": 61,
+          "params": [
+            "admin",
+            "pairingId",
+            "restaurantId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "revokePrintAgentDevice",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "revokePrintAgentPairing",
+          "line": 37,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "revokePrintAgentDevice",
+          "callee": "new Date().toISOString",
+          "lineNumber": 17
+        },
+        {
+          "caller": "revokePrintAgentDevice",
+          "callee": "admin\n    .from('print_agent_devices')\n    .update({ revoked_at: nowIso })\n    .eq('id', deviceId)\n    .eq('restaurant_id', restaurantId)\n    .is('revoked_at', null)\n    .select('id, restaurant_id')\n    .maybeSingle",
+          "lineNumber": 18
+        },
+        {
+          "caller": "revokePrintAgentDevice",
+          "callee": "admin\n    .from('print_agent_devices')\n    .update({ revoked_at: nowIso })\n    .eq('id', deviceId)\n    .eq('restaurant_id', restaurantId)\n    .is('revoked_at', null)\n    .select",
+          "lineNumber": 18
+        },
+        {
+          "caller": "revokePrintAgentDevice",
+          "callee": "admin\n    .from('print_agent_devices')\n    .update({ revoked_at: nowIso })\n    .eq('id', deviceId)\n    .eq('restaurant_id', restaurantId)\n    .is",
+          "lineNumber": 18
+        },
+        {
+          "caller": "revokePrintAgentDevice",
+          "callee": "admin\n    .from('print_agent_devices')\n    .update({ revoked_at: nowIso })\n    .eq('id', deviceId)\n    .eq",
+          "lineNumber": 18
+        },
+        {
+          "caller": "revokePrintAgentDevice",
+          "callee": "admin\n    .from('print_agent_devices')\n    .update({ revoked_at: nowIso })\n    .eq",
+          "lineNumber": 18
+        },
+        {
+          "caller": "revokePrintAgentDevice",
+          "callee": "admin\n    .from('print_agent_devices')\n    .update",
+          "lineNumber": 18
+        },
+        {
+          "caller": "revokePrintAgentDevice",
+          "callee": "admin\n    .from",
+          "lineNumber": 18
+        },
+        {
+          "caller": "revokePrintAgentPairing",
+          "callee": "new Date().toISOString",
+          "lineNumber": 42
+        },
+        {
+          "caller": "revokePrintAgentPairing",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .update({ revoked_at: nowIso })\n    .eq('id', pairingId)\n    .eq('restaurant_id', restaurantId)\n    .is('consumed_at', null)\n    .is('revoked_at', null)\n    .gt('expires_at', nowIso)\n    .select('id, restaurant_id')\n    .maybeSingle",
+          "lineNumber": 43
+        },
+        {
+          "caller": "revokePrintAgentPairing",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .update({ revoked_at: nowIso })\n    .eq('id', pairingId)\n    .eq('restaurant_id', restaurantId)\n    .is('consumed_at', null)\n    .is('revoked_at', null)\n    .gt('expires_at', nowIso)\n    .select",
+          "lineNumber": 43
+        },
+        {
+          "caller": "revokePrintAgentPairing",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .update({ revoked_at: nowIso })\n    .eq('id', pairingId)\n    .eq('restaurant_id', restaurantId)\n    .is('consumed_at', null)\n    .is('revoked_at', null)\n    .gt",
+          "lineNumber": 43
+        },
+        {
+          "caller": "revokePrintAgentPairing",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .update({ revoked_at: nowIso })\n    .eq('id', pairingId)\n    .eq('restaurant_id', restaurantId)\n    .is('consumed_at', null)\n    .is",
+          "lineNumber": 43
+        },
+        {
+          "caller": "revokePrintAgentPairing",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .update({ revoked_at: nowIso })\n    .eq('id', pairingId)\n    .eq('restaurant_id', restaurantId)\n    .is",
+          "lineNumber": 43
+        },
+        {
+          "caller": "revokePrintAgentPairing",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .update({ revoked_at: nowIso })\n    .eq('id', pairingId)\n    .eq",
+          "lineNumber": 43
+        },
+        {
+          "caller": "revokePrintAgentPairing",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .update({ revoked_at: nowIso })\n    .eq",
+          "lineNumber": 43
+        },
+        {
+          "caller": "revokePrintAgentPairing",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .update",
+          "lineNumber": 43
+        },
+        {
+          "caller": "revokePrintAgentPairing",
+          "callee": "admin\n    .from",
+          "lineNumber": 43
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    }
+  ]
+}

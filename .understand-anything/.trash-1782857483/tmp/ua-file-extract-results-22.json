@@ -1,0 +1,351 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 4,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "packages/shared/src/country-code.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 16,
+      "nonEmptyLines": 14,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/country-code.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 25,
+      "nonEmptyLines": 21,
+      "functions": [
+        {
+          "name": "normalizeCountryCode",
+          "startLine": 15,
+          "endLine": 20,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "countryCodeLabel",
+          "startLine": 22,
+          "endLine": 25,
+          "params": [
+            "code"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RESTAURANT_COUNTRY_OPTIONS",
+          "line": 2,
+          "isDefault": false
+        },
+        {
+          "name": "normalizeCountryCode",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "countryCodeLabel",
+          "line": 22,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "normalizeCountryCode",
+          "callee": "raw.trim().toUpperCase",
+          "lineNumber": 17
+        },
+        {
+          "caller": "normalizeCountryCode",
+          "callee": "raw.trim",
+          "lineNumber": 17
+        },
+        {
+          "caller": "normalizeCountryCode",
+          "callee": "ALLOWED.has",
+          "lineNumber": 18
+        },
+        {
+          "caller": "countryCodeLabel",
+          "callee": "RESTAURANT_COUNTRY_OPTIONS.find",
+          "lineNumber": 23
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/create-restaurant.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 125,
+      "nonEmptyLines": 108,
+      "functions": [
+        {
+          "name": "validateCreateRestaurantInput",
+          "startLine": 34,
+          "endLine": 57,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "createRestaurantWithOwner",
+          "startLine": 59,
+          "endLine": 125,
+          "params": [
+            "admin",
+            "input"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "validateCreateRestaurantInput",
+          "line": 34,
+          "isDefault": false
+        },
+        {
+          "name": "createRestaurantWithOwner",
+          "line": 59,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "validateCreateRestaurantInput",
+          "callee": "(input.name || '').trim",
+          "lineNumber": 35
+        },
+        {
+          "caller": "validateCreateRestaurantInput",
+          "callee": "(input.email || '').trim().toLowerCase",
+          "lineNumber": 36
+        },
+        {
+          "caller": "validateCreateRestaurantInput",
+          "callee": "(input.email || '').trim",
+          "lineNumber": 36
+        },
+        {
+          "caller": "validateCreateRestaurantInput",
+          "callee": "EMAIL_RE.test",
+          "lineNumber": 45
+        },
+        {
+          "caller": "validateCreateRestaurantInput",
+          "callee": "['zh', 'en', 'pt'].includes",
+          "lineNumber": 49
+        },
+        {
+          "caller": "validateCreateRestaurantInput",
+          "callee": "normalizeCountryCode",
+          "lineNumber": 52
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "validateCreateRestaurantInput",
+          "lineNumber": 63
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "input.name.trim",
+          "lineNumber": 66
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "input.email.trim().toLowerCase",
+          "lineNumber": 67
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "input.email.trim",
+          "lineNumber": 67
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "normalizeCountryCode",
+          "lineNumber": 70
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "(input.slug || '').trim",
+          "lineNumber": 71
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "defaultRestaurantSlug",
+          "lineNumber": 71
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "admin.auth.admin.createUser",
+          "lineNumber": 73
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "msg.toLowerCase().includes",
+          "lineNumber": 81
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "msg.toLowerCase",
+          "lineNumber": 81
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "msg.toLowerCase().includes",
+          "lineNumber": 81
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "msg.toLowerCase",
+          "lineNumber": 81
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "admin.auth.admin.updateUserById",
+          "lineNumber": 89
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "admin.auth.admin.deleteUser",
+          "lineNumber": 93
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "admin\n    .from('restaurants')\n    .insert({\n      name,\n      slug,\n      owner_id: ownerId,\n      print_locale: printLocale,\n      country_code: countryCode,\n    })\n    .select('id')\n    .single",
+          "lineNumber": 97
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "admin\n    .from('restaurants')\n    .insert({\n      name,\n      slug,\n      owner_id: ownerId,\n      print_locale: printLocale,\n      country_code: countryCode,\n    })\n    .select",
+          "lineNumber": 97
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "admin\n    .from('restaurants')\n    .insert",
+          "lineNumber": 97
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "admin\n    .from",
+          "lineNumber": 97
+        },
+        {
+          "caller": "createRestaurantWithOwner",
+          "callee": "admin.auth.admin.deleteUser",
+          "lineNumber": 110
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/slug.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 14,
+      "nonEmptyLines": 13,
+      "functions": [
+        {
+          "name": "restaurantNameToSlug",
+          "startLine": 1,
+          "endLine": 9,
+          "params": [
+            "name"
+          ]
+        },
+        {
+          "name": "defaultRestaurantSlug",
+          "startLine": 11,
+          "endLine": 14,
+          "params": [
+            "name"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "restaurantNameToSlug",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "defaultRestaurantSlug",
+          "line": 11,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "restaurantNameToSlug",
+          "callee": "name\n    .toLowerCase()\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .replace(/[^a-z0-9\\s-]/g, '')\n    .trim()\n    .replace",
+          "lineNumber": 2
+        },
+        {
+          "caller": "restaurantNameToSlug",
+          "callee": "name\n    .toLowerCase()\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .replace(/[^a-z0-9\\s-]/g, '')\n    .trim",
+          "lineNumber": 2
+        },
+        {
+          "caller": "restaurantNameToSlug",
+          "callee": "name\n    .toLowerCase()\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .replace",
+          "lineNumber": 2
+        },
+        {
+          "caller": "restaurantNameToSlug",
+          "callee": "name\n    .toLowerCase()\n    .normalize('NFD')\n    .replace",
+          "lineNumber": 2
+        },
+        {
+          "caller": "restaurantNameToSlug",
+          "callee": "name\n    .toLowerCase()\n    .normalize",
+          "lineNumber": 2
+        },
+        {
+          "caller": "restaurantNameToSlug",
+          "callee": "name\n    .toLowerCase",
+          "lineNumber": 2
+        },
+        {
+          "caller": "defaultRestaurantSlug",
+          "callee": "restaurantNameToSlug",
+          "lineNumber": 12
+        },
+        {
+          "caller": "defaultRestaurantSlug",
+          "callee": "Date.now().toString",
+          "lineNumber": 13
+        },
+        {
+          "caller": "defaultRestaurantSlug",
+          "callee": "Date.now",
+          "lineNumber": 13
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    }
+  ]
+}

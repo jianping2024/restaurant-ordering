@@ -1,0 +1,176 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {
+      "path": "apps/web/src/lib/format-dashboard-date.test.ts",
+      "language": "typescript",
+      "sizeLines": 46,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/format-dashboard-date.ts",
+      "language": "typescript",
+      "sizeLines": 70,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/i18n.server.ts",
+      "language": "typescript",
+      "sizeLines": 11,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/i18n.test.ts",
+      "language": "typescript",
+      "sizeLines": 64,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/i18n.ts",
+      "language": "typescript",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/i18n/brand-tokens.test.ts",
+      "language": "typescript",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/i18n/brand-tokens.ts",
+      "language": "typescript",
+      "sizeLines": 39,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx",
+      "language": "typescript",
+      "sizeLines": 59,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/order-item-void/void-item-reason-ui.test.ts",
+      "language": "typescript",
+      "sizeLines": 39,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "language": "typescript",
+      "sizeLines": 68,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/print-job-error-hints.ts",
+      "language": "typescript",
+      "sizeLines": 90,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/receipt-printer-preference.test.ts",
+      "language": "typescript",
+      "sizeLines": 55,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/receipt-printer-preference.ts",
+      "language": "typescript",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/request-checkout-apply-discount.ts",
+      "language": "typescript",
+      "sizeLines": 51,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/request-checkout-confirm-payment.ts",
+      "language": "typescript",
+      "sizeLines": 48,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/request-checkout-resume-ordering.ts",
+      "language": "typescript",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/resume-table-session-ordering.test.ts",
+      "language": "typescript",
+      "sizeLines": 45,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/resume-table-session-ordering.ts",
+      "language": "typescript",
+      "sizeLines": 53,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/use-checkout-bill-print-cooldown.ts",
+      "language": "typescript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "apps/web/src/lib/format-dashboard-date.test.ts": [
+      "apps/web/src/lib/format-dashboard-date.ts"
+    ],
+    "apps/web/src/lib/format-dashboard-date.ts": [
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/lib/i18n.server.ts": [
+      "apps/web/src/lib/i18n.ts"
+    ],
+    "apps/web/src/lib/i18n.test.ts": [
+      "apps/web/src/lib/i18n.ts"
+    ],
+    "apps/web/src/lib/i18n.ts": [],
+    "apps/web/src/lib/i18n/brand-tokens.test.ts": [
+      "apps/web/src/lib/i18n/brand-tokens.ts"
+    ],
+    "apps/web/src/lib/i18n/brand-tokens.ts": [
+      "apps/web/src/lib/i18n.ts"
+    ],
+    "apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx": [
+      "apps/web/src/components/ui/ReasonConfirmDialog.tsx",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/void-item-reason-ui.test.ts": [
+      "apps/web/src/lib/order-item-void/void-item-reason-ui.ts"
+    ],
+    "apps/web/src/lib/order-item-void/void-item-reason-ui.ts": [
+      "apps/web/src/lib/audit/reason-labels.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/order-list-display.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/print-job-error-hints.ts": [
+      "apps/web/src/lib/i18n.ts"
+    ],
+    "apps/web/src/lib/receipt-printer-preference.test.ts": [
+      "apps/web/src/lib/receipt-printer-preference.ts"
+    ],
+    "apps/web/src/lib/receipt-printer-preference.ts": [],
+    "apps/web/src/lib/request-checkout-apply-discount.ts": [],
+    "apps/web/src/lib/request-checkout-confirm-payment.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/request-checkout-resume-ordering.ts": [],
+    "apps/web/src/lib/resume-table-session-ordering.test.ts": [
+      "apps/web/src/lib/resume-table-session-ordering.ts"
+    ],
+    "apps/web/src/lib/resume-table-session-ordering.ts": [
+      "apps/web/src/lib/checkout-session-payments.ts"
+    ],
+    "apps/web/src/lib/use-checkout-bill-print-cooldown.ts": []
+  }
+}

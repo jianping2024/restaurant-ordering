@@ -1,0 +1,1091 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/checkout-request-server.ts",
+      "type": "file",
+      "name": "checkout-request-server.ts",
+      "filePath": "apps/web/src/lib/checkout-request-server.ts",
+      "summary": "服务端提交结账请求：校验拆账、计算应付并调用 checkout API。",
+      "tags": [
+        "service",
+        "checkout",
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-request-server.ts:submitCheckoutRequestForTable",
+      "type": "function",
+      "name": "submitCheckoutRequestForTable",
+      "filePath": "apps/web/src/lib/checkout-request-server.ts",
+      "lineRange": [
+        17,
+        154
+      ],
+      "summary": "为桌台提交结账请求，含拆账校验与金额计算。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-split-continuation.test.ts",
+      "type": "file",
+      "name": "checkout-split-continuation.test.ts",
+      "filePath": "apps/web/src/lib/checkout-split-continuation.test.ts",
+      "summary": "拆账续结流程单元测试，验证已付锁定行与继续分配校验。",
+      "tags": [
+        "test",
+        "checkout",
+        "bill-split"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-continuation.test.ts:split",
+      "type": "function",
+      "name": "split",
+      "filePath": "apps/web/src/lib/checkout-split-continuation.test.ts",
+      "lineRange": [
+        15,
+        31
+      ],
+      "summary": "split：checkout-split-continuation.test 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "type": "file",
+      "name": "checkout-split-continuation.ts",
+      "filePath": "apps/web/src/lib/checkout-split-continuation.ts",
+      "summary": "拆账续结状态机：识别已付/暂停/锁定拆账，并从既有 persons 重建消费行。",
+      "tags": [
+        "utility",
+        "checkout",
+        "bill-split"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-continuation.ts:hasPaidSplitRow",
+      "type": "function",
+      "name": "hasPaidSplitRow",
+      "filePath": "apps/web/src/lib/checkout-split-continuation.ts",
+      "lineRange": [
+        15,
+        17
+      ],
+      "summary": "判断拆账是否存在已付款行。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-continuation.ts:isPausedCheckoutSplit",
+      "type": "function",
+      "name": "isPausedCheckoutSplit",
+      "filePath": "apps/web/src/lib/checkout-split-continuation.ts",
+      "lineRange": [
+        20,
+        25
+      ],
+      "summary": "判断拆账是否处于暂停待续状态。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-continuation.ts:isCheckoutSplitLocked",
+      "type": "function",
+      "name": "isCheckoutSplitLocked",
+      "filePath": "apps/web/src/lib/checkout-split-continuation.ts",
+      "lineRange": [
+        28,
+        36
+      ],
+      "summary": "判断拆账是否因已付而锁定编辑。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-continuation.ts:paidSplitPersonNames",
+      "type": "function",
+      "name": "paidSplitPersonNames",
+      "filePath": "apps/web/src/lib/checkout-split-continuation.ts",
+      "lineRange": [
+        39,
+        45
+      ],
+      "summary": "收集已付款的拆账人姓名列表。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-continuation.ts:shouldShowCheckoutSubmitted",
+      "type": "function",
+      "name": "shouldShowCheckoutSubmitted",
+      "filePath": "apps/web/src/lib/checkout-split-continuation.ts",
+      "lineRange": [
+        48,
+        56
+      ],
+      "summary": "判断是否应展示已提交结账 UI。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-continuation.ts:lockedByItemLineKeys",
+      "type": "function",
+      "name": "lockedByItemLineKeys",
+      "filePath": "apps/web/src/lib/checkout-split-continuation.ts",
+      "lineRange": [
+        62,
+        83
+      ],
+      "summary": "返回因已付而锁定的按菜品行 key 集合。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-continuation.ts:rationalToRowQtyFields",
+      "type": "function",
+      "name": "rationalToRowQtyFields",
+      "filePath": "apps/web/src/lib/checkout-split-continuation.ts",
+      "lineRange": [
+        85,
+        103
+      ],
+      "summary": "rationalToRowQtyFields：checkout-split-continuation 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-continuation.ts:buffetRowsFromShares",
+      "type": "function",
+      "name": "buffetRowsFromShares",
+      "filePath": "apps/web/src/lib/checkout-split-continuation.ts",
+      "lineRange": [
+        105,
+        127
+      ],
+      "summary": "buffetRowsFromShares：checkout-split-continuation 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-continuation.ts:buildByItemConsumerRowsFromPersons",
+      "type": "function",
+      "name": "buildByItemConsumerRowsFromPersons",
+      "filePath": "apps/web/src/lib/checkout-split-continuation.ts",
+      "lineRange": [
+        130,
+        150
+      ],
+      "summary": "从已有 split persons 重建消费行。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-continuation.ts:allocationsEqualForKey",
+      "type": "function",
+      "name": "allocationsEqualForKey",
+      "filePath": "apps/web/src/lib/checkout-split-continuation.ts",
+      "lineRange": [
+        152,
+        169
+      ],
+      "summary": "allocationsEqualForKey：checkout-split-continuation 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-continuation.ts:validateCheckoutContinuation",
+      "type": "function",
+      "name": "validateCheckoutContinuation",
+      "filePath": "apps/web/src/lib/checkout-split-continuation.ts",
+      "lineRange": [
+        171,
+        204
+      ],
+      "summary": "校验续结拆账时的新分配是否合法。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/consumer-name-roster.test.ts",
+      "type": "file",
+      "name": "consumer-name-roster.test.ts",
+      "filePath": "apps/web/src/lib/consumer-name-roster.test.ts",
+      "summary": "消费者姓名名册工具单元测试，覆盖去重、过滤与建议逻辑。",
+      "tags": [
+        "test",
+        "bill-split"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "type": "file",
+      "name": "consumer-name-roster.ts",
+      "filePath": "apps/web/src/lib/consumer-name-roster.ts",
+      "summary": "拆账时消费者姓名名册：归一化、收集活跃姓名、按行过滤可选名。",
+      "tags": [
+        "utility",
+        "bill-split",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/consumer-name-roster.ts:normalizeConsumerName",
+      "type": "function",
+      "name": "normalizeConsumerName",
+      "filePath": "apps/web/src/lib/consumer-name-roster.ts",
+      "lineRange": [
+        6,
+        8
+      ],
+      "summary": "归一化消费者姓名（trim、大小写等）。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/consumer-name-roster.ts:addToConsumerRoster",
+      "type": "function",
+      "name": "addToConsumerRoster",
+      "filePath": "apps/web/src/lib/consumer-name-roster.ts",
+      "lineRange": [
+        11,
+        17
+      ],
+      "summary": "向名册添加姓名并去重。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/consumer-name-roster.ts:collectActiveConsumerNames",
+      "type": "function",
+      "name": "collectActiveConsumerNames",
+      "filePath": "apps/web/src/lib/consumer-name-roster.ts",
+      "lineRange": [
+        20,
+        32
+      ],
+      "summary": "从消费行收集所有活跃姓名。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/consumer-name-roster.ts:namesUsedOnOtherDishRows",
+      "type": "function",
+      "name": "namesUsedOnOtherDishRows",
+      "filePath": "apps/web/src/lib/consumer-name-roster.ts",
+      "lineRange": [
+        34,
+        45
+      ],
+      "summary": "获取其他菜品行已使用的姓名。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/consumer-name-roster.ts:filterConsumerNameOptions",
+      "type": "function",
+      "name": "filterConsumerNameOptions",
+      "filePath": "apps/web/src/lib/consumer-name-roster.ts",
+      "lineRange": [
+        47,
+        54
+      ],
+      "summary": "按规则过滤姓名下拉选项。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/consumer-name-roster.ts:availableConsumerNamesForRow",
+      "type": "function",
+      "name": "availableConsumerNamesForRow",
+      "filePath": "apps/web/src/lib/consumer-name-roster.ts",
+      "lineRange": [
+        56,
+        63
+      ],
+      "summary": "获取当前行可用的姓名列表。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/consumer-name-roster.ts:suggestConsumerNamesForRow",
+      "type": "function",
+      "name": "suggestConsumerNamesForRow",
+      "filePath": "apps/web/src/lib/consumer-name-roster.ts",
+      "lineRange": [
+        65,
+        75
+      ],
+      "summary": "为当前行建议姓名（含历史名册）。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/consumer-name-roster.ts:shouldShowConsumerNameMenu",
+      "type": "function",
+      "name": "shouldShowConsumerNameMenu",
+      "filePath": "apps/web/src/lib/consumer-name-roster.ts",
+      "lineRange": [
+        77,
+        79
+      ],
+      "summary": "判断是否应展示姓名选择菜单。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/customer-bill-checkout-resume.test.ts",
+      "type": "file",
+      "name": "customer-bill-checkout-resume.test.ts",
+      "filePath": "apps/web/src/lib/customer-bill-checkout-resume.test.ts",
+      "summary": "检测顾客从账单页恢复结账上下文的单元测试。",
+      "tags": [
+        "test",
+        "checkout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/customer-bill-checkout-resume.ts",
+      "type": "file",
+      "name": "customer-bill-checkout-resume.ts",
+      "filePath": "apps/web/src/lib/customer-bill-checkout-resume.ts",
+      "summary": "根据请求上下文检测顾客是否从账单页恢复未完成的结账流程。",
+      "tags": [
+        "utility",
+        "checkout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/customer-bill-checkout-resume.ts:detectCheckoutResumedFromBillContext",
+      "type": "function",
+      "name": "detectCheckoutResumedFromBillContext",
+      "filePath": "apps/web/src/lib/customer-bill-checkout-resume.ts",
+      "lineRange": [
+        14,
+        28
+      ],
+      "summary": "从账单上下文检测是否恢复结账流程。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/customer-bill-sync.ts",
+      "type": "file",
+      "name": "customer-bill-sync.ts",
+      "filePath": "apps/web/src/lib/customer-bill-sync.ts",
+      "summary": "顾客账单视图同步：订单指纹、完整性判断与 deriveBillView 派生。",
+      "tags": [
+        "utility",
+        "checkout",
+        "sync"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/customer-bill-sync.ts:billOrdersFingerprint",
+      "type": "function",
+      "name": "billOrdersFingerprint",
+      "filePath": "apps/web/src/lib/customer-bill-sync.ts",
+      "lineRange": [
+        9,
+        21
+      ],
+      "summary": "计算账单订单列表指纹用于变更检测。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/customer-bill-sync.ts:isBillOrdersComplete",
+      "type": "function",
+      "name": "isBillOrdersComplete",
+      "filePath": "apps/web/src/lib/customer-bill-sync.ts",
+      "lineRange": [
+        23,
+        25
+      ],
+      "summary": "判断账单订单是否已全部加载。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/customer-bill-sync.ts:deriveBillView",
+      "type": "function",
+      "name": "deriveBillView",
+      "filePath": "apps/web/src/lib/customer-bill-sync.ts",
+      "lineRange": [
+        27,
+        32
+      ],
+      "summary": "从订单与拆账状态派生账单视图模型。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/customer-bill-sync.ts:syncCustomerBill",
+      "type": "function",
+      "name": "syncCustomerBill",
+      "filePath": "apps/web/src/lib/customer-bill-sync.ts",
+      "lineRange": [
+        34,
+        39
+      ],
+      "summary": "同步顾客端账单状态与服务器数据。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/customer-geo-order.test.ts",
+      "type": "file",
+      "name": "customer-geo-order.test.ts",
+      "filePath": "apps/web/src/lib/customer-geo-order.test.ts",
+      "summary": "顾客地理定位下单解析的单元测试。",
+      "tags": [
+        "test",
+        "geo"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/checkout-request-server.ts",
+      "target": "function:apps/web/src/lib/checkout-request-server.ts:submitCheckoutRequestForTable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-server.ts",
+      "target": "function:apps/web/src/lib/checkout-request-server.ts:submitCheckoutRequestForTable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-server.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-server.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-server.ts",
+      "target": "file:apps/web/src/lib/bill-split-validate.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-server.ts",
+      "target": "file:apps/web/src/lib/cart-totals.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-server.ts",
+      "target": "file:apps/web/src/lib/checkout-request-payload.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-server.ts",
+      "target": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-server.ts",
+      "target": "file:apps/web/src/lib/customer-session-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-server.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.test.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.test.ts:split",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.test.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.test.ts",
+      "target": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "file:apps/web/src/lib/checkout-split-continuation.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:hasPaidSplitRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:hasPaidSplitRow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:isPausedCheckoutSplit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:isPausedCheckoutSplit",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:isCheckoutSplitLocked",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:isCheckoutSplitLocked",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:paidSplitPersonNames",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:paidSplitPersonNames",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:shouldShowCheckoutSubmitted",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:shouldShowCheckoutSubmitted",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:lockedByItemLineKeys",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:lockedByItemLineKeys",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:rationalToRowQtyFields",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:buffetRowsFromShares",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:buildByItemConsumerRowsFromPersons",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:buildByItemConsumerRowsFromPersons",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:allocationsEqualForKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:validateCheckoutContinuation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:validateCheckoutContinuation",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "file:apps/web/src/lib/checkout-request-payload.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "file:apps/web/src/lib/rational-qty.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-continuation.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.test.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.test.ts",
+      "target": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "file:apps/web/src/lib/consumer-name-roster.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "function:apps/web/src/lib/consumer-name-roster.ts:normalizeConsumerName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "function:apps/web/src/lib/consumer-name-roster.ts:normalizeConsumerName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "function:apps/web/src/lib/consumer-name-roster.ts:addToConsumerRoster",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "function:apps/web/src/lib/consumer-name-roster.ts:addToConsumerRoster",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "function:apps/web/src/lib/consumer-name-roster.ts:collectActiveConsumerNames",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "function:apps/web/src/lib/consumer-name-roster.ts:collectActiveConsumerNames",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "function:apps/web/src/lib/consumer-name-roster.ts:namesUsedOnOtherDishRows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "function:apps/web/src/lib/consumer-name-roster.ts:namesUsedOnOtherDishRows",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "function:apps/web/src/lib/consumer-name-roster.ts:filterConsumerNameOptions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "function:apps/web/src/lib/consumer-name-roster.ts:filterConsumerNameOptions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "function:apps/web/src/lib/consumer-name-roster.ts:availableConsumerNamesForRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "function:apps/web/src/lib/consumer-name-roster.ts:availableConsumerNamesForRow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "function:apps/web/src/lib/consumer-name-roster.ts:suggestConsumerNamesForRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "function:apps/web/src/lib/consumer-name-roster.ts:suggestConsumerNamesForRow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "function:apps/web/src/lib/consumer-name-roster.ts:shouldShowConsumerNameMenu",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "function:apps/web/src/lib/consumer-name-roster.ts:shouldShowConsumerNameMenu",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/consumer-name-roster.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-bill-checkout-resume.test.ts",
+      "target": "file:apps/web/src/lib/customer-bill-checkout-resume.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-bill-checkout-resume.ts",
+      "target": "file:apps/web/src/lib/customer-bill-checkout-resume.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-bill-checkout-resume.ts",
+      "target": "function:apps/web/src/lib/customer-bill-checkout-resume.ts:detectCheckoutResumedFromBillContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-bill-checkout-resume.ts",
+      "target": "function:apps/web/src/lib/customer-bill-checkout-resume.ts:detectCheckoutResumedFromBillContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-bill-checkout-resume.ts",
+      "target": "file:apps/web/src/lib/request-customer-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-bill-checkout-resume.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-bill-sync.ts",
+      "target": "function:apps/web/src/lib/customer-bill-sync.ts:billOrdersFingerprint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-bill-sync.ts",
+      "target": "function:apps/web/src/lib/customer-bill-sync.ts:billOrdersFingerprint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-bill-sync.ts",
+      "target": "function:apps/web/src/lib/customer-bill-sync.ts:isBillOrdersComplete",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-bill-sync.ts",
+      "target": "function:apps/web/src/lib/customer-bill-sync.ts:isBillOrdersComplete",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-bill-sync.ts",
+      "target": "function:apps/web/src/lib/customer-bill-sync.ts:deriveBillView",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-bill-sync.ts",
+      "target": "function:apps/web/src/lib/customer-bill-sync.ts:deriveBillView",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-bill-sync.ts",
+      "target": "function:apps/web/src/lib/customer-bill-sync.ts:syncCustomerBill",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-bill-sync.ts",
+      "target": "function:apps/web/src/lib/customer-bill-sync.ts:syncCustomerBill",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-bill-sync.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-bill-sync.ts",
+      "target": "file:apps/web/src/lib/request-customer-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-bill-sync.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-geo-order.test.ts",
+      "target": "file:apps/web/src/lib/customer-geo-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-request-server.ts:submitCheckoutRequestForTable",
+      "target": "function:apps/web/src/lib/bill-split-validate.ts:validateBillSplit",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-request-server.ts:submitCheckoutRequestForTable",
+      "target": "function:apps/web/src/lib/checkout-split-continuation.ts:validateCheckoutContinuation",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/consumer-name-roster.ts:collectActiveConsumerNames",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:parseConsumerRows",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

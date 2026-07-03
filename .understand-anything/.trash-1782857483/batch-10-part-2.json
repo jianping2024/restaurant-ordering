@@ -1,0 +1,1323 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/bill-split-validate.ts",
+      "type": "file",
+      "name": "bill-split-validate.ts",
+      "filePath": "apps/web/src/lib/bill-split-validate.ts",
+      "summary": "校验拆账金额是否与应付总额一致，防止超额或不足分配。",
+      "tags": [
+        "validation",
+        "bill-split"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-validate.ts:amountsMatch",
+      "type": "function",
+      "name": "amountsMatch",
+      "filePath": "apps/web/src/lib/bill-split-validate.ts",
+      "lineRange": [
+        16,
+        29
+      ],
+      "summary": "比较两个金额是否在容差内相等。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/bill-split-validate.ts:validateBillSplit",
+      "type": "function",
+      "name": "validateBillSplit",
+      "filePath": "apps/web/src/lib/bill-split-validate.ts",
+      "lineRange": [
+        31,
+        83
+      ],
+      "summary": "校验拆账各行金额之和是否匹配账单总额。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/lib/buffet-open-table.test.ts",
+      "type": "file",
+      "name": "buffet-open-table.test.ts",
+      "filePath": "apps/web/src/lib/buffet-open-table.test.ts",
+      "summary": "开台自助餐流程单元测试，覆盖写入计划与乐观更新。",
+      "tags": [
+        "test",
+        "buffet"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-open-table.test.ts:buffetLine",
+      "type": "function",
+      "name": "buffetLine",
+      "filePath": "apps/web/src/lib/buffet-open-table.test.ts",
+      "lineRange": [
+        25,
+        39
+      ],
+      "summary": "buffetLine：buffet-open-table.test 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-open-table.test.ts:orderRow",
+      "type": "function",
+      "name": "orderRow",
+      "filePath": "apps/web/src/lib/buffet-open-table.test.ts",
+      "lineRange": [
+        41,
+        57
+      ],
+      "summary": "orderRow：buffet-open-table.test 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/buffet-open-table.ts",
+      "type": "file",
+      "name": "buffet-open-table.ts",
+      "filePath": "apps/web/src/lib/buffet-open-table.ts",
+      "summary": "服务员开台自助餐的业务逻辑：规划写入、乐观更新会话订单与价格预览。",
+      "tags": [
+        "service",
+        "buffet",
+        "table-session"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-open-table.ts:pickLatestTableOrder",
+      "type": "function",
+      "name": "pickLatestTableOrder",
+      "filePath": "apps/web/src/lib/buffet-open-table.ts",
+      "lineRange": [
+        65,
+        73
+      ],
+      "summary": "选取桌台最新有效订单行。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-open-table.ts:mapToBuffetSessionOrders",
+      "type": "function",
+      "name": "mapToBuffetSessionOrders",
+      "filePath": "apps/web/src/lib/buffet-open-table.ts",
+      "lineRange": [
+        75,
+        93
+      ],
+      "summary": "将原始订单映射为自助餐会话订单视图。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-open-table.ts:planBuffetOpenWrites",
+      "type": "function",
+      "name": "planBuffetOpenWrites",
+      "filePath": "apps/web/src/lib/buffet-open-table.ts",
+      "lineRange": [
+        115,
+        169
+      ],
+      "summary": "规划开台自助餐需要的数据库写入操作。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-open-table.ts:applyBuffetOpenOptimisticToOrders",
+      "type": "function",
+      "name": "applyBuffetOpenOptimisticToOrders",
+      "filePath": "apps/web/src/lib/buffet-open-table.ts",
+      "lineRange": [
+        176,
+        222
+      ],
+      "summary": "乐观更新本地订单列表以反映开台结果。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-open-table.ts:applyBuffetOpenToSession",
+      "type": "function",
+      "name": "applyBuffetOpenToSession",
+      "filePath": "apps/web/src/lib/buffet-open-table.ts",
+      "lineRange": [
+        228,
+        283
+      ],
+      "summary": "将会话状态应用开台自助餐结果。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/lib/buffet-order.test.ts",
+      "type": "file",
+      "name": "buffet-order.test.ts",
+      "filePath": "apps/web/src/lib/buffet-order.test.ts",
+      "summary": "自助餐订单工具函数单元测试，覆盖基数行合并与客数格式化。",
+      "tags": [
+        "test",
+        "buffet"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-order.test.ts:orderWithBuffet",
+      "type": "function",
+      "name": "orderWithBuffet",
+      "filePath": "apps/web/src/lib/buffet-order.test.ts",
+      "lineRange": [
+        23,
+        43
+      ],
+      "summary": "orderWithBuffet：buffet-order.test 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/buffet-order.ts",
+      "type": "file",
+      "name": "buffet-order.ts",
+      "filePath": "apps/web/src/lib/buffet-order.ts",
+      "summary": "自助餐订单领域工具：基数行作废/合并、客数归一化、小计与开台价格解析。",
+      "tags": [
+        "utility",
+        "buffet",
+        "order-items"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-order.ts:voidActiveBuffetBaseLines",
+      "type": "function",
+      "name": "voidActiveBuffetBaseLines",
+      "filePath": "apps/web/src/lib/buffet-order.ts",
+      "lineRange": [
+        6,
+        13
+      ],
+      "summary": "作废订单中所有活跃的自助餐基数行。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-order.ts:activeBuffetBaseLines",
+      "type": "function",
+      "name": "activeBuffetBaseLines",
+      "filePath": "apps/web/src/lib/buffet-order.ts",
+      "lineRange": [
+        15,
+        25
+      ],
+      "summary": "activeBuffetBaseLines：buffet-order 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-order.ts:latestActiveBuffetBaseLine",
+      "type": "function",
+      "name": "latestActiveBuffetBaseLine",
+      "filePath": "apps/web/src/lib/buffet-order.ts",
+      "lineRange": [
+        28,
+        45
+      ],
+      "summary": "获取最新未作废的自助餐基数行。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-order.ts:mergeBuffetLineOntoOrderItems",
+      "type": "function",
+      "name": "mergeBuffetLineOntoOrderItems",
+      "filePath": "apps/web/src/lib/buffet-order.ts",
+      "lineRange": [
+        48,
+        53
+      ],
+      "summary": "将自助餐基数行合并进订单项列表。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-order.ts:aggregateBuffetForOrders",
+      "type": "function",
+      "name": "aggregateBuffetForOrders",
+      "filePath": "apps/web/src/lib/buffet-order.ts",
+      "lineRange": [
+        55,
+        73
+      ],
+      "summary": "跨订单聚合自助餐客数与金额。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-order.ts:normalizeBuffetGuestCounts",
+      "type": "function",
+      "name": "normalizeBuffetGuestCounts",
+      "filePath": "apps/web/src/lib/buffet-order.ts",
+      "lineRange": [
+        76,
+        84
+      ],
+      "summary": "归一化自助餐成人/儿童客数。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-order.ts:isBuffetGuestCountsUnchanged",
+      "type": "function",
+      "name": "isBuffetGuestCountsUnchanged",
+      "filePath": "apps/web/src/lib/buffet-order.ts",
+      "lineRange": [
+        87,
+        97
+      ],
+      "summary": "判断客数是否与上次一致。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-order.ts:formatBuffetHeadcountLabel",
+      "type": "function",
+      "name": "formatBuffetHeadcountLabel",
+      "filePath": "apps/web/src/lib/buffet-order.ts",
+      "lineRange": [
+        100,
+        102
+      ],
+      "summary": "格式化自助餐人数展示标签。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-order.ts:formatBuffetReceiptQtyLabel",
+      "type": "function",
+      "name": "formatBuffetReceiptQtyLabel",
+      "filePath": "apps/web/src/lib/buffet-order.ts",
+      "lineRange": [
+        105,
+        111
+      ],
+      "summary": "格式化小票上的自助餐数量标签。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-order.ts:formatBuffetPriceTemplate",
+      "type": "function",
+      "name": "formatBuffetPriceTemplate",
+      "filePath": "apps/web/src/lib/buffet-order.ts",
+      "lineRange": [
+        114,
+        119
+      ],
+      "summary": "格式化自助餐价格模板字符串。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-order.ts:computeBuffetSubtotal",
+      "type": "function",
+      "name": "computeBuffetSubtotal",
+      "filePath": "apps/web/src/lib/buffet-order.ts",
+      "lineRange": [
+        135,
+        143
+      ],
+      "summary": "计算自助餐小计金额。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-order.ts:resolveBuffetOpenPricePreview",
+      "type": "function",
+      "name": "resolveBuffetOpenPricePreview",
+      "filePath": "apps/web/src/lib/buffet-order.ts",
+      "lineRange": [
+        146,
+        160
+      ],
+      "summary": "解析开台自助餐价格预览。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-order.ts:formatBuffetGuestCountsOptional",
+      "type": "function",
+      "name": "formatBuffetGuestCountsOptional",
+      "filePath": "apps/web/src/lib/buffet-order.ts",
+      "lineRange": [
+        163,
+        173
+      ],
+      "summary": "可选格式化客数（无数据时返回空）。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-order.ts:parseResolvedBuffetPriceRpcRow",
+      "type": "function",
+      "name": "parseResolvedBuffetPriceRpcRow",
+      "filePath": "apps/web/src/lib/buffet-order.ts",
+      "lineRange": [
+        183,
+        197
+      ],
+      "summary": "解析 RPC 返回的自助餐定价行。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/buffet-order.ts:buildBuffetBaseLine",
+      "type": "function",
+      "name": "buildBuffetBaseLine",
+      "filePath": "apps/web/src/lib/buffet-order.ts",
+      "lineRange": [
+        199,
+        234
+      ],
+      "summary": "构建自助餐基数订单行对象。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/cart-totals.ts",
+      "type": "file",
+      "name": "cart-totals.ts",
+      "filePath": "apps/web/src/lib/cart-totals.ts",
+      "summary": "购物车行金额与数量 coercion 工具，统一金额解析与行合计计算。",
+      "tags": [
+        "utility",
+        "cart",
+        "serialization"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/cart-totals.ts:parseMoney",
+      "type": "function",
+      "name": "parseMoney",
+      "filePath": "apps/web/src/lib/cart-totals.ts",
+      "lineRange": [
+        7,
+        18
+      ],
+      "summary": "parseMoney：cart-totals 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/cart-totals.ts:parseQty",
+      "type": "function",
+      "name": "parseQty",
+      "filePath": "apps/web/src/lib/cart-totals.ts",
+      "lineRange": [
+        20,
+        32
+      ],
+      "summary": "parseQty：cart-totals 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/cart-totals.ts:lineTotal",
+      "type": "function",
+      "name": "lineTotal",
+      "filePath": "apps/web/src/lib/cart-totals.ts",
+      "lineRange": [
+        34,
+        40
+      ],
+      "summary": "计算单行 price×qty 金额。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/cart-totals.ts:sumLineTotals",
+      "type": "function",
+      "name": "sumLineTotals",
+      "filePath": "apps/web/src/lib/cart-totals.ts",
+      "lineRange": [
+        42,
+        47
+      ],
+      "summary": "汇总多行金额。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/cart-totals.ts:coerceCartPrice",
+      "type": "function",
+      "name": "coerceCartPrice",
+      "filePath": "apps/web/src/lib/cart-totals.ts",
+      "lineRange": [
+        50,
+        53
+      ],
+      "summary": "将输入强制转换为合法购物车价格。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/cart-totals.ts:coerceCartQty",
+      "type": "function",
+      "name": "coerceCartQty",
+      "filePath": "apps/web/src/lib/cart-totals.ts",
+      "lineRange": [
+        56,
+        59
+      ],
+      "summary": "将输入强制转换为合法购物车数量。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-confirm-payment.test.ts",
+      "type": "file",
+      "name": "checkout-confirm-payment.test.ts",
+      "filePath": "apps/web/src/lib/checkout-confirm-payment.test.ts",
+      "summary": "结账确认付款流程单元测试，覆盖折扣、分拆行与 RPC 错误映射。",
+      "tags": [
+        "test",
+        "checkout",
+        "payment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-confirm-payment.test.ts:billSplit",
+      "type": "function",
+      "name": "billSplit",
+      "filePath": "apps/web/src/lib/checkout-confirm-payment.test.ts",
+      "lineRange": [
+        16,
+        32
+      ],
+      "summary": "billSplit：checkout-confirm-payment.test 模块中的业务函数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-confirm-payment.ts",
+      "type": "file",
+      "name": "checkout-confirm-payment.ts",
+      "filePath": "apps/web/src/lib/checkout-confirm-payment.ts",
+      "summary": "确认拆账付款的服务端逻辑：折扣应用、分拆行归一化与 Supabase RPC 调用。",
+      "tags": [
+        "service",
+        "checkout",
+        "payment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-confirm-payment.ts:httpStatusForConfirmPaymentRpcCode",
+      "type": "function",
+      "name": "httpStatusForConfirmPaymentRpcCode",
+      "filePath": "apps/web/src/lib/checkout-confirm-payment.ts",
+      "lineRange": [
+        60,
+        62
+      ],
+      "summary": "将 RPC 错误码映射为 HTTP 状态码。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-confirm-payment.ts:confirmBillSplitPayment",
+      "type": "function",
+      "name": "confirmBillSplitPayment",
+      "filePath": "apps/web/src/lib/checkout-confirm-payment.ts",
+      "lineRange": [
+        70,
+        177
+      ],
+      "summary": "调用 Supabase RPC 确认拆账付款并处理错误码。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-request-payload.ts",
+      "type": "file",
+      "name": "checkout-request-payload.ts",
+      "filePath": "apps/web/src/lib/checkout-request-payload.ts",
+      "summary": "构建整桌结账请求 payload，封装付款人标签与整桌标识。",
+      "tags": [
+        "utility",
+        "checkout",
+        "serialization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-request-payload.ts:wholeTableCheckoutPayload",
+      "type": "function",
+      "name": "wholeTableCheckoutPayload",
+      "filePath": "apps/web/src/lib/checkout-request-payload.ts",
+      "lineRange": [
+        11,
+        19
+      ],
+      "summary": "构建整桌结账 API 请求体。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/bill-split-validate.ts",
+      "target": "function:apps/web/src/lib/bill-split-validate.ts:amountsMatch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-validate.ts",
+      "target": "function:apps/web/src/lib/bill-split-validate.ts:validateBillSplit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-validate.ts",
+      "target": "function:apps/web/src/lib/bill-split-validate.ts:validateBillSplit",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-validate.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-validate.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/bill-split-validate.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.test.ts",
+      "target": "function:apps/web/src/lib/buffet-open-table.test.ts:buffetLine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.test.ts",
+      "target": "function:apps/web/src/lib/buffet-open-table.test.ts:orderRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.test.ts",
+      "target": "file:apps/web/src/lib/buffet-open-table.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.test.ts",
+      "target": "file:apps/web/src/lib/buffet-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.ts",
+      "target": "file:apps/web/src/lib/buffet-open-table.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.ts",
+      "target": "function:apps/web/src/lib/buffet-open-table.ts:pickLatestTableOrder",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.ts",
+      "target": "function:apps/web/src/lib/buffet-open-table.ts:pickLatestTableOrder",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.ts",
+      "target": "function:apps/web/src/lib/buffet-open-table.ts:mapToBuffetSessionOrders",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.ts",
+      "target": "function:apps/web/src/lib/buffet-open-table.ts:mapToBuffetSessionOrders",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.ts",
+      "target": "function:apps/web/src/lib/buffet-open-table.ts:planBuffetOpenWrites",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.ts",
+      "target": "function:apps/web/src/lib/buffet-open-table.ts:planBuffetOpenWrites",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.ts",
+      "target": "function:apps/web/src/lib/buffet-open-table.ts:applyBuffetOpenOptimisticToOrders",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.ts",
+      "target": "function:apps/web/src/lib/buffet-open-table.ts:applyBuffetOpenOptimisticToOrders",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.ts",
+      "target": "function:apps/web/src/lib/buffet-open-table.ts:applyBuffetOpenToSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.ts",
+      "target": "function:apps/web/src/lib/buffet-open-table.ts:applyBuffetOpenToSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.ts",
+      "target": "file:apps/web/src/lib/buffet-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.ts",
+      "target": "file:apps/web/src/lib/cart-totals.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.ts",
+      "target": "file:apps/web/src/lib/order-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.ts",
+      "target": "file:apps/web/src/lib/order-status.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-open-table.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.test.ts",
+      "target": "function:apps/web/src/lib/buffet-order.test.ts:orderWithBuffet",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.test.ts",
+      "target": "file:apps/web/src/lib/buffet-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "file:apps/web/src/lib/buffet-order.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:voidActiveBuffetBaseLines",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:voidActiveBuffetBaseLines",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:activeBuffetBaseLines",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:latestActiveBuffetBaseLine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:latestActiveBuffetBaseLine",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:mergeBuffetLineOntoOrderItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:mergeBuffetLineOntoOrderItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:aggregateBuffetForOrders",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:aggregateBuffetForOrders",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:normalizeBuffetGuestCounts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:normalizeBuffetGuestCounts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:isBuffetGuestCountsUnchanged",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:isBuffetGuestCountsUnchanged",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:formatBuffetHeadcountLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:formatBuffetHeadcountLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:formatBuffetReceiptQtyLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:formatBuffetReceiptQtyLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:formatBuffetPriceTemplate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:formatBuffetPriceTemplate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:computeBuffetSubtotal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:computeBuffetSubtotal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:resolveBuffetOpenPricePreview",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:resolveBuffetOpenPricePreview",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:formatBuffetGuestCountsOptional",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:formatBuffetGuestCountsOptional",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:parseResolvedBuffetPriceRpcRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:parseResolvedBuffetPriceRpcRow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:buildBuffetBaseLine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "function:apps/web/src/lib/buffet-order.ts:buildBuffetBaseLine",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "file:apps/web/src/lib/order-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "file:apps/web/src/lib/order-status.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/buffet-order.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/cart-totals.ts",
+      "target": "function:apps/web/src/lib/cart-totals.ts:parseMoney",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/cart-totals.ts",
+      "target": "function:apps/web/src/lib/cart-totals.ts:parseQty",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/cart-totals.ts",
+      "target": "function:apps/web/src/lib/cart-totals.ts:lineTotal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/cart-totals.ts",
+      "target": "function:apps/web/src/lib/cart-totals.ts:lineTotal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/cart-totals.ts",
+      "target": "function:apps/web/src/lib/cart-totals.ts:sumLineTotals",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/cart-totals.ts",
+      "target": "function:apps/web/src/lib/cart-totals.ts:sumLineTotals",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/cart-totals.ts",
+      "target": "function:apps/web/src/lib/cart-totals.ts:coerceCartPrice",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/cart-totals.ts",
+      "target": "function:apps/web/src/lib/cart-totals.ts:coerceCartPrice",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/cart-totals.ts",
+      "target": "function:apps/web/src/lib/cart-totals.ts:coerceCartQty",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/cart-totals.ts",
+      "target": "function:apps/web/src/lib/cart-totals.ts:coerceCartQty",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment.test.ts",
+      "target": "function:apps/web/src/lib/checkout-confirm-payment.test.ts:billSplit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment.test.ts",
+      "target": "file:apps/web/src/lib/checkout-confirm-payment.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment.test.ts",
+      "target": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment.ts",
+      "target": "file:apps/web/src/lib/checkout-confirm-payment.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment.ts",
+      "target": "function:apps/web/src/lib/checkout-confirm-payment.ts:httpStatusForConfirmPaymentRpcCode",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment.ts",
+      "target": "function:apps/web/src/lib/checkout-confirm-payment.ts:httpStatusForConfirmPaymentRpcCode",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment.ts",
+      "target": "function:apps/web/src/lib/checkout-confirm-payment.ts:confirmBillSplitPayment",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment.ts",
+      "target": "function:apps/web/src/lib/checkout-confirm-payment.ts:confirmBillSplitPayment",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment.ts",
+      "target": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment.ts",
+      "target": "file:apps/web/src/lib/receipt-payer-label.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-payload.ts",
+      "target": "function:apps/web/src/lib/checkout-request-payload.ts:wholeTableCheckoutPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-payload.ts",
+      "target": "function:apps/web/src/lib/checkout-request-payload.ts:wholeTableCheckoutPayload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-payload.ts",
+      "target": "file:apps/web/src/lib/split-person-label.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-payload.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/bill-split-validate.ts:validateBillSplit",
+      "target": "function:apps/web/src/lib/bill-split-by-item.ts:calcByItemSplitResults",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-confirm-payment.ts:confirmBillSplitPayment",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:enqueueReceiptPrint",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/buffet-open-table.ts:planBuffetOpenWrites",
+      "target": "function:apps/web/src/lib/buffet-order.ts:buildBuffetBaseLine",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

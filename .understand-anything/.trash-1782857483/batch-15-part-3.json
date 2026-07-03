@@ -1,0 +1,1850 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "type": "file",
+      "name": "useWaiterTableDetail.ts",
+      "filePath": "apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "summary": "React hook，管理单桌详情状态、订单列表与 Supabase 实时订阅。",
+      "tags": [
+        "component",
+        "react",
+        "waiter"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/useWaiterTableDetail.ts:useWaiterTableDetail",
+      "type": "function",
+      "name": "useWaiterTableDetail",
+      "filePath": "apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "lineRange": [
+        32,
+        120
+      ],
+      "summary": "Hook：管理单桌详情数据加载与 Supabase 实时刷新。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/waiter/waiter-messages.ts",
+      "type": "file",
+      "name": "waiter-messages.ts",
+      "filePath": "apps/web/src/components/waiter/waiter-messages.ts",
+      "summary": "服务员界面 i18n 文案常量，覆盖看板、桌台详情与操作提示。",
+      "tags": [
+        "component",
+        "react",
+        "waiter"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/lib/dashboard-api-shared.ts",
+      "type": "file",
+      "name": "dashboard-api-shared.ts",
+      "filePath": "apps/web/src/lib/dashboard-api-shared.ts",
+      "summary": "Dashboard API 共享工具：JSON 解析、权限上下文加载与错误响应封装。",
+      "tags": [
+        "utility",
+        "service",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-api-shared.ts:dashboardApiError",
+      "type": "function",
+      "name": "dashboardApiError",
+      "filePath": "apps/web/src/lib/dashboard-api-shared.ts",
+      "lineRange": [
+        10,
+        15
+      ],
+      "summary": "将错误消息封装为 NextResponse JSON 响应。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-api-shared.ts:readJsonBody",
+      "type": "function",
+      "name": "readJsonBody",
+      "filePath": "apps/web/src/lib/dashboard-api-shared.ts",
+      "lineRange": [
+        17,
+        23
+      ],
+      "summary": "安全解析请求 JSON body，失败时返回 400。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-api-shared.ts:loadWritableFrontdeskContext",
+      "type": "function",
+      "name": "loadWritableFrontdeskContext",
+      "filePath": "apps/web/src/lib/dashboard-api-shared.ts",
+      "lineRange": [
+        25,
+        31
+      ],
+      "summary": "加载前台可写操作上下文，含餐厅与 admin 客户端。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-api-shared.ts:loadWritableOwnerContext",
+      "type": "function",
+      "name": "loadWritableOwnerContext",
+      "filePath": "apps/web/src/lib/dashboard-api-shared.ts",
+      "lineRange": [
+        33,
+        46
+      ],
+      "summary": "加载店主可写操作上下文，校验 owner 权限。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-api-shared.ts:uniqueViolation",
+      "type": "function",
+      "name": "uniqueViolation",
+      "filePath": "apps/web/src/lib/dashboard-api-shared.ts",
+      "lineRange": [
+        48,
+        50
+      ],
+      "summary": "判断 Supabase 错误是否为唯一约束冲突。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "type": "file",
+      "name": "dashboard-buffet-client.ts",
+      "filePath": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "summary": "自助餐设置前端 API 客户端，封装 CRUD 请求与看板数据应用。",
+      "tags": [
+        "utility",
+        "service",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-client.ts:request",
+      "type": "function",
+      "name": "request",
+      "filePath": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "lineRange": [
+        10,
+        24
+      ],
+      "summary": "自助餐 API 通用 fetch 封装，处理 JSON 解析与错误。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-client.ts:fetchBuffetDashboardClient",
+      "type": "function",
+      "name": "fetchBuffetDashboardClient",
+      "filePath": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "lineRange": [
+        26,
+        28
+      ],
+      "summary": "客户端拉取自助餐看板完整数据。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-client.ts:createBuffetClient",
+      "type": "function",
+      "name": "createBuffetClient",
+      "filePath": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "lineRange": [
+        30,
+        36
+      ],
+      "summary": "客户端创建自助餐套餐。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-client.ts:createBuffetSlotClient",
+      "type": "function",
+      "name": "createBuffetSlotClient",
+      "filePath": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "lineRange": [
+        38,
+        44
+      ],
+      "summary": "客户端创建自助餐时段。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-client.ts:createBuffetRuleClient",
+      "type": "function",
+      "name": "createBuffetRuleClient",
+      "filePath": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "lineRange": [
+        46,
+        52
+      ],
+      "summary": "客户端创建自助餐价格规则。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-client.ts:upsertBuffetCalendarClient",
+      "type": "function",
+      "name": "upsertBuffetCalendarClient",
+      "filePath": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "lineRange": [
+        54,
+        62
+      ],
+      "summary": "客户端 upsert 自助餐日历覆盖。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-client.ts:updateBuffetClient",
+      "type": "function",
+      "name": "updateBuffetClient",
+      "filePath": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "lineRange": [
+        64,
+        73
+      ],
+      "summary": "客户端更新自助餐基本信息。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-client.ts:updateBuffetSlotClient",
+      "type": "function",
+      "name": "updateBuffetSlotClient",
+      "filePath": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "lineRange": [
+        75,
+        81
+      ],
+      "summary": "客户端更新自助餐时段。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-client.ts:updateBuffetRuleClient",
+      "type": "function",
+      "name": "updateBuffetRuleClient",
+      "filePath": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "lineRange": [
+        83,
+        89
+      ],
+      "summary": "客户端更新自助餐价格规则。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-client.ts:toggleBuffetRuleActiveClient",
+      "type": "function",
+      "name": "toggleBuffetRuleActiveClient",
+      "filePath": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "lineRange": [
+        91,
+        97
+      ],
+      "summary": "客户端切换价格规则启用状态。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-client.ts:updateBuffetFridayPolicyClient",
+      "type": "function",
+      "name": "updateBuffetFridayPolicyClient",
+      "filePath": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "lineRange": [
+        99,
+        105
+      ],
+      "summary": "客户端更新周五政策设置。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-client.ts:deleteBuffetClient",
+      "type": "function",
+      "name": "deleteBuffetClient",
+      "filePath": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "lineRange": [
+        107,
+        113
+      ],
+      "summary": "客户端删除自助餐套餐。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-client.ts:deleteBuffetSlotClient",
+      "type": "function",
+      "name": "deleteBuffetSlotClient",
+      "filePath": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "lineRange": [
+        115,
+        121
+      ],
+      "summary": "客户端删除自助餐时段。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-client.ts:deleteBuffetRuleClient",
+      "type": "function",
+      "name": "deleteBuffetRuleClient",
+      "filePath": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "lineRange": [
+        123,
+        129
+      ],
+      "summary": "客户端删除自助餐价格规则。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-client.ts:deleteBuffetCalendarClient",
+      "type": "function",
+      "name": "deleteBuffetCalendarClient",
+      "filePath": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "lineRange": [
+        131,
+        137
+      ],
+      "summary": "客户端删除日历覆盖记录。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-client.ts:applyBuffetDashboardData",
+      "type": "function",
+      "name": "applyBuffetDashboardData",
+      "filePath": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "lineRange": [
+        139,
+        160
+      ],
+      "summary": "将自助餐看板 API 响应应用到本地状态。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "type": "file",
+      "name": "dashboard-buffet-server.ts",
+      "filePath": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "summary": "自助餐设置服务端逻辑，管理 buffet、时段、价格规则与日历覆盖。",
+      "tags": [
+        "utility",
+        "service",
+        "dashboard"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-server.ts:loadBuffetDashboard",
+      "type": "function",
+      "name": "loadBuffetDashboard",
+      "filePath": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "lineRange": [
+        14,
+        67
+      ],
+      "summary": "服务端加载自助餐、时段、规则与日历完整数据。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-server.ts:createBuffet",
+      "type": "function",
+      "name": "createBuffet",
+      "filePath": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "lineRange": [
+        69,
+        87
+      ],
+      "summary": "服务端创建新自助餐记录。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-server.ts:deleteBuffet",
+      "type": "function",
+      "name": "deleteBuffet",
+      "filePath": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "lineRange": [
+        89,
+        103
+      ],
+      "summary": "服务端删除自助餐及其关联数据。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-server.ts:updateBuffet",
+      "type": "function",
+      "name": "updateBuffet",
+      "filePath": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "lineRange": [
+        105,
+        120
+      ],
+      "summary": "服务端更新自助餐字段。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-server.ts:createBuffetTimeSlot",
+      "type": "function",
+      "name": "createBuffetTimeSlot",
+      "filePath": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "lineRange": [
+        122,
+        143
+      ],
+      "summary": "服务端创建自助餐时段。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-server.ts:deleteBuffetTimeSlot",
+      "type": "function",
+      "name": "deleteBuffetTimeSlot",
+      "filePath": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "lineRange": [
+        145,
+        163
+      ],
+      "summary": "服务端删除自助餐时段。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-server.ts:updateBuffetTimeSlot",
+      "type": "function",
+      "name": "updateBuffetTimeSlot",
+      "filePath": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "lineRange": [
+        165,
+        184
+      ],
+      "summary": "服务端更新自助餐时段。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-server.ts:parseRuleInput",
+      "type": "function",
+      "name": "parseRuleInput",
+      "filePath": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "lineRange": [
+        199,
+        227
+      ],
+      "summary": "解析/规范化工具函数 parseRuleInput。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-server.ts:createBuffetPriceRule",
+      "type": "function",
+      "name": "createBuffetPriceRule",
+      "filePath": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "lineRange": [
+        229,
+        246
+      ],
+      "summary": "服务端创建自助餐价格规则。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-server.ts:updateBuffetPriceRule",
+      "type": "function",
+      "name": "updateBuffetPriceRule",
+      "filePath": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "lineRange": [
+        248,
+        269
+      ],
+      "summary": "服务端更新自助餐价格规则。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-server.ts:deleteBuffetPriceRule",
+      "type": "function",
+      "name": "deleteBuffetPriceRule",
+      "filePath": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "lineRange": [
+        271,
+        289
+      ],
+      "summary": "服务端删除自助餐价格规则。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-server.ts:toggleBuffetPriceRuleActive",
+      "type": "function",
+      "name": "toggleBuffetPriceRuleActive",
+      "filePath": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "lineRange": [
+        291,
+        310
+      ],
+      "summary": "服务端切换价格规则启用状态。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-server.ts:upsertBuffetCalendarOverrides",
+      "type": "function",
+      "name": "upsertBuffetCalendarOverrides",
+      "filePath": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "lineRange": [
+        312,
+        329
+      ],
+      "summary": "服务端 upsert 日历价格覆盖。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-server.ts:deleteBuffetCalendarOverride",
+      "type": "function",
+      "name": "deleteBuffetCalendarOverride",
+      "filePath": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "lineRange": [
+        331,
+        349
+      ],
+      "summary": "服务端删除日历覆盖。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-buffet-server.ts:updateBuffetFridayPolicy",
+      "type": "function",
+      "name": "updateBuffetFridayPolicy",
+      "filePath": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "lineRange": [
+        351,
+        365
+      ],
+      "summary": "服务端更新周五自助餐政策。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "type": "file",
+      "name": "dashboard-table-groups-server.ts",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "summary": "桌台分组服务端 CRUD，含成员校验、排序与 Supabase admin 写入。",
+      "tags": [
+        "utility",
+        "service",
+        "dashboard"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-server.ts:loadRestaurantTableGroups",
+      "type": "function",
+      "name": "loadRestaurantTableGroups",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "lineRange": [
+        20,
+        49
+      ],
+      "summary": "服务端加载餐厅桌台分组及成员映射。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-server.ts:validateTableIds",
+      "type": "function",
+      "name": "validateTableIds",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "lineRange": [
+        51,
+        70
+      ],
+      "summary": "函数 validateTableIds，实现 dashboard-table-groups-server 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-server.ts:replaceTableGroupMembersAdmin",
+      "type": "function",
+      "name": "replaceTableGroupMembersAdmin",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "lineRange": [
+        72,
+        112
+      ],
+      "summary": "函数 replaceTableGroupMembersAdmin，实现 dashboard-table-groups-server 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-server.ts:parseGroupFields",
+      "type": "function",
+      "name": "parseGroupFields",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "lineRange": [
+        114,
+        131
+      ],
+      "summary": "解析/规范化工具函数 parseGroupFields。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-server.ts:createTableGroup",
+      "type": "function",
+      "name": "createTableGroup",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "lineRange": [
+        133,
+        179
+      ],
+      "summary": "服务端创建桌台分组并分配成员。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-server.ts:updateTableGroup",
+      "type": "function",
+      "name": "updateTableGroup",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "lineRange": [
+        181,
+        224
+      ],
+      "summary": "服务端更新分组名称、备注与成员。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-server.ts:moveTableGroupOrder",
+      "type": "function",
+      "name": "moveTableGroupOrder",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "lineRange": [
+        226,
+        268
+      ],
+      "summary": "服务端调整分组排序位置。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-server.ts:deleteTableGroup",
+      "type": "function",
+      "name": "deleteTableGroup",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "lineRange": [
+        270,
+        290
+      ],
+      "summary": "服务端删除桌台分组。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/dashboard-table-groups.test.ts",
+      "type": "file",
+      "name": "dashboard-table-groups.test.ts",
+      "filePath": "apps/web/src/lib/dashboard-table-groups.test.ts",
+      "summary": "桌台分组工具函数的单元测试（当前为占位/骨架）。",
+      "tags": [
+        "test",
+        "service",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/dashboard-tables.ts",
+      "type": "file",
+      "name": "dashboard-tables.ts",
+      "filePath": "apps/web/src/lib/dashboard-tables.ts",
+      "summary": "前台桌台管理数据加载，聚合餐厅、分组与桌台列表供 dashboard 使用。",
+      "tags": [
+        "utility",
+        "service",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-tables.ts:loadFrontdeskDashboardTables",
+      "type": "function",
+      "name": "loadFrontdeskDashboardTables",
+      "filePath": "apps/web/src/lib/dashboard-tables.ts",
+      "lineRange": [
+        21,
+        67
+      ],
+      "summary": "加载前台 dashboard 桌台列表，含分组与排序。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "target": "function:apps/web/src/components/waiter/useWaiterTableDetail.ts:useWaiterTableDetail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "target": "function:apps/web/src/components/waiter/useWaiterTableDetail.ts:useWaiterTableDetail",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "target": "file:apps/web/src/lib/staff-board-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "target": "file:apps/web/src/lib/staff-board.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "target": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "target": "file:apps/web/src/lib/use-restaurant-realtime-refresh.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "target": "file:apps/web/src/lib/waiter-board-session.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "target": "file:apps/web/src/lib/waiter-table-orders.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-api-shared.ts",
+      "target": "function:apps/web/src/lib/dashboard-api-shared.ts:dashboardApiError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-api-shared.ts",
+      "target": "function:apps/web/src/lib/dashboard-api-shared.ts:dashboardApiError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-api-shared.ts",
+      "target": "function:apps/web/src/lib/dashboard-api-shared.ts:readJsonBody",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-api-shared.ts",
+      "target": "function:apps/web/src/lib/dashboard-api-shared.ts:readJsonBody",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-api-shared.ts",
+      "target": "function:apps/web/src/lib/dashboard-api-shared.ts:loadWritableFrontdeskContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-api-shared.ts",
+      "target": "function:apps/web/src/lib/dashboard-api-shared.ts:loadWritableFrontdeskContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-api-shared.ts",
+      "target": "function:apps/web/src/lib/dashboard-api-shared.ts:loadWritableOwnerContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-api-shared.ts",
+      "target": "function:apps/web/src/lib/dashboard-api-shared.ts:loadWritableOwnerContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-api-shared.ts",
+      "target": "function:apps/web/src/lib/dashboard-api-shared.ts:uniqueViolation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-api-shared.ts",
+      "target": "function:apps/web/src/lib/dashboard-api-shared.ts:uniqueViolation",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-api-shared.ts",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-api-shared.ts",
+      "target": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:request",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:fetchBuffetDashboardClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:fetchBuffetDashboardClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:createBuffetClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:createBuffetClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:createBuffetSlotClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:createBuffetSlotClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:createBuffetRuleClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:createBuffetRuleClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:upsertBuffetCalendarClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:upsertBuffetCalendarClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:updateBuffetClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:updateBuffetClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:updateBuffetSlotClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:updateBuffetSlotClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:updateBuffetRuleClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:updateBuffetRuleClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:toggleBuffetRuleActiveClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:toggleBuffetRuleActiveClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:updateBuffetFridayPolicyClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:updateBuffetFridayPolicyClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:deleteBuffetClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:deleteBuffetClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:deleteBuffetSlotClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:deleteBuffetSlotClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:deleteBuffetRuleClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:deleteBuffetRuleClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:deleteBuffetCalendarClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:deleteBuffetCalendarClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:applyBuffetDashboardData",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:applyBuffetDashboardData",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-client.ts:fetchBuffetDashboardClient",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:request",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-client.ts:createBuffetClient",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:request",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-client.ts:createBuffetSlotClient",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:request",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-client.ts:createBuffetRuleClient",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:request",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-client.ts:upsertBuffetCalendarClient",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:request",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-client.ts:updateBuffetClient",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:request",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-client.ts:updateBuffetSlotClient",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:request",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-client.ts:updateBuffetRuleClient",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:request",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-client.ts:toggleBuffetRuleActiveClient",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:request",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-client.ts:updateBuffetFridayPolicyClient",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:request",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-client.ts:deleteBuffetClient",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:request",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-client.ts:deleteBuffetSlotClient",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:request",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-client.ts:deleteBuffetRuleClient",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:request",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-client.ts:deleteBuffetCalendarClient",
+      "target": "function:apps/web/src/lib/dashboard-buffet-client.ts:request",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:loadBuffetDashboard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:loadBuffetDashboard",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:createBuffet",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:createBuffet",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:deleteBuffet",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:deleteBuffet",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:updateBuffet",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:updateBuffet",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:createBuffetTimeSlot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:createBuffetTimeSlot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:deleteBuffetTimeSlot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:deleteBuffetTimeSlot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:updateBuffetTimeSlot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:updateBuffetTimeSlot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:parseRuleInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:createBuffetPriceRule",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:createBuffetPriceRule",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:updateBuffetPriceRule",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:updateBuffetPriceRule",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:deleteBuffetPriceRule",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:deleteBuffetPriceRule",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:toggleBuffetPriceRuleActive",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:toggleBuffetPriceRuleActive",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:upsertBuffetCalendarOverrides",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:upsertBuffetCalendarOverrides",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:deleteBuffetCalendarOverride",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:deleteBuffetCalendarOverride",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:updateBuffetFridayPolicy",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:updateBuffetFridayPolicy",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "file:apps/web/src/lib/dashboard-api-shared.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-server.ts:createBuffet",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:loadBuffetDashboard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-server.ts:deleteBuffet",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:loadBuffetDashboard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-server.ts:updateBuffet",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:loadBuffetDashboard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-server.ts:createBuffetTimeSlot",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:loadBuffetDashboard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-server.ts:deleteBuffetTimeSlot",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:loadBuffetDashboard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-server.ts:updateBuffetTimeSlot",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:loadBuffetDashboard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-server.ts:createBuffetPriceRule",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:parseRuleInput",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-server.ts:createBuffetPriceRule",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:loadBuffetDashboard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-server.ts:updateBuffetPriceRule",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:parseRuleInput",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-server.ts:updateBuffetPriceRule",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:loadBuffetDashboard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-server.ts:deleteBuffetPriceRule",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:loadBuffetDashboard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-server.ts:toggleBuffetPriceRuleActive",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:loadBuffetDashboard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-server.ts:upsertBuffetCalendarOverrides",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:loadBuffetDashboard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-server.ts:deleteBuffetCalendarOverride",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:loadBuffetDashboard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-buffet-server.ts:updateBuffetFridayPolicy",
+      "target": "function:apps/web/src/lib/dashboard-buffet-server.ts:loadBuffetDashboard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:loadRestaurantTableGroups",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:loadRestaurantTableGroups",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:validateTableIds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:replaceTableGroupMembersAdmin",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:parseGroupFields",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:createTableGroup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:createTableGroup",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:updateTableGroup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:updateTableGroup",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:moveTableGroupOrder",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:moveTableGroupOrder",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:deleteTableGroup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:deleteTableGroup",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "file:apps/web/src/lib/dashboard-api-shared.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "file:apps/web/src/lib/sort-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:replaceTableGroupMembersAdmin",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:validateTableIds",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:createTableGroup",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:parseGroupFields",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:createTableGroup",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:loadRestaurantTableGroups",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:createTableGroup",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:replaceTableGroupMembersAdmin",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:updateTableGroup",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:parseGroupFields",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:updateTableGroup",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:loadRestaurantTableGroups",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:updateTableGroup",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:replaceTableGroupMembersAdmin",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:moveTableGroupOrder",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:loadRestaurantTableGroups",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:deleteTableGroup",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:loadRestaurantTableGroups",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups.test.ts",
+      "target": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-tables.ts",
+      "target": "function:apps/web/src/lib/dashboard-tables.ts:loadFrontdeskDashboardTables",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-tables.ts",
+      "target": "function:apps/web/src/lib/dashboard-tables.ts:loadFrontdeskDashboardTables",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-tables.ts",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-tables.ts",
+      "target": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-tables.ts",
+      "target": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-tables.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "file:apps/web/src/lib/dashboard-table-groups.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

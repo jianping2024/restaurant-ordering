@@ -1,0 +1,646 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/print-agent/wizard_url_hook.go",
+      "type": "file",
+      "name": "wizard_url_hook.go",
+      "filePath": "apps/print-agent/wizard_url_hook.go",
+      "summary": "定义 Windows 打印助手托盘在进程内配置向导就绪时的 URL 回调钩子变量，供安装向导与托盘 UI 桥接。",
+      "tags": ["print-agent", "hook", "windows", "configuration"],
+      "complexity": "simple",
+      "languageNotes": "Go 包级可变函数指针，由 Windows tray 模块在运行时注入。"
+    },
+    {
+      "id": "file:apps/web/next.config.mjs",
+      "type": "file",
+      "name": "next.config.mjs",
+      "filePath": "apps/web/next.config.mjs",
+      "summary": "Next.js 应用构建配置：转译 monorepo 共享包、注入打印助手版本号、外部化 Supabase 服务端依赖，并定义旧路由重定向规则。",
+      "tags": ["configuration", "nextjs", "build-system", "redirects"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/postcss.config.mjs",
+      "type": "file",
+      "name": "postcss.config.mjs",
+      "filePath": "apps/web/postcss.config.mjs",
+      "summary": "PostCSS 配置，启用 Tailwind CSS 插件以处理全局样式与组件类名扫描。",
+      "tags": ["configuration", "postcss", "tailwind", "build-system"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/scripts/phase5-manual.mts",
+      "type": "file",
+      "name": "phase5-manual.mts",
+      "filePath": "apps/web/scripts/phase5-manual.mts",
+      "summary": "Phase 5 异常操作端到端手动集成脚本，通过 Supabase 直连数据库并调用服务层验证退菜、折扣、关台与异常操作审计等流程。",
+      "tags": ["script", "integration-test", "abnormal-operations", "manual"],
+      "complexity": "complex",
+      "languageNotes": "使用 tsx 直接运行 TypeScript，加载本地 env 文件并构造测试桌台与会话数据。"
+    },
+    {
+      "id": "function:apps/web/scripts/phase5-manual.mts:loadEnvFiles",
+      "type": "function",
+      "name": "loadEnvFiles",
+      "filePath": "apps/web/scripts/phase5-manual.mts",
+      "lineRange": [18, 43],
+      "summary": "从仓库根目录依次读取 .env.local.dev、.env.local.supabase 和 .env.local，将缺失的环境变量注入 process.env。",
+      "tags": ["utility", "environment", "configuration"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/scripts/phase5-manual.mts:createTestTable",
+      "type": "function",
+      "name": "createTestTable",
+      "filePath": "apps/web/scripts/phase5-manual.mts",
+      "lineRange": [44, 57],
+      "summary": "在指定餐厅下创建带唯一 display_name 的测试桌台记录，供后续会话与订单场景使用。",
+      "tags": ["test-helper", "database", "table"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/scripts/phase5-manual.mts:openSession",
+      "type": "function",
+      "name": "openSession",
+      "filePath": "apps/web/scripts/phase5-manual.mts",
+      "lineRange": [58, 70],
+      "summary": "为测试桌台插入 billing 状态的 table_session 记录并返回 sessionId。",
+      "tags": ["test-helper", "database", "table-session"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/scripts/phase5-manual.mts:insertOrder",
+      "type": "function",
+      "name": "insertOrder",
+      "filePath": "apps/web/scripts/phase5-manual.mts",
+      "lineRange": [71, 106],
+      "summary": "创建含订单项的测试订单，支持指定 item_status，并关联餐厅、会话与桌台 display_name。",
+      "tags": ["test-helper", "database", "order"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/scripts/phase5-manual.mts:insertBillSplit",
+      "type": "function",
+      "name": "insertBillSplit",
+      "filePath": "apps/web/scripts/phase5-manual.mts",
+      "lineRange": [107, 133],
+      "summary": "插入 bill_split 测试记录，用于验证分单与异常操作审计链路。",
+      "tags": ["test-helper", "database", "billing"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/scripts/phase5-manual.mts:countAbnormal",
+      "type": "function",
+      "name": "countAbnormal",
+      "filePath": "apps/web/scripts/phase5-manual.mts",
+      "lineRange": [134, 149],
+      "summary": "统计指定餐厅在 abnormal_operations 表中的记录数量，用于断言异常操作写入结果。",
+      "tags": ["test-helper", "database", "abnormal-operations"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/scripts/phase5-manual.mts:countOpLog",
+      "type": "function",
+      "name": "countOpLog",
+      "filePath": "apps/web/scripts/phase5-manual.mts",
+      "lineRange": [150, 164],
+      "summary": "统计 operation_log 表中与指定 action 匹配的审计日志条数。",
+      "tags": ["test-helper", "database", "audit"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/scripts/phase5-manual.mts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "apps/web/scripts/phase5-manual.mts",
+      "lineRange": [165, 559],
+      "summary": "脚本主入口：按 slug 定位餐厅，依次执行退菜、折扣、手动关台等异常场景并汇总 Check 结果。",
+      "tags": ["entry-point", "integration-test", "orchestration"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/app/auth/callback/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/auth/callback/route.ts",
+      "summary": "Supabase OAuth 回调 Route Handler，用授权码交换 session 并将 cookie 写入 redirect 响应，防止登录后会话丢失。",
+      "tags": ["api-handler", "auth", "supabase", "oauth"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/auth/callback/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/auth/callback/route.ts",
+      "lineRange": [4, 40],
+      "summary": "处理 GET /auth/callback：校验 next 重定向路径、交换 code 为 Supabase session，并重定向至 dashboard 或指定路径。",
+      "tags": ["api-handler", "auth", "redirect"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/buffet/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/buffet/page.tsx",
+      "summary": "旧版自助餐 dashboard 路由占位页，立即重定向至 /dashboard/settings/buffet 新设置页。",
+      "tags": ["component", "redirect", "legacy"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/settings/menu/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/settings/menu/page.tsx",
+      "summary": "旧版菜单设置路由占位页，重定向至合并后的菜单管理设置路径。",
+      "tags": ["component", "redirect", "legacy"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/settings/print-stations/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/settings/print-stations/page.tsx",
+      "summary": "打印站点设置页入口，将访问者重定向至当前 canonical 打印站点配置路由。",
+      "tags": ["component", "redirect", "print-stations"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/settings/tables/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/settings/tables/page.tsx",
+      "summary": "旧版桌台设置路由占位页，重定向至新版桌台管理设置页面。",
+      "tags": ["component", "redirect", "legacy"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/globals.css",
+      "type": "file",
+      "name": "globals.css",
+      "filePath": "apps/web/src/app/globals.css",
+      "summary": "全局 Tailwind 样式表，定义品牌色 CSS 变量、明暗主题切换、排版与 dashboard/顾客端共用 UI 基础样式。",
+      "tags": ["markup", "tailwind", "theme", "design-tokens"],
+      "complexity": "complex",
+      "languageNotes": "使用 @tailwind 指令与 :root/[data-theme] 变量，供 tailwind.config.ts 通过 rgb(var(...)) 引用。"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-auth.test.ts",
+      "type": "file",
+      "name": "print-agent-auth.test.ts",
+      "filePath": "apps/web/src/lib/print-agent-auth.test.ts",
+      "summary": "针对 isPrintAgentDeviceActiveInDb 的单元测试，用 mock Supabase admin 验证设备撤销与 valid_until 边界行为。",
+      "tags": ["test", "print-agent", "supabase"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-auth.test.ts:mockDeviceAdmin",
+      "type": "function",
+      "name": "mockDeviceAdmin",
+      "filePath": "apps/web/src/lib/print-agent-auth.test.ts",
+      "lineRange": [9, 21],
+      "summary": "构造链式 SupabaseClient mock，返回指定 print_agent_devices 行用于设备活跃状态测试。",
+      "tags": ["test", "mock", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/restaurant-suspension.test.ts",
+      "type": "file",
+      "name": "restaurant-suspension.test.ts",
+      "filePath": "apps/web/src/lib/restaurant-suspension.test.ts",
+      "summary": "验证 isRestaurantSuspended 对 null、空字符串与有效 suspended_at 时间戳的判断逻辑。",
+      "tags": ["test", "restaurant", "suspension"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/tailwind.config.ts",
+      "type": "file",
+      "name": "tailwind.config.ts",
+      "filePath": "apps/web/tailwind.config.ts",
+      "summary": "Tailwind CSS 配置，扫描 app/components 目录并将 globals.css 中的 CSS 变量映射为 brand/status 色板与字体族。",
+      "tags": ["configuration", "tailwind", "design-tokens"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:packages/shared/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "packages/shared/package.json",
+      "summary": "@mesa/shared 工作区包清单，声明入口为 src/index.ts 并依赖 @supabase/supabase-js。",
+      "tags": ["configuration", "monorepo", "package-manifest"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/brand.test.ts",
+      "type": "file",
+      "name": "brand.test.ts",
+      "filePath": "packages/shared/src/brand.test.ts",
+      "summary": "测试品牌常量与 printAgentLabel 在中英葡语言下的本地化输出是否符合产品命名规范。",
+      "tags": ["test", "brand", "i18n"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/brand.ts",
+      "type": "file",
+      "name": "brand.ts",
+      "filePath": "packages/shared/src/brand.ts",
+      "summary": "集中定义 MesaGo 产品名称、Ops/Print Agent 命名及中文站点文案，并提供 printAgentLabel 本地化 helper。",
+      "tags": ["utility", "brand", "i18n", "constants"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/geo-order-restriction.test.ts",
+      "type": "file",
+      "name": "geo-order-restriction.test.ts",
+      "filePath": "packages/shared/src/geo-order-restriction.test.ts",
+      "summary": "覆盖地理下单限制 feature flag 的读取、合并、激活判断与坐标解析等边界场景的单元测试套件。",
+      "tags": ["test", "geo-restriction", "feature-flags"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/shared/src/geo-order-restriction.ts",
+      "type": "file",
+      "name": "geo-order-restriction.ts",
+      "filePath": "packages/shared/src/geo-order-restriction.ts",
+      "summary": "实现餐厅地理下单限制功能开关的读取、激活判断、坐标解析与 feature_flags 合并逻辑，供 dashboard 与下单流程共用。",
+      "tags": ["utility", "feature-flags", "geo-restriction", "validation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/shared/src/geo-order-restriction.ts:mergeGeoOrderRestrictionFlag",
+      "type": "function",
+      "name": "mergeGeoOrderRestrictionFlag",
+      "filePath": "packages/shared/src/geo-order-restriction.ts",
+      "lineRange": [64, 74],
+      "summary": "将 geo_order_restriction 布尔开关合并进现有 feature_flags 对象，保留其他 flag 不变。",
+      "tags": ["utility", "feature-flags", "merge"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/shared/src/index.ts",
+      "summary": "@mesa/shared 公共 barrel 入口，聚合导出品牌、打印助手、餐厅功能、平台审计与地理限制等跨 web/ops 共享模块。",
+      "tags": ["entry-point", "barrel", "shared-package"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/shared/src/platform-admin-audit.ts",
+      "type": "file",
+      "name": "platform-admin-audit.ts",
+      "filePath": "packages/shared/src/platform-admin-audit.ts",
+      "summary": "平台管理员审计日志写入 helper，向 platform_admin_audit_log 表插入结构化操作记录。",
+      "tags": ["service", "audit", "platform-admin", "supabase"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/platform-admin-audit.ts:insertPlatformAdminAudit",
+      "type": "function",
+      "name": "insertPlatformAdminAudit",
+      "filePath": "packages/shared/src/platform-admin-audit.ts",
+      "lineRange": [12, 27],
+      "summary": "使用 service-role Supabase client 向 platform_admin_audit_log 插入 actor、action、target 与 metadata。",
+      "tags": ["service", "audit", "database"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/print-agent-credential-ttl.test.ts",
+      "type": "file",
+      "name": "print-agent-credential-ttl.test.ts",
+      "filePath": "packages/shared/src/print-agent-credential-ttl.test.ts",
+      "summary": "测试打印助手凭证 TTL 天数的 clamp、解析 patch 请求与秒数换算逻辑。",
+      "tags": ["test", "print-agent", "credential-ttl"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/print-agent-credential-ttl.ts",
+      "type": "file",
+      "name": "print-agent-credential-ttl.ts",
+      "filePath": "packages/shared/src/print-agent-credential-ttl.ts",
+      "summary": "定义打印助手设备凭证 TTL 默认值与上下界，提供 clamp、解析 API patch 及天/秒换算函数。",
+      "tags": ["utility", "print-agent", "credential-ttl", "validation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/shared/src/print-agent-device-active.ts",
+      "type": "file",
+      "name": "print-agent-device-active.ts",
+      "filePath": "packages/shared/src/print-agent-device-active.ts",
+      "summary": "基于 Supabase 查询 print_agent_devices 行，结合心跳模块判断设备是否未撤销且凭证仍有效。",
+      "tags": ["service", "print-agent", "supabase", "validation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/print-agent-device-active.ts:isPrintAgentDeviceActiveInDb",
+      "type": "function",
+      "name": "isPrintAgentDeviceActiveInDb",
+      "filePath": "packages/shared/src/print-agent-device-active.ts",
+      "lineRange": [5, 19],
+      "summary": "按 deviceId 与 restaurantId 查询设备 revoked_at/valid_until，并委托 isPrintAgentDeviceActive 判定活跃状态。",
+      "tags": ["service", "print-agent", "database"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/print-agent-heartbeat.ts",
+      "type": "file",
+      "name": "print-agent-heartbeat.ts",
+      "filePath": "packages/shared/src/print-agent-heartbeat.ts",
+      "summary": "打印助手在线/活跃判定逻辑，基于 last_seen 离线阈值与 revoked_at、valid_until 时间窗口。",
+      "tags": ["utility", "print-agent", "heartbeat", "validation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/print-agent-heartbeat.ts:isPrintAgentDeviceActive",
+      "type": "function",
+      "name": "isPrintAgentDeviceActive",
+      "filePath": "packages/shared/src/print-agent-heartbeat.ts",
+      "lineRange": [14, 24],
+      "summary": "纯函数判断设备凭证：未撤销且 valid_until 晚于当前时间则视为活跃。",
+      "tags": ["utility", "print-agent", "validation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/print-agent-revoke.ts",
+      "type": "file",
+      "name": "print-agent-revoke.ts",
+      "filePath": "packages/shared/src/print-agent-revoke.ts",
+      "summary": "提供租户隔离的打印助手设备撤销与未消费配对码作废服务，返回结构化成功/失败结果。",
+      "tags": ["service", "print-agent", "revoke", "tenant-isolation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/shared/src/print-agent-revoke.ts:revokePrintAgentDevice",
+      "type": "function",
+      "name": "revokePrintAgentDevice",
+      "filePath": "packages/shared/src/print-agent-revoke.ts",
+      "lineRange": [12, 34],
+      "summary": "对指定餐厅下未撤销的 print_agent_devices 行设置 revoked_at，防止重复撤销并返回 not_found/update_failed。",
+      "tags": ["service", "print-agent", "revoke"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/shared/src/print-agent-revoke.ts:revokePrintAgentPairing",
+      "type": "function",
+      "name": "revokePrintAgentPairing",
+      "filePath": "packages/shared/src/print-agent-revoke.ts",
+      "lineRange": [37, 61],
+      "summary": "作废未消费、未撤销且未过期的 print_agent_pairings 配对码，按 restaurant_id 限定租户范围。",
+      "tags": ["service", "print-agent", "pairing"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:packages/shared/src/brand.test.ts",
+      "target": "file:packages/shared/src/brand.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/shared/src/geo-order-restriction.test.ts",
+      "target": "file:packages/shared/src/geo-order-restriction.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-credential-ttl.test.ts",
+      "target": "file:packages/shared/src/print-agent-credential-ttl.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-device-active.ts",
+      "target": "file:packages/shared/src/print-agent-heartbeat.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/scripts/phase5-manual.mts",
+      "target": "function:apps/web/scripts/phase5-manual.mts:loadEnvFiles",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/scripts/phase5-manual.mts",
+      "target": "function:apps/web/scripts/phase5-manual.mts:createTestTable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/scripts/phase5-manual.mts",
+      "target": "function:apps/web/scripts/phase5-manual.mts:openSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/scripts/phase5-manual.mts",
+      "target": "function:apps/web/scripts/phase5-manual.mts:insertOrder",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/scripts/phase5-manual.mts",
+      "target": "function:apps/web/scripts/phase5-manual.mts:insertBillSplit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/scripts/phase5-manual.mts",
+      "target": "function:apps/web/scripts/phase5-manual.mts:countAbnormal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/scripts/phase5-manual.mts",
+      "target": "function:apps/web/scripts/phase5-manual.mts:countOpLog",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/scripts/phase5-manual.mts",
+      "target": "function:apps/web/scripts/phase5-manual.mts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/auth/callback/route.ts",
+      "target": "function:apps/web/src/app/auth/callback/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-auth.test.ts",
+      "target": "function:apps/web/src/lib/print-agent-auth.test.ts:mockDeviceAdmin",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/geo-order-restriction.ts",
+      "target": "function:packages/shared/src/geo-order-restriction.ts:mergeGeoOrderRestrictionFlag",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/platform-admin-audit.ts",
+      "target": "function:packages/shared/src/platform-admin-audit.ts:insertPlatformAdminAudit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-device-active.ts",
+      "target": "function:packages/shared/src/print-agent-device-active.ts:isPrintAgentDeviceActiveInDb",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-heartbeat.ts",
+      "target": "function:packages/shared/src/print-agent-heartbeat.ts:isPrintAgentDeviceActive",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-revoke.ts",
+      "target": "function:packages/shared/src/print-agent-revoke.ts:revokePrintAgentDevice",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-revoke.ts",
+      "target": "function:packages/shared/src/print-agent-revoke.ts:revokePrintAgentPairing",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/auth/callback/route.ts",
+      "target": "function:apps/web/src/app/auth/callback/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/geo-order-restriction.ts",
+      "target": "function:packages/shared/src/geo-order-restriction.ts:mergeGeoOrderRestrictionFlag",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/platform-admin-audit.ts",
+      "target": "function:packages/shared/src/platform-admin-audit.ts:insertPlatformAdminAudit",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-device-active.ts",
+      "target": "function:packages/shared/src/print-agent-device-active.ts:isPrintAgentDeviceActiveInDb",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-heartbeat.ts",
+      "target": "function:packages/shared/src/print-agent-heartbeat.ts:isPrintAgentDeviceActive",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-revoke.ts",
+      "target": "function:packages/shared/src/print-agent-revoke.ts:revokePrintAgentDevice",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-revoke.ts",
+      "target": "function:packages/shared/src/print-agent-revoke.ts:revokePrintAgentPairing",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/brand.ts",
+      "target": "file:packages/shared/src/brand.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:packages/shared/src/geo-order-restriction.ts",
+      "target": "file:packages/shared/src/geo-order-restriction.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-credential-ttl.ts",
+      "target": "file:packages/shared/src/print-agent-credential-ttl.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-device-active.ts",
+      "target": "file:apps/web/src/lib/print-agent-auth.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:packages/shared/src/print-agent-device-active.ts:isPrintAgentDeviceActiveInDb",
+      "target": "function:packages/shared/src/print-agent-heartbeat.ts:isPrintAgentDeviceActive",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "config:packages/shared/package.json",
+      "target": "file:packages/shared/src/index.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/tailwind.config.ts",
+      "target": "file:apps/web/src/app/globals.css",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/postcss.config.mjs",
+      "target": "file:apps/web/tailwind.config.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/app/globals.css",
+      "target": "file:apps/web/src/app/layout.tsx",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

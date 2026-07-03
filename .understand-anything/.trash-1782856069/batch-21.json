@@ -1,0 +1,1797 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/app/api/analytics/value-overview/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/analytics/value-overview/route.ts",
+      "summary": "Next.js API 路由 analytics/value-overview，处理 HTTP 请求与租户隔离校验。",
+      "tags": [
+        "api-handler",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/analytics/value-overview/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/analytics/value-overview/route.ts",
+      "lineRange": [
+        9,
+        47
+      ],
+      "summary": "处理 HTTP GET 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/value-analytics/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/value-analytics/page.tsx",
+      "summary": "Next.js 页面入口 dashboard/value-analytics，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/value-analytics/page.tsx:ValueAnalyticsPage",
+      "type": "function",
+      "name": "ValueAnalyticsPage",
+      "filePath": "apps/web/src/app/dashboard/value-analytics/page.tsx",
+      "lineRange": [
+        5,
+        15
+      ],
+      "summary": "React 页面/布局组件 ValueAnalyticsPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "type": "file",
+      "name": "ValueAnalyticsPageClient.tsx",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx:LoadingSkeleton",
+      "type": "function",
+      "name": "LoadingSkeleton",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "lineRange": [
+        77,
+        94
+      ],
+      "summary": "函数 LoadingSkeleton，实现 ValueAnalyticsPageClient 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx:ValueAnalyticsKpiGrid",
+      "type": "function",
+      "name": "ValueAnalyticsKpiGrid",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "lineRange": [
+        103,
+        122
+      ],
+      "summary": "函数 ValueAnalyticsKpiGrid，实现 ValueAnalyticsPageClient 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx:ValueAnalyticsPageClient",
+      "type": "function",
+      "name": "ValueAnalyticsPageClient",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "lineRange": [
+        124,
+        360
+      ],
+      "summary": "导出的 React 组件或类 ValueAnalyticsPageClient。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "type": "file",
+      "name": "ValueAnalyticsTrendChart.tsx",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:buildTrendChartPoints",
+      "type": "function",
+      "name": "buildTrendChartPoints",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "lineRange": [
+        39,
+        51
+      ],
+      "summary": "函数 buildTrendChartPoints，实现 ValueAnalyticsTrendChart 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:renderTrendTooltip",
+      "type": "function",
+      "name": "renderTrendTooltip",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "lineRange": [
+        53,
+        88
+      ],
+      "summary": "函数 renderTrendTooltip，实现 ValueAnalyticsTrendChart 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:ValueAnalyticsTrendChart",
+      "type": "function",
+      "name": "ValueAnalyticsTrendChart",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "lineRange": [
+        90,
+        131
+      ],
+      "summary": "导出的 React 组件或类 ValueAnalyticsTrendChart。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "type": "file",
+      "name": "aggregate-items.ts",
+      "filePath": "apps/web/src/lib/analytics/aggregate-items.ts",
+      "summary": "服务端/客户端共享工具库 aggregate-items.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/aggregate-items.ts:isCountableMenuLine",
+      "type": "function",
+      "name": "isCountableMenuLine",
+      "filePath": "apps/web/src/lib/analytics/aggregate-items.ts",
+      "lineRange": [
+        15,
+        20
+      ],
+      "summary": "函数 isCountableMenuLine，实现 aggregate-items 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/aggregate-items.ts:aggregateMenuItemsFromOrders",
+      "type": "function",
+      "name": "aggregateMenuItemsFromOrders",
+      "filePath": "apps/web/src/lib/analytics/aggregate-items.ts",
+      "lineRange": [
+        22,
+        52
+      ],
+      "summary": "函数 aggregateMenuItemsFromOrders，实现 aggregate-items 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/aggregate-items.ts:rankMenuItemAggs",
+      "type": "function",
+      "name": "rankMenuItemAggs",
+      "filePath": "apps/web/src/lib/analytics/aggregate-items.ts",
+      "lineRange": [
+        54,
+        63
+      ],
+      "summary": "函数 rankMenuItemAggs，实现 aggregate-items 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "type": "file",
+      "name": "analytics.rate-limit.ts",
+      "filePath": "apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "summary": "服务端/客户端共享工具库 analytics.rate-limit.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.rate-limit.ts:analyticsValueOverviewRateLimitCheck",
+      "type": "function",
+      "name": "analyticsValueOverviewRateLimitCheck",
+      "filePath": "apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "lineRange": [
+        8,
+        15
+      ],
+      "summary": "函数 analyticsValueOverviewRateLimitCheck，实现 analytics.rate-limit 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "type": "file",
+      "name": "analytics.repository.ts",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "summary": "服务端/客户端共享工具库 analytics.repository.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.repository.ts:withAnalyticsQueryTimeout",
+      "type": "function",
+      "name": "withAnalyticsQueryTimeout",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "lineRange": [
+        13,
+        28
+      ],
+      "summary": "函数 withAnalyticsQueryTimeout，实现 analytics.repository 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchClosedSessionsInWindow",
+      "type": "function",
+      "name": "fetchClosedSessionsInWindow",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "lineRange": [
+        38,
+        73
+      ],
+      "summary": "数据加载函数 fetchClosedSessionsInWindow，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBySessionIds",
+      "type": "function",
+      "name": "fetchBySessionIds",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "lineRange": [
+        75,
+        103
+      ],
+      "summary": "数据加载函数 fetchBySessionIds，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchOrdersBySessionIds",
+      "type": "function",
+      "name": "fetchOrdersBySessionIds",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "lineRange": [
+        105,
+        117
+      ],
+      "summary": "数据加载函数 fetchOrdersBySessionIds，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBillSplitsBySessionIds",
+      "type": "function",
+      "name": "fetchBillSplitsBySessionIds",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "lineRange": [
+        119,
+        131
+      ],
+      "summary": "数据加载函数 fetchBillSplitsBySessionIds，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchMenuCategoriesByItemIds",
+      "type": "function",
+      "name": "fetchMenuCategoriesByItemIds",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "lineRange": [
+        135,
+        157
+      ],
+      "summary": "数据加载函数 fetchMenuCategoriesByItemIds，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.repository.ts:groupOrdersBySession",
+      "type": "function",
+      "name": "groupOrdersBySession",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "lineRange": [
+        159,
+        168
+      ],
+      "summary": "函数 groupOrdersBySession，实现 analytics.repository 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.repository.ts:groupSplitsBySession",
+      "type": "function",
+      "name": "groupSplitsBySession",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "lineRange": [
+        170,
+        179
+      ],
+      "summary": "函数 groupSplitsBySession，实现 analytics.repository 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "type": "file",
+      "name": "analytics.service.test.ts",
+      "filePath": "apps/web/src/lib/analytics/analytics.service.test.ts",
+      "summary": "服务端/客户端共享工具库 analytics.service.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "type": "file",
+      "name": "analytics.service.ts",
+      "filePath": "apps/web/src/lib/analytics/analytics.service.ts",
+      "summary": "服务端/客户端共享工具库 analytics.service.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.service.ts:filterQualifyingSessions",
+      "type": "function",
+      "name": "filterQualifyingSessions",
+      "filePath": "apps/web/src/lib/analytics/analytics.service.ts",
+      "lineRange": [
+        32,
+        42
+      ],
+      "summary": "函数 filterQualifyingSessions，实现 analytics.service 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.service.ts:collectOrdersForSessions",
+      "type": "function",
+      "name": "collectOrdersForSessions",
+      "filePath": "apps/web/src/lib/analytics/analytics.service.ts",
+      "lineRange": [
+        44,
+        54
+      ],
+      "summary": "函数 collectOrdersForSessions，实现 analytics.service 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.service.ts:emptyOverview",
+      "type": "function",
+      "name": "emptyOverview",
+      "filePath": "apps/web/src/lib/analytics/analytics.service.ts",
+      "lineRange": [
+        56,
+        70
+      ],
+      "summary": "函数 emptyOverview，实现 analytics.service 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "type": "function",
+      "name": "getValueOverview",
+      "filePath": "apps/web/src/lib/analytics/analytics.service.ts",
+      "lineRange": [
+        72,
+        143
+      ],
+      "summary": "函数 getValueOverview，实现 analytics.service 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/analytics.types.ts",
+      "type": "file",
+      "name": "analytics.types.ts",
+      "filePath": "apps/web/src/lib/analytics/analytics.types.ts",
+      "summary": "服务端/客户端共享工具库 analytics.types.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "type": "file",
+      "name": "build-overview.ts",
+      "filePath": "apps/web/src/lib/analytics/build-overview.ts",
+      "summary": "服务端/客户端共享工具库 build-overview.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/build-overview.ts:buildRevenueTrend",
+      "type": "function",
+      "name": "buildRevenueTrend",
+      "filePath": "apps/web/src/lib/analytics/build-overview.ts",
+      "lineRange": [
+        15,
+        34
+      ],
+      "summary": "函数 buildRevenueTrend，实现 build-overview 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/build-overview.ts:buildCustomerTrend",
+      "type": "function",
+      "name": "buildCustomerTrend",
+      "filePath": "apps/web/src/lib/analytics/build-overview.ts",
+      "lineRange": [
+        36,
+        67
+      ],
+      "summary": "函数 buildCustomerTrend，实现 build-overview 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/build-overview.ts:baseItemFields",
+      "type": "function",
+      "name": "baseItemFields",
+      "filePath": "apps/web/src/lib/analytics/build-overview.ts",
+      "lineRange": [
+        79,
+        92
+      ],
+      "summary": "函数 baseItemFields，实现 build-overview 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/build-overview.ts:mapTopConsumedItems",
+      "type": "function",
+      "name": "mapTopConsumedItems",
+      "filePath": "apps/web/src/lib/analytics/build-overview.ts",
+      "lineRange": [
+        94,
+        103
+      ],
+      "summary": "函数 mapTopConsumedItems，实现 build-overview 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/build-overview.ts:mapStockReferenceItems",
+      "type": "function",
+      "name": "mapStockReferenceItems",
+      "filePath": "apps/web/src/lib/analytics/build-overview.ts",
+      "lineRange": [
+        105,
+        115
+      ],
+      "summary": "函数 mapStockReferenceItems，实现 build-overview 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/date-window.ts",
+      "type": "file",
+      "name": "date-window.ts",
+      "filePath": "apps/web/src/lib/analytics/date-window.ts",
+      "summary": "服务端/客户端共享工具库 date-window.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/date-window.ts:parseAnalyticsRange",
+      "type": "function",
+      "name": "parseAnalyticsRange",
+      "filePath": "apps/web/src/lib/analytics/date-window.ts",
+      "lineRange": [
+        9,
+        13
+      ],
+      "summary": "解析/规范化工具函数 parseAnalyticsRange。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/date-window.ts:resolveAnalyticsDateWindow",
+      "type": "function",
+      "name": "resolveAnalyticsDateWindow",
+      "filePath": "apps/web/src/lib/analytics/date-window.ts",
+      "lineRange": [
+        15,
+        33
+      ],
+      "summary": "函数 resolveAnalyticsDateWindow，实现 date-window 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "type": "file",
+      "name": "load-owner-analytics-context.ts",
+      "filePath": "apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "summary": "服务端/客户端共享工具库 load-owner-analytics-context.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/load-owner-analytics-context.ts:loadOwnerAnalyticsContext",
+      "type": "function",
+      "name": "loadOwnerAnalyticsContext",
+      "filePath": "apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "lineRange": [
+        11,
+        32
+      ],
+      "summary": "数据加载函数 loadOwnerAnalyticsContext，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "type": "file",
+      "name": "qualifying.ts",
+      "filePath": "apps/web/src/lib/analytics/qualifying.ts",
+      "summary": "服务端/客户端共享工具库 qualifying.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/qualifying.ts:isQualifyingSession",
+      "type": "function",
+      "name": "isQualifyingSession",
+      "filePath": "apps/web/src/lib/analytics/qualifying.ts",
+      "lineRange": [
+        5,
+        14
+      ],
+      "summary": "函数 isQualifyingSession，实现 qualifying 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/qualifying.ts:sessionRevenue",
+      "type": "function",
+      "name": "sessionRevenue",
+      "filePath": "apps/web/src/lib/analytics/qualifying.ts",
+      "lineRange": [
+        16,
+        38
+      ],
+      "summary": "函数 sessionRevenue，实现 qualifying 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/qualifying.ts:sessionGuestCounts",
+      "type": "function",
+      "name": "sessionGuestCounts",
+      "filePath": "apps/web/src/lib/analytics/qualifying.ts",
+      "lineRange": [
+        40,
+        46
+      ],
+      "summary": "函数 sessionGuestCounts，实现 qualifying 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "type": "file",
+      "name": "lisbon-calendar.ts",
+      "filePath": "apps/web/src/lib/lisbon-calendar.ts",
+      "summary": "服务端/客户端共享工具库 lisbon-calendar.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/lisbon-calendar.ts:calendarDateInTimezone",
+      "type": "function",
+      "name": "calendarDateInTimezone",
+      "filePath": "apps/web/src/lib/lisbon-calendar.ts",
+      "lineRange": [
+        3,
+        10
+      ],
+      "summary": "函数 calendarDateInTimezone，实现 lisbon-calendar 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/lisbon-calendar.ts:addCalendarDays",
+      "type": "function",
+      "name": "addCalendarDays",
+      "filePath": "apps/web/src/lib/lisbon-calendar.ts",
+      "lineRange": [
+        12,
+        16
+      ],
+      "summary": "函数 addCalendarDays，实现 lisbon-calendar 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/lisbon-calendar.ts:daysBetweenInclusive",
+      "type": "function",
+      "name": "daysBetweenInclusive",
+      "filePath": "apps/web/src/lib/lisbon-calendar.ts",
+      "lineRange": [
+        18,
+        24
+      ],
+      "summary": "函数 daysBetweenInclusive，实现 lisbon-calendar 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/lisbon-calendar.ts:lisbonDayStartUtcIso",
+      "type": "function",
+      "name": "lisbonDayStartUtcIso",
+      "filePath": "apps/web/src/lib/lisbon-calendar.ts",
+      "lineRange": [
+        26,
+        39
+      ],
+      "summary": "函数 lisbonDayStartUtcIso，实现 lisbon-calendar 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/lisbon-calendar.ts:buildDateKeySeries",
+      "type": "function",
+      "name": "buildDateKeySeries",
+      "filePath": "apps/web/src/lib/lisbon-calendar.ts",
+      "lineRange": [
+        41,
+        49
+      ],
+      "summary": "函数 buildDateKeySeries，实现 lisbon-calendar 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/lisbon-calendar.ts:sessionDateKeyFromIso",
+      "type": "function",
+      "name": "sessionDateKeyFromIso",
+      "filePath": "apps/web/src/lib/lisbon-calendar.ts",
+      "lineRange": [
+        51,
+        53
+      ],
+      "summary": "函数 sessionDateKeyFromIso，实现 lisbon-calendar 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/lisbon-calendar.ts:isIsoInWindow",
+      "type": "function",
+      "name": "isIsoInWindow",
+      "filePath": "apps/web/src/lib/lisbon-calendar.ts",
+      "lineRange": [
+        55,
+        57
+      ],
+      "summary": "函数 isIsoInWindow，实现 lisbon-calendar 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/app/api/analytics/value-overview/route.ts",
+      "target": "function:apps/web/src/app/api/analytics/value-overview/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/analytics/value-overview/route.ts",
+      "target": "function:apps/web/src/app/api/analytics/value-overview/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/analytics/value-overview/route.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/analytics/value-overview/route.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/analytics/value-overview/route.ts",
+      "target": "file:apps/web/src/lib/analytics/date-window.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/analytics/value-overview/route.ts",
+      "target": "file:apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/value-analytics/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/value-analytics/page.tsx:ValueAnalyticsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/value-analytics/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/value-analytics/page.tsx:ValueAnalyticsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/value-analytics/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/value-analytics/page.tsx",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx:LoadingSkeleton",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx:ValueAnalyticsKpiGrid",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx:ValueAnalyticsPageClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx:ValueAnalyticsPageClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "file:apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "file:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "file:apps/web/src/lib/analytics/analytics.types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:buildTrendChartPoints",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:buildTrendChartPoints",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:renderTrendTooltip",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:ValueAnalyticsTrendChart",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:ValueAnalyticsTrendChart",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:ValueAnalyticsTrendChart",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:renderTrendTooltip",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "function:apps/web/src/lib/analytics/aggregate-items.ts:isCountableMenuLine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "function:apps/web/src/lib/analytics/aggregate-items.ts:isCountableMenuLine",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "function:apps/web/src/lib/analytics/aggregate-items.ts:aggregateMenuItemsFromOrders",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "function:apps/web/src/lib/analytics/aggregate-items.ts:aggregateMenuItemsFromOrders",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "function:apps/web/src/lib/analytics/aggregate-items.ts:rankMenuItemAggs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "function:apps/web/src/lib/analytics/aggregate-items.ts:rankMenuItemAggs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "file:apps/web/src/lib/audit/money.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "file:apps/web/src/lib/order-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "file:apps/web/src/lib/order-status.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/aggregate-items.ts:aggregateMenuItemsFromOrders",
+      "target": "function:apps/web/src/lib/analytics/aggregate-items.ts:isCountableMenuLine",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.rate-limit.ts:analyticsValueOverviewRateLimitCheck",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.rate-limit.ts:analyticsValueOverviewRateLimitCheck",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "target": "file:apps/web/src/lib/in-memory-rate-limit.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:withAnalyticsQueryTimeout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:withAnalyticsQueryTimeout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchClosedSessionsInWindow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchClosedSessionsInWindow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBySessionIds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchOrdersBySessionIds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchOrdersBySessionIds",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBillSplitsBySessionIds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBillSplitsBySessionIds",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchMenuCategoriesByItemIds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchMenuCategoriesByItemIds",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:groupOrdersBySession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:groupOrdersBySession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:groupSplitsBySession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:groupSplitsBySession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchClosedSessionsInWindow",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:withAnalyticsQueryTimeout",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBySessionIds",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:withAnalyticsQueryTimeout",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchOrdersBySessionIds",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBySessionIds",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBillSplitsBySessionIds",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBySessionIds",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "target": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "target": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "target": "file:apps/web/src/lib/analytics/date-window.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "target": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.service.ts:filterQualifyingSessions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.service.ts:collectOrdersForSessions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.service.ts:emptyOverview",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "file:apps/web/src/lib/analytics/date-window.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "target": "function:apps/web/src/lib/analytics/analytics.service.ts:emptyOverview",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "target": "function:apps/web/src/lib/analytics/analytics.service.ts:filterQualifyingSessions",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "target": "function:apps/web/src/lib/analytics/analytics.service.ts:collectOrdersForSessions",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "target": "function:apps/web/src/lib/analytics/analytics.service.ts:collectOrdersForSessions",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:buildRevenueTrend",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:buildRevenueTrend",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:buildCustomerTrend",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:buildCustomerTrend",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:baseItemFields",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:mapTopConsumedItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:mapTopConsumedItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:mapStockReferenceItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:mapStockReferenceItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "file:apps/web/src/lib/audit/money.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/build-overview.ts:mapTopConsumedItems",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:baseItemFields",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/build-overview.ts:mapStockReferenceItems",
+      "target": "function:apps/web/src/lib/analytics/build-overview.ts:baseItemFields",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/date-window.ts",
+      "target": "function:apps/web/src/lib/analytics/date-window.ts:parseAnalyticsRange",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/date-window.ts",
+      "target": "function:apps/web/src/lib/analytics/date-window.ts:parseAnalyticsRange",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/date-window.ts",
+      "target": "function:apps/web/src/lib/analytics/date-window.ts:resolveAnalyticsDateWindow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/date-window.ts",
+      "target": "function:apps/web/src/lib/analytics/date-window.ts:resolveAnalyticsDateWindow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/date-window.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/date-window.ts",
+      "target": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "target": "function:apps/web/src/lib/analytics/load-owner-analytics-context.ts:loadOwnerAnalyticsContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "target": "function:apps/web/src/lib/analytics/load-owner-analytics-context.ts:loadOwnerAnalyticsContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "function:apps/web/src/lib/analytics/qualifying.ts:isQualifyingSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "function:apps/web/src/lib/analytics/qualifying.ts:isQualifyingSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "function:apps/web/src/lib/analytics/qualifying.ts:sessionRevenue",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "function:apps/web/src/lib/analytics/qualifying.ts:sessionRevenue",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "function:apps/web/src/lib/analytics/qualifying.ts:sessionGuestCounts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "function:apps/web/src/lib/analytics/qualifying.ts:sessionGuestCounts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "file:apps/web/src/lib/audit/money.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "file:apps/web/src/lib/buffet-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:calendarDateInTimezone",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:calendarDateInTimezone",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:addCalendarDays",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:addCalendarDays",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:daysBetweenInclusive",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:daysBetweenInclusive",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:lisbonDayStartUtcIso",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:lisbonDayStartUtcIso",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:buildDateKeySeries",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:buildDateKeySeries",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:sessionDateKeyFromIso",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:sessionDateKeyFromIso",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:isIsoInWindow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:isIsoInWindow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "target": "file:apps/web/src/lib/format-dashboard-date.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/lisbon-calendar.ts:lisbonDayStartUtcIso",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:calendarDateInTimezone",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/lisbon-calendar.ts:buildDateKeySeries",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:addCalendarDays",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/lisbon-calendar.ts:sessionDateKeyFromIso",
+      "target": "function:apps/web/src/lib/lisbon-calendar.ts:calendarDateInTimezone",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

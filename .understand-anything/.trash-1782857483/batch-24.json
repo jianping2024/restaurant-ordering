@@ -1,0 +1,62 @@
+{
+  "nodes": [
+    {
+      "id": "service:apps/print-agent/dev/fake-printer/Dockerfile",
+      "type": "service",
+      "name": "Dockerfile",
+      "filePath": "apps/print-agent/dev/fake-printer/Dockerfile",
+      "summary": "多阶段 Docker 构建配置，将 fake-printer Go 程序编译为最小 Alpine 镜像，在 9100 端口模拟 ESC/POS 打印机供本地 print-agent 开发测试。",
+      "tags": ["containerization", "infrastructure", "print-agent", "development"],
+      "complexity": "simple",
+      "languageNotes": "采用 golang:1.22-alpine 构建阶段与 alpine:3.20 运行时阶段，减小最终镜像体积。"
+    },
+    {
+      "id": "service:apps/print-agent/dev/fake-printer/Dockerfile:build",
+      "type": "service",
+      "name": "build",
+      "filePath": "apps/print-agent/dev/fake-printer/Dockerfile",
+      "summary": "基于 golang:1.22-alpine 的构建阶段，复制 go.mod 与 main.go 并编译生成 fake-printer 二进制。",
+      "tags": ["containerization", "build-system", "go", "multi-stage"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:apps/print-agent/dev/fake-printer/Dockerfile:alpine",
+      "type": "service",
+      "name": "alpine",
+      "filePath": "apps/print-agent/dev/fake-printer/Dockerfile",
+      "summary": "基于 alpine:3.20 的运行时阶段，安装 ca-certificates，暴露 9100 端口并以 fake-printer 为入口启动模拟打印机服务。",
+      "tags": ["containerization", "runtime", "esc-pos", "development"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "service:apps/print-agent/dev/fake-printer/Dockerfile",
+      "target": "service:apps/print-agent/dev/fake-printer/Dockerfile:build",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "service:apps/print-agent/dev/fake-printer/Dockerfile",
+      "target": "service:apps/print-agent/dev/fake-printer/Dockerfile:alpine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "service:apps/print-agent/dev/fake-printer/Dockerfile",
+      "target": "file:apps/print-agent/dev/fake-printer/main.go",
+      "type": "deploys",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "service:apps/print-agent/dev/fake-printer/Dockerfile:alpine",
+      "target": "service:apps/print-agent/dev/fake-printer/Dockerfile:build",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

@@ -1,0 +1,1125 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "type": "file",
+      "name": "BuffetSettingsGuide.tsx",
+      "filePath": "apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "summary": "自助餐设置页帮助说明，复用 SettingsPageHelp 展示操作指引。",
+      "tags": [
+        "component",
+        "dashboard",
+        "settings",
+        "documentation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx:BuffetSettingsGuide",
+      "type": "function",
+      "name": "BuffetSettingsGuide",
+      "filePath": "apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "lineRange": [
+        7,
+        23
+      ],
+      "summary": "渲染自助餐相关设置的帮助 Markdown 区块。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "type": "file",
+      "name": "SettingsTabs.tsx",
+      "filePath": "apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "summary": "仪表盘设置子页 Tab 导航，根据 settings-nav 配置高亮当前项。",
+      "tags": [
+        "component",
+        "dashboard",
+        "settings",
+        "navigation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/settings/SettingsTabs.tsx:SettingsTabs",
+      "type": "function",
+      "name": "SettingsTabs",
+      "filePath": "apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "lineRange": [
+        17,
+        47
+      ],
+      "summary": "映射 SETTINGS_NAV_TABS 渲染设置页水平 Tab 链接。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "type": "file",
+      "name": "KitchenDisplay.tsx",
+      "filePath": "apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "summary": "厨房看板主界面，实时刷新订单卡片、处理出餐/作废并播放结账提醒音。",
+      "tags": [
+        "component",
+        "kitchen",
+        "staff-board",
+        "realtime"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplay",
+      "type": "function",
+      "name": "KitchenDisplay",
+      "filePath": "apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "lineRange": [
+        62,
+        72
+      ],
+      "summary": "导出包装组件，注入 StaffAuthenticatedShell 与初始 props。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplayInner",
+      "type": "function",
+      "name": "KitchenDisplayInner",
+      "filePath": "apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "lineRange": [
+        74,
+        378
+      ],
+      "summary": "核心厨房逻辑：Realtime 刷新、订单分组、状态流转与作废对话框。",
+      "tags": [
+        "component",
+        "react",
+        "internal"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:OpenTablePlaceholder",
+      "type": "function",
+      "name": "OpenTablePlaceholder",
+      "filePath": "apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "lineRange": [
+        380,
+        400
+      ],
+      "summary": "无开放桌台时的空状态占位 UI。",
+      "tags": [
+        "component",
+        "react",
+        "internal"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:OrderCard",
+      "type": "function",
+      "name": "OrderCard",
+      "filePath": "apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "lineRange": [
+        403,
+        587
+      ],
+      "summary": "单张厨房订单卡片，含明细行、出餐/作废操作与状态 chip。",
+      "tags": [
+        "component",
+        "react",
+        "internal"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "file",
+      "name": "LanguageProvider.tsx",
+      "filePath": "apps/web/src/components/providers/LanguageProvider.tsx",
+      "summary": "React 语言 Context Provider，管理 UI 语言状态并暴露 useLanguage hook。",
+      "tags": [
+        "provider",
+        "i18n",
+        "context",
+        "hook"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "React Context Provider 模式，配合自定义 hook 暴露状态。"
+    },
+    {
+      "id": "function:apps/web/src/components/providers/LanguageProvider.tsx:LanguageProvider",
+      "type": "function",
+      "name": "LanguageProvider",
+      "filePath": "apps/web/src/components/providers/LanguageProvider.tsx",
+      "lineRange": [
+        23,
+        60
+      ],
+      "summary": "提供 lang/setLang 上下文并在 mount 时同步 cookie。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/providers/LanguageProvider.tsx:useLanguage",
+      "type": "function",
+      "name": "useLanguage",
+      "filePath": "apps/web/src/components/providers/LanguageProvider.tsx",
+      "lineRange": [
+        62,
+        64
+      ],
+      "summary": "消费 LanguageContext 的 hook，未包裹时抛错。",
+      "tags": [
+        "hook",
+        "react",
+        "context"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/providers/ThemeProvider.tsx",
+      "type": "file",
+      "name": "ThemeProvider.tsx",
+      "filePath": "apps/web/src/components/providers/ThemeProvider.tsx",
+      "summary": "React 主题 Context Provider，在 light/dark 间切换并持久化到 localStorage。",
+      "tags": [
+        "provider",
+        "theme",
+        "context",
+        "hook"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "React Context Provider 模式，配合自定义 hook 暴露状态。"
+    },
+    {
+      "id": "function:apps/web/src/components/providers/ThemeProvider.tsx:ThemeProvider",
+      "type": "function",
+      "name": "ThemeProvider",
+      "filePath": "apps/web/src/components/providers/ThemeProvider.tsx",
+      "lineRange": [
+        26,
+        66
+      ],
+      "summary": "监听系统偏好、应用 data-theme 并暴露 toggle 方法。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/providers/ThemeProvider.tsx:useThemeMode",
+      "type": "function",
+      "name": "useThemeMode",
+      "filePath": "apps/web/src/components/providers/ThemeProvider.tsx",
+      "lineRange": [
+        68,
+        70
+      ],
+      "summary": "读取当前 theme 与 setTheme/toggle 的 hook。",
+      "tags": [
+        "hook",
+        "react",
+        "context"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "type": "file",
+      "name": "StaffAuthenticatedShell.tsx",
+      "filePath": "apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "summary": "员工端认证外壳布局，注入角色、退出文案与 StaffShellContext。",
+      "tags": [
+        "component",
+        "staff",
+        "layout",
+        "authentication"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/staff/StaffAuthenticatedShell.tsx:StaffAuthenticatedShell",
+      "type": "function",
+      "name": "StaffAuthenticatedShell",
+      "filePath": "apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "lineRange": [
+        35,
+        92
+      ],
+      "summary": "渲染员工页 shell、context 与退出/改密入口。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "type": "file",
+      "name": "StaffLoginForm.tsx",
+      "filePath": "apps/web/src/components/staff/StaffLoginForm.tsx",
+      "summary": "员工登录表单，校验登录名、组合邮箱并调用 Supabase 认证。",
+      "tags": [
+        "component",
+        "staff",
+        "authentication",
+        "form"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/staff/StaffLoginForm.tsx:StaffLoginForm",
+      "type": "function",
+      "name": "StaffLoginForm",
+      "filePath": "apps/web/src/components/staff/StaffLoginForm.tsx",
+      "lineRange": [
+        21,
+        149
+      ],
+      "summary": "处理员工凭据输入、校验与 signInWithPassword 流程。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "type": "file",
+      "name": "StaffRoleToolbar.tsx",
+      "filePath": "apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "summary": "员工角色顶栏工具条，含语言切换与带确认的安全退出。",
+      "tags": [
+        "component",
+        "staff",
+        "toolbar",
+        "navigation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/staff/StaffRoleToolbar.tsx:StaffRoleToolbar",
+      "type": "function",
+      "name": "StaffRoleToolbar",
+      "filePath": "apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "lineRange": [
+        18,
+        57
+      ],
+      "summary": "顶栏展示角色标签、语言切换与退出确认模态。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "type": "file",
+      "name": "LanguageSwitcher.tsx",
+      "filePath": "apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "summary": "UI 语言切换下拉组件，读写 LanguageProvider 与 i18n cookie。",
+      "tags": [
+        "component",
+        "ui",
+        "i18n",
+        "form-control"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/ui/LanguageSwitcher.tsx:LanguageSwitcher",
+      "type": "function",
+      "name": "LanguageSwitcher",
+      "filePath": "apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "lineRange": [
+        18,
+        145
+      ],
+      "summary": "下拉选择支持语言并调用 setClientLanguage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/ui/ProductLogo.tsx",
+      "type": "file",
+      "name": "ProductLogo.tsx",
+      "filePath": "apps/web/src/components/ui/ProductLogo.tsx",
+      "summary": "产品 Logo SVG 组件，支持尺寸与 className 定制。",
+      "tags": [
+        "component",
+        "ui",
+        "branding",
+        "svg"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/ui/ProductLogo.tsx:ProductLogo",
+      "type": "function",
+      "name": "ProductLogo",
+      "filePath": "apps/web/src/components/ui/ProductLogo.tsx",
+      "lineRange": [
+        16,
+        30
+      ],
+      "summary": "渲染品牌 SVG logo，默认 aria-hidden。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/ui/ThemeToggle.tsx",
+      "type": "file",
+      "name": "ThemeToggle.tsx",
+      "filePath": "apps/web/src/components/ui/ThemeToggle.tsx",
+      "summary": "明暗主题切换按钮，调用 ThemeProvider 的 useThemeMode。",
+      "tags": [
+        "component",
+        "ui",
+        "theme",
+        "button"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/ui/ThemeToggle.tsx:ThemeToggle",
+      "type": "function",
+      "name": "ThemeToggle",
+      "filePath": "apps/web/src/components/ui/ThemeToggle.tsx",
+      "lineRange": [
+        5,
+        20
+      ],
+      "summary": "图标按钮切换 light/dark 主题模式。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "type": "file",
+      "name": "WaiterTableDetailHeader.tsx",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "summary": "服务员桌台详情页顶栏，展示桌号、时长与 StaffRoleToolbar。",
+      "tags": [
+        "component",
+        "waiter",
+        "header",
+        "toolbar"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx:WaiterTableDetailHeader",
+      "type": "function",
+      "name": "WaiterTableDetailHeader",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "lineRange": [
+        17,
+        53
+      ],
+      "summary": "桌台详情标题行：桌名、计时、操作图标与工具栏。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "target": "function:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx:BuffetSettingsGuide",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "target": "function:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx:BuffetSettingsGuide",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "target": "file:apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "target": "function:apps/web/src/components/dashboard/settings/SettingsTabs.tsx:SettingsTabs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "target": "function:apps/web/src/components/dashboard/settings/SettingsTabs.tsx:SettingsTabs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "target": "file:apps/web/src/lib/settings-nav.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplay",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplay",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplayInner",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:OpenTablePlaceholder",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:OrderCard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/checkout-notification-sound.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/order-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/order-status.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/staff-board-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/use-restaurant-realtime-refresh.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "target": "function:apps/web/src/components/providers/LanguageProvider.tsx:LanguageProvider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "target": "function:apps/web/src/components/providers/LanguageProvider.tsx:LanguageProvider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "target": "function:apps/web/src/components/providers/LanguageProvider.tsx:useLanguage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "target": "function:apps/web/src/components/providers/LanguageProvider.tsx:useLanguage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/providers/ThemeProvider.tsx",
+      "target": "function:apps/web/src/components/providers/ThemeProvider.tsx:ThemeProvider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/providers/ThemeProvider.tsx",
+      "target": "function:apps/web/src/components/providers/ThemeProvider.tsx:ThemeProvider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/providers/ThemeProvider.tsx",
+      "target": "function:apps/web/src/components/providers/ThemeProvider.tsx:useThemeMode",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/providers/ThemeProvider.tsx",
+      "target": "function:apps/web/src/components/providers/ThemeProvider.tsx:useThemeMode",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "target": "function:apps/web/src/components/staff/StaffAuthenticatedShell.tsx:StaffAuthenticatedShell",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "target": "function:apps/web/src/components/staff/StaffAuthenticatedShell.tsx:StaffAuthenticatedShell",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "target": "file:apps/web/src/components/waiter/waiter-messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "target": "file:apps/web/src/lib/staff-auth-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "target": "function:apps/web/src/components/staff/StaffLoginForm.tsx:StaffLoginForm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "target": "function:apps/web/src/components/staff/StaffLoginForm.tsx:StaffLoginForm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "target": "file:apps/web/src/components/ui/Input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "target": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "target": "function:apps/web/src/components/staff/StaffRoleToolbar.tsx:StaffRoleToolbar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "target": "function:apps/web/src/components/staff/StaffRoleToolbar.tsx:StaffRoleToolbar",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "target": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "target": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "target": "function:apps/web/src/components/ui/LanguageSwitcher.tsx:LanguageSwitcher",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "target": "function:apps/web/src/components/ui/LanguageSwitcher.tsx:LanguageSwitcher",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/ui/ProductLogo.tsx",
+      "target": "function:apps/web/src/components/ui/ProductLogo.tsx:ProductLogo",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/ui/ProductLogo.tsx",
+      "target": "function:apps/web/src/components/ui/ProductLogo.tsx:ProductLogo",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui/ThemeToggle.tsx",
+      "target": "function:apps/web/src/components/ui/ThemeToggle.tsx:ThemeToggle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/ui/ThemeToggle.tsx",
+      "target": "function:apps/web/src/components/ui/ThemeToggle.tsx:ThemeToggle",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui/ThemeToggle.tsx",
+      "target": "file:apps/web/src/components/providers/ThemeProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx:WaiterTableDetailHeader",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx:WaiterTableDetailHeader",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "target": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "target": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "target": "file:apps/web/src/components/waiter/waiter-ui.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplay",
+      "target": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplayInner",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplayInner",
+      "target": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:OrderCard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplayInner",
+      "target": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:OpenTablePlaceholder",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplayInner",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:fetchKitchenBoardClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplayInner",
+      "target": "function:apps/web/src/lib/use-restaurant-realtime-refresh.ts:useRestaurantRealtimeRefresh",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplayInner",
+      "target": "function:apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx:VoidItemReasonDialog",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplay",
+      "target": "function:apps/web/src/components/staff/StaffAuthenticatedShell.tsx:StaffAuthenticatedShell",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplayInner",
+      "target": "function:apps/web/src/components/staff/StaffRoleToolbar.tsx:StaffRoleToolbar",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/providers/LanguageProvider.tsx:LanguageProvider",
+      "target": "function:apps/web/src/lib/i18n.ts:setClientLanguage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/providers/LanguageProvider.tsx:LanguageProvider",
+      "target": "function:apps/web/src/lib/i18n.ts:getClientLanguage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/staff/StaffAuthenticatedShell.tsx:StaffAuthenticatedShell",
+      "target": "function:apps/web/src/lib/staff-auth-client.ts:resolveStaffSession",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/staff/StaffLoginForm.tsx:StaffLoginForm",
+      "target": "function:apps/web/src/lib/staff-account.ts:composeStaffEmail",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/staff/StaffRoleToolbar.tsx:StaffRoleToolbar",
+      "target": "function:apps/web/src/lib/auth/sign-out-confirm.tsx:useSignOutConfirmState",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/ui/LanguageSwitcher.tsx:LanguageSwitcher",
+      "target": "function:apps/web/src/components/providers/LanguageProvider.tsx:useLanguage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/ui/ThemeToggle.tsx:ThemeToggle",
+      "target": "function:apps/web/src/components/providers/ThemeProvider.tsx:useThemeMode",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx:WaiterTableDetailHeader",
+      "target": "function:apps/web/src/components/staff/StaffRoleToolbar.tsx:StaffRoleToolbar",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/dashboard/settings/SettingsTabs.tsx:SettingsTabs",
+      "target": "function:apps/web/src/lib/settings-nav.ts:getActiveSettingsNavItem",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/ui/ThemeToggle.tsx",
+      "target": "file:apps/web/src/components/providers/ThemeProvider.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "target": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "target": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

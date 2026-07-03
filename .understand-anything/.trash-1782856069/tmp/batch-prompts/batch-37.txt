@@ -1,0 +1,46 @@
+Analyze these files and produce GraphNode and GraphEdge objects.
+Project root: `/Users/chenjianping/Documents/restaurant-ordering`
+Project: `undefined` — undefined
+Languages: ["config","css","dockerfile","go","html","iss","javascript","json","markdown","mod","mts","powershell","python","shell","sql","sum","txt","typescript","unknown","yaml"]
+Batch: `37/38`
+Skill directory: `/Users/chenjianping/.cursor/plugins/cache/understand-anything/understand-anything/54754a6f97051d1d76c8758353d8ea41afe502a6/skills/understand`
+Output: `/Users/chenjianping/Documents/restaurant-ordering/.understand-anything/intermediate/batch-37.json`
+
+Pre-resolved import data:
+```json
+{"apps/print-agent/wizard_url_hook.go":[],"apps/web/next.config.mjs":[],"apps/web/postcss.config.mjs":[],"apps/web/scripts/phase5-manual.mts":[],"apps/web/src/app/auth/callback/route.ts":[],"apps/web/src/app/dashboard/buffet/page.tsx":[],"apps/web/src/app/dashboard/settings/menu/page.tsx":[],"apps/web/src/app/dashboard/settings/print-stations/page.tsx":[],"apps/web/src/app/dashboard/settings/tables/page.tsx":[],"apps/web/src/app/globals.css":[],"apps/web/src/lib/print-agent-auth.test.ts":[],"apps/web/src/lib/restaurant-suspension.test.ts":[],"apps/web/tailwind.config.ts":[],"packages/shared/package.json":[],"packages/shared/src/brand.test.ts":["packages/shared/src/brand.ts"],"packages/shared/src/brand.ts":[],"packages/shared/src/geo-order-restriction.test.ts":["packages/shared/src/geo-order-restriction.ts"],"packages/shared/src/geo-order-restriction.ts":[],"packages/shared/src/index.ts":[],"packages/shared/src/platform-admin-audit.ts":[],"packages/shared/src/print-agent-credential-ttl.test.ts":["packages/shared/src/print-agent-credential-ttl.ts"],"packages/shared/src/print-agent-credential-ttl.ts":[],"packages/shared/src/print-agent-device-active.ts":["packages/shared/src/print-agent-heartbeat.ts"],"packages/shared/src/print-agent-heartbeat.ts":[],"packages/shared/src/print-agent-revoke.ts":[]}
+```
+
+Cross-batch neighbors:
+```json
+{"apps/web/src/app/globals.css":[{"path":"apps/web/src/app/layout.tsx","batchIndex":19,"symbols":["metadata","RootLayout"]}]}
+```
+
+Files:
+1. `apps/print-agent/wizard_url_hook.go` (4 lines, language: `go`, fileCategory: `code`)
+2. `apps/web/next.config.mjs` (42 lines, language: `javascript`, fileCategory: `code`)
+3. `apps/web/postcss.config.mjs` (8 lines, language: `javascript`, fileCategory: `code`)
+4. `apps/web/scripts/phase5-manual.mts` (559 lines, language: `mts`, fileCategory: `code`)
+5. `apps/web/src/app/auth/callback/route.ts` (40 lines, language: `typescript`, fileCategory: `code`)
+6. `apps/web/src/app/dashboard/buffet/page.tsx` (5 lines, language: `typescript`, fileCategory: `code`)
+7. `apps/web/src/app/dashboard/settings/menu/page.tsx` (5 lines, language: `typescript`, fileCategory: `code`)
+8. `apps/web/src/app/dashboard/settings/print-stations/page.tsx` (6 lines, language: `typescript`, fileCategory: `code`)
+9. `apps/web/src/app/dashboard/settings/tables/page.tsx` (5 lines, language: `typescript`, fileCategory: `code`)
+10. `apps/web/src/app/globals.css` (280 lines, language: `css`, fileCategory: `markup`)
+11. `apps/web/src/lib/print-agent-auth.test.ts` (64 lines, language: `typescript`, fileCategory: `code`)
+12. `apps/web/src/lib/restaurant-suspension.test.ts` (15 lines, language: `typescript`, fileCategory: `code`)
+13. `apps/web/tailwind.config.ts` (41 lines, language: `typescript`, fileCategory: `code`)
+14. `packages/shared/package.json` (16 lines, language: `json`, fileCategory: `config`)
+15. `packages/shared/src/brand.test.ts` (26 lines, language: `typescript`, fileCategory: `code`)
+16. `packages/shared/src/brand.ts` (21 lines, language: `typescript`, fileCategory: `code`)
+17. `packages/shared/src/geo-order-restriction.test.ts` (105 lines, language: `typescript`, fileCategory: `code`)
+18. `packages/shared/src/geo-order-restriction.ts` (74 lines, language: `typescript`, fileCategory: `code`)
+19. `packages/shared/src/index.ts` (90 lines, language: `typescript`, fileCategory: `code`)
+20. `packages/shared/src/platform-admin-audit.ts` (27 lines, language: `typescript`, fileCategory: `code`)
+21. `packages/shared/src/print-agent-credential-ttl.test.ts` (36 lines, language: `typescript`, fileCategory: `code`)
+22. `packages/shared/src/print-agent-credential-ttl.ts` (38 lines, language: `typescript`, fileCategory: `code`)
+23. `packages/shared/src/print-agent-device-active.ts` (19 lines, language: `typescript`, fileCategory: `code`)
+24. `packages/shared/src/print-agent-heartbeat.ts` (24 lines, language: `typescript`, fileCategory: `code`)
+25. `packages/shared/src/print-agent-revoke.ts` (61 lines, language: `typescript`, fileCategory: `code`)
+
+> **Language directive**: Generate all textual content in **zh** (Chinese). Keep technical terms in English when no standard translation exists.

@@ -1,0 +1,992 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/app/api/analytics/value-overview/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/analytics/value-overview/route.ts",
+      "summary": "价值分析概览 API 路由，校验店主权限与速率限制后按日期范围返回营收与客户趋势数据。",
+      "tags": [
+        "api-handler",
+        "analytics",
+        "rate-limit",
+        "owner-auth"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/value-analytics/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/value-analytics/page.tsx",
+      "summary": "价值分析仪表盘服务端页面，加载 dashboard 访问权限后渲染客户端分析组件。",
+      "tags": [
+        "component",
+        "dashboard",
+        "server-component",
+        "access-control"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "type": "file",
+      "name": "ValueAnalyticsPageClient.tsx",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "summary": "价值分析仪表盘主客户端组件，管理日期预设、拉取 API 数据并展示 KPI、趋势图与热销排行。",
+      "tags": [
+        "component",
+        "dashboard",
+        "analytics",
+        "client-side",
+        "i18n"
+      ],
+      "complexity": "complex",
+      "languageNotes": "React 客户端组件，使用 useMemo/useCallback 优化趋势数据与 KPI 计算。"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "type": "file",
+      "name": "ValueAnalyticsTrendChart.tsx",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "summary": "基于 Recharts 的价值分析趋势折线图组件，含数据点构建与自定义 tooltip 渲染。",
+      "tags": [
+        "component",
+        "chart",
+        "analytics",
+        "visualization"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "type": "file",
+      "name": "aggregate-items.ts",
+      "filePath": "apps/web/src/lib/analytics/aggregate-items.ts",
+      "summary": "从订单明细聚合菜品消费数量与金额，过滤自助餐基线项与作废行后生成排行数据。",
+      "tags": [
+        "utility",
+        "analytics",
+        "aggregation",
+        "menu-items"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "type": "file",
+      "name": "analytics.rate-limit.ts",
+      "filePath": "apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "summary": "价值分析 API 的内存速率限制封装，按店主与餐厅维度限流。",
+      "tags": [
+        "middleware",
+        "rate-limit",
+        "analytics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "type": "file",
+      "name": "analytics.repository.ts",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "summary": "分析数据仓储层，分批查询已关闭桌台会话、订单、分账与菜单分类，含查询超时保护。",
+      "tags": [
+        "service",
+        "repository",
+        "supabase",
+        "analytics"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "type": "file",
+      "name": "analytics.service.test.ts",
+      "filePath": "apps/web/src/lib/analytics/analytics.service.test.ts",
+      "summary": "分析服务单元测试，覆盖日期窗口解析、会话资格判定、营收趋势与菜品聚合逻辑。",
+      "tags": [
+        "test",
+        "analytics",
+        "unit-test"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/app/api/analytics/value-overview/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/analytics/value-overview/route.ts",
+      "lineRange": [
+        9,
+        47
+      ],
+      "summary": "处理 GET 请求：鉴权、限流、解析范围并返回价值概览 JSON。",
+      "tags": [
+        "api-handler",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/value-analytics/page.tsx:ValueAnalyticsPage",
+      "type": "function",
+      "name": "ValueAnalyticsPage",
+      "filePath": "apps/web/src/app/dashboard/value-analytics/page.tsx",
+      "lineRange": [
+        5,
+        15
+      ],
+      "summary": "服务端页面组件，校验店主权限后渲染 ValueAnalyticsPageClient。",
+      "tags": [
+        "component",
+        "server-component"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx:LoadingSkeleton",
+      "type": "function",
+      "name": "LoadingSkeleton",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "lineRange": [
+        77,
+        94
+      ],
+      "summary": "加载中骨架屏，占位 KPI 与图表区域。",
+      "tags": [
+        "component",
+        "loading"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx:ValueAnalyticsKpiGrid",
+      "type": "function",
+      "name": "ValueAnalyticsKpiGrid",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "lineRange": [
+        103,
+        122
+      ],
+      "summary": "渲染 KPI 指标网格卡片。",
+      "tags": [
+        "component",
+        "kpi"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx:ValueAnalyticsPageClient",
+      "type": "function",
+      "name": "ValueAnalyticsPageClient",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "lineRange": [
+        124,
+        360
+      ],
+      "summary": "主客户端组件：日期预设切换、API 拉取、空态/错误态与完整分析 UI。",
+      "tags": [
+        "component",
+        "analytics",
+        "hook"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:buildTrendChartPoints",
+      "type": "function",
+      "name": "buildTrendChartPoints",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "lineRange": [
+        39,
+        51
+      ],
+      "summary": "将趋势行映射为 Recharts 数据点，含日期标签与客人数。",
+      "tags": [
+        "utility",
+        "chart"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:renderTrendTooltip",
+      "type": "function",
+      "name": "renderTrendTooltip",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "lineRange": [
+        53,
+        88
+      ],
+      "summary": "自定义趋势图 tooltip，展示日期、营收/客数与客单价。",
+      "tags": [
+        "component",
+        "chart"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:ValueAnalyticsTrendChart",
+      "type": "function",
+      "name": "ValueAnalyticsTrendChart",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "lineRange": [
+        90,
+        131
+      ],
+      "summary": "Recharts 折线图组件，支持营收与客户两种 variant。",
+      "tags": [
+        "component",
+        "chart"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/aggregate-items.ts:isCountableMenuLine",
+      "type": "function",
+      "name": "isCountableMenuLine",
+      "filePath": "apps/web/src/lib/analytics/aggregate-items.ts",
+      "lineRange": [
+        15,
+        20
+      ],
+      "summary": "判断订单行是否应计入菜品消费统计。",
+      "tags": [
+        "utility",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/aggregate-items.ts:aggregateMenuItemsFromOrders",
+      "type": "function",
+      "name": "aggregateMenuItemsFromOrders",
+      "filePath": "apps/web/src/lib/analytics/aggregate-items.ts",
+      "lineRange": [
+        22,
+        52
+      ],
+      "summary": "遍历订单聚合菜品消费数量与金额到 Map。",
+      "tags": [
+        "utility",
+        "aggregation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/aggregate-items.ts:rankMenuItemAggs",
+      "type": "function",
+      "name": "rankMenuItemAggs",
+      "filePath": "apps/web/src/lib/analytics/aggregate-items.ts",
+      "lineRange": [
+        54,
+        63
+      ],
+      "summary": "按消费数量与金额排序并截取 Top N 菜品。",
+      "tags": [
+        "utility",
+        "ranking"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.rate-limit.ts:analyticsValueOverviewRateLimitCheck",
+      "type": "function",
+      "name": "analyticsValueOverviewRateLimitCheck",
+      "filePath": "apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "lineRange": [
+        8,
+        15
+      ],
+      "summary": "检查价值概览 API 是否超出内存速率限制。",
+      "tags": [
+        "rate-limit",
+        "middleware"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.repository.ts:withAnalyticsQueryTimeout",
+      "type": "function",
+      "name": "withAnalyticsQueryTimeout",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "lineRange": [
+        13,
+        28
+      ],
+      "summary": "为 Supabase 查询添加超时竞态保护。",
+      "tags": [
+        "utility",
+        "timeout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchClosedSessionsInWindow",
+      "type": "function",
+      "name": "fetchClosedSessionsInWindow",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "lineRange": [
+        38,
+        73
+      ],
+      "summary": "查询时间窗口内已关闭的桌台会话。",
+      "tags": [
+        "repository",
+        "supabase"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBySessionIds",
+      "type": "function",
+      "name": "fetchBySessionIds",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "lineRange": [
+        75,
+        103
+      ],
+      "summary": "通用分批按 session ID 查询指定表。",
+      "tags": [
+        "repository",
+        "supabase"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchOrdersBySessionIds",
+      "type": "function",
+      "name": "fetchOrdersBySessionIds",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "lineRange": [
+        105,
+        117
+      ],
+      "summary": "按会话 ID 批量获取订单。",
+      "tags": [
+        "repository",
+        "supabase"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBillSplitsBySessionIds",
+      "type": "function",
+      "name": "fetchBillSplitsBySessionIds",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "lineRange": [
+        119,
+        131
+      ],
+      "summary": "按会话 ID 批量获取分账记录。",
+      "tags": [
+        "repository",
+        "supabase"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchMenuCategoriesByItemIds",
+      "type": "function",
+      "name": "fetchMenuCategoriesByItemIds",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "lineRange": [
+        135,
+        157
+      ],
+      "summary": "按菜品 ID 批量获取多语言分类信息。",
+      "tags": [
+        "repository",
+        "supabase"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.repository.ts:groupOrdersBySession",
+      "type": "function",
+      "name": "groupOrdersBySession",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "lineRange": [
+        159,
+        168
+      ],
+      "summary": "将订单列表按 session_id 分组。",
+      "tags": [
+        "utility",
+        "grouping"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/analytics/analytics.repository.ts:groupSplitsBySession",
+      "type": "function",
+      "name": "groupSplitsBySession",
+      "filePath": "apps/web/src/lib/analytics/analytics.repository.ts",
+      "lineRange": [
+        170,
+        179
+      ],
+      "summary": "将分账列表按 session_id 分组。",
+      "tags": [
+        "utility",
+        "grouping"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/app/api/analytics/value-overview/route.ts",
+      "target": "function:apps/web/src/app/api/analytics/value-overview/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/value-analytics/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/value-analytics/page.tsx:ValueAnalyticsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx:LoadingSkeleton",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx:ValueAnalyticsKpiGrid",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx:ValueAnalyticsPageClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:buildTrendChartPoints",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:renderTrendTooltip",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:ValueAnalyticsTrendChart",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "function:apps/web/src/lib/analytics/aggregate-items.ts:isCountableMenuLine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "function:apps/web/src/lib/analytics/aggregate-items.ts:aggregateMenuItemsFromOrders",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "function:apps/web/src/lib/analytics/aggregate-items.ts:rankMenuItemAggs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.rate-limit.ts:analyticsValueOverviewRateLimitCheck",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:withAnalyticsQueryTimeout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchClosedSessionsInWindow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBySessionIds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchOrdersBySessionIds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBillSplitsBySessionIds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchMenuCategoriesByItemIds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:groupOrdersBySession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:groupSplitsBySession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/analytics/value-overview/route.ts",
+      "target": "function:apps/web/src/app/api/analytics/value-overview/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/value-analytics/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/value-analytics/page.tsx:ValueAnalyticsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx:ValueAnalyticsPageClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:buildTrendChartPoints",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:ValueAnalyticsTrendChart",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "function:apps/web/src/lib/analytics/aggregate-items.ts:isCountableMenuLine",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "function:apps/web/src/lib/analytics/aggregate-items.ts:aggregateMenuItemsFromOrders",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "function:apps/web/src/lib/analytics/aggregate-items.ts:rankMenuItemAggs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.rate-limit.ts:analyticsValueOverviewRateLimitCheck",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:withAnalyticsQueryTimeout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchClosedSessionsInWindow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchOrdersBySessionIds",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBillSplitsBySessionIds",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchMenuCategoriesByItemIds",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:groupOrdersBySession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:groupSplitsBySession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/analytics/value-overview/route.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/analytics/value-overview/route.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/analytics/value-overview/route.ts",
+      "target": "file:apps/web/src/lib/analytics/date-window.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/analytics/value-overview/route.ts",
+      "target": "file:apps/web/src/lib/analytics/load-owner-analytics-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/value-analytics/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/value-analytics/page.tsx",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "file:apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "file:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "file:apps/web/src/lib/analytics/analytics.types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "file:apps/web/src/lib/audit/money.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "file:apps/web/src/lib/order-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "file:apps/web/src/lib/order-status.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "target": "file:apps/web/src/lib/in-memory-rate-limit.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.repository.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "target": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "target": "file:apps/web/src/lib/analytics/build-overview.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "target": "file:apps/web/src/lib/analytics/date-window.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "target": "file:apps/web/src/lib/analytics/qualifying.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/analytics/value-overview/route.ts:GET",
+      "target": "function:apps/web/src/lib/analytics/load-owner-analytics-context.ts:loadOwnerAnalyticsContext",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/analytics/value-overview/route.ts:GET",
+      "target": "function:apps/web/src/lib/analytics/analytics.rate-limit.ts:analyticsValueOverviewRateLimitCheck",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/analytics/value-overview/route.ts:GET",
+      "target": "function:apps/web/src/lib/analytics/date-window.ts:parseAnalyticsRange",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/analytics/value-overview/route.ts:GET",
+      "target": "function:apps/web/src/lib/analytics/analytics.service.ts:getValueOverview",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/dashboard/value-analytics/page.tsx:ValueAnalyticsPage",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:loadDashboardAccess",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx:ValueAnalyticsPageClient",
+      "target": "function:apps/web/src/components/providers/LanguageProvider.tsx:useLanguage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx:ValueAnalyticsPageClient",
+      "target": "function:apps/web/src/lib/i18n/messages.ts:getMessages",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx:ValueAnalyticsPageClient",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx:buildTrendChartPoints",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/aggregate-items.ts:isCountableMenuLine",
+      "target": "function:apps/web/src/lib/order-items.ts:isBuffetBaseItem",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/aggregate-items.ts:isCountableMenuLine",
+      "target": "function:apps/web/src/lib/order-status.ts:normalizeOrderItemStatus",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/aggregate-items.ts:aggregateMenuItemsFromOrders",
+      "target": "function:apps/web/src/lib/audit/money.ts:auditMoney",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.rate-limit.ts:analyticsValueOverviewRateLimitCheck",
+      "target": "function:apps/web/src/lib/in-memory-rate-limit.ts:checkInMemoryRateLimit",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchClosedSessionsInWindow",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:withAnalyticsQueryTimeout",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBySessionIds",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:chunkIds",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchOrdersBySessionIds",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBySessionIds",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBillSplitsBySessionIds",
+      "target": "function:apps/web/src/lib/analytics/analytics.repository.ts:fetchBySessionIds",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "target": "file:apps/web/src/lib/analytics/analytics.service.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

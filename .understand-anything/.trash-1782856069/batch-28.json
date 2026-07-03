@@ -1,0 +1,96 @@
+{
+  "nodes": [
+    {
+      "id": "service:apps/print-agent/dev/Dockerfile.agent",
+      "type": "service",
+      "name": "Dockerfile.agent",
+      "filePath": "apps/print-agent/dev/Dockerfile.agent",
+      "summary": "Docker 镜像构建定义，打包应用运行环境。",
+      "tags": [
+        "infrastructure",
+        "deployment",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:apps/print-agent/dev/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "apps/print-agent/dev/README.md",
+      "summary": "项目说明文档，介绍系统架构、安装部署与使用指南。",
+      "tags": [
+        "documentation",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:apps/print-agent/dev/config.docker.json",
+      "type": "config",
+      "name": "config.docker.json",
+      "filePath": "apps/print-agent/dev/config.docker.json",
+      "summary": "配置文件 config.docker.json，控制项目构建或运行时行为。",
+      "tags": [
+        "configuration",
+        "build-system",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:apps/print-agent/dev/config.example.json",
+      "type": "config",
+      "name": "config.example.json",
+      "filePath": "apps/print-agent/dev/config.example.json",
+      "summary": "配置文件 config.example.json，控制项目构建或运行时行为。",
+      "tags": [
+        "configuration",
+        "build-system",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:apps/print-agent/dev/docker-compose.yml",
+      "type": "service",
+      "name": "docker-compose.yml",
+      "filePath": "apps/print-agent/dev/docker-compose.yml",
+      "summary": "Docker Compose 编排文件，定义多容器本地开发栈。",
+      "tags": [
+        "infrastructure",
+        "deployment",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/dev/print-dev.sh",
+      "type": "file",
+      "name": "print-dev.sh",
+      "filePath": "apps/print-agent/dev/print-dev.sh",
+      "summary": "源码文件 apps/print-agent/dev/print-dev.sh，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility",
+        "printing"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "service:apps/print-agent/dev/Dockerfile.agent",
+      "target": "file:apps/web/src/app/layout.tsx",
+      "type": "deploys",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "document:apps/print-agent/dev/README.md",
+      "target": "file:apps/web/src/app/layout.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

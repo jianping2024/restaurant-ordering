@@ -1,0 +1,62 @@
+{
+  "nodes": [
+    {
+      "id": "config:apps/ops/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "apps/ops/package.json",
+      "summary": "Mesa 平台运维控制台（@mesa/ops）的 npm 包清单，定义 Next.js 开发/构建脚本，并声明对 workspace 包 @mesa/shared、@mesa/ui 及 Supabase、Next.js、React 等运行时依赖。",
+      "tags": ["configuration", "monorepo", "nextjs", "ops-app", "dependencies"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:apps/ops/tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "apps/ops/tsconfig.json",
+      "summary": "@mesa/ops 应用的 TypeScript 编译配置，启用 strict 模式与 bundler 模块解析，并通过 paths 将 @/* 别名映射到 ./src/*。",
+      "tags": ["configuration", "typescript", "build-system", "path-alias", "strict-mode"],
+      "complexity": "simple",
+      "languageNotes": "使用 Next.js 官方 TypeScript 插件与 preserve JSX 设置，适配 App Router 项目结构。"
+    },
+    {
+      "id": "config:apps/ops/vercel.json",
+      "type": "config",
+      "name": "vercel.json",
+      "filePath": "apps/ops/vercel.json",
+      "summary": "Vercel 部署配置，指定 Next.js 框架、monorepo 根目录安装命令（npm ci）及 ops 专用忽略脚本，控制独立 Vercel 项目的构建与预览行为。",
+      "tags": ["configuration", "deployment", "vercel", "monorepo", "ci-cd"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "config:apps/ops/tsconfig.json",
+      "target": "file:apps/ops/src/app/layout.tsx",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:apps/ops/package.json",
+      "target": "file:apps/ops/src/app/page.tsx",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:apps/ops/vercel.json",
+      "target": "config:apps/ops/package.json",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:apps/ops/vercel.json",
+      "target": "file:scripts/vercel-ignore-ops.sh",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {"path": "packages/shared/src/print-agent-support-snapshot.ts", "language": "typescript", "sizeLines": 98, "fileCategory": "code"},
+    {"path": "packages/shared/src/restaurant-features.test.ts", "language": "typescript", "sizeLines": 46, "fileCategory": "code"},
+    {"path": "packages/shared/src/restaurant-features.ts", "language": "typescript", "sizeLines": 136, "fileCategory": "code"},
+    {"path": "packages/shared/src/restaurant-suspension.ts", "language": "typescript", "sizeLines": 3, "fileCategory": "code"},
+    {"path": "packages/shared/src/staff-user-ban.ts", "language": "typescript", "sizeLines": 15, "fileCategory": "code"},
+    {"path": "packages/shared/tsconfig.json", "language": "json", "sizeLines": 14, "fileCategory": "config"},
+    {"path": "packages/ui/package.json", "language": "json", "sizeLines": 19, "fileCategory": "config"},
+    {"path": "packages/ui/src/index.ts", "language": "typescript", "sizeLines": 1, "fileCategory": "code"},
+    {"path": "packages/ui/src/PasswordInput.tsx", "language": "typescript", "sizeLines": 160, "fileCategory": "code"},
+    {"path": "packages/ui/tsconfig.json", "language": "json", "sizeLines": 15, "fileCategory": "config"},
+    {"path": "supabase/seed.sql", "language": "sql", "sizeLines": 81, "fileCategory": "data"}
+  ],
+  "batchImportData": {
+    "packages/shared/src/print-agent-support-snapshot.ts": [],
+    "packages/shared/src/restaurant-features.test.ts": ["packages/shared/src/restaurant-features.ts"],
+    "packages/shared/src/restaurant-features.ts": [],
+    "packages/shared/src/restaurant-suspension.ts": [],
+    "packages/shared/src/staff-user-ban.ts": [],
+    "packages/shared/tsconfig.json": [],
+    "packages/ui/package.json": [],
+    "packages/ui/src/index.ts": [],
+    "packages/ui/src/PasswordInput.tsx": [],
+    "packages/ui/tsconfig.json": [],
+    "supabase/seed.sql": []
+  }
+}

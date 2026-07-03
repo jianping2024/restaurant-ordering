@@ -1,0 +1,2697 @@
+{
+  "scriptCompleted": true,
+  "stats": {
+    "filesScanned": 759,
+    "filesWithImports": 450,
+    "totalEdges": 1478
+  },
+  "importMap": {
+    ".env.local.example": [],
+    "apps/ops/next.config.mjs": [],
+    "apps/ops/package.json": [],
+    "apps/ops/postcss.config.mjs": [],
+    "apps/ops/src/app/api/ops/admins/[id]/route.ts": [
+      "apps/ops/src/lib/platform-audit.ts",
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/api/ops/admins/route.ts": [
+      "apps/ops/src/lib/ops-user-lookup.ts",
+      "apps/ops/src/lib/platform-audit.ts",
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/api/ops/audit/export/route.ts": [
+      "apps/ops/src/lib/ops-audit-log.ts",
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/api/ops/audit/route.ts": [
+      "apps/ops/src/lib/ops-audit-log.ts",
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/api/ops/auth/login/route.ts": [
+      "apps/ops/src/lib/platform-audit.ts",
+      "apps/ops/src/lib/supabase/admin.ts",
+      "apps/ops/src/lib/supabase/server.ts"
+    ],
+    "apps/ops/src/app/api/ops/auth/logout/route.ts": [
+      "apps/ops/src/lib/supabase/server.ts"
+    ],
+    "apps/ops/src/app/api/ops/bootstrap/route.ts": [
+      "apps/ops/src/lib/platform-audit.ts",
+      "apps/ops/src/lib/platform-auth.ts",
+      "apps/ops/src/lib/supabase/admin.ts"
+    ],
+    "apps/ops/src/app/api/ops/print/devices/[id]/revoke/route.ts": [
+      "apps/ops/src/lib/platform-audit.ts",
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/api/ops/print/devices/[id]/support-token/route.ts": [
+      "apps/ops/src/lib/platform-audit.ts",
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/api/ops/print/devices/route.ts": [
+      "apps/ops/src/lib/platform-auth.ts",
+      "apps/ops/src/lib/supabase-restaurant-join.ts"
+    ],
+    "apps/ops/src/app/api/ops/print/jobs/route.ts": [
+      "apps/ops/src/lib/platform-auth.ts",
+      "apps/ops/src/lib/supabase-restaurant-join.ts"
+    ],
+    "apps/ops/src/app/api/ops/print/pairings/[id]/revoke/route.ts": [
+      "apps/ops/src/lib/platform-audit.ts",
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/api/ops/print/pairings/route.ts": [
+      "apps/ops/src/lib/platform-auth.ts",
+      "apps/ops/src/lib/supabase-restaurant-join.ts"
+    ],
+    "apps/ops/src/app/api/ops/restaurants/[id]/print-health/route.ts": [
+      "apps/ops/src/lib/ops-print-summary.ts",
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/api/ops/restaurants/[id]/reset-owner-password/route.ts": [
+      "apps/ops/src/lib/platform-audit.ts",
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/api/ops/restaurants/[id]/resume/route.ts": [
+      "apps/ops/src/lib/platform-audit.ts",
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/api/ops/restaurants/[id]/route.ts": [
+      "apps/ops/src/lib/platform-audit.ts",
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/api/ops/restaurants/[id]/staff/[staffId]/route.ts": [
+      "apps/ops/src/lib/platform-audit.ts",
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/api/ops/restaurants/[id]/staff/route.ts": [
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/api/ops/restaurants/[id]/suspend/route.ts": [
+      "apps/ops/src/lib/platform-audit.ts",
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/api/ops/restaurants/route.ts": [
+      "apps/ops/src/lib/ops-user-lookup.ts",
+      "apps/ops/src/lib/platform-audit.ts",
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/globals.css": [],
+    "apps/ops/src/app/layout.tsx": [
+      "apps/ops/src/app/globals.css"
+    ],
+    "apps/ops/src/app/ops/(console)/audit/AuditLogClient.tsx": [
+      "apps/ops/src/lib/platform-audit.ts"
+    ],
+    "apps/ops/src/app/ops/(console)/audit/page.tsx": [
+      "apps/ops/src/app/ops/(console)/audit/AuditLogClient.tsx"
+    ],
+    "apps/ops/src/app/ops/(console)/layout.tsx": [
+      "apps/ops/src/components/OpsShell.tsx",
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/ops/(console)/page.tsx": [
+      "apps/ops/src/lib/ops-print-summary.ts",
+      "apps/ops/src/lib/platform-auth.ts",
+      "apps/ops/src/lib/supabase/admin.ts"
+    ],
+    "apps/ops/src/app/ops/(console)/print/devices/page.tsx": [
+      "apps/ops/src/app/ops/(console)/print/devices/PrintDevicesClient.tsx",
+      "apps/ops/src/components/PrintSubNav.tsx"
+    ],
+    "apps/ops/src/app/ops/(console)/print/devices/PrintDevicesClient.tsx": [
+      "apps/ops/src/components/ui/ConfirmModal.tsx"
+    ],
+    "apps/ops/src/app/ops/(console)/print/jobs/page.tsx": [
+      "apps/ops/src/app/ops/(console)/print/jobs/PrintJobsClient.tsx",
+      "apps/ops/src/components/PrintSubNav.tsx"
+    ],
+    "apps/ops/src/app/ops/(console)/print/jobs/PrintJobsClient.tsx": [],
+    "apps/ops/src/app/ops/(console)/print/pairings/page.tsx": [
+      "apps/ops/src/app/ops/(console)/print/pairings/PrintPairingsClient.tsx",
+      "apps/ops/src/components/PrintSubNav.tsx"
+    ],
+    "apps/ops/src/app/ops/(console)/print/pairings/PrintPairingsClient.tsx": [
+      "apps/ops/src/components/ui/ConfirmModal.tsx"
+    ],
+    "apps/ops/src/app/ops/(console)/restaurants/[id]/layout.tsx": [
+      "apps/ops/src/components/RestaurantDetailTabs.tsx",
+      "apps/ops/src/lib/supabase/admin.ts"
+    ],
+    "apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx": [
+      "apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantDetailActions.tsx",
+      "apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantEditPanel.tsx",
+      "apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantSuspensionActions.tsx",
+      "apps/ops/src/lib/platform-auth.ts",
+      "apps/ops/src/lib/supabase/admin.ts",
+      "apps/ops/src/lib/tenant-app-url.ts"
+    ],
+    "apps/ops/src/app/ops/(console)/restaurants/[id]/print/page.tsx": [
+      "apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx"
+    ],
+    "apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx": [
+      "apps/ops/src/app/ops/(console)/print/devices/PrintDevicesClient.tsx",
+      "apps/ops/src/app/ops/(console)/print/jobs/PrintJobsClient.tsx",
+      "apps/ops/src/app/ops/(console)/print/pairings/PrintPairingsClient.tsx"
+    ],
+    "apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantDetailActions.tsx": [],
+    "apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantEditPanel.tsx": [
+      "apps/ops/src/components/ui/ConfirmModal.tsx"
+    ],
+    "apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantSuspensionActions.tsx": [
+      "apps/ops/src/components/ui/ConfirmModal.tsx"
+    ],
+    "apps/ops/src/app/ops/(console)/restaurants/[id]/staff/page.tsx": [
+      "apps/ops/src/app/ops/(console)/restaurants/[id]/staff/RestaurantStaffClient.tsx",
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/ops/(console)/restaurants/[id]/staff/RestaurantStaffClient.tsx": [
+      "apps/ops/src/components/ui/ConfirmModal.tsx"
+    ],
+    "apps/ops/src/app/ops/(console)/restaurants/new/page.tsx": [],
+    "apps/ops/src/app/ops/(console)/restaurants/page.tsx": [
+      "apps/ops/src/app/ops/(console)/restaurants/RestaurantsListClient.tsx"
+    ],
+    "apps/ops/src/app/ops/(console)/restaurants/RestaurantsListClient.tsx": [],
+    "apps/ops/src/app/ops/(console)/settings/admins/AdminsClient.tsx": [
+      "apps/ops/src/components/ui/ConfirmModal.tsx"
+    ],
+    "apps/ops/src/app/ops/(console)/settings/admins/page.tsx": [
+      "apps/ops/src/app/ops/(console)/settings/admins/AdminsClient.tsx"
+    ],
+    "apps/ops/src/app/ops/(console)/settings/layout.tsx": [
+      "apps/ops/src/lib/platform-auth.ts"
+    ],
+    "apps/ops/src/app/ops/bootstrap/page.tsx": [],
+    "apps/ops/src/app/ops/login/page.tsx": [],
+    "apps/ops/src/app/page.tsx": [],
+    "apps/ops/src/components/OpsShell.tsx": [],
+    "apps/ops/src/components/PrintSubNav.tsx": [],
+    "apps/ops/src/components/RestaurantDetailTabs.tsx": [],
+    "apps/ops/src/components/ui/Button.tsx": [],
+    "apps/ops/src/components/ui/ConfirmModal.tsx": [
+      "apps/ops/src/components/ui/Button.tsx",
+      "apps/ops/src/components/ui/Modal.tsx"
+    ],
+    "apps/ops/src/components/ui/Modal.tsx": [],
+    "apps/ops/src/lib/ops-audit-log.test.ts": [
+      "apps/ops/src/lib/ops-audit-log.ts"
+    ],
+    "apps/ops/src/lib/ops-audit-log.ts": [
+      "apps/ops/src/lib/ops-user-lookup.ts",
+      "apps/ops/src/lib/platform-audit.ts"
+    ],
+    "apps/ops/src/lib/ops-print-summary.test.ts": [
+      "apps/ops/src/lib/ops-print-summary.ts"
+    ],
+    "apps/ops/src/lib/ops-print-summary.ts": [],
+    "apps/ops/src/lib/ops-user-lookup.test.ts": [
+      "apps/ops/src/lib/ops-user-lookup.ts"
+    ],
+    "apps/ops/src/lib/ops-user-lookup.ts": [],
+    "apps/ops/src/lib/platform-audit.ts": [],
+    "apps/ops/src/lib/platform-auth.ts": [
+      "apps/ops/src/lib/supabase/admin.ts",
+      "apps/ops/src/lib/supabase/server.ts"
+    ],
+    "apps/ops/src/lib/supabase-restaurant-join.ts": [],
+    "apps/ops/src/lib/supabase/admin.ts": [],
+    "apps/ops/src/lib/supabase/server.ts": [],
+    "apps/ops/src/lib/tenant-app-url.ts": [],
+    "apps/ops/src/middleware.ts": [],
+    "apps/ops/tailwind.config.ts": [],
+    "apps/ops/tsconfig.json": [],
+    "apps/ops/vercel.json": [],
+    "apps/print-agent/agent_bootstrap.go": [],
+    "apps/print-agent/agent_entry_stub.go": [],
+    "apps/print-agent/agent_entry_windows.go": [],
+    "apps/print-agent/agent_log_windows.go": [],
+    "apps/print-agent/agent_log.go": [],
+    "apps/print-agent/agent_patch.go": [],
+    "apps/print-agent/agent_poll.go": [],
+    "apps/print-agent/agent_queue_test.go": [],
+    "apps/print-agent/agent_queue.go": [],
+    "apps/print-agent/agent_status_test.go": [],
+    "apps/print-agent/agent_status.go": [],
+    "apps/print-agent/brand_test.go": [],
+    "apps/print-agent/brand.go": [],
+    "apps/print-agent/config_reload.go": [],
+    "apps/print-agent/config_test.go": [],
+    "apps/print-agent/config.go": [],
+    "apps/print-agent/configure_ui_dom_test.go": [],
+    "apps/print-agent/configure_ui.html": [],
+    "apps/print-agent/configure_wizard.go": [],
+    "apps/print-agent/console_stub.go": [],
+    "apps/print-agent/console_windows.go": [],
+    "apps/print-agent/credential_expiry_test.go": [],
+    "apps/print-agent/credential_expiry.go": [],
+    "apps/print-agent/dev/config.docker.json": [],
+    "apps/print-agent/dev/config.example.json": [],
+    "apps/print-agent/dev/docker-compose.yml": [],
+    "apps/print-agent/dev/Dockerfile.agent": [],
+    "apps/print-agent/dev/fake-printer/Dockerfile": [],
+    "apps/print-agent/dev/fake-printer/go.mod": [],
+    "apps/print-agent/dev/fake-printer/main.go": [],
+    "apps/print-agent/dev/print-dev.sh": [],
+    "apps/print-agent/dev/README.md": [],
+    "apps/print-agent/discover.go": [],
+    "apps/print-agent/escpos_cut_test.go": [],
+    "apps/print-agent/escpos_encoding_test.go": [],
+    "apps/print-agent/escpos_encoding.go": [],
+    "apps/print-agent/escpos_receipt_test.go": [],
+    "apps/print-agent/escpos_station_test.go": [],
+    "apps/print-agent/escpos_zh_encoding_test.go": [],
+    "apps/print-agent/escpos.go": [],
+    "apps/print-agent/go.mod": [],
+    "apps/print-agent/go.sum": [],
+    "apps/print-agent/heartbeat_test.go": [],
+    "apps/print-agent/heartbeat.go": [],
+    "apps/print-agent/installer/mesa-print-agent.iss": [],
+    "apps/print-agent/installer/WINDOWS-README.txt": [],
+    "apps/print-agent/installer/wizard-after.txt": [],
+    "apps/print-agent/installer/wizard-before.txt": [],
+    "apps/print-agent/job_max_age_test.go": [],
+    "apps/print-agent/job_max_age.go": [],
+    "apps/print-agent/job_route_test.go": [],
+    "apps/print-agent/job_route.go": [],
+    "apps/print-agent/log_strings.go": [],
+    "apps/print-agent/main.go": [],
+    "apps/print-agent/notify_credential_stub.go": [],
+    "apps/print-agent/notify_credential_windows.go": [],
+    "apps/print-agent/notify_version_stub.go": [],
+    "apps/print-agent/notify_version_windows.go": [],
+    "apps/print-agent/notify_windows.go": [],
+    "apps/print-agent/pair_ui.html": [],
+    "apps/print-agent/pair_wizard_test.go": [],
+    "apps/print-agent/pair_wizard.go": [],
+    "apps/print-agent/poll_log_throttle.go": [],
+    "apps/print-agent/poll.go": [],
+    "apps/print-agent/printer_discover_cache_test.go": [],
+    "apps/print-agent/printer_discover_cache.go": [],
+    "apps/print-agent/printer_io_errors_test.go": [],
+    "apps/print-agent/printer_io_errors.go": [],
+    "apps/print-agent/printer_readiness_test.go": [],
+    "apps/print-agent/printer_readiness.go": [],
+    "apps/print-agent/printer_target_test.go": [],
+    "apps/print-agent/printer_target.go": [],
+    "apps/print-agent/README.md": [],
+    "apps/print-agent/receipt_defer.go": [],
+    "apps/print-agent/RELEASE_NOTES.md": [],
+    "apps/print-agent/remote_config.go": [],
+    "apps/print-agent/routing_sync_test.go": [],
+    "apps/print-agent/routing_sync.go": [],
+    "apps/print-agent/schedule_test.go": [],
+    "apps/print-agent/schedule.go": [],
+    "apps/print-agent/scripts/build-release.ps1": [],
+    "apps/print-agent/scripts/gen-tray-status-icons.py": [],
+    "apps/print-agent/scripts/verify-single-instance.sh": [],
+    "apps/print-agent/scripts/verify-tray-startup-order.sh": [],
+    "apps/print-agent/setup_browser_other.go": [],
+    "apps/print-agent/setup_browser_windows.go": [],
+    "apps/print-agent/setup_ui.html": [],
+    "apps/print-agent/setup_wizard.go": [],
+    "apps/print-agent/single_instance_common_test.go": [],
+    "apps/print-agent/single_instance_common.go": [],
+    "apps/print-agent/single_instance_stub.go": [],
+    "apps/print-agent/single_instance_windows.go": [],
+    "apps/print-agent/sink_tcp.go": [],
+    "apps/print-agent/sink_winspool_stub.go": [],
+    "apps/print-agent/sink_winspool_windows.go": [],
+    "apps/print-agent/sink.go": [],
+    "apps/print-agent/spawn_kill_windows.go": [],
+    "apps/print-agent/spawn_stub.go": [],
+    "apps/print-agent/spawn_tracking_windows.go": [],
+    "apps/print-agent/spawn_windows.go": [],
+    "apps/print-agent/text_encoding_test.go": [],
+    "apps/print-agent/text_encoding.go": [],
+    "apps/print-agent/tray_actions_windows.go": [],
+    "apps/print-agent/tray_configure_windows.go": [],
+    "apps/print-agent/tray_icon.go": [],
+    "apps/print-agent/tray_local_http_stub.go": [],
+    "apps/print-agent/tray_local_http_windows.go": [],
+    "apps/print-agent/tray_locale_windows.go": [],
+    "apps/print-agent/tray_shutdown_windows.go": [],
+    "apps/print-agent/tray_ui_locale_test.go": [],
+    "apps/print-agent/tray_ui_locale_windows.go": [],
+    "apps/print-agent/ui_i18n.go": [],
+    "apps/print-agent/ui_locale_test.go": [],
+    "apps/print-agent/ui_locale.go": [],
+    "apps/print-agent/VERSION": [],
+    "apps/print-agent/version_compare_test.go": [],
+    "apps/print-agent/version_compare.go": [],
+    "apps/print-agent/version.go": [],
+    "apps/print-agent/winspool_job_status_test.go": [],
+    "apps/print-agent/winspool_job_status.go": [],
+    "apps/print-agent/wizard_announce_stub.go": [],
+    "apps/print-agent/wizard_announce_windows.go": [],
+    "apps/print-agent/wizard_mapping_test.go": [],
+    "apps/print-agent/wizard_persist.go": [],
+    "apps/print-agent/wizard_routes.go": [],
+    "apps/print-agent/wizard_server_test.go": [],
+    "apps/print-agent/wizard_server.go": [],
+    "apps/print-agent/wizard_test_print_test.go": [],
+    "apps/print-agent/wizard_test_print.go": [],
+    "apps/print-agent/wizard_ui_shared_test.go": [],
+    "apps/print-agent/wizard_ui_shared.go": [],
+    "apps/print-agent/wizard_ui_shared.js": [],
+    "apps/print-agent/wizard_url_hook.go": [],
+    "apps/web/next.config.mjs": [],
+    "apps/web/package.json": [],
+    "apps/web/postcss.config.mjs": [],
+    "apps/web/scripts/phase5-manual.mts": [],
+    "apps/web/src/app/[slug]/bill/page.tsx": [
+      "apps/web/src/components/customer/RestaurantMaintenancePage.tsx",
+      "apps/web/src/components/menu/BillPage.tsx",
+      "apps/web/src/lib/customer-session-context.ts",
+      "apps/web/src/lib/menu-item-code.ts",
+      "apps/web/src/lib/staff-routes.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/[slug]/kitchen/page.tsx": [
+      "apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/[slug]/menu/page.tsx": [
+      "apps/web/src/components/customer/RestaurantMaintenancePage.tsx",
+      "apps/web/src/components/menu/MenuPage.tsx",
+      "apps/web/src/lib/customer-session-context.ts",
+      "apps/web/src/lib/staff-routes.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/[slug]/staff/login/page.tsx": [
+      "apps/web/src/components/staff/StaffLoginForm.tsx",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/[slug]/waiter/[tableId]/page.tsx": [
+      "apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "apps/web/src/lib/menu-item-code.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/staff-routes.ts",
+      "apps/web/src/lib/supabase/server.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/[slug]/waiter/page.tsx": [
+      "apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/api/admin/create-restaurant/route.ts": [
+      "apps/web/src/lib/ops-app-url.ts"
+    ],
+    "apps/web/src/app/api/analytics/value-overview/route.ts": [
+      "apps/web/src/lib/analytics/analytics.rate-limit.ts",
+      "apps/web/src/lib/analytics/analytics.service.ts",
+      "apps/web/src/lib/analytics/date-window.ts",
+      "apps/web/src/lib/analytics/load-owner-analytics-context.ts"
+    ],
+    "apps/web/src/app/api/auth/login/route.ts": [
+      "apps/web/src/lib/auth/login-rate-limit.ts",
+      "apps/web/src/lib/auth/post-login-redirect.ts",
+      "apps/web/src/lib/request-client-ip.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/api/auth/staff/login/route.ts": [
+      "apps/web/src/lib/auth/login-rate-limit.ts",
+      "apps/web/src/lib/auth/post-login-redirect.ts",
+      "apps/web/src/lib/request-client-ip.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/api/cron/nightly-close-sessions/route.ts": [
+      "apps/web/src/lib/auto-close-active-sessions.ts",
+      "apps/web/src/lib/expire-stale-print-jobs.ts",
+      "apps/web/src/lib/run-nightly-auto-close.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/verify-cron-secret.ts"
+    ],
+    "apps/web/src/app/api/dashboard/abnormal-operations/[id]/route.ts": [
+      "apps/web/src/lib/abnormal-operations-rate-limit.ts",
+      "apps/web/src/lib/abnormal-operations/load-owner-context.ts",
+      "apps/web/src/lib/abnormal-operations/patch-abnormal-operation.service.ts",
+      "apps/web/src/lib/abnormal-operations/types.ts"
+    ],
+    "apps/web/src/app/api/dashboard/abnormal-operations/route.ts": [
+      "apps/web/src/lib/abnormal-operations-rate-limit.ts",
+      "apps/web/src/lib/abnormal-operations/load-owner-context.ts",
+      "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "apps/web/src/lib/abnormal-operations/parse-list-query.ts"
+    ],
+    "apps/web/src/app/api/dashboard/buffet/route.ts": [
+      "apps/web/src/lib/dashboard-api-shared.ts",
+      "apps/web/src/lib/dashboard-buffet-server.ts"
+    ],
+    "apps/web/src/app/api/dashboard/close-table-session/route.ts": [
+      "apps/web/src/lib/close-table-session-ui.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/table-session/close-table-session.service.ts",
+      "apps/web/src/lib/table-session/load-close-table-actor.ts"
+    ],
+    "apps/web/src/app/api/dashboard/menu/categories/route.ts": [
+      "apps/web/src/lib/dashboard-menu-api.ts",
+      "apps/web/src/lib/dashboard-menu-server.ts"
+    ],
+    "apps/web/src/app/api/dashboard/menu/items/[id]/image/route.ts": [
+      "apps/web/src/lib/dashboard-menu-api.ts",
+      "apps/web/src/lib/dashboard-menu-server.ts"
+    ],
+    "apps/web/src/app/api/dashboard/menu/items/route.ts": [
+      "apps/web/src/lib/dashboard-menu-api.ts",
+      "apps/web/src/lib/dashboard-menu-server.ts"
+    ],
+    "apps/web/src/app/api/dashboard/menu/print-stations/route.ts": [
+      "apps/web/src/lib/dashboard-menu-api.ts",
+      "apps/web/src/lib/dashboard-menu-server.ts"
+    ],
+    "apps/web/src/app/api/dashboard/staff/[id]/reset-password/route.ts": [
+      "apps/web/src/lib/staff-account.ts",
+      "apps/web/src/lib/staff-dashboard-api.ts"
+    ],
+    "apps/web/src/app/api/dashboard/staff/[id]/route.ts": [
+      "apps/web/src/lib/db-migration-error.ts",
+      "apps/web/src/lib/staff-dashboard-api.ts"
+    ],
+    "apps/web/src/app/api/dashboard/staff/route.ts": [
+      "apps/web/src/lib/db-migration-error.ts",
+      "apps/web/src/lib/staff-account.ts",
+      "apps/web/src/lib/staff-dashboard-api.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/api/dashboard/table-groups/route.ts": [
+      "apps/web/src/lib/dashboard-api-shared.ts",
+      "apps/web/src/lib/dashboard-table-groups-server.ts"
+    ],
+    "apps/web/src/app/api/dashboard/tables/route.ts": [
+      "apps/web/src/lib/dashboard-tables.ts",
+      "apps/web/src/lib/restaurant-tables.ts"
+    ],
+    "apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts": [
+      "apps/web/src/lib/print-agent-download.ts"
+    ],
+    "apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts": [
+      "apps/web/src/lib/print-agent-config.ts",
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/claim/route.ts": [
+      "apps/web/src/lib/print-agent-auth.ts",
+      "apps/web/src/lib/print-agent-claim-rate-limit.ts",
+      "apps/web/src/lib/print-agent-constants.ts",
+      "apps/web/src/lib/print-agent-jwt.ts",
+      "apps/web/src/lib/request-client-ip.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/devices/[id]/revoke/route.ts": [
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/devices/route.ts": [
+      "apps/web/src/lib/print-agent-devices-server.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/api/print-agent/heartbeat/route.ts": [
+      "apps/web/src/lib/print-agent-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/jobs/[id]/route.ts": [
+      "apps/web/src/lib/print-agent-auth.ts",
+      "apps/web/src/lib/print-agent-routing.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/api/print-agent/pairing/route.ts": [
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/print-agent-pairing-code.ts",
+      "apps/web/src/lib/print-agent-pairing-slots.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/api/print-agent/pairings/[id]/revoke/route.ts": [
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/pairings/route.ts": [
+      "apps/web/src/lib/print-agent-pairing-code.ts",
+      "apps/web/src/lib/print-agent-pairing-slots.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/api/print-agent/pending-jobs/route.ts": [
+      "apps/web/src/lib/expire-stale-print-jobs.ts",
+      "apps/web/src/lib/print-agent-auth.ts",
+      "apps/web/src/lib/print-agent-routing.ts",
+      "apps/web/src/lib/print-job-max-age.ts",
+      "apps/web/src/lib/print-jobs-scope.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/print-jobs/[id]/retry/route.ts": [
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/print-jobs/recent/route.ts": [
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/print-jobs-scope.ts",
+      "apps/web/src/lib/supabase/server.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/api/print-agent/print-stations/route.ts": [
+      "apps/web/src/lib/print-agent-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/receipt-printers/route.ts": [
+      "apps/web/src/lib/print-receipt-printer-options.ts",
+      "apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/api/print-agent/routing/route.ts": [
+      "apps/web/src/lib/print-agent-auth.ts",
+      "apps/web/src/lib/print-agent-routing.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/runtime-config/route.ts": [
+      "apps/web/src/lib/print-agent-auth.ts",
+      "apps/web/src/lib/print-agent-config.ts",
+      "apps/web/src/lib/print-agent-download.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/settings/route.ts": [
+      "apps/web/src/lib/print-agent-config.ts",
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/support-snapshot/route.ts": [
+      "apps/web/src/lib/print-agent-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/restaurant/features/route.ts": [
+      "apps/web/src/lib/db-migration-error.ts",
+      "apps/web/src/lib/print-agent-config.ts",
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/restaurant-features.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/restaurant/settings/route.ts": [
+      "apps/web/src/lib/db-migration-error.ts",
+      "apps/web/src/lib/order-radius.ts",
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/checkout/apply-discount/route.ts": [
+      "apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts": [
+      "apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "apps/web/src/lib/checkout-confirm-payment.ts",
+      "apps/web/src/lib/restaurant-receipt-printers-server.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts": [
+      "apps/web/src/lib/checkout-request-server.ts",
+      "apps/web/src/lib/customer-session-context.ts",
+      "apps/web/src/lib/pt-nif.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/checkout/resume-ordering/route.ts": [
+      "apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "apps/web/src/lib/resume-table-session-ordering.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/customer/bill/route.ts": [
+      "apps/web/src/lib/customer-session-context.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/customer/session/route.ts": [
+      "apps/web/src/lib/customer-session-context.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts": [
+      "apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "apps/web/src/lib/checkout-split-math.ts",
+      "apps/web/src/lib/order-receipt-enqueue.ts",
+      "apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts": [
+      "apps/web/src/lib/cart-totals.ts",
+      "apps/web/src/lib/customer-session-context.ts",
+      "apps/web/src/lib/geo-distance.ts",
+      "apps/web/src/lib/guest-table-ordering.ts",
+      "apps/web/src/lib/order-append-rate-limit.ts",
+      "apps/web/src/lib/order-enqueue-token.ts",
+      "apps/web/src/lib/order-radius.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/lib/request-client-ip.ts",
+      "apps/web/src/lib/resolve-append-cart-items.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/table-session-open.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts": [
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/staff/kitchen/orders/[orderId]/route.ts": [
+      "apps/web/src/lib/audit/index.ts",
+      "apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts": [
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts": [
+      "apps/web/src/lib/buffet-open-table.ts",
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/table-session-open.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts": [
+      "apps/web/src/lib/audit/index.ts",
+      "apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/waiter-session-guard.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/route.ts": [
+      "apps/web/src/lib/audit/index.ts",
+      "apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/waiter-session-guard.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts": [
+      "apps/web/src/lib/staff-api-auth.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts": [
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts": [
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts": [
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/waiter-session-guard.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts": [
+      "apps/web/src/lib/customer-session-context.ts",
+      "apps/web/src/lib/order-enqueue-token.ts",
+      "apps/web/src/lib/request-client-ip.ts",
+      "apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "apps/web/src/lib/station-ticket-enqueue.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/auth/admin/register/page.tsx": [
+      "apps/web/src/components/ui/ProductLogo.tsx",
+      "apps/web/src/lib/ops-app-url.ts"
+    ],
+    "apps/web/src/app/auth/callback/route.ts": [],
+    "apps/web/src/app/auth/login/page.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/Input.tsx",
+      "apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "apps/web/src/components/ui/ProductLogo.tsx",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/app/auth/register/page.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "apps/web/src/components/ui/ProductLogo.tsx",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/app/auth/staff/change-password/page.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/staff-account.ts",
+      "apps/web/src/lib/staff-auth-client.ts",
+      "apps/web/src/lib/staff-routes.ts",
+      "apps/web/src/lib/supabase/client.ts"
+    ],
+    "apps/web/src/app/auth/staff/login/page.tsx": [
+      "apps/web/src/components/staff/StaffLoginForm.tsx"
+    ],
+    "apps/web/src/app/dashboard/abnormal-operations/page.tsx": [
+      "apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "apps/web/src/lib/dashboard-access.ts"
+    ],
+    "apps/web/src/app/dashboard/buffet/page.tsx": [],
+    "apps/web/src/app/dashboard/checkout/page.tsx": [
+      "apps/web/src/components/dashboard/CheckoutRequestsPageClient.tsx",
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/supabase/server.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/dashboard/layout.tsx": [
+      "apps/web/src/components/dashboard/dashboard-nav-link.ts",
+      "apps/web/src/components/dashboard/DashboardAccessError.tsx",
+      "apps/web/src/components/dashboard/DashboardNav.tsx",
+      "apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx",
+      "apps/web/src/components/dashboard/RestaurantOnboarding.tsx",
+      "apps/web/src/components/dashboard/RestaurantSuspensionBanner.tsx",
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/print-agent-devices-server.ts"
+    ],
+    "apps/web/src/app/dashboard/menu/page.tsx": [
+      "apps/web/src/components/dashboard/MenuManager.tsx",
+      "apps/web/src/lib/dashboard-menu.ts",
+      "apps/web/src/lib/menu-manager-tab-preference.ts"
+    ],
+    "apps/web/src/app/dashboard/orders/page.tsx": [
+      "apps/web/src/components/dashboard/OrdersHistoryManager.tsx",
+      "apps/web/src/lib/dashboard-tables.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/dashboard/page.tsx": [
+      "apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/dashboard-overview.ts"
+    ],
+    "apps/web/src/app/dashboard/settings/buffet/page.tsx": [
+      "apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/dashboard/settings/features/page.tsx": [
+      "apps/web/src/components/dashboard/FeatureFlagsManager.tsx",
+      "apps/web/src/lib/restaurant-features.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/dashboard/settings/layout.tsx": [
+      "apps/web/src/components/dashboard/DashboardSettingsShell.tsx"
+    ],
+    "apps/web/src/app/dashboard/settings/menu/page.tsx": [],
+    "apps/web/src/app/dashboard/settings/page.tsx": [
+      "apps/web/src/components/dashboard/SettingsForm.tsx",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/dashboard/settings/print-assistant/page.tsx": [
+      "apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx",
+      "apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx",
+      "apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx",
+      "apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx",
+      "apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx",
+      "apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx",
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/print-agent-config.ts",
+      "apps/web/src/lib/print-agent-devices-server.ts",
+      "apps/web/src/lib/print-agent-download.ts",
+      "apps/web/src/lib/site-origin.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/dashboard/settings/print-stations/page.tsx": [],
+    "apps/web/src/app/dashboard/settings/staff/page.tsx": [
+      "apps/web/src/components/dashboard/StaffAccountsManager.tsx",
+      "apps/web/src/lib/supabase/server.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/dashboard/settings/tables/page.tsx": [],
+    "apps/web/src/app/dashboard/tables/page.tsx": [
+      "apps/web/src/components/dashboard/TablesManager.tsx",
+      "apps/web/src/lib/dashboard-tables.ts",
+      "apps/web/src/lib/tables-manager-tab-preference.ts"
+    ],
+    "apps/web/src/app/dashboard/value-analytics/page.tsx": [
+      "apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx",
+      "apps/web/src/lib/dashboard-access.ts"
+    ],
+    "apps/web/src/app/dashboard/waiter/[tableId]/page.tsx": [
+      "apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/menu-item-code.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/staff-routes.ts",
+      "apps/web/src/lib/supabase/server.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/dashboard/waiter/page.tsx": [
+      "apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/staff-board.ts"
+    ],
+    "apps/web/src/app/demo/kitchen/page.tsx": [
+      "apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "apps/web/src/lib/demo-data.ts",
+      "apps/web/src/lib/demo-page-metadata.ts"
+    ],
+    "apps/web/src/app/demo/menu/page.tsx": [
+      "apps/web/src/components/menu/MenuPage.tsx",
+      "apps/web/src/lib/demo-data.ts",
+      "apps/web/src/lib/menu-vat-rate.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-routes.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/demo/page.tsx": [
+      "apps/web/src/components/demo/DemoHubPageClient.tsx",
+      "apps/web/src/lib/demo-page-metadata.ts"
+    ],
+    "apps/web/src/app/demo/waiter/[tableId]/page.tsx": [
+      "apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "apps/web/src/lib/demo-data.ts",
+      "apps/web/src/lib/demo-page-metadata.ts",
+      "apps/web/src/lib/restaurant-tables.ts"
+    ],
+    "apps/web/src/app/demo/waiter/page.tsx": [
+      "apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "apps/web/src/lib/demo-data.ts",
+      "apps/web/src/lib/demo-page-metadata.ts"
+    ],
+    "apps/web/src/app/globals.css": [],
+    "apps/web/src/app/layout.tsx": [
+      "apps/web/src/app/globals.css",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/providers/ThemeProvider.tsx",
+      "apps/web/src/components/ui/Toast.tsx",
+      "apps/web/src/lib/i18n.server.ts",
+      "apps/web/src/lib/i18n.ts"
+    ],
+    "apps/web/src/app/page.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "apps/web/src/components/ui/ProductLogo.tsx",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/components/customer/RestaurantMaintenancePage.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/components/dashboard/AbnormalOperationsManager.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/Modal.tsx",
+      "apps/web/src/components/ui/Toast.tsx",
+      "apps/web/src/lib/abnormal-operations.ts",
+      "apps/web/src/lib/abnormal-operations/client-api.ts",
+      "apps/web/src/lib/abnormal-operations/list-patch-merge.ts",
+      "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "apps/web/src/lib/abnormal-operations/reason-display.ts",
+      "apps/web/src/lib/abnormal-operations/types.ts",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/components/dashboard/buffet/buffet-field-styles.ts": [],
+    "apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx": [
+      "apps/web/src/components/dashboard/DashboardDatePicker.tsx",
+      "apps/web/src/components/ui/Toast.tsx",
+      "apps/web/src/lib/buffet-pricing-admin.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/buffet/BuffetFridayWeekendPanel.tsx": [
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/TimeHmInput.tsx",
+      "apps/web/src/lib/buffet-pricing-admin.ts",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx": [
+      "apps/web/src/lib/buffet-pricing-admin.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx": [
+      "apps/web/src/components/dashboard/DashboardDatePicker.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/TimeHmInput.tsx",
+      "apps/web/src/lib/buffet-pricing-admin.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/supabase/client.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/buffet/BuffetRulesToolbar.tsx": [
+      "apps/web/src/components/dashboard/buffet/buffet-field-styles.ts",
+      "apps/web/src/components/dashboard/buffet/BuffetToolbarSelect.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/buffet/BuffetSettingsTabs.tsx": [],
+    "apps/web/src/components/dashboard/buffet/BuffetTimeSlotsPanel.tsx": [
+      "apps/web/src/components/dashboard/buffet/buffet-field-styles.ts",
+      "apps/web/src/components/dashboard/buffet/SlotTimeHmField.tsx",
+      "apps/web/src/components/ui/IntegerInput.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/buffet/BuffetToolbarSelect.tsx": [],
+    "apps/web/src/components/dashboard/buffet/SlotTimeHmField.tsx": [
+      "apps/web/src/components/ui/TimeHmInput.tsx",
+      "apps/web/src/lib/number-input.ts"
+    ],
+    "apps/web/src/components/dashboard/BuffetSettingsManager.tsx": [
+      "apps/web/src/components/dashboard/buffet/buffet-field-styles.ts",
+      "apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx",
+      "apps/web/src/components/dashboard/buffet/BuffetFridayWeekendPanel.tsx",
+      "apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx",
+      "apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx",
+      "apps/web/src/components/dashboard/buffet/BuffetRulesToolbar.tsx",
+      "apps/web/src/components/dashboard/buffet/BuffetSettingsTabs.tsx",
+      "apps/web/src/components/dashboard/buffet/BuffetTimeSlotsPanel.tsx",
+      "apps/web/src/components/dashboard/DashboardDatePicker.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/ConfirmModal.tsx",
+      "apps/web/src/components/ui/DecimalInput.tsx",
+      "apps/web/src/components/ui/IntegerInput.tsx",
+      "apps/web/src/components/ui/Modal.tsx",
+      "apps/web/src/components/ui/PromptModal.tsx",
+      "apps/web/src/components/ui/Toast.tsx",
+      "apps/web/src/lib/buffet-pricing-admin.ts",
+      "apps/web/src/lib/dashboard-buffet-client.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/checkout/CheckoutRequestDetail.tsx": [
+      "apps/web/src/components/dashboard/CloseTableSessionAction.tsx",
+      "apps/web/src/components/ui/IntegerInput.tsx",
+      "apps/web/src/lib/checkout-request-state.ts",
+      "apps/web/src/lib/checkout-session-lines.ts",
+      "apps/web/src/lib/checkout-session-payments.ts",
+      "apps/web/src/lib/checkout-settlement.ts",
+      "apps/web/src/lib/format-dashboard-date.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/pt-nif.ts",
+      "apps/web/src/lib/split-person-label.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/checkout/CheckoutRequestListCard.tsx": [
+      "apps/web/src/lib/checkout-settlement.ts",
+      "apps/web/src/lib/format-dashboard-date.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/CheckoutRequestsManager.tsx": [
+      "apps/web/src/components/dashboard/checkout/CheckoutRequestDetail.tsx",
+      "apps/web/src/components/dashboard/checkout/CheckoutRequestListCard.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/ConfirmModal.tsx",
+      "apps/web/src/components/ui/ReasonConfirmDialog.tsx",
+      "apps/web/src/components/ui/Toast.tsx",
+      "apps/web/src/lib/audit/reason-labels.ts",
+      "apps/web/src/lib/checkout-discount/use-checkout-bill-discount.ts",
+      "apps/web/src/lib/checkout-notification-sound.ts",
+      "apps/web/src/lib/checkout-request-count-sync.ts",
+      "apps/web/src/lib/checkout-request-state.ts",
+      "apps/web/src/lib/checkout-session-lines.ts",
+      "apps/web/src/lib/checkout-session-payments.ts",
+      "apps/web/src/lib/checkout-settlement.ts",
+      "apps/web/src/lib/checkout-split-math.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/menu-item-code.ts",
+      "apps/web/src/lib/receipt-printer-preference.ts",
+      "apps/web/src/lib/request-checkout-apply-discount.ts",
+      "apps/web/src/lib/request-checkout-confirm-payment.ts",
+      "apps/web/src/lib/request-checkout-resume-ordering.ts",
+      "apps/web/src/lib/request-order-receipt-print.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/supabase/client.ts",
+      "apps/web/src/lib/use-checkout-bill-print-cooldown.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/CheckoutRequestsPageClient.tsx": [
+      "apps/web/src/components/dashboard/CheckoutRequestsManager.tsx",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/CloseTableSessionAction.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/ConfirmModal.tsx",
+      "apps/web/src/components/ui/ReasonConfirmDialog.tsx",
+      "apps/web/src/components/ui/Toast.tsx",
+      "apps/web/src/lib/audit/reason-labels.ts",
+      "apps/web/src/lib/close-table-session-ui.ts",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/components/dashboard/dashboard-nav-link.ts": [],
+    "apps/web/src/components/dashboard/DashboardAccessError.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/lib/auth/sign-out-client.ts",
+      "apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/components/dashboard/DashboardDatePicker.tsx": [
+      "apps/web/src/lib/i18n.ts"
+    ],
+    "apps/web/src/components/dashboard/DashboardNav.tsx": [
+      "apps/web/src/components/dashboard/dashboard-nav-link.ts",
+      "apps/web/src/components/dashboard/DashboardNavFooter.tsx",
+      "apps/web/src/components/dashboard/DashboardNavItem.tsx",
+      "apps/web/src/components/dashboard/DashboardSidebarHeader.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/ProductLogo.tsx",
+      "apps/web/src/lib/auth/sign-out-client.ts",
+      "apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/dashboard-feature-registry.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/restaurant-features.ts",
+      "apps/web/src/lib/use-checkout-request-count.ts"
+    ],
+    "apps/web/src/components/dashboard/DashboardNavFooter.tsx": [
+      "apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "apps/web/src/components/ui/ThemeToggle.tsx"
+    ],
+    "apps/web/src/components/dashboard/DashboardNavItem.tsx": [
+      "apps/web/src/components/dashboard/dashboard-nav-link.ts"
+    ],
+    "apps/web/src/components/dashboard/DashboardPageClient.tsx": [
+      "apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx",
+      "apps/web/src/components/dashboard/FeedbackInsightsPanel.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/lib/dashboard-overview.ts",
+      "apps/web/src/lib/format-dashboard-date.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/order-list-display.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/DashboardSettingsShell.tsx": [
+      "apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/settings-nav.ts"
+    ],
+    "apps/web/src/components/dashboard/DashboardSidebarHeader.tsx": [
+      "apps/web/src/components/ui/ProductLogo.tsx"
+    ],
+    "apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx": [
+      "apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx",
+      "apps/web/src/lib/dashboard-overview.ts"
+    ],
+    "apps/web/src/components/dashboard/DishSortOrderButtons.tsx": [],
+    "apps/web/src/components/dashboard/FeatureFlagsManager.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/IntegerInput.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/restaurant-features.ts"
+    ],
+    "apps/web/src/components/dashboard/FeedbackInsightsPanel.tsx": [],
+    "apps/web/src/components/dashboard/MenuManager.tsx": [
+      "apps/web/src/components/dashboard/DishSortOrderButtons.tsx",
+      "apps/web/src/components/dashboard/PrintStationsManager.tsx",
+      "apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/Input.tsx",
+      "apps/web/src/components/ui/Modal.tsx",
+      "apps/web/src/lib/dashboard-menu-client.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/menu-admin.ts",
+      "apps/web/src/lib/menu-code-uniqueness.ts",
+      "apps/web/src/lib/menu-image.ts",
+      "apps/web/src/lib/menu-item-order.ts",
+      "apps/web/src/lib/menu-manager-tab-preference.ts",
+      "apps/web/src/lib/menu-print-label.ts",
+      "apps/web/src/lib/menu-vat-rate.ts",
+      "apps/web/src/lib/note-presets.ts",
+      "apps/web/src/lib/number-input.ts",
+      "apps/web/src/lib/print-station-admin.ts",
+      "apps/web/src/lib/print-station-resolve.ts",
+      "apps/web/src/lib/sort-order.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/OrdersHistoryManager.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/order-list-display.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/print-agent-credential-expiry.ts"
+    ],
+    "apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/ConfirmModal.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/print-agent-heartbeat.ts"
+    ],
+    "apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/print-agent-download.ts"
+    ],
+    "apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/pairing-code-countdown.ts",
+      "apps/web/src/lib/print-agent-local.ts",
+      "apps/web/src/lib/print-agent-pairing-slots.ts"
+    ],
+    "apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/IntegerInput.tsx",
+      "apps/web/src/components/ui/TimeHmInput.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/print-agent-config.ts"
+    ],
+    "apps/web/src/components/dashboard/PrintStationsManager.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/Input.tsx",
+      "apps/web/src/components/ui/Modal.tsx",
+      "apps/web/src/lib/dashboard-menu-client.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/print-station-admin.ts",
+      "apps/web/src/lib/sort-order.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx": [
+      "apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/fetch-receipt-printers.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/print-receipt-printer-options.ts"
+    ],
+    "apps/web/src/components/dashboard/RestaurantOnboarding.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/Input.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/supabase/client.ts"
+    ],
+    "apps/web/src/components/dashboard/RestaurantSuspensionBanner.tsx": [],
+    "apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx": [
+      "apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx": [
+      "apps/web/src/components/ui/Modal.tsx"
+    ],
+    "apps/web/src/components/dashboard/settings/SettingsTabs.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/settings-nav.ts"
+    ],
+    "apps/web/src/components/dashboard/SettingsForm.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/Input.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/order-radius.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/StaffAccountsManager.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/Input.tsx",
+      "apps/web/src/components/ui/Modal.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/staff-account.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/TableGroupsManager.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/Input.tsx",
+      "apps/web/src/components/ui/Modal.tsx",
+      "apps/web/src/lib/dashboard-table-groups-client.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/restaurant-table-groups.ts",
+      "apps/web/src/lib/restaurant-tables.ts"
+    ],
+    "apps/web/src/components/dashboard/TablesManager.tsx": [
+      "apps/web/src/components/dashboard/buffet/BuffetSettingsTabs.tsx",
+      "apps/web/src/components/dashboard/TableGroupsManager.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/IntegerInput.tsx",
+      "apps/web/src/components/ui/Modal.tsx",
+      "apps/web/src/components/ui/Toast.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/restaurant-table-groups.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/supabase/client.ts",
+      "apps/web/src/lib/tables-manager-tab-preference.ts"
+    ],
+    "apps/web/src/components/dashboard/ValueAnalyticsPageClient.tsx": [
+      "apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx",
+      "apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/lib/analytics/analytics.types.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx": [],
+    "apps/web/src/components/dashboard/ValueAnalyticsTrendChart.tsx": [],
+    "apps/web/src/components/demo/DemoHubPageClient.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n.ts"
+    ],
+    "apps/web/src/components/kitchen/KitchenDisplay.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "apps/web/src/lib/checkout-notification-sound.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx",
+      "apps/web/src/lib/order-items.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-board-client.ts",
+      "apps/web/src/lib/supabase/client.ts",
+      "apps/web/src/lib/use-restaurant-realtime-refresh.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/menu/BillPage.tsx": [
+      "apps/web/src/components/menu/ByItemSplitSection.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "apps/web/src/components/ui/Toast.tsx",
+      "apps/web/src/lib/bill-split-draft.ts",
+      "apps/web/src/lib/checkout-split-continuation.ts",
+      "apps/web/src/lib/customer-bill-checkout-resume.ts",
+      "apps/web/src/lib/customer-bill-sync.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/menu-item-code.ts",
+      "apps/web/src/lib/number-input.ts",
+      "apps/web/src/lib/order-list-display.ts",
+      "apps/web/src/lib/pt-nif.ts",
+      "apps/web/src/lib/request-checkout-confirm-payment.ts",
+      "apps/web/src/lib/request-checkout-request.ts",
+      "apps/web/src/lib/request-customer-context.ts",
+      "apps/web/src/lib/request-order-receipt-print.ts",
+      "apps/web/src/lib/split-person-label.ts",
+      "apps/web/src/lib/supabase/client.ts",
+      "apps/web/src/lib/use-bill-orders.ts",
+      "apps/web/src/lib/use-by-item-split-state.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/menu/BuffetDishAllocator.tsx": [
+      "apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx",
+      "apps/web/src/components/menu/ConsumerNameCombobox.tsx",
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/bill-split-by-item.ts",
+      "apps/web/src/lib/consumer-name-roster.ts"
+    ],
+    "apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx": [],
+    "apps/web/src/components/menu/ByItemDishAllocator.tsx": [
+      "apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx",
+      "apps/web/src/components/menu/ByItemQtyInput.tsx",
+      "apps/web/src/components/menu/ConsumerNameCombobox.tsx",
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/bill-split-by-item.ts",
+      "apps/web/src/lib/consumer-name-roster.ts"
+    ],
+    "apps/web/src/components/menu/ByItemQtyInput.tsx": [
+      "apps/web/src/lib/bill-split-by-item.ts"
+    ],
+    "apps/web/src/components/menu/ByItemSplitSection.tsx": [
+      "apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/bill-split-by-item.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/menu-item-code.ts",
+      "apps/web/src/lib/order-list-display.ts"
+    ],
+    "apps/web/src/components/menu/CartDrawer.tsx": [
+      "apps/web/src/components/menu/CartQtyStepper.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/lib/cart-totals.ts",
+      "apps/web/src/lib/note-presets.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/menu/CartQtyStepper.tsx": [
+      "apps/web/src/components/ui/IntegerInput.tsx"
+    ],
+    "apps/web/src/components/menu/ConsumerNameCombobox.test.ts": [
+      "apps/web/src/lib/consumer-name-roster.ts"
+    ],
+    "apps/web/src/components/menu/ConsumerNameCombobox.tsx": [
+      "apps/web/src/lib/consumer-name-roster.ts"
+    ],
+    "apps/web/src/components/menu/MenuItemCard.tsx": [
+      "apps/web/src/components/menu/CartQtyStepper.tsx",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/menu/MenuPage.tsx": [
+      "apps/web/src/components/menu/CartDrawer.tsx",
+      "apps/web/src/components/menu/MenuItemCard.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Toast.tsx",
+      "apps/web/src/lib/auto-enqueue-station-tickets.ts",
+      "apps/web/src/lib/cart-totals.ts",
+      "apps/web/src/lib/customer-geo-order.ts",
+      "apps/web/src/lib/customer-menu-order-gate.ts",
+      "apps/web/src/lib/guest-table-ordering.ts",
+      "apps/web/src/lib/i18n/menu-page-messages.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/order-list-display.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/lib/request-customer-context.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/providers/LanguageProvider.tsx": [
+      "apps/web/src/lib/i18n.ts"
+    ],
+    "apps/web/src/components/providers/ThemeProvider.tsx": [],
+    "apps/web/src/components/staff/StaffAuthenticatedShell.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/waiter/waiter-messages.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/staff-account.ts",
+      "apps/web/src/lib/staff-auth-client.ts"
+    ],
+    "apps/web/src/components/staff/StaffLoginForm.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/Input.tsx",
+      "apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/staff-account.ts"
+    ],
+    "apps/web/src/components/staff/StaffRoleToolbar.tsx": [
+      "apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "apps/web/src/lib/auth/sign-out-confirm.tsx"
+    ],
+    "apps/web/src/components/ui/Button.tsx": [],
+    "apps/web/src/components/ui/ConfirmModal.tsx": [
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/Modal.tsx"
+    ],
+    "apps/web/src/components/ui/DecimalInput.tsx": [
+      "apps/web/src/lib/number-input.ts"
+    ],
+    "apps/web/src/components/ui/Input.tsx": [],
+    "apps/web/src/components/ui/IntegerInput.tsx": [
+      "apps/web/src/lib/number-input.ts"
+    ],
+    "apps/web/src/components/ui/LanguageSwitcher.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n.ts"
+    ],
+    "apps/web/src/components/ui/Modal.tsx": [],
+    "apps/web/src/components/ui/ProductLogo.tsx": [],
+    "apps/web/src/components/ui/PromptModal.tsx": [
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/Modal.tsx"
+    ],
+    "apps/web/src/components/ui/ReasonConfirmDialog.tsx": [
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/Modal.tsx",
+      "apps/web/src/lib/audit/reasons.ts"
+    ],
+    "apps/web/src/components/ui/ThemeToggle.tsx": [
+      "apps/web/src/components/providers/ThemeProvider.tsx"
+    ],
+    "apps/web/src/components/ui/TimeHmInput.tsx": [
+      "apps/web/src/components/dashboard/buffet/buffet-field-styles.ts",
+      "apps/web/src/components/ui/Input.tsx",
+      "apps/web/src/lib/number-input.ts"
+    ],
+    "apps/web/src/components/ui/Toast.tsx": [],
+    "apps/web/src/components/waiter/useWaiterOrders.ts": [
+      "apps/web/src/lib/restaurant-table-groups.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-board-client.ts",
+      "apps/web/src/lib/supabase/client.ts",
+      "apps/web/src/lib/use-restaurant-realtime-refresh.ts",
+      "apps/web/src/lib/waiter-board-session.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/waiter/useWaiterTableDetail.ts": [
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-board-client.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/supabase/client.ts",
+      "apps/web/src/lib/use-restaurant-realtime-refresh.ts",
+      "apps/web/src/lib/waiter-board-session.ts",
+      "apps/web/src/lib/waiter-table-orders.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/waiter/waiter-messages.ts": [],
+    "apps/web/src/components/waiter/waiter-table-card.test.ts": [
+      "apps/web/src/components/waiter/waiter-table-card.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/waiter/waiter-table-card.ts": [
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/lib/cart-totals.ts",
+      "apps/web/src/lib/menu-item-code.ts",
+      "apps/web/src/lib/order-items.ts",
+      "apps/web/src/lib/order-list-display.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/lib/table-guest-count.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/waiter/waiter-table-detail-icons.tsx": [],
+    "apps/web/src/components/waiter/waiter-table-detail-ui.test.ts": [
+      "apps/web/src/components/waiter/waiter-table-detail-ui.tsx"
+    ],
+    "apps/web/src/components/waiter/waiter-table-detail-ui.tsx": [
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/waiter/waiter-ui.ts"
+    ],
+    "apps/web/src/components/waiter/waiter-ui.ts": [],
+    "apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx": [
+      "apps/web/src/components/staff/StaffAuthenticatedShell.tsx"
+    ],
+    "apps/web/src/components/waiter/WaiterDisplay.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "apps/web/src/components/ui/Toast.tsx",
+      "apps/web/src/components/waiter/useWaiterOrders.ts",
+      "apps/web/src/components/waiter/waiter-messages.ts",
+      "apps/web/src/components/waiter/waiter-table-card.ts",
+      "apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/restaurant-table-groups.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-routes.ts",
+      "apps/web/src/lib/table-checkout-pending.ts",
+      "apps/web/src/lib/waiter-board-permissions.ts",
+      "apps/web/src/lib/waiter-board-section-preference.ts",
+      "apps/web/src/lib/waiter-board-session.ts",
+      "apps/web/src/lib/waiter-table-orders.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/waiter/WaiterOrderQtyMinus.tsx": [],
+    "apps/web/src/components/waiter/WaiterTableDetail.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/ConfirmModal.tsx",
+      "apps/web/src/components/ui/Modal.tsx",
+      "apps/web/src/components/ui/Toast.tsx",
+      "apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "apps/web/src/components/waiter/waiter-messages.ts",
+      "apps/web/src/components/waiter/waiter-table-card.ts",
+      "apps/web/src/components/waiter/waiter-ui.ts",
+      "apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx",
+      "apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "apps/web/src/lib/buffet-open-table.ts",
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/lib/cart-totals.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-board-client.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/staff-routes.ts",
+      "apps/web/src/lib/use-buffet-prices-realtime-refresh.ts",
+      "apps/web/src/lib/waiter-board-session.ts",
+      "apps/web/src/lib/waiter-decrement-order-item-client.ts",
+      "apps/web/src/lib/waiter-table-detail-actions.ts",
+      "apps/web/src/lib/waiter-table-occupancy.ts",
+      "apps/web/src/lib/waiter-table-orders.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/waiter/WaiterTableDetailHeader.tsx": [
+      "apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "apps/web/src/components/waiter/waiter-ui.ts"
+    ],
+    "apps/web/src/components/waiter/WaiterTableDetailLayout.tsx": [
+      "apps/web/src/components/dashboard/CloseTableSessionAction.tsx",
+      "apps/web/src/components/menu/CartQtyStepper.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/waiter/waiter-messages.ts",
+      "apps/web/src/components/waiter/waiter-table-card.ts",
+      "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "apps/web/src/components/waiter/waiter-table-detail-ui.tsx",
+      "apps/web/src/components/waiter/WaiterOrderQtyMinus.tsx",
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/abnormal-operations-rate-limit.ts": [
+      "apps/web/src/lib/in-memory-rate-limit.ts"
+    ],
+    "apps/web/src/lib/abnormal-operations.test.ts": [
+      "apps/web/src/lib/abnormal-operations.ts",
+      "apps/web/src/lib/audit/reasons.ts"
+    ],
+    "apps/web/src/lib/abnormal-operations.ts": [],
+    "apps/web/src/lib/abnormal-operations/client-api.ts": [
+      "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "apps/web/src/lib/abnormal-operations/types.ts"
+    ],
+    "apps/web/src/lib/abnormal-operations/list-patch-merge.test.ts": [
+      "apps/web/src/lib/abnormal-operations/list-patch-merge.ts",
+      "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "apps/web/src/lib/abnormal-operations/types.ts"
+    ],
+    "apps/web/src/lib/abnormal-operations/list-patch-merge.ts": [
+      "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "apps/web/src/lib/abnormal-operations/types.ts"
+    ],
+    "apps/web/src/lib/abnormal-operations/load-owner-context.ts": [
+      "apps/web/src/lib/audit/load-owner-dashboard-actor.ts",
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/lib/abnormal-operations/owner-query.ts": [
+      "apps/web/src/lib/abnormal-operations/types.ts",
+      "apps/web/src/lib/audit/reasons.ts",
+      "apps/web/src/lib/lisbon-calendar.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/abnormal-operations/parse-list-query.test.ts": [
+      "apps/web/src/lib/abnormal-operations/parse-list-query.ts"
+    ],
+    "apps/web/src/lib/abnormal-operations/parse-list-query.ts": [
+      "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "apps/web/src/lib/abnormal-operations/types.ts"
+    ],
+    "apps/web/src/lib/abnormal-operations/patch-abnormal-operation.service.test.ts": [
+      "apps/web/src/lib/abnormal-operations/patch-abnormal-operation.service.ts"
+    ],
+    "apps/web/src/lib/abnormal-operations/patch-abnormal-operation.service.ts": [
+      "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "apps/web/src/lib/abnormal-operations/types.ts",
+      "apps/web/src/lib/audit/builders/abnormal-owner-action.ts",
+      "apps/web/src/lib/audit/index.ts",
+      "apps/web/src/lib/audit/types.ts"
+    ],
+    "apps/web/src/lib/abnormal-operations/reason-display.ts": [
+      "apps/web/src/lib/abnormal-operations/types.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/staff-routes.ts"
+    ],
+    "apps/web/src/lib/abnormal-operations/types.ts": [],
+    "apps/web/src/lib/analytics/aggregate-items.ts": [
+      "apps/web/src/lib/audit/money.ts",
+      "apps/web/src/lib/order-items.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/analytics/analytics.rate-limit.ts": [
+      "apps/web/src/lib/in-memory-rate-limit.ts"
+    ],
+    "apps/web/src/lib/analytics/analytics.repository.ts": [
+      "apps/web/src/lib/analytics/analytics.types.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/analytics/analytics.service.test.ts": [
+      "apps/web/src/lib/analytics/aggregate-items.ts",
+      "apps/web/src/lib/analytics/analytics.service.ts",
+      "apps/web/src/lib/analytics/build-overview.ts",
+      "apps/web/src/lib/analytics/date-window.ts",
+      "apps/web/src/lib/analytics/qualifying.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/analytics/analytics.service.ts": [
+      "apps/web/src/lib/analytics/aggregate-items.ts",
+      "apps/web/src/lib/analytics/analytics.repository.ts",
+      "apps/web/src/lib/analytics/analytics.types.ts",
+      "apps/web/src/lib/analytics/build-overview.ts",
+      "apps/web/src/lib/analytics/date-window.ts",
+      "apps/web/src/lib/analytics/qualifying.ts",
+      "apps/web/src/lib/lisbon-calendar.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/analytics/analytics.types.ts": [],
+    "apps/web/src/lib/analytics/build-overview.ts": [
+      "apps/web/src/lib/analytics/aggregate-items.ts",
+      "apps/web/src/lib/analytics/analytics.types.ts",
+      "apps/web/src/lib/analytics/qualifying.ts",
+      "apps/web/src/lib/audit/money.ts",
+      "apps/web/src/lib/lisbon-calendar.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/analytics/date-window.ts": [
+      "apps/web/src/lib/analytics/analytics.types.ts",
+      "apps/web/src/lib/lisbon-calendar.ts"
+    ],
+    "apps/web/src/lib/analytics/load-owner-analytics-context.ts": [
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/lib/analytics/qualifying.ts": [
+      "apps/web/src/lib/audit/money.ts",
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/audit/abnormal-operation.repository.ts": [
+      "apps/web/src/lib/abnormal-operations/types.ts"
+    ],
+    "apps/web/src/lib/audit/audit.service.test.ts": [
+      "apps/web/src/lib/audit/audit.service.ts",
+      "apps/web/src/lib/audit/types.ts"
+    ],
+    "apps/web/src/lib/audit/audit.service.ts": [
+      "apps/web/src/lib/audit/abnormal-operation.repository.ts",
+      "apps/web/src/lib/audit/operation-log.repository.ts",
+      "apps/web/src/lib/audit/registry.ts",
+      "apps/web/src/lib/audit/resolve-actor.ts",
+      "apps/web/src/lib/audit/types.ts"
+    ],
+    "apps/web/src/lib/audit/builders/abnormal-owner-action.test.ts": [
+      "apps/web/src/lib/audit/builders/abnormal-owner-action.ts"
+    ],
+    "apps/web/src/lib/audit/builders/abnormal-owner-action.ts": [
+      "apps/web/src/lib/abnormal-operations/types.ts",
+      "apps/web/src/lib/audit/types.ts"
+    ],
+    "apps/web/src/lib/audit/builders/discount-applied.test.ts": [
+      "apps/web/src/lib/audit/builders/discount-applied.ts"
+    ],
+    "apps/web/src/lib/audit/builders/discount-applied.ts": [
+      "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "apps/web/src/lib/audit/money.ts",
+      "apps/web/src/lib/audit/types.ts"
+    ],
+    "apps/web/src/lib/audit/builders/item-deleted.ts": [
+      "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "apps/web/src/lib/audit/money.ts",
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/lib/cart-totals.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/audit/builders/item-qty-decremented.ts": [
+      "apps/web/src/lib/audit/money.ts",
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/audit/builders/unpaid-table-closed.ts": [
+      "apps/web/src/lib/audit/money.ts",
+      "apps/web/src/lib/audit/types.ts"
+    ],
+    "apps/web/src/lib/audit/index.ts": [],
+    "apps/web/src/lib/audit/load-owner-dashboard-actor.ts": [
+      "apps/web/src/lib/audit/index.ts",
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/lib/audit/money.ts": [],
+    "apps/web/src/lib/audit/operation-log.repository.ts": [],
+    "apps/web/src/lib/audit/reason-labels.ts": [
+      "apps/web/src/lib/audit/reasons.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/lib/audit/reasons.ts": [],
+    "apps/web/src/lib/audit/registry.ts": [
+      "apps/web/src/lib/audit/builders/abnormal-owner-action.ts",
+      "apps/web/src/lib/audit/builders/discount-applied.ts",
+      "apps/web/src/lib/audit/builders/item-deleted.ts",
+      "apps/web/src/lib/audit/builders/item-qty-decremented.ts",
+      "apps/web/src/lib/audit/builders/unpaid-table-closed.ts",
+      "apps/web/src/lib/audit/types.ts"
+    ],
+    "apps/web/src/lib/audit/resolve-actor.ts": [
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/lib/staff-account.ts"
+    ],
+    "apps/web/src/lib/audit/types.ts": [
+      "apps/web/src/lib/abnormal-operations/types.ts"
+    ],
+    "apps/web/src/lib/audit/validate-abnormal-reason.test.ts": [
+      "apps/web/src/lib/audit/validate-abnormal-reason.ts"
+    ],
+    "apps/web/src/lib/audit/validate-abnormal-reason.ts": [
+      "apps/web/src/lib/audit/reasons.ts"
+    ],
+    "apps/web/src/lib/auth/login-rate-limit.ts": [],
+    "apps/web/src/lib/auth/post-login-redirect.ts": [
+      "apps/web/src/lib/staff-account.ts",
+      "apps/web/src/lib/staff-routes.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/lib/auth/sign-out-client.ts": [
+      "apps/web/src/lib/supabase/client.ts"
+    ],
+    "apps/web/src/lib/auth/sign-out-confirm.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/ConfirmModal.tsx",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/lib/auto-close-active-sessions.ts": [
+      "apps/web/src/lib/close-active-table-session-with-cleanup.ts",
+      "apps/web/src/lib/zoned-time.ts"
+    ],
+    "apps/web/src/lib/auto-enqueue-station-tickets.ts": [
+      "apps/web/src/components/ui/Toast.tsx",
+      "apps/web/src/lib/i18n/menu-page-messages.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/bill-split-by-item-lines.ts": [
+      "apps/web/src/lib/order-items.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/bill-split-by-item.test.ts": [
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/bill-split-by-item.ts",
+      "apps/web/src/lib/bill-split-validate.ts"
+    ],
+    "apps/web/src/lib/bill-split-by-item.ts": [
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/rational-qty.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/bill-split-draft.test.ts": [
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/bill-split-draft.ts",
+      "apps/web/src/lib/customer-bill-sync.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/bill-split-draft.ts": [
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/bill-split-by-item.ts",
+      "apps/web/src/lib/bill-split-validate.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/bill-split-validate.ts": [
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/bill-split-by-item.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/buffet-open-table.test.ts": [
+      "apps/web/src/lib/buffet-open-table.ts",
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/buffet-open-table.ts": [
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/lib/cart-totals.ts",
+      "apps/web/src/lib/order-items.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/buffet-order.test.ts": [
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/buffet-order.ts": [
+      "apps/web/src/lib/order-items.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/buffet-pricing-admin.ts": [
+      "apps/web/src/lib/number-input.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/cart-totals.ts": [],
+    "apps/web/src/lib/checkout-confirm-payment-auth.ts": [
+      "apps/web/src/lib/audit/index.ts",
+      "apps/web/src/lib/audit/load-owner-dashboard-actor.ts",
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/lib/checkout-confirm-payment.test.ts": [
+      "apps/web/src/lib/checkout-confirm-payment.ts",
+      "apps/web/src/lib/order-receipt-enqueue.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/checkout-confirm-payment.ts": [
+      "apps/web/src/lib/order-receipt-enqueue.ts",
+      "apps/web/src/lib/receipt-payer-label.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/checkout-discount/apply-bill-split-discount.test.ts": [
+      "apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts"
+    ],
+    "apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts": [
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/lib/checkout-discount/record-discount-audit.ts",
+      "apps/web/src/lib/checkout-discount/validate-discount-reason.ts",
+      "apps/web/src/lib/checkout-split-math.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/checkout-discount/record-discount-audit.ts": [
+      "apps/web/src/lib/audit/builders/discount-applied.ts",
+      "apps/web/src/lib/audit/index.ts",
+      "apps/web/src/lib/audit/types.ts"
+    ],
+    "apps/web/src/lib/checkout-discount/use-checkout-bill-discount.ts": [
+      "apps/web/src/lib/checkout-split-math.ts"
+    ],
+    "apps/web/src/lib/checkout-discount/validate-discount-reason.test.ts": [
+      "apps/web/src/lib/checkout-discount/validate-discount-reason.ts"
+    ],
+    "apps/web/src/lib/checkout-discount/validate-discount-reason.ts": [
+      "apps/web/src/lib/audit/validate-abnormal-reason.ts"
+    ],
+    "apps/web/src/lib/checkout-notification-sound.ts": [],
+    "apps/web/src/lib/checkout-request-count-sync.test.ts": [
+      "apps/web/src/lib/checkout-request-count-sync.ts"
+    ],
+    "apps/web/src/lib/checkout-request-count-sync.ts": [],
+    "apps/web/src/lib/checkout-request-payload.ts": [
+      "apps/web/src/lib/split-person-label.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/checkout-request-server.ts": [
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/bill-split-by-item.ts",
+      "apps/web/src/lib/bill-split-validate.ts",
+      "apps/web/src/lib/cart-totals.ts",
+      "apps/web/src/lib/checkout-request-payload.ts",
+      "apps/web/src/lib/checkout-split-continuation.ts",
+      "apps/web/src/lib/customer-session-context.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/checkout-request-state.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/checkout-session-lines.ts": [
+      "apps/web/src/lib/menu-item-code.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/checkout-session-payments.test.ts": [
+      "apps/web/src/lib/checkout-session-payments.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/checkout-session-payments.ts": [
+      "apps/web/src/lib/checkout-split-math.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/checkout-settlement.test.ts": [
+      "apps/web/src/lib/checkout-settlement.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/checkout-settlement.ts": [
+      "apps/web/src/lib/checkout-session-payments.ts",
+      "apps/web/src/lib/checkout-split-math.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/checkout-split-continuation.test.ts": [
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/checkout-split-continuation.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/checkout-split-continuation.ts": [
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/bill-split-by-item.ts",
+      "apps/web/src/lib/checkout-request-payload.ts",
+      "apps/web/src/lib/rational-qty.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/checkout-split-math.test.ts": [
+      "apps/web/src/lib/checkout-split-math.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/checkout-split-math.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/close-active-table-session-with-cleanup.ts": [],
+    "apps/web/src/lib/close-table-session-ui.test.ts": [
+      "apps/web/src/lib/close-table-session-ui.ts"
+    ],
+    "apps/web/src/lib/close-table-session-ui.ts": [],
+    "apps/web/src/lib/consumer-name-roster.test.ts": [
+      "apps/web/src/lib/bill-split-by-item.ts",
+      "apps/web/src/lib/consumer-name-roster.ts"
+    ],
+    "apps/web/src/lib/consumer-name-roster.ts": [
+      "apps/web/src/lib/bill-split-by-item.ts"
+    ],
+    "apps/web/src/lib/customer-bill-checkout-resume.test.ts": [
+      "apps/web/src/lib/customer-bill-checkout-resume.ts"
+    ],
+    "apps/web/src/lib/customer-bill-checkout-resume.ts": [
+      "apps/web/src/lib/request-customer-context.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/customer-bill-sync.ts": [
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/request-customer-context.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/customer-geo-order.test.ts": [
+      "apps/web/src/lib/customer-geo-order.ts"
+    ],
+    "apps/web/src/lib/customer-geo-order.ts": [
+      "apps/web/src/lib/geo-distance.ts",
+      "apps/web/src/lib/order-radius.ts"
+    ],
+    "apps/web/src/lib/customer-menu-order-gate.test.ts": [
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/lib/customer-menu-order-gate.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/customer-menu-order-gate.ts": [
+      "apps/web/src/lib/guest-table-ordering.ts",
+      "apps/web/src/lib/i18n/menu-page-messages.ts",
+      "apps/web/src/lib/request-customer-context.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/customer-orders-display.ts": [
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/customer-session-context.ts": [
+      "apps/web/src/lib/customer-orders-display.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/dashboard-access.test.ts": [
+      "apps/web/src/lib/dashboard-paths.ts",
+      "apps/web/src/lib/staff-account.ts"
+    ],
+    "apps/web/src/lib/dashboard-access.ts": [
+      "apps/web/src/lib/staff-account.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/supabase/server.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/dashboard-api-shared.ts": [
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/staff-dashboard-api.ts"
+    ],
+    "apps/web/src/lib/dashboard-buffet-client.ts": [
+      "apps/web/src/lib/dashboard-buffet-server.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/dashboard-buffet-server.ts": [
+      "apps/web/src/lib/dashboard-api-shared.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/dashboard-feature-registry.test.ts": [
+      "apps/web/src/lib/dashboard-feature-registry.ts"
+    ],
+    "apps/web/src/lib/dashboard-feature-registry.ts": [
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/dashboard-paths.ts"
+    ],
+    "apps/web/src/lib/dashboard-menu-api.ts": [
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/dashboard-api-shared.ts"
+    ],
+    "apps/web/src/lib/dashboard-menu-client.ts": [
+      "apps/web/src/lib/menu-admin.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/dashboard-menu-server.ts": [
+      "apps/web/src/lib/menu-admin.ts",
+      "apps/web/src/lib/menu-code-uniqueness.ts",
+      "apps/web/src/lib/menu-image.ts",
+      "apps/web/src/lib/menu-item-order.ts",
+      "apps/web/src/lib/menu-print-label.ts",
+      "apps/web/src/lib/menu-vat-rate.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/sort-order-persist.ts",
+      "apps/web/src/lib/sort-order.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/dashboard-menu.test.ts": [
+      "apps/web/src/lib/dashboard-menu-client.ts",
+      "apps/web/src/lib/dashboard-menu-server.ts"
+    ],
+    "apps/web/src/lib/dashboard-menu.ts": [
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/dashboard-overview-i18n.test.ts": [
+      "apps/web/src/lib/dashboard-overview.ts",
+      "apps/web/src/lib/format-dashboard-date.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/dashboard-overview.test.ts": [
+      "apps/web/src/lib/dashboard-overview.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/dashboard-overview.ts": [
+      "apps/web/src/lib/analytics/aggregate-items.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/print-job-max-age.ts",
+      "apps/web/src/lib/table-checkout-pending.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/dashboard-paths.ts": [],
+    "apps/web/src/lib/dashboard-table-groups-client.ts": [
+      "apps/web/src/lib/restaurant-table-groups.ts"
+    ],
+    "apps/web/src/lib/dashboard-table-groups-server.ts": [
+      "apps/web/src/lib/dashboard-api-shared.ts",
+      "apps/web/src/lib/restaurant-table-groups.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/sort-order.ts"
+    ],
+    "apps/web/src/lib/dashboard-table-groups.test.ts": [
+      "apps/web/src/lib/restaurant-table-groups.ts"
+    ],
+    "apps/web/src/lib/dashboard-tables.ts": [
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "apps/web/src/lib/restaurant-table-groups.ts",
+      "apps/web/src/lib/restaurant-tables.ts"
+    ],
+    "apps/web/src/lib/db-migration-error.ts": [],
+    "apps/web/src/lib/demo-data.ts": [
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/demo-page-metadata.ts": [],
+    "apps/web/src/lib/expire-stale-print-jobs.ts": [
+      "apps/web/src/lib/print-job-max-age.ts"
+    ],
+    "apps/web/src/lib/fetch-receipt-printers.ts": [
+      "apps/web/src/lib/print-receipt-printer-options.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/format-dashboard-date.test.ts": [
+      "apps/web/src/lib/format-dashboard-date.ts"
+    ],
+    "apps/web/src/lib/format-dashboard-date.ts": [
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/lib/geo-distance.ts": [],
+    "apps/web/src/lib/guest-table-ordering.test.ts": [
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/lib/guest-table-ordering.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/guest-table-ordering.ts": [
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/i18n.server.ts": [
+      "apps/web/src/lib/i18n.ts"
+    ],
+    "apps/web/src/lib/i18n.test.ts": [
+      "apps/web/src/lib/i18n.ts"
+    ],
+    "apps/web/src/lib/i18n.ts": [],
+    "apps/web/src/lib/i18n/brand-tokens.test.ts": [
+      "apps/web/src/lib/i18n/brand-tokens.ts"
+    ],
+    "apps/web/src/lib/i18n/brand-tokens.ts": [
+      "apps/web/src/lib/i18n.ts"
+    ],
+    "apps/web/src/lib/i18n/menu-page-messages.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/i18n/messages.ts": [
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/brand-tokens.ts"
+    ],
+    "apps/web/src/lib/in-memory-rate-limit.ts": [],
+    "apps/web/src/lib/lisbon-calendar.ts": [
+      "apps/web/src/lib/format-dashboard-date.ts"
+    ],
+    "apps/web/src/lib/menu-admin.ts": [
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/menu-print-label.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/menu-code-uniqueness.ts": [
+      "apps/web/src/lib/menu-print-label.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/menu-image.ts": [],
+    "apps/web/src/lib/menu-item-code.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/menu-item-order.test.ts": [
+      "apps/web/src/lib/menu-item-order.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/menu-item-order.ts": [
+      "apps/web/src/lib/sort-order.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/menu-manager-tab-preference.test.ts": [
+      "apps/web/src/lib/menu-manager-tab-preference.ts"
+    ],
+    "apps/web/src/lib/menu-manager-tab-preference.ts": [],
+    "apps/web/src/lib/menu-print-label.test.ts": [
+      "apps/web/src/lib/menu-print-label.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/menu-print-label.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/menu-vat-rate.test.ts": [
+      "apps/web/src/lib/menu-vat-rate.ts"
+    ],
+    "apps/web/src/lib/menu-vat-rate.ts": [],
+    "apps/web/src/lib/menu.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/note-presets.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/number-input.test.ts": [
+      "apps/web/src/lib/number-input.ts"
+    ],
+    "apps/web/src/lib/number-input.ts": [],
+    "apps/web/src/lib/ops-app-url.test.ts": [
+      "apps/web/src/lib/ops-app-url.ts"
+    ],
+    "apps/web/src/lib/ops-app-url.ts": [],
+    "apps/web/src/lib/order-append-rate-limit.ts": [],
+    "apps/web/src/lib/order-enqueue-token.ts": [],
+    "apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/decrement-order-item.service.test.ts": [
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/decrement-order-item.service.ts": [
+      "apps/web/src/lib/audit/builders/item-deleted.ts",
+      "apps/web/src/lib/audit/builders/item-qty-decremented.ts",
+      "apps/web/src/lib/audit/index.ts",
+      "apps/web/src/lib/audit/money.ts",
+      "apps/web/src/lib/audit/reasons.ts",
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts",
+      "apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "apps/web/src/lib/order-item-void/validate-void-reason.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/decrement-order-item.test.ts": [
+      "apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/decrement-order-item.ts": [
+      "apps/web/src/lib/cart-totals.ts",
+      "apps/web/src/lib/order-items.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/detect-newly-voided.test.ts": [
+      "apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/detect-newly-voided.ts": [
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/patch-order-items.service.ts": [
+      "apps/web/src/lib/audit/builders/item-deleted.ts",
+      "apps/web/src/lib/audit/index.ts",
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts",
+      "apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "apps/web/src/lib/order-item-void/validate-void-reason.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/persist-order-items-update.test.ts": [
+      "apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/persist-order-items-update.ts": [
+      "apps/web/src/lib/cart-totals.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/validate-void-reason.test.ts": [
+      "apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "apps/web/src/lib/order-item-void/validate-void-reason.ts"
+    ],
+    "apps/web/src/lib/order-item-void/validate-void-reason.ts": [
+      "apps/web/src/lib/audit/validate-abnormal-reason.ts",
+      "apps/web/src/lib/order-item-void/detect-newly-voided.ts"
+    ],
+    "apps/web/src/lib/order-item-void/void-item-reason-ui.test.ts": [
+      "apps/web/src/lib/order-item-void/void-item-reason-ui.ts"
+    ],
+    "apps/web/src/lib/order-item-void/void-item-reason-ui.ts": [
+      "apps/web/src/lib/audit/reason-labels.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/order-list-display.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx": [
+      "apps/web/src/components/ui/ReasonConfirmDialog.tsx",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-items.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-list-display.test.ts": [
+      "apps/web/src/lib/order-list-display.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-list-display.ts": [
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/order-items.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-radius.ts": [],
+    "apps/web/src/lib/order-receipt-enqueue.test.ts": [
+      "apps/web/src/lib/order-receipt-enqueue.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-receipt-enqueue.ts": [
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/bill-split-by-item.ts",
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/lib/checkout-split-math.ts",
+      "apps/web/src/lib/menu-print-label.ts",
+      "apps/web/src/lib/order-items.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/lib/receipt-payer-label.ts",
+      "apps/web/src/lib/restaurant-features.ts",
+      "apps/web/src/lib/table-guest-count.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-status.ts": [
+      "apps/web/src/lib/order-items.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/pairing-code-countdown.ts": [],
+    "apps/web/src/lib/print-agent-auth.test.ts": [],
+    "apps/web/src/lib/print-agent-auth.ts": [
+      "apps/web/src/lib/print-agent-jwt.ts"
+    ],
+    "apps/web/src/lib/print-agent-claim-rate-limit.ts": [],
+    "apps/web/src/lib/print-agent-config.test.ts": [
+      "apps/web/src/lib/print-agent-config.ts"
+    ],
+    "apps/web/src/lib/print-agent-config.ts": [],
+    "apps/web/src/lib/print-agent-constants.ts": [],
+    "apps/web/src/lib/print-agent-credential-expiry.ts": [
+      "apps/web/src/lib/print-agent-credential.ts"
+    ],
+    "apps/web/src/lib/print-agent-credential.ts": [],
+    "apps/web/src/lib/print-agent-dashboard-auth.ts": [
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/lib/print-agent-devices-server.ts": [
+      "apps/web/src/lib/print-agent-credential-expiry.ts",
+      "apps/web/src/lib/print-agent-heartbeat.ts",
+      "apps/web/src/lib/print-agent-routing.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/lib/print-agent-download.test.ts": [
+      "apps/web/src/lib/print-agent-download.ts"
+    ],
+    "apps/web/src/lib/print-agent-download.ts": [],
+    "apps/web/src/lib/print-agent-heartbeat.ts": [],
+    "apps/web/src/lib/print-agent-jwt.ts": [],
+    "apps/web/src/lib/print-agent-local.ts": [],
+    "apps/web/src/lib/print-agent-pairing-code.ts": [],
+    "apps/web/src/lib/print-agent-pairing-slots.ts": [],
+    "apps/web/src/lib/print-agent-routing.test.ts": [
+      "apps/web/src/lib/print-agent-routing.ts"
+    ],
+    "apps/web/src/lib/print-agent-routing.ts": [
+      "apps/web/src/lib/print-receipt-printer-options.ts"
+    ],
+    "apps/web/src/lib/print-job-error-hints.ts": [
+      "apps/web/src/lib/i18n.ts"
+    ],
+    "apps/web/src/lib/print-job-max-age.ts": [],
+    "apps/web/src/lib/print-jobs-scope.ts": [],
+    "apps/web/src/lib/print-receipt-printer-options.ts": [],
+    "apps/web/src/lib/print-station-admin.ts": [
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/print-station-resolve.ts": [],
+    "apps/web/src/lib/pt-nif.test.ts": [
+      "apps/web/src/lib/pt-nif.ts"
+    ],
+    "apps/web/src/lib/pt-nif.ts": [],
+    "apps/web/src/lib/rational-qty.test.ts": [
+      "apps/web/src/lib/rational-qty.ts"
+    ],
+    "apps/web/src/lib/rational-qty.ts": [],
+    "apps/web/src/lib/receipt-payer-label.ts": [
+      "apps/web/src/lib/split-person-label.ts"
+    ],
+    "apps/web/src/lib/receipt-printer-preference.test.ts": [
+      "apps/web/src/lib/receipt-printer-preference.ts"
+    ],
+    "apps/web/src/lib/receipt-printer-preference.ts": [],
+    "apps/web/src/lib/request-checkout-apply-discount.ts": [],
+    "apps/web/src/lib/request-checkout-confirm-payment.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/request-checkout-request.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/request-checkout-resume-ordering.ts": [],
+    "apps/web/src/lib/request-client-ip.ts": [],
+    "apps/web/src/lib/request-customer-context.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/request-order-receipt-print.ts": [
+      "apps/web/src/lib/order-receipt-enqueue.ts"
+    ],
+    "apps/web/src/lib/resolve-append-cart-items.test.ts": [
+      "apps/web/src/lib/resolve-append-cart-items.ts"
+    ],
+    "apps/web/src/lib/resolve-append-cart-items.ts": [
+      "apps/web/src/lib/cart-totals.ts",
+      "apps/web/src/lib/menu-print-label.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/restaurant-features.ts": [],
+    "apps/web/src/lib/restaurant-receipt-printers-server.ts": [
+      "apps/web/src/lib/print-agent-config.ts",
+      "apps/web/src/lib/print-receipt-printer-options.ts"
+    ],
+    "apps/web/src/lib/restaurant-suspension.test.ts": [],
+    "apps/web/src/lib/restaurant-table-groups.test.ts": [
+      "apps/web/src/lib/restaurant-table-groups.ts"
+    ],
+    "apps/web/src/lib/restaurant-table-groups.ts": [
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/table-checkout-pending.ts",
+      "apps/web/src/lib/waiter-board-session.ts",
+      "apps/web/src/lib/waiter-table-occupancy.ts"
+    ],
+    "apps/web/src/lib/restaurant-tables.ts": [],
+    "apps/web/src/lib/resume-table-session-ordering.test.ts": [
+      "apps/web/src/lib/resume-table-session-ordering.ts"
+    ],
+    "apps/web/src/lib/resume-table-session-ordering.ts": [
+      "apps/web/src/lib/checkout-session-payments.ts"
+    ],
+    "apps/web/src/lib/run-nightly-auto-close.ts": [
+      "apps/web/src/lib/auto-close-active-sessions.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/zoned-time.ts"
+    ],
+    "apps/web/src/lib/settings-nav.ts": [],
+    "apps/web/src/lib/site-origin.ts": [],
+    "apps/web/src/lib/sort-order-persist.ts": [
+      "apps/web/src/lib/sort-order.ts"
+    ],
+    "apps/web/src/lib/sort-order.test.ts": [
+      "apps/web/src/lib/sort-order.ts"
+    ],
+    "apps/web/src/lib/sort-order.ts": [],
+    "apps/web/src/lib/split-person-label.test.ts": [
+      "apps/web/src/lib/split-person-label.ts"
+    ],
+    "apps/web/src/lib/split-person-label.ts": [
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/lib/staff-account.ts": [],
+    "apps/web/src/lib/staff-api-auth.ts": [
+      "apps/web/src/lib/db-migration-error.ts",
+      "apps/web/src/lib/staff-account.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/lib/staff-auth-client.ts": [
+      "apps/web/src/lib/auth/sign-out-client.ts",
+      "apps/web/src/lib/staff-account.ts",
+      "apps/web/src/lib/supabase/client.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/staff-board-client.ts": [
+      "apps/web/src/lib/restaurant-table-groups.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/waiter-board-session.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/staff-board.ts": [
+      "apps/web/src/lib/restaurant-table-groups.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/table-checkout-pending.ts",
+      "apps/web/src/lib/waiter-board-query.ts",
+      "apps/web/src/lib/waiter-board-session.ts",
+      "apps/web/src/lib/waiter-table-occupancy.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/staff-dashboard-api.ts": [
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/staff-account.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/staff-routes.test.ts": [
+      "apps/web/src/lib/staff-routes.ts"
+    ],
+    "apps/web/src/lib/staff-routes.ts": [
+      "apps/web/src/lib/staff-account.ts"
+    ],
+    "apps/web/src/lib/station-ticket-auto-rate-limit.ts": [],
+    "apps/web/src/lib/station-ticket-enqueue.ts": [
+      "apps/web/src/lib/menu-print-label.ts",
+      "apps/web/src/lib/order-items.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/lib/print-station-resolve.ts",
+      "apps/web/src/lib/table-guest-count.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/supabase/admin.ts": [],
+    "apps/web/src/lib/supabase/client.ts": [],
+    "apps/web/src/lib/supabase/middleware.ts": [
+      "apps/web/src/lib/dashboard-access.ts"
+    ],
+    "apps/web/src/lib/supabase/server.ts": [],
+    "apps/web/src/lib/table-checkout-pending.test.ts": [
+      "apps/web/src/lib/table-checkout-pending.ts"
+    ],
+    "apps/web/src/lib/table-checkout-pending.ts": [
+      "apps/web/src/lib/restaurant-tables.ts"
+    ],
+    "apps/web/src/lib/table-guest-count.ts": [
+      "apps/web/src/lib/order-items.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/table-session-open.test.ts": [
+      "apps/web/src/lib/table-session-open.ts"
+    ],
+    "apps/web/src/lib/table-session-open.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/table-session/close-table-session.repository.ts": [],
+    "apps/web/src/lib/table-session/close-table-session.service.test.ts": [
+      "apps/web/src/lib/table-session/close-table-session.service.ts"
+    ],
+    "apps/web/src/lib/table-session/close-table-session.service.ts": [
+      "apps/web/src/lib/audit/builders/unpaid-table-closed.ts",
+      "apps/web/src/lib/audit/index.ts",
+      "apps/web/src/lib/audit/money.ts",
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/lib/audit/validate-abnormal-reason.ts",
+      "apps/web/src/lib/table-session/close-table-session.repository.ts"
+    ],
+    "apps/web/src/lib/table-session/load-close-table-actor.ts": [
+      "apps/web/src/lib/audit/index.ts",
+      "apps/web/src/lib/audit/load-owner-dashboard-actor.ts",
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/lib/tables-manager-tab-preference.ts": [],
+    "apps/web/src/lib/use-bill-orders.ts": [
+      "apps/web/src/lib/customer-bill-sync.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/use-buffet-prices-realtime-refresh.ts": [],
+    "apps/web/src/lib/use-by-item-split-state.ts": [
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/bill-split-by-item.ts",
+      "apps/web/src/lib/checkout-split-continuation.ts",
+      "apps/web/src/lib/consumer-name-roster.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/use-checkout-bill-print-cooldown.ts": [],
+    "apps/web/src/lib/use-checkout-request-count.ts": [
+      "apps/web/src/lib/checkout-request-count-sync.ts",
+      "apps/web/src/lib/supabase/client.ts",
+      "apps/web/src/lib/table-checkout-pending.ts"
+    ],
+    "apps/web/src/lib/use-restaurant-realtime-refresh.ts": [],
+    "apps/web/src/lib/verify-cron-secret.ts": [],
+    "apps/web/src/lib/waiter-board-permissions.test.ts": [
+      "apps/web/src/lib/checkout-request-payload.ts",
+      "apps/web/src/lib/split-person-label.ts",
+      "apps/web/src/lib/waiter-board-permissions.ts"
+    ],
+    "apps/web/src/lib/waiter-board-permissions.ts": [
+      "apps/web/src/lib/waiter-board-session.ts"
+    ],
+    "apps/web/src/lib/waiter-board-query.test.ts": [
+      "apps/web/src/lib/waiter-board-query.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/waiter-board-query.ts": [
+      "apps/web/src/lib/waiter-board-session.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/waiter-board-section-preference.test.ts": [
+      "apps/web/src/lib/waiter-board-section-preference.ts"
+    ],
+    "apps/web/src/lib/waiter-board-section-preference.ts": [],
+    "apps/web/src/lib/waiter-board-session.test.ts": [
+      "apps/web/src/lib/waiter-board-session.ts"
+    ],
+    "apps/web/src/lib/waiter-board-session.ts": [
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/table-checkout-pending.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/waiter-decrement-order-item-client.ts": [],
+    "apps/web/src/lib/waiter-session-guard.ts": [],
+    "apps/web/src/lib/waiter-table-detail-actions.test.ts": [
+      "apps/web/src/lib/waiter-table-detail-actions.ts"
+    ],
+    "apps/web/src/lib/waiter-table-detail-actions.ts": [],
+    "apps/web/src/lib/waiter-table-occupancy.test.ts": [
+      "apps/web/src/lib/waiter-table-occupancy.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/waiter-table-occupancy.ts": [
+      "apps/web/src/components/waiter/waiter-table-card.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/waiter-board-session.ts",
+      "apps/web/src/lib/waiter-table-orders.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/waiter-table-orders.test.ts": [
+      "apps/web/src/lib/waiter-table-orders.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/waiter-table-orders.ts": [
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/zoned-time.ts": [],
+    "apps/web/src/middleware.ts": [
+      "apps/web/src/lib/supabase/middleware.ts"
+    ],
+    "apps/web/src/types/index.ts": [],
+    "apps/web/tailwind.config.ts": [],
+    "apps/web/tsconfig.json": [],
+    "apps/web/vercel.json": [],
+    "packages/shared/package.json": [],
+    "packages/shared/src/brand.test.ts": [
+      "packages/shared/src/brand.ts"
+    ],
+    "packages/shared/src/brand.ts": [],
+    "packages/shared/src/country-code.test.ts": [
+      "packages/shared/src/country-code.ts"
+    ],
+    "packages/shared/src/country-code.ts": [],
+    "packages/shared/src/create-restaurant.ts": [
+      "packages/shared/src/country-code.ts",
+      "packages/shared/src/slug.ts"
+    ],
+    "packages/shared/src/geo-order-restriction.test.ts": [
+      "packages/shared/src/geo-order-restriction.ts"
+    ],
+    "packages/shared/src/geo-order-restriction.ts": [],
+    "packages/shared/src/hmac-jwt.ts": [],
+    "packages/shared/src/index.ts": [],
+    "packages/shared/src/platform-admin-audit.ts": [],
+    "packages/shared/src/print-agent-credential-ttl.test.ts": [
+      "packages/shared/src/print-agent-credential-ttl.ts"
+    ],
+    "packages/shared/src/print-agent-credential-ttl.ts": [],
+    "packages/shared/src/print-agent-device-active.ts": [
+      "packages/shared/src/print-agent-heartbeat.ts"
+    ],
+    "packages/shared/src/print-agent-heartbeat.ts": [],
+    "packages/shared/src/print-agent-jwt.test.ts": [
+      "packages/shared/src/print-agent-jwt.ts",
+      "packages/shared/src/print-agent-support-jwt.ts"
+    ],
+    "packages/shared/src/print-agent-jwt.ts": [
+      "packages/shared/src/hmac-jwt.ts"
+    ],
+    "packages/shared/src/print-agent-revoke.ts": [],
+    "packages/shared/src/print-agent-support-jwt.ts": [
+      "packages/shared/src/hmac-jwt.ts"
+    ],
+    "packages/shared/src/print-agent-support-snapshot.ts": [],
+    "packages/shared/src/restaurant-features.test.ts": [
+      "packages/shared/src/restaurant-features.ts"
+    ],
+    "packages/shared/src/restaurant-features.ts": [],
+    "packages/shared/src/restaurant-suspension.ts": [],
+    "packages/shared/src/slug.ts": [],
+    "packages/shared/src/staff-user-ban.ts": [],
+    "packages/shared/tsconfig.json": [],
+    "packages/ui/package.json": [],
+    "packages/ui/src/index.ts": [],
+    "packages/ui/src/PasswordInput.tsx": [],
+    "packages/ui/tsconfig.json": [],
+    "supabase/migrations/20240101000000_initial_schema.sql": [],
+    "supabase/migrations/20260529120000_restaurant_feature_flags.sql": [],
+    "supabase/migrations/20260623120000_checkout_request_and_session_close_rpc.sql": [],
+    "supabase/migrations/20260623150000_bill_splits_customer_nif.sql": [],
+    "supabase/migrations/20260624120000_platform_admin.sql": [],
+    "supabase/migrations/20260625120000_restaurant_suspension.sql": [],
+    "supabase/migrations/20260626120000_restaurants_country_code.sql": [],
+    "supabase/migrations/20260627115000_frontdesk_menu_management.sql": [],
+    "supabase/migrations/20260627120000_print_agent_support_tokens.sql": [],
+    "supabase/migrations/20260628120000_restaurant_table_groups.sql": [],
+    "supabase/migrations/20260629120000_staff_frontdesk_role.sql": [],
+    "supabase/migrations/20260629130000_resume_ordering_preserve_partial_split.sql": [],
+    "supabase/migrations/20260630120000_table_sessions_opened_by_user_id.sql": [],
+    "supabase/migrations/20260701120000_abnormal_operations.sql": [],
+    "supabase/migrations/20260702120000_operation_logs_and_manual_close.sql": [],
+    "supabase/migrations/20260703120000_table_sessions_closed_at_analytics.sql": [],
+    "supabase/migrations/20260704120000_menu_items_vat_rate.sql": [],
+    "supabase/migrations/20260705120000_menu_items_sort_order_unique.sql": [],
+    "supabase/migrations/20260706120000_bill_split_checkout_discount.sql": [],
+    "supabase/migrations/20260708120000_drop_confirm_bill_split_payment_legacy_overload.sql": [],
+    "supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql": [],
+    "supabase/migrations/20260710120000_resume_ordering_preserve_by_item_split.sql": [],
+    "supabase/seed.sql": []
+  }
+}

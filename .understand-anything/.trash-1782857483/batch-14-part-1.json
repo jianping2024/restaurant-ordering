@@ -1,0 +1,956 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/app/[slug]/kitchen/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/[slug]/kitchen/page.tsx",
+      "summary": "按 slug 查询餐厅后渲染厨房显示屏的服务端页面入口。",
+      "tags": [
+        "entry-point",
+        "kitchen",
+        "server-component",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/[slug]/kitchen/page.tsx:KitchenPage",
+      "type": "function",
+      "name": "KitchenPage",
+      "filePath": "apps/web/src/app/[slug]/kitchen/page.tsx",
+      "lineRange": [
+        9,
+        22
+      ],
+      "summary": "服务端按 slug 加载餐厅并渲染 KitchenDisplay。",
+      "tags": [
+        "component",
+        "react",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/[slug]/staff/login/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/[slug]/staff/login/page.tsx",
+      "summary": "门店员工登录页，通过 admin 客户端校验餐厅 slug 并渲染 StaffLoginForm。",
+      "tags": [
+        "entry-point",
+        "staff-auth",
+        "server-component",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/[slug]/staff/login/page.tsx:StoreStaffLoginPage",
+      "type": "function",
+      "name": "StoreStaffLoginPage",
+      "filePath": "apps/web/src/app/[slug]/staff/login/page.tsx",
+      "lineRange": [
+        5,
+        28
+      ],
+      "summary": "校验餐厅 slug 后渲染门店员工登录表单。",
+      "tags": [
+        "component",
+        "react",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/admin/create-restaurant/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/admin/create-restaurant/route.ts",
+      "summary": "将创建餐厅请求重定向至 ops 应用的 API 代理端点。",
+      "tags": [
+        "api-handler",
+        "admin",
+        "proxy",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/admin/create-restaurant/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/admin/create-restaurant/route.ts",
+      "lineRange": [
+        6,
+        22
+      ],
+      "summary": "将 POST 请求代理重定向至 ops 创建餐厅 API。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts",
+      "summary": "校验打印代理安装包 artifact 并重定向至 GitHub Release 下载地址。",
+      "tags": [
+        "api-handler",
+        "printing",
+        "download",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts",
+      "lineRange": [
+        9,
+        24
+      ],
+      "summary": "校验 artifact 参数并重定向至 GitHub Release 下载链接。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/print-agent/devices/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/devices/route.ts",
+      "summary": "已认证店主查询本餐厅打印代理设备列表的 GET API。",
+      "tags": [
+        "api-handler",
+        "printing",
+        "tenant-isolation",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/devices/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/print-agent/devices/route.ts",
+      "lineRange": [
+        8,
+        29
+      ],
+      "summary": "认证店主身份后返回本餐厅打印代理设备列表 JSON。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/auth/admin/register/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/auth/admin/register/page.tsx",
+      "summary": "平台管理员注册入口，重定向至 ops 应用对应页面。",
+      "tags": [
+        "entry-point",
+        "admin",
+        "redirect",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/auth/admin/register/page.tsx:AdminRegisterPage",
+      "type": "function",
+      "name": "AdminRegisterPage",
+      "filePath": "apps/web/src/app/auth/admin/register/page.tsx",
+      "lineRange": [
+        7,
+        31
+      ],
+      "summary": "重定向至 ops 应用的管理员注册页。",
+      "tags": [
+        "component",
+        "react",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/auth/login/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/auth/login/page.tsx",
+      "summary": "店主邮箱密码登录页，调用 /api/auth/login 并处理限流与错误提示。",
+      "tags": [
+        "entry-point",
+        "auth",
+        "client-component",
+        "i18n"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/auth/login/page.tsx:LoginPage",
+      "type": "function",
+      "name": "LoginPage",
+      "filePath": "apps/web/src/app/auth/login/page.tsx",
+      "lineRange": [
+        20,
+        133
+      ],
+      "summary": "店主登录表单，含限流提示与 API 调用逻辑。",
+      "tags": [
+        "component",
+        "react",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/app/auth/register/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/auth/register/page.tsx",
+      "summary": "注册已关闭的占位页，展示联系信息引导用户。",
+      "tags": [
+        "entry-point",
+        "auth",
+        "client-component",
+        "i18n"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/auth/register/page.tsx:RegisterClosedPage",
+      "type": "function",
+      "name": "RegisterClosedPage",
+      "filePath": "apps/web/src/app/auth/register/page.tsx",
+      "lineRange": [
+        9,
+        33
+      ],
+      "summary": "展示注册关闭说明的静态页面。",
+      "tags": [
+        "component",
+        "react",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/auth/staff/change-password/page.tsx",
+      "summary": "员工强制改密页，校验旧密码后更新 Supabase 凭据并跳转角色工作台。",
+      "tags": [
+        "entry-point",
+        "staff-auth",
+        "client-component",
+        "password"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/auth/staff/change-password/page.tsx:StaffChangePasswordPage",
+      "type": "function",
+      "name": "StaffChangePasswordPage",
+      "filePath": "apps/web/src/app/auth/staff/change-password/page.tsx",
+      "lineRange": [
+        15,
+        157
+      ],
+      "summary": "员工改密表单，含会话校验与角色跳转。",
+      "tags": [
+        "component",
+        "react",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/app/auth/staff/login/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/auth/staff/login/page.tsx",
+      "summary": "全局员工登录页，直接渲染 StaffLoginForm 组件。",
+      "tags": [
+        "entry-point",
+        "staff-auth",
+        "client-component",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/auth/staff/login/page.tsx:GlobalStaffLoginPage",
+      "type": "function",
+      "name": "GlobalStaffLoginPage",
+      "filePath": "apps/web/src/app/auth/staff/login/page.tsx",
+      "lineRange": [
+        5,
+        7
+      ],
+      "summary": "渲染全局 StaffLoginForm 入口。",
+      "tags": [
+        "component",
+        "react",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/layout.tsx",
+      "type": "file",
+      "name": "layout.tsx",
+      "filePath": "apps/web/src/app/dashboard/layout.tsx",
+      "summary": "Dashboard 根布局，加载访问权限、打印代理续期提醒与餐厅状态横幅。",
+      "tags": [
+        "layout",
+        "dashboard",
+        "server-component",
+        "access-control"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/layout.tsx:DashboardLayout",
+      "type": "function",
+      "name": "DashboardLayout",
+      "filePath": "apps/web/src/app/dashboard/layout.tsx",
+      "lineRange": [
+        12,
+        61
+      ],
+      "summary": "加载权限上下文并组装侧边栏与内容区布局。",
+      "tags": [
+        "component",
+        "react",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/orders/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/orders/page.tsx",
+      "summary": "订单历史页，加载前台桌台上下文并筛选已结清会话的订单。",
+      "tags": [
+        "entry-point",
+        "dashboard",
+        "orders",
+        "server-component"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/orders/page.tsx:OrdersPage",
+      "type": "function",
+      "name": "OrdersPage",
+      "filePath": "apps/web/src/app/dashboard/orders/page.tsx",
+      "lineRange": [
+        6,
+        34
+      ],
+      "summary": "查询并筛选历史订单数据传递给 OrdersHistoryManager。",
+      "tags": [
+        "component",
+        "react",
+        "exported"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/app/[slug]/kitchen/page.tsx",
+      "target": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/kitchen/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/kitchen/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/kitchen/page.tsx:KitchenPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/kitchen/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/kitchen/page.tsx:KitchenPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/staff/login/page.tsx",
+      "target": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/staff/login/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/staff/login/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/staff/login/page.tsx:StoreStaffLoginPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/staff/login/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/staff/login/page.tsx:StoreStaffLoginPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/admin/create-restaurant/route.ts",
+      "target": "file:apps/web/src/lib/ops-app-url.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/admin/create-restaurant/route.ts",
+      "target": "function:apps/web/src/app/api/admin/create-restaurant/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/admin/create-restaurant/route.ts",
+      "target": "function:apps/web/src/app/api/admin/create-restaurant/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-download.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts",
+      "target": "function:apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts",
+      "target": "function:apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/devices/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/devices/route.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/devices/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/devices/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/devices/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/devices/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/auth/admin/register/page.tsx",
+      "target": "file:apps/web/src/components/ui/ProductLogo.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/admin/register/page.tsx",
+      "target": "file:apps/web/src/lib/ops-app-url.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/admin/register/page.tsx",
+      "target": "function:apps/web/src/app/auth/admin/register/page.tsx:AdminRegisterPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/auth/admin/register/page.tsx",
+      "target": "function:apps/web/src/app/auth/admin/register/page.tsx:AdminRegisterPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/auth/login/page.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/login/page.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/login/page.tsx",
+      "target": "file:apps/web/src/components/ui/Input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/login/page.tsx",
+      "target": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/login/page.tsx",
+      "target": "file:apps/web/src/components/ui/ProductLogo.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/login/page.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/login/page.tsx",
+      "target": "function:apps/web/src/app/auth/login/page.tsx:LoginPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/auth/login/page.tsx",
+      "target": "function:apps/web/src/app/auth/login/page.tsx:LoginPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/auth/register/page.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/register/page.tsx",
+      "target": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/register/page.tsx",
+      "target": "file:apps/web/src/components/ui/ProductLogo.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/register/page.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/register/page.tsx",
+      "target": "function:apps/web/src/app/auth/register/page.tsx:RegisterClosedPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/auth/register/page.tsx",
+      "target": "function:apps/web/src/app/auth/register/page.tsx:RegisterClosedPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "file:apps/web/src/lib/staff-auth-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "file:apps/web/src/lib/staff-routes.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "function:apps/web/src/app/auth/staff/change-password/page.tsx:StaffChangePasswordPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "function:apps/web/src/app/auth/staff/change-password/page.tsx:StaffChangePasswordPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/login/page.tsx",
+      "target": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/login/page.tsx",
+      "target": "function:apps/web/src/app/auth/staff/login/page.tsx:GlobalStaffLoginPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/login/page.tsx",
+      "target": "function:apps/web/src/app/auth/staff/login/page.tsx:GlobalStaffLoginPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "file:apps/web/src/components/dashboard/dashboard-nav-link.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "file:apps/web/src/components/dashboard/DashboardAccessError.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "file:apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "file:apps/web/src/components/dashboard/RestaurantOnboarding.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "file:apps/web/src/components/dashboard/RestaurantSuspensionBanner.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "function:apps/web/src/app/dashboard/layout.tsx:DashboardLayout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "function:apps/web/src/app/dashboard/layout.tsx:DashboardLayout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/orders/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/OrdersHistoryManager.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/orders/page.tsx",
+      "target": "file:apps/web/src/lib/dashboard-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/orders/page.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/orders/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/orders/page.tsx:OrdersPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/orders/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/orders/page.tsx:OrdersPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/[slug]/kitchen/page.tsx:KitchenPage",
+      "target": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/[slug]/staff/login/page.tsx:StoreStaffLoginPage",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/admin/create-restaurant/route.ts:POST",
+      "target": "function:apps/web/src/lib/ops-app-url.ts:getOpsAppUrl",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:isPrintAgentDownloadArtifact",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:resolvePrintAgentGitHubDownloadUrl",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/devices/route.ts:GET",
+      "target": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/devices/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevices",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/auth/admin/register/page.tsx:AdminRegisterPage",
+      "target": "function:apps/web/src/lib/ops-app-url.ts:getOpsAppUrl",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/auth/login/page.tsx:LoginPage",
+      "target": "function:apps/web/src/lib/i18n/messages.ts:getMessages",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/auth/register/page.tsx:RegisterClosedPage",
+      "target": "function:apps/web/src/lib/i18n/messages.ts:getMessages",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/auth/staff/change-password/page.tsx:StaffChangePasswordPage",
+      "target": "function:apps/web/src/lib/staff-account.ts:parseStaffUserMetadata",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/auth/staff/change-password/page.tsx:StaffChangePasswordPage",
+      "target": "function:apps/web/src/lib/staff-account.ts:staffPasswordValid",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/auth/staff/change-password/page.tsx:StaffChangePasswordPage",
+      "target": "function:apps/web/src/lib/staff-auth-client.ts:staffSignOut",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/auth/staff/change-password/page.tsx:StaffChangePasswordPage",
+      "target": "function:apps/web/src/lib/staff-routes.ts:staffRolePath",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/auth/staff/change-password/page.tsx:StaffChangePasswordPage",
+      "target": "function:apps/web/src/lib/supabase/client.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/dashboard/layout.tsx:DashboardLayout",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:loadDashboardAccess",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/dashboard/layout.tsx:DashboardLayout",
+      "target": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevicesNeedingRenewal",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/dashboard/orders/page.tsx:OrdersPage",
+      "target": "function:apps/web/src/lib/dashboard-tables.ts:loadFrontdeskDashboardTables",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

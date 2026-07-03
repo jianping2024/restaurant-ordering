@@ -1,0 +1,508 @@
+// Mesa 目标 schema（canonical model）
+// 使用：https://dbdiagram.io — 粘贴本文件内容即可出图
+// 说明：关系仅在文件末尾 Ref 块定义一次，避免重复 endpoint 报错
+
+Table restaurants [note: '餐厅主表：身份、对外名片、门店地理锚点'] {
+  id uuid [pk, note: '主键']
+  slug varchar [unique, not null, note: '对外 URL 唯一标识，创建后不改']
+  name varchar [not null, note: '餐厅展示名称']
+  owner_id uuid [not null, note: '店主用户 ID → auth.users']
+  plan varchar [not null, note: '套餐：free | pro']
+  country_code char(2) [not null, note: '门店国家 ISO-2，与票面语言无关']
+  logo_url varchar [note: 'Logo 图片 URL']
+  address varchar [note: '门店地址']
+  phone varchar [note: '联系电话']
+  latitude double [note: '门店纬度（地理锚点，围栏开启时用于测距）']
+  longitude double [note: '门店经度（地理锚点）']
+  suspended_at timestamp [note: '平台暂停营业时刻']
+  suspension_reason varchar [note: '暂停原因']
+  created_at timestamp [not null, note: '创建时间']
+}
+
+Table restaurant_order_policies [note: '点餐运营策略：地理围栏等规则开关'] {
+  restaurant_id uuid [pk, note: '餐厅 ID，与 restaurants 1:1']
+  geo_order_enabled boolean [not null, default: false, note: '是否强制顾客 GPS 且在半径内才能下单']
+  order_radius_meters int [note: '允许下单半径（米），10–10000；开启围栏时必填']
+  updated_at timestamp [not null, note: '最后更新时间']
+}
+
+Table restaurant_features [note: '产品功能开关：模块是否对该店启用'] {
+  restaurant_id uuid [pk, note: '餐厅 ID，与 restaurants 1:1']
+  kitchen_board_enabled boolean [not null, default: false, note: '是否启用厨房看板']
+  bill_receipt_print_enabled boolean [not null, default: false, note: '结账小票/预结单是否走打印代理']
+  updated_at timestamp [not null, note: '最后更新时间']
+}
+
+Table restaurant_print_settings [note: '打印子系统配置：票面语言与代理行为'] {
+  restaurant_id uuid [pk, note: '餐厅 ID，与 restaurants 1:1']
+  print_locale varchar [not null, note: '票面语言：zh | en | pt']
+  default_receipt_station_id uuid [note: '默认小票/预结单打印档口']
+  agent_config json [not null, note: '代理配置：schedule 营业时段、poll 轮询间隔、credential_ttl_days 等']
+  agent_config_schema_version int [not null, default: 1, note: 'agent_config 结构版本号']
+  updated_at timestamp [not null, note: '最后更新时间']
+}
+
+Table restaurant_buffet_policy [note: '自助餐域：门店级默认定价策略'] {
+  restaurant_id uuid [pk, note: '餐厅 ID，与 restaurants 1:1']
+  friday_weekend_from time [note: '周五从该时刻起按周末价计费']
+  updated_at timestamp [not null, note: '最后更新时间']
+}
+
+Table restaurant_tables [note: '物理/逻辑桌位'] {
+  id uuid [pk, note: '桌位 ID（table_id），稳定身份']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  display_name varchar [not null, note: '桌位展示名 1–16 字，纸面与 UI 使用']
+  sort_order int [not null, note: '看板排序']
+  deleted_at timestamp [note: '软删除时间，删除后不参与新业务']
+  created_at timestamp [not null, note: '创建时间']
+}
+
+Table restaurant_table_groups [note: '桌位分组（区域命名）'] {
+  id uuid [pk, note: '分组 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  name varchar [not null, note: '分组名称，同店唯一']
+  remarks varchar [note: '备注']
+  sort_order int [not null, note: '排序']
+  created_at timestamp [not null, note: '创建时间']
+}
+
+Table restaurant_table_group_members [note: '桌位分组成员'] {
+  group_id uuid [pk, note: '分组 ID']
+  table_id uuid [pk, note: '桌位 ID']
+  restaurant_id uuid [not null, note: '所属餐厅（冗余，便于约束）']
+}
+
+Table table_sessions [note: '餐次会话：楼面聚合根，一桌一场活跃会话'] {
+  id uuid [pk, note: '会话 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  table_id uuid [not null, note: '当前桌位']
+  status varchar [not null, note: '状态：open 用餐 | billing 待结账 | closed 已结束']
+  opened_at timestamp [not null, note: '开台时间']
+  closed_at timestamp [note: '关台时间']
+  opened_by_user_id uuid [note: '开台操作人 → auth.users']
+  closed_by_user_id uuid [note: '关台操作人 → auth.users']
+  closed_reason varchar [note: '关台原因：merged / waiter_closed / auto_nightly 等']
+  merge_into_session_id uuid [note: '并台后目标会话 ID']
+}
+
+Table print_stations [note: '出品/打印档口'] {
+  id uuid [pk, note: '档口 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  name_pt varchar [not null, note: '葡语名称']
+  name_en varchar [note: '英语名称']
+  name_zh varchar [note: '中文名称']
+  sort_order int [not null, note: '排序']
+  ticket_layout varchar [not null, note: '小票版式：kitchen | beverage | standard']
+  created_at timestamp [not null, note: '创建时间']
+}
+
+Table menu_categories [note: '菜单分类（树形）'] {
+  id uuid [pk, note: '分类 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  parent_id uuid [note: '父分类 ID，空为根']
+  name_pt varchar [not null, note: '葡语名称']
+  name_en varchar [note: '英语名称']
+  name_zh varchar [note: '中文名称']
+  item_code varchar [note: '分类编码（打印标签前缀）']
+  sort_order int [not null, note: '排序']
+  active boolean [not null, note: '是否启用']
+  print_station_id uuid [note: '默认出品档口']
+  created_at timestamp [not null, note: '创建时间']
+}
+
+Table menu_items [note: '菜品'] {
+  id uuid [pk, note: '菜品 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  category_id uuid [note: '所属分类']
+  name_pt varchar [not null, note: '葡语名称']
+  name_en varchar [note: '英语名称']
+  name_zh varchar [note: '中文名称']
+  description_pt varchar [note: '葡语描述']
+  description_en varchar [note: '英语描述']
+  price decimal [not null, note: '单价']
+  vat_rate decimal [not null, note: '增值税率']
+  emoji varchar [note: '展示 emoji']
+  available boolean [not null, note: '是否上架可点']
+  sort_order int [not null, note: '分类内排序']
+  item_code varchar [note: '菜品编码']
+  note_preset_keys varchar [note: '备注预设键列表 text[]']
+  image_url varchar [note: '图片 URL']
+  print_station_id uuid [note: '覆盖分类的出品档口']
+  created_at timestamp [not null, note: '创建时间']
+}
+
+Table buffets [note: '自助餐方案'] {
+  id uuid [pk, note: '自助餐 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  name varchar [not null, note: '名称']
+  is_active boolean [not null, note: '是否启用']
+  description varchar [note: '描述']
+  created_at timestamp [not null, note: '创建时间']
+  updated_at timestamp [not null, note: '更新时间']
+}
+
+Table buffet_time_slots [note: '自助餐时段（午餐/晚餐等）'] {
+  id uuid [pk, note: '时段 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  name varchar [not null, note: '时段名称']
+  start_time time [not null, note: '开始时间']
+  end_time time [not null, note: '结束时间']
+  weekdays varchar [note: '适用星期 int[]，0=周日']
+  sort_order int [not null, note: '排序']
+  created_at timestamp [not null, note: '创建时间']
+}
+
+Table buffet_calendar_overrides [note: '日历覆盖：某天按节假日/特殊日计价'] {
+  restaurant_id uuid [pk, note: '餐厅 ID']
+  on_date date [pk, note: '日期']
+  kind varchar [not null, note: '类型：holiday | special']
+}
+
+Table buffet_price_rules [note: '自助餐价格规则'] {
+  id uuid [pk, note: '规则 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  buffet_id uuid [not null, note: '自助餐方案']
+  time_slot_id uuid [not null, note: '时段']
+  calendar_kind varchar [not null, note: '日历类型：weekday | weekend | holiday | special']
+  valid_from date [not null, note: '生效开始日']
+  valid_to date [not null, note: '生效结束日']
+  adult_price decimal [not null, note: '成人价']
+  child_price decimal [not null, note: '儿童价']
+  priority int [not null, note: '优先级，冲突时高者优先']
+  is_active boolean [not null, note: '是否启用']
+  note varchar [note: '备注']
+  created_at timestamp [not null, note: '创建时间']
+}
+
+Table orders [note: '订单头'] {
+  id uuid [pk, note: '订单 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  session_id uuid [not null, note: '餐次会话']
+  table_id uuid [not null, note: '桌位 ID（冗余）']
+  display_name varchar [not null, note: '桌位名快照']
+  status varchar [not null, note: '订单状态：pending | cooking | done，由行推导']
+  total_amount decimal [not null, note: '有效行金额合计']
+  created_at timestamp [not null, note: '创建时间']
+  updated_at timestamp [not null, note: '更新时间']
+}
+
+Table order_lines [note: '订单行：点餐事实真相源'] {
+  id uuid [pk, note: '行 ID（line_id），分单/退菜稳定引用']
+  order_id uuid [not null, note: '所属订单头']
+  restaurant_id uuid [not null, note: '所属餐厅（RLS 冗余）']
+  session_id uuid [not null, note: '会话 ID（查询冗余）']
+  line_type varchar [not null, note: '行类型：menu 菜品 | buffet_base 自助餐基准']
+  sort_key int [not null, note: '单内排序']
+  menu_item_id uuid [note: '来源菜品 ID，buffet 行可空']
+  item_code varchar [note: '下单时菜品编码快照']
+  category_code_path varchar [note: '分类编码路径快照 text[]']
+  name_pt varchar [not null, note: '葡语名快照']
+  name_en varchar [note: '英语名快照']
+  name_zh varchar [note: '中文名快照']
+  unit_price decimal [not null, note: '单价快照']
+  vat_rate decimal [not null, note: '税率快照']
+  qty decimal [not null, note: '数量']
+  line_amount decimal [not null, note: '行金额']
+  buffet_id uuid [note: '自助餐方案 ID']
+  price_rule_id uuid [note: '命中的价格规则 ID']
+  adult_count int [note: '成人人数（buffet 行）']
+  child_count int [note: '儿童人数（buffet 行）']
+  adult_unit_price decimal [note: '成人单价快照']
+  child_unit_price decimal [note: '儿童单价快照']
+  note varchar [note: '备注']
+  emoji varchar [note: 'emoji 快照']
+  batch_id uuid [note: '同次加单批次 ID']
+  kitchen_status varchar [not null, note: '厨房状态：pending | cooking | done | voided']
+  added_at timestamp [note: '加单时间']
+  started_at timestamp [note: '开始制作时间']
+  done_at timestamp [note: '出餐完成时间']
+  voided_at timestamp [note: '退菜时间']
+  void_reason varchar [note: '退菜原因']
+  void_reason_detail varchar [note: '退菜原因详情']
+  created_at timestamp [not null, note: '创建时间']
+  updated_at timestamp [not null, note: '更新时间']
+}
+
+Table bill_splits [note: '分单计划'] {
+  id uuid [pk, note: '分单 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  session_id uuid [not null, note: '餐次会话']
+  table_id uuid [not null, note: '桌位 ID']
+  display_name varchar [not null, note: '桌位名快照']
+  split_mode varchar [not null, note: '分单模式：even 均分 | by_item 按菜 | custom 自定义']
+  status varchar [not null, note: '状态：pending | confirmed | requested | paid | cancelled']
+  order_ids varchar [note: '关联订单头 ID 列表 uuid[]']
+  total_amount decimal [not null, note: '折后应付总额']
+  discount_rate decimal [not null, default: 0, note: '折扣率']
+  discount_reason varchar [note: '折扣原因']
+  discount_reason_detail varchar [note: '折扣原因详情']
+  customer_nif varchar [note: '顾客税号（葡式发票）']
+  result_snapshot json [note: '物化应付明细快照（只读）']
+  result_snapshot_at timestamp [note: '快照生成时间']
+  created_at timestamp [not null, note: '创建时间']
+  updated_at timestamp [not null, note: '更新时间']
+}
+
+Table bill_split_persons [note: '分单参与人'] {
+  id uuid [pk, note: '参与人 ID']
+  bill_split_id uuid [not null, note: '所属分单']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  person_index int [not null, note: '参与人序号 0..n-1']
+  display_name varchar [not null, note: '参与人显示名']
+}
+
+Table bill_split_line_allocations [note: '按菜/自定义分单：行级归属'] {
+  id uuid [pk, note: '分摊 ID']
+  bill_split_id uuid [not null, note: '所属分单']
+  person_id uuid [not null, note: '归属参与人']
+  order_line_id uuid [not null, note: '订单行']
+  allocated_qty decimal [not null, note: '分摊数量']
+  allocated_amount decimal [not null, note: '分摊金额']
+}
+
+Table session_collected_payments [note: '收款流水（只追加，已收金额真相源）'] {
+  id uuid [pk, note: '流水 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  session_id uuid [not null, note: '餐次会话']
+  bill_split_id uuid [note: '关联分单']
+  person_name varchar [not null, note: '付款人姓名']
+  amount decimal [not null, note: '实收金额']
+  created_by_user_id uuid [note: '确认收款人 → auth.users']
+  created_at timestamp [not null, note: '入账时间']
+}
+
+Table print_jobs [note: '打印任务队列'] {
+  id uuid [pk, note: '任务 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  type varchar [not null, note: '类型：order_receipt | station_ticket | pre_bill']
+  payload json [not null, note: '打印快照 payload，不可回写订单']
+  status varchar [not null, note: '状态：pending | processing | done | failed']
+  claimed_by varchar [note: '认领代理设备标识']
+  attempts int [not null, note: '尝试次数']
+  error_message varchar [note: '失败错误信息']
+  table_display varchar [note: '桌位展示名（来自 payload）']
+  table_id uuid [note: '桌位 ID（来自 payload）']
+  created_at timestamp [not null, note: '创建时间']
+  updated_at timestamp [not null, note: '更新时间']
+}
+
+Table print_agent_pairings [note: '打印代理配对码'] {
+  id uuid [pk, note: '配对 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  code varchar [not null, note: '6 位配对码']
+  expires_at timestamp [not null, note: '过期时间']
+  consumed_at timestamp [note: '被消费时间']
+  revoked_at timestamp [note: '作废时间']
+  created_by uuid [note: '创建人 → auth.users']
+  created_at timestamp [not null, note: '创建时间']
+}
+
+Table print_agent_devices [note: '已配对打印代理设备'] {
+  id uuid [pk, note: '设备 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  pairing_id uuid [note: '配对记录']
+  label varchar [note: '设备标签']
+  paired_at timestamp [not null, note: '配对时间']
+  valid_until timestamp [not null, note: 'JWT/凭证有效期']
+  revoked_at timestamp [note: '吊销时间']
+  last_seen timestamp [note: '最后心跳']
+  routing_snapshot json [note: '档口路由快照']
+  agent_version varchar [note: '代理版本号']
+  mapped_station_count int [note: '映射档口数量']
+  last_print_at timestamp [note: '最后打印时间']
+  last_print_status varchar [note: '最后打印结果']
+  schedule_open boolean [note: '是否在营业时段内']
+}
+
+Table print_agent_support_tokens [note: '运营支持代登设备一次性令牌'] {
+  id uuid [pk, note: '令牌 ID']
+  device_id uuid [not null, note: '目标设备']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  actor_user_id uuid [not null, note: '操作人 → auth.users']
+  expires_at timestamp [not null, note: '过期时间']
+  consumed_at timestamp [note: '使用时间']
+  created_at timestamp [not null, note: '创建时间']
+}
+
+Table restaurant_staff_accounts [note: '餐厅员工账号（Auth）'] {
+  id uuid [pk, note: '员工账号 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  user_id uuid [unique, not null, note: 'Auth 用户 ID → auth.users']
+  role varchar [not null, note: '角色：kitchen | waiter | cashier | frontdesk']
+  display_name varchar [not null, note: '显示名']
+  email varchar [unique, not null, note: '登录邮箱，全局唯一']
+  created_by uuid [note: '创建人 → auth.users']
+  disabled_at timestamp [note: '禁用时间']
+  created_at timestamp [not null, note: '创建时间']
+  updated_at timestamp [not null, note: '更新时间']
+}
+
+Table platform_admin_accounts [note: 'Mesa 平台运营账号'] {
+  id uuid [pk, note: '平台账号 ID']
+  user_id uuid [unique, not null, note: 'Auth 用户 ID → auth.users']
+  role varchar [not null, note: '角色：support | admin']
+  display_name varchar [not null, note: '显示名']
+  disabled_at timestamp [note: '禁用时间']
+  created_at timestamp [not null, note: '创建时间']
+}
+
+Table platform_admin_audit_log [note: '平台跨租户操作审计'] {
+  id uuid [pk, note: '审计 ID']
+  actor_user_id uuid [note: '操作人 → auth.users']
+  action varchar [not null, note: '动作标识']
+  target_type varchar [not null, note: '目标类型']
+  target_id varchar [not null, note: '目标 ID']
+  restaurant_id uuid [note: '关联餐厅（如有）']
+  metadata json [note: '扩展元数据']
+  created_at timestamp [not null, note: '操作时间']
+}
+
+Table operation_logs [note: '餐厅操作审计日志（追加）'] {
+  id uuid [pk, note: '日志 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  action_type varchar [not null, note: '动作类型']
+  entity_type varchar [not null, note: '实体类型']
+  entity_id uuid [not null, note: '实体 ID']
+  operator_id uuid [not null, note: '操作人 → auth.users']
+  operator_name varchar [not null, note: '操作人姓名快照']
+  operator_role varchar [not null, note: '操作人角色快照']
+  before_data json [note: '变更前快照']
+  after_data json [note: '变更后快照']
+  reason varchar [note: '原因']
+  reason_detail varchar [note: '原因详情']
+  ip_address varchar [note: 'IP']
+  device_info varchar [note: '设备信息']
+  created_at timestamp [not null, note: '记录时间']
+}
+
+Table abnormal_operations [note: '异常操作工单（需店主确认）'] {
+  id uuid [pk, note: '工单 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  type varchar [not null, note: '类型：DISCOUNT_APPLIED | ITEM_DELETED | UNPAID_TABLE_CLOSED']
+  risk_level varchar [not null, note: '风险：LOW | MEDIUM | HIGH']
+  status varchar [not null, default: 'PENDING', note: '状态：PENDING | CONFIRMED | IGNORED']
+  order_id uuid [note: '关联订单']
+  session_id uuid [note: '关联会话']
+  table_id uuid [note: '关联桌位']
+  table_name varchar [note: '桌位名快照']
+  operator_id uuid [not null, note: '操作人 → auth.users']
+  operator_name varchar [not null, note: '操作人姓名']
+  operator_role varchar [not null, note: '操作人角色']
+  amount_impact decimal [not null, default: 0, note: '金额影响']
+  reason varchar [not null, note: '原因']
+  reason_detail varchar [note: '原因详情']
+  before_data json [note: '变更前']
+  after_data json [note: '变更后']
+  owner_note varchar [note: '店主备注']
+  confirmed_by uuid [note: '确认人 → auth.users']
+  confirmed_at timestamp [note: '确认时间']
+  source_action_id uuid [note: '来源操作日志']
+  created_at timestamp [not null, note: '创建时间']
+  updated_at timestamp [not null, note: '更新时间']
+}
+
+Table dish_feedback [note: '菜品好评/差评'] {
+  id uuid [pk, note: '反馈 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  session_id uuid [not null, note: '餐次会话']
+  order_id uuid [not null, note: '订单']
+  menu_item_id uuid [not null, note: '菜品']
+  vote varchar [not null, note: '评价：up | down']
+  reasons varchar [note: '原因标签 text[]']
+  comment varchar [note: '文字评论']
+  created_at timestamp [not null, note: '创建时间']
+  updated_at timestamp [not null, note: '更新时间']
+}
+
+Table feedback_sessions [note: '反馈弹窗会话（是否展示/完成）'] {
+  id uuid [pk, note: '记录 ID']
+  restaurant_id uuid [not null, note: '所属餐厅']
+  session_id uuid [not null, note: '餐次会话']
+  source varchar [not null, note: '来源渠道']
+  shown_at timestamp [not null, note: '展示时间']
+  completed_at timestamp [note: '完成时间']
+  skipped_at timestamp [note: '跳过时间']
+  created_at timestamp [not null, note: '创建时间']
+}
+
+// --- 关系（仅定义一次）---
+
+Ref: restaurant_order_policies.restaurant_id - restaurants.id
+Ref: restaurant_features.restaurant_id - restaurants.id
+Ref: restaurant_print_settings.restaurant_id - restaurants.id
+Ref: restaurant_buffet_policy.restaurant_id - restaurants.id
+
+Ref: restaurant_tables.restaurant_id > restaurants.id
+Ref: restaurant_table_groups.restaurant_id > restaurants.id
+Ref: restaurant_table_group_members.restaurant_id > restaurants.id
+Ref: restaurant_table_group_members.group_id > restaurant_table_groups.id
+Ref: restaurant_table_group_members.table_id > restaurant_tables.id
+
+Ref: table_sessions.restaurant_id > restaurants.id
+Ref: table_sessions.table_id > restaurant_tables.id
+Ref: table_sessions.merge_into_session_id > table_sessions.id
+
+Ref: print_stations.restaurant_id > restaurants.id
+Ref: menu_categories.restaurant_id > restaurants.id
+Ref: menu_categories.parent_id > menu_categories.id
+Ref: menu_categories.print_station_id > print_stations.id
+Ref: menu_items.restaurant_id > restaurants.id
+Ref: menu_items.category_id > menu_categories.id
+Ref: menu_items.print_station_id > print_stations.id
+
+Ref: buffets.restaurant_id > restaurants.id
+Ref: buffet_time_slots.restaurant_id > restaurants.id
+Ref: buffet_calendar_overrides.restaurant_id > restaurants.id
+Ref: buffet_price_rules.restaurant_id > restaurants.id
+Ref: buffet_price_rules.buffet_id > buffets.id
+Ref: buffet_price_rules.time_slot_id > buffet_time_slots.id
+
+Ref: orders.restaurant_id > restaurants.id
+Ref: orders.session_id > table_sessions.id
+Ref: orders.table_id > restaurant_tables.id
+
+Ref: order_lines.order_id > orders.id
+Ref: order_lines.restaurant_id > restaurants.id
+Ref: order_lines.session_id > table_sessions.id
+Ref: order_lines.menu_item_id > menu_items.id
+Ref: order_lines.buffet_id > buffets.id
+
+Ref: bill_splits.restaurant_id > restaurants.id
+Ref: bill_splits.session_id > table_sessions.id
+Ref: bill_splits.table_id > restaurant_tables.id
+
+Ref: bill_split_persons.bill_split_id > bill_splits.id
+Ref: bill_split_persons.restaurant_id > restaurants.id
+Ref: bill_split_line_allocations.bill_split_id > bill_splits.id
+Ref: bill_split_line_allocations.person_id > bill_split_persons.id
+Ref: bill_split_line_allocations.order_line_id > order_lines.id
+
+Ref: session_collected_payments.restaurant_id > restaurants.id
+Ref: session_collected_payments.session_id > table_sessions.id
+Ref: session_collected_payments.bill_split_id > bill_splits.id
+
+Ref: print_jobs.restaurant_id > restaurants.id
+Ref: print_agent_pairings.restaurant_id > restaurants.id
+Ref: print_agent_devices.restaurant_id > restaurants.id
+Ref: print_agent_devices.pairing_id > print_agent_pairings.id
+Ref: print_agent_support_tokens.device_id > print_agent_devices.id
+Ref: print_agent_support_tokens.restaurant_id > restaurants.id
+
+Ref: restaurant_staff_accounts.restaurant_id > restaurants.id
+Ref: platform_admin_audit_log.restaurant_id > restaurants.id
+
+Ref: operation_logs.restaurant_id > restaurants.id
+Ref: abnormal_operations.restaurant_id > restaurants.id
+Ref: abnormal_operations.order_id > orders.id
+Ref: abnormal_operations.session_id > table_sessions.id
+Ref: abnormal_operations.table_id > restaurant_tables.id
+Ref: abnormal_operations.source_action_id > operation_logs.id
+
+Ref: dish_feedback.restaurant_id > restaurants.id
+Ref: dish_feedback.session_id > table_sessions.id
+Ref: dish_feedback.order_id > orders.id
+Ref: dish_feedback.menu_item_id > menu_items.id
+Ref: feedback_sessions.restaurant_id > restaurants.id
+Ref: feedback_sessions.session_id > table_sessions.id
+
+Ref: restaurant_print_settings.default_receipt_station_id > print_stations.id

@@ -1,0 +1,5052 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 27,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/web/src/app/api/auth/login/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 80,
+      "nonEmptyLines": 69,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 13,
+          "endLine": 80,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 13,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "req.json",
+          "lineNumber": 16
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 18
+        },
+        {
+          "caller": "POST",
+          "callee": "body.email.trim().toLowerCase",
+          "lineNumber": 21
+        },
+        {
+          "caller": "POST",
+          "callee": "body.email.trim",
+          "lineNumber": 21
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 24
+        },
+        {
+          "caller": "POST",
+          "callee": "clientIpFromRequest",
+          "lineNumber": 27
+        },
+        {
+          "caller": "POST",
+          "callee": "authLoginRateLimitCheck",
+          "lineNumber": 28
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 30
+        },
+        {
+          "caller": "POST",
+          "callee": "String",
+          "lineNumber": 32
+        },
+        {
+          "caller": "POST",
+          "callee": "createClient",
+          "lineNumber": 36
+        },
+        {
+          "caller": "POST",
+          "callee": "supabase.auth.signInWithPassword",
+          "lineNumber": 37
+        },
+        {
+          "caller": "POST",
+          "callee": "authLoginRecordFailure",
+          "lineNumber": 40
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 41
+        },
+        {
+          "caller": "POST",
+          "callee": "resolvePostLoginRedirect",
+          "lineNumber": 45
+        },
+        {
+          "caller": "POST",
+          "callee": "supabase.auth.signOut",
+          "lineNumber": 52
+        },
+        {
+          "caller": "POST",
+          "callee": "authLoginRecordFailure",
+          "lineNumber": 53
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 54
+        },
+        {
+          "caller": "POST",
+          "callee": "authLoginRecordSuccess",
+          "lineNumber": 57
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 60
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 70
+        },
+        {
+          "caller": "POST",
+          "callee": "supabase.auth.signOut",
+          "lineNumber": 76
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 78
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/auth/staff/login/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 108,
+      "nonEmptyLines": 92,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 15,
+          "endLine": 108,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 13,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 15,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "req.json",
+          "lineNumber": 18
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 20
+        },
+        {
+          "caller": "POST",
+          "callee": "body.email.trim().toLowerCase",
+          "lineNumber": 23
+        },
+        {
+          "caller": "POST",
+          "callee": "body.email.trim",
+          "lineNumber": 23
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 26
+        },
+        {
+          "caller": "POST",
+          "callee": "clientIpFromRequest",
+          "lineNumber": 29
+        },
+        {
+          "caller": "POST",
+          "callee": "authLoginRateLimitCheck",
+          "lineNumber": 30
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 32
+        },
+        {
+          "caller": "POST",
+          "callee": "String",
+          "lineNumber": 34
+        },
+        {
+          "caller": "POST",
+          "callee": "createAdminClient",
+          "lineNumber": 40
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 42
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('restaurant_staff_accounts')\n    .select('id, disabled_at, role, restaurant_id')\n    .eq('email', email)\n    .maybeSingle",
+          "lineNumber": 45
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('restaurant_staff_accounts')\n    .select('id, disabled_at, role, restaurant_id')\n    .eq",
+          "lineNumber": 45
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('restaurant_staff_accounts')\n    .select",
+          "lineNumber": 45
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from",
+          "lineNumber": 45
+        },
+        {
+          "caller": "POST",
+          "callee": "authLoginRecordFailure",
+          "lineNumber": 52
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 53
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('restaurants')\n    .select('suspended_at')\n    .eq('id', account.restaurant_id as string)\n    .maybeSingle",
+          "lineNumber": 56
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('restaurants')\n    .select('suspended_at')\n    .eq",
+          "lineNumber": 56
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('restaurants')\n    .select",
+          "lineNumber": 56
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from",
+          "lineNumber": 56
+        },
+        {
+          "caller": "POST",
+          "callee": "isRestaurantSuspended",
+          "lineNumber": 62
+        },
+        {
+          "caller": "POST",
+          "callee": "authLoginRecordFailure",
+          "lineNumber": 63
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 64
+        },
+        {
+          "caller": "POST",
+          "callee": "createClient",
+          "lineNumber": 67
+        },
+        {
+          "caller": "POST",
+          "callee": "supabase.auth.signInWithPassword",
+          "lineNumber": 68
+        },
+        {
+          "caller": "POST",
+          "callee": "authLoginRecordFailure",
+          "lineNumber": 71
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 72
+        },
+        {
+          "caller": "POST",
+          "callee": "resolvePostLoginRedirect",
+          "lineNumber": 76
+        },
+        {
+          "caller": "POST",
+          "callee": "supabase.auth.signOut",
+          "lineNumber": 83
+        },
+        {
+          "caller": "POST",
+          "callee": "authLoginRecordFailure",
+          "lineNumber": 84
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 85
+        },
+        {
+          "caller": "POST",
+          "callee": "supabase.auth.signOut",
+          "lineNumber": 89
+        },
+        {
+          "caller": "POST",
+          "callee": "authLoginRecordFailure",
+          "lineNumber": 90
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 91
+        },
+        {
+          "caller": "POST",
+          "callee": "authLoginRecordSuccess",
+          "lineNumber": 94
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 96
+        },
+        {
+          "caller": "POST",
+          "callee": "supabase.auth.signOut",
+          "lineNumber": 104
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 106
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/cron/nightly-close-sessions/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 42,
+      "nonEmptyLines": 37,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 14,
+          "endLine": 42,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "dynamic",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 14,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 16
+        },
+        {
+          "caller": "GET",
+          "callee": "verifyCronSecret",
+          "lineNumber": 18
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 19
+        },
+        {
+          "caller": "GET",
+          "callee": "isNightlyAutoCloseDue",
+          "lineNumber": 22
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 23
+        },
+        {
+          "caller": "GET",
+          "callee": "createAdminClient",
+          "lineNumber": 27
+        },
+        {
+          "caller": "GET",
+          "callee": "expireStalePrintJobs",
+          "lineNumber": 28
+        },
+        {
+          "caller": "GET",
+          "callee": "console.error",
+          "lineNumber": 30
+        },
+        {
+          "caller": "GET",
+          "callee": "executeNightlyAutoClose",
+          "lineNumber": 33
+        },
+        {
+          "caller": "GET",
+          "callee": "console.info",
+          "lineNumber": 35
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 36
+        },
+        {
+          "caller": "GET",
+          "callee": "console.error",
+          "lineNumber": 39
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 40
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 3,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/dashboard/staff/[id]/reset-password/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 67,
+      "nonEmptyLines": 55,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 13,
+          "endLine": 67,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 13,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "loadOwnerRestaurantWithSlug",
+          "lineNumber": 14
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 16
+        },
+        {
+          "caller": "POST",
+          "callee": "req.json",
+          "lineNumber": 21
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 23
+        },
+        {
+          "caller": "POST",
+          "callee": "staffPasswordValid",
+          "lineNumber": 27
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 28
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .select('*')\n    .eq('id', params.id)\n    .eq('restaurant_id', loaded.restaurant.id)\n    .maybeSingle",
+          "lineNumber": 31
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .select('*')\n    .eq('id', params.id)\n    .eq",
+          "lineNumber": 31
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .select('*')\n    .eq",
+          "lineNumber": 31
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .select",
+          "lineNumber": 31
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin\n    .from",
+          "lineNumber": 31
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 39
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin.auth.admin.updateUserById",
+          "lineNumber": 44
+        },
+        {
+          "caller": "POST",
+          "callee": "staffMetadataPayload",
+          "lineNumber": 46
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 56
+        },
+        {
+          "caller": "POST",
+          "callee": "kickStaffUserSessions",
+          "lineNumber": 59
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .update({ updated_at: new Date().toISOString() })\n    .eq",
+          "lineNumber": 61
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .update",
+          "lineNumber": 61
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin\n    .from",
+          "lineNumber": 61
+        },
+        {
+          "caller": "POST",
+          "callee": "new Date().toISOString",
+          "lineNumber": 63
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 66
+        },
+        {
+          "caller": "POST",
+          "callee": "mapStaffRow",
+          "lineNumber": 66
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/dashboard/staff/[id]/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 124,
+      "nonEmptyLines": 103,
+      "functions": [
+        {
+          "name": "PATCH",
+          "startLine": 10,
+          "endLine": 88,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        },
+        {
+          "name": "DELETE",
+          "startLine": 90,
+          "endLine": 124,
+          "params": [
+            "_req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "PATCH",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "DELETE",
+          "line": 90,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "PATCH",
+          "callee": "loadOwnerRestaurantWithSlug",
+          "lineNumber": 11
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 13
+        },
+        {
+          "caller": "PATCH",
+          "callee": "req.json",
+          "lineNumber": 18
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 20
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .select('*')\n    .eq('id', params.id)\n    .eq('restaurant_id', loaded.restaurant.id)\n    .maybeSingle",
+          "lineNumber": 23
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .select('*')\n    .eq('id', params.id)\n    .eq",
+          "lineNumber": 23
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .select('*')\n    .eq",
+          "lineNumber": 23
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .select",
+          "lineNumber": 23
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n    .from",
+          "lineNumber": 23
+        },
+        {
+          "caller": "PATCH",
+          "callee": "isDbMigrationRequiredError",
+          "lineNumber": 31
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 32
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 34
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 37
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n      .from('restaurant_staff_accounts')\n      .update({ disabled_at: new Date().toISOString(), updated_at: new Date().toISOString() })\n      .eq('id', params.id)\n      .select('*')\n      .single",
+          "lineNumber": 43
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n      .from('restaurant_staff_accounts')\n      .update({ disabled_at: new Date().toISOString(), updated_at: new Date().toISOString() })\n      .eq('id', params.id)\n      .select",
+          "lineNumber": 43
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n      .from('restaurant_staff_accounts')\n      .update({ disabled_at: new Date().toISOString(), updated_at: new Date().toISOString() })\n      .eq",
+          "lineNumber": 43
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n      .from('restaurant_staff_accounts')\n      .update",
+          "lineNumber": 43
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n      .from",
+          "lineNumber": 43
+        },
+        {
+          "caller": "PATCH",
+          "callee": "new Date().toISOString",
+          "lineNumber": 45
+        },
+        {
+          "caller": "PATCH",
+          "callee": "new Date().toISOString",
+          "lineNumber": 45
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 50
+        },
+        {
+          "caller": "PATCH",
+          "callee": "setStaffUserBanned",
+          "lineNumber": 52
+        },
+        {
+          "caller": "PATCH",
+          "callee": "kickStaffUserSessions",
+          "lineNumber": 53
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 54
+        },
+        {
+          "caller": "PATCH",
+          "callee": "mapStaffRow",
+          "lineNumber": 54
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n      .from('restaurant_staff_accounts')\n      .update({ disabled_at: null, updated_at: new Date().toISOString() })\n      .eq('id', params.id)\n      .select('*')\n      .single",
+          "lineNumber": 58
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n      .from('restaurant_staff_accounts')\n      .update({ disabled_at: null, updated_at: new Date().toISOString() })\n      .eq('id', params.id)\n      .select",
+          "lineNumber": 58
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n      .from('restaurant_staff_accounts')\n      .update({ disabled_at: null, updated_at: new Date().toISOString() })\n      .eq",
+          "lineNumber": 58
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n      .from('restaurant_staff_accounts')\n      .update",
+          "lineNumber": 58
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n      .from",
+          "lineNumber": 58
+        },
+        {
+          "caller": "PATCH",
+          "callee": "new Date().toISOString",
+          "lineNumber": 60
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 65
+        },
+        {
+          "caller": "PATCH",
+          "callee": "setStaffUserBanned",
+          "lineNumber": 67
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 68
+        },
+        {
+          "caller": "PATCH",
+          "callee": "mapStaffRow",
+          "lineNumber": 68
+        },
+        {
+          "caller": "PATCH",
+          "callee": "body.display_name.trim",
+          "lineNumber": 71
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 73
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .update({ display_name, updated_at: new Date().toISOString() })\n    .eq('id', params.id)\n    .select('*')\n    .single",
+          "lineNumber": 76
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .update({ display_name, updated_at: new Date().toISOString() })\n    .eq('id', params.id)\n    .select",
+          "lineNumber": 76
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .update({ display_name, updated_at: new Date().toISOString() })\n    .eq",
+          "lineNumber": 76
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .update",
+          "lineNumber": 76
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loaded.admin\n    .from",
+          "lineNumber": 76
+        },
+        {
+          "caller": "PATCH",
+          "callee": "new Date().toISOString",
+          "lineNumber": 78
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 84
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 87
+        },
+        {
+          "caller": "PATCH",
+          "callee": "mapStaffRow",
+          "lineNumber": 87
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loadOwnerRestaurantWithSlug",
+          "lineNumber": 91
+        },
+        {
+          "caller": "DELETE",
+          "callee": "NextResponse.json",
+          "lineNumber": 93
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .select('user_id')\n    .eq('id', params.id)\n    .eq('restaurant_id', loaded.restaurant.id)\n    .maybeSingle",
+          "lineNumber": 96
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .select('user_id')\n    .eq('id', params.id)\n    .eq",
+          "lineNumber": 96
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .select('user_id')\n    .eq",
+          "lineNumber": 96
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .select",
+          "lineNumber": 96
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from",
+          "lineNumber": 96
+        },
+        {
+          "caller": "DELETE",
+          "callee": "NextResponse.json",
+          "lineNumber": 104
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .delete()\n    .eq",
+          "lineNumber": 109
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .delete",
+          "lineNumber": 109
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin\n    .from",
+          "lineNumber": 109
+        },
+        {
+          "caller": "DELETE",
+          "callee": "NextResponse.json",
+          "lineNumber": 115
+        },
+        {
+          "caller": "DELETE",
+          "callee": "loaded.admin.auth.admin.deleteUser",
+          "lineNumber": 118
+        },
+        {
+          "caller": "DELETE",
+          "callee": "NextResponse.json",
+          "lineNumber": 120
+        },
+        {
+          "caller": "DELETE",
+          "callee": "NextResponse.json",
+          "lineNumber": 123
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 3,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/dashboard/staff/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 121,
+      "nonEmptyLines": 104,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 14,
+          "endLine": 34,
+          "params": []
+        },
+        {
+          "name": "POST",
+          "startLine": 36,
+          "endLine": 121,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 36,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "loadOwnerRestaurantWithSlug",
+          "lineNumber": 15
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 17
+        },
+        {
+          "caller": "GET",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .select('*')\n    .eq('restaurant_id', loaded.restaurant.id)\n    .order",
+          "lineNumber": 20
+        },
+        {
+          "caller": "GET",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .select('*')\n    .eq",
+          "lineNumber": 20
+        },
+        {
+          "caller": "GET",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .select",
+          "lineNumber": 20
+        },
+        {
+          "caller": "GET",
+          "callee": "loaded.admin\n    .from",
+          "lineNumber": 20
+        },
+        {
+          "caller": "GET",
+          "callee": "isDbMigrationRequiredError",
+          "lineNumber": 27
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 28
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 30
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 33
+        },
+        {
+          "caller": "GET",
+          "callee": "(data || []).map",
+          "lineNumber": 33
+        },
+        {
+          "caller": "POST",
+          "callee": "loadOwnerRestaurantWithSlug",
+          "lineNumber": 37
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 39
+        },
+        {
+          "caller": "POST",
+          "callee": "req.json",
+          "lineNumber": 44
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 46
+        },
+        {
+          "caller": "POST",
+          "callee": "validateStaffCreateBody",
+          "lineNumber": 49
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 51
+        },
+        {
+          "caller": "POST",
+          "callee": "buildStaffEmail",
+          "lineNumber": 54
+        },
+        {
+          "caller": "POST",
+          "callee": "createClient",
+          "lineNumber": 56
+        },
+        {
+          "caller": "POST",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 59
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin.auth.admin.createUser",
+          "lineNumber": 61
+        },
+        {
+          "caller": "POST",
+          "callee": "createError.message.toLowerCase",
+          "lineNumber": 75
+        },
+        {
+          "caller": "POST",
+          "callee": "msg.includes",
+          "lineNumber": 76
+        },
+        {
+          "caller": "POST",
+          "callee": "msg.includes",
+          "lineNumber": 76
+        },
+        {
+          "caller": "POST",
+          "callee": "msg.includes",
+          "lineNumber": 76
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 77
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 79
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .insert({\n      restaurant_id: loaded.restaurant.id,\n      user_id: userId,\n      role: parsed.role,\n      display_name: parsed.display_name,\n      login_name: parsed.login_name,\n      email,\n      created_by: owner?.id ?? null,\n    })\n    .select('*')\n    .single",
+          "lineNumber": 84
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .insert({\n      restaurant_id: loaded.restaurant.id,\n      user_id: userId,\n      role: parsed.role,\n      display_name: parsed.display_name,\n      login_name: parsed.login_name,\n      email,\n      created_by: owner?.id ?? null,\n    })\n    .select",
+          "lineNumber": 84
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin\n    .from('restaurant_staff_accounts')\n    .insert",
+          "lineNumber": 84
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin\n    .from",
+          "lineNumber": 84
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin.auth.admin.deleteUser",
+          "lineNumber": 99
+        },
+        {
+          "caller": "POST",
+          "callee": "isDbMigrationRequiredError",
+          "lineNumber": 100
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 101
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 104
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 106
+        },
+        {
+          "caller": "POST",
+          "callee": "mapStaffRow",
+          "lineNumber": 109
+        },
+        {
+          "caller": "POST",
+          "callee": "loaded.admin.auth.admin.updateUserById",
+          "lineNumber": 110
+        },
+        {
+          "caller": "POST",
+          "callee": "staffMetadataPayload",
+          "lineNumber": 111
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 120
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 3,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 88,
+      "nonEmptyLines": 76,
+      "functions": [
+        {
+          "name": "PATCH",
+          "startLine": 16,
+          "endLine": 88,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "PATCH",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "PATCH",
+          "callee": "getOwnerRestaurantId",
+          "lineNumber": 17
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 19
+        },
+        {
+          "caller": "PATCH",
+          "callee": "req.json",
+          "lineNumber": 24
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 26
+        },
+        {
+          "caller": "PATCH",
+          "callee": "parseDefaultReceiptStationId",
+          "lineNumber": 38
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 40
+        },
+        {
+          "caller": "PATCH",
+          "callee": "createAdminClient",
+          "lineNumber": 47
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 49
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loadRestaurantReceiptPrinterSnapshot",
+          "lineNumber": 53
+        },
+        {
+          "caller": "PATCH",
+          "callee": "assertReceiptPrinterIdAllowed",
+          "lineNumber": 54
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 55
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('restaurants')\n    .select('print_agent_config')\n    .eq('id', auth.restaurantId)\n    .single",
+          "lineNumber": 59
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('restaurants')\n    .select('print_agent_config')\n    .eq",
+          "lineNumber": 59
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('restaurants')\n    .select",
+          "lineNumber": 59
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from",
+          "lineNumber": 59
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 65
+        },
+        {
+          "caller": "PATCH",
+          "callee": "normalizePrintAgentCloudConfig",
+          "lineNumber": 68
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('restaurants')\n    .update({ print_agent_config: merged })\n    .eq",
+          "lineNumber": 76
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('restaurants')\n    .update",
+          "lineNumber": 76
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from",
+          "lineNumber": 76
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 82
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 85
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/claim/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 167,
+      "nonEmptyLines": 142,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 16,
+          "endLine": 167,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "clientIpFromRequest",
+          "lineNumber": 17
+        },
+        {
+          "caller": "POST",
+          "callee": "claimRateLimitCheck",
+          "lineNumber": 18
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 20
+        },
+        {
+          "caller": "POST",
+          "callee": "String",
+          "lineNumber": 22
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 28
+        },
+        {
+          "caller": "POST",
+          "callee": "req.json",
+          "lineNumber": 33
+        },
+        {
+          "caller": "POST",
+          "callee": "claimRecordFailure",
+          "lineNumber": 35
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 36
+        },
+        {
+          "caller": "POST",
+          "callee": "body.code.trim",
+          "lineNumber": 39
+        },
+        {
+          "caller": "POST",
+          "callee": "body.device_id.trim",
+          "lineNumber": 40
+        },
+        {
+          "caller": "POST",
+          "callee": "body.label.trim().slice",
+          "lineNumber": 41
+        },
+        {
+          "caller": "POST",
+          "callee": "body.label.trim",
+          "lineNumber": 41
+        },
+        {
+          "caller": "POST",
+          "callee": "/^[0-9]{6}$/.test",
+          "lineNumber": 43
+        },
+        {
+          "caller": "POST",
+          "callee": "isUuid",
+          "lineNumber": 43
+        },
+        {
+          "caller": "POST",
+          "callee": "claimRecordFailure",
+          "lineNumber": 44
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 45
+        },
+        {
+          "caller": "POST",
+          "callee": "createAdminClient",
+          "lineNumber": 50
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 52
+        },
+        {
+          "caller": "POST",
+          "callee": "new Date().toISOString",
+          "lineNumber": 55
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id, restaurant_id, expires_at, consumed_at')\n    .eq('code', code)\n    .is('consumed_at', null)\n    .is('revoked_at', null)\n    .gt('expires_at', nowIso)\n    .limit",
+          "lineNumber": 57
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id, restaurant_id, expires_at, consumed_at')\n    .eq('code', code)\n    .is('consumed_at', null)\n    .is('revoked_at', null)\n    .gt",
+          "lineNumber": 57
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id, restaurant_id, expires_at, consumed_at')\n    .eq('code', code)\n    .is('consumed_at', null)\n    .is",
+          "lineNumber": 57
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id, restaurant_id, expires_at, consumed_at')\n    .eq('code', code)\n    .is",
+          "lineNumber": 57
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id, restaurant_id, expires_at, consumed_at')\n    .eq",
+          "lineNumber": 57
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select",
+          "lineNumber": 57
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from",
+          "lineNumber": 57
+        },
+        {
+          "caller": "POST",
+          "callee": "claimRecordFailure",
+          "lineNumber": 67
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 68
+        },
+        {
+          "caller": "POST",
+          "callee": "claimRecordFailure",
+          "lineNumber": 73
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 74
+        },
+        {
+          "caller": "POST",
+          "callee": "claimRecordFailure",
+          "lineNumber": 77
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 78
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_devices')\n    .select('id, restaurant_id')\n    .eq('id', deviceId)\n    .maybeSingle",
+          "lineNumber": 83
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_devices')\n    .select('id, restaurant_id')\n    .eq",
+          "lineNumber": 83
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_devices')\n    .select",
+          "lineNumber": 83
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from",
+          "lineNumber": 83
+        },
+        {
+          "caller": "POST",
+          "callee": "claimRecordFailure",
+          "lineNumber": 90
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 91
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .update({ consumed_at: nowIso })\n    .eq('id', p.id)\n    .is('consumed_at', null)\n    .select('id')\n    .maybeSingle",
+          "lineNumber": 94
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .update({ consumed_at: nowIso })\n    .eq('id', p.id)\n    .is('consumed_at', null)\n    .select",
+          "lineNumber": 94
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .update({ consumed_at: nowIso })\n    .eq('id', p.id)\n    .is",
+          "lineNumber": 94
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .update({ consumed_at: nowIso })\n    .eq",
+          "lineNumber": 94
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .update",
+          "lineNumber": 94
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from",
+          "lineNumber": 94
+        },
+        {
+          "caller": "POST",
+          "callee": "claimRecordFailure",
+          "lineNumber": 103
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 104
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('restaurants')\n    .select('print_locale, print_agent_config')\n    .eq('id', p.restaurant_id)\n    .single",
+          "lineNumber": 107
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('restaurants')\n    .select('print_locale, print_agent_config')\n    .eq",
+          "lineNumber": 107
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('restaurants')\n    .select",
+          "lineNumber": 107
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from",
+          "lineNumber": 107
+        },
+        {
+          "caller": "POST",
+          "callee": "resolvePrintAgentCredentialTtlSec",
+          "lineNumber": 114
+        },
+        {
+          "caller": "POST",
+          "callee": "new Date(Date.now() + credentialTtlSec * 1000).toISOString",
+          "lineNumber": 115
+        },
+        {
+          "caller": "POST",
+          "callee": "Date.now",
+          "lineNumber": 115
+        },
+        {
+          "caller": "POST",
+          "callee": "admin.from('print_agent_devices').upsert",
+          "lineNumber": 117
+        },
+        {
+          "caller": "POST",
+          "callee": "admin.from",
+          "lineNumber": 117
+        },
+        {
+          "caller": "POST",
+          "callee": "admin.from('print_agent_pairings').update({ consumed_at: null }).eq",
+          "lineNumber": 131
+        },
+        {
+          "caller": "POST",
+          "callee": "admin.from('print_agent_pairings').update",
+          "lineNumber": 131
+        },
+        {
+          "caller": "POST",
+          "callee": "admin.from",
+          "lineNumber": 131
+        },
+        {
+          "caller": "POST",
+          "callee": "claimRecordFailure",
+          "lineNumber": 132
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 133
+        },
+        {
+          "caller": "POST",
+          "callee": "admin.from('print_jobs').insert",
+          "lineNumber": 136
+        },
+        {
+          "caller": "POST",
+          "callee": "admin.from",
+          "lineNumber": 136
+        },
+        {
+          "caller": "POST",
+          "callee": "console.error",
+          "lineNumber": 150
+        },
+        {
+          "caller": "POST",
+          "callee": "signPrintAgentJwt",
+          "lineNumber": 153
+        },
+        {
+          "caller": "POST",
+          "callee": "claimRecordSuccess",
+          "lineNumber": 159
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 161
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/devices/[id]/revoke/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 34,
+      "nonEmptyLines": 28,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 9,
+          "endLine": 34,
+          "params": [
+            "_req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "POST",
+          "line": 9,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "getOwnerRestaurantId",
+          "lineNumber": 10
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 12
+        },
+        {
+          "caller": "POST",
+          "callee": "params.id?.trim",
+          "lineNumber": 15
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 17
+        },
+        {
+          "caller": "POST",
+          "callee": "createAdminClient",
+          "lineNumber": 22
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 24
+        },
+        {
+          "caller": "POST",
+          "callee": "revokePrintAgentDevice",
+          "lineNumber": 27
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 30
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 33
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/heartbeat/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 84,
+      "nonEmptyLines": 71,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 16,
+          "endLine": 84,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "createAdminClient",
+          "lineNumber": 19
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 21
+        },
+        {
+          "caller": "POST",
+          "callee": "verifyActiveAgentBearer",
+          "lineNumber": 24
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 26
+        },
+        {
+          "caller": "POST",
+          "callee": "req.json",
+          "lineNumber": 31
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 33
+        },
+        {
+          "caller": "POST",
+          "callee": "body.agent_version.trim().slice",
+          "lineNumber": 36
+        },
+        {
+          "caller": "POST",
+          "callee": "body.agent_version.trim",
+          "lineNumber": 36
+        },
+        {
+          "caller": "POST",
+          "callee": "Number.isFinite",
+          "lineNumber": 38
+        },
+        {
+          "caller": "POST",
+          "callee": "Math.max",
+          "lineNumber": 39
+        },
+        {
+          "caller": "POST",
+          "callee": "Math.min",
+          "lineNumber": 39
+        },
+        {
+          "caller": "POST",
+          "callee": "Math.floor",
+          "lineNumber": 39
+        },
+        {
+          "caller": "POST",
+          "callee": "Number.isNaN",
+          "lineNumber": 45
+        },
+        {
+          "caller": "POST",
+          "callee": "t.getTime",
+          "lineNumber": 45
+        },
+        {
+          "caller": "POST",
+          "callee": "t.toISOString",
+          "lineNumber": 46
+        },
+        {
+          "caller": "POST",
+          "callee": "new Date().toISOString",
+          "lineNumber": 57
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_devices')\n    .update(patch)\n    .eq('id', ctx.device_id)\n    .eq('restaurant_id', ctx.restaurant_id)\n    .is('revoked_at', null)\n    .select('id')\n    .maybeSingle",
+          "lineNumber": 67
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_devices')\n    .update(patch)\n    .eq('id', ctx.device_id)\n    .eq('restaurant_id', ctx.restaurant_id)\n    .is('revoked_at', null)\n    .select",
+          "lineNumber": 67
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_devices')\n    .update(patch)\n    .eq('id', ctx.device_id)\n    .eq('restaurant_id', ctx.restaurant_id)\n    .is",
+          "lineNumber": 67
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_devices')\n    .update(patch)\n    .eq('id', ctx.device_id)\n    .eq",
+          "lineNumber": 67
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_devices')\n    .update(patch)\n    .eq",
+          "lineNumber": 67
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_devices')\n    .update",
+          "lineNumber": 67
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from",
+          "lineNumber": 67
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 77
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 80
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 83
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/jobs/[id]/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 138,
+      "nonEmptyLines": 119,
+      "functions": [
+        {
+          "name": "PATCH",
+          "startLine": 12,
+          "endLine": 138,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "PATCH",
+          "line": 12,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 15
+        },
+        {
+          "caller": "PATCH",
+          "callee": "req.json",
+          "lineNumber": 20
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 22
+        },
+        {
+          "caller": "PATCH",
+          "callee": "body.error_message.slice",
+          "lineNumber": 27
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 30
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 33
+        },
+        {
+          "caller": "PATCH",
+          "callee": "createAdminClient",
+          "lineNumber": 38
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 40
+        },
+        {
+          "caller": "PATCH",
+          "callee": "verifyActiveAgentBearer",
+          "lineNumber": 43
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 45
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('print_jobs')\n    .select('id, restaurant_id, status, attempts, claimed_by, type, payload')\n    .eq('id', jobId)\n    .maybeSingle",
+          "lineNumber": 48
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('print_jobs')\n    .select('id, restaurant_id, status, attempts, claimed_by, type, payload')\n    .eq",
+          "lineNumber": 48
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('print_jobs')\n    .select",
+          "lineNumber": 48
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from",
+          "lineNumber": 48
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 55
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 58
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loadDeviceRoutingStationIds",
+          "lineNumber": 61
+        },
+        {
+          "caller": "PATCH",
+          "callee": "isPrintJobVisibleToDevice",
+          "lineNumber": 66
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 67
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 74
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n      .from('print_jobs')\n      .update({\n        status: 'processing',\n        claimed_by: ctx.device_id,\n        attempts: nextAttempts,\n      })\n      .eq('id', jobId)\n      .eq('status', 'pending')\n      .select('id, status')\n      .maybeSingle",
+          "lineNumber": 77
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n      .from('print_jobs')\n      .update({\n        status: 'processing',\n        claimed_by: ctx.device_id,\n        attempts: nextAttempts,\n      })\n      .eq('id', jobId)\n      .eq('status', 'pending')\n      .select",
+          "lineNumber": 77
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n      .from('print_jobs')\n      .update({\n        status: 'processing',\n        claimed_by: ctx.device_id,\n        attempts: nextAttempts,\n      })\n      .eq('id', jobId)\n      .eq",
+          "lineNumber": 77
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n      .from('print_jobs')\n      .update({\n        status: 'processing',\n        claimed_by: ctx.device_id,\n        attempts: nextAttempts,\n      })\n      .eq",
+          "lineNumber": 77
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n      .from('print_jobs')\n      .update",
+          "lineNumber": 77
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n      .from",
+          "lineNumber": 77
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 90
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 92
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 97
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n      .from('print_jobs')\n      .update({ status: 'done', error_message: null })\n      .eq('id', jobId)\n      .eq('status', 'processing')\n      .eq('claimed_by', ctx.device_id)\n      .select('id, status')\n      .maybeSingle",
+          "lineNumber": 99
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n      .from('print_jobs')\n      .update({ status: 'done', error_message: null })\n      .eq('id', jobId)\n      .eq('status', 'processing')\n      .eq('claimed_by', ctx.device_id)\n      .select",
+          "lineNumber": 99
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n      .from('print_jobs')\n      .update({ status: 'done', error_message: null })\n      .eq('id', jobId)\n      .eq('status', 'processing')\n      .eq",
+          "lineNumber": 99
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n      .from('print_jobs')\n      .update({ status: 'done', error_message: null })\n      .eq('id', jobId)\n      .eq",
+          "lineNumber": 99
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n      .from('print_jobs')\n      .update({ status: 'done', error_message: null })\n      .eq",
+          "lineNumber": 99
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n      .from('print_jobs')\n      .update",
+          "lineNumber": 99
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n      .from",
+          "lineNumber": 99
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 109
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 111
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 116
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('print_jobs')\n    .update({\n      status: 'failed',\n      error_message: errMsg,\n      ...(current === 'pending' ? { claimed_by: ctx.device_id } : {}),\n    })\n    .eq('id', jobId)\n    .eq",
+          "lineNumber": 118
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('print_jobs')\n    .update({\n      status: 'failed',\n      error_message: errMsg,\n      ...(current === 'pending' ? { claimed_by: ctx.device_id } : {}),\n    })\n    .eq",
+          "lineNumber": 118
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('print_jobs')\n    .update",
+          "lineNumber": 118
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from",
+          "lineNumber": 118
+        },
+        {
+          "caller": "PATCH",
+          "callee": "updateQuery.eq",
+          "lineNumber": 129
+        },
+        {
+          "caller": "PATCH",
+          "callee": "updateQuery.select('id, status').maybeSingle",
+          "lineNumber": 132
+        },
+        {
+          "caller": "PATCH",
+          "callee": "updateQuery.select",
+          "lineNumber": 132
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 135
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 137
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/pairing/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 137,
+      "nonEmptyLines": 123,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 10,
+          "endLine": 137,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "getOwnerRestaurantId",
+          "lineNumber": 11
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 13
+        },
+        {
+          "caller": "POST",
+          "callee": "createAdminClient",
+          "lineNumber": 18
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 20
+        },
+        {
+          "caller": "POST",
+          "callee": "createClient",
+          "lineNumber": 23
+        },
+        {
+          "caller": "POST",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 26
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 28
+        },
+        {
+          "caller": "POST",
+          "callee": "new Date().toISOString",
+          "lineNumber": 32
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id', { count: 'exact', head: true })\n    .eq('restaurant_id', rid)\n    .is('consumed_at', null)\n    .is('revoked_at', null)\n    .gt",
+          "lineNumber": 34
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id', { count: 'exact', head: true })\n    .eq('restaurant_id', rid)\n    .is('consumed_at', null)\n    .is",
+          "lineNumber": 34
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id', { count: 'exact', head: true })\n    .eq('restaurant_id', rid)\n    .is",
+          "lineNumber": 34
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id', { count: 'exact', head: true })\n    .eq",
+          "lineNumber": 34
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select",
+          "lineNumber": 34
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from",
+          "lineNumber": 34
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 43
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 46
+        },
+        {
+          "caller": "POST",
+          "callee": "new Date(Date.now() - 3_600_000).toISOString",
+          "lineNumber": 55
+        },
+        {
+          "caller": "POST",
+          "callee": "Date.now",
+          "lineNumber": 55
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id', { count: 'exact', head: true })\n    .eq('restaurant_id', rid)\n    .gte",
+          "lineNumber": 56
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id', { count: 'exact', head: true })\n    .eq",
+          "lineNumber": 56
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select",
+          "lineNumber": 56
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from",
+          "lineNumber": 56
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 62
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id', { count: 'exact', head: true })\n    .eq('created_by', user.id)\n    .gte",
+          "lineNumber": 68
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id', { count: 'exact', head: true })\n    .eq",
+          "lineNumber": 68
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select",
+          "lineNumber": 68
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from",
+          "lineNumber": 68
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 74
+        },
+        {
+          "caller": "POST",
+          "callee": "new Date(Date.now() - 60_000).toISOString",
+          "lineNumber": 80
+        },
+        {
+          "caller": "POST",
+          "callee": "Date.now",
+          "lineNumber": 80
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id')\n    .eq('restaurant_id', rid)\n    .gte('created_at', minAgo)\n    .order('created_at', { ascending: false })\n    .limit(1)\n    .maybeSingle",
+          "lineNumber": 81
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id')\n    .eq('restaurant_id', rid)\n    .gte('created_at', minAgo)\n    .order('created_at', { ascending: false })\n    .limit",
+          "lineNumber": 81
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id')\n    .eq('restaurant_id', rid)\n    .gte('created_at', minAgo)\n    .order",
+          "lineNumber": 81
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id')\n    .eq('restaurant_id', rid)\n    .gte",
+          "lineNumber": 81
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select('id')\n    .eq",
+          "lineNumber": 81
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .select",
+          "lineNumber": 81
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from",
+          "lineNumber": 81
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 90
+        },
+        {
+          "caller": "POST",
+          "callee": "randomPairingCode",
+          "lineNumber": 98
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n      .from('print_agent_pairings')\n      .select('id')\n      .eq('code', code)\n      .is('consumed_at', null)\n      .is('revoked_at', null)\n      .gt('expires_at', nowIso)\n      .maybeSingle",
+          "lineNumber": 99
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n      .from('print_agent_pairings')\n      .select('id')\n      .eq('code', code)\n      .is('consumed_at', null)\n      .is('revoked_at', null)\n      .gt",
+          "lineNumber": 99
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n      .from('print_agent_pairings')\n      .select('id')\n      .eq('code', code)\n      .is('consumed_at', null)\n      .is",
+          "lineNumber": 99
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n      .from('print_agent_pairings')\n      .select('id')\n      .eq('code', code)\n      .is",
+          "lineNumber": 99
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n      .from('print_agent_pairings')\n      .select('id')\n      .eq",
+          "lineNumber": 99
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n      .from('print_agent_pairings')\n      .select",
+          "lineNumber": 99
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n      .from",
+          "lineNumber": 99
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 110
+        },
+        {
+          "caller": "POST",
+          "callee": "new Date(Date.now() + 10 * 60_000).toISOString",
+          "lineNumber": 113
+        },
+        {
+          "caller": "POST",
+          "callee": "Date.now",
+          "lineNumber": 113
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .insert({\n      restaurant_id: rid,\n      code,\n      expires_at: expiresAt,\n      created_by: user.id,\n    })\n    .select('id, code, expires_at')\n    .single",
+          "lineNumber": 114
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .insert({\n      restaurant_id: rid,\n      code,\n      expires_at: expiresAt,\n      created_by: user.id,\n    })\n    .select",
+          "lineNumber": 114
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_agent_pairings')\n    .insert",
+          "lineNumber": 114
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from",
+          "lineNumber": 114
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 126
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 132
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/pairings/[id]/revoke/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 41,
+      "nonEmptyLines": 36,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 7,
+          "endLine": 41,
+          "params": [
+            "_req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "POST",
+          "line": 7,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "getOwnerRestaurantId",
+          "lineNumber": 8
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 10
+        },
+        {
+          "caller": "POST",
+          "callee": "params.id?.trim",
+          "lineNumber": 13
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 15
+        },
+        {
+          "caller": "POST",
+          "callee": "createAdminClient",
+          "lineNumber": 20
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 22
+        },
+        {
+          "caller": "POST",
+          "callee": "revokePrintAgentPairing",
+          "lineNumber": 25
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 28
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 40
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/pairings/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 47,
+      "nonEmptyLines": 41,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 8,
+          "endLine": 47,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "createClient",
+          "lineNumber": 9
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 12
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 14
+        },
+        {
+          "caller": "GET",
+          "callee": "new Date().toISOString",
+          "lineNumber": 17
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase\n    .from('print_agent_pairings')\n    .select('id, expires_at, consumed_at, revoked_at, code')\n    .is('revoked_at', null)\n    .gt('expires_at', nowIso)\n    .order('created_at', { ascending: false })\n    .limit",
+          "lineNumber": 18
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase\n    .from('print_agent_pairings')\n    .select('id, expires_at, consumed_at, revoked_at, code')\n    .is('revoked_at', null)\n    .gt('expires_at', nowIso)\n    .order",
+          "lineNumber": 18
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase\n    .from('print_agent_pairings')\n    .select('id, expires_at, consumed_at, revoked_at, code')\n    .is('revoked_at', null)\n    .gt",
+          "lineNumber": 18
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase\n    .from('print_agent_pairings')\n    .select('id, expires_at, consumed_at, revoked_at, code')\n    .is",
+          "lineNumber": 18
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase\n    .from('print_agent_pairings')\n    .select",
+          "lineNumber": 18
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase\n    .from",
+          "lineNumber": 18
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 27
+        },
+        {
+          "caller": "GET",
+          "callee": "(rows || []).map",
+          "lineNumber": 30
+        },
+        {
+          "caller": "GET",
+          "callee": "maskPairingCode",
+          "lineNumber": 35
+        },
+        {
+          "caller": "GET",
+          "callee": "String",
+          "lineNumber": 35
+        },
+        {
+          "caller": "GET",
+          "callee": "Boolean",
+          "lineNumber": 35
+        },
+        {
+          "caller": "GET",
+          "callee": "isPendingPairing",
+          "lineNumber": 36
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 43
+        },
+        {
+          "caller": "GET",
+          "callee": "pairings.filter",
+          "lineNumber": 45
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/pending-jobs/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 72,
+      "nonEmptyLines": 61,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 19,
+          "endLine": 72,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 19,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "rejectForbiddenPrintJobsScopeParams",
+          "lineNumber": 22
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 24
+        },
+        {
+          "caller": "GET",
+          "callee": "rejectUnexpectedPrintJobsQueryParams",
+          "lineNumber": 30
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 32
+        },
+        {
+          "caller": "GET",
+          "callee": "createAdminClient",
+          "lineNumber": 37
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 39
+        },
+        {
+          "caller": "GET",
+          "callee": "verifyActiveAgentBearer",
+          "lineNumber": 42
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 44
+        },
+        {
+          "caller": "GET",
+          "callee": "maybeExpireStalePrintJobs",
+          "lineNumber": 47
+        },
+        {
+          "caller": "GET",
+          "callee": "loadDeviceRoutingStationIds",
+          "lineNumber": 49
+        },
+        {
+          "caller": "GET",
+          "callee": "printJobMaxAgeCutoffIso",
+          "lineNumber": 55
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('print_jobs')\n    .select('id, restaurant_id, type, payload, status, created_at, attempts, error_message')\n    .eq('restaurant_id', ctx.restaurant_id)\n    .eq('status', 'pending')\n    .gte('created_at', cutoff)\n    .order('created_at', { ascending: true })\n    .limit",
+          "lineNumber": 56
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('print_jobs')\n    .select('id, restaurant_id, type, payload, status, created_at, attempts, error_message')\n    .eq('restaurant_id', ctx.restaurant_id)\n    .eq('status', 'pending')\n    .gte('created_at', cutoff)\n    .order",
+          "lineNumber": 56
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('print_jobs')\n    .select('id, restaurant_id, type, payload, status, created_at, attempts, error_message')\n    .eq('restaurant_id', ctx.restaurant_id)\n    .eq('status', 'pending')\n    .gte",
+          "lineNumber": 56
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('print_jobs')\n    .select('id, restaurant_id, type, payload, status, created_at, attempts, error_message')\n    .eq('restaurant_id', ctx.restaurant_id)\n    .eq",
+          "lineNumber": 56
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('print_jobs')\n    .select('id, restaurant_id, type, payload, status, created_at, attempts, error_message')\n    .eq",
+          "lineNumber": 56
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('print_jobs')\n    .select",
+          "lineNumber": 56
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from",
+          "lineNumber": 56
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 66
+        },
+        {
+          "caller": "GET",
+          "callee": "filterPrintJobsByRestaurant",
+          "lineNumber": 69
+        },
+        {
+          "caller": "GET",
+          "callee": "filterPrintJobsForDevice(scoped, deviceStationIds).slice",
+          "lineNumber": 70
+        },
+        {
+          "caller": "GET",
+          "callee": "filterPrintJobsForDevice",
+          "lineNumber": 70
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 71
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/print-jobs/[id]/retry/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 61,
+      "nonEmptyLines": 52,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 8,
+          "endLine": 61,
+          "params": [
+            "_req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "getOwnerRestaurantId",
+          "lineNumber": 9
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 11
+        },
+        {
+          "caller": "POST",
+          "callee": "params.id?.trim",
+          "lineNumber": 14
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 16
+        },
+        {
+          "caller": "POST",
+          "callee": "createAdminClient",
+          "lineNumber": 21
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 23
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_jobs')\n    .select('id, restaurant_id, status')\n    .eq('id', jobId)\n    .maybeSingle",
+          "lineNumber": 26
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_jobs')\n    .select('id, restaurant_id, status')\n    .eq",
+          "lineNumber": 26
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_jobs')\n    .select",
+          "lineNumber": 26
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from",
+          "lineNumber": 26
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 33
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 36
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 39
+        },
+        {
+          "caller": "POST",
+          "callee": "new Date().toISOString",
+          "lineNumber": 42
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_jobs')\n    .update({\n      status: 'pending',\n      created_at: nowIso,\n      error_message: null,\n      claimed_by: null,\n    })\n    .eq('id', jobId)\n    .eq('status', 'failed')\n    .select('id, status')\n    .maybeSingle",
+          "lineNumber": 43
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_jobs')\n    .update({\n      status: 'pending',\n      created_at: nowIso,\n      error_message: null,\n      claimed_by: null,\n    })\n    .eq('id', jobId)\n    .eq('status', 'failed')\n    .select",
+          "lineNumber": 43
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_jobs')\n    .update({\n      status: 'pending',\n      created_at: nowIso,\n      error_message: null,\n      claimed_by: null,\n    })\n    .eq('id', jobId)\n    .eq",
+          "lineNumber": 43
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_jobs')\n    .update({\n      status: 'pending',\n      created_at: nowIso,\n      error_message: null,\n      claimed_by: null,\n    })\n    .eq",
+          "lineNumber": 43
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_jobs')\n    .update",
+          "lineNumber": 43
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from",
+          "lineNumber": 43
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 57
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 60
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/print-jobs/recent/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 84,
+      "nonEmptyLines": 69,
+      "functions": [
+        {
+          "name": "parsePage",
+          "startLine": 14,
+          "endLine": 18,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "parseStatus",
+          "startLine": 20,
+          "endLine": 24,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "GET",
+          "startLine": 27,
+          "endLine": 84,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 27,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "parsePage",
+          "callee": "Number",
+          "lineNumber": 15
+        },
+        {
+          "caller": "parsePage",
+          "callee": "Number.isFinite",
+          "lineNumber": 16
+        },
+        {
+          "caller": "parsePage",
+          "callee": "Math.max",
+          "lineNumber": 17
+        },
+        {
+          "caller": "parsePage",
+          "callee": "Math.floor",
+          "lineNumber": 17
+        },
+        {
+          "caller": "GET",
+          "callee": "rejectForbiddenPrintJobsScopeParams",
+          "lineNumber": 30
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 32
+        },
+        {
+          "caller": "GET",
+          "callee": "rejectUnexpectedPrintJobsQueryParams",
+          "lineNumber": 38
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 40
+        },
+        {
+          "caller": "GET",
+          "callee": "getOwnerRestaurantId",
+          "lineNumber": 43
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 45
+        },
+        {
+          "caller": "GET",
+          "callee": "parsePage",
+          "lineNumber": 48
+        },
+        {
+          "caller": "GET",
+          "callee": "searchParams.get",
+          "lineNumber": 48
+        },
+        {
+          "caller": "GET",
+          "callee": "parseStatus",
+          "lineNumber": 49
+        },
+        {
+          "caller": "GET",
+          "callee": "searchParams.get",
+          "lineNumber": 49
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 51
+        },
+        {
+          "caller": "GET",
+          "callee": "createClient",
+          "lineNumber": 56
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase\n    .from('print_jobs')\n    .select('id, type, status, created_at, error_message, table_display, table_id', { count: 'exact' })\n    .eq('restaurant_id', auth.restaurantId)\n    .order",
+          "lineNumber": 57
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase\n    .from('print_jobs')\n    .select('id, type, status, created_at, error_message, table_display, table_id', { count: 'exact' })\n    .eq",
+          "lineNumber": 57
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase\n    .from('print_jobs')\n    .select",
+          "lineNumber": 57
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase\n    .from",
+          "lineNumber": 57
+        },
+        {
+          "caller": "GET",
+          "callee": "query.eq",
+          "lineNumber": 64
+        },
+        {
+          "caller": "GET",
+          "callee": "query.range",
+          "lineNumber": 67
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 70
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 76
+        },
+        {
+          "caller": "GET",
+          "callee": "Math.max",
+          "lineNumber": 82
+        },
+        {
+          "caller": "GET",
+          "callee": "Math.ceil",
+          "lineNumber": 82
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/print-stations/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 33,
+      "nonEmptyLines": 27,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 8,
+          "endLine": 33,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "createAdminClient",
+          "lineNumber": 11
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 13
+        },
+        {
+          "caller": "GET",
+          "callee": "verifyActiveAgentBearer",
+          "lineNumber": 16
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 18
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('print_stations')\n    .select('id, name_pt, name_en, name_zh, ticket_layout, sort_order')\n    .eq('restaurant_id', ctx.restaurant_id)\n    .order('sort_order', { ascending: true })\n    .order",
+          "lineNumber": 21
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('print_stations')\n    .select('id, name_pt, name_en, name_zh, ticket_layout, sort_order')\n    .eq('restaurant_id', ctx.restaurant_id)\n    .order",
+          "lineNumber": 21
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('print_stations')\n    .select('id, name_pt, name_en, name_zh, ticket_layout, sort_order')\n    .eq",
+          "lineNumber": 21
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('print_stations')\n    .select",
+          "lineNumber": 21
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from",
+          "lineNumber": 21
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 29
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 32
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/receipt-printers/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 76,
+      "nonEmptyLines": 66,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 13,
+          "endLine": 76,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 13,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "searchParams.get('slug')?.trim",
+          "lineNumber": 15
+        },
+        {
+          "caller": "GET",
+          "callee": "searchParams.get",
+          "lineNumber": 15
+        },
+        {
+          "caller": "GET",
+          "callee": "searchParams.get('lang')?.trim",
+          "lineNumber": 16
+        },
+        {
+          "caller": "GET",
+          "callee": "searchParams.get",
+          "lineNumber": 16
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 21
+        },
+        {
+          "caller": "GET",
+          "callee": "createAdminClient",
+          "lineNumber": 26
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 28
+        },
+        {
+          "caller": "GET",
+          "callee": "staffAuthFromRequestWithRoles",
+          "lineNumber": 31
+        },
+        {
+          "caller": "GET",
+          "callee": "createClient",
+          "lineNumber": 37
+        },
+        {
+          "caller": "GET",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 40
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 42
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n      .from('restaurants')\n      .select('id')\n      .eq('slug', slug)\n      .eq('owner_id', user.id)\n      .maybeSingle",
+          "lineNumber": 44
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n      .from('restaurants')\n      .select('id')\n      .eq('slug', slug)\n      .eq",
+          "lineNumber": 44
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n      .from('restaurants')\n      .select('id')\n      .eq",
+          "lineNumber": 44
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n      .from('restaurants')\n      .select",
+          "lineNumber": 44
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n      .from",
+          "lineNumber": 44
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 51
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 57
+        },
+        {
+          "caller": "GET",
+          "callee": "loadRestaurantReceiptPrinterSnapshot",
+          "lineNumber": 60
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('print_stations')\n    .select('id, name_pt, name_en, name_zh, sort_order')\n    .eq('restaurant_id', restaurantId)\n    .order('sort_order', { ascending: true })\n    .order",
+          "lineNumber": 61
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('print_stations')\n    .select('id, name_pt, name_en, name_zh, sort_order')\n    .eq('restaurant_id', restaurantId)\n    .order",
+          "lineNumber": 61
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('print_stations')\n    .select('id, name_pt, name_en, name_zh, sort_order')\n    .eq",
+          "lineNumber": 61
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('print_stations')\n    .select",
+          "lineNumber": 61
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from",
+          "lineNumber": 61
+        },
+        {
+          "caller": "GET",
+          "callee": "presentReceiptPrintersForCheckout",
+          "lineNumber": 69
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 72
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/routing/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 69,
+      "nonEmptyLines": 60,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 12,
+          "endLine": 69,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 12,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "createAdminClient",
+          "lineNumber": 15
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 17
+        },
+        {
+          "caller": "POST",
+          "callee": "verifyActiveAgentBearer",
+          "lineNumber": 20
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 22
+        },
+        {
+          "caller": "POST",
+          "callee": "req.json",
+          "lineNumber": 27
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 29
+        },
+        {
+          "caller": "POST",
+          "callee": "normalizeStationPrintersInput",
+          "lineNumber": 32
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_stations')\n    .select('id, name_pt, name_en, name_zh, sort_order')\n    .eq('restaurant_id', auth.restaurant_id)\n    .order('sort_order', { ascending: true })\n    .order",
+          "lineNumber": 34
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_stations')\n    .select('id, name_pt, name_en, name_zh, sort_order')\n    .eq('restaurant_id', auth.restaurant_id)\n    .order",
+          "lineNumber": 34
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_stations')\n    .select('id, name_pt, name_en, name_zh, sort_order')\n    .eq",
+          "lineNumber": 34
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('print_stations')\n    .select",
+          "lineNumber": 34
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from",
+          "lineNumber": 34
+        },
+        {
+          "caller": "POST",
+          "callee": "saveDeviceRoutingSnapshot",
+          "lineNumber": 41
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 50
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 53
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 62
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 68
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/runtime-config/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 44,
+      "nonEmptyLines": 37,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 10,
+          "endLine": 44,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "createAdminClient",
+          "lineNumber": 13
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 15
+        },
+        {
+          "caller": "GET",
+          "callee": "verifyActiveAgentBearer",
+          "lineNumber": 18
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 20
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('restaurants')\n    .select('print_agent_config')\n    .eq('id', ctx.restaurant_id)\n    .single",
+          "lineNumber": 23
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('restaurants')\n    .select('print_agent_config')\n    .eq",
+          "lineNumber": 23
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('restaurants')\n    .select",
+          "lineNumber": 23
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from",
+          "lineNumber": 23
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 30
+        },
+        {
+          "caller": "GET",
+          "callee": "Object.keys",
+          "lineNumber": 35
+        },
+        {
+          "caller": "GET",
+          "callee": "normalizePrintAgentCloudConfig",
+          "lineNumber": 36
+        },
+        {
+          "caller": "GET",
+          "callee": "defaultPrintAgentCloudConfig",
+          "lineNumber": 37
+        },
+        {
+          "caller": "GET",
+          "callee": "getPrintAgentVersion",
+          "lineNumber": 39
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 40
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/settings/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 104,
+      "nonEmptyLines": 88,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 14,
+          "endLine": 47,
+          "params": []
+        },
+        {
+          "name": "PUT",
+          "startLine": 49,
+          "endLine": 104,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "PUT",
+          "line": 49,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "getOwnerRestaurantId",
+          "lineNumber": 15
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 17
+        },
+        {
+          "caller": "GET",
+          "callee": "createAdminClient",
+          "lineNumber": 22
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 24
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('restaurants')\n    .select('print_agent_config')\n    .eq('id', auth.restaurantId)\n    .single",
+          "lineNumber": 27
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('restaurants')\n    .select('print_agent_config')\n    .eq",
+          "lineNumber": 27
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('restaurants')\n    .select",
+          "lineNumber": 27
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from",
+          "lineNumber": 27
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 34
+        },
+        {
+          "caller": "GET",
+          "callee": "Object.keys",
+          "lineNumber": 39
+        },
+        {
+          "caller": "GET",
+          "callee": "normalizePrintAgentCloudConfig",
+          "lineNumber": 40
+        },
+        {
+          "caller": "GET",
+          "callee": "defaultPrintAgentCloudConfig",
+          "lineNumber": 41
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 43
+        },
+        {
+          "caller": "GET",
+          "callee": "cloudConfigToForm",
+          "lineNumber": 45
+        },
+        {
+          "caller": "PUT",
+          "callee": "getOwnerRestaurantId",
+          "lineNumber": 50
+        },
+        {
+          "caller": "PUT",
+          "callee": "NextResponse.json",
+          "lineNumber": 52
+        },
+        {
+          "caller": "PUT",
+          "callee": "req.json",
+          "lineNumber": 57
+        },
+        {
+          "caller": "PUT",
+          "callee": "NextResponse.json",
+          "lineNumber": 59
+        },
+        {
+          "caller": "PUT",
+          "callee": "createAdminClient",
+          "lineNumber": 64
+        },
+        {
+          "caller": "PUT",
+          "callee": "NextResponse.json",
+          "lineNumber": 66
+        },
+        {
+          "caller": "PUT",
+          "callee": "admin\n    .from('restaurants')\n    .select('print_agent_config')\n    .eq('id', auth.restaurantId)\n    .single",
+          "lineNumber": 69
+        },
+        {
+          "caller": "PUT",
+          "callee": "admin\n    .from('restaurants')\n    .select('print_agent_config')\n    .eq",
+          "lineNumber": 69
+        },
+        {
+          "caller": "PUT",
+          "callee": "admin\n    .from('restaurants')\n    .select",
+          "lineNumber": 69
+        },
+        {
+          "caller": "PUT",
+          "callee": "admin\n    .from",
+          "lineNumber": 69
+        },
+        {
+          "caller": "PUT",
+          "callee": "NextResponse.json",
+          "lineNumber": 75
+        },
+        {
+          "caller": "PUT",
+          "callee": "normalizePrintAgentCloudConfig",
+          "lineNumber": 78
+        },
+        {
+          "caller": "PUT",
+          "callee": "validatePrintAgentCloudConfig",
+          "lineNumber": 79
+        },
+        {
+          "caller": "PUT",
+          "callee": "NextResponse.json",
+          "lineNumber": 81
+        },
+        {
+          "caller": "PUT",
+          "callee": "admin\n    .from('restaurants')\n    .update({ print_agent_config: merged })\n    .eq",
+          "lineNumber": 91
+        },
+        {
+          "caller": "PUT",
+          "callee": "admin\n    .from('restaurants')\n    .update",
+          "lineNumber": 91
+        },
+        {
+          "caller": "PUT",
+          "callee": "admin\n    .from",
+          "lineNumber": 91
+        },
+        {
+          "caller": "PUT",
+          "callee": "NextResponse.json",
+          "lineNumber": 97
+        },
+        {
+          "caller": "PUT",
+          "callee": "NextResponse.json",
+          "lineNumber": 100
+        },
+        {
+          "caller": "PUT",
+          "callee": "cloudConfigToForm",
+          "lineNumber": 102
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 3,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/support-snapshot/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 65,
+      "nonEmptyLines": 56,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 14,
+          "endLine": 65,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 14,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 17
+        },
+        {
+          "caller": "GET",
+          "callee": "getBearerToken",
+          "lineNumber": 20
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 22
+        },
+        {
+          "caller": "GET",
+          "callee": "verifyPrintAgentSupportJwt",
+          "lineNumber": 25
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 27
+        },
+        {
+          "caller": "GET",
+          "callee": "createAdminClient",
+          "lineNumber": 32
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 34
+        },
+        {
+          "caller": "GET",
+          "callee": "consumePrintAgentSupportToken",
+          "lineNumber": 37
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 42
+        },
+        {
+          "caller": "GET",
+          "callee": "loadPrintAgentSupportSnapshot",
+          "lineNumber": 45
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 52
+        },
+        {
+          "caller": "GET",
+          "callee": "insertPlatformAdminAudit",
+          "lineNumber": 55
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 64
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/restaurant/features/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 124,
+      "nonEmptyLines": 107,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 16,
+          "endLine": 46,
+          "params": []
+        },
+        {
+          "name": "PATCH",
+          "startLine": 48,
+          "endLine": 124,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "PATCH",
+          "line": 48,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "getOwnerRestaurantId",
+          "lineNumber": 17
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 19
+        },
+        {
+          "caller": "GET",
+          "callee": "createAdminClient",
+          "lineNumber": 24
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 26
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('restaurants')\n    .select('feature_flags, print_agent_config')\n    .eq('id', auth.restaurantId)\n    .maybeSingle",
+          "lineNumber": 29
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('restaurants')\n    .select('feature_flags, print_agent_config')\n    .eq",
+          "lineNumber": 29
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from('restaurants')\n    .select",
+          "lineNumber": 29
+        },
+        {
+          "caller": "GET",
+          "callee": "admin\n    .from",
+          "lineNumber": 29
+        },
+        {
+          "caller": "GET",
+          "callee": "isDbMigrationRequiredError",
+          "lineNumber": 36
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 37
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 39
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 42
+        },
+        {
+          "caller": "GET",
+          "callee": "normalizeRestaurantFeatureFlags",
+          "lineNumber": 43
+        },
+        {
+          "caller": "GET",
+          "callee": "resolvePrintAgentCredentialTtlDays",
+          "lineNumber": 44
+        },
+        {
+          "caller": "PATCH",
+          "callee": "getOwnerRestaurantId",
+          "lineNumber": 49
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 51
+        },
+        {
+          "caller": "PATCH",
+          "callee": "req.json",
+          "lineNumber": 56
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 58
+        },
+        {
+          "caller": "PATCH",
+          "callee": "parseFeatureFlagsPatch",
+          "lineNumber": 61
+        },
+        {
+          "caller": "PATCH",
+          "callee": "parsePrintAgentCredentialTtlDaysPatch",
+          "lineNumber": 62
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 64
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 67
+        },
+        {
+          "caller": "PATCH",
+          "callee": "createAdminClient",
+          "lineNumber": 72
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 74
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('restaurants')\n    .select('feature_flags, print_agent_config')\n    .eq('id', auth.restaurantId)\n    .maybeSingle",
+          "lineNumber": 77
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('restaurants')\n    .select('feature_flags, print_agent_config')\n    .eq",
+          "lineNumber": 77
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('restaurants')\n    .select",
+          "lineNumber": 77
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from",
+          "lineNumber": 77
+        },
+        {
+          "caller": "PATCH",
+          "callee": "isDbMigrationRequiredError",
+          "lineNumber": 84
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 85
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 87
+        },
+        {
+          "caller": "PATCH",
+          "callee": "mergeRestaurantFeatureFlags",
+          "lineNumber": 91
+        },
+        {
+          "caller": "PATCH",
+          "callee": "normalizeRestaurantFeatureFlags",
+          "lineNumber": 92
+        },
+        {
+          "caller": "PATCH",
+          "callee": "normalizePrintAgentCloudConfig",
+          "lineNumber": 96
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('restaurants')\n    .update(updatePayload)\n    .eq",
+          "lineNumber": 105
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('restaurants')\n    .update",
+          "lineNumber": 105
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from",
+          "lineNumber": 105
+        },
+        {
+          "caller": "PATCH",
+          "callee": "isDbMigrationRequiredError",
+          "lineNumber": 111
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 112
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 114
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 117
+        },
+        {
+          "caller": "PATCH",
+          "callee": "resolvePrintAgentCredentialTtlDays",
+          "lineNumber": 120
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 3,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/restaurant/settings/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 119,
+      "nonEmptyLines": 102,
+      "functions": [
+        {
+          "name": "PATCH",
+          "startLine": 10,
+          "endLine": 119,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "PATCH",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "PATCH",
+          "callee": "getOwnerRestaurantId",
+          "lineNumber": 11
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 13
+        },
+        {
+          "caller": "PATCH",
+          "callee": "req.json",
+          "lineNumber": 18
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 20
+        },
+        {
+          "caller": "PATCH",
+          "callee": "body.name.trim",
+          "lineNumber": 23
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 25
+        },
+        {
+          "caller": "PATCH",
+          "callee": "body.geo_latitude.trim",
+          "lineNumber": 28
+        },
+        {
+          "caller": "PATCH",
+          "callee": "body.geo_longitude.trim",
+          "lineNumber": 29
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 31
+        },
+        {
+          "caller": "PATCH",
+          "callee": "Number",
+          "lineNumber": 34
+        },
+        {
+          "caller": "PATCH",
+          "callee": "Number",
+          "lineNumber": 35
+        },
+        {
+          "caller": "PATCH",
+          "callee": "Number.isFinite",
+          "lineNumber": 37
+        },
+        {
+          "caller": "PATCH",
+          "callee": "Number.isFinite",
+          "lineNumber": 38
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 40
+        },
+        {
+          "caller": "PATCH",
+          "callee": "String",
+          "lineNumber": 47
+        },
+        {
+          "caller": "PATCH",
+          "callee": "parseOrderRadiusInput",
+          "lineNumber": 49
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 51
+        },
+        {
+          "caller": "PATCH",
+          "callee": "normalizeCountryCode",
+          "lineNumber": 56
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 60
+        },
+        {
+          "caller": "PATCH",
+          "callee": "createAdminClient",
+          "lineNumber": 67
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 69
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('restaurants')\n    .select('feature_flags')\n    .eq('id', auth.restaurantId)\n    .maybeSingle",
+          "lineNumber": 72
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('restaurants')\n    .select('feature_flags')\n    .eq",
+          "lineNumber": 72
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('restaurants')\n    .select",
+          "lineNumber": 72
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from",
+          "lineNumber": 72
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 79
+        },
+        {
+          "caller": "PATCH",
+          "callee": "readGeoOrderRestrictionEnabled",
+          "lineNumber": 86
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 89
+        },
+        {
+          "caller": "PATCH",
+          "callee": "body.address.trim",
+          "lineNumber": 94
+        },
+        {
+          "caller": "PATCH",
+          "callee": "body.phone.trim",
+          "lineNumber": 95
+        },
+        {
+          "caller": "PATCH",
+          "callee": "mergeGeoOrderRestrictionFlag",
+          "lineNumber": 99
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin.from('restaurants').update(update).eq",
+          "lineNumber": 103
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin.from('restaurants').update",
+          "lineNumber": 103
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin.from",
+          "lineNumber": 103
+        },
+        {
+          "caller": "PATCH",
+          "callee": "isDbMigrationRequiredError",
+          "lineNumber": 106
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 107
+        },
+        {
+          "caller": "PATCH",
+          "callee": "error.message?.includes",
+          "lineNumber": 111
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 113
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 115
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 118
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 86,
+      "nonEmptyLines": 74,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 8,
+          "endLine": 86,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "params.slug?.trim",
+          "lineNumber": 12
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 14
+        },
+        {
+          "caller": "POST",
+          "callee": "req.json",
+          "lineNumber": 24
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 26
+        },
+        {
+          "caller": "POST",
+          "callee": "body.bill_split_id.trim",
+          "lineNumber": 29
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 31
+        },
+        {
+          "caller": "POST",
+          "callee": "Number.isInteger",
+          "lineNumber": 35
+        },
+        {
+          "caller": "POST",
+          "callee": "Number.isFinite",
+          "lineNumber": 40
+        },
+        {
+          "caller": "POST",
+          "callee": "body.receipt_printer_id.trim",
+          "lineNumber": 45
+        },
+        {
+          "caller": "POST",
+          "callee": "authorizeCheckoutConfirmPayment",
+          "lineNumber": 47
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 49
+        },
+        {
+          "caller": "POST",
+          "callee": "resolveReceiptPrinterId",
+          "lineNumber": 52
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 59
+        },
+        {
+          "caller": "POST",
+          "callee": "confirmBillSplitPayment",
+          "lineNumber": 62
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 74
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 80
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 228,
+      "nonEmptyLines": 205,
+      "functions": [
+        {
+          "name": "parseVariant",
+          "startLine": 11,
+          "endLine": 18,
+          "params": [
+            "raw",
+            "jobTypeFallback"
+          ]
+        },
+        {
+          "name": "authorizeCustomerPreBill",
+          "startLine": 21,
+          "endLine": 63,
+          "params": [
+            "slug",
+            "tableId",
+            "sessionId"
+          ]
+        },
+        {
+          "name": "POST",
+          "startLine": 65,
+          "endLine": 228,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 65,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "parseVariant",
+          "callee": "raw.trim",
+          "lineNumber": 12
+        },
+        {
+          "caller": "authorizeCustomerPreBill",
+          "callee": "createAdminClient",
+          "lineNumber": 31
+        },
+        {
+          "caller": "authorizeCustomerPreBill",
+          "callee": "admin\n    .from('restaurants')\n    .select('id, print_locale')\n    .eq('slug', slug)\n    .maybeSingle",
+          "lineNumber": 36
+        },
+        {
+          "caller": "authorizeCustomerPreBill",
+          "callee": "admin\n    .from('restaurants')\n    .select('id, print_locale')\n    .eq",
+          "lineNumber": 36
+        },
+        {
+          "caller": "authorizeCustomerPreBill",
+          "callee": "admin\n    .from('restaurants')\n    .select",
+          "lineNumber": 36
+        },
+        {
+          "caller": "authorizeCustomerPreBill",
+          "callee": "admin\n    .from",
+          "lineNumber": 36
+        },
+        {
+          "caller": "authorizeCustomerPreBill",
+          "callee": "admin\n    .from('table_sessions')\n    .select('id')\n    .eq('id', sessionId)\n    .eq('restaurant_id', rest.id)\n    .eq('table_id', tableId)\n    .in('status', ['open', 'billing'])\n    .maybeSingle",
+          "lineNumber": 45
+        },
+        {
+          "caller": "authorizeCustomerPreBill",
+          "callee": "admin\n    .from('table_sessions')\n    .select('id')\n    .eq('id', sessionId)\n    .eq('restaurant_id', rest.id)\n    .eq('table_id', tableId)\n    .in",
+          "lineNumber": 45
+        },
+        {
+          "caller": "authorizeCustomerPreBill",
+          "callee": "admin\n    .from('table_sessions')\n    .select('id')\n    .eq('id', sessionId)\n    .eq('restaurant_id', rest.id)\n    .eq",
+          "lineNumber": 45
+        },
+        {
+          "caller": "authorizeCustomerPreBill",
+          "callee": "admin\n    .from('table_sessions')\n    .select('id')\n    .eq('id', sessionId)\n    .eq",
+          "lineNumber": 45
+        },
+        {
+          "caller": "authorizeCustomerPreBill",
+          "callee": "admin\n    .from('table_sessions')\n    .select('id')\n    .eq",
+          "lineNumber": 45
+        },
+        {
+          "caller": "authorizeCustomerPreBill",
+          "callee": "admin\n    .from('table_sessions')\n    .select",
+          "lineNumber": 45
+        },
+        {
+          "caller": "authorizeCustomerPreBill",
+          "callee": "admin\n    .from",
+          "lineNumber": 45
+        },
+        {
+          "caller": "POST",
+          "callee": "params.slug?.trim",
+          "lineNumber": 69
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 71
+        },
+        {
+          "caller": "POST",
+          "callee": "req.json",
+          "lineNumber": 89
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 91
+        },
+        {
+          "caller": "POST",
+          "callee": "parseTableIdParam",
+          "lineNumber": 94
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 96
+        },
+        {
+          "caller": "POST",
+          "callee": "body.job_type.trim",
+          "lineNumber": 99
+        },
+        {
+          "caller": "POST",
+          "callee": "parseVariant",
+          "lineNumber": 100
+        },
+        {
+          "caller": "POST",
+          "callee": "body.session_id.trim",
+          "lineNumber": 101
+        },
+        {
+          "caller": "POST",
+          "callee": "body.bill_split_id.trim",
+          "lineNumber": 105
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 107
+        },
+        {
+          "caller": "POST",
+          "callee": "authorizeCheckoutConfirmPayment",
+          "lineNumber": 111
+        },
+        {
+          "caller": "POST",
+          "callee": "authorizeCustomerPreBill",
+          "lineNumber": 121
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 123
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 129
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('restaurant_tables')\n    .select('id, display_name')\n    .eq('restaurant_id', restaurantId)\n    .eq('id', tableId)\n    .is('deleted_at', null)\n    .maybeSingle",
+          "lineNumber": 132
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('restaurant_tables')\n    .select('id, display_name')\n    .eq('restaurant_id', restaurantId)\n    .eq('id', tableId)\n    .is",
+          "lineNumber": 132
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('restaurant_tables')\n    .select('id, display_name')\n    .eq('restaurant_id', restaurantId)\n    .eq",
+          "lineNumber": 132
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('restaurant_tables')\n    .select('id, display_name')\n    .eq",
+          "lineNumber": 132
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from('restaurant_tables')\n    .select",
+          "lineNumber": 132
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n    .from",
+          "lineNumber": 132
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 141
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n      .from('table_sessions')\n      .select('id')\n      .eq('restaurant_id', restaurantId)\n      .eq('table_id', tableId)\n      .in('status', ['open', 'billing'])\n      .order('opened_at', { ascending: false })\n      .limit(1)\n      .maybeSingle",
+          "lineNumber": 148
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n      .from('table_sessions')\n      .select('id')\n      .eq('restaurant_id', restaurantId)\n      .eq('table_id', tableId)\n      .in('status', ['open', 'billing'])\n      .order('opened_at', { ascending: false })\n      .limit",
+          "lineNumber": 148
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n      .from('table_sessions')\n      .select('id')\n      .eq('restaurant_id', restaurantId)\n      .eq('table_id', tableId)\n      .in('status', ['open', 'billing'])\n      .order",
+          "lineNumber": 148
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n      .from('table_sessions')\n      .select('id')\n      .eq('restaurant_id', restaurantId)\n      .eq('table_id', tableId)\n      .in",
+          "lineNumber": 148
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n      .from('table_sessions')\n      .select('id')\n      .eq('restaurant_id', restaurantId)\n      .eq",
+          "lineNumber": 148
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n      .from('table_sessions')\n      .select('id')\n      .eq",
+          "lineNumber": 148
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n      .from('table_sessions')\n      .select",
+          "lineNumber": 148
+        },
+        {
+          "caller": "POST",
+          "callee": "admin\n      .from",
+          "lineNumber": 148
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 158
+        },
+        {
+          "caller": "POST",
+          "callee": "Number.isFinite",
+          "lineNumber": 164
+        },
+        {
+          "caller": "POST",
+          "callee": "Number.isFinite",
+          "lineNumber": 168
+        },
+        {
+          "caller": "POST",
+          "callee": "body.payment_method.trim",
+          "lineNumber": 172
+        },
+        {
+          "caller": "POST",
+          "callee": "body.payer_name.trim",
+          "lineNumber": 173
+        },
+        {
+          "caller": "POST",
+          "callee": "body.bill_split_id.trim",
+          "lineNumber": 175
+        },
+        {
+          "caller": "POST",
+          "callee": "Number.isInteger",
+          "lineNumber": 177
+        },
+        {
+          "caller": "POST",
+          "callee": "Number.isFinite",
+          "lineNumber": 181
+        },
+        {
+          "caller": "POST",
+          "callee": "clampCheckoutDiscountRate",
+          "lineNumber": 182
+        },
+        {
+          "caller": "POST",
+          "callee": "body.receipt_printer_id.trim",
+          "lineNumber": 186
+        },
+        {
+          "caller": "POST",
+          "callee": "resolveReceiptPrinterId",
+          "lineNumber": 187
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 194
+        },
+        {
+          "caller": "POST",
+          "callee": "enqueueReceiptPrint",
+          "lineNumber": 197
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 216
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 220
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 223
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 2,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    }
+  ]
+}

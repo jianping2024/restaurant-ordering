@@ -1,0 +1,1153 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/close-table-session-ui.test.ts",
+      "type": "file",
+      "name": "close-table-session-ui.test.ts",
+      "filePath": "apps/web/src/lib/close-table-session-ui.test.ts",
+      "summary": "测试关台 API 响应解析与确认参数提取的 UI 辅助函数。",
+      "tags": [
+        "test",
+        "table-session",
+        "ui"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/close-table-session-ui.ts",
+      "type": "file",
+      "name": "close-table-session-ui.ts",
+      "filePath": "apps/web/src/lib/close-table-session-ui.ts",
+      "summary": "解析关台会话 API 响应状态码与 body，供仪表盘关台操作使用。",
+      "tags": [
+        "utility",
+        "table-session",
+        "ui"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/in-memory-rate-limit.ts",
+      "type": "file",
+      "name": "in-memory-rate-limit.ts",
+      "filePath": "apps/web/src/lib/in-memory-rate-limit.ts",
+      "summary": "基于内存桶的滑动窗口速率限制工具，供 API 路由防滥用。",
+      "tags": [
+        "utility",
+        "middleware",
+        "rate-limit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts",
+      "type": "file",
+      "name": "apply-void-reason-to-items.ts",
+      "filePath": "apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts",
+      "summary": "将退菜原因写入新作废订单行的 void_reason 字段。",
+      "tags": [
+        "utility",
+        "order-void"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.test.ts",
+      "type": "file",
+      "name": "decrement-order-item.service.test.ts",
+      "filePath": "apps/web/src/lib/order-item-void/decrement-order-item.service.test.ts",
+      "summary": "集成测试减菜服务在数量减少、整行删除及审计记录场景下的行为。",
+      "tags": [
+        "test",
+        "order-void",
+        "audit"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "type": "file",
+      "name": "decrement-order-item.service.ts",
+      "filePath": "apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "summary": "服务员减菜编排：应用减量、校验退菜原因、持久化并写入 qty/deleted 审计。",
+      "tags": [
+        "service",
+        "order-void",
+        "audit"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/detect-newly-voided.test.ts",
+      "type": "file",
+      "name": "detect-newly-voided.test.ts",
+      "filePath": "apps/web/src/lib/order-item-void/detect-newly-voided.test.ts",
+      "summary": "测试对比前后订单行检测新作废项的索引集合。",
+      "tags": [
+        "test",
+        "order-void"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "type": "file",
+      "name": "detect-newly-voided.ts",
+      "filePath": "apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "summary": "对比更新前后订单项，返回新变为 void 状态的行索引。",
+      "tags": [
+        "utility",
+        "order-void"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "type": "file",
+      "name": "patch-order-items.service.ts",
+      "filePath": "apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "summary": "厨房/服务员批量改单时检测新作废行、校验原因并写入 item_deleted 审计。",
+      "tags": [
+        "service",
+        "order-void",
+        "audit"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/validate-void-reason.test.ts",
+      "type": "file",
+      "name": "validate-void-reason.test.ts",
+      "filePath": "apps/web/src/lib/order-item-void/validate-void-reason.test.ts",
+      "summary": "测试退菜原因在校验新作废行与数量调整场景下的规则。",
+      "tags": [
+        "test",
+        "validation",
+        "order-void"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/validate-void-reason.ts",
+      "type": "file",
+      "name": "validate-void-reason.ts",
+      "filePath": "apps/web/src/lib/order-item-void/validate-void-reason.ts",
+      "summary": "当存在新作废行时强制校验退菜原因，复用异常原因通用校验。",
+      "tags": [
+        "validation",
+        "order-void"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/table-session/close-table-session.repository.ts",
+      "type": "file",
+      "name": "close-table-session.repository.ts",
+      "filePath": "apps/web/src/lib/table-session/close-table-session.repository.ts",
+      "summary": "调用 close_table_session_manual RPC 执行关台并返回快照数据。",
+      "tags": [
+        "repository",
+        "table-session",
+        "database"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/table-session/close-table-session.service.test.ts",
+      "type": "file",
+      "name": "close-table-session.service.test.ts",
+      "filePath": "apps/web/src/lib/table-session/close-table-session.service.test.ts",
+      "summary": "测试手动关台服务对未结账原因校验与审计调用的编排。",
+      "tags": [
+        "test",
+        "table-session",
+        "audit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/table-session/close-table-session.service.ts",
+      "type": "file",
+      "name": "close-table-session.service.ts",
+      "filePath": "apps/web/src/lib/table-session/close-table-session.service.ts",
+      "summary": "编排未结账手动关台：校验原因、调用 RPC、写入 unpaid_table_closed 审计。",
+      "tags": [
+        "service",
+        "table-session",
+        "audit"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/close-table-session-ui.ts:interpretCloseTableSessionResponse",
+      "type": "function",
+      "name": "interpretCloseTableSessionResponse",
+      "filePath": "apps/web/src/lib/close-table-session-ui.ts",
+      "lineRange": [
+        20,
+        49
+      ],
+      "summary": "将关台 API HTTP 状态与 JSON body 映射为 UI 可展示结果。",
+      "tags": [
+        "utility",
+        "ui",
+        "table-session"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/close-table-session-ui.ts:parseCloseConfirmFromBody",
+      "type": "function",
+      "name": "parseCloseConfirmFromBody",
+      "filePath": "apps/web/src/lib/close-table-session-ui.ts",
+      "lineRange": [
+        51,
+        56
+      ],
+      "summary": "从请求 body 提取关台确认标志与未结账原因字段。",
+      "tags": [
+        "utility",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/in-memory-rate-limit.ts:checkInMemoryRateLimit",
+      "type": "function",
+      "name": "checkInMemoryRateLimit",
+      "filePath": "apps/web/src/lib/in-memory-rate-limit.ts",
+      "lineRange": [
+        3,
+        23
+      ],
+      "summary": "对给定 key 执行内存滑动窗口限流，返回是否允许及重试秒数。",
+      "tags": [
+        "utility",
+        "rate-limit",
+        "middleware"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts:applyVoidReasonToItems",
+      "type": "function",
+      "name": "applyVoidReasonToItems",
+      "filePath": "apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts",
+      "lineRange": [
+        4,
+        13
+      ],
+      "summary": "为新作废索引对应的订单行设置 void_reason。",
+      "tags": [
+        "utility",
+        "order-void"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.test.ts:baseItem",
+      "type": "function",
+      "name": "baseItem",
+      "filePath": "apps/web/src/lib/order-item-void/decrement-order-item.service.test.ts",
+      "lineRange": [
+        8,
+        17
+      ],
+      "summary": "测试辅助：构造带默认字段的订单行对象。",
+      "tags": [
+        "test",
+        "mock"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.test.ts:mockAdmin",
+      "type": "function",
+      "name": "mockAdmin",
+      "filePath": "apps/web/src/lib/order-item-void/decrement-order-item.service.test.ts",
+      "lineRange": [
+        24,
+        99
+      ],
+      "summary": "测试用 Supabase admin 客户端 mock，模拟表查询与插入链。",
+      "tags": [
+        "test",
+        "mock"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:toQtyDecrementedContext",
+      "type": "function",
+      "name": "toQtyDecrementedContext",
+      "filePath": "apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "lineRange": [
+        49,
+        66
+      ],
+      "summary": "将减菜结果映射为 ITEM_QTY_DECREMENTED 审计上下文。",
+      "tags": [
+        "utility",
+        "audit",
+        "order-void"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:toItemDeletedContext",
+      "type": "function",
+      "name": "toItemDeletedContext",
+      "filePath": "apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "lineRange": [
+        68,
+        84
+      ],
+      "summary": "将整行删除结果映射为 ITEM_DELETED 审计上下文。",
+      "tags": [
+        "utility",
+        "audit",
+        "order-void"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:decrementOrderItemWithAudit",
+      "type": "function",
+      "name": "decrementOrderItemWithAudit",
+      "filePath": "apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "lineRange": [
+        86,
+        161
+      ],
+      "summary": "完整减菜流程：减量、校验原因、持久化并按场景写审计。",
+      "tags": [
+        "service",
+        "order-void",
+        "audit"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/detect-newly-voided.ts:detectNewlyVoidedItems",
+      "type": "function",
+      "name": "detectNewlyVoidedItems",
+      "filePath": "apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "lineRange": [
+        15,
+        32
+      ],
+      "summary": "逐行对比状态，收集从未作废变为 void 的索引。",
+      "tags": [
+        "utility",
+        "order-void"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/patch-order-items.service.ts:toAuditContext",
+      "type": "function",
+      "name": "toAuditContext",
+      "filePath": "apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "lineRange": [
+        42,
+        58
+      ],
+      "summary": "将作废行信息转为 ITEM_DELETED 审计事件上下文。",
+      "tags": [
+        "utility",
+        "audit"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/patch-order-items.service.ts:patchOrderItemsWithVoidAudit",
+      "type": "function",
+      "name": "patchOrderItemsWithVoidAudit",
+      "filePath": "apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "lineRange": [
+        60,
+        114
+      ],
+      "summary": "批量更新订单项，对新作废行校验原因并逐条写审计。",
+      "tags": [
+        "service",
+        "order-void",
+        "audit"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/validate-void-reason.test.ts:voidedRow",
+      "type": "function",
+      "name": "voidedRow",
+      "filePath": "apps/web/src/lib/order-item-void/validate-void-reason.test.ts",
+      "lineRange": [
+        6,
+        27
+      ],
+      "summary": "测试辅助：构造带指定作废前状态的订单行对。",
+      "tags": [
+        "test",
+        "mock"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/validate-void-reason.ts:validateVoidItemReason",
+      "type": "function",
+      "name": "validateVoidItemReason",
+      "filePath": "apps/web/src/lib/order-item-void/validate-void-reason.ts",
+      "lineRange": [
+        7,
+        19
+      ],
+      "summary": "存在新作废行时校验退菜原因，数量调整走专用原因键。",
+      "tags": [
+        "validation",
+        "order-void"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-session/close-table-session.repository.ts:invokeCloseTableSessionManual",
+      "type": "function",
+      "name": "invokeCloseTableSessionManual",
+      "filePath": "apps/web/src/lib/table-session/close-table-session.repository.ts",
+      "lineRange": [
+        43,
+        109
+      ],
+      "summary": "调用 Supabase RPC close_table_session_manual 并解析返回快照。",
+      "tags": [
+        "repository",
+        "table-session",
+        "database"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-session/close-table-session.service.ts:validateUnpaidCloseReason",
+      "type": "function",
+      "name": "validateUnpaidCloseReason",
+      "filePath": "apps/web/src/lib/table-session/close-table-session.service.ts",
+      "lineRange": [
+        45,
+        57
+      ],
+      "summary": "未结账关台时校验 unpaid close 原因分组与详情。",
+      "tags": [
+        "validation",
+        "table-session"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-session/close-table-session.service.ts:snapshotToAuditContext",
+      "type": "function",
+      "name": "snapshotToAuditContext",
+      "filePath": "apps/web/src/lib/table-session/close-table-session.service.ts",
+      "lineRange": [
+        59,
+        73
+      ],
+      "summary": "将关台 RPC 快照转为 UNPAID_TABLE_CLOSED 审计上下文。",
+      "tags": [
+        "utility",
+        "audit",
+        "table-session"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-session/close-table-session.service.ts:closeTableSessionManual",
+      "type": "function",
+      "name": "closeTableSessionManual",
+      "filePath": "apps/web/src/lib/table-session/close-table-session.service.ts",
+      "lineRange": [
+        75,
+        121
+      ],
+      "summary": "手动关台主编排：校验原因、RPC 关台、写未结账关台审计。",
+      "tags": [
+        "service",
+        "table-session",
+        "audit"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/close-table-session-ui.ts",
+      "target": "function:apps/web/src/lib/close-table-session-ui.ts:interpretCloseTableSessionResponse",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/close-table-session-ui.ts",
+      "target": "function:apps/web/src/lib/close-table-session-ui.ts:interpretCloseTableSessionResponse",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/close-table-session-ui.ts",
+      "target": "function:apps/web/src/lib/close-table-session-ui.ts:parseCloseConfirmFromBody",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/close-table-session-ui.ts",
+      "target": "function:apps/web/src/lib/close-table-session-ui.ts:parseCloseConfirmFromBody",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/in-memory-rate-limit.ts",
+      "target": "function:apps/web/src/lib/in-memory-rate-limit.ts:checkInMemoryRateLimit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/in-memory-rate-limit.ts",
+      "target": "function:apps/web/src/lib/in-memory-rate-limit.ts:checkInMemoryRateLimit",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts",
+      "target": "function:apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts:applyVoidReasonToItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts",
+      "target": "function:apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts:applyVoidReasonToItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.test.ts",
+      "target": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.test.ts:baseItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.test.ts",
+      "target": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.test.ts:mockAdmin",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "target": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:toQtyDecrementedContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "target": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:toItemDeletedContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "target": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:decrementOrderItemWithAudit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "target": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:decrementOrderItemWithAudit",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "target": "function:apps/web/src/lib/order-item-void/detect-newly-voided.ts:detectNewlyVoidedItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "target": "function:apps/web/src/lib/order-item-void/detect-newly-voided.ts:detectNewlyVoidedItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "target": "function:apps/web/src/lib/order-item-void/patch-order-items.service.ts:toAuditContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "target": "function:apps/web/src/lib/order-item-void/patch-order-items.service.ts:patchOrderItemsWithVoidAudit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "target": "function:apps/web/src/lib/order-item-void/patch-order-items.service.ts:patchOrderItemsWithVoidAudit",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/validate-void-reason.test.ts",
+      "target": "function:apps/web/src/lib/order-item-void/validate-void-reason.test.ts:voidedRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/validate-void-reason.ts",
+      "target": "function:apps/web/src/lib/order-item-void/validate-void-reason.ts:validateVoidItemReason",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/validate-void-reason.ts",
+      "target": "function:apps/web/src/lib/order-item-void/validate-void-reason.ts:validateVoidItemReason",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/close-table-session.repository.ts",
+      "target": "function:apps/web/src/lib/table-session/close-table-session.repository.ts:invokeCloseTableSessionManual",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/close-table-session.repository.ts",
+      "target": "function:apps/web/src/lib/table-session/close-table-session.repository.ts:invokeCloseTableSessionManual",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/close-table-session.service.ts",
+      "target": "function:apps/web/src/lib/table-session/close-table-session.service.ts:validateUnpaidCloseReason",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/close-table-session.service.ts",
+      "target": "function:apps/web/src/lib/table-session/close-table-session.service.ts:snapshotToAuditContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/close-table-session.service.ts",
+      "target": "function:apps/web/src/lib/table-session/close-table-session.service.ts:closeTableSessionManual",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/close-table-session.service.ts",
+      "target": "function:apps/web/src/lib/table-session/close-table-session.service.ts:closeTableSessionManual",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/close-table-session-ui.test.ts",
+      "target": "file:apps/web/src/lib/close-table-session-ui.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.test.ts",
+      "target": "file:apps/web/src/lib/audit/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.test.ts",
+      "target": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "target": "file:apps/web/src/lib/audit/builders/item-deleted.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "target": "file:apps/web/src/lib/audit/builders/item-qty-decremented.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "target": "file:apps/web/src/lib/audit/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "target": "file:apps/web/src/lib/audit/money.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "target": "file:apps/web/src/lib/audit/reasons.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "target": "file:apps/web/src/lib/audit/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "target": "file:apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "target": "file:apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "target": "file:apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "target": "file:apps/web/src/lib/order-item-void/validate-void-reason.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/detect-newly-voided.test.ts",
+      "target": "file:apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/detect-newly-voided.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "target": "file:apps/web/src/lib/order-status.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "target": "file:apps/web/src/lib/audit/builders/item-deleted.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "target": "file:apps/web/src/lib/audit/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "target": "file:apps/web/src/lib/audit/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "target": "file:apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "target": "file:apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "target": "file:apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "target": "file:apps/web/src/lib/order-item-void/validate-void-reason.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/validate-void-reason.test.ts",
+      "target": "file:apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/validate-void-reason.test.ts",
+      "target": "file:apps/web/src/lib/order-item-void/validate-void-reason.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/validate-void-reason.ts",
+      "target": "file:apps/web/src/lib/audit/validate-abnormal-reason.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/validate-void-reason.ts",
+      "target": "file:apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/close-table-session.service.test.ts",
+      "target": "file:apps/web/src/lib/table-session/close-table-session.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/close-table-session.service.ts",
+      "target": "file:apps/web/src/lib/audit/builders/unpaid-table-closed.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/close-table-session.service.ts",
+      "target": "file:apps/web/src/lib/audit/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/close-table-session.service.ts",
+      "target": "file:apps/web/src/lib/audit/money.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/close-table-session.service.ts",
+      "target": "file:apps/web/src/lib/audit/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/close-table-session.service.ts",
+      "target": "file:apps/web/src/lib/audit/validate-abnormal-reason.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/close-table-session.service.ts",
+      "target": "file:apps/web/src/lib/table-session/close-table-session.repository.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/validate-void-reason.ts:validateVoidItemReason",
+      "target": "function:apps/web/src/lib/audit/validate-abnormal-reason.ts:validateRequiredAbnormalReason",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:decrementOrderItemWithAudit",
+      "target": "function:apps/web/src/lib/order-item-void/validate-void-reason.ts:validateVoidItemReason",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:decrementOrderItemWithAudit",
+      "target": "function:apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts:applyVoidReasonToItems",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:decrementOrderItemWithAudit",
+      "target": "function:apps/web/src/lib/order-item-void/decrement-order-item.ts:applyOrderItemDecrement",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:decrementOrderItemWithAudit",
+      "target": "function:apps/web/src/lib/order-item-void/persist-order-items-update.ts:persistOrderItemsUpdate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:decrementOrderItemWithAudit",
+      "target": "function:apps/web/src/lib/audit/audit.service.ts:recordAudit",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:decrementOrderItemWithAudit",
+      "target": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:toQtyDecrementedContext",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:decrementOrderItemWithAudit",
+      "target": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:toItemDeletedContext",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:toQtyDecrementedContext",
+      "target": "function:apps/web/src/lib/audit/money.ts:auditMoney",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:toItemDeletedContext",
+      "target": "function:apps/web/src/lib/audit/builders/item-deleted.ts:itemLineAmount",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/patch-order-items.service.ts:patchOrderItemsWithVoidAudit",
+      "target": "function:apps/web/src/lib/order-item-void/detect-newly-voided.ts:detectNewlyVoidedItems",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/patch-order-items.service.ts:patchOrderItemsWithVoidAudit",
+      "target": "function:apps/web/src/lib/order-item-void/validate-void-reason.ts:validateVoidItemReason",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/patch-order-items.service.ts:patchOrderItemsWithVoidAudit",
+      "target": "function:apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts:applyVoidReasonToItems",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/patch-order-items.service.ts:patchOrderItemsWithVoidAudit",
+      "target": "function:apps/web/src/lib/order-item-void/persist-order-items-update.ts:persistOrderItemsUpdate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/patch-order-items.service.ts:patchOrderItemsWithVoidAudit",
+      "target": "function:apps/web/src/lib/audit/audit.service.ts:recordAudit",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/patch-order-items.service.ts:patchOrderItemsWithVoidAudit",
+      "target": "function:apps/web/src/lib/order-item-void/patch-order-items.service.ts:toAuditContext",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/patch-order-items.service.ts:toAuditContext",
+      "target": "function:apps/web/src/lib/audit/builders/item-deleted.ts:itemLineAmount",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/detect-newly-voided.ts:detectNewlyVoidedItems",
+      "target": "function:apps/web/src/lib/order-status.ts:normalizeOrderItemStatus",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/table-session/close-table-session.service.ts:closeTableSessionManual",
+      "target": "function:apps/web/src/lib/table-session/close-table-session.service.ts:validateUnpaidCloseReason",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/table-session/close-table-session.service.ts:closeTableSessionManual",
+      "target": "function:apps/web/src/lib/table-session/close-table-session.repository.ts:invokeCloseTableSessionManual",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/table-session/close-table-session.service.ts:closeTableSessionManual",
+      "target": "function:apps/web/src/lib/table-session/close-table-session.service.ts:snapshotToAuditContext",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/table-session/close-table-session.service.ts:closeTableSessionManual",
+      "target": "function:apps/web/src/lib/audit/audit.service.ts:recordAudit",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/table-session/close-table-session.service.ts:validateUnpaidCloseReason",
+      "target": "function:apps/web/src/lib/audit/validate-abnormal-reason.ts:validateRequiredAbnormalReason",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/table-session/close-table-session.service.ts:snapshotToAuditContext",
+      "target": "function:apps/web/src/lib/audit/money.ts:auditMoney",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/close-table-session-ui.ts",
+      "target": "file:apps/web/src/lib/close-table-session-ui.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "target": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "target": "file:apps/web/src/lib/order-item-void/detect-newly-voided.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/validate-void-reason.ts",
+      "target": "file:apps/web/src/lib/order-item-void/validate-void-reason.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/close-table-session.service.ts",
+      "target": "file:apps/web/src/lib/table-session/close-table-session.service.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

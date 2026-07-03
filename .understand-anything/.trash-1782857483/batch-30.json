@@ -1,0 +1,134 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/print-agent/scripts/build-release.ps1",
+      "type": "file",
+      "name": "build-release.ps1",
+      "filePath": "apps/print-agent/scripts/build-release.ps1",
+      "summary": "Windows 发布构建脚本：交叉编译 amd64/arm64 可执行文件、打包 zip、调用 Inno Setup 生成安装包，并输出 SHA256 校验和。",
+      "tags": ["build-system", "deployment", "print-agent", "windows", "release"],
+      "complexity": "moderate",
+      "languageNotes": "PowerShell 顶层脚本，通过 go build 与 ISCC 编排多架构 Windows 发布产物。"
+    },
+    {
+      "id": "file:apps/print-agent/scripts/verify-single-instance.sh",
+      "type": "file",
+      "name": "verify-single-instance.sh",
+      "filePath": "apps/print-agent/scripts/verify-single-instance.sh",
+      "summary": "静态检查脚本，验证 print-agent 主进程单实例互斥锁（guardMainAgentSingleInstance）在 main.go 与 Windows 实现中正确接线，并运行 TestIsMainAgentInvocation 测试。",
+      "tags": ["verification", "print-agent", "ci-cd", "single-instance", "test"],
+      "complexity": "simple",
+      "languageNotes": "Bash 脚本结合 grep 与内嵌 Python 调用 go test 做接线验证。"
+    },
+    {
+      "id": "file:apps/print-agent/scripts/verify-tray-startup-order.sh",
+      "type": "file",
+      "name": "verify-tray-startup-order.sh",
+      "filePath": "apps/print-agent/scripts/verify-tray-startup-order.sh",
+      "summary": "证据检查脚本，通过 grep 与 Python 源码解析验证 Windows 托盘路径在主线程调用 systray.Run，且 initAgentSession 在后台 goroutine 中执行。",
+      "tags": ["verification", "print-agent", "ci-cd", "tray", "windows"],
+      "complexity": "moderate",
+      "languageNotes": "Bash 脚本用 Python 切片解析 agent_entry_windows.go 中的函数体顺序。"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/print-agent/scripts/build-release.ps1",
+      "target": "file:apps/print-agent/VERSION",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/print-agent/scripts/build-release.ps1",
+      "target": "file:apps/print-agent/main.go",
+      "type": "deploys",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/print-agent/scripts/build-release.ps1",
+      "target": "file:apps/print-agent/installer/mesa-print-agent.iss",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/print-agent/scripts/build-release.ps1",
+      "target": "file:apps/print-agent/installer/WINDOWS-README.txt",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/print-agent/scripts/verify-single-instance.sh",
+      "target": "file:apps/print-agent/main.go",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/print-agent/scripts/verify-single-instance.sh",
+      "target": "file:apps/print-agent/single_instance_common.go",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/print-agent/scripts/verify-single-instance.sh",
+      "target": "file:apps/print-agent/single_instance_windows.go",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/print-agent/main.go",
+      "target": "file:apps/print-agent/scripts/verify-single-instance.sh",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/single_instance_common.go",
+      "target": "file:apps/print-agent/scripts/verify-single-instance.sh",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/single_instance_windows.go",
+      "target": "file:apps/print-agent/scripts/verify-single-instance.sh",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/scripts/verify-tray-startup-order.sh",
+      "target": "file:apps/print-agent/agent_entry_windows.go",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/print-agent/scripts/verify-tray-startup-order.sh",
+      "target": "file:apps/print-agent/single_instance_windows.go",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/print-agent/agent_entry_windows.go",
+      "target": "file:apps/print-agent/scripts/verify-tray-startup-order.sh",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/scripts/verify-single-instance.sh",
+      "target": "file:apps/print-agent/scripts/verify-tray-startup-order.sh",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

@@ -1,0 +1,6965 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 25,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/print-agent/brand.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 8,
+      "nonEmptyLines": 7,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/config_reload.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 17,
+      "nonEmptyLines": 16,
+      "functions": [
+        {
+          "name": "reloadAgentSessionConfig",
+          "startLine": 4,
+          "endLine": 17,
+          "params": [
+            "sess"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "reloadAgentSessionConfig",
+          "callee": "defaultConfigPath",
+          "lineNumber": 10
+        },
+        {
+          "caller": "reloadAgentSessionConfig",
+          "callee": "loadConfig",
+          "lineNumber": 12
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/config_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 94,
+      "nonEmptyLines": 85,
+      "functions": [
+        {
+          "name": "TestPrinterAddrForJob_receiptFirstMappedWithoutId",
+          "startLine": 9,
+          "endLine": 26,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestPrinterAddrForJob_receiptSoleMappedWithoutId",
+          "startLine": 28,
+          "endLine": 36,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestPrinterAddrForJob_receiptStationPicker",
+          "startLine": 38,
+          "endLine": 47,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestPrinterAddrForJob_receiptCashierIdRejected",
+          "startLine": 49,
+          "endLine": 56,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestPrinterAddrForJob_stationDoesNotUseCashier",
+          "startLine": 58,
+          "endLine": 65,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestPrinterAddrForJob_stationMapped",
+          "startLine": 67,
+          "endLine": 76,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestDeviceIDForPairingReusesExistingConfigID",
+          "startLine": 78,
+          "endLine": 87,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestDeviceIDForPairingCreatesIDWhenMissing",
+          "startLine": 89,
+          "endLine": 94,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestPrinterAddrForJob_receiptFirstMappedWithoutId",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "TestPrinterAddrForJob_receiptSoleMappedWithoutId",
+          "line": 28,
+          "isDefault": false
+        },
+        {
+          "name": "TestPrinterAddrForJob_receiptStationPicker",
+          "line": 38,
+          "isDefault": false
+        },
+        {
+          "name": "TestPrinterAddrForJob_receiptCashierIdRejected",
+          "line": 49,
+          "isDefault": false
+        },
+        {
+          "name": "TestPrinterAddrForJob_stationDoesNotUseCashier",
+          "line": 58,
+          "isDefault": false
+        },
+        {
+          "name": "TestPrinterAddrForJob_stationMapped",
+          "line": 67,
+          "isDefault": false
+        },
+        {
+          "name": "TestDeviceIDForPairingReusesExistingConfigID",
+          "line": 78,
+          "isDefault": false
+        },
+        {
+          "name": "TestDeviceIDForPairingCreatesIDWhenMissing",
+          "line": 89,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestPrinterAddrForJob_receiptFirstMappedWithoutId",
+          "callee": "c.printerAddrForJob",
+          "lineNumber": 16
+        },
+        {
+          "caller": "TestPrinterAddrForJob_receiptFirstMappedWithoutId",
+          "callee": "time.Now().UTC().Format",
+          "lineNumber": 18
+        },
+        {
+          "caller": "TestPrinterAddrForJob_receiptFirstMappedWithoutId",
+          "callee": "time.Now().UTC",
+          "lineNumber": 18
+        },
+        {
+          "caller": "TestPrinterAddrForJob_receiptFirstMappedWithoutId",
+          "callee": "time.Now",
+          "lineNumber": 18
+        },
+        {
+          "caller": "TestPrinterAddrForJob_receiptFirstMappedWithoutId",
+          "callee": "t.Fatalf",
+          "lineNumber": 21
+        },
+        {
+          "caller": "TestPrinterAddrForJob_receiptFirstMappedWithoutId",
+          "callee": "t.Fatalf",
+          "lineNumber": 24
+        },
+        {
+          "caller": "TestPrinterAddrForJob_receiptSoleMappedWithoutId",
+          "callee": "c.printerAddrForJob",
+          "lineNumber": 32
+        },
+        {
+          "caller": "TestPrinterAddrForJob_receiptSoleMappedWithoutId",
+          "callee": "t.Fatalf",
+          "lineNumber": 34
+        },
+        {
+          "caller": "TestPrinterAddrForJob_receiptStationPicker",
+          "callee": "c.printerAddrForJob",
+          "lineNumber": 43
+        },
+        {
+          "caller": "TestPrinterAddrForJob_receiptStationPicker",
+          "callee": "t.Fatalf",
+          "lineNumber": 45
+        },
+        {
+          "caller": "TestPrinterAddrForJob_receiptCashierIdRejected",
+          "callee": "c.printerAddrForJob",
+          "lineNumber": 52
+        },
+        {
+          "caller": "TestPrinterAddrForJob_receiptCashierIdRejected",
+          "callee": "t.Fatal",
+          "lineNumber": 54
+        },
+        {
+          "caller": "TestPrinterAddrForJob_stationDoesNotUseCashier",
+          "callee": "c.printerAddrForJob",
+          "lineNumber": 61
+        },
+        {
+          "caller": "TestPrinterAddrForJob_stationDoesNotUseCashier",
+          "callee": "t.Fatal",
+          "lineNumber": 63
+        },
+        {
+          "caller": "TestPrinterAddrForJob_stationMapped",
+          "callee": "c.printerAddrForJob",
+          "lineNumber": 72
+        },
+        {
+          "caller": "TestPrinterAddrForJob_stationMapped",
+          "callee": "t.Fatalf",
+          "lineNumber": 74
+        },
+        {
+          "caller": "TestDeviceIDForPairingReusesExistingConfigID",
+          "callee": "filepath.Join",
+          "lineNumber": 79
+        },
+        {
+          "caller": "TestDeviceIDForPairingReusesExistingConfigID",
+          "callee": "t.TempDir",
+          "lineNumber": 79
+        },
+        {
+          "caller": "TestDeviceIDForPairingReusesExistingConfigID",
+          "callee": "saveConfig",
+          "lineNumber": 81
+        },
+        {
+          "caller": "TestDeviceIDForPairingReusesExistingConfigID",
+          "callee": "t.Fatal",
+          "lineNumber": 82
+        },
+        {
+          "caller": "TestDeviceIDForPairingReusesExistingConfigID",
+          "callee": "deviceIDForPairing",
+          "lineNumber": 84
+        },
+        {
+          "caller": "TestDeviceIDForPairingReusesExistingConfigID",
+          "callee": "t.Fatalf",
+          "lineNumber": 85
+        },
+        {
+          "caller": "TestDeviceIDForPairingCreatesIDWhenMissing",
+          "callee": "deviceIDForPairing",
+          "lineNumber": 90
+        },
+        {
+          "caller": "TestDeviceIDForPairingCreatesIDWhenMissing",
+          "callee": "filepath.Join",
+          "lineNumber": 90
+        },
+        {
+          "caller": "TestDeviceIDForPairingCreatesIDWhenMissing",
+          "callee": "t.TempDir",
+          "lineNumber": 90
+        },
+        {
+          "caller": "TestDeviceIDForPairingCreatesIDWhenMissing",
+          "callee": "looksLikeUUID",
+          "lineNumber": 91
+        },
+        {
+          "caller": "TestDeviceIDForPairingCreatesIDWhenMissing",
+          "callee": "t.Fatalf",
+          "lineNumber": 92
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 8,
+        "functionCount": 8,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/config.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 218,
+      "nonEmptyLines": 201,
+      "functions": [
+        {
+          "name": "defaultConfigPath",
+          "startLine": 32,
+          "endLine": 41,
+          "params": []
+        },
+        {
+          "name": "loadConfig",
+          "startLine": 43,
+          "endLine": 53,
+          "params": [
+            "path"
+          ]
+        },
+        {
+          "name": "saveConfig",
+          "startLine": 55,
+          "endLine": 64,
+          "params": [
+            "path",
+            "c"
+          ]
+        },
+        {
+          "name": "normalizeHostPort",
+          "startLine": 66,
+          "endLine": 75,
+          "params": [
+            "hostPort",
+            "defaultPort"
+          ]
+        },
+        {
+          "name": "isReceiptPrintJobType",
+          "startLine": 77,
+          "endLine": 79,
+          "params": [
+            "jobType"
+          ]
+        },
+        {
+          "name": "resolveReceiptPrinterID",
+          "startLine": 81,
+          "endLine": 103,
+          "params": [
+            "id"
+          ]
+        },
+        {
+          "name": "printerAddrForJob",
+          "startLine": 105,
+          "endLine": 133,
+          "params": [
+            "job"
+          ]
+        },
+        {
+          "name": "mergePrinterConfig",
+          "startLine": 136,
+          "endLine": 155,
+          "params": [
+            "prev",
+            "next"
+          ]
+        },
+        {
+          "name": "mappedPrinterTargets",
+          "startLine": 158,
+          "endLine": 181,
+          "params": []
+        },
+        {
+          "name": "savePairConfig",
+          "startLine": 183,
+          "endLine": 190,
+          "params": [
+            "configPath",
+            "next"
+          ]
+        },
+        {
+          "name": "deviceIDForPairing",
+          "startLine": 192,
+          "endLine": 199,
+          "params": [
+            "configPath"
+          ]
+        },
+        {
+          "name": "looksLikeUUID",
+          "startLine": 201,
+          "endLine": 218,
+          "params": [
+            "s"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "config",
+          "startLine": 11,
+          "endLine": 27,
+          "methods": [
+            "resolveReceiptPrinterID",
+            "printerAddrForJob",
+            "mappedPrinterTargets"
+          ],
+          "properties": [
+            "APIBase",
+            "AgentJWT",
+            "DeviceID",
+            "PrinterHost",
+            "DefaultPrinter",
+            "CashierPrinter",
+            "StationPrinters",
+            "Schedule",
+            "Poll",
+            "UILocale",
+            "ValidUntil",
+            "TextEncoding"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "defaultConfigPath",
+          "callee": "os.UserHomeDir",
+          "lineNumber": 36
+        },
+        {
+          "caller": "defaultConfigPath",
+          "callee": "filepath.Join",
+          "lineNumber": 40
+        },
+        {
+          "caller": "loadConfig",
+          "callee": "os.ReadFile",
+          "lineNumber": 44
+        },
+        {
+          "caller": "loadConfig",
+          "callee": "json.Unmarshal",
+          "lineNumber": 49
+        },
+        {
+          "caller": "saveConfig",
+          "callee": "os.MkdirAll",
+          "lineNumber": 56
+        },
+        {
+          "caller": "saveConfig",
+          "callee": "filepath.Dir",
+          "lineNumber": 56
+        },
+        {
+          "caller": "saveConfig",
+          "callee": "json.MarshalIndent",
+          "lineNumber": 59
+        },
+        {
+          "caller": "saveConfig",
+          "callee": "os.WriteFile",
+          "lineNumber": 63
+        },
+        {
+          "caller": "normalizeHostPort",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 67
+        },
+        {
+          "caller": "normalizeHostPort",
+          "callee": "strings.Contains",
+          "lineNumber": 71
+        },
+        {
+          "caller": "resolveReceiptPrinterID",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 82
+        },
+        {
+          "caller": "resolveReceiptPrinterID",
+          "callee": "fmt.Errorf",
+          "lineNumber": 84
+        },
+        {
+          "caller": "resolveReceiptPrinterID",
+          "callee": "fmt.Errorf",
+          "lineNumber": 87
+        },
+        {
+          "caller": "resolveReceiptPrinterID",
+          "callee": "strings.HasPrefix",
+          "lineNumber": 90
+        },
+        {
+          "caller": "resolveReceiptPrinterID",
+          "callee": "fmt.Errorf",
+          "lineNumber": 91
+        },
+        {
+          "caller": "resolveReceiptPrinterID",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 93
+        },
+        {
+          "caller": "resolveReceiptPrinterID",
+          "callee": "len",
+          "lineNumber": 93
+        },
+        {
+          "caller": "resolveReceiptPrinterID",
+          "callee": "fmt.Errorf",
+          "lineNumber": 95
+        },
+        {
+          "caller": "resolveReceiptPrinterID",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 98
+        },
+        {
+          "caller": "resolveReceiptPrinterID",
+          "callee": "fmt.Errorf",
+          "lineNumber": 102
+        },
+        {
+          "caller": "printerAddrForJob",
+          "callee": "isReceiptPrintJobType",
+          "lineNumber": 106
+        },
+        {
+          "caller": "printerAddrForJob",
+          "callee": "json.Unmarshal",
+          "lineNumber": 110
+        },
+        {
+          "caller": "printerAddrForJob",
+          "callee": "c.resolveReceiptRouting",
+          "lineNumber": 111
+        },
+        {
+          "caller": "printerAddrForJob",
+          "callee": "json.Unmarshal",
+          "lineNumber": 118
+        },
+        {
+          "caller": "printerAddrForJob",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 119
+        },
+        {
+          "caller": "printerAddrForJob",
+          "callee": "fmt.Errorf",
+          "lineNumber": 121
+        },
+        {
+          "caller": "printerAddrForJob",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 124
+        },
+        {
+          "caller": "printerAddrForJob",
+          "callee": "fmt.Errorf",
+          "lineNumber": 128
+        },
+        {
+          "caller": "printerAddrForJob",
+          "callee": "fmt.Errorf",
+          "lineNumber": 132
+        },
+        {
+          "caller": "mergePrinterConfig",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 140
+        },
+        {
+          "caller": "mergePrinterConfig",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 140
+        },
+        {
+          "caller": "mergePrinterConfig",
+          "callee": "len",
+          "lineNumber": 143
+        },
+        {
+          "caller": "mergePrinterConfig",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 146
+        },
+        {
+          "caller": "mergePrinterConfig",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 149
+        },
+        {
+          "caller": "mergePrinterConfig",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 149
+        },
+        {
+          "caller": "mergePrinterConfig",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 152
+        },
+        {
+          "caller": "mergePrinterConfig",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 152
+        },
+        {
+          "caller": "mappedPrinterTargets",
+          "callee": "make",
+          "lineNumber": 162
+        },
+        {
+          "caller": "mappedPrinterTargets",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 165
+        },
+        {
+          "caller": "mappedPrinterTargets",
+          "callee": "parsePrinterTarget",
+          "lineNumber": 169
+        },
+        {
+          "caller": "mappedPrinterTargets",
+          "callee": "targetKey",
+          "lineNumber": 173
+        },
+        {
+          "caller": "mappedPrinterTargets",
+          "callee": "append",
+          "lineNumber": 178
+        },
+        {
+          "caller": "savePairConfig",
+          "callee": "loadConfig",
+          "lineNumber": 185
+        },
+        {
+          "caller": "savePairConfig",
+          "callee": "mergePrinterConfig",
+          "lineNumber": 188
+        },
+        {
+          "caller": "savePairConfig",
+          "callee": "saveConfig",
+          "lineNumber": 189
+        },
+        {
+          "caller": "deviceIDForPairing",
+          "callee": "loadConfig",
+          "lineNumber": 193
+        },
+        {
+          "caller": "deviceIDForPairing",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 194
+        },
+        {
+          "caller": "deviceIDForPairing",
+          "callee": "looksLikeUUID",
+          "lineNumber": 194
+        },
+        {
+          "caller": "deviceIDForPairing",
+          "callee": "newUUID",
+          "lineNumber": 198
+        },
+        {
+          "caller": "looksLikeUUID",
+          "callee": "len",
+          "lineNumber": 202
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 12,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "apps/print-agent/configure_ui_dom_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 59,
+      "nonEmptyLines": 54,
+      "functions": [
+        {
+          "name": "TestConfigureUIDOMIDs",
+          "startLine": 10,
+          "endLine": 59,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestConfigureUIDOMIDs",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "string",
+          "lineNumber": 11
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "regexp.MustCompile",
+          "lineNumber": 13
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "idRe.FindAllStringSubmatch",
+          "lineNumber": 15
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "regexp.MustCompile",
+          "lineNumber": 19
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "getRe.FindAllStringSubmatch",
+          "lineNumber": 21
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "t.Errorf",
+          "lineNumber": 28
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "t.Error",
+          "lineNumber": 33
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "t.Error",
+          "lineNumber": 36
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "strings.Contains",
+          "lineNumber": 38
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "t.Error",
+          "lineNumber": 39
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "strings.Contains",
+          "lineNumber": 41
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "t.Error",
+          "lineNumber": 42
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "strings.Contains",
+          "lineNumber": 44
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "t.Error",
+          "lineNumber": 45
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "strings.Contains",
+          "lineNumber": 47
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "t.Error",
+          "lineNumber": 48
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "strings.Contains",
+          "lineNumber": 50
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "t.Error",
+          "lineNumber": 51
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "strings.Contains",
+          "lineNumber": 53
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "t.Error",
+          "lineNumber": 54
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "strings.Contains",
+          "lineNumber": 56
+        },
+        {
+          "caller": "TestConfigureUIDOMIDs",
+          "callee": "t.Error",
+          "lineNumber": 57
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/configure_wizard.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 96,
+      "nonEmptyLines": 83,
+      "functions": [
+        {
+          "name": "registerConfigureWizardRoutes",
+          "startLine": 15,
+          "endLine": 43,
+          "params": [
+            "mux",
+            "configPath",
+            "cfgPtr",
+            "done"
+          ]
+        },
+        {
+          "name": "configureWizardBaseURL",
+          "startLine": 45,
+          "endLine": 65,
+          "params": [
+            "listenAddr",
+            "prefillAPI",
+            "rawQuery"
+          ]
+        },
+        {
+          "name": "runConfigureWizard",
+          "startLine": 68,
+          "endLine": 96,
+          "params": [
+            "ctx",
+            "configPath",
+            "prefillAPI",
+            "rawQuery"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "registerConfigureWizardRoutes",
+          "callee": "mux.HandleFunc",
+          "lineNumber": 16
+        },
+        {
+          "caller": "registerConfigureWizardRoutes",
+          "callee": "w.Header().Set",
+          "lineNumber": 17
+        },
+        {
+          "caller": "registerConfigureWizardRoutes",
+          "callee": "w.Header",
+          "lineNumber": 17
+        },
+        {
+          "caller": "registerConfigureWizardRoutes",
+          "callee": "w.Write",
+          "lineNumber": 18
+        },
+        {
+          "caller": "registerConfigureWizardRoutes",
+          "callee": "registerPairWebRoutes",
+          "lineNumber": 21
+        },
+        {
+          "caller": "registerConfigureWizardRoutes",
+          "callee": "registerPrinterWizardRoutes",
+          "lineNumber": 22
+        },
+        {
+          "caller": "registerConfigureWizardRoutes",
+          "callee": "registerUILocaleRoute",
+          "lineNumber": 23
+        },
+        {
+          "caller": "registerConfigureWizardRoutes",
+          "callee": "mux.HandleFunc",
+          "lineNumber": 25
+        },
+        {
+          "caller": "registerConfigureWizardRoutes",
+          "callee": "reloadConfig",
+          "lineNumber": 26
+        },
+        {
+          "caller": "registerConfigureWizardRoutes",
+          "callee": "writeConfigureState",
+          "lineNumber": 27
+        },
+        {
+          "caller": "registerConfigureWizardRoutes",
+          "callee": "mux.HandleFunc",
+          "lineNumber": 30
+        },
+        {
+          "caller": "registerConfigureWizardRoutes",
+          "callee": "http.Error",
+          "lineNumber": 32
+        },
+        {
+          "caller": "registerConfigureWizardRoutes",
+          "callee": "writePairJSON",
+          "lineNumber": 35
+        },
+        {
+          "caller": "configureWizardBaseURL",
+          "callee": "normalizeAPIBase",
+          "lineNumber": 48
+        },
+        {
+          "caller": "configureWizardBaseURL",
+          "callee": "q.Set",
+          "lineNumber": 49
+        },
+        {
+          "caller": "configureWizardBaseURL",
+          "callee": "url.ParseQuery",
+          "lineNumber": 52
+        },
+        {
+          "caller": "configureWizardBaseURL",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 53
+        },
+        {
+          "caller": "configureWizardBaseURL",
+          "callee": "incoming.Get",
+          "lineNumber": 53
+        },
+        {
+          "caller": "configureWizardBaseURL",
+          "callee": "q.Set",
+          "lineNumber": 54
+        },
+        {
+          "caller": "configureWizardBaseURL",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 56
+        },
+        {
+          "caller": "configureWizardBaseURL",
+          "callee": "incoming.Get",
+          "lineNumber": 56
+        },
+        {
+          "caller": "configureWizardBaseURL",
+          "callee": "q.Set",
+          "lineNumber": 57
+        },
+        {
+          "caller": "configureWizardBaseURL",
+          "callee": "len",
+          "lineNumber": 61
+        },
+        {
+          "caller": "configureWizardBaseURL",
+          "callee": "q.Encode",
+          "lineNumber": 62
+        },
+        {
+          "caller": "runConfigureWizard",
+          "callee": "pickLocalListenAddr",
+          "lineNumber": 69
+        },
+        {
+          "caller": "runConfigureWizard",
+          "callee": "reloadConfig",
+          "lineNumber": 74
+        },
+        {
+          "caller": "runConfigureWizard",
+          "callee": "make",
+          "lineNumber": 77
+        },
+        {
+          "caller": "runConfigureWizard",
+          "callee": "http.NewServeMux",
+          "lineNumber": 78
+        },
+        {
+          "caller": "runConfigureWizard",
+          "callee": "registerConfigureWizardRoutes",
+          "lineNumber": 79
+        },
+        {
+          "caller": "runConfigureWizard",
+          "callee": "func() {\n\t\tif err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {\n\t\t\tdone <- err\n\t\t}\n\t}",
+          "lineNumber": 82
+        },
+        {
+          "caller": "runConfigureWizard",
+          "callee": "srv.ListenAndServe",
+          "lineNumber": 83
+        },
+        {
+          "caller": "runConfigureWizard",
+          "callee": "configureWizardBaseURL",
+          "lineNumber": 88
+        },
+        {
+          "caller": "runConfigureWizard",
+          "callee": "agentLogLocale",
+          "lineNumber": 89
+        },
+        {
+          "caller": "runConfigureWizard",
+          "callee": "localeFromConfigPath",
+          "lineNumber": 89
+        },
+        {
+          "caller": "runConfigureWizard",
+          "callee": "onConfigureWizardReady",
+          "lineNumber": 91
+        },
+        {
+          "caller": "runConfigureWizard",
+          "callee": "announceWizardURL",
+          "lineNumber": 93
+        },
+        {
+          "caller": "runConfigureWizard",
+          "callee": "waitLocalWizard",
+          "lineNumber": 95
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/console_stub.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 5,
+      "nonEmptyLines": 3,
+      "functions": [
+        {
+          "name": "windowsPrepareConsole",
+          "startLine": 5,
+          "endLine": 5,
+          "params": [
+            "_"
+          ]
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/console_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 144,
+      "nonEmptyLines": 132,
+      "functions": [
+        {
+          "name": "windowsPrepareConsole",
+          "startLine": 13,
+          "endLine": 31,
+          "params": [
+            "args"
+          ]
+        },
+        {
+          "name": "agentArgsWantConsole",
+          "startLine": 33,
+          "endLine": 38,
+          "params": [
+            "args"
+          ]
+        },
+        {
+          "name": "attachConsoleWindow",
+          "startLine": 41,
+          "endLine": 57,
+          "params": []
+        },
+        {
+          "name": "hideConsoleWindow",
+          "startLine": 59,
+          "endLine": 68,
+          "params": []
+        },
+        {
+          "name": "showConsoleWindow",
+          "startLine": 70,
+          "endLine": 80,
+          "params": []
+        },
+        {
+          "name": "toggleConsoleWindow",
+          "startLine": 82,
+          "endLine": 94,
+          "params": []
+        },
+        {
+          "name": "disableConsoleCloseButton",
+          "startLine": 96,
+          "endLine": 114,
+          "params": [
+            "hwnd"
+          ]
+        },
+        {
+          "name": "messageBoxOK",
+          "startLine": 128,
+          "endLine": 134,
+          "params": [
+            "title",
+            "text"
+          ]
+        },
+        {
+          "name": "messageBoxYesNo",
+          "startLine": 137,
+          "endLine": 144,
+          "params": [
+            "title",
+            "text"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "windowsPrepareConsole",
+          "callee": "len",
+          "lineNumber": 14
+        },
+        {
+          "caller": "windowsPrepareConsole",
+          "callee": "attachConsoleWindow",
+          "lineNumber": 20
+        },
+        {
+          "caller": "windowsPrepareConsole",
+          "callee": "agentArgsWantConsole",
+          "lineNumber": 23
+        },
+        {
+          "caller": "windowsPrepareConsole",
+          "callee": "attachConsoleWindow",
+          "lineNumber": 24
+        },
+        {
+          "caller": "windowsPrepareConsole",
+          "callee": "agentArgsWantConsole",
+          "lineNumber": 28
+        },
+        {
+          "caller": "windowsPrepareConsole",
+          "callee": "attachConsoleWindow",
+          "lineNumber": 29
+        },
+        {
+          "caller": "agentArgsWantConsole",
+          "callee": "flag.NewFlagSet",
+          "lineNumber": 34
+        },
+        {
+          "caller": "agentArgsWantConsole",
+          "callee": "fs.Bool",
+          "lineNumber": 35
+        },
+        {
+          "caller": "agentArgsWantConsole",
+          "callee": "fs.Parse",
+          "lineNumber": 36
+        },
+        {
+          "caller": "attachConsoleWindow",
+          "callee": "syscall.NewLazyDLL",
+          "lineNumber": 42
+        },
+        {
+          "caller": "attachConsoleWindow",
+          "callee": "kernel32.NewProc(\"AllocConsole\").Call",
+          "lineNumber": 43
+        },
+        {
+          "caller": "attachConsoleWindow",
+          "callee": "kernel32.NewProc",
+          "lineNumber": 43
+        },
+        {
+          "caller": "attachConsoleWindow",
+          "callee": "kernel32.NewProc(\"GetConsoleWindow\").Call",
+          "lineNumber": 45
+        },
+        {
+          "caller": "attachConsoleWindow",
+          "callee": "kernel32.NewProc",
+          "lineNumber": 45
+        },
+        {
+          "caller": "attachConsoleWindow",
+          "callee": "os.OpenFile",
+          "lineNumber": 49
+        },
+        {
+          "caller": "attachConsoleWindow",
+          "callee": "log.SetOutput",
+          "lineNumber": 52
+        },
+        {
+          "caller": "attachConsoleWindow",
+          "callee": "os.OpenFile",
+          "lineNumber": 54
+        },
+        {
+          "caller": "hideConsoleWindow",
+          "callee": "syscall.NewLazyDLL(\"kernel32.dll\").NewProc",
+          "lineNumber": 60
+        },
+        {
+          "caller": "hideConsoleWindow",
+          "callee": "syscall.NewLazyDLL",
+          "lineNumber": 60
+        },
+        {
+          "caller": "hideConsoleWindow",
+          "callee": "syscall.NewLazyDLL(\"user32.dll\").NewProc",
+          "lineNumber": 61
+        },
+        {
+          "caller": "hideConsoleWindow",
+          "callee": "syscall.NewLazyDLL",
+          "lineNumber": 61
+        },
+        {
+          "caller": "hideConsoleWindow",
+          "callee": "getConsoleWindow.Call",
+          "lineNumber": 62
+        },
+        {
+          "caller": "hideConsoleWindow",
+          "callee": "showWindow.Call",
+          "lineNumber": 67
+        },
+        {
+          "caller": "showConsoleWindow",
+          "callee": "syscall.NewLazyDLL(\"kernel32.dll\").NewProc(\"GetConsoleWindow\").Call",
+          "lineNumber": 71
+        },
+        {
+          "caller": "showConsoleWindow",
+          "callee": "syscall.NewLazyDLL(\"kernel32.dll\").NewProc",
+          "lineNumber": 71
+        },
+        {
+          "caller": "showConsoleWindow",
+          "callee": "syscall.NewLazyDLL",
+          "lineNumber": 71
+        },
+        {
+          "caller": "showConsoleWindow",
+          "callee": "attachConsoleWindow",
+          "lineNumber": 73
+        },
+        {
+          "caller": "showConsoleWindow",
+          "callee": "syscall.NewLazyDLL(\"kernel32.dll\").NewProc(\"GetConsoleWindow\").Call",
+          "lineNumber": 74
+        },
+        {
+          "caller": "showConsoleWindow",
+          "callee": "syscall.NewLazyDLL(\"kernel32.dll\").NewProc",
+          "lineNumber": 74
+        },
+        {
+          "caller": "showConsoleWindow",
+          "callee": "syscall.NewLazyDLL",
+          "lineNumber": 74
+        },
+        {
+          "caller": "showConsoleWindow",
+          "callee": "disableConsoleCloseButton",
+          "lineNumber": 76
+        },
+        {
+          "caller": "showConsoleWindow",
+          "callee": "syscall.NewLazyDLL(\"user32.dll\").NewProc",
+          "lineNumber": 77
+        },
+        {
+          "caller": "showConsoleWindow",
+          "callee": "syscall.NewLazyDLL",
+          "lineNumber": 77
+        },
+        {
+          "caller": "showConsoleWindow",
+          "callee": "showWindow.Call",
+          "lineNumber": 79
+        },
+        {
+          "caller": "toggleConsoleWindow",
+          "callee": "syscall.NewLazyDLL(\"kernel32.dll\").NewProc(\"GetConsoleWindow\").Call",
+          "lineNumber": 83
+        },
+        {
+          "caller": "toggleConsoleWindow",
+          "callee": "syscall.NewLazyDLL(\"kernel32.dll\").NewProc",
+          "lineNumber": 83
+        },
+        {
+          "caller": "toggleConsoleWindow",
+          "callee": "syscall.NewLazyDLL",
+          "lineNumber": 83
+        },
+        {
+          "caller": "toggleConsoleWindow",
+          "callee": "syscall.NewLazyDLL(\"user32.dll\").NewProc",
+          "lineNumber": 85
+        },
+        {
+          "caller": "toggleConsoleWindow",
+          "callee": "syscall.NewLazyDLL",
+          "lineNumber": 85
+        },
+        {
+          "caller": "toggleConsoleWindow",
+          "callee": "isWindowVisible.Call",
+          "lineNumber": 86
+        },
+        {
+          "caller": "toggleConsoleWindow",
+          "callee": "hideConsoleWindow",
+          "lineNumber": 88
+        },
+        {
+          "caller": "toggleConsoleWindow",
+          "callee": "showConsoleWindow",
+          "lineNumber": 92
+        },
+        {
+          "caller": "disableConsoleCloseButton",
+          "callee": "syscall.NewLazyDLL",
+          "lineNumber": 100
+        },
+        {
+          "caller": "disableConsoleCloseButton",
+          "callee": "user32.NewProc",
+          "lineNumber": 101
+        },
+        {
+          "caller": "disableConsoleCloseButton",
+          "callee": "user32.NewProc",
+          "lineNumber": 102
+        },
+        {
+          "caller": "disableConsoleCloseButton",
+          "callee": "user32.NewProc",
+          "lineNumber": 103
+        },
+        {
+          "caller": "disableConsoleCloseButton",
+          "callee": "getSystemMenu.Call",
+          "lineNumber": 108
+        },
+        {
+          "caller": "disableConsoleCloseButton",
+          "callee": "deleteMenu.Call",
+          "lineNumber": 112
+        },
+        {
+          "caller": "disableConsoleCloseButton",
+          "callee": "drawMenuBar.Call",
+          "lineNumber": 113
+        },
+        {
+          "caller": "messageBoxOK",
+          "callee": "syscall.NewLazyDLL",
+          "lineNumber": 129
+        },
+        {
+          "caller": "messageBoxOK",
+          "callee": "user32.NewProc",
+          "lineNumber": 130
+        },
+        {
+          "caller": "messageBoxOK",
+          "callee": "syscall.UTF16PtrFromString",
+          "lineNumber": 131
+        },
+        {
+          "caller": "messageBoxOK",
+          "callee": "syscall.UTF16PtrFromString",
+          "lineNumber": 132
+        },
+        {
+          "caller": "messageBoxOK",
+          "callee": "messageBoxW.Call",
+          "lineNumber": 133
+        },
+        {
+          "caller": "messageBoxOK",
+          "callee": "uintptr",
+          "lineNumber": 133
+        },
+        {
+          "caller": "messageBoxOK",
+          "callee": "unsafe.Pointer",
+          "lineNumber": 133
+        },
+        {
+          "caller": "messageBoxOK",
+          "callee": "uintptr",
+          "lineNumber": 133
+        },
+        {
+          "caller": "messageBoxOK",
+          "callee": "unsafe.Pointer",
+          "lineNumber": 133
+        },
+        {
+          "caller": "messageBoxYesNo",
+          "callee": "syscall.NewLazyDLL",
+          "lineNumber": 138
+        },
+        {
+          "caller": "messageBoxYesNo",
+          "callee": "user32.NewProc",
+          "lineNumber": 139
+        },
+        {
+          "caller": "messageBoxYesNo",
+          "callee": "syscall.UTF16PtrFromString",
+          "lineNumber": 140
+        },
+        {
+          "caller": "messageBoxYesNo",
+          "callee": "syscall.UTF16PtrFromString",
+          "lineNumber": 141
+        },
+        {
+          "caller": "messageBoxYesNo",
+          "callee": "messageBoxW.Call",
+          "lineNumber": 142
+        },
+        {
+          "caller": "messageBoxYesNo",
+          "callee": "uintptr",
+          "lineNumber": 142
+        },
+        {
+          "caller": "messageBoxYesNo",
+          "callee": "unsafe.Pointer",
+          "lineNumber": 142
+        },
+        {
+          "caller": "messageBoxYesNo",
+          "callee": "uintptr",
+          "lineNumber": 142
+        },
+        {
+          "caller": "messageBoxYesNo",
+          "callee": "unsafe.Pointer",
+          "lineNumber": 142
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 9,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/credential_expiry_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 23,
+      "nonEmptyLines": 20,
+      "functions": [
+        {
+          "name": "TestCredentialInReminderWindow",
+          "startLine": 8,
+          "endLine": 14,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestCredentialDaysRemaining",
+          "startLine": 16,
+          "endLine": 23,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestCredentialInReminderWindow",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "TestCredentialDaysRemaining",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestCredentialInReminderWindow",
+          "callee": "time.Now().Add(20 * 24 * time.Hour).Format",
+          "lineNumber": 9
+        },
+        {
+          "caller": "TestCredentialInReminderWindow",
+          "callee": "time.Now().Add",
+          "lineNumber": 9
+        },
+        {
+          "caller": "TestCredentialInReminderWindow",
+          "callee": "time.Now",
+          "lineNumber": 9
+        },
+        {
+          "caller": "TestCredentialInReminderWindow",
+          "callee": "cfg.credentialInReminderWindow",
+          "lineNumber": 11
+        },
+        {
+          "caller": "TestCredentialInReminderWindow",
+          "callee": "time.Now",
+          "lineNumber": 11
+        },
+        {
+          "caller": "TestCredentialInReminderWindow",
+          "callee": "t.Fatal",
+          "lineNumber": 12
+        },
+        {
+          "caller": "TestCredentialDaysRemaining",
+          "callee": "time.Now().Add",
+          "lineNumber": 17
+        },
+        {
+          "caller": "TestCredentialDaysRemaining",
+          "callee": "time.Now",
+          "lineNumber": 17
+        },
+        {
+          "caller": "TestCredentialDaysRemaining",
+          "callee": "until.Format",
+          "lineNumber": 18
+        },
+        {
+          "caller": "TestCredentialDaysRemaining",
+          "callee": "cfg.credentialDaysRemaining",
+          "lineNumber": 19
+        },
+        {
+          "caller": "TestCredentialDaysRemaining",
+          "callee": "time.Now",
+          "lineNumber": 19
+        },
+        {
+          "caller": "TestCredentialDaysRemaining",
+          "callee": "t.Fatalf",
+          "lineNumber": 21
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/credential_expiry.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 79,
+      "nonEmptyLines": 71,
+      "functions": [
+        {
+          "name": "parseValidUntil",
+          "startLine": 11,
+          "endLine": 22,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "validUntilTime",
+          "startLine": 24,
+          "endLine": 29,
+          "params": []
+        },
+        {
+          "name": "credentialDaysRemaining",
+          "startLine": 31,
+          "endLine": 44,
+          "params": [
+            "now"
+          ]
+        },
+        {
+          "name": "credentialInReminderWindow",
+          "startLine": 46,
+          "endLine": 52,
+          "params": [
+            "now"
+          ]
+        },
+        {
+          "name": "credentialAboutLine",
+          "startLine": 54,
+          "endLine": 68,
+          "params": [
+            "locale",
+            "now"
+          ]
+        },
+        {
+          "name": "credentialStatusSuffix",
+          "startLine": 70,
+          "endLine": 79,
+          "params": [
+            "locale",
+            "now"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "parseValidUntil",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 12
+        },
+        {
+          "caller": "parseValidUntil",
+          "callee": "time.Parse",
+          "lineNumber": 17
+        },
+        {
+          "caller": "validUntilTime",
+          "callee": "parseValidUntil",
+          "lineNumber": 28
+        },
+        {
+          "caller": "credentialDaysRemaining",
+          "callee": "c.validUntilTime",
+          "lineNumber": 32
+        },
+        {
+          "caller": "credentialDaysRemaining",
+          "callee": "until.After",
+          "lineNumber": 36
+        },
+        {
+          "caller": "credentialDaysRemaining",
+          "callee": "int",
+          "lineNumber": 39
+        },
+        {
+          "caller": "credentialDaysRemaining",
+          "callee": "until.Sub(now).Hours",
+          "lineNumber": 39
+        },
+        {
+          "caller": "credentialDaysRemaining",
+          "callee": "until.Sub",
+          "lineNumber": 39
+        },
+        {
+          "caller": "credentialDaysRemaining",
+          "callee": "until.Sub",
+          "lineNumber": 40
+        },
+        {
+          "caller": "credentialDaysRemaining",
+          "callee": "time.Duration",
+          "lineNumber": 40
+        },
+        {
+          "caller": "credentialInReminderWindow",
+          "callee": "c.credentialDaysRemaining",
+          "lineNumber": 47
+        },
+        {
+          "caller": "credentialAboutLine",
+          "callee": "c.validUntilTime",
+          "lineNumber": 55
+        },
+        {
+          "caller": "credentialAboutLine",
+          "callee": "normalizeUILocale",
+          "lineNumber": 59
+        },
+        {
+          "caller": "credentialAboutLine",
+          "callee": "until.Local().Format",
+          "lineNumber": 60
+        },
+        {
+          "caller": "credentialAboutLine",
+          "callee": "until.Local",
+          "lineNumber": 60
+        },
+        {
+          "caller": "credentialAboutLine",
+          "callee": "until.After",
+          "lineNumber": 61
+        },
+        {
+          "caller": "credentialAboutLine",
+          "callee": "uiT",
+          "lineNumber": 62
+        },
+        {
+          "caller": "credentialAboutLine",
+          "callee": "c.credentialDaysRemaining",
+          "lineNumber": 64
+        },
+        {
+          "caller": "credentialAboutLine",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 65
+        },
+        {
+          "caller": "credentialAboutLine",
+          "callee": "uiT",
+          "lineNumber": 65
+        },
+        {
+          "caller": "credentialAboutLine",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 67
+        },
+        {
+          "caller": "credentialAboutLine",
+          "callee": "uiT",
+          "lineNumber": 67
+        },
+        {
+          "caller": "credentialStatusSuffix",
+          "callee": "c.credentialInReminderWindow",
+          "lineNumber": 71
+        },
+        {
+          "caller": "credentialStatusSuffix",
+          "callee": "c.credentialDaysRemaining",
+          "lineNumber": 74
+        },
+        {
+          "caller": "credentialStatusSuffix",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 78
+        },
+        {
+          "caller": "credentialStatusSuffix",
+          "callee": "uiT",
+          "lineNumber": 78
+        },
+        {
+          "caller": "credentialStatusSuffix",
+          "callee": "normalizeUILocale",
+          "lineNumber": 78
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/dev/fake-printer/go.mod",
+      "language": "mod",
+      "fileCategory": "config",
+      "totalLines": 3,
+      "nonEmptyLines": 2,
+      "metrics": {}
+    },
+    {
+      "path": "apps/print-agent/dev/fake-printer/main.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 125,
+      "nonEmptyLines": 113,
+      "functions": [
+        {
+          "name": "main",
+          "startLine": 15,
+          "endLine": 34,
+          "params": []
+        },
+        {
+          "name": "env",
+          "startLine": 36,
+          "endLine": 41,
+          "params": [
+            "k",
+            "def"
+          ]
+        },
+        {
+          "name": "handleConn",
+          "startLine": 43,
+          "endLine": 55,
+          "params": [
+            "conn",
+            "name"
+          ]
+        },
+        {
+          "name": "decodeEscPos",
+          "startLine": 58,
+          "endLine": 125,
+          "params": [
+            "data"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "main",
+          "callee": "env",
+          "lineNumber": 16
+        },
+        {
+          "caller": "main",
+          "callee": "env",
+          "lineNumber": 17
+        },
+        {
+          "caller": "main",
+          "callee": "net.Listen",
+          "lineNumber": 20
+        },
+        {
+          "caller": "main",
+          "callee": "log.Fatal",
+          "lineNumber": 22
+        },
+        {
+          "caller": "main",
+          "callee": "log.Printf",
+          "lineNumber": 24
+        },
+        {
+          "caller": "main",
+          "callee": "ln.Accept",
+          "lineNumber": 27
+        },
+        {
+          "caller": "main",
+          "callee": "log.Println",
+          "lineNumber": 29
+        },
+        {
+          "caller": "main",
+          "callee": "handleConn",
+          "lineNumber": 32
+        },
+        {
+          "caller": "env",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 37
+        },
+        {
+          "caller": "env",
+          "callee": "os.Getenv",
+          "lineNumber": 37
+        },
+        {
+          "caller": "handleConn",
+          "callee": "conn.Close",
+          "lineNumber": 44
+        },
+        {
+          "caller": "handleConn",
+          "callee": "conn.SetReadDeadline",
+          "lineNumber": 45
+        },
+        {
+          "caller": "handleConn",
+          "callee": "time.Now().Add",
+          "lineNumber": 45
+        },
+        {
+          "caller": "handleConn",
+          "callee": "time.Now",
+          "lineNumber": 45
+        },
+        {
+          "caller": "handleConn",
+          "callee": "io.ReadAll",
+          "lineNumber": 46
+        },
+        {
+          "caller": "handleConn",
+          "callee": "len",
+          "lineNumber": 47
+        },
+        {
+          "caller": "handleConn",
+          "callee": "log.Printf",
+          "lineNumber": 48
+        },
+        {
+          "caller": "handleConn",
+          "callee": "fmt.Printf",
+          "lineNumber": 52
+        },
+        {
+          "caller": "handleConn",
+          "callee": "len",
+          "lineNumber": 52
+        },
+        {
+          "caller": "handleConn",
+          "callee": "fmt.Print",
+          "lineNumber": 53
+        },
+        {
+          "caller": "handleConn",
+          "callee": "decodeEscPos",
+          "lineNumber": 53
+        },
+        {
+          "caller": "handleConn",
+          "callee": "fmt.Printf",
+          "lineNumber": 54
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "len",
+          "lineNumber": 61
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "len",
+          "lineNumber": 62
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "b.WriteString",
+          "lineNumber": 65
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "len",
+          "lineNumber": 69
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "b.WriteString",
+          "lineNumber": 71
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 71
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "len",
+          "lineNumber": 76
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "b.WriteString",
+          "lineNumber": 77
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 77
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "len",
+          "lineNumber": 83
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "b.WriteString",
+          "lineNumber": 86
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "len",
+          "lineNumber": 87
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "b.WriteByte",
+          "lineNumber": 97
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "b.WriteByte",
+          "lineNumber": 107
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "utf8.DecodeRune",
+          "lineNumber": 113
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "b.WriteRune",
+          "lineNumber": 115
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "b.WriteString",
+          "lineNumber": 121
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 121
+        },
+        {
+          "caller": "decodeEscPos",
+          "callee": "b.String",
+          "lineNumber": 124
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/discover.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 195,
+      "nonEmptyLines": 179,
+      "functions": [
+        {
+          "name": "localScanSubnets",
+          "startLine": 20,
+          "endLine": 59,
+          "params": []
+        },
+        {
+          "name": "hostsInSubnet",
+          "startLine": 61,
+          "endLine": 85,
+          "params": [
+            "ipNet"
+          ]
+        },
+        {
+          "name": "probeTCP9100",
+          "startLine": 87,
+          "endLine": 95,
+          "params": [
+            "ip",
+            "timeout"
+          ]
+        },
+        {
+          "name": "discoverPrinters9100",
+          "startLine": 97,
+          "endLine": 145,
+          "params": [
+            "timeout",
+            "workers"
+          ]
+        },
+        {
+          "name": "runDiscover",
+          "startLine": 147,
+          "endLine": 195,
+          "params": [
+            "args"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "discoveredPrinter",
+          "startLine": 14,
+          "endLine": 18,
+          "methods": [],
+          "properties": [
+            "Host",
+            "Port",
+            "Addr"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "localScanSubnets",
+          "callee": "net.Interfaces",
+          "lineNumber": 21
+        },
+        {
+          "caller": "localScanSubnets",
+          "callee": "make",
+          "lineNumber": 26
+        },
+        {
+          "caller": "localScanSubnets",
+          "callee": "iface.Addrs",
+          "lineNumber": 31
+        },
+        {
+          "caller": "localScanSubnets",
+          "callee": "ipNet.IP.To4",
+          "lineNumber": 37
+        },
+        {
+          "caller": "localScanSubnets",
+          "callee": "ipNet.Mask.Size",
+          "lineNumber": 40
+        },
+        {
+          "caller": "localScanSubnets",
+          "callee": "ipNet.IP.To4",
+          "lineNumber": 46
+        },
+        {
+          "caller": "localScanSubnets",
+          "callee": "net.CIDRMask",
+          "lineNumber": 47
+        },
+        {
+          "caller": "localScanSubnets",
+          "callee": "ip.Mask",
+          "lineNumber": 48
+        },
+        {
+          "caller": "localScanSubnets",
+          "callee": "ipNet.String",
+          "lineNumber": 50
+        },
+        {
+          "caller": "localScanSubnets",
+          "callee": "append",
+          "lineNumber": 55
+        },
+        {
+          "caller": "hostsInSubnet",
+          "callee": "ipNet.IP.To4",
+          "lineNumber": 62
+        },
+        {
+          "caller": "hostsInSubnet",
+          "callee": "ip.Mask",
+          "lineNumber": 67
+        },
+        {
+          "caller": "hostsInSubnet",
+          "callee": "make",
+          "lineNumber": 68
+        },
+        {
+          "caller": "hostsInSubnet",
+          "callee": "net.IPv4",
+          "lineNumber": 75
+        },
+        {
+          "caller": "hostsInSubnet",
+          "callee": "byte",
+          "lineNumber": 75
+        },
+        {
+          "caller": "hostsInSubnet",
+          "callee": "candidate.Equal",
+          "lineNumber": 76
+        },
+        {
+          "caller": "hostsInSubnet",
+          "callee": "candidate.Equal",
+          "lineNumber": 76
+        },
+        {
+          "caller": "hostsInSubnet",
+          "callee": "ipNet.Contains",
+          "lineNumber": 79
+        },
+        {
+          "caller": "hostsInSubnet",
+          "callee": "append",
+          "lineNumber": 82
+        },
+        {
+          "caller": "probeTCP9100",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 88
+        },
+        {
+          "caller": "probeTCP9100",
+          "callee": "ip.String",
+          "lineNumber": 88
+        },
+        {
+          "caller": "probeTCP9100",
+          "callee": "net.DialTimeout",
+          "lineNumber": 89
+        },
+        {
+          "caller": "probeTCP9100",
+          "callee": "conn.Close",
+          "lineNumber": 93
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "localScanSubnets",
+          "lineNumber": 98
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "len",
+          "lineNumber": 102
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "fmt.Errorf",
+          "lineNumber": 103
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "append",
+          "lineNumber": 108
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "hostsInSubnet",
+          "lineNumber": 108
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "len",
+          "lineNumber": 110
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "make",
+          "lineNumber": 114
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "wg.Add",
+          "lineNumber": 120
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "func() {\n\t\t\tdefer wg.Done()\n\t\t\tfor ip := range jobs {\n\t\t\t\tif !probeTCP9100(ip, timeout) {\n\t\t\t\t\tcontinue\n\t\t\t\t}\n\t\t\t\thost := ip.String()\n\t\t\t\tmu.Lock()\n\t\t\t\tfound = append(found, discoveredPrinter{Host: host, Port: 9100, Addr: host + \":9100\"})\n\t\t\t\tmu.Unlock()\n\t\t\t}\n\t\t}",
+          "lineNumber": 121
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "wg.Done",
+          "lineNumber": 122
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "probeTCP9100",
+          "lineNumber": 124
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "ip.String",
+          "lineNumber": 127
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "mu.Lock",
+          "lineNumber": 128
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "append",
+          "lineNumber": 129
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "mu.Unlock",
+          "lineNumber": 130
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "close",
+          "lineNumber": 138
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "wg.Wait",
+          "lineNumber": 139
+        },
+        {
+          "caller": "discoverPrinters9100",
+          "callee": "sort.Slice",
+          "lineNumber": 141
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "flag.NewFlagSet",
+          "lineNumber": 148
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fs.Int",
+          "lineNumber": 149
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fs.Int",
+          "lineNumber": 150
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fs.Bool",
+          "lineNumber": 151
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fs.Parse",
+          "lineNumber": 152
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "time.Duration",
+          "lineNumber": 154
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "discoverAllPrinters",
+          "lineNumber": 155
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Fprintf",
+          "lineNumber": 157
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "os.Exit",
+          "lineNumber": 158
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "json.NewEncoder",
+          "lineNumber": 162
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "enc.SetIndent",
+          "lineNumber": 163
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "enc.Encode",
+          "lineNumber": 164
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Println",
+          "lineNumber": 168
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "len",
+          "lineNumber": 169
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Println",
+          "lineNumber": 170
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Printf",
+          "lineNumber": 173
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Println",
+          "lineNumber": 176
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Println",
+          "lineNumber": 177
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "len",
+          "lineNumber": 178
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Println",
+          "lineNumber": 179
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Printf",
+          "lineNumber": 182
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Println",
+          "lineNumber": 185
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Println",
+          "lineNumber": 186
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Println",
+          "lineNumber": 187
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Println",
+          "lineNumber": 188
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Println",
+          "lineNumber": 189
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Println",
+          "lineNumber": 190
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Println",
+          "lineNumber": 191
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Println",
+          "lineNumber": 192
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Println",
+          "lineNumber": 193
+        },
+        {
+          "caller": "runDiscover",
+          "callee": "fmt.Println",
+          "lineNumber": 194
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 5,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "apps/print-agent/escpos_cut_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 114,
+      "nonEmptyLines": 103,
+      "functions": [
+        {
+          "name": "cutDotsInRaw",
+          "startLine": 5,
+          "endLine": 12,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "marginLinesBeforeContent",
+          "startLine": 14,
+          "endLine": 24,
+          "params": [
+            "raw",
+            "marker"
+          ]
+        },
+        {
+          "name": "bytesIndex",
+          "startLine": 26,
+          "endLine": 33,
+          "params": [
+            "b",
+            "sub"
+          ]
+        },
+        {
+          "name": "TestCutSequenceUsesFeedThenCut",
+          "startLine": 35,
+          "endLine": 50,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestTicketTopMarginMinimal",
+          "startLine": 52,
+          "endLine": 60,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestTicketBottomMarginBeforeCut",
+          "startLine": 62,
+          "endLine": 78,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestCutDotsIncreaseWhenDoubleHeight",
+          "startLine": 80,
+          "endLine": 95,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "containsSubslice",
+          "startLine": 97,
+          "endLine": 114,
+          "params": [
+            "b",
+            "sub"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestCutSequenceUsesFeedThenCut",
+          "line": 35,
+          "isDefault": false
+        },
+        {
+          "name": "TestTicketTopMarginMinimal",
+          "line": 52,
+          "isDefault": false
+        },
+        {
+          "name": "TestTicketBottomMarginBeforeCut",
+          "line": 62,
+          "isDefault": false
+        },
+        {
+          "name": "TestCutDotsIncreaseWhenDoubleHeight",
+          "line": 80,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "cutDotsInRaw",
+          "callee": "len",
+          "lineNumber": 6
+        },
+        {
+          "caller": "marginLinesBeforeContent",
+          "callee": "bytesIndex",
+          "lineNumber": 15
+        },
+        {
+          "caller": "bytesIndex",
+          "callee": "len",
+          "lineNumber": 27
+        },
+        {
+          "caller": "bytesIndex",
+          "callee": "len",
+          "lineNumber": 27
+        },
+        {
+          "caller": "bytesIndex",
+          "callee": "string",
+          "lineNumber": 28
+        },
+        {
+          "caller": "bytesIndex",
+          "callee": "len",
+          "lineNumber": 28
+        },
+        {
+          "caller": "bytesIndex",
+          "callee": "string",
+          "lineNumber": 28
+        },
+        {
+          "caller": "TestCutSequenceUsesFeedThenCut",
+          "callee": "newEscpos",
+          "lineNumber": 36
+        },
+        {
+          "caller": "TestCutSequenceUsesFeedThenCut",
+          "callee": "w.text",
+          "lineNumber": 37
+        },
+        {
+          "caller": "TestCutSequenceUsesFeedThenCut",
+          "callee": "w.lf",
+          "lineNumber": 38
+        },
+        {
+          "caller": "TestCutSequenceUsesFeedThenCut",
+          "callee": "w.finish",
+          "lineNumber": 39
+        },
+        {
+          "caller": "TestCutSequenceUsesFeedThenCut",
+          "callee": "containsSubslice",
+          "lineNumber": 40
+        },
+        {
+          "caller": "TestCutSequenceUsesFeedThenCut",
+          "callee": "t.Fatal",
+          "lineNumber": 41
+        },
+        {
+          "caller": "TestCutSequenceUsesFeedThenCut",
+          "callee": "cutDotsInRaw",
+          "lineNumber": 43
+        },
+        {
+          "caller": "TestCutSequenceUsesFeedThenCut",
+          "callee": "t.Fatalf",
+          "lineNumber": 45
+        },
+        {
+          "caller": "TestCutSequenceUsesFeedThenCut",
+          "callee": "containsSubslice",
+          "lineNumber": 47
+        },
+        {
+          "caller": "TestCutSequenceUsesFeedThenCut",
+          "callee": "t.Fatal",
+          "lineNumber": 48
+        },
+        {
+          "caller": "TestTicketTopMarginMinimal",
+          "callee": "newEscpos",
+          "lineNumber": 53
+        },
+        {
+          "caller": "TestTicketTopMarginMinimal",
+          "callee": "w.text",
+          "lineNumber": 54
+        },
+        {
+          "caller": "TestTicketTopMarginMinimal",
+          "callee": "w.finish",
+          "lineNumber": 55
+        },
+        {
+          "caller": "TestTicketTopMarginMinimal",
+          "callee": "marginLinesBeforeContent",
+          "lineNumber": 56
+        },
+        {
+          "caller": "TestTicketTopMarginMinimal",
+          "callee": "t.Fatalf",
+          "lineNumber": 58
+        },
+        {
+          "caller": "TestTicketBottomMarginBeforeCut",
+          "callee": "newEscpos",
+          "lineNumber": 63
+        },
+        {
+          "caller": "TestTicketBottomMarginBeforeCut",
+          "callee": "w.text",
+          "lineNumber": 64
+        },
+        {
+          "caller": "TestTicketBottomMarginBeforeCut",
+          "callee": "w.lf",
+          "lineNumber": 65
+        },
+        {
+          "caller": "TestTicketBottomMarginBeforeCut",
+          "callee": "w.finish",
+          "lineNumber": 66
+        },
+        {
+          "caller": "TestTicketBottomMarginBeforeCut",
+          "callee": "bytesIndex",
+          "lineNumber": 67
+        },
+        {
+          "caller": "TestTicketBottomMarginBeforeCut",
+          "callee": "t.Fatal",
+          "lineNumber": 69
+        },
+        {
+          "caller": "TestTicketBottomMarginBeforeCut",
+          "callee": "t.Fatalf",
+          "lineNumber": 76
+        },
+        {
+          "caller": "TestCutDotsIncreaseWhenDoubleHeight",
+          "callee": "newEscpos",
+          "lineNumber": 81
+        },
+        {
+          "caller": "TestCutDotsIncreaseWhenDoubleHeight",
+          "callee": "plain.text",
+          "lineNumber": 82
+        },
+        {
+          "caller": "TestCutDotsIncreaseWhenDoubleHeight",
+          "callee": "plain.finish",
+          "lineNumber": 83
+        },
+        {
+          "caller": "TestCutDotsIncreaseWhenDoubleHeight",
+          "callee": "newEscpos",
+          "lineNumber": 85
+        },
+        {
+          "caller": "TestCutDotsIncreaseWhenDoubleHeight",
+          "callee": "tall.size",
+          "lineNumber": 86
+        },
+        {
+          "caller": "TestCutDotsIncreaseWhenDoubleHeight",
+          "callee": "tall.text",
+          "lineNumber": 87
+        },
+        {
+          "caller": "TestCutDotsIncreaseWhenDoubleHeight",
+          "callee": "tall.lf",
+          "lineNumber": 88
+        },
+        {
+          "caller": "TestCutDotsIncreaseWhenDoubleHeight",
+          "callee": "tall.finish",
+          "lineNumber": 89
+        },
+        {
+          "caller": "TestCutDotsIncreaseWhenDoubleHeight",
+          "callee": "cutDotsInRaw",
+          "lineNumber": 91
+        },
+        {
+          "caller": "TestCutDotsIncreaseWhenDoubleHeight",
+          "callee": "cutDotsInRaw",
+          "lineNumber": 91
+        },
+        {
+          "caller": "TestCutDotsIncreaseWhenDoubleHeight",
+          "callee": "t.Fatalf",
+          "lineNumber": 92
+        },
+        {
+          "caller": "TestCutDotsIncreaseWhenDoubleHeight",
+          "callee": "cutDotsInRaw",
+          "lineNumber": 93
+        },
+        {
+          "caller": "TestCutDotsIncreaseWhenDoubleHeight",
+          "callee": "cutDotsInRaw",
+          "lineNumber": 93
+        },
+        {
+          "caller": "containsSubslice",
+          "callee": "len",
+          "lineNumber": 98
+        },
+        {
+          "caller": "containsSubslice",
+          "callee": "len",
+          "lineNumber": 101
+        },
+        {
+          "caller": "containsSubslice",
+          "callee": "len",
+          "lineNumber": 101
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 4,
+        "functionCount": 8,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/escpos_encoding_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 87,
+      "nonEmptyLines": 78,
+      "functions": [
+        {
+          "name": "TestEncodeWindows1252Portuguese",
+          "startLine": 8,
+          "endLine": 13,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestEncodeGBKChinese",
+          "startLine": 15,
+          "endLine": 20,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestPayloadNeedsGBK",
+          "startLine": 22,
+          "endLine": 29,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestReceiptTicketNeedsGBKPayer",
+          "startLine": 31,
+          "endLine": 41,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestReceiptTicketNeedsGBKIgnoresRestaurantName",
+          "startLine": 43,
+          "endLine": 50,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestConnectionTestNeedsGBK",
+          "startLine": 52,
+          "endLine": 68,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestFormatSplitPayerForReceipt",
+          "startLine": 70,
+          "endLine": 80,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestEncodeWindows1252OmitsUnmappable",
+          "startLine": 82,
+          "endLine": 87,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestEncodeWindows1252Portuguese",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "TestEncodeGBKChinese",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "TestPayloadNeedsGBK",
+          "line": 22,
+          "isDefault": false
+        },
+        {
+          "name": "TestReceiptTicketNeedsGBKPayer",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "TestReceiptTicketNeedsGBKIgnoresRestaurantName",
+          "line": 43,
+          "isDefault": false
+        },
+        {
+          "name": "TestConnectionTestNeedsGBK",
+          "line": 52,
+          "isDefault": false
+        },
+        {
+          "name": "TestFormatSplitPayerForReceipt",
+          "line": 70,
+          "isDefault": false
+        },
+        {
+          "name": "TestEncodeWindows1252OmitsUnmappable",
+          "line": 82,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestEncodeWindows1252Portuguese",
+          "callee": "encodeWindows1252",
+          "lineNumber": 9
+        },
+        {
+          "caller": "TestEncodeWindows1252Portuguese",
+          "callee": "len",
+          "lineNumber": 10
+        },
+        {
+          "caller": "TestEncodeWindows1252Portuguese",
+          "callee": "t.Fatalf",
+          "lineNumber": 11
+        },
+        {
+          "caller": "TestEncodeGBKChinese",
+          "callee": "encodeGBK",
+          "lineNumber": 16
+        },
+        {
+          "caller": "TestEncodeGBKChinese",
+          "callee": "len",
+          "lineNumber": 17
+        },
+        {
+          "caller": "TestEncodeGBKChinese",
+          "callee": "t.Fatalf",
+          "lineNumber": 18
+        },
+        {
+          "caller": "TestPayloadNeedsGBK",
+          "callee": "payloadNeedsGBK",
+          "lineNumber": 23
+        },
+        {
+          "caller": "TestPayloadNeedsGBK",
+          "callee": "t.Fatal",
+          "lineNumber": 24
+        },
+        {
+          "caller": "TestPayloadNeedsGBK",
+          "callee": "payloadNeedsGBK",
+          "lineNumber": 26
+        },
+        {
+          "caller": "TestPayloadNeedsGBK",
+          "callee": "t.Fatal",
+          "lineNumber": 27
+        },
+        {
+          "caller": "TestReceiptTicketNeedsGBKPayer",
+          "callee": "receiptTicketNeedsGBK",
+          "lineNumber": 32
+        },
+        {
+          "caller": "TestReceiptTicketNeedsGBKPayer",
+          "callee": "t.Fatal",
+          "lineNumber": 33
+        },
+        {
+          "caller": "TestReceiptTicketNeedsGBKPayer",
+          "callee": "receiptTicketNeedsGBK",
+          "lineNumber": 35
+        },
+        {
+          "caller": "TestReceiptTicketNeedsGBKPayer",
+          "callee": "t.Fatal",
+          "lineNumber": 36
+        },
+        {
+          "caller": "TestReceiptTicketNeedsGBKPayer",
+          "callee": "receiptTicketNeedsGBK",
+          "lineNumber": 38
+        },
+        {
+          "caller": "TestReceiptTicketNeedsGBKPayer",
+          "callee": "t.Fatal",
+          "lineNumber": 39
+        },
+        {
+          "caller": "TestReceiptTicketNeedsGBKIgnoresRestaurantName",
+          "callee": "receiptTicketNeedsGBK",
+          "lineNumber": 44
+        },
+        {
+          "caller": "TestReceiptTicketNeedsGBKIgnoresRestaurantName",
+          "callee": "t.Fatal",
+          "lineNumber": 48
+        },
+        {
+          "caller": "TestConnectionTestNeedsGBK",
+          "callee": "connectionTestNeedsGBK",
+          "lineNumber": 53
+        },
+        {
+          "caller": "TestConnectionTestNeedsGBK",
+          "callee": "t.Fatal",
+          "lineNumber": 54
+        },
+        {
+          "caller": "TestConnectionTestNeedsGBK",
+          "callee": "connectionTestNeedsGBK",
+          "lineNumber": 56
+        },
+        {
+          "caller": "TestConnectionTestNeedsGBK",
+          "callee": "t.Fatal",
+          "lineNumber": 57
+        },
+        {
+          "caller": "TestConnectionTestNeedsGBK",
+          "callee": "connectionTestNeedsGBK",
+          "lineNumber": 59
+        },
+        {
+          "caller": "TestConnectionTestNeedsGBK",
+          "callee": "t.Fatal",
+          "lineNumber": 60
+        },
+        {
+          "caller": "TestConnectionTestNeedsGBK",
+          "callee": "receiptTicketNeedsGBK",
+          "lineNumber": 62
+        },
+        {
+          "caller": "TestConnectionTestNeedsGBK",
+          "callee": "t.Fatal",
+          "lineNumber": 63
+        },
+        {
+          "caller": "TestConnectionTestNeedsGBK",
+          "callee": "connectionTestNeedsGBK",
+          "lineNumber": 65
+        },
+        {
+          "caller": "TestConnectionTestNeedsGBK",
+          "callee": "t.Fatal",
+          "lineNumber": 66
+        },
+        {
+          "caller": "TestFormatSplitPayerForReceipt",
+          "callee": "formatSplitPayerForReceipt",
+          "lineNumber": 71
+        },
+        {
+          "caller": "TestFormatSplitPayerForReceipt",
+          "callee": "t.Fatalf",
+          "lineNumber": 72
+        },
+        {
+          "caller": "TestFormatSplitPayerForReceipt",
+          "callee": "formatSplitPayerForReceipt",
+          "lineNumber": 74
+        },
+        {
+          "caller": "TestFormatSplitPayerForReceipt",
+          "callee": "t.Fatalf",
+          "lineNumber": 75
+        },
+        {
+          "caller": "TestFormatSplitPayerForReceipt",
+          "callee": "formatSplitPayerForReceipt",
+          "lineNumber": 77
+        },
+        {
+          "caller": "TestFormatSplitPayerForReceipt",
+          "callee": "t.Fatalf",
+          "lineNumber": 78
+        },
+        {
+          "caller": "TestEncodeWindows1252OmitsUnmappable",
+          "callee": "encodeWindows1252",
+          "lineNumber": 83
+        },
+        {
+          "caller": "TestEncodeWindows1252OmitsUnmappable",
+          "callee": "strings.Contains",
+          "lineNumber": 84
+        },
+        {
+          "caller": "TestEncodeWindows1252OmitsUnmappable",
+          "callee": "string",
+          "lineNumber": 84
+        },
+        {
+          "caller": "TestEncodeWindows1252OmitsUnmappable",
+          "callee": "t.Fatalf",
+          "lineNumber": 85
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 8,
+        "functionCount": 8,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/escpos_encoding.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 171,
+      "nonEmptyLines": 156,
+      "functions": [
+        {
+          "name": "formatSplitPayerForReceipt",
+          "startLine": 15,
+          "endLine": 24,
+          "params": [
+            "name"
+          ]
+        },
+        {
+          "name": "hasHan",
+          "startLine": 26,
+          "endLine": 33,
+          "params": [
+            "s"
+          ]
+        },
+        {
+          "name": "payloadNeedsGBK",
+          "startLine": 35,
+          "endLine": 48,
+          "params": [
+            "p"
+          ]
+        },
+        {
+          "name": "stationTicketNeedsGBK",
+          "startLine": 51,
+          "endLine": 61,
+          "params": [
+            "p"
+          ]
+        },
+        {
+          "name": "stationTicketLabels",
+          "startLine": 64,
+          "endLine": 66,
+          "params": []
+        },
+        {
+          "name": "receiptTicketLabels",
+          "startLine": 69,
+          "endLine": 71,
+          "params": []
+        },
+        {
+          "name": "receiptLabelsFor",
+          "startLine": 74,
+          "endLine": 79,
+          "params": [
+            "locale"
+          ]
+        },
+        {
+          "name": "receiptTicketNeedsGBK",
+          "startLine": 83,
+          "endLine": 96,
+          "params": [
+            "p"
+          ]
+        },
+        {
+          "name": "connectionTestNeedsGBK",
+          "startLine": 99,
+          "endLine": 104,
+          "params": [
+            "p"
+          ]
+        },
+        {
+          "name": "labelsASCII",
+          "startLine": 107,
+          "endLine": 130,
+          "params": [
+            "lab"
+          ]
+        },
+        {
+          "name": "encodeWindows1252",
+          "startLine": 132,
+          "endLine": 152,
+          "params": [
+            "s"
+          ]
+        },
+        {
+          "name": "encodeGBK",
+          "startLine": 154,
+          "endLine": 171,
+          "params": [
+            "s"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "formatSplitPayerForReceipt",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 16
+        },
+        {
+          "caller": "formatSplitPayerForReceipt",
+          "callee": "defaultGuestPayerRe.FindStringSubmatch",
+          "lineNumber": 20
+        },
+        {
+          "caller": "formatSplitPayerForReceipt",
+          "callee": "len",
+          "lineNumber": 20
+        },
+        {
+          "caller": "hasHan",
+          "callee": "unicode.Is",
+          "lineNumber": 28
+        },
+        {
+          "caller": "payloadNeedsGBK",
+          "callee": "localeUsesGBK",
+          "lineNumber": 36
+        },
+        {
+          "caller": "payloadNeedsGBK",
+          "callee": "hasHan",
+          "lineNumber": 39
+        },
+        {
+          "caller": "payloadNeedsGBK",
+          "callee": "hasHan",
+          "lineNumber": 39
+        },
+        {
+          "caller": "payloadNeedsGBK",
+          "callee": "p.stationName",
+          "lineNumber": 39
+        },
+        {
+          "caller": "payloadNeedsGBK",
+          "callee": "hasHan",
+          "lineNumber": 43
+        },
+        {
+          "caller": "payloadNeedsGBK",
+          "callee": "hasHan",
+          "lineNumber": 43
+        },
+        {
+          "caller": "stationTicketNeedsGBK",
+          "callee": "localeUsesGBK",
+          "lineNumber": 52
+        },
+        {
+          "caller": "stationTicketNeedsGBK",
+          "callee": "hasHan",
+          "lineNumber": 56
+        },
+        {
+          "caller": "stationTicketNeedsGBK",
+          "callee": "hasHan",
+          "lineNumber": 56
+        },
+        {
+          "caller": "stationTicketNeedsGBK",
+          "callee": "hasHan",
+          "lineNumber": 56
+        },
+        {
+          "caller": "stationTicketLabels",
+          "callee": "labelsFor",
+          "lineNumber": 65
+        },
+        {
+          "caller": "receiptTicketLabels",
+          "callee": "labelsFor",
+          "lineNumber": 70
+        },
+        {
+          "caller": "receiptLabelsFor",
+          "callee": "localeUsesGBK",
+          "lineNumber": 75
+        },
+        {
+          "caller": "receiptLabelsFor",
+          "callee": "labelsFor",
+          "lineNumber": 76
+        },
+        {
+          "caller": "receiptLabelsFor",
+          "callee": "receiptTicketLabels",
+          "lineNumber": 78
+        },
+        {
+          "caller": "receiptTicketNeedsGBK",
+          "callee": "localeUsesGBK",
+          "lineNumber": 84
+        },
+        {
+          "caller": "receiptTicketNeedsGBK",
+          "callee": "hasHan",
+          "lineNumber": 87
+        },
+        {
+          "caller": "receiptTicketNeedsGBK",
+          "callee": "formatSplitPayerForReceipt",
+          "lineNumber": 87
+        },
+        {
+          "caller": "receiptTicketNeedsGBK",
+          "callee": "hasHan",
+          "lineNumber": 91
+        },
+        {
+          "caller": "receiptTicketNeedsGBK",
+          "callee": "hasHan",
+          "lineNumber": 91
+        },
+        {
+          "caller": "connectionTestNeedsGBK",
+          "callee": "localeUsesGBK",
+          "lineNumber": 100
+        },
+        {
+          "caller": "connectionTestNeedsGBK",
+          "callee": "normalizeUILocale",
+          "lineNumber": 100
+        },
+        {
+          "caller": "connectionTestNeedsGBK",
+          "callee": "hasHan",
+          "lineNumber": 103
+        },
+        {
+          "caller": "connectionTestNeedsGBK",
+          "callee": "p.venueName",
+          "lineNumber": 103
+        },
+        {
+          "caller": "connectionTestNeedsGBK",
+          "callee": "hasHan",
+          "lineNumber": 103
+        },
+        {
+          "caller": "connectionTestNeedsGBK",
+          "callee": "labelsFor",
+          "lineNumber": 103
+        },
+        {
+          "caller": "encodeWindows1252",
+          "callee": "charmap.Windows1252.NewEncoder",
+          "lineNumber": 133
+        },
+        {
+          "caller": "encodeWindows1252",
+          "callee": "enc.Bytes",
+          "lineNumber": 134
+        },
+        {
+          "caller": "encodeWindows1252",
+          "callee": "b.WriteRune",
+          "lineNumber": 140
+        },
+        {
+          "caller": "encodeWindows1252",
+          "callee": "string",
+          "lineNumber": 143
+        },
+        {
+          "caller": "encodeWindows1252",
+          "callee": "enc.Bytes",
+          "lineNumber": 144
+        },
+        {
+          "caller": "encodeWindows1252",
+          "callee": "b.WriteRune",
+          "lineNumber": 145
+        },
+        {
+          "caller": "encodeWindows1252",
+          "callee": "enc.Bytes",
+          "lineNumber": 149
+        },
+        {
+          "caller": "encodeWindows1252",
+          "callee": "b.String",
+          "lineNumber": 149
+        },
+        {
+          "caller": "encodeGBK",
+          "callee": "simplifiedchinese.GBK.NewEncoder",
+          "lineNumber": 155
+        },
+        {
+          "caller": "encodeGBK",
+          "callee": "enc.Bytes",
+          "lineNumber": 156
+        },
+        {
+          "caller": "encodeGBK",
+          "callee": "string",
+          "lineNumber": 160
+        },
+        {
+          "caller": "encodeGBK",
+          "callee": "enc.Bytes",
+          "lineNumber": 161
+        },
+        {
+          "caller": "encodeGBK",
+          "callee": "b.WriteRune",
+          "lineNumber": 162
+        },
+        {
+          "caller": "encodeGBK",
+          "callee": "b.WriteRune",
+          "lineNumber": 164
+        },
+        {
+          "caller": "encodeGBK",
+          "callee": "enc.Bytes",
+          "lineNumber": 168
+        },
+        {
+          "caller": "encodeGBK",
+          "callee": "b.String",
+          "lineNumber": 168
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 12,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/escpos_receipt_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 284,
+      "nonEmptyLines": 272,
+      "functions": [
+        {
+          "name": "TestBuildOrderReceiptEnglishLayout",
+          "startLine": 10,
+          "endLine": 55,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestReceiptItemsHeaderFollowsMenuSeparator",
+          "startLine": 57,
+          "endLine": 85,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestBuildOrderReceiptBuffetShareQtyLabel",
+          "startLine": 87,
+          "endLine": 111,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestBuildOrderReceiptSplitPaymentShareQtyLabel",
+          "startLine": 113,
+          "endLine": 139,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestBuildOrderReceiptSplitPaymentGuestNumber",
+          "startLine": 141,
+          "endLine": 165,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestParseJobPayloadDisplayNameFromJSON",
+          "startLine": 167,
+          "endLine": 176,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestCheckoutBillOmitsPaymentLines",
+          "startLine": 178,
+          "endLine": 200,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestPreBillOmitsPaymentLines",
+          "startLine": 202,
+          "endLine": 217,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant",
+          "startLine": 219,
+          "endLine": 242,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestPreBillTitleEnglishLocale",
+          "startLine": 244,
+          "endLine": 257,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestReceiptItemNoteUsesUnderline",
+          "startLine": 259,
+          "endLine": 284,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestBuildOrderReceiptEnglishLayout",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "TestReceiptItemsHeaderFollowsMenuSeparator",
+          "line": 57,
+          "isDefault": false
+        },
+        {
+          "name": "TestBuildOrderReceiptBuffetShareQtyLabel",
+          "line": 87,
+          "isDefault": false
+        },
+        {
+          "name": "TestBuildOrderReceiptSplitPaymentShareQtyLabel",
+          "line": 113,
+          "isDefault": false
+        },
+        {
+          "name": "TestBuildOrderReceiptSplitPaymentGuestNumber",
+          "line": 141,
+          "isDefault": false
+        },
+        {
+          "name": "TestParseJobPayloadDisplayNameFromJSON",
+          "line": 167,
+          "isDefault": false
+        },
+        {
+          "name": "TestCheckoutBillOmitsPaymentLines",
+          "line": 178,
+          "isDefault": false
+        },
+        {
+          "name": "TestPreBillOmitsPaymentLines",
+          "line": 202,
+          "isDefault": false
+        },
+        {
+          "name": "TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant",
+          "line": 219,
+          "isDefault": false
+        },
+        {
+          "name": "TestPreBillTitleEnglishLocale",
+          "line": 244,
+          "isDefault": false
+        },
+        {
+          "name": "TestReceiptItemNoteUsesUnderline",
+          "line": 259,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestBuildOrderReceiptEnglishLayout",
+          "callee": "json.Marshal",
+          "lineNumber": 28
+        },
+        {
+          "caller": "TestBuildOrderReceiptEnglishLayout",
+          "callee": "escposFromJob",
+          "lineNumber": 29
+        },
+        {
+          "caller": "TestBuildOrderReceiptEnglishLayout",
+          "callee": "string",
+          "lineNumber": 30
+        },
+        {
+          "caller": "TestBuildOrderReceiptEnglishLayout",
+          "callee": "strings.Contains",
+          "lineNumber": 48
+        },
+        {
+          "caller": "TestBuildOrderReceiptEnglishLayout",
+          "callee": "t.Fatalf",
+          "lineNumber": 49
+        },
+        {
+          "caller": "TestBuildOrderReceiptEnglishLayout",
+          "callee": "strings.Contains",
+          "lineNumber": 52
+        },
+        {
+          "caller": "TestBuildOrderReceiptEnglishLayout",
+          "callee": "strings.Contains",
+          "lineNumber": 52
+        },
+        {
+          "caller": "TestBuildOrderReceiptEnglishLayout",
+          "callee": "t.Fatal",
+          "lineNumber": 53
+        },
+        {
+          "caller": "TestReceiptItemsHeaderFollowsMenuSeparator",
+          "callee": "json.Marshal",
+          "lineNumber": 58
+        },
+        {
+          "caller": "TestReceiptItemsHeaderFollowsMenuSeparator",
+          "callee": "escposFromJob",
+          "lineNumber": 68
+        },
+        {
+          "caller": "TestReceiptItemsHeaderFollowsMenuSeparator",
+          "callee": "string",
+          "lineNumber": 69
+        },
+        {
+          "caller": "TestReceiptItemsHeaderFollowsMenuSeparator",
+          "callee": "receiptLabelsFor",
+          "lineNumber": 70
+        },
+        {
+          "caller": "TestReceiptItemsHeaderFollowsMenuSeparator",
+          "callee": "escposThreeColLine",
+          "lineNumber": 71
+        },
+        {
+          "caller": "TestReceiptItemsHeaderFollowsMenuSeparator",
+          "callee": "strings.Index",
+          "lineNumber": 72
+        },
+        {
+          "caller": "TestReceiptItemsHeaderFollowsMenuSeparator",
+          "callee": "t.Fatalf",
+          "lineNumber": 74
+        },
+        {
+          "caller": "TestReceiptItemsHeaderFollowsMenuSeparator",
+          "callee": "strings.Repeat",
+          "lineNumber": 76
+        },
+        {
+          "caller": "TestReceiptItemsHeaderFollowsMenuSeparator",
+          "callee": "strings.LastIndex",
+          "lineNumber": 77
+        },
+        {
+          "caller": "TestReceiptItemsHeaderFollowsMenuSeparator",
+          "callee": "t.Fatal",
+          "lineNumber": 79
+        },
+        {
+          "caller": "TestReceiptItemsHeaderFollowsMenuSeparator",
+          "callee": "len",
+          "lineNumber": 81
+        },
+        {
+          "caller": "TestReceiptItemsHeaderFollowsMenuSeparator",
+          "callee": "strings.Count",
+          "lineNumber": 82
+        },
+        {
+          "caller": "TestReceiptItemsHeaderFollowsMenuSeparator",
+          "callee": "t.Fatalf",
+          "lineNumber": 83
+        },
+        {
+          "caller": "TestReceiptItemsHeaderFollowsMenuSeparator",
+          "callee": "strings.Count",
+          "lineNumber": 83
+        },
+        {
+          "caller": "TestBuildOrderReceiptBuffetShareQtyLabel",
+          "callee": "json.Marshal",
+          "lineNumber": 88
+        },
+        {
+          "caller": "TestBuildOrderReceiptBuffetShareQtyLabel",
+          "callee": "escposFromJob",
+          "lineNumber": 103
+        },
+        {
+          "caller": "TestBuildOrderReceiptBuffetShareQtyLabel",
+          "callee": "string",
+          "lineNumber": 104
+        },
+        {
+          "caller": "TestBuildOrderReceiptBuffetShareQtyLabel",
+          "callee": "strings.Contains",
+          "lineNumber": 105
+        },
+        {
+          "caller": "TestBuildOrderReceiptBuffetShareQtyLabel",
+          "callee": "t.Fatalf",
+          "lineNumber": 106
+        },
+        {
+          "caller": "TestBuildOrderReceiptBuffetShareQtyLabel",
+          "callee": "strings.Contains",
+          "lineNumber": 108
+        },
+        {
+          "caller": "TestBuildOrderReceiptBuffetShareQtyLabel",
+          "callee": "t.Fatalf",
+          "lineNumber": 109
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentShareQtyLabel",
+          "callee": "json.Marshal",
+          "lineNumber": 114
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentShareQtyLabel",
+          "callee": "escposFromJob",
+          "lineNumber": 131
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentShareQtyLabel",
+          "callee": "string",
+          "lineNumber": 132
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentShareQtyLabel",
+          "callee": "strings.Contains",
+          "lineNumber": 133
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentShareQtyLabel",
+          "callee": "t.Fatalf",
+          "lineNumber": 134
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentShareQtyLabel",
+          "callee": "strings.Contains",
+          "lineNumber": 136
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentShareQtyLabel",
+          "callee": "t.Fatalf",
+          "lineNumber": 137
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentGuestNumber",
+          "callee": "json.Marshal",
+          "lineNumber": 142
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentGuestNumber",
+          "callee": "escposFromJob",
+          "lineNumber": 151
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentGuestNumber",
+          "callee": "string",
+          "lineNumber": 152
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentGuestNumber",
+          "callee": "strings.Contains",
+          "lineNumber": 153
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentGuestNumber",
+          "callee": "t.Fatalf",
+          "lineNumber": 154
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentGuestNumber",
+          "callee": "strings.Contains",
+          "lineNumber": 156
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentGuestNumber",
+          "callee": "t.Fatalf",
+          "lineNumber": 157
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentGuestNumber",
+          "callee": "strings.Contains",
+          "lineNumber": 159
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentGuestNumber",
+          "callee": "t.Fatalf",
+          "lineNumber": 160
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentGuestNumber",
+          "callee": "strings.Contains",
+          "lineNumber": 162
+        },
+        {
+          "caller": "TestBuildOrderReceiptSplitPaymentGuestNumber",
+          "callee": "t.Fatalf",
+          "lineNumber": 163
+        },
+        {
+          "caller": "TestParseJobPayloadDisplayNameFromJSON",
+          "callee": "json.Marshal",
+          "lineNumber": 168
+        },
+        {
+          "caller": "TestParseJobPayloadDisplayNameFromJSON",
+          "callee": "parseJobPayload",
+          "lineNumber": 169
+        },
+        {
+          "caller": "TestParseJobPayloadDisplayNameFromJSON",
+          "callee": "t.Fatalf",
+          "lineNumber": 171
+        },
+        {
+          "caller": "TestParseJobPayloadDisplayNameFromJSON",
+          "callee": "t.Fatalf",
+          "lineNumber": 174
+        },
+        {
+          "caller": "TestCheckoutBillOmitsPaymentLines",
+          "callee": "json.Marshal",
+          "lineNumber": 179
+        },
+        {
+          "caller": "TestCheckoutBillOmitsPaymentLines",
+          "callee": "escposFromJob",
+          "lineNumber": 186
+        },
+        {
+          "caller": "TestCheckoutBillOmitsPaymentLines",
+          "callee": "string",
+          "lineNumber": 187
+        },
+        {
+          "caller": "TestCheckoutBillOmitsPaymentLines",
+          "callee": "strings.Contains",
+          "lineNumber": 188
+        },
+        {
+          "caller": "TestCheckoutBillOmitsPaymentLines",
+          "callee": "t.Fatalf",
+          "lineNumber": 189
+        },
+        {
+          "caller": "TestCheckoutBillOmitsPaymentLines",
+          "callee": "strings.Contains",
+          "lineNumber": 191
+        },
+        {
+          "caller": "TestCheckoutBillOmitsPaymentLines",
+          "callee": "t.Fatal",
+          "lineNumber": 192
+        },
+        {
+          "caller": "TestCheckoutBillOmitsPaymentLines",
+          "callee": "strings.Contains",
+          "lineNumber": 194
+        },
+        {
+          "caller": "TestCheckoutBillOmitsPaymentLines",
+          "callee": "strings.Contains",
+          "lineNumber": 194
+        },
+        {
+          "caller": "TestCheckoutBillOmitsPaymentLines",
+          "callee": "t.Fatal",
+          "lineNumber": 195
+        },
+        {
+          "caller": "TestCheckoutBillOmitsPaymentLines",
+          "callee": "strings.Contains",
+          "lineNumber": 197
+        },
+        {
+          "caller": "TestCheckoutBillOmitsPaymentLines",
+          "callee": "t.Fatalf",
+          "lineNumber": 198
+        },
+        {
+          "caller": "TestPreBillOmitsPaymentLines",
+          "callee": "json.Marshal",
+          "lineNumber": 203
+        },
+        {
+          "caller": "TestPreBillOmitsPaymentLines",
+          "callee": "escposFromJob",
+          "lineNumber": 209
+        },
+        {
+          "caller": "TestPreBillOmitsPaymentLines",
+          "callee": "string",
+          "lineNumber": 210
+        },
+        {
+          "caller": "TestPreBillOmitsPaymentLines",
+          "callee": "strings.Contains",
+          "lineNumber": 211
+        },
+        {
+          "caller": "TestPreBillOmitsPaymentLines",
+          "callee": "t.Fatalf",
+          "lineNumber": 212
+        },
+        {
+          "caller": "TestPreBillOmitsPaymentLines",
+          "callee": "strings.Contains",
+          "lineNumber": 214
+        },
+        {
+          "caller": "TestPreBillOmitsPaymentLines",
+          "callee": "strings.Contains",
+          "lineNumber": 214
+        },
+        {
+          "caller": "TestPreBillOmitsPaymentLines",
+          "callee": "t.Fatal",
+          "lineNumber": 215
+        },
+        {
+          "caller": "TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant",
+          "callee": "json.Marshal",
+          "lineNumber": 220
+        },
+        {
+          "caller": "TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant",
+          "callee": "t.Run",
+          "lineNumber": 232
+        },
+        {
+          "caller": "TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant",
+          "callee": "escposFromJob",
+          "lineNumber": 233
+        },
+        {
+          "caller": "TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant",
+          "callee": "bytes.Contains",
+          "lineNumber": 234
+        },
+        {
+          "caller": "TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant",
+          "callee": "t.Fatalf",
+          "lineNumber": 235
+        },
+        {
+          "caller": "TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant",
+          "callee": "bytes.Contains",
+          "lineNumber": 237
+        },
+        {
+          "caller": "TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant",
+          "callee": "t.Fatalf",
+          "lineNumber": 238
+        },
+        {
+          "caller": "TestPreBillTitleEnglishLocale",
+          "callee": "json.Marshal",
+          "lineNumber": 245
+        },
+        {
+          "caller": "TestPreBillTitleEnglishLocale",
+          "callee": "escposFromJob",
+          "lineNumber": 252
+        },
+        {
+          "caller": "TestPreBillTitleEnglishLocale",
+          "callee": "string",
+          "lineNumber": 253
+        },
+        {
+          "caller": "TestPreBillTitleEnglishLocale",
+          "callee": "strings.Contains",
+          "lineNumber": 254
+        },
+        {
+          "caller": "TestPreBillTitleEnglishLocale",
+          "callee": "t.Fatalf",
+          "lineNumber": 255
+        },
+        {
+          "caller": "TestReceiptItemNoteUsesUnderline",
+          "callee": "json.Marshal",
+          "lineNumber": 260
+        },
+        {
+          "caller": "TestReceiptItemNoteUsesUnderline",
+          "callee": "escposFromJob",
+          "lineNumber": 272
+        },
+        {
+          "caller": "TestReceiptItemNoteUsesUnderline",
+          "callee": "bytes.Index",
+          "lineNumber": 273
+        },
+        {
+          "caller": "TestReceiptItemNoteUsesUnderline",
+          "callee": "t.Fatal",
+          "lineNumber": 275
+        },
+        {
+          "caller": "TestReceiptItemNoteUsesUnderline",
+          "callee": "max",
+          "lineNumber": 277
+        },
+        {
+          "caller": "TestReceiptItemNoteUsesUnderline",
+          "callee": "bytes.Contains",
+          "lineNumber": 278
+        },
+        {
+          "caller": "TestReceiptItemNoteUsesUnderline",
+          "callee": "t.Fatal",
+          "lineNumber": 279
+        },
+        {
+          "caller": "TestReceiptItemNoteUsesUnderline",
+          "callee": "bytes.Contains",
+          "lineNumber": 281
+        },
+        {
+          "caller": "TestReceiptItemNoteUsesUnderline",
+          "callee": "bytes.Contains",
+          "lineNumber": 281
+        },
+        {
+          "caller": "TestReceiptItemNoteUsesUnderline",
+          "callee": "t.Fatal",
+          "lineNumber": 282
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 11,
+        "functionCount": 11,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/escpos_station_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 109,
+      "nonEmptyLines": 103,
+      "functions": [
+        {
+          "name": "TestBuildStationTicketEnglishLayout",
+          "startLine": 10,
+          "endLine": 77,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestStationTicketItemNoteUsesUnderline",
+          "startLine": 79,
+          "endLine": 100,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestStationTicketNeedsGBKIgnoresRestaurantName",
+          "startLine": 102,
+          "endLine": 109,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestBuildStationTicketEnglishLayout",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "TestStationTicketItemNoteUsesUnderline",
+          "line": 79,
+          "isDefault": false
+        },
+        {
+          "name": "TestStationTicketNeedsGBKIgnoresRestaurantName",
+          "line": 102,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestBuildStationTicketEnglishLayout",
+          "callee": "json.Marshal",
+          "lineNumber": 11
+        },
+        {
+          "caller": "TestBuildStationTicketEnglishLayout",
+          "callee": "t.Fatal",
+          "lineNumber": 35
+        },
+        {
+          "caller": "TestBuildStationTicketEnglishLayout",
+          "callee": "escposFromJob",
+          "lineNumber": 37
+        },
+        {
+          "caller": "TestBuildStationTicketEnglishLayout",
+          "callee": "string",
+          "lineNumber": 38
+        },
+        {
+          "caller": "TestBuildStationTicketEnglishLayout",
+          "callee": "strings.Contains",
+          "lineNumber": 40
+        },
+        {
+          "caller": "TestBuildStationTicketEnglishLayout",
+          "callee": "t.Fatalf",
+          "lineNumber": 41
+        },
+        {
+          "caller": "TestBuildStationTicketEnglishLayout",
+          "callee": "strings.Contains",
+          "lineNumber": 58
+        },
+        {
+          "caller": "TestBuildStationTicketEnglishLayout",
+          "callee": "t.Fatalf",
+          "lineNumber": 59
+        },
+        {
+          "caller": "TestBuildStationTicketEnglishLayout",
+          "callee": "bytes.Contains",
+          "lineNumber": 65
+        },
+        {
+          "caller": "TestBuildStationTicketEnglishLayout",
+          "callee": "bytes.Contains",
+          "lineNumber": 65
+        },
+        {
+          "caller": "TestBuildStationTicketEnglishLayout",
+          "callee": "t.Fatalf",
+          "lineNumber": 66
+        },
+        {
+          "caller": "TestBuildStationTicketEnglishLayout",
+          "callee": "bytes.Index",
+          "lineNumber": 70
+        },
+        {
+          "caller": "TestBuildStationTicketEnglishLayout",
+          "callee": "t.Fatal",
+          "lineNumber": 72
+        },
+        {
+          "caller": "TestBuildStationTicketEnglishLayout",
+          "callee": "bytes.Contains",
+          "lineNumber": 74
+        },
+        {
+          "caller": "TestBuildStationTicketEnglishLayout",
+          "callee": "t.Fatal",
+          "lineNumber": 75
+        },
+        {
+          "caller": "TestStationTicketItemNoteUsesUnderline",
+          "callee": "json.Marshal",
+          "lineNumber": 80
+        },
+        {
+          "caller": "TestStationTicketItemNoteUsesUnderline",
+          "callee": "escposFromJob",
+          "lineNumber": 88
+        },
+        {
+          "caller": "TestStationTicketItemNoteUsesUnderline",
+          "callee": "bytes.Index",
+          "lineNumber": 89
+        },
+        {
+          "caller": "TestStationTicketItemNoteUsesUnderline",
+          "callee": "t.Fatal",
+          "lineNumber": 91
+        },
+        {
+          "caller": "TestStationTicketItemNoteUsesUnderline",
+          "callee": "max",
+          "lineNumber": 93
+        },
+        {
+          "caller": "TestStationTicketItemNoteUsesUnderline",
+          "callee": "bytes.Contains",
+          "lineNumber": 94
+        },
+        {
+          "caller": "TestStationTicketItemNoteUsesUnderline",
+          "callee": "t.Fatal",
+          "lineNumber": 95
+        },
+        {
+          "caller": "TestStationTicketItemNoteUsesUnderline",
+          "callee": "bytes.Contains",
+          "lineNumber": 97
+        },
+        {
+          "caller": "TestStationTicketItemNoteUsesUnderline",
+          "callee": "bytes.Contains",
+          "lineNumber": 97
+        },
+        {
+          "caller": "TestStationTicketItemNoteUsesUnderline",
+          "callee": "t.Fatal",
+          "lineNumber": 98
+        },
+        {
+          "caller": "TestStationTicketNeedsGBKIgnoresRestaurantName",
+          "callee": "stationTicketNeedsGBK",
+          "lineNumber": 103
+        },
+        {
+          "caller": "TestStationTicketNeedsGBKIgnoresRestaurantName",
+          "callee": "t.Fatal",
+          "lineNumber": 104
+        },
+        {
+          "caller": "TestStationTicketNeedsGBKIgnoresRestaurantName",
+          "callee": "stationTicketNeedsGBK",
+          "lineNumber": 106
+        },
+        {
+          "caller": "TestStationTicketNeedsGBKIgnoresRestaurantName",
+          "callee": "t.Fatal",
+          "lineNumber": 107
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/escpos_zh_encoding_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 93,
+      "nonEmptyLines": 86,
+      "functions": [
+        {
+          "name": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "startLine": 11,
+          "endLine": 44,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestBuildConnectionTestZHUsesUTF8WhenConfigured",
+          "startLine": 46,
+          "endLine": 68,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestBuildStationTicketZHLocaleUsesGBK",
+          "startLine": 70,
+          "endLine": 84,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestNormalizePrintLocale",
+          "startLine": 86,
+          "endLine": 93,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "TestBuildConnectionTestZHUsesUTF8WhenConfigured",
+          "line": 46,
+          "isDefault": false
+        },
+        {
+          "name": "TestBuildStationTicketZHLocaleUsesGBK",
+          "line": 70,
+          "isDefault": false
+        },
+        {
+          "name": "TestNormalizePrintLocale",
+          "line": 86,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "callee": "json.Marshal",
+          "lineNumber": 12
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "callee": "escposFromJob",
+          "lineNumber": 17
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "callee": "encodeGBK",
+          "lineNumber": 19
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "callee": "bytes.Index",
+          "lineNumber": 20
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "callee": "t.Fatalf",
+          "lineNumber": 22
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "callee": "bytes.Contains",
+          "lineNumber": 24
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "callee": "t.Fatal",
+          "lineNumber": 25
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "callee": "bytes.Index",
+          "lineNumber": 28
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "callee": "t.Fatal",
+          "lineNumber": 30
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "callee": "bytes.Contains",
+          "lineNumber": 32
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "callee": "t.Fatal",
+          "lineNumber": 33
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "callee": "bytes.Contains",
+          "lineNumber": 35
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "callee": "t.Fatal",
+          "lineNumber": 36
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "callee": "bytes.Contains",
+          "lineNumber": 38
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "callee": "t.Fatal",
+          "lineNumber": 39
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "callee": "bytes.Contains",
+          "lineNumber": 41
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesGBKByDefault",
+          "callee": "t.Fatal",
+          "lineNumber": 42
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesUTF8WhenConfigured",
+          "callee": "t.TempDir",
+          "lineNumber": 47
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesUTF8WhenConfigured",
+          "callee": "filepath.Join",
+          "lineNumber": 48
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesUTF8WhenConfigured",
+          "callee": "os.WriteFile",
+          "lineNumber": 49
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesUTF8WhenConfigured",
+          "callee": "t.Fatal",
+          "lineNumber": 50
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesUTF8WhenConfigured",
+          "callee": "func() { configPathOverride = prev }",
+          "lineNumber": 54
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesUTF8WhenConfigured",
+          "callee": "json.Marshal",
+          "lineNumber": 56
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesUTF8WhenConfigured",
+          "callee": "escposFromJob",
+          "lineNumber": 60
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesUTF8WhenConfigured",
+          "callee": "bytes.Contains",
+          "lineNumber": 61
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesUTF8WhenConfigured",
+          "callee": "t.Fatal",
+          "lineNumber": 62
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesUTF8WhenConfigured",
+          "callee": "bytes.Contains",
+          "lineNumber": 65
+        },
+        {
+          "caller": "TestBuildConnectionTestZHUsesUTF8WhenConfigured",
+          "callee": "t.Fatalf",
+          "lineNumber": 66
+        },
+        {
+          "caller": "TestBuildStationTicketZHLocaleUsesGBK",
+          "callee": "json.Marshal",
+          "lineNumber": 71
+        },
+        {
+          "caller": "TestBuildStationTicketZHLocaleUsesGBK",
+          "callee": "escposFromJob",
+          "lineNumber": 76
+        },
+        {
+          "caller": "TestBuildStationTicketZHLocaleUsesGBK",
+          "callee": "bytes.Contains",
+          "lineNumber": 77
+        },
+        {
+          "caller": "TestBuildStationTicketZHLocaleUsesGBK",
+          "callee": "t.Fatal",
+          "lineNumber": 78
+        },
+        {
+          "caller": "TestBuildStationTicketZHLocaleUsesGBK",
+          "callee": "encodeGBK",
+          "lineNumber": 80
+        },
+        {
+          "caller": "TestBuildStationTicketZHLocaleUsesGBK",
+          "callee": "bytes.Contains",
+          "lineNumber": 81
+        },
+        {
+          "caller": "TestBuildStationTicketZHLocaleUsesGBK",
+          "callee": "t.Fatalf",
+          "lineNumber": 82
+        },
+        {
+          "caller": "TestNormalizePrintLocale",
+          "callee": "normalizePrintLocale",
+          "lineNumber": 87
+        },
+        {
+          "caller": "TestNormalizePrintLocale",
+          "callee": "t.Fatal",
+          "lineNumber": 88
+        },
+        {
+          "caller": "TestNormalizePrintLocale",
+          "callee": "normalizePrintLocale",
+          "lineNumber": 90
+        },
+        {
+          "caller": "TestNormalizePrintLocale",
+          "callee": "t.Fatal",
+          "lineNumber": 91
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/escpos.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 828,
+      "nonEmptyLines": 754,
+      "functions": [
+        {
+          "name": "labelsFor",
+          "startLine": 56,
+          "endLine": 128,
+          "params": [
+            "locale"
+          ]
+        },
+        {
+          "name": "parseJobPayload",
+          "startLine": 164,
+          "endLine": 169,
+          "params": [
+            "job"
+          ]
+        },
+        {
+          "name": "formatTableNoLabel",
+          "startLine": 172,
+          "endLine": 183,
+          "params": [
+            "lab",
+            "tableNo"
+          ]
+        },
+        {
+          "name": "tableNoLabel",
+          "startLine": 185,
+          "endLine": 187,
+          "params": [
+            "lab"
+          ]
+        },
+        {
+          "name": "receiptHeaderTitle",
+          "startLine": 190,
+          "endLine": 197,
+          "params": [
+            "variant",
+            "lab"
+          ]
+        },
+        {
+          "name": "stationName",
+          "startLine": 199,
+          "endLine": 214,
+          "params": []
+        },
+        {
+          "name": "venueName",
+          "startLine": 216,
+          "endLine": 221,
+          "params": []
+        },
+        {
+          "name": "writeMarginLines",
+          "startLine": 231,
+          "endLine": 235,
+          "params": [
+            "b",
+            "lines"
+          ]
+        },
+        {
+          "name": "cutFeedDots",
+          "startLine": 237,
+          "endLine": 242,
+          "params": [
+            "hadDoubleHeight"
+          ]
+        },
+        {
+          "name": "newEscpos",
+          "startLine": 244,
+          "endLine": 248,
+          "params": []
+        },
+        {
+          "name": "newEscposForStationTicket",
+          "startLine": 250,
+          "endLine": 254,
+          "params": [
+            "p"
+          ]
+        },
+        {
+          "name": "newEscposForReceiptTicket",
+          "startLine": 256,
+          "endLine": 260,
+          "params": [
+            "p"
+          ]
+        },
+        {
+          "name": "newEscposForConnectionTest",
+          "startLine": 262,
+          "endLine": 266,
+          "params": [
+            "p"
+          ]
+        },
+        {
+          "name": "applyEncoding",
+          "startLine": 268,
+          "endLine": 277,
+          "params": [
+            "enc"
+          ]
+        },
+        {
+          "name": "init",
+          "startLine": 279,
+          "endLine": 279,
+          "params": []
+        },
+        {
+          "name": "enableLatin",
+          "startLine": 282,
+          "endLine": 285,
+          "params": []
+        },
+        {
+          "name": "enableGBK",
+          "startLine": 288,
+          "endLine": 291,
+          "params": []
+        },
+        {
+          "name": "gbkEnter",
+          "startLine": 293,
+          "endLine": 299,
+          "params": []
+        },
+        {
+          "name": "gbkExit",
+          "startLine": 301,
+          "endLine": 307,
+          "params": []
+        },
+        {
+          "name": "enableUTF8",
+          "startLine": 310,
+          "endLine": 313,
+          "params": []
+        },
+        {
+          "name": "align",
+          "startLine": 315,
+          "endLine": 317,
+          "params": [
+            "mode"
+          ]
+        },
+        {
+          "name": "bold",
+          "startLine": 319,
+          "endLine": 325,
+          "params": [
+            "on"
+          ]
+        },
+        {
+          "name": "underline",
+          "startLine": 327,
+          "endLine": 333,
+          "params": [
+            "on"
+          ]
+        },
+        {
+          "name": "size",
+          "startLine": 335,
+          "endLine": 347,
+          "params": [
+            "doubleW",
+            "doubleH"
+          ]
+        },
+        {
+          "name": "text",
+          "startLine": 349,
+          "endLine": 364,
+          "params": [
+            "s"
+          ]
+        },
+        {
+          "name": "lf",
+          "startLine": 366,
+          "endLine": 368,
+          "params": []
+        },
+        {
+          "name": "writeResetPrintMode",
+          "startLine": 370,
+          "endLine": 381,
+          "params": [
+            "out"
+          ]
+        },
+        {
+          "name": "finish",
+          "startLine": 384,
+          "endLine": 395,
+          "params": [
+            "cut"
+          ]
+        },
+        {
+          "name": "separator",
+          "startLine": 396,
+          "endLine": 403,
+          "params": [
+            "ch"
+          ]
+        },
+        {
+          "name": "padField",
+          "startLine": 411,
+          "endLine": 421,
+          "params": [
+            "s",
+            "width",
+            "alignRight"
+          ]
+        },
+        {
+          "name": "padFieldCenter",
+          "startLine": 423,
+          "endLine": 431,
+          "params": [
+            "s",
+            "width"
+          ]
+        },
+        {
+          "name": "escposThreeColLine",
+          "startLine": 433,
+          "endLine": 437,
+          "params": [
+            "left",
+            "mid",
+            "right"
+          ]
+        },
+        {
+          "name": "rightLine",
+          "startLine": 439,
+          "endLine": 447,
+          "params": [
+            "s",
+            "bold"
+          ]
+        },
+        {
+          "name": "escposPadLine",
+          "startLine": 449,
+          "endLine": 457,
+          "params": [
+            "left",
+            "right",
+            "width"
+          ]
+        },
+        {
+          "name": "writeBody1x1",
+          "startLine": 460,
+          "endLine": 464,
+          "params": []
+        },
+        {
+          "name": "writeMasthead2x2Bold",
+          "startLine": 467,
+          "endLine": 470,
+          "params": []
+        },
+        {
+          "name": "writeTicketBranding",
+          "startLine": 472,
+          "endLine": 477,
+          "params": []
+        },
+        {
+          "name": "writeTicketMasthead",
+          "startLine": 479,
+          "endLine": 486,
+          "params": [
+            "title"
+          ]
+        },
+        {
+          "name": "writeTableContext",
+          "startLine": 489,
+          "endLine": 509,
+          "params": [
+            "p",
+            "lab",
+            "tableCentered"
+          ]
+        },
+        {
+          "name": "writeItemNoteLine",
+          "startLine": 514,
+          "endLine": 526,
+          "params": [
+            "note",
+            "width"
+          ]
+        },
+        {
+          "name": "sortStationMenuLines",
+          "startLine": 528,
+          "endLine": 538,
+          "params": [
+            "lines"
+          ]
+        },
+        {
+          "name": "writeStationSlipHeader",
+          "startLine": 541,
+          "endLine": 551,
+          "params": [
+            "p",
+            "lab"
+          ]
+        },
+        {
+          "name": "writeStationMenuLines",
+          "startLine": 554,
+          "endLine": 577,
+          "params": [
+            "lines"
+          ]
+        },
+        {
+          "name": "writeStationSlipFooter",
+          "startLine": 579,
+          "endLine": 589,
+          "params": [
+            "p",
+            "lab"
+          ]
+        },
+        {
+          "name": "runeLen",
+          "startLine": 591,
+          "endLine": 593,
+          "params": [
+            "s"
+          ]
+        },
+        {
+          "name": "truncateRunes",
+          "startLine": 595,
+          "endLine": 604,
+          "params": [
+            "s",
+            "max"
+          ]
+        },
+        {
+          "name": "formatItemLabel",
+          "startLine": 606,
+          "endLine": 612,
+          "params": [
+            "idx",
+            "name"
+          ]
+        },
+        {
+          "name": "formatMoney",
+          "startLine": 614,
+          "endLine": 616,
+          "params": [
+            "v"
+          ]
+        },
+        {
+          "name": "receiptLineFieldsFrom",
+          "startLine": 626,
+          "endLine": 651,
+          "params": [
+            "ln"
+          ]
+        },
+        {
+          "name": "writeReceiptMenuLines",
+          "startLine": 653,
+          "endLine": 669,
+          "params": [
+            "lines",
+            "lab"
+          ]
+        },
+        {
+          "name": "nowLocal",
+          "startLine": 671,
+          "endLine": 673,
+          "params": []
+        },
+        {
+          "name": "escposFromJob",
+          "startLine": 675,
+          "endLine": 701,
+          "params": [
+            "job"
+          ]
+        },
+        {
+          "name": "buildStationTicket",
+          "startLine": 704,
+          "endLine": 714,
+          "params": [
+            "p"
+          ]
+        },
+        {
+          "name": "buildOrderReceipt",
+          "startLine": 717,
+          "endLine": 805,
+          "params": [
+            "p",
+            "lab",
+            "withPayment",
+            "variant"
+          ]
+        },
+        {
+          "name": "buildConnectionTest",
+          "startLine": 807,
+          "endLine": 828,
+          "params": [
+            "p",
+            "lab"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "ticketLabels",
+          "startLine": 33,
+          "endLine": 54,
+          "methods": [],
+          "properties": [
+            "connectionTest",
+            "guestOrder",
+            "receipt",
+            "preBill",
+            "tableNo",
+            "guest",
+            "items",
+            "qty",
+            "originalPrice",
+            "feeDetails",
+            "originalTotal",
+            "subtotal",
+            "amountDue",
+            "orderTime",
+            "printedBy",
+            "printTime",
+            "printedByVal",
+            "orderedBy",
+            "amountPaid",
+            "station"
+          ]
+        },
+        {
+          "name": "jobLine",
+          "startLine": 130,
+          "endLine": 139,
+          "methods": [],
+          "properties": [
+            "ItemIndex",
+            "DisplayName",
+            "Qty",
+            "ShareQtyLabel",
+            "Note",
+            "UnitPrice",
+            "CategoryGroupSort",
+            "CategoryGroupHeader"
+          ]
+        },
+        {
+          "name": "jobPayload",
+          "startLine": 141,
+          "endLine": 162,
+          "methods": [
+            "tableNoLabel",
+            "stationName",
+            "venueName"
+          ],
+          "properties": [
+            "Locale",
+            "ConnectionTest",
+            "RestaurantName",
+            "TableDisplayName",
+            "TableID",
+            "GuestCount",
+            "StationDisplayNamePt",
+            "StationDisplayNameEn",
+            "StationDisplayNameZh",
+            "Lines",
+            "Subtotal",
+            "AmountDue",
+            "AmountPaid",
+            "PaymentMethod",
+            "OrderedBy",
+            "OrderTime",
+            "PrintTime",
+            "ReceiptVariant",
+            "PayerName"
+          ]
+        },
+        {
+          "name": "escposWriter",
+          "startLine": 223,
+          "endLine": 229,
+          "methods": [
+            "applyEncoding",
+            "init",
+            "enableLatin",
+            "enableGBK",
+            "gbkEnter",
+            "gbkExit",
+            "enableUTF8",
+            "align",
+            "bold",
+            "underline",
+            "size",
+            "text",
+            "lf",
+            "writeResetPrintMode",
+            "finish",
+            "separator",
+            "rightLine",
+            "writeBody1x1",
+            "writeMasthead2x2Bold",
+            "writeTicketBranding",
+            "writeTicketMasthead",
+            "writeTableContext",
+            "writeItemNoteLine",
+            "writeStationSlipHeader",
+            "writeStationMenuLines",
+            "writeStationSlipFooter",
+            "writeReceiptMenuLines"
+          ],
+          "properties": [
+            "prefix",
+            "content",
+            "enc",
+            "gbkActive",
+            "hadDoubleHeight"
+          ]
+        },
+        {
+          "name": "receiptLineFields",
+          "startLine": 618,
+          "endLine": 624,
+          "methods": [],
+          "properties": [
+            "label",
+            "qtyCol",
+            "priceCol",
+            "lineTotal",
+            "hasPrice"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "parseJobPayload",
+          "callee": "json.Unmarshal",
+          "lineNumber": 166
+        },
+        {
+          "caller": "parseJobPayload",
+          "callee": "normalizePrintLocale",
+          "lineNumber": 167
+        },
+        {
+          "caller": "formatTableNoLabel",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 173
+        },
+        {
+          "caller": "formatTableNoLabel",
+          "callee": "len",
+          "lineNumber": 177
+        },
+        {
+          "caller": "formatTableNoLabel",
+          "callee": "strconv.Atoi",
+          "lineNumber": 178
+        },
+        {
+          "caller": "formatTableNoLabel",
+          "callee": "strconv.Itoa",
+          "lineNumber": 178
+        },
+        {
+          "caller": "formatTableNoLabel",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 179
+        },
+        {
+          "caller": "formatTableNoLabel",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 182
+        },
+        {
+          "caller": "tableNoLabel",
+          "callee": "formatTableNoLabel",
+          "lineNumber": 186
+        },
+        {
+          "caller": "receiptHeaderTitle",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 192
+        },
+        {
+          "caller": "stationName",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 202
+        },
+        {
+          "caller": "stationName",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 206
+        },
+        {
+          "caller": "stationName",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 210
+        },
+        {
+          "caller": "stationName",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 213
+        },
+        {
+          "caller": "venueName",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 217
+        },
+        {
+          "caller": "writeMarginLines",
+          "callee": "b.WriteByte",
+          "lineNumber": 233
+        },
+        {
+          "caller": "newEscpos",
+          "callee": "w.init",
+          "lineNumber": 246
+        },
+        {
+          "caller": "newEscposForStationTicket",
+          "callee": "newEscpos",
+          "lineNumber": 251
+        },
+        {
+          "caller": "newEscposForStationTicket",
+          "callee": "w.applyEncoding",
+          "lineNumber": 252
+        },
+        {
+          "caller": "newEscposForStationTicket",
+          "callee": "loadPaperEncodingForPayload",
+          "lineNumber": 252
+        },
+        {
+          "caller": "newEscposForStationTicket",
+          "callee": "stationTicketNeedsGBK",
+          "lineNumber": 252
+        },
+        {
+          "caller": "newEscposForReceiptTicket",
+          "callee": "newEscpos",
+          "lineNumber": 257
+        },
+        {
+          "caller": "newEscposForReceiptTicket",
+          "callee": "w.applyEncoding",
+          "lineNumber": 258
+        },
+        {
+          "caller": "newEscposForReceiptTicket",
+          "callee": "loadPaperEncodingForPayload",
+          "lineNumber": 258
+        },
+        {
+          "caller": "newEscposForReceiptTicket",
+          "callee": "receiptTicketNeedsGBK",
+          "lineNumber": 258
+        },
+        {
+          "caller": "newEscposForConnectionTest",
+          "callee": "newEscpos",
+          "lineNumber": 263
+        },
+        {
+          "caller": "newEscposForConnectionTest",
+          "callee": "w.applyEncoding",
+          "lineNumber": 264
+        },
+        {
+          "caller": "newEscposForConnectionTest",
+          "callee": "loadPaperEncodingForPayload",
+          "lineNumber": 264
+        },
+        {
+          "caller": "newEscposForConnectionTest",
+          "callee": "connectionTestNeedsGBK",
+          "lineNumber": 264
+        },
+        {
+          "caller": "applyEncoding",
+          "callee": "w.enableGBK",
+          "lineNumber": 271
+        },
+        {
+          "caller": "applyEncoding",
+          "callee": "w.enableUTF8",
+          "lineNumber": 273
+        },
+        {
+          "caller": "applyEncoding",
+          "callee": "w.enableLatin",
+          "lineNumber": 275
+        },
+        {
+          "caller": "init",
+          "callee": "append",
+          "lineNumber": 279
+        },
+        {
+          "caller": "enableLatin",
+          "callee": "append",
+          "lineNumber": 284
+        },
+        {
+          "caller": "gbkEnter",
+          "callee": "w.content.Write",
+          "lineNumber": 297
+        },
+        {
+          "caller": "gbkExit",
+          "callee": "w.content.Write",
+          "lineNumber": 305
+        },
+        {
+          "caller": "enableUTF8",
+          "callee": "append",
+          "lineNumber": 312
+        },
+        {
+          "caller": "align",
+          "callee": "w.content.Write",
+          "lineNumber": 316
+        },
+        {
+          "caller": "bold",
+          "callee": "byte",
+          "lineNumber": 320
+        },
+        {
+          "caller": "bold",
+          "callee": "w.content.Write",
+          "lineNumber": 324
+        },
+        {
+          "caller": "underline",
+          "callee": "byte",
+          "lineNumber": 328
+        },
+        {
+          "caller": "underline",
+          "callee": "w.content.Write",
+          "lineNumber": 332
+        },
+        {
+          "caller": "size",
+          "callee": "byte",
+          "lineNumber": 339
+        },
+        {
+          "caller": "size",
+          "callee": "w.content.Write",
+          "lineNumber": 346
+        },
+        {
+          "caller": "text",
+          "callee": "hasHan",
+          "lineNumber": 352
+        },
+        {
+          "caller": "text",
+          "callee": "w.gbkEnter",
+          "lineNumber": 353
+        },
+        {
+          "caller": "text",
+          "callee": "w.content.Write",
+          "lineNumber": 354
+        },
+        {
+          "caller": "text",
+          "callee": "encodeGBK",
+          "lineNumber": 354
+        },
+        {
+          "caller": "text",
+          "callee": "w.gbkExit",
+          "lineNumber": 356
+        },
+        {
+          "caller": "text",
+          "callee": "w.content.Write",
+          "lineNumber": 357
+        },
+        {
+          "caller": "text",
+          "callee": "w.content.Write",
+          "lineNumber": 360
+        },
+        {
+          "caller": "text",
+          "callee": "w.content.Write",
+          "lineNumber": 362
+        },
+        {
+          "caller": "text",
+          "callee": "encodeWindows1252",
+          "lineNumber": 362
+        },
+        {
+          "caller": "lf",
+          "callee": "w.content.WriteByte",
+          "lineNumber": 367
+        },
+        {
+          "caller": "writeResetPrintMode",
+          "callee": "out.Write",
+          "lineNumber": 371
+        },
+        {
+          "caller": "writeResetPrintMode",
+          "callee": "out.Write",
+          "lineNumber": 372
+        },
+        {
+          "caller": "writeResetPrintMode",
+          "callee": "out.Write",
+          "lineNumber": 373
+        },
+        {
+          "caller": "writeResetPrintMode",
+          "callee": "out.Write",
+          "lineNumber": 374
+        },
+        {
+          "caller": "writeResetPrintMode",
+          "callee": "out.Write",
+          "lineNumber": 375
+        },
+        {
+          "caller": "writeResetPrintMode",
+          "callee": "out.Write",
+          "lineNumber": 376
+        },
+        {
+          "caller": "writeResetPrintMode",
+          "callee": "out.Write",
+          "lineNumber": 378
+        },
+        {
+          "caller": "finish",
+          "callee": "out.Write",
+          "lineNumber": 386
+        },
+        {
+          "caller": "finish",
+          "callee": "writeMarginLines",
+          "lineNumber": 387
+        },
+        {
+          "caller": "finish",
+          "callee": "out.Write",
+          "lineNumber": 388
+        },
+        {
+          "caller": "finish",
+          "callee": "w.content.Bytes",
+          "lineNumber": 388
+        },
+        {
+          "caller": "finish",
+          "callee": "w.writeResetPrintMode",
+          "lineNumber": 390
+        },
+        {
+          "caller": "finish",
+          "callee": "writeMarginLines",
+          "lineNumber": 391
+        },
+        {
+          "caller": "finish",
+          "callee": "out.Write",
+          "lineNumber": 392
+        },
+        {
+          "caller": "finish",
+          "callee": "cutFeedDots",
+          "lineNumber": 392
+        },
+        {
+          "caller": "finish",
+          "callee": "out.Bytes",
+          "lineNumber": 394
+        },
+        {
+          "caller": "separator",
+          "callee": "w.align",
+          "lineNumber": 397
+        },
+        {
+          "caller": "separator",
+          "callee": "w.size",
+          "lineNumber": 398
+        },
+        {
+          "caller": "separator",
+          "callee": "w.bold",
+          "lineNumber": 399
+        },
+        {
+          "caller": "separator",
+          "callee": "strings.Repeat",
+          "lineNumber": 400
+        },
+        {
+          "caller": "separator",
+          "callee": "string",
+          "lineNumber": 400
+        },
+        {
+          "caller": "separator",
+          "callee": "w.text",
+          "lineNumber": 401
+        },
+        {
+          "caller": "separator",
+          "callee": "w.lf",
+          "lineNumber": 402
+        },
+        {
+          "caller": "padField",
+          "callee": "truncateRunes",
+          "lineNumber": 412
+        },
+        {
+          "caller": "padField",
+          "callee": "len",
+          "lineNumber": 413
+        },
+        {
+          "caller": "padField",
+          "callee": "strings.Repeat",
+          "lineNumber": 418
+        },
+        {
+          "caller": "padField",
+          "callee": "string",
+          "lineNumber": 418
+        },
+        {
+          "caller": "padField",
+          "callee": "string",
+          "lineNumber": 420
+        },
+        {
+          "caller": "padField",
+          "callee": "strings.Repeat",
+          "lineNumber": 420
+        },
+        {
+          "caller": "padFieldCenter",
+          "callee": "truncateRunes",
+          "lineNumber": 424
+        },
+        {
+          "caller": "padFieldCenter",
+          "callee": "len",
+          "lineNumber": 425
+        },
+        {
+          "caller": "padFieldCenter",
+          "callee": "string",
+          "lineNumber": 427
+        },
+        {
+          "caller": "padFieldCenter",
+          "callee": "strings.Repeat",
+          "lineNumber": 430
+        },
+        {
+          "caller": "padFieldCenter",
+          "callee": "string",
+          "lineNumber": 430
+        },
+        {
+          "caller": "padFieldCenter",
+          "callee": "strings.Repeat",
+          "lineNumber": 430
+        },
+        {
+          "caller": "escposThreeColLine",
+          "callee": "padField",
+          "lineNumber": 434
+        },
+        {
+          "caller": "escposThreeColLine",
+          "callee": "padFieldCenter",
+          "lineNumber": 435
+        },
+        {
+          "caller": "escposThreeColLine",
+          "callee": "padField",
+          "lineNumber": 436
+        },
+        {
+          "caller": "rightLine",
+          "callee": "w.align",
+          "lineNumber": 440
+        },
+        {
+          "caller": "rightLine",
+          "callee": "w.size",
+          "lineNumber": 441
+        },
+        {
+          "caller": "rightLine",
+          "callee": "w.bold",
+          "lineNumber": 442
+        },
+        {
+          "caller": "rightLine",
+          "callee": "w.text",
+          "lineNumber": 443
+        },
+        {
+          "caller": "rightLine",
+          "callee": "w.lf",
+          "lineNumber": 444
+        },
+        {
+          "caller": "rightLine",
+          "callee": "w.bold",
+          "lineNumber": 445
+        },
+        {
+          "caller": "rightLine",
+          "callee": "w.align",
+          "lineNumber": 446
+        },
+        {
+          "caller": "escposPadLine",
+          "callee": "truncateRunes",
+          "lineNumber": 450
+        },
+        {
+          "caller": "escposPadLine",
+          "callee": "truncateRunes",
+          "lineNumber": 451
+        },
+        {
+          "caller": "escposPadLine",
+          "callee": "runeLen",
+          "lineNumber": 452
+        },
+        {
+          "caller": "escposPadLine",
+          "callee": "runeLen",
+          "lineNumber": 452
+        },
+        {
+          "caller": "escposPadLine",
+          "callee": "strings.Repeat",
+          "lineNumber": 456
+        },
+        {
+          "caller": "writeBody1x1",
+          "callee": "w.size",
+          "lineNumber": 461
+        },
+        {
+          "caller": "writeBody1x1",
+          "callee": "w.bold",
+          "lineNumber": 462
+        },
+        {
+          "caller": "writeBody1x1",
+          "callee": "w.underline",
+          "lineNumber": 463
+        },
+        {
+          "caller": "writeMasthead2x2Bold",
+          "callee": "w.size",
+          "lineNumber": 468
+        },
+        {
+          "caller": "writeMasthead2x2Bold",
+          "callee": "w.bold",
+          "lineNumber": 469
+        },
+        {
+          "caller": "writeTicketBranding",
+          "callee": "w.align",
+          "lineNumber": 473
+        },
+        {
+          "caller": "writeTicketBranding",
+          "callee": "w.writeBody1x1",
+          "lineNumber": 474
+        },
+        {
+          "caller": "writeTicketBranding",
+          "callee": "w.text",
+          "lineNumber": 475
+        },
+        {
+          "caller": "writeTicketBranding",
+          "callee": "w.lf",
+          "lineNumber": 476
+        },
+        {
+          "caller": "writeTicketMasthead",
+          "callee": "w.writeTicketBranding",
+          "lineNumber": 480
+        },
+        {
+          "caller": "writeTicketMasthead",
+          "callee": "w.align",
+          "lineNumber": 481
+        },
+        {
+          "caller": "writeTicketMasthead",
+          "callee": "w.writeMasthead2x2Bold",
+          "lineNumber": 482
+        },
+        {
+          "caller": "writeTicketMasthead",
+          "callee": "w.text",
+          "lineNumber": 483
+        },
+        {
+          "caller": "writeTicketMasthead",
+          "callee": "w.lf",
+          "lineNumber": 484
+        },
+        {
+          "caller": "writeTicketMasthead",
+          "callee": "w.separator",
+          "lineNumber": 485
+        },
+        {
+          "caller": "writeTableContext",
+          "callee": "w.align",
+          "lineNumber": 491
+        },
+        {
+          "caller": "writeTableContext",
+          "callee": "w.align",
+          "lineNumber": 493
+        },
+        {
+          "caller": "writeTableContext",
+          "callee": "w.writeMasthead2x2Bold",
+          "lineNumber": 495
+        },
+        {
+          "caller": "writeTableContext",
+          "callee": "p.tableNoLabel",
+          "lineNumber": 496
+        },
+        {
+          "caller": "writeTableContext",
+          "callee": "w.text",
+          "lineNumber": 497
+        },
+        {
+          "caller": "writeTableContext",
+          "callee": "w.lf",
+          "lineNumber": 498
+        },
+        {
+          "caller": "writeTableContext",
+          "callee": "w.writeBody1x1",
+          "lineNumber": 500
+        },
+        {
+          "caller": "writeTableContext",
+          "callee": "w.align",
+          "lineNumber": 501
+        },
+        {
+          "caller": "writeTableContext",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 503
+        },
+        {
+          "caller": "writeTableContext",
+          "callee": "w.text",
+          "lineNumber": 506
+        },
+        {
+          "caller": "writeTableContext",
+          "callee": "w.lf",
+          "lineNumber": 507
+        },
+        {
+          "caller": "writeItemNoteLine",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 515
+        },
+        {
+          "caller": "writeItemNoteLine",
+          "callee": "w.writeBody1x1",
+          "lineNumber": 519
+        },
+        {
+          "caller": "writeItemNoteLine",
+          "callee": "strings.Repeat",
+          "lineNumber": 520
+        },
+        {
+          "caller": "writeItemNoteLine",
+          "callee": "w.underline",
+          "lineNumber": 522
+        },
+        {
+          "caller": "writeItemNoteLine",
+          "callee": "w.text",
+          "lineNumber": 523
+        },
+        {
+          "caller": "writeItemNoteLine",
+          "callee": "truncateRunes",
+          "lineNumber": 523
+        },
+        {
+          "caller": "writeItemNoteLine",
+          "callee": "w.lf",
+          "lineNumber": 524
+        },
+        {
+          "caller": "writeItemNoteLine",
+          "callee": "w.underline",
+          "lineNumber": 525
+        },
+        {
+          "caller": "sortStationMenuLines",
+          "callee": "append",
+          "lineNumber": 529
+        },
+        {
+          "caller": "sortStationMenuLines",
+          "callee": "sort.SliceStable",
+          "lineNumber": 530
+        },
+        {
+          "caller": "writeStationSlipHeader",
+          "callee": "w.writeTicketMasthead",
+          "lineNumber": 542
+        },
+        {
+          "caller": "writeStationSlipHeader",
+          "callee": "append",
+          "lineNumber": 545
+        },
+        {
+          "caller": "writeStationSlipHeader",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 545
+        },
+        {
+          "caller": "writeStationSlipHeader",
+          "callee": "w.writeTableContext",
+          "lineNumber": 547
+        },
+        {
+          "caller": "writeStationSlipHeader",
+          "callee": "w.separator",
+          "lineNumber": 548
+        },
+        {
+          "caller": "writeStationSlipHeader",
+          "callee": "w.text",
+          "lineNumber": 549
+        },
+        {
+          "caller": "writeStationSlipHeader",
+          "callee": "escposPadLine",
+          "lineNumber": 549
+        },
+        {
+          "caller": "writeStationSlipHeader",
+          "callee": "w.lf",
+          "lineNumber": 550
+        },
+        {
+          "caller": "writeStationMenuLines",
+          "callee": "w.writeBody1x1",
+          "lineNumber": 555
+        },
+        {
+          "caller": "writeStationMenuLines",
+          "callee": "sortStationMenuLines",
+          "lineNumber": 557
+        },
+        {
+          "caller": "writeStationMenuLines",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 558
+        },
+        {
+          "caller": "writeStationMenuLines",
+          "callee": "w.text",
+          "lineNumber": 560
+        },
+        {
+          "caller": "writeStationMenuLines",
+          "callee": "strings.Repeat",
+          "lineNumber": 560
+        },
+        {
+          "caller": "writeStationMenuLines",
+          "callee": "truncateRunes",
+          "lineNumber": 560
+        },
+        {
+          "caller": "writeStationMenuLines",
+          "callee": "w.lf",
+          "lineNumber": 561
+        },
+        {
+          "caller": "writeStationMenuLines",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 565
+        },
+        {
+          "caller": "writeStationMenuLines",
+          "callee": "formatItemLabel",
+          "lineNumber": 567
+        },
+        {
+          "caller": "writeStationMenuLines",
+          "callee": "w.text",
+          "lineNumber": 573
+        },
+        {
+          "caller": "writeStationMenuLines",
+          "callee": "escposPadLine",
+          "lineNumber": 573
+        },
+        {
+          "caller": "writeStationMenuLines",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 573
+        },
+        {
+          "caller": "writeStationMenuLines",
+          "callee": "w.lf",
+          "lineNumber": 574
+        },
+        {
+          "caller": "writeStationMenuLines",
+          "callee": "w.writeItemNoteLine",
+          "lineNumber": 575
+        },
+        {
+          "caller": "writeStationSlipFooter",
+          "callee": "w.separator",
+          "lineNumber": 580
+        },
+        {
+          "caller": "writeStationSlipFooter",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 581
+        },
+        {
+          "caller": "writeStationSlipFooter",
+          "callee": "nowLocal",
+          "lineNumber": 583
+        },
+        {
+          "caller": "writeStationSlipFooter",
+          "callee": "w.text",
+          "lineNumber": 585
+        },
+        {
+          "caller": "writeStationSlipFooter",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 585
+        },
+        {
+          "caller": "writeStationSlipFooter",
+          "callee": "w.lf",
+          "lineNumber": 586
+        },
+        {
+          "caller": "writeStationSlipFooter",
+          "callee": "w.text",
+          "lineNumber": 587
+        },
+        {
+          "caller": "writeStationSlipFooter",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 587
+        },
+        {
+          "caller": "writeStationSlipFooter",
+          "callee": "w.lf",
+          "lineNumber": 588
+        },
+        {
+          "caller": "runeLen",
+          "callee": "len",
+          "lineNumber": 592
+        },
+        {
+          "caller": "truncateRunes",
+          "callee": "len",
+          "lineNumber": 597
+        },
+        {
+          "caller": "truncateRunes",
+          "callee": "string",
+          "lineNumber": 603
+        },
+        {
+          "caller": "formatItemLabel",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 607
+        },
+        {
+          "caller": "formatItemLabel",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 609
+        },
+        {
+          "caller": "formatMoney",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 615
+        },
+        {
+          "caller": "receiptLineFieldsFrom",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 631
+        },
+        {
+          "caller": "receiptLineFieldsFrom",
+          "callee": "float64",
+          "lineNumber": 632
+        },
+        {
+          "caller": "receiptLineFieldsFrom",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 633
+        },
+        {
+          "caller": "receiptLineFieldsFrom",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 634
+        },
+        {
+          "caller": "receiptLineFieldsFrom",
+          "callee": "formatMoney",
+          "lineNumber": 642
+        },
+        {
+          "caller": "writeReceiptMenuLines",
+          "callee": "w.writeBody1x1",
+          "lineNumber": 654
+        },
+        {
+          "caller": "writeReceiptMenuLines",
+          "callee": "w.text",
+          "lineNumber": 655
+        },
+        {
+          "caller": "writeReceiptMenuLines",
+          "callee": "escposThreeColLine",
+          "lineNumber": 655
+        },
+        {
+          "caller": "writeReceiptMenuLines",
+          "callee": "w.lf",
+          "lineNumber": 656
+        },
+        {
+          "caller": "writeReceiptMenuLines",
+          "callee": "receiptLineFieldsFrom",
+          "lineNumber": 658
+        },
+        {
+          "caller": "writeReceiptMenuLines",
+          "callee": "w.text",
+          "lineNumber": 663
+        },
+        {
+          "caller": "writeReceiptMenuLines",
+          "callee": "escposThreeColLine",
+          "lineNumber": 663
+        },
+        {
+          "caller": "writeReceiptMenuLines",
+          "callee": "w.lf",
+          "lineNumber": 664
+        },
+        {
+          "caller": "writeReceiptMenuLines",
+          "callee": "w.writeItemNoteLine",
+          "lineNumber": 665
+        },
+        {
+          "caller": "writeReceiptMenuLines",
+          "callee": "w.lf",
+          "lineNumber": 666
+        },
+        {
+          "caller": "nowLocal",
+          "callee": "time.Now().Format",
+          "lineNumber": 672
+        },
+        {
+          "caller": "nowLocal",
+          "callee": "time.Now",
+          "lineNumber": 672
+        },
+        {
+          "caller": "escposFromJob",
+          "callee": "parseJobPayload",
+          "lineNumber": 676
+        },
+        {
+          "caller": "escposFromJob",
+          "callee": "labelsFor",
+          "lineNumber": 677
+        },
+        {
+          "caller": "escposFromJob",
+          "callee": "payloadNeedsGBK",
+          "lineNumber": 678
+        },
+        {
+          "caller": "escposFromJob",
+          "callee": "labelsASCII",
+          "lineNumber": 679
+        },
+        {
+          "caller": "escposFromJob",
+          "callee": "buildStationTicket",
+          "lineNumber": 684
+        },
+        {
+          "caller": "escposFromJob",
+          "callee": "buildConnectionTest",
+          "lineNumber": 687
+        },
+        {
+          "caller": "escposFromJob",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 689
+        },
+        {
+          "caller": "escposFromJob",
+          "callee": "buildOrderReceipt",
+          "lineNumber": 694
+        },
+        {
+          "caller": "escposFromJob",
+          "callee": "receiptLabelsFor",
+          "lineNumber": 694
+        },
+        {
+          "caller": "escposFromJob",
+          "callee": "buildOrderReceipt",
+          "lineNumber": 697
+        },
+        {
+          "caller": "escposFromJob",
+          "callee": "receiptLabelsFor",
+          "lineNumber": 697
+        },
+        {
+          "caller": "escposFromJob",
+          "callee": "buildStationTicket",
+          "lineNumber": 699
+        },
+        {
+          "caller": "buildStationTicket",
+          "callee": "stationTicketLabels",
+          "lineNumber": 705
+        },
+        {
+          "caller": "buildStationTicket",
+          "callee": "localeUsesGBK",
+          "lineNumber": 706
+        },
+        {
+          "caller": "buildStationTicket",
+          "callee": "labelsFor",
+          "lineNumber": 707
+        },
+        {
+          "caller": "buildStationTicket",
+          "callee": "newEscposForStationTicket",
+          "lineNumber": 709
+        },
+        {
+          "caller": "buildStationTicket",
+          "callee": "w.writeStationSlipHeader",
+          "lineNumber": 710
+        },
+        {
+          "caller": "buildStationTicket",
+          "callee": "w.writeStationMenuLines",
+          "lineNumber": 711
+        },
+        {
+          "caller": "buildStationTicket",
+          "callee": "w.writeStationSlipFooter",
+          "lineNumber": 712
+        },
+        {
+          "caller": "buildStationTicket",
+          "callee": "w.finish",
+          "lineNumber": 713
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "newEscposForReceiptTicket",
+          "lineNumber": 718
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "formatSplitPayerForReceipt",
+          "lineNumber": 720
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.writeTicketMasthead",
+          "lineNumber": 722
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "receiptHeaderTitle",
+          "lineNumber": 722
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "append",
+          "lineNumber": 725
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 725
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "append",
+          "lineNumber": 727
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 727
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.writeTableContext",
+          "lineNumber": 729
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.separator",
+          "lineNumber": 730
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "len",
+          "lineNumber": 734
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.writeReceiptMenuLines",
+          "lineNumber": 735
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.separator",
+          "lineNumber": 736
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "len",
+          "lineNumber": 747
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.separator",
+          "lineNumber": 748
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.text",
+          "lineNumber": 752
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.lf",
+          "lineNumber": 753
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.text",
+          "lineNumber": 754
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "escposPadLine",
+          "lineNumber": 754
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "formatMoney",
+          "lineNumber": 754
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.lf",
+          "lineNumber": 755
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.text",
+          "lineNumber": 756
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "escposPadLine",
+          "lineNumber": 756
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "formatMoney",
+          "lineNumber": 756
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.lf",
+          "lineNumber": 757
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.rightLine",
+          "lineNumber": 763
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "formatMoney",
+          "lineNumber": 763
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.rightLine",
+          "lineNumber": 769
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "formatMoney",
+          "lineNumber": 769
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 770
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.rightLine",
+          "lineNumber": 774
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "formatMoney",
+          "lineNumber": 774
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.separator",
+          "lineNumber": 777
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.separator",
+          "lineNumber": 781
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 783
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 787
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "nowLocal",
+          "lineNumber": 789
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 791
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "nowLocal",
+          "lineNumber": 793
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.text",
+          "lineNumber": 795
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 795
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.lf",
+          "lineNumber": 796
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.text",
+          "lineNumber": 797
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 797
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.lf",
+          "lineNumber": 798
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.text",
+          "lineNumber": 799
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 799
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.lf",
+          "lineNumber": 800
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.text",
+          "lineNumber": 801
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 801
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.lf",
+          "lineNumber": 802
+        },
+        {
+          "caller": "buildOrderReceipt",
+          "callee": "w.finish",
+          "lineNumber": 804
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "newEscposForConnectionTest",
+          "lineNumber": 808
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "w.align",
+          "lineNumber": 809
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "w.text",
+          "lineNumber": 812
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "w.bold",
+          "lineNumber": 814
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "w.size",
+          "lineNumber": 815
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "w.text",
+          "lineNumber": 816
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "w.size",
+          "lineNumber": 817
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "w.bold",
+          "lineNumber": 818
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "w.lf",
+          "lineNumber": 820
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "w.separator",
+          "lineNumber": 821
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "w.align",
+          "lineNumber": 822
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "w.text",
+          "lineNumber": 823
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "p.venueName",
+          "lineNumber": 823
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "w.lf",
+          "lineNumber": 824
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "w.text",
+          "lineNumber": 825
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "nowLocal",
+          "lineNumber": 825
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "w.lf",
+          "lineNumber": 826
+        },
+        {
+          "caller": "buildConnectionTest",
+          "callee": "w.finish",
+          "lineNumber": 827
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 55,
+        "classCount": 5
+      }
+    },
+    {
+      "path": "apps/print-agent/heartbeat_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 22,
+      "nonEmptyLines": 19,
+      "functions": [
+        {
+          "name": "TestMappedStationCount",
+          "startLine": 5,
+          "endLine": 10,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestHeartbeatSnapshotRecordPrint",
+          "startLine": 12,
+          "endLine": 22,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestMappedStationCount",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "TestHeartbeatSnapshotRecordPrint",
+          "line": 12,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestMappedStationCount",
+          "callee": "c.mappedStationCount",
+          "lineNumber": 7
+        },
+        {
+          "caller": "TestMappedStationCount",
+          "callee": "t.Fatalf",
+          "lineNumber": 8
+        },
+        {
+          "caller": "TestMappedStationCount",
+          "callee": "c.mappedStationCount",
+          "lineNumber": 8
+        },
+        {
+          "caller": "TestHeartbeatSnapshotRecordPrint",
+          "callee": "hb.recordPrint",
+          "lineNumber": 14
+        },
+        {
+          "caller": "TestHeartbeatSnapshotRecordPrint",
+          "callee": "hb.lastPrintAt.IsZero",
+          "lineNumber": 15
+        },
+        {
+          "caller": "TestHeartbeatSnapshotRecordPrint",
+          "callee": "t.Fatal",
+          "lineNumber": 16
+        },
+        {
+          "caller": "TestHeartbeatSnapshotRecordPrint",
+          "callee": "hb.recordPrint",
+          "lineNumber": 18
+        },
+        {
+          "caller": "TestHeartbeatSnapshotRecordPrint",
+          "callee": "t.Fatal",
+          "lineNumber": 20
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/heartbeat.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 79,
+      "nonEmptyLines": 74,
+      "functions": [
+        {
+          "name": "mappedStationCount",
+          "startLine": 19,
+          "endLine": 30,
+          "params": []
+        },
+        {
+          "name": "recordPrint",
+          "startLine": 32,
+          "endLine": 39,
+          "params": [
+            "ok"
+          ]
+        },
+        {
+          "name": "postHeartbeat",
+          "startLine": 41,
+          "endLine": 79,
+          "params": [
+            "ctx",
+            "cfg",
+            "scheduleOpen",
+            "hb"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "heartbeatSnapshot",
+          "startLine": 14,
+          "endLine": 17,
+          "methods": [
+            "recordPrint"
+          ],
+          "properties": [
+            "lastPrintAt",
+            "lastPrintStatus"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "mappedStationCount",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 25
+        },
+        {
+          "caller": "recordPrint",
+          "callee": "time.Now",
+          "lineNumber": 33
+        },
+        {
+          "caller": "postHeartbeat",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 42
+        },
+        {
+          "caller": "postHeartbeat",
+          "callee": "cfg.mappedStationCount",
+          "lineNumber": 47
+        },
+        {
+          "caller": "postHeartbeat",
+          "callee": "hb.lastPrintAt.IsZero",
+          "lineNumber": 50
+        },
+        {
+          "caller": "postHeartbeat",
+          "callee": "hb.lastPrintAt.UTC().Format",
+          "lineNumber": 51
+        },
+        {
+          "caller": "postHeartbeat",
+          "callee": "hb.lastPrintAt.UTC",
+          "lineNumber": 51
+        },
+        {
+          "caller": "postHeartbeat",
+          "callee": "json.Marshal",
+          "lineNumber": 54
+        },
+        {
+          "caller": "postHeartbeat",
+          "callee": "http.NewRequestWithContext",
+          "lineNumber": 58
+        },
+        {
+          "caller": "postHeartbeat",
+          "callee": "strings.TrimRight",
+          "lineNumber": 61
+        },
+        {
+          "caller": "postHeartbeat",
+          "callee": "bytes.NewReader",
+          "lineNumber": 62
+        },
+        {
+          "caller": "postHeartbeat",
+          "callee": "req.Header.Set",
+          "lineNumber": 67
+        },
+        {
+          "caller": "postHeartbeat",
+          "callee": "req.Header.Set",
+          "lineNumber": 68
+        },
+        {
+          "caller": "postHeartbeat",
+          "callee": "http.DefaultClient.Do",
+          "lineNumber": 69
+        },
+        {
+          "caller": "postHeartbeat",
+          "callee": "res.Body.Close",
+          "lineNumber": 73
+        },
+        {
+          "caller": "postHeartbeat",
+          "callee": "io.ReadAll",
+          "lineNumber": 74
+        },
+        {
+          "caller": "postHeartbeat",
+          "callee": "fmt.Errorf",
+          "lineNumber": 76
+        },
+        {
+          "caller": "postHeartbeat",
+          "callee": "string",
+          "lineNumber": 76
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 3,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "apps/print-agent/installer/mesa-print-agent.iss",
+      "language": "iss",
+      "fileCategory": "code",
+      "totalLines": 50,
+      "nonEmptyLines": 42,
+      "metrics": {}
+    },
+    {
+      "path": "apps/print-agent/job_max_age_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 17,
+      "nonEmptyLines": 15,
+      "functions": [
+        {
+          "name": "TestJobPrintExpired",
+          "startLine": 8,
+          "endLine": 17,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestJobPrintExpired",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestJobPrintExpired",
+          "callee": "time.Now().Add(-11 * time.Minute).UTC().Format",
+          "lineNumber": 9
+        },
+        {
+          "caller": "TestJobPrintExpired",
+          "callee": "time.Now().Add(-11 * time.Minute).UTC",
+          "lineNumber": 9
+        },
+        {
+          "caller": "TestJobPrintExpired",
+          "callee": "time.Now().Add",
+          "lineNumber": 9
+        },
+        {
+          "caller": "TestJobPrintExpired",
+          "callee": "time.Now",
+          "lineNumber": 9
+        },
+        {
+          "caller": "TestJobPrintExpired",
+          "callee": "jobPrintExpired",
+          "lineNumber": 10
+        },
+        {
+          "caller": "TestJobPrintExpired",
+          "callee": "t.Fatal",
+          "lineNumber": 11
+        },
+        {
+          "caller": "TestJobPrintExpired",
+          "callee": "time.Now().Add(-5 * time.Minute).UTC().Format",
+          "lineNumber": 13
+        },
+        {
+          "caller": "TestJobPrintExpired",
+          "callee": "time.Now().Add(-5 * time.Minute).UTC",
+          "lineNumber": 13
+        },
+        {
+          "caller": "TestJobPrintExpired",
+          "callee": "time.Now().Add",
+          "lineNumber": 13
+        },
+        {
+          "caller": "TestJobPrintExpired",
+          "callee": "time.Now",
+          "lineNumber": 13
+        },
+        {
+          "caller": "TestJobPrintExpired",
+          "callee": "jobPrintExpired",
+          "lineNumber": 14
+        },
+        {
+          "caller": "TestJobPrintExpired",
+          "callee": "t.Fatal",
+          "lineNumber": 15
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/job_max_age.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 16,
+      "nonEmptyLines": 13,
+      "functions": [
+        {
+          "name": "jobPrintExpired",
+          "startLine": 10,
+          "endLine": 16,
+          "params": [
+            "job"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "jobPrintExpired",
+          "callee": "parseJobCreatedAt",
+          "lineNumber": 11
+        },
+        {
+          "caller": "jobPrintExpired",
+          "callee": "time.Since",
+          "lineNumber": 15
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    }
+  ]
+}

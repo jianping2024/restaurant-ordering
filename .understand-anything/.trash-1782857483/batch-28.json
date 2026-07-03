@@ -1,0 +1,227 @@
+{
+  "nodes": [
+    {
+      "id": "service:apps/print-agent/dev/Dockerfile.agent",
+      "type": "service",
+      "name": "Dockerfile.agent",
+      "filePath": "apps/print-agent/dev/Dockerfile.agent",
+      "summary": "多阶段 Docker 构建文件，仅用于本地开发环境编译 mesa-print-agent 二进制，非生产 Windows 安装镜像。",
+      "tags": ["containerization", "infrastructure", "print-agent", "development"],
+      "complexity": "simple",
+      "languageNotes": "基于 golang:1.22-alpine 构建，最终镜像以 mesa-print-agent 为 ENTRYPOINT。"
+    },
+    {
+      "id": "document:apps/print-agent/dev/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "apps/print-agent/dev/README.md",
+      "summary": "打印助手本地 Docker 开发指南，涵盖三终端快速启动、print-dev.sh 命令表、config.docker.json 配置说明及目录结构。",
+      "tags": ["documentation", "development", "print-agent", "docker"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:apps/print-agent/dev/config.docker.json",
+      "type": "config",
+      "name": "config.docker.json",
+      "filePath": "apps/print-agent/dev/config.docker.json",
+      "summary": "Docker 网络内运行的打印助手实际配置，含 API 地址、JWT、设备 ID、档口打印机映射及 schedule/poll 轮询参数。",
+      "tags": ["configuration", "print-agent", "docker", "secrets"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:apps/print-agent/dev/config.example.json",
+      "type": "config",
+      "name": "config.example.json",
+      "filePath": "apps/print-agent/dev/config.example.json",
+      "summary": "打印助手配置模板，提供占位符字段供首次 pair 后复制为 config.docker.json 并填入凭据与档口 UUID。",
+      "tags": ["configuration", "template", "print-agent", "development"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:apps/print-agent/dev/docker-compose.yml",
+      "type": "service",
+      "name": "docker-compose.yml",
+      "filePath": "apps/print-agent/dev/docker-compose.yml",
+      "summary": "隔离式本地开发编排：三台 fake RAW/JetDirect 打印机（TCP 9100）及可选 print-agent 服务，不启动 Mesa 或 Supabase。",
+      "tags": ["orchestration", "infrastructure", "print-agent", "development"],
+      "complexity": "moderate",
+      "languageNotes": "print-agent 服务通过 profile agent 启用，经 host.docker.internal 连接宿主机 Mesa API。"
+    },
+    {
+      "id": "service:apps/print-agent/dev/docker-compose.yml:printer-receipt",
+      "type": "service",
+      "name": "printer-receipt",
+      "filePath": "apps/print-agent/dev/docker-compose.yml",
+      "summary": "模拟收据打印机服务，容器内监听 9100 端口，宿主机映射至 19100。",
+      "tags": ["fake-printer", "escpos", "development", "tcp"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:apps/print-agent/dev/docker-compose.yml:printer-kitchen",
+      "type": "service",
+      "name": "printer-kitchen",
+      "filePath": "apps/print-agent/dev/docker-compose.yml",
+      "summary": "模拟厨房档口打印机服务，容器内 9100 端口映射至宿主机 19101。",
+      "tags": ["fake-printer", "escpos", "development", "tcp"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:apps/print-agent/dev/docker-compose.yml:printer-bar",
+      "type": "service",
+      "name": "printer-bar",
+      "filePath": "apps/print-agent/dev/docker-compose.yml",
+      "summary": "模拟吧台档口打印机服务，容器内 9100 端口映射至宿主机 19102。",
+      "tags": ["fake-printer", "escpos", "development", "tcp"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:apps/print-agent/dev/docker-compose.yml:print-agent",
+      "type": "service",
+      "name": "print-agent",
+      "filePath": "apps/print-agent/dev/docker-compose.yml",
+      "summary": "可选的容器化打印助手服务（profile agent），挂载配置卷并通过 Docker 网络名访问 fake 打印机。",
+      "tags": ["print-agent", "containerization", "development", "profile"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/dev/print-dev.sh",
+      "type": "file",
+      "name": "print-dev.sh",
+      "filePath": "apps/print-agent/dev/print-dev.sh",
+      "summary": "本地打印开发辅助脚本，封装 docker compose 操作：启动/停止 fake 打印机、构建 agent 镜像、前台运行 agent 及 pair 配对。",
+      "tags": ["script", "development", "print-agent", "orchestration"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/dev/print-dev.sh:usage",
+      "type": "function",
+      "name": "usage",
+      "filePath": "apps/print-agent/dev/print-dev.sh",
+      "lineRange": [16, 43],
+      "summary": "输出 print-dev.sh 全部子命令的帮助文本，包括 up/down/logs/agent/pair 等用法与首次配置步骤。",
+      "tags": ["utility", "cli", "help"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "service:apps/print-agent/dev/docker-compose.yml",
+      "target": "service:apps/print-agent/dev/docker-compose.yml:printer-receipt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "service:apps/print-agent/dev/docker-compose.yml",
+      "target": "service:apps/print-agent/dev/docker-compose.yml:printer-kitchen",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "service:apps/print-agent/dev/docker-compose.yml",
+      "target": "service:apps/print-agent/dev/docker-compose.yml:printer-bar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "service:apps/print-agent/dev/docker-compose.yml",
+      "target": "service:apps/print-agent/dev/docker-compose.yml:print-agent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/dev/print-dev.sh",
+      "target": "function:apps/print-agent/dev/print-dev.sh:usage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "document:apps/print-agent/dev/README.md",
+      "target": "file:apps/print-agent/dev/print-dev.sh",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/dev/README.md",
+      "target": "service:apps/print-agent/dev/docker-compose.yml",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/dev/README.md",
+      "target": "config:apps/print-agent/dev/config.docker.json",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/dev/README.md",
+      "target": "config:apps/print-agent/dev/config.example.json",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:apps/print-agent/dev/README.md",
+      "target": "service:apps/print-agent/dev/Dockerfile.agent",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:apps/print-agent/dev/config.example.json",
+      "target": "config:apps/print-agent/dev/config.docker.json",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:apps/print-agent/dev/config.docker.json",
+      "target": "service:apps/print-agent/dev/docker-compose.yml:print-agent",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "service:apps/print-agent/dev/docker-compose.yml",
+      "target": "service:apps/print-agent/dev/Dockerfile.agent",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "service:apps/print-agent/dev/docker-compose.yml:print-agent",
+      "target": "service:apps/print-agent/dev/Dockerfile.agent",
+      "type": "deploys",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "service:apps/print-agent/dev/Dockerfile.agent",
+      "target": "file:apps/print-agent/main.go",
+      "type": "deploys",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/print-agent/dev/print-dev.sh",
+      "target": "service:apps/print-agent/dev/docker-compose.yml",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/print-agent/dev/print-dev.sh",
+      "target": "config:apps/print-agent/dev/config.docker.json",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

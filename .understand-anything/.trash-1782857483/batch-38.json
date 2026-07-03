@@ -1,0 +1,610 @@
+{
+  "nodes": [
+    {
+      "id": "file:packages/shared/src/print-agent-support-snapshot.ts",
+      "type": "file",
+      "name": "print-agent-support-snapshot.ts",
+      "filePath": "packages/shared/src/print-agent-support-snapshot.ts",
+      "summary": "为打印代理远程支持场景提供 Supabase 服务端工具：消费一次性 support token，并聚合设备、餐厅与 print agent 配置快照。",
+      "tags": ["service", "print-agent", "supabase", "type-definition"],
+      "complexity": "moderate",
+      "languageNotes": "使用 service-role SupabaseClient 查询 print_agent_devices、restaurants 等表。"
+    },
+    {
+      "id": "file:packages/shared/src/restaurant-features.test.ts",
+      "type": "file",
+      "name": "restaurant-features.test.ts",
+      "filePath": "packages/shared/src/restaurant-features.test.ts",
+      "summary": "针对餐厅功能开关解析、合并与归一化逻辑的 Node 内置测试套件。",
+      "tags": ["test", "feature-flags", "validation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/restaurant-features.ts",
+      "type": "file",
+      "name": "restaurant-features.ts",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "summary": "定义餐厅功能开关（kitchen_board、bill_receipt_print）的模块分组、默认值、解析与合并工具，供 dashboard 与 API 共用。",
+      "tags": ["type-definition", "feature-flags", "validation", "utility"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/shared/src/restaurant-suspension.ts",
+      "type": "file",
+      "name": "restaurant-suspension.ts",
+      "filePath": "packages/shared/src/restaurant-suspension.ts",
+      "summary": "提供判断餐厅是否处于暂停状态的单一工具函数，依据 suspended_at 字段是否非空。",
+      "tags": ["utility", "restaurant", "validation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/staff-user-ban.ts",
+      "type": "file",
+      "name": "staff-user-ban.ts",
+      "filePath": "packages/shared/src/staff-user-ban.ts",
+      "summary": "封装员工账号封禁与全局登出的 Supabase Auth Admin 操作，供 ops 或管理端调用。",
+      "tags": ["service", "auth", "staff", "supabase"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:packages/shared/tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "packages/shared/tsconfig.json",
+      "summary": "@mesa/shared 包的 TypeScript 编译配置，启用 strict 并包含 src 目录。",
+      "tags": ["configuration", "typescript", "monorepo"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:packages/ui/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "packages/ui/package.json",
+      "summary": "@mesa/ui 共享 UI 包的 npm 清单，声明 React peer 依赖及入口导出路径。",
+      "tags": ["configuration", "monorepo", "react"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/ui/src/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/ui/src/index.ts",
+      "summary": "@mesa/ui 包的公共导出入口，当前仅 re-export PasswordInput 组件。",
+      "tags": ["entry-point", "barrel", "exports"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/ui/src/PasswordInput.tsx",
+      "type": "file",
+      "name": "PasswordInput.tsx",
+      "filePath": "packages/ui/src/PasswordInput.tsx",
+      "summary": "可复用的密码输入 React 组件，支持 brand/zinc 两种视觉变体、显示/隐藏切换与错误提示。",
+      "tags": ["component", "react", "form", "accessibility"],
+      "complexity": "moderate",
+      "languageNotes": "使用 forwardRef 暴露原生 input ref，'use client' 标记为客户端组件。"
+    },
+    {
+      "id": "config:packages/ui/tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "packages/ui/tsconfig.json",
+      "summary": "@mesa/ui 包的 TypeScript 编译配置，面向 React TSX 组件库。",
+      "tags": ["configuration", "typescript", "react"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:supabase/seed.sql",
+      "type": "file",
+      "name": "seed.sql",
+      "filePath": "supabase/seed.sql",
+      "summary": "本地开发种子数据：创建 dev-owner 测试账号、巨好吃餐厅记录，并填充打印站、菜单分类与菜品示例数据。",
+      "tags": ["database", "seed", "local-dev"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/shared/src/print-agent-support-snapshot.ts:consumePrintAgentSupportToken",
+      "type": "function",
+      "name": "consumePrintAgentSupportToken",
+      "filePath": "packages/shared/src/print-agent-support-snapshot.ts",
+      "lineRange": [26, 44],
+      "summary": "原子消费 print_agent_support_tokens 表中的 JWT jti，校验设备与餐厅匹配且未过期。",
+      "tags": ["print-agent", "auth", "supabase"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/print-agent-support-snapshot.ts:loadPrintAgentSupportSnapshot",
+      "type": "function",
+      "name": "loadPrintAgentSupportSnapshot",
+      "filePath": "packages/shared/src/print-agent-support-snapshot.ts",
+      "lineRange": [46, 98],
+      "summary": "并行加载打印代理设备、餐厅元数据与 print_agent_config，组装远程支持所需完整快照。",
+      "tags": ["print-agent", "supabase", "serialization"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-features.ts:groupRestaurantFeaturesByModule",
+      "type": "function",
+      "name": "groupRestaurantFeaturesByModule",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "lineRange": [60, 71],
+      "summary": "按产品模块（dashboard_nav、billing）对功能定义分组排序，供设置 UI 渲染。",
+      "tags": ["feature-flags", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-features.ts:getRestaurantFeatureModule",
+      "type": "function",
+      "name": "getRestaurantFeatureModule",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "lineRange": [73, 81],
+      "summary": "根据 moduleId 查找餐厅功能模块定义，未找到时返回 undefined。",
+      "tags": ["feature-flags", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-features.ts:normalizeRestaurantFeatureFlags",
+      "type": "function",
+      "name": "normalizeRestaurantFeatureFlags",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "lineRange": [83, 93],
+      "summary": "将原始 jsonb 或数组格式功能开关归一化为包含所有已知键及默认值的完整记录。",
+      "tags": ["feature-flags", "validation", "serialization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-features.ts:isRestaurantFeatureEnabled",
+      "type": "function",
+      "name": "isRestaurantFeatureEnabled",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "lineRange": [95, 100],
+      "summary": "判断指定功能键在当前 flags 下是否启用，内部先归一化再读取布尔值。",
+      "tags": ["feature-flags", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-features.ts:parseFeatureFlagsPatch",
+      "type": "function",
+      "name": "parseFeatureFlagsPatch",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "lineRange": [102, 114],
+      "summary": "从 API 请求体解析功能开关补丁，过滤未知键与非布尔值。",
+      "tags": ["feature-flags", "validation", "api-handler"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-features.ts:parseFeatureFlagsRecord",
+      "type": "function",
+      "name": "parseFeatureFlagsRecord",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "lineRange": [116, 125],
+      "summary": "从普通对象解析功能开关补丁，空补丁返回 null。",
+      "tags": ["feature-flags", "validation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-features.ts:mergeRestaurantFeatureFlags",
+      "type": "function",
+      "name": "mergeRestaurantFeatureFlags",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "lineRange": [127, 132],
+      "summary": "将补丁合并到当前存储的功能开关上，返回归一化后的完整 flags。",
+      "tags": ["feature-flags", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-features.ts:isDashboardKitchenShortcutEnabled",
+      "type": "function",
+      "name": "isDashboardKitchenShortcutEnabled",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "lineRange": [134, 136],
+      "summary": "便捷判断 dashboard 厨房快捷入口（kitchen_board）是否启用的封装。",
+      "tags": ["feature-flags", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-suspension.ts:isRestaurantSuspended",
+      "type": "function",
+      "name": "isRestaurantSuspended",
+      "filePath": "packages/shared/src/restaurant-suspension.ts",
+      "lineRange": [1, 3],
+      "summary": "根据 suspended_at 时间戳判断餐厅是否处于暂停状态。",
+      "tags": ["utility", "restaurant"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/staff-user-ban.ts:kickStaffUserSessions",
+      "type": "function",
+      "name": "kickStaffUserSessions",
+      "filePath": "packages/shared/src/staff-user-ban.ts",
+      "lineRange": [3, 9],
+      "summary": "尽力全局登出指定员工用户的所有 Supabase 会话。",
+      "tags": ["auth", "staff", "supabase"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/staff-user-ban.ts:setStaffUserBanned",
+      "type": "function",
+      "name": "setStaffUserBanned",
+      "filePath": "packages/shared/src/staff-user-ban.ts",
+      "lineRange": [11, 15],
+      "summary": "通过 Supabase Auth Admin API 设置员工账号封禁时长或解除封禁。",
+      "tags": ["auth", "staff", "supabase"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/ui/src/PasswordInput.tsx:EyeIcon",
+      "type": "function",
+      "name": "EyeIcon",
+      "filePath": "packages/ui/src/PasswordInput.tsx",
+      "lineRange": [18, 34],
+      "summary": "密码可见状态下的眼睛 SVG 图标子组件。",
+      "tags": ["component", "icon"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/ui/src/PasswordInput.tsx:EyeOffIcon",
+      "type": "function",
+      "name": "EyeOffIcon",
+      "filePath": "packages/ui/src/PasswordInput.tsx",
+      "lineRange": [36, 51],
+      "summary": "密码隐藏状态下的划线眼睛 SVG 图标子组件。",
+      "tags": ["component", "icon"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/ui/src/PasswordInput.tsx:PasswordInput",
+      "type": "function",
+      "name": "PasswordInput",
+      "filePath": "packages/ui/src/PasswordInput.tsx",
+      "lineRange": [89, 159],
+      "summary": "forwardRef 密码输入主组件，管理可见性状态、变体样式与标签/错误布局。",
+      "tags": ["component", "react", "form"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:packages/shared/src/restaurant-features.test.ts",
+      "target": "file:packages/shared/src/restaurant-features.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-support-snapshot.ts",
+      "target": "function:packages/shared/src/print-agent-support-snapshot.ts:consumePrintAgentSupportToken",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-support-snapshot.ts",
+      "target": "function:packages/shared/src/print-agent-support-snapshot.ts:loadPrintAgentSupportSnapshot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-support-snapshot.ts",
+      "target": "function:packages/shared/src/print-agent-support-snapshot.ts:consumePrintAgentSupportToken",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-support-snapshot.ts",
+      "target": "function:packages/shared/src/print-agent-support-snapshot.ts:loadPrintAgentSupportSnapshot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:groupRestaurantFeaturesByModule",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:getRestaurantFeatureModule",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:normalizeRestaurantFeatureFlags",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:isRestaurantFeatureEnabled",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:parseFeatureFlagsPatch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:parseFeatureFlagsRecord",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:mergeRestaurantFeatureFlags",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:isDashboardKitchenShortcutEnabled",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:groupRestaurantFeaturesByModule",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:getRestaurantFeatureModule",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:normalizeRestaurantFeatureFlags",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:isRestaurantFeatureEnabled",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:parseFeatureFlagsPatch",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:parseFeatureFlagsRecord",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:mergeRestaurantFeatureFlags",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:isDashboardKitchenShortcutEnabled",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-suspension.ts",
+      "target": "function:packages/shared/src/restaurant-suspension.ts:isRestaurantSuspended",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-suspension.ts",
+      "target": "function:packages/shared/src/restaurant-suspension.ts:isRestaurantSuspended",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/staff-user-ban.ts",
+      "target": "function:packages/shared/src/staff-user-ban.ts:kickStaffUserSessions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/staff-user-ban.ts",
+      "target": "function:packages/shared/src/staff-user-ban.ts:setStaffUserBanned",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/staff-user-ban.ts",
+      "target": "function:packages/shared/src/staff-user-ban.ts:kickStaffUserSessions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/staff-user-ban.ts",
+      "target": "function:packages/shared/src/staff-user-ban.ts:setStaffUserBanned",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/ui/src/PasswordInput.tsx",
+      "target": "function:packages/ui/src/PasswordInput.tsx:EyeIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/ui/src/PasswordInput.tsx",
+      "target": "function:packages/ui/src/PasswordInput.tsx:EyeOffIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/ui/src/PasswordInput.tsx",
+      "target": "function:packages/ui/src/PasswordInput.tsx:PasswordInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/ui/src/PasswordInput.tsx",
+      "target": "function:packages/ui/src/PasswordInput.tsx:PasswordInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/ui/src/index.ts",
+      "target": "function:packages/ui/src/PasswordInput.tsx:PasswordInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/ui/src/index.ts",
+      "target": "file:packages/ui/src/PasswordInput.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:packages/shared/src/restaurant-features.ts:isRestaurantFeatureEnabled",
+      "target": "function:packages/shared/src/restaurant-features.ts:normalizeRestaurantFeatureFlags",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/shared/src/restaurant-features.ts:mergeRestaurantFeatureFlags",
+      "target": "function:packages/shared/src/restaurant-features.ts:normalizeRestaurantFeatureFlags",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/shared/src/restaurant-features.ts:isDashboardKitchenShortcutEnabled",
+      "target": "function:packages/shared/src/restaurant-features.ts:isRestaurantFeatureEnabled",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/ui/src/PasswordInput.tsx:PasswordInput",
+      "target": "function:packages/ui/src/PasswordInput.tsx:EyeIcon",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/ui/src/PasswordInput.tsx:PasswordInput",
+      "target": "function:packages/ui/src/PasswordInput.tsx:EyeOffIcon",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "file:packages/shared/src/restaurant-features.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:packages/shared/tsconfig.json",
+      "target": "file:packages/shared/src/print-agent-support-snapshot.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:packages/shared/tsconfig.json",
+      "target": "file:packages/shared/src/restaurant-features.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:packages/shared/tsconfig.json",
+      "target": "file:packages/shared/src/restaurant-features.test.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:packages/shared/tsconfig.json",
+      "target": "file:packages/shared/src/restaurant-suspension.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:packages/shared/tsconfig.json",
+      "target": "file:packages/shared/src/staff-user-ban.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:packages/ui/tsconfig.json",
+      "target": "file:packages/ui/src/index.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:packages/ui/tsconfig.json",
+      "target": "file:packages/ui/src/PasswordInput.tsx",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:packages/ui/package.json",
+      "target": "file:packages/ui/src/index.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:supabase/seed.sql",
+      "target": "file:packages/shared/src/restaurant-features.ts",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/seed.sql",
+      "target": "file:packages/shared/src/print-agent-support-snapshot.ts",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

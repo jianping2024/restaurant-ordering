@@ -1,0 +1,14 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {
+      "path": "apps/print-agent/dev/fake-printer/Dockerfile",
+      "language": "dockerfile",
+      "sizeLines": 12,
+      "fileCategory": "infra"
+    }
+  ],
+  "batchImportData": {
+    "apps/print-agent/dev/fake-printer/Dockerfile": []
+  }
+}

@@ -1,0 +1,27 @@
+Analyze these files and produce GraphNode and GraphEdge objects.
+Project root: `/Users/chenjianping/Documents/restaurant-ordering`
+Project: `undefined` — undefined
+Languages: ["config","css","dockerfile","go","html","iss","javascript","json","markdown","mod","mts","powershell","python","shell","sql","sum","txt","typescript","unknown","yaml"]
+Batch: `28/38`
+Skill directory: `/Users/chenjianping/.cursor/plugins/cache/understand-anything/understand-anything/54754a6f97051d1d76c8758353d8ea41afe502a6/skills/understand`
+Output: `/Users/chenjianping/Documents/restaurant-ordering/.understand-anything/intermediate/batch-28.json`
+
+Pre-resolved import data:
+```json
+{"apps/print-agent/dev/Dockerfile.agent":[],"apps/print-agent/dev/README.md":[],"apps/print-agent/dev/config.docker.json":[],"apps/print-agent/dev/config.example.json":[],"apps/print-agent/dev/docker-compose.yml":[],"apps/print-agent/dev/print-dev.sh":[]}
+```
+
+Cross-batch neighbors:
+```json
+{}
+```
+
+Files:
+1. `apps/print-agent/dev/Dockerfile.agent` (12 lines, language: `dockerfile`, fileCategory: `infra`)
+2. `apps/print-agent/dev/README.md` (109 lines, language: `markdown`, fileCategory: `docs`)
+3. `apps/print-agent/dev/config.docker.json` (28 lines, language: `json`, fileCategory: `config`)
+4. `apps/print-agent/dev/config.example.json` (28 lines, language: `json`, fileCategory: `config`)
+5. `apps/print-agent/dev/docker-compose.yml` (67 lines, language: `yaml`, fileCategory: `infra`)
+6. `apps/print-agent/dev/print-dev.sh` (99 lines, language: `shell`, fileCategory: `script`)
+
+> **Language directive**: Generate all textual content in **zh** (Chinese). Keep technical terms in English when no standard translation exists.

@@ -1,0 +1,828 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantDetailActions.tsx",
+      "type": "file",
+      "name": "RestaurantDetailActions.tsx",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantDetailActions.tsx",
+      "summary": "餐厅详情页客户端组件，提供重置店主密码功能，调用 ops API 并展示临时密码结果。",
+      "tags": [
+        "component",
+        "restaurant-management",
+        "client-side",
+        "password-reset"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantDetailActions.tsx:RestaurantDetailActions",
+      "type": "function",
+      "name": "RestaurantDetailActions",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantDetailActions.tsx",
+      "lineRange": [
+        5,
+        76
+      ],
+      "summary": "管理店主密码重置流程，含加载状态、错误处理与一次性密码展示。",
+      "tags": [
+        "component",
+        "api-handler",
+        "password-reset"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantEditPanel.tsx",
+      "type": "file",
+      "name": "RestaurantEditPanel.tsx",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantEditPanel.tsx",
+      "summary": "餐厅信息编辑面板，支持名称、slug、套餐、地址、功能开关等字段修改，含 slug 变更二次确认。",
+      "tags": [
+        "component",
+        "restaurant-management",
+        "form",
+        "validation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantEditPanel.tsx:RestaurantEditPanel",
+      "type": "function",
+      "name": "RestaurantEditPanel",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantEditPanel.tsx",
+      "lineRange": [
+        32,
+        220
+      ],
+      "summary": "渲染餐厅编辑表单，提交 PATCH 请求更新餐厅配置，slug 变更时弹出确认对话框。",
+      "tags": [
+        "component",
+        "form",
+        "api-handler"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantSuspensionActions.tsx",
+      "type": "file",
+      "name": "RestaurantSuspensionActions.tsx",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantSuspensionActions.tsx",
+      "summary": "餐厅暂停/恢复操作组件，支持填写暂停原因并通过 ConfirmModal 二次确认。",
+      "tags": [
+        "component",
+        "restaurant-management",
+        "suspension",
+        "confirmation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantSuspensionActions.tsx:RestaurantSuspensionActions",
+      "type": "function",
+      "name": "RestaurantSuspensionActions",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantSuspensionActions.tsx",
+      "lineRange": [
+        13,
+        134
+      ],
+      "summary": "处理餐厅 suspend/resume API 调用，成功后刷新路由以反映最新状态。",
+      "tags": [
+        "component",
+        "api-handler",
+        "suspension"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/layout.tsx",
+      "type": "file",
+      "name": "layout.tsx",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/[id]/layout.tsx",
+      "summary": "餐厅详情子路由布局，校验餐厅存在性并渲染 RestaurantDetailTabs 导航。",
+      "tags": [
+        "layout",
+        "server-component",
+        "restaurant-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx",
+      "summary": "餐厅详情主页面，服务端加载餐厅与店主信息，组合展示编辑、暂停与密码重置操作区。",
+      "tags": [
+        "page",
+        "server-component",
+        "restaurant-management",
+        "entry-point"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx:RestaurantDetailPage",
+      "type": "function",
+      "name": "RestaurantDetailPage",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx",
+      "lineRange": [
+        19,
+        127
+      ],
+      "summary": "服务端页面组件，查询餐厅完整信息并渲染详情卡片与子操作组件。",
+      "tags": [
+        "page",
+        "server-component",
+        "data-fetching"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx",
+      "type": "file",
+      "name": "RestaurantPrintPanel.tsx",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx",
+      "summary": "单餐厅打印管理面板，展示打印健康状态并嵌入设备、任务、配对码三个子 Tab 客户端组件。",
+      "tags": [
+        "component",
+        "printing",
+        "tab-navigation",
+        "health-check"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx:RestaurantPrintPanel",
+      "type": "function",
+      "name": "RestaurantPrintPanel",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx",
+      "lineRange": [
+        16,
+        107
+      ],
+      "summary": "获取餐厅 print-health 数据并按 Tab 切换渲染 PrintDevicesClient、PrintJobsClient、PrintPairingsClient。",
+      "tags": [
+        "component",
+        "printing",
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/print/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/[id]/print/page.tsx",
+      "summary": "餐厅打印子页面入口，将路由参数传递给 RestaurantPrintPanel。",
+      "tags": [
+        "page",
+        "printing",
+        "entry-point"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/staff/RestaurantStaffClient.tsx",
+      "type": "file",
+      "name": "RestaurantStaffClient.tsx",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/[id]/staff/RestaurantStaffClient.tsx",
+      "summary": "餐厅员工管理客户端，列出员工并支持启用/禁用操作，含权限校验与确认弹窗。",
+      "tags": [
+        "component",
+        "staff-management",
+        "client-side",
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/staff/RestaurantStaffClient.tsx:RestaurantStaffClient",
+      "type": "function",
+      "name": "RestaurantStaffClient",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/[id]/staff/RestaurantStaffClient.tsx",
+      "lineRange": [
+        22,
+        164
+      ],
+      "summary": "加载餐厅员工列表，通过 PATCH API 更新员工状态，禁用前需 ConfirmModal 确认。",
+      "tags": [
+        "component",
+        "staff-management",
+        "crud"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/staff/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/ops/src/app/ops/(console)/restaurants/[id]/staff/page.tsx",
+      "summary": "餐厅员工管理页面，校验平台管理员权限后渲染 RestaurantStaffClient。",
+      "tags": [
+        "page",
+        "staff-management",
+        "authorization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/app/ops/(console)/settings/admins/AdminsClient.tsx",
+      "type": "file",
+      "name": "AdminsClient.tsx",
+      "filePath": "apps/ops/src/app/ops/(console)/settings/admins/AdminsClient.tsx",
+      "summary": "平台管理员账号管理客户端，支持创建、角色变更与禁用管理员，含表单与列表交互。",
+      "tags": [
+        "component",
+        "admin-management",
+        "client-side",
+        "crud"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/ops/src/app/ops/(console)/settings/admins/AdminsClient.tsx:AdminsClient",
+      "type": "function",
+      "name": "AdminsClient",
+      "filePath": "apps/ops/src/app/ops/(console)/settings/admins/AdminsClient.tsx",
+      "lineRange": [
+        18,
+        255
+      ],
+      "summary": "管理平台管理员 CRUD，调用 /api/ops/admins 接口完成创建、更新与禁用操作。",
+      "tags": [
+        "component",
+        "admin-management",
+        "api-handler"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/ops/src/app/ops/(console)/settings/admins/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/ops/src/app/ops/(console)/settings/admins/page.tsx",
+      "summary": "平台管理员设置页面入口，直接渲染 AdminsClient 组件。",
+      "tags": [
+        "page",
+        "admin-management",
+        "entry-point"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/app/ops/(console)/settings/layout.tsx",
+      "type": "file",
+      "name": "layout.tsx",
+      "filePath": "apps/ops/src/app/ops/(console)/settings/layout.tsx",
+      "summary": "设置区布局，校验当前用户为 super_admin 角色，否则重定向到首页。",
+      "tags": [
+        "layout",
+        "authorization",
+        "role-guard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/app/ops/(console)/settings/layout.tsx:SettingsLayout",
+      "type": "function",
+      "name": "SettingsLayout",
+      "filePath": "apps/ops/src/app/ops/(console)/settings/layout.tsx",
+      "lineRange": [
+        4,
+        14
+      ],
+      "summary": "服务端布局守卫，仅 super_admin 可访问设置子路由。",
+      "tags": [
+        "layout",
+        "authorization",
+        "middleware"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/components/OpsShell.tsx",
+      "type": "file",
+      "name": "OpsShell.tsx",
+      "filePath": "apps/ops/src/components/OpsShell.tsx",
+      "summary": "Ops 控制台外壳布局，含顶部导航、用户信息与登出功能，包裹所有 console 页面内容。",
+      "tags": [
+        "component",
+        "layout",
+        "navigation",
+        "shell"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/ops/src/components/OpsShell.tsx:OpsShell",
+      "type": "function",
+      "name": "OpsShell",
+      "filePath": "apps/ops/src/components/OpsShell.tsx",
+      "lineRange": [
+        16,
+        87
+      ],
+      "summary": "渲染 Ops 主导航栏与用户信息区，处理登出 API 调用与路由跳转。",
+      "tags": [
+        "component",
+        "layout",
+        "navigation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/ops/src/components/PrintSubNav.tsx",
+      "type": "file",
+      "name": "PrintSubNav.tsx",
+      "filePath": "apps/ops/src/components/PrintSubNav.tsx",
+      "summary": "全局打印管理子导航，在设备、任务、配对码三个页面间切换。",
+      "tags": [
+        "component",
+        "navigation",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/components/PrintSubNav.tsx:PrintSubNav",
+      "type": "function",
+      "name": "PrintSubNav",
+      "filePath": "apps/ops/src/components/PrintSubNav.tsx",
+      "lineRange": [
+        12,
+        35
+      ],
+      "summary": "根据当前路径高亮打印子 Tab 链接。",
+      "tags": [
+        "component",
+        "navigation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/components/RestaurantDetailTabs.tsx",
+      "type": "file",
+      "name": "RestaurantDetailTabs.tsx",
+      "filePath": "apps/ops/src/components/RestaurantDetailTabs.tsx",
+      "summary": "餐厅详情页 Tab 导航，在概览、员工、打印等子页面间切换。",
+      "tags": [
+        "component",
+        "navigation",
+        "restaurant-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/components/RestaurantDetailTabs.tsx:RestaurantDetailTabs",
+      "type": "function",
+      "name": "RestaurantDetailTabs",
+      "filePath": "apps/ops/src/components/RestaurantDetailTabs.tsx",
+      "lineRange": [
+        6,
+        47
+      ],
+      "summary": "渲染餐厅名称标题与详情子路由 Tab 链接，按路径高亮当前 Tab。",
+      "tags": [
+        "component",
+        "navigation"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantDetailActions.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantDetailActions.tsx:RestaurantDetailActions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantDetailActions.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantDetailActions.tsx:RestaurantDetailActions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantEditPanel.tsx",
+      "target": "file:apps/ops/src/components/ui/ConfirmModal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantEditPanel.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantEditPanel.tsx:RestaurantEditPanel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantEditPanel.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantEditPanel.tsx:RestaurantEditPanel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantEditPanel.tsx",
+      "target": "function:apps/ops/src/components/ui/ConfirmModal.tsx:ConfirmModal",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantSuspensionActions.tsx",
+      "target": "file:apps/ops/src/components/ui/ConfirmModal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantSuspensionActions.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantSuspensionActions.tsx:RestaurantSuspensionActions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantSuspensionActions.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantSuspensionActions.tsx:RestaurantSuspensionActions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantSuspensionActions.tsx",
+      "target": "function:apps/ops/src/components/ui/ConfirmModal.tsx:ConfirmModal",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/layout.tsx",
+      "target": "file:apps/ops/src/components/RestaurantDetailTabs.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/layout.tsx",
+      "target": "file:apps/ops/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/layout.tsx",
+      "target": "function:apps/ops/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/layout.tsx",
+      "target": "function:apps/ops/src/components/RestaurantDetailTabs.tsx:RestaurantDetailTabs",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx",
+      "target": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantDetailActions.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx",
+      "target": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantEditPanel.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx",
+      "target": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantSuspensionActions.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx",
+      "target": "file:apps/ops/src/lib/platform-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx",
+      "target": "file:apps/ops/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx",
+      "target": "file:apps/ops/src/lib/tenant-app-url.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx:RestaurantDetailPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx:RestaurantDetailPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx:RestaurantDetailPage",
+      "target": "function:apps/ops/src/lib/platform-auth.ts:getPlatformAdmin",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx:RestaurantDetailPage",
+      "target": "function:apps/ops/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx:RestaurantDetailPage",
+      "target": "function:apps/ops/src/lib/tenant-app-url.ts:getTenantAppUrl",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantDetailActions.tsx:RestaurantDetailActions",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantEditPanel.tsx:RestaurantEditPanel",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/page.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/RestaurantSuspensionActions.tsx:RestaurantSuspensionActions",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx",
+      "target": "file:apps/ops/src/app/ops/(console)/print/devices/PrintDevicesClient.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx",
+      "target": "file:apps/ops/src/app/ops/(console)/print/jobs/PrintJobsClient.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx",
+      "target": "file:apps/ops/src/app/ops/(console)/print/pairings/PrintPairingsClient.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx:RestaurantPrintPanel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx:RestaurantPrintPanel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/print/devices/PrintDevicesClient.tsx:PrintDevicesClient",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/print/jobs/PrintJobsClient.tsx:PrintJobsClient",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/print/pairings/PrintPairingsClient.tsx:PrintPairingsClient",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/print/page.tsx",
+      "target": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/print/page.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/print/RestaurantPrintPanel.tsx:RestaurantPrintPanel",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/staff/RestaurantStaffClient.tsx",
+      "target": "file:apps/ops/src/components/ui/ConfirmModal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/staff/RestaurantStaffClient.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/staff/RestaurantStaffClient.tsx:RestaurantStaffClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/staff/RestaurantStaffClient.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/staff/RestaurantStaffClient.tsx:RestaurantStaffClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/staff/RestaurantStaffClient.tsx",
+      "target": "function:apps/ops/src/components/ui/ConfirmModal.tsx:ConfirmModal",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/staff/page.tsx",
+      "target": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/staff/RestaurantStaffClient.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/staff/page.tsx",
+      "target": "file:apps/ops/src/lib/platform-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/staff/page.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/restaurants/[id]/staff/RestaurantStaffClient.tsx:RestaurantStaffClient",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/restaurants/[id]/staff/page.tsx",
+      "target": "function:apps/ops/src/lib/platform-auth.ts:getPlatformAdmin",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/settings/admins/AdminsClient.tsx",
+      "target": "file:apps/ops/src/components/ui/ConfirmModal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/settings/admins/AdminsClient.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/settings/admins/AdminsClient.tsx:AdminsClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/settings/admins/AdminsClient.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/settings/admins/AdminsClient.tsx:AdminsClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/settings/admins/AdminsClient.tsx",
+      "target": "function:apps/ops/src/components/ui/ConfirmModal.tsx:ConfirmModal",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/settings/admins/page.tsx",
+      "target": "file:apps/ops/src/app/ops/(console)/settings/admins/AdminsClient.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/settings/admins/page.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/settings/admins/AdminsClient.tsx:AdminsClient",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/settings/layout.tsx",
+      "target": "file:apps/ops/src/lib/platform-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/settings/layout.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/settings/layout.tsx:SettingsLayout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/app/ops/(console)/settings/layout.tsx",
+      "target": "function:apps/ops/src/app/ops/(console)/settings/layout.tsx:SettingsLayout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/ops/src/app/ops/(console)/settings/layout.tsx:SettingsLayout",
+      "target": "function:apps/ops/src/lib/platform-auth.ts:getPlatformAdmin",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/components/OpsShell.tsx",
+      "target": "function:apps/ops/src/components/OpsShell.tsx:OpsShell",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/components/OpsShell.tsx",
+      "target": "function:apps/ops/src/components/OpsShell.tsx:OpsShell",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/components/PrintSubNav.tsx",
+      "target": "function:apps/ops/src/components/PrintSubNav.tsx:PrintSubNav",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/components/PrintSubNav.tsx",
+      "target": "function:apps/ops/src/components/PrintSubNav.tsx:PrintSubNav",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/components/RestaurantDetailTabs.tsx",
+      "target": "function:apps/ops/src/components/RestaurantDetailTabs.tsx:RestaurantDetailTabs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/components/RestaurantDetailTabs.tsx",
+      "target": "function:apps/ops/src/components/RestaurantDetailTabs.tsx:RestaurantDetailTabs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

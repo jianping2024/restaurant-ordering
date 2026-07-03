@@ -1,0 +1,41 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 3,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/print-agent/scripts/build-release.ps1",
+      "language": "powershell",
+      "fileCategory": "script",
+      "totalLines": 86,
+      "nonEmptyLines": 76,
+      "metrics": {}
+    },
+    {
+      "path": "apps/print-agent/scripts/verify-single-instance.sh",
+      "language": "shell",
+      "fileCategory": "script",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/scripts/verify-tray-startup-order.sh",
+      "language": "shell",
+      "fileCategory": "script",
+      "totalLines": 40,
+      "nonEmptyLines": 40,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    }
+  ]
+}

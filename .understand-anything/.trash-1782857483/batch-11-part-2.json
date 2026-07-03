@@ -1,0 +1,1550 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/order-append-rate-limit.ts",
+      "type": "file",
+      "name": "order-append-rate-limit.ts",
+      "filePath": "apps/web/src/lib/order-append-rate-limit.ts",
+      "summary": "基于 IP 的追加点单请求滑动窗口限流，防止恶意刷单。",
+      "tags": [
+        "middleware",
+        "validation",
+        "rate-limit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-append-rate-limit.ts:touch",
+      "type": "function",
+      "name": "touch",
+      "filePath": "apps/web/src/lib/order-append-rate-limit.ts",
+      "lineRange": [
+        7,
+        19
+      ],
+      "summary": "基于 IP 的追加点单请求滑动窗口限流，防止恶意刷单。",
+      "tags": [
+        "middleware",
+        "validation",
+        "rate-limit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-append-rate-limit.ts:orderAppendRateLimitCheck",
+      "type": "function",
+      "name": "orderAppendRateLimitCheck",
+      "filePath": "apps/web/src/lib/order-append-rate-limit.ts",
+      "lineRange": [
+        21,
+        23
+      ],
+      "summary": "检查客户端 IP 是否超出追加点单频率限制。",
+      "tags": [
+        "middleware",
+        "validation",
+        "rate-limit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-enqueue-token.ts",
+      "type": "file",
+      "name": "order-enqueue-token.ts",
+      "filePath": "apps/web/src/lib/order-enqueue-token.ts",
+      "summary": "订单/厨打入队 HMAC-JWT 的签名、验证与密钥读取。",
+      "tags": [
+        "utility",
+        "security",
+        "serialization"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-enqueue-token.ts:orderEnqueueSecret",
+      "type": "function",
+      "name": "orderEnqueueSecret",
+      "filePath": "apps/web/src/lib/order-enqueue-token.ts",
+      "lineRange": [
+        25,
+        32
+      ],
+      "summary": "订单/厨打入队 HMAC-JWT 的签名、验证与密钥读取。",
+      "tags": [
+        "utility",
+        "security",
+        "serialization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-enqueue-token.ts:signOrderEnqueueToken",
+      "type": "function",
+      "name": "signOrderEnqueueToken",
+      "filePath": "apps/web/src/lib/order-enqueue-token.ts",
+      "lineRange": [
+        34,
+        52
+      ],
+      "summary": "为订单入队声明签发 HMAC 签名的 JWT。",
+      "tags": [
+        "utility",
+        "security",
+        "serialization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-enqueue-token.ts:verifyOrderEnqueueToken",
+      "type": "function",
+      "name": "verifyOrderEnqueueToken",
+      "filePath": "apps/web/src/lib/order-enqueue-token.ts",
+      "lineRange": [
+        54,
+        78
+      ],
+      "summary": "验证入队 JWT 签名、时效与声明匹配。",
+      "tags": [
+        "utility",
+        "security",
+        "serialization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/decrement-order-item.test.ts",
+      "type": "file",
+      "name": "decrement-order-item.test.ts",
+      "filePath": "apps/web/src/lib/order-item-void/decrement-order-item.test.ts",
+      "summary": "单元测试：覆盖订单行减量权限判断与实际减量应用逻辑。",
+      "tags": [
+        "test",
+        "order-void"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/decrement-order-item.test.ts:baseItem",
+      "type": "function",
+      "name": "baseItem",
+      "filePath": "apps/web/src/lib/order-item-void/decrement-order-item.test.ts",
+      "lineRange": [
+        6,
+        15
+      ],
+      "summary": "单元测试：覆盖订单行减量权限判断与实际减量应用逻辑。",
+      "tags": [
+        "test",
+        "order-void"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "type": "file",
+      "name": "decrement-order-item.ts",
+      "filePath": "apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "summary": "判断订单行是否可减量，并应用数量减少及作废状态变更。",
+      "tags": [
+        "utility",
+        "order-void",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/decrement-order-item.ts:canDecrementOrderItem",
+      "type": "function",
+      "name": "canDecrementOrderItem",
+      "filePath": "apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "lineRange": [
+        27,
+        34
+      ],
+      "summary": "判断指定订单行在当前订单状态下是否允许减量。",
+      "tags": [
+        "utility",
+        "order-void",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/decrement-order-item.ts:applyOrderItemDecrement",
+      "type": "function",
+      "name": "applyOrderItemDecrement",
+      "filePath": "apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "lineRange": [
+        36,
+        92
+      ],
+      "summary": "执行行项减量或作废，返回更新后的行项数组。",
+      "tags": [
+        "utility",
+        "order-void",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/persist-order-items-update.test.ts",
+      "type": "file",
+      "name": "persist-order-items-update.test.ts",
+      "filePath": "apps/web/src/lib/order-item-void/persist-order-items-update.test.ts",
+      "summary": "单元测试：验证订单行更新后的总额重算与数据库持久化。",
+      "tags": [
+        "test",
+        "order-void"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/persist-order-items-update.test.ts:item",
+      "type": "function",
+      "name": "item",
+      "filePath": "apps/web/src/lib/order-item-void/persist-order-items-update.test.ts",
+      "lineRange": [
+        6,
+        15
+      ],
+      "summary": "单元测试：验证订单行更新后的总额重算与数据库持久化。",
+      "tags": [
+        "test",
+        "order-void"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "type": "file",
+      "name": "persist-order-items-update.ts",
+      "filePath": "apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "summary": "根据行项重算订单总额与状态，并乐观锁更新 orders 表。",
+      "tags": [
+        "service",
+        "order-void",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/persist-order-items-update.ts:computeOrderTotalsFromItems",
+      "type": "function",
+      "name": "computeOrderTotalsFromItems",
+      "filePath": "apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "lineRange": [
+        6,
+        18
+      ],
+      "summary": "从行项重算有效总额并派生下一订单状态。",
+      "tags": [
+        "service",
+        "order-void",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/persist-order-items-update.ts:persistOrderItemsUpdate",
+      "type": "function",
+      "name": "persistOrderItemsUpdate",
+      "filePath": "apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "lineRange": [
+        20,
+        49
+      ],
+      "summary": "乐观锁更新 orders 表的 items、status 与 total_amount。",
+      "tags": [
+        "service",
+        "order-void",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-items.ts",
+      "type": "file",
+      "name": "order-items.ts",
+      "filePath": "apps/web/src/lib/order-items.ts",
+      "summary": "识别自助餐基础行，并过滤厨房展示相关的有效订单行。",
+      "tags": [
+        "utility",
+        "data-model",
+        "kitchen"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-items.ts:isBuffetBaseItem",
+      "type": "function",
+      "name": "isBuffetBaseItem",
+      "filePath": "apps/web/src/lib/order-items.ts",
+      "lineRange": [
+        4,
+        6
+      ],
+      "summary": "判断订单行是否为自助餐基础人头行。",
+      "tags": [
+        "utility",
+        "data-model",
+        "kitchen"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-items.ts:kitchenRelevantItems",
+      "type": "function",
+      "name": "kitchenRelevantItems",
+      "filePath": "apps/web/src/lib/order-items.ts",
+      "lineRange": [
+        8,
+        10
+      ],
+      "summary": "过滤出厨房需要处理的非自助餐基础行。",
+      "tags": [
+        "utility",
+        "data-model",
+        "kitchen"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-list-display.test.ts",
+      "type": "file",
+      "name": "order-list-display.test.ts",
+      "filePath": "apps/web/src/lib/order-list-display.test.ts",
+      "summary": "单元测试：覆盖订单列表数量、名称与展示芯片的格式化逻辑。",
+      "tags": [
+        "test",
+        "serialization"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-list-display.ts",
+      "type": "file",
+      "name": "order-list-display.ts",
+      "filePath": "apps/web/src/lib/order-list-display.ts",
+      "summary": "格式化订单行数量/名称标签，并聚合生成菜单页展示芯片。",
+      "tags": [
+        "utility",
+        "serialization",
+        "i18n"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-list-display.ts:orderListGuestLabelsFromLang",
+      "type": "function",
+      "name": "orderListGuestLabelsFromLang",
+      "filePath": "apps/web/src/lib/order-list-display.ts",
+      "lineRange": [
+        24,
+        27
+      ],
+      "summary": "格式化订单行数量/名称标签，并聚合生成菜单页展示芯片。",
+      "tags": [
+        "utility",
+        "serialization",
+        "i18n"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-list-display.ts:formatOrderItemQuantityLabel",
+      "type": "function",
+      "name": "formatOrderItemQuantityLabel",
+      "filePath": "apps/web/src/lib/order-list-display.ts",
+      "lineRange": [
+        40,
+        59
+      ],
+      "summary": "格式化订单行数量/名称标签，并聚合生成菜单页展示芯片。",
+      "tags": [
+        "utility",
+        "serialization",
+        "i18n"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-list-display.ts:formatOrderItemNameLabel",
+      "type": "function",
+      "name": "formatOrderItemNameLabel",
+      "filePath": "apps/web/src/lib/order-list-display.ts",
+      "lineRange": [
+        62,
+        67
+      ],
+      "summary": "格式化订单行数量/名称标签，并聚合生成菜单页展示芯片。",
+      "tags": [
+        "utility",
+        "serialization",
+        "i18n"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-list-display.ts:formatOrderItemListLabel",
+      "type": "function",
+      "name": "formatOrderItemListLabel",
+      "filePath": "apps/web/src/lib/order-list-display.ts",
+      "lineRange": [
+        70,
+        77
+      ],
+      "summary": "格式化订单行数量/名称标签，并聚合生成菜单页展示芯片。",
+      "tags": [
+        "utility",
+        "serialization",
+        "i18n"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-list-display.ts:formatOrderListItemPrintQty",
+      "type": "function",
+      "name": "formatOrderListItemPrintQty",
+      "filePath": "apps/web/src/lib/order-list-display.ts",
+      "lineRange": [
+        80,
+        87
+      ],
+      "summary": "格式化订单行数量/名称标签，并聚合生成菜单页展示芯片。",
+      "tags": [
+        "utility",
+        "serialization",
+        "i18n"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-list-display.ts:countOrderListItems",
+      "type": "function",
+      "name": "countOrderListItems",
+      "filePath": "apps/web/src/lib/order-list-display.ts",
+      "lineRange": [
+        90,
+        103
+      ],
+      "summary": "格式化订单行数量/名称标签，并聚合生成菜单页展示芯片。",
+      "tags": [
+        "utility",
+        "serialization",
+        "i18n"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-list-display.ts:buildOrderListDisplayChips",
+      "type": "function",
+      "name": "buildOrderListDisplayChips",
+      "filePath": "apps/web/src/lib/order-list-display.ts",
+      "lineRange": [
+        105,
+        171
+      ],
+      "summary": "聚合多笔订单生成菜单页菜品展示芯片列表。",
+      "tags": [
+        "utility",
+        "serialization",
+        "i18n"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-radius.ts",
+      "type": "file",
+      "name": "order-radius.ts",
+      "filePath": "apps/web/src/lib/order-radius.ts",
+      "summary": "餐厅可点餐半径（米）的默认值、边界约束与输入解析。",
+      "tags": [
+        "utility",
+        "validation",
+        "geo-fence"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-radius.ts:normalizeOrderRadiusMeters",
+      "type": "function",
+      "name": "normalizeOrderRadiusMeters",
+      "filePath": "apps/web/src/lib/order-radius.ts",
+      "lineRange": [
+        5,
+        9
+      ],
+      "summary": "餐厅可点餐半径（米）的默认值、边界约束与输入解析。",
+      "tags": [
+        "utility",
+        "validation",
+        "geo-fence"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-radius.ts:parseOrderRadiusInput",
+      "type": "function",
+      "name": "parseOrderRadiusInput",
+      "filePath": "apps/web/src/lib/order-radius.ts",
+      "lineRange": [
+        12,
+        20
+      ],
+      "summary": "餐厅可点餐半径（米）的默认值、边界约束与输入解析。",
+      "tags": [
+        "utility",
+        "validation",
+        "geo-fence"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-receipt-enqueue.test.ts",
+      "type": "file",
+      "name": "order-receipt-enqueue.test.ts",
+      "filePath": "apps/web/src/lib/order-receipt-enqueue.test.ts",
+      "summary": "单元测试：覆盖收据行构建、分账收据与打印任务入队的多种场景。",
+      "tags": [
+        "test",
+        "print",
+        "checkout"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-receipt-enqueue.test.ts:byItemSplit",
+      "type": "function",
+      "name": "byItemSplit",
+      "filePath": "apps/web/src/lib/order-receipt-enqueue.test.ts",
+      "lineRange": [
+        15,
+        39
+      ],
+      "summary": "单元测试：覆盖收据行构建、分账收据与打印任务入队的多种场景。",
+      "tags": [
+        "test",
+        "print",
+        "checkout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "type": "file",
+      "name": "order-receipt-enqueue.ts",
+      "filePath": "apps/web/src/lib/order-receipt-enqueue.ts",
+      "summary": "构建结账/分账收据行，查重后向 print_jobs 入队打印任务。",
+      "tags": [
+        "service",
+        "print",
+        "checkout"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-receipt-enqueue.ts:receiptLineFromOrderItem",
+      "type": "function",
+      "name": "receiptLineFromOrderItem",
+      "filePath": "apps/web/src/lib/order-receipt-enqueue.ts",
+      "lineRange": [
+        71,
+        81
+      ],
+      "summary": "构建结账/分账收据行，查重后向 print_jobs 入队打印任务。",
+      "tags": [
+        "service",
+        "print",
+        "checkout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-receipt-enqueue.ts:buildReceiptLinesFromOrders",
+      "type": "function",
+      "name": "buildReceiptLinesFromOrders",
+      "filePath": "apps/web/src/lib/order-receipt-enqueue.ts",
+      "lineRange": [
+        83,
+        97
+      ],
+      "summary": "构建结账/分账收据行，查重后向 print_jobs 入队打印任务。",
+      "tags": [
+        "service",
+        "print",
+        "checkout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-receipt-enqueue.ts:buildSplitPersonReceiptLines",
+      "type": "function",
+      "name": "buildSplitPersonReceiptLines",
+      "filePath": "apps/web/src/lib/order-receipt-enqueue.ts",
+      "lineRange": [
+        100,
+        155
+      ],
+      "summary": "构建结账/分账收据行，查重后向 print_jobs 入队打印任务。",
+      "tags": [
+        "service",
+        "print",
+        "checkout"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-receipt-enqueue.ts:checkoutReceiptIdempotencyKey",
+      "type": "function",
+      "name": "checkoutReceiptIdempotencyKey",
+      "filePath": "apps/web/src/lib/order-receipt-enqueue.ts",
+      "lineRange": [
+        158,
+        170
+      ],
+      "summary": "构建结账/分账收据行，查重后向 print_jobs 入队打印任务。",
+      "tags": [
+        "service",
+        "print",
+        "checkout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-receipt-enqueue.ts:findCheckoutReceiptJobId",
+      "type": "function",
+      "name": "findCheckoutReceiptJobId",
+      "filePath": "apps/web/src/lib/order-receipt-enqueue.ts",
+      "lineRange": [
+        172,
+        190
+      ],
+      "summary": "构建结账/分账收据行，查重后向 print_jobs 入队打印任务。",
+      "tags": [
+        "service",
+        "print",
+        "checkout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-receipt-enqueue.ts:loadOrdersForReceiptPrint",
+      "type": "function",
+      "name": "loadOrdersForReceiptPrint",
+      "filePath": "apps/web/src/lib/order-receipt-enqueue.ts",
+      "lineRange": [
+        215,
+        236
+      ],
+      "summary": "构建结账/分账收据行，查重后向 print_jobs 入队打印任务。",
+      "tags": [
+        "service",
+        "print",
+        "checkout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-receipt-enqueue.ts:enqueueReceiptPrint",
+      "type": "function",
+      "name": "enqueueReceiptPrint",
+      "filePath": "apps/web/src/lib/order-receipt-enqueue.ts",
+      "lineRange": [
+        238,
+        418
+      ],
+      "summary": "校验功能开关后构建收据 payload 并插入 print_jobs。",
+      "tags": [
+        "service",
+        "print",
+        "checkout"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-status.ts",
+      "type": "file",
+      "name": "order-status.ts",
+      "filePath": "apps/web/src/lib/order-status.ts",
+      "summary": "规范化订单行状态，并从行项集合派生整单状态（含全作废判断）。",
+      "tags": [
+        "utility",
+        "data-model",
+        "kitchen"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-status.ts:normalizeOrderItemStatus",
+      "type": "function",
+      "name": "normalizeOrderItemStatus",
+      "filePath": "apps/web/src/lib/order-status.ts",
+      "lineRange": [
+        6,
+        11
+      ],
+      "summary": "规范化订单行状态，并从行项集合派生整单状态（含全作废判断）。",
+      "tags": [
+        "utility",
+        "data-model",
+        "kitchen"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-status.ts:itemsEveryVoided",
+      "type": "function",
+      "name": "itemsEveryVoided",
+      "filePath": "apps/web/src/lib/order-status.ts",
+      "lineRange": [
+        14,
+        17
+      ],
+      "summary": "规范化订单行状态，并从行项集合派生整单状态（含全作废判断）。",
+      "tags": [
+        "utility",
+        "data-model",
+        "kitchen"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-status.ts:deriveOrderStatusFromItems",
+      "type": "function",
+      "name": "deriveOrderStatusFromItems",
+      "filePath": "apps/web/src/lib/order-status.ts",
+      "lineRange": [
+        23,
+        35
+      ],
+      "summary": "根据有效行项的厨房状态派生整单 status。",
+      "tags": [
+        "utility",
+        "data-model",
+        "kitchen"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/order-append-rate-limit.ts",
+      "target": "function:apps/web/src/lib/order-append-rate-limit.ts:touch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-append-rate-limit.ts",
+      "target": "function:apps/web/src/lib/order-append-rate-limit.ts:orderAppendRateLimitCheck",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-append-rate-limit.ts",
+      "target": "function:apps/web/src/lib/order-append-rate-limit.ts:orderAppendRateLimitCheck",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-append-rate-limit.ts:orderAppendRateLimitCheck",
+      "target": "function:apps/web/src/lib/order-append-rate-limit.ts:touch",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-enqueue-token.ts",
+      "target": "function:apps/web/src/lib/order-enqueue-token.ts:orderEnqueueSecret",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-enqueue-token.ts",
+      "target": "function:apps/web/src/lib/order-enqueue-token.ts:orderEnqueueSecret",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-enqueue-token.ts",
+      "target": "function:apps/web/src/lib/order-enqueue-token.ts:signOrderEnqueueToken",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-enqueue-token.ts",
+      "target": "function:apps/web/src/lib/order-enqueue-token.ts:signOrderEnqueueToken",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-enqueue-token.ts",
+      "target": "function:apps/web/src/lib/order-enqueue-token.ts:verifyOrderEnqueueToken",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-enqueue-token.ts",
+      "target": "function:apps/web/src/lib/order-enqueue-token.ts:verifyOrderEnqueueToken",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.test.ts",
+      "target": "function:apps/web/src/lib/order-item-void/decrement-order-item.test.ts:baseItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.test.ts",
+      "target": "file:apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "target": "function:apps/web/src/lib/order-item-void/decrement-order-item.ts:canDecrementOrderItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "target": "function:apps/web/src/lib/order-item-void/decrement-order-item.ts:canDecrementOrderItem",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "target": "function:apps/web/src/lib/order-item-void/decrement-order-item.ts:applyOrderItemDecrement",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "target": "function:apps/web/src/lib/order-item-void/decrement-order-item.ts:applyOrderItemDecrement",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "target": "file:apps/web/src/lib/cart-totals.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "target": "file:apps/web/src/lib/order-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "target": "file:apps/web/src/lib/order-status.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/decrement-order-item.ts:applyOrderItemDecrement",
+      "target": "function:apps/web/src/lib/order-item-void/decrement-order-item.ts:canDecrementOrderItem",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/persist-order-items-update.test.ts",
+      "target": "function:apps/web/src/lib/order-item-void/persist-order-items-update.test.ts:item",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/persist-order-items-update.test.ts",
+      "target": "file:apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/persist-order-items-update.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "target": "function:apps/web/src/lib/order-item-void/persist-order-items-update.ts:computeOrderTotalsFromItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "target": "function:apps/web/src/lib/order-item-void/persist-order-items-update.ts:computeOrderTotalsFromItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "target": "function:apps/web/src/lib/order-item-void/persist-order-items-update.ts:persistOrderItemsUpdate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "target": "function:apps/web/src/lib/order-item-void/persist-order-items-update.ts:persistOrderItemsUpdate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "target": "file:apps/web/src/lib/cart-totals.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "target": "file:apps/web/src/lib/order-status.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/persist-order-items-update.ts:persistOrderItemsUpdate",
+      "target": "function:apps/web/src/lib/order-item-void/persist-order-items-update.ts:computeOrderTotalsFromItems",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-items.ts",
+      "target": "function:apps/web/src/lib/order-items.ts:isBuffetBaseItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-items.ts",
+      "target": "function:apps/web/src/lib/order-items.ts:isBuffetBaseItem",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-items.ts",
+      "target": "function:apps/web/src/lib/order-items.ts:kitchenRelevantItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-items.ts",
+      "target": "function:apps/web/src/lib/order-items.ts:kitchenRelevantItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-items.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/order-items.ts:kitchenRelevantItems",
+      "target": "function:apps/web/src/lib/order-items.ts:isBuffetBaseItem",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.test.ts",
+      "target": "file:apps/web/src/lib/order-list-display.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "function:apps/web/src/lib/order-list-display.ts:orderListGuestLabelsFromLang",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "function:apps/web/src/lib/order-list-display.ts:orderListGuestLabelsFromLang",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "function:apps/web/src/lib/order-list-display.ts:formatOrderItemQuantityLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "function:apps/web/src/lib/order-list-display.ts:formatOrderItemQuantityLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "function:apps/web/src/lib/order-list-display.ts:formatOrderItemNameLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "function:apps/web/src/lib/order-list-display.ts:formatOrderItemNameLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "function:apps/web/src/lib/order-list-display.ts:formatOrderItemListLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "function:apps/web/src/lib/order-list-display.ts:formatOrderItemListLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "function:apps/web/src/lib/order-list-display.ts:formatOrderListItemPrintQty",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "function:apps/web/src/lib/order-list-display.ts:formatOrderListItemPrintQty",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "function:apps/web/src/lib/order-list-display.ts:countOrderListItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "function:apps/web/src/lib/order-list-display.ts:countOrderListItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "function:apps/web/src/lib/order-list-display.ts:buildOrderListDisplayChips",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "function:apps/web/src/lib/order-list-display.ts:buildOrderListDisplayChips",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "file:apps/web/src/lib/buffet-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "file:apps/web/src/lib/order-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/order-list-display.ts:formatOrderItemListLabel",
+      "target": "function:apps/web/src/lib/order-list-display.ts:formatOrderItemQuantityLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-list-display.ts:formatOrderListItemPrintQty",
+      "target": "function:apps/web/src/lib/order-list-display.ts:formatOrderItemQuantityLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-list-display.ts:buildOrderListDisplayChips",
+      "target": "function:apps/web/src/lib/order-list-display.ts:formatOrderItemQuantityLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-list-display.ts:buildOrderListDisplayChips",
+      "target": "function:apps/web/src/lib/order-list-display.ts:formatOrderItemQuantityLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-radius.ts",
+      "target": "function:apps/web/src/lib/order-radius.ts:normalizeOrderRadiusMeters",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-radius.ts",
+      "target": "function:apps/web/src/lib/order-radius.ts:normalizeOrderRadiusMeters",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-radius.ts",
+      "target": "function:apps/web/src/lib/order-radius.ts:parseOrderRadiusInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-radius.ts",
+      "target": "function:apps/web/src/lib/order-radius.ts:parseOrderRadiusInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.test.ts",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.test.ts:byItemSplit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.test.ts",
+      "target": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:receiptLineFromOrderItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:buildReceiptLinesFromOrders",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:buildReceiptLinesFromOrders",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:buildSplitPersonReceiptLines",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:buildSplitPersonReceiptLines",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:checkoutReceiptIdempotencyKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:checkoutReceiptIdempotencyKey",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:findCheckoutReceiptJobId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:loadOrdersForReceiptPrint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:loadOrdersForReceiptPrint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:enqueueReceiptPrint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:enqueueReceiptPrint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item-lines.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "file:apps/web/src/lib/bill-split-by-item.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "file:apps/web/src/lib/buffet-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "file:apps/web/src/lib/checkout-split-math.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "file:apps/web/src/lib/menu-print-label.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "file:apps/web/src/lib/order-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "file:apps/web/src/lib/order-status.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "file:apps/web/src/lib/receipt-payer-label.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "file:apps/web/src/lib/restaurant-features.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "file:apps/web/src/lib/table-guest-count.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/order-receipt-enqueue.ts:buildReceiptLinesFromOrders",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:receiptLineFromOrderItem",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-receipt-enqueue.ts:enqueueReceiptPrint",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:checkoutReceiptIdempotencyKey",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-receipt-enqueue.ts:enqueueReceiptPrint",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:findCheckoutReceiptJobId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-receipt-enqueue.ts:enqueueReceiptPrint",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:loadOrdersForReceiptPrint",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-receipt-enqueue.ts:enqueueReceiptPrint",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:buildReceiptLinesFromOrders",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-receipt-enqueue.ts:enqueueReceiptPrint",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:buildSplitPersonReceiptLines",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-status.ts",
+      "target": "function:apps/web/src/lib/order-status.ts:normalizeOrderItemStatus",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-status.ts",
+      "target": "function:apps/web/src/lib/order-status.ts:normalizeOrderItemStatus",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-status.ts",
+      "target": "function:apps/web/src/lib/order-status.ts:itemsEveryVoided",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-status.ts",
+      "target": "function:apps/web/src/lib/order-status.ts:itemsEveryVoided",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-status.ts",
+      "target": "function:apps/web/src/lib/order-status.ts:deriveOrderStatusFromItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-status.ts",
+      "target": "function:apps/web/src/lib/order-status.ts:deriveOrderStatusFromItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-status.ts",
+      "target": "file:apps/web/src/lib/order-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-status.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/order-status.ts:deriveOrderStatusFromItems",
+      "target": "function:apps/web/src/lib/order-status.ts:itemsEveryVoided",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/decrement-order-item.ts:canDecrementOrderItem",
+      "target": "function:apps/web/src/lib/order-items.ts:isBuffetBaseItem",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/decrement-order-item.ts:canDecrementOrderItem",
+      "target": "function:apps/web/src/lib/order-status.ts:normalizeOrderItemStatus",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-item-void/persist-order-items-update.ts:computeOrderTotalsFromItems",
+      "target": "function:apps/web/src/lib/order-status.ts:deriveOrderStatusFromItems",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/order-status.ts:deriveOrderStatusFromItems",
+      "target": "function:apps/web/src/lib/order-items.ts:kitchenRelevantItems",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "target": "file:apps/web/src/lib/order-item-void/decrement-order-item.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "target": "file:apps/web/src/lib/order-item-void/persist-order-items-update.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/order-list-display.ts",
+      "target": "file:apps/web/src/lib/order-list-display.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "target": "file:apps/web/src/lib/order-receipt-enqueue.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

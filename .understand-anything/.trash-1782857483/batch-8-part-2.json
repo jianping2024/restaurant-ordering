@@ -1,0 +1,832 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/app/api/print-agent/heartbeat/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/heartbeat/route.ts",
+      "summary": "打印代理心跳上报，更新设备最后在线时间与运行时状态快照。",
+      "tags": [
+        "api-handler",
+        "print-agent",
+        "heartbeat",
+        "monitoring"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/heartbeat/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/print-agent/heartbeat/route.ts",
+      "lineRange": [
+        16,
+        84
+      ],
+      "summary": "处理 POST 请求的主路由处理器，编排鉴权、校验与 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/print-agent/jobs/[id]/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/jobs/[id]/route.ts",
+      "summary": "打印代理按任务 ID 更新打印状态（完成/失败），结合路由快照校验设备可见性。",
+      "tags": [
+        "api-handler",
+        "print-agent",
+        "print-jobs",
+        "routing"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/jobs/[id]/route.ts:PATCH",
+      "type": "function",
+      "name": "PATCH",
+      "filePath": "apps/web/src/app/api/print-agent/jobs/[id]/route.ts",
+      "lineRange": [
+        12,
+        138
+      ],
+      "summary": "处理 PATCH 请求，部分更新资源字段并返回结果。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/app/api/print-agent/pairing/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/pairing/route.ts",
+      "summary": "店主发起打印代理配对，生成限时配对码并占用待配对槽位。",
+      "tags": [
+        "api-handler",
+        "print-agent",
+        "pairing",
+        "dashboard"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/pairing/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/print-agent/pairing/route.ts",
+      "lineRange": [
+        10,
+        137
+      ],
+      "summary": "处理 POST 请求的主路由处理器，编排鉴权、校验与 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/app/api/print-agent/pairings/[id]/revoke/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/pairings/[id]/revoke/route.ts",
+      "summary": "撤销指定配对槽位（待配对或已绑定），释放设备配对名额。",
+      "tags": [
+        "api-handler",
+        "print-agent",
+        "pairing",
+        "revocation"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/pairings/[id]/revoke/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/print-agent/pairings/[id]/revoke/route.ts",
+      "lineRange": [
+        7,
+        41
+      ],
+      "summary": "处理 POST 请求的主路由处理器，编排鉴权、校验与 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/print-agent/pairings/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/pairings/route.ts",
+      "summary": "列出餐厅所有打印代理配对槽位及掩码后的配对码状态。",
+      "tags": [
+        "api-handler",
+        "print-agent",
+        "pairing",
+        "dashboard"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/pairings/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/print-agent/pairings/route.ts",
+      "lineRange": [
+        8,
+        47
+      ],
+      "summary": "处理 GET 请求的主路由处理器，查询资源并返回 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/print-agent/pending-jobs/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/pending-jobs/route.ts",
+      "summary": "打印代理拉取待处理任务队列，过滤过期任务并按设备路由快照筛选可见作业。",
+      "tags": [
+        "api-handler",
+        "print-agent",
+        "print-jobs",
+        "routing"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/pending-jobs/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/print-agent/pending-jobs/route.ts",
+      "lineRange": [
+        19,
+        72
+      ],
+      "summary": "处理 GET 请求的主路由处理器，查询资源并返回 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/print-agent/print-jobs/[id]/retry/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/print-jobs/[id]/retry/route.ts",
+      "summary": "店主后台将失败打印任务重置为待处理以便打印代理重新拉取。",
+      "tags": [
+        "api-handler",
+        "print-agent",
+        "print-jobs",
+        "retry"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/print-jobs/[id]/retry/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/print-agent/print-jobs/[id]/retry/route.ts",
+      "lineRange": [
+        8,
+        61
+      ],
+      "summary": "处理 POST 请求的主路由处理器，编排鉴权、校验与 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/print-agent/print-jobs/recent/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/print-jobs/recent/route.ts",
+      "summary": "店主查询近期打印任务列表，按餐厅范围过滤并返回任务详情。",
+      "tags": [
+        "api-handler",
+        "print-agent",
+        "print-jobs",
+        "dashboard"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/print-jobs/recent/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/print-agent/print-jobs/recent/route.ts",
+      "lineRange": [
+        27,
+        84
+      ],
+      "summary": "处理 GET 请求的主路由处理器，查询资源并返回 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/print-agent/print-stations/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/print-stations/route.ts",
+      "summary": "打印代理获取餐厅打印站点列表，用于本地路由与任务分发。",
+      "tags": [
+        "api-handler",
+        "print-agent",
+        "print-stations"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/print-stations/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/print-agent/print-stations/route.ts",
+      "lineRange": [
+        8,
+        33
+      ],
+      "summary": "处理 GET 请求的主路由处理器，查询资源并返回 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/app/api/print-agent/heartbeat/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/heartbeat/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/heartbeat/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/heartbeat/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/heartbeat/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/heartbeat/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/heartbeat/route.ts:POST",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/heartbeat/route.ts:POST",
+      "target": "function:apps/web/src/lib/print-agent-auth.ts:verifyActiveAgentBearer",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/jobs/[id]/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/jobs/[id]/route.ts:PATCH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/jobs/[id]/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/jobs/[id]/route.ts:PATCH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/jobs/[id]/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/jobs/[id]/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-routing.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/jobs/[id]/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/jobs/[id]/route.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/jobs/[id]/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/jobs/[id]/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/print-agent-auth.ts:verifyActiveAgentBearer",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/jobs/[id]/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:isPrintJobVisibleToDevice",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pairing/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/pairing/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pairing/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/pairing/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pairing/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pairing/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-pairing-code.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pairing/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-pairing-slots.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pairing/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pairing/route.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/pairing/route.ts:POST",
+      "target": "function:apps/web/src/lib/print-agent-dashboard-auth.ts:getOwnerRestaurantId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/pairing/route.ts:POST",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/pairing/route.ts:POST",
+      "target": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/pairing/route.ts:POST",
+      "target": "function:apps/web/src/lib/print-agent-pairing-code.ts:randomPairingCode",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pairings/[id]/revoke/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/pairings/[id]/revoke/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pairings/[id]/revoke/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/pairings/[id]/revoke/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pairings/[id]/revoke/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pairings/[id]/revoke/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/pairings/[id]/revoke/route.ts:POST",
+      "target": "function:apps/web/src/lib/print-agent-dashboard-auth.ts:getOwnerRestaurantId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/pairings/[id]/revoke/route.ts:POST",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pairings/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/pairings/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pairings/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/pairings/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pairings/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-pairing-code.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pairings/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-pairing-slots.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pairings/route.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/pairings/route.ts:GET",
+      "target": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/pairings/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-agent-pairing-code.ts:maskPairingCode",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/pairings/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-agent-pairing-slots.ts:isPendingPairing",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pending-jobs/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/pending-jobs/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pending-jobs/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/pending-jobs/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pending-jobs/route.ts",
+      "target": "file:apps/web/src/lib/expire-stale-print-jobs.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pending-jobs/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pending-jobs/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-routing.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pending-jobs/route.ts",
+      "target": "file:apps/web/src/lib/print-job-max-age.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pending-jobs/route.ts",
+      "target": "file:apps/web/src/lib/print-jobs-scope.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/pending-jobs/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/pending-jobs/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-jobs-scope.ts:rejectForbiddenPrintJobsScopeParams",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/pending-jobs/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-jobs-scope.ts:rejectUnexpectedPrintJobsQueryParams",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/pending-jobs/route.ts:GET",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/pending-jobs/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-agent-auth.ts:verifyActiveAgentBearer",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/pending-jobs/route.ts:GET",
+      "target": "function:apps/web/src/lib/expire-stale-print-jobs.ts:maybeExpireStalePrintJobs",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/pending-jobs/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-jobs-scope.ts:filterPrintJobsByRestaurant",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/pending-jobs/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:filterPrintJobsForDevice",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/print-jobs/[id]/retry/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/print-jobs/[id]/retry/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/print-jobs/[id]/retry/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/print-jobs/[id]/retry/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/print-jobs/[id]/retry/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/print-jobs/[id]/retry/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/print-jobs/[id]/retry/route.ts:POST",
+      "target": "function:apps/web/src/lib/print-agent-dashboard-auth.ts:getOwnerRestaurantId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/print-jobs/[id]/retry/route.ts:POST",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/print-jobs/recent/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/print-jobs/recent/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/print-jobs/recent/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/print-jobs/recent/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/print-jobs/recent/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/print-jobs/recent/route.ts",
+      "target": "file:apps/web/src/lib/print-jobs-scope.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/print-jobs/recent/route.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/print-jobs/recent/route.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/print-jobs/recent/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-jobs-scope.ts:rejectForbiddenPrintJobsScopeParams",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/print-jobs/recent/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-jobs-scope.ts:rejectUnexpectedPrintJobsQueryParams",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/print-jobs/recent/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-agent-dashboard-auth.ts:getOwnerRestaurantId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/print-jobs/recent/route.ts:GET",
+      "target": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/print-stations/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/print-stations/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/print-stations/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/print-stations/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/print-stations/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/print-stations/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/print-stations/route.ts:GET",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/print-stations/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-agent-auth.ts:verifyActiveAgentBearer",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

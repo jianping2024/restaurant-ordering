@@ -1,0 +1,99 @@
+{
+  "nodes": [
+    {
+      "id": "document:apps/print-agent/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "apps/print-agent/README.md",
+      "summary": "项目说明文档，介绍系统架构、安装部署与使用指南。",
+      "tags": [
+        "documentation",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:apps/print-agent/RELEASE_NOTES.md",
+      "type": "document",
+      "name": "RELEASE_NOTES.md",
+      "filePath": "apps/print-agent/RELEASE_NOTES.md",
+      "summary": "项目文档 RELEASE_NOTES.md，记录相关设计与实现说明。",
+      "tags": [
+        "documentation",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/configure_ui.html",
+      "type": "file",
+      "name": "configure_ui.html",
+      "filePath": "apps/print-agent/configure_ui.html",
+      "summary": "源码文件 apps/print-agent/configure_ui.html，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility",
+        "printing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "config:apps/print-agent/go.mod",
+      "type": "config",
+      "name": "go.mod",
+      "filePath": "apps/print-agent/go.mod",
+      "summary": "配置文件 go.mod，控制项目构建或运行时行为。",
+      "tags": [
+        "configuration",
+        "build-system",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:apps/print-agent/go.sum",
+      "type": "config",
+      "name": "go.sum",
+      "filePath": "apps/print-agent/go.sum",
+      "summary": "配置文件 go.sum，控制项目构建或运行时行为。",
+      "tags": [
+        "configuration",
+        "build-system",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/pair_ui.html",
+      "type": "file",
+      "name": "pair_ui.html",
+      "filePath": "apps/print-agent/pair_ui.html",
+      "summary": "源码文件 apps/print-agent/pair_ui.html，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/setup_ui.html",
+      "type": "file",
+      "name": "setup_ui.html",
+      "filePath": "apps/print-agent/setup_ui.html",
+      "summary": "源码文件 apps/print-agent/setup_ui.html，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility",
+        "printing"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:apps/print-agent/README.md",
+      "target": "file:apps/web/src/app/layout.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

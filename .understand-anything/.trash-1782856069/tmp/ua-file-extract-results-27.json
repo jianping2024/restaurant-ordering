@@ -1,0 +1,204 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 7,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/print-agent/README.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 159,
+      "nonEmptyLines": 111,
+      "sections": [
+        {
+          "heading": "Mesa print agent",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Job payload — table fields",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Commands",
+          "level": 2,
+          "line": 20
+        },
+        {
+          "heading": "Discover printers (LAN scan)",
+          "level": 3,
+          "line": 22
+        },
+        {
+          "heading": "Run agent (poll + print)",
+          "level": 3,
+          "line": 34
+        },
+        {
+          "heading": "Config (`config.json`)",
+          "level": 2,
+          "line": 54
+        },
+        {
+          "heading": "Schedule (optional)",
+          "level": 3,
+          "line": 88
+        },
+        {
+          "heading": "Poll (optional, dynamic intervals)",
+          "level": 3,
+          "line": 100
+        },
+        {
+          "heading": "Windows release (installers)",
+          "level": 2,
+          "line": 123
+        },
+        {
+          "heading": "Publish a release",
+          "level": 3,
+          "line": 127
+        },
+        {
+          "heading": "Build on Windows locally",
+          "level": 3,
+          "line": 144
+        },
+        {
+          "heading": "Local Docker dev (optional, isolated)",
+          "level": 2,
+          "line": 157
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 12
+      }
+    },
+    {
+      "path": "apps/print-agent/RELEASE_NOTES.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 99,
+      "nonEmptyLines": 58,
+      "sections": [
+        {
+          "heading": "Print Agent Release Notes",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "0.3.38",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "0.3.37",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "0.3.36",
+          "level": 2,
+          "line": 17
+        },
+        {
+          "heading": "0.3.35",
+          "level": 2,
+          "line": 24
+        },
+        {
+          "heading": "0.3.34",
+          "level": 2,
+          "line": 31
+        },
+        {
+          "heading": "0.3.33",
+          "level": 2,
+          "line": 38
+        },
+        {
+          "heading": "0.3.32",
+          "level": 2,
+          "line": 44
+        },
+        {
+          "heading": "0.3.31",
+          "level": 2,
+          "line": 50
+        },
+        {
+          "heading": "0.3.30",
+          "level": 2,
+          "line": 59
+        },
+        {
+          "heading": "0.3.29",
+          "level": 2,
+          "line": 65
+        },
+        {
+          "heading": "0.3.28",
+          "level": 2,
+          "line": 76
+        },
+        {
+          "heading": "0.3.27",
+          "level": 2,
+          "line": 85
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 13
+      }
+    },
+    {
+      "path": "apps/print-agent/configure_ui.html",
+      "language": "html",
+      "fileCategory": "markup",
+      "totalLines": 867,
+      "nonEmptyLines": 809,
+      "metrics": {}
+    },
+    {
+      "path": "apps/print-agent/go.mod",
+      "language": "mod",
+      "fileCategory": "config",
+      "totalLines": 21,
+      "nonEmptyLines": 18,
+      "metrics": {}
+    },
+    {
+      "path": "apps/print-agent/go.sum",
+      "language": "sum",
+      "fileCategory": "config",
+      "totalLines": 38,
+      "nonEmptyLines": 38,
+      "metrics": {}
+    },
+    {
+      "path": "apps/print-agent/pair_ui.html",
+      "language": "html",
+      "fileCategory": "markup",
+      "totalLines": 170,
+      "nonEmptyLines": 170,
+      "metrics": {}
+    },
+    {
+      "path": "apps/print-agent/setup_ui.html",
+      "language": "html",
+      "fileCategory": "markup",
+      "totalLines": 582,
+      "nonEmptyLines": 553,
+      "metrics": {}
+    }
+  ]
+}

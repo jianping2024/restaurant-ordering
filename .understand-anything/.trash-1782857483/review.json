@@ -1,0 +1,45 @@
+{
+  "issues": [],
+  "warnings": [
+    "Node 'file:apps/ops/src/lib/supabase-restaurant-join.ts' has no edges (orphan)",
+    "Node 'file:apps/print-agent/console_stub.go' has no edges (orphan)",
+    "Node 'file:apps/print-agent/notify_credential_stub.go' has no edges (orphan)",
+    "Node 'file:apps/print-agent/notify_version_stub.go' has no edges (orphan)",
+    "Node 'file:apps/print-agent/wizard_announce_stub.go' has no edges (orphan)",
+    "Node 'file:apps/print-agent/wizard_url_hook.go' has no edges (orphan)",
+    "Node 'file:apps/web/src/app/dashboard/buffet/page.tsx' has no edges (orphan)",
+    "Node 'file:apps/web/src/app/dashboard/settings/menu/page.tsx' has no edges (orphan)",
+    "Node 'file:apps/web/src/app/dashboard/settings/print-stations/page.tsx' has no edges (orphan)",
+    "Node 'file:apps/web/src/app/dashboard/settings/tables/page.tsx' has no edges (orphan)",
+    "Node 'file:apps/web/src/lib/restaurant-suspension.test.ts' has no edges (orphan)"
+  ],
+  "stats": {
+    "totalNodes": 1942,
+    "totalEdges": 4432,
+    "totalLayers": 9,
+    "tourSteps": 12,
+    "nodeTypes": {
+      "file": 660,
+      "function": 1212,
+      "service": 9,
+      "table": 26,
+      "config": 16,
+      "document": 6,
+      "class": 13
+    },
+    "edgeTypes": {
+      "contains": 1261,
+      "exports": 903,
+      "imports": 1266,
+      "depends_on": 84,
+      "calls": 662,
+      "tested_by": 117,
+      "deploys": 5,
+      "migrates": 51,
+      "related": 41,
+      "configures": 22,
+      "documents": 19,
+      "triggers": 1
+    }
+  }
+}

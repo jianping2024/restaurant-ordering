@@ -1,0 +1,41 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/print-agent/scripts/build-release.ps1",
+      "type": "file",
+      "name": "build-release.ps1",
+      "filePath": "apps/print-agent/scripts/build-release.ps1",
+      "summary": "源码文件 apps/print-agent/scripts/build-release.ps1，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/scripts/verify-single-instance.sh",
+      "type": "file",
+      "name": "verify-single-instance.sh",
+      "filePath": "apps/print-agent/scripts/verify-single-instance.sh",
+      "summary": "源码文件 apps/print-agent/scripts/verify-single-instance.sh，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/scripts/verify-tray-startup-order.sh",
+      "type": "file",
+      "name": "verify-tray-startup-order.sh",
+      "filePath": "apps/print-agent/scripts/verify-tray-startup-order.sh",
+      "summary": "源码文件 apps/print-agent/scripts/verify-tray-startup-order.sh，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility",
+        "printing"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": []
+}

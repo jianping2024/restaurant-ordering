@@ -1,0 +1,76 @@
+{
+  "nodes": [
+    {
+      "id": "config:apps/web/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "apps/web/package.json",
+      "summary": "@mesa/web 租户应用的 npm 包清单，定义 Next.js 开发/构建/启动脚本，并声明 Supabase、React、Tailwind 等运行时与开发依赖。",
+      "tags": ["configuration", "npm", "nextjs", "build-system"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:apps/web/tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "apps/web/tsconfig.json",
+      "summary": "@mesa/web 的 TypeScript 编译配置，启用 strict 模式与 bundler 模块解析，通过 @/* 路径别名映射到 src 目录，并集成 Next.js 编译插件。",
+      "tags": ["configuration", "typescript", "build-system"],
+      "complexity": "simple",
+      "languageNotes": "使用 moduleResolution: bundler 与 Next.js 插件，适配 App Router 项目的增量编译。"
+    },
+    {
+      "id": "config:apps/web/vercel.json",
+      "type": "config",
+      "name": "vercel.json",
+      "filePath": "apps/web/vercel.json",
+      "summary": "Vercel 部署配置，指定 monorepo 根目录 npm ci 安装、Next.js 构建命令、变更忽略脚本，以及 nightly-close-sessions 的定时 Cron 任务（UTC 4:00 与 5:00）。",
+      "tags": ["deployment", "configuration", "ci-cd", "cron"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "config:apps/web/package.json",
+      "target": "file:apps/web/next.config.mjs",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:apps/web/tsconfig.json",
+      "target": "file:apps/web/src/app/layout.tsx",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:apps/web/vercel.json",
+      "target": "config:apps/web/package.json",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:apps/web/vercel.json",
+      "target": "file:scripts/vercel-ignore-web.sh",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:apps/web/vercel.json",
+      "target": "file:apps/web/src/app/layout.tsx",
+      "type": "deploys",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "config:apps/web/vercel.json",
+      "target": "file:apps/web/src/app/api/cron/nightly-close-sessions/route.ts",
+      "type": "triggers",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

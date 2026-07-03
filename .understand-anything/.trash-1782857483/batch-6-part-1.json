@@ -1,0 +1,966 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/audit/builders/unpaid-table-closed.ts",
+      "type": "file",
+      "name": "unpaid-table-closed.ts",
+      "filePath": "apps/web/src/lib/audit/builders/unpaid-table-closed.ts",
+      "summary": "定义未结账关台审计事件构建器，将关台快照中的金额与原因序列化为 operation_logs 载荷。",
+      "tags": [
+        "audit",
+        "service",
+        "type-definition"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/audit/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "apps/web/src/lib/audit/index.ts",
+      "summary": "审计模块公共 barrel，统一导出 recordAudit、事件常量、原因校验与操作者解析 API。",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "audit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/audit/money.ts",
+      "type": "file",
+      "name": "money.ts",
+      "filePath": "apps/web/src/lib/audit/money.ts",
+      "summary": "将任意金额规范化为审计日志使用的整数分（cent）表示。",
+      "tags": [
+        "utility",
+        "audit",
+        "money"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/audit/operation-log.repository.ts",
+      "type": "file",
+      "name": "operation-log.repository.ts",
+      "filePath": "apps/web/src/lib/audit/operation-log.repository.ts",
+      "summary": "封装向 operation_logs 表插入审计记录的 Supabase repository 层。",
+      "tags": [
+        "repository",
+        "audit",
+        "database"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/audit/reasons.ts",
+      "type": "file",
+      "name": "reasons.ts",
+      "filePath": "apps/web/src/lib/audit/reasons.ts",
+      "summary": "集中定义折扣、退菜、未结账关台等异常操作的原因枚举及校验辅助函数。",
+      "tags": [
+        "validation",
+        "audit",
+        "type-definition"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/audit/registry.ts",
+      "type": "file",
+      "name": "registry.ts",
+      "filePath": "apps/web/src/lib/audit/registry.ts",
+      "summary": "注册所有审计事件定义并按事件键查找对应 builder。",
+      "tags": [
+        "registry",
+        "audit",
+        "factory"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/audit/resolve-actor.ts",
+      "type": "file",
+      "name": "resolve-actor.ts",
+      "filePath": "apps/web/src/lib/audit/resolve-actor.ts",
+      "summary": "从员工账号或店主身份构造 AuditActor，供审计记录写入操作者信息。",
+      "tags": [
+        "service",
+        "audit",
+        "auth"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/audit/types.ts",
+      "type": "file",
+      "name": "types.ts",
+      "filePath": "apps/web/src/lib/audit/types.ts",
+      "summary": "定义审计事件键、操作者角色、记录参数等核心 TypeScript 类型。",
+      "tags": [
+        "type-definition",
+        "audit"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/audit/validate-abnormal-reason.test.ts",
+      "type": "file",
+      "name": "validate-abnormal-reason.test.ts",
+      "filePath": "apps/web/src/lib/audit/validate-abnormal-reason.test.ts",
+      "summary": "单元测试 validateRequiredAbnormalReason 对原因分组与必填详情的校验逻辑。",
+      "tags": [
+        "test",
+        "validation",
+        "audit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/audit/validate-abnormal-reason.ts",
+      "type": "file",
+      "name": "validate-abnormal-reason.ts",
+      "filePath": "apps/web/src/lib/audit/validate-abnormal-reason.ts",
+      "summary": "校验异常操作必须提供合法原因及可选详情，供折扣、退菜、关台等流程复用。",
+      "tags": [
+        "validation",
+        "audit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-discount/apply-bill-split-discount.test.ts",
+      "type": "file",
+      "name": "apply-bill-split-discount.test.ts",
+      "filePath": "apps/web/src/lib/checkout-discount/apply-bill-split-discount.test.ts",
+      "summary": "测试账单分拆折扣应用服务的状态校验、原因验证与审计触发。",
+      "tags": [
+        "test",
+        "checkout",
+        "discount"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts",
+      "type": "file",
+      "name": "apply-bill-split-discount.ts",
+      "filePath": "apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts",
+      "summary": "为 bill_splits 应用折扣率并校验原因，必要时写入折扣审计日志。",
+      "tags": [
+        "service",
+        "checkout",
+        "discount"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-discount/record-discount-audit.ts",
+      "type": "file",
+      "name": "record-discount-audit.ts",
+      "filePath": "apps/web/src/lib/checkout-discount/record-discount-audit.ts",
+      "summary": "检测账单分拆是否已有折扣审计，若无则调用 recordAudit 记录 DISCOUNT_APPLIED。",
+      "tags": [
+        "audit",
+        "checkout",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-discount/validate-discount-reason.test.ts",
+      "type": "file",
+      "name": "validate-discount-reason.test.ts",
+      "filePath": "apps/web/src/lib/checkout-discount/validate-discount-reason.test.ts",
+      "summary": "测试折扣原因在零折扣与有折扣场景下的校验规则。",
+      "tags": [
+        "test",
+        "validation",
+        "discount"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-discount/validate-discount-reason.ts",
+      "type": "file",
+      "name": "validate-discount-reason.ts",
+      "filePath": "apps/web/src/lib/checkout-discount/validate-discount-reason.ts",
+      "summary": "按折扣率判断是否需要折扣原因，并委托异常原因通用校验。",
+      "tags": [
+        "validation",
+        "discount",
+        "checkout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/audit/money.ts:auditMoney",
+      "type": "function",
+      "name": "auditMoney",
+      "filePath": "apps/web/src/lib/audit/money.ts",
+      "lineRange": [
+        2,
+        6
+      ],
+      "summary": "将输入金额转为有限数值并四舍五入为整数分。",
+      "tags": [
+        "utility",
+        "money",
+        "audit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/audit/operation-log.repository.ts:insertOperationLog",
+      "type": "function",
+      "name": "insertOperationLog",
+      "filePath": "apps/web/src/lib/audit/operation-log.repository.ts",
+      "lineRange": [
+        19,
+        48
+      ],
+      "summary": "向 operation_logs 插入一条完整审计记录并返回新 ID。",
+      "tags": [
+        "repository",
+        "database",
+        "audit"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/audit/reasons.ts:isValidAbnormalReason",
+      "type": "function",
+      "name": "isValidAbnormalReason",
+      "filePath": "apps/web/src/lib/audit/reasons.ts",
+      "lineRange": [
+        49,
+        51
+      ],
+      "summary": "检查给定原因是否属于指定异常操作分组的有效枚举值。",
+      "tags": [
+        "validation",
+        "audit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/audit/reasons.ts:requiresAbnormalReasonDetail",
+      "type": "function",
+      "name": "requiresAbnormalReasonDetail",
+      "filePath": "apps/web/src/lib/audit/reasons.ts",
+      "lineRange": [
+        54,
+        62
+      ],
+      "summary": "判断某原因是否要求用户填写补充说明详情。",
+      "tags": [
+        "validation",
+        "audit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/audit/registry.ts:getAuditEventDefinition",
+      "type": "function",
+      "name": "getAuditEventDefinition",
+      "filePath": "apps/web/src/lib/audit/registry.ts",
+      "lineRange": [
+        24,
+        26
+      ],
+      "summary": "按 AUDIT_EVENT 键从注册表查找事件定义对象。",
+      "tags": [
+        "registry",
+        "audit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/audit/resolve-actor.ts:staffAuditActor",
+      "type": "function",
+      "name": "staffAuditActor",
+      "filePath": "apps/web/src/lib/audit/resolve-actor.ts",
+      "lineRange": [
+        5,
+        11
+      ],
+      "summary": "用员工 userId、显示名与角色构造 AuditActor。",
+      "tags": [
+        "factory",
+        "audit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/audit/resolve-actor.ts:loadStaffAuditActor",
+      "type": "function",
+      "name": "loadStaffAuditActor",
+      "filePath": "apps/web/src/lib/audit/resolve-actor.ts",
+      "lineRange": [
+        13,
+        27
+      ],
+      "summary": "从 restaurant_staff_accounts 加载显示名并构造员工审计操作者。",
+      "tags": [
+        "service",
+        "audit",
+        "database"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/audit/resolve-actor.ts:auditOperatorRole",
+      "type": "function",
+      "name": "auditOperatorRole",
+      "filePath": "apps/web/src/lib/audit/resolve-actor.ts",
+      "lineRange": [
+        29,
+        32
+      ],
+      "summary": "从 AuditActor 提取写入日志的 operator_role 字符串。",
+      "tags": [
+        "utility",
+        "audit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/audit/resolve-actor.ts:ownerAuditActor",
+      "type": "function",
+      "name": "ownerAuditActor",
+      "filePath": "apps/web/src/lib/audit/resolve-actor.ts",
+      "lineRange": [
+        34,
+        36
+      ],
+      "summary": "构造店主身份的 AuditActor。",
+      "tags": [
+        "factory",
+        "audit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/audit/resolve-actor.ts:frontdeskAuditActor",
+      "type": "function",
+      "name": "frontdeskAuditActor",
+      "filePath": "apps/web/src/lib/audit/resolve-actor.ts",
+      "lineRange": [
+        38,
+        40
+      ],
+      "summary": "构造前台员工身份的 AuditActor。",
+      "tags": [
+        "factory",
+        "audit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/audit/resolve-actor.ts:resolveOwnerOperatorName",
+      "type": "function",
+      "name": "resolveOwnerOperatorName",
+      "filePath": "apps/web/src/lib/audit/resolve-actor.ts",
+      "lineRange": [
+        42,
+        49
+      ],
+      "summary": "优先使用餐厅名，否则从邮箱前缀解析店主操作者显示名。",
+      "tags": [
+        "utility",
+        "audit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/audit/validate-abnormal-reason.ts:validateRequiredAbnormalReason",
+      "type": "function",
+      "name": "validateRequiredAbnormalReason",
+      "filePath": "apps/web/src/lib/audit/validate-abnormal-reason.ts",
+      "lineRange": [
+        11,
+        34
+      ],
+      "summary": "校验异常操作必填原因及条件性详情，失败返回错误消息。",
+      "tags": [
+        "validation",
+        "audit"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-discount/apply-bill-split-discount.test.ts:mockAdmin",
+      "type": "function",
+      "name": "mockAdmin",
+      "filePath": "apps/web/src/lib/checkout-discount/apply-bill-split-discount.test.ts",
+      "lineRange": [
+        11,
+        68
+      ],
+      "summary": "测试用 Supabase admin 客户端 mock，模拟表查询与插入链。",
+      "tags": [
+        "test",
+        "mock"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts:applyBillSplitDiscount",
+      "type": "function",
+      "name": "applyBillSplitDiscount",
+      "filePath": "apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts",
+      "lineRange": [
+        40,
+        138
+      ],
+      "summary": "更新 bill_splits 折扣字段，校验状态与原因，并触发折扣审计。",
+      "tags": [
+        "service",
+        "checkout",
+        "discount"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-discount/record-discount-audit.ts:hasDiscountAuditForBillSplit",
+      "type": "function",
+      "name": "hasDiscountAuditForBillSplit",
+      "filePath": "apps/web/src/lib/checkout-discount/record-discount-audit.ts",
+      "lineRange": [
+        17,
+        31
+      ],
+      "summary": "查询 operation_logs 是否已存在该账单分拆的折扣审计。",
+      "tags": [
+        "repository",
+        "audit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-discount/record-discount-audit.ts:recordDiscountAppliedAuditIfNeeded",
+      "type": "function",
+      "name": "recordDiscountAppliedAuditIfNeeded",
+      "filePath": "apps/web/src/lib/checkout-discount/record-discount-audit.ts",
+      "lineRange": [
+        33,
+        68
+      ],
+      "summary": "在首次应用折扣时计算金额并调用 recordAudit 写入审计。",
+      "tags": [
+        "audit",
+        "service",
+        "checkout"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-discount/validate-discount-reason.ts:validateDiscountReason",
+      "type": "function",
+      "name": "validateDiscountReason",
+      "filePath": "apps/web/src/lib/checkout-discount/validate-discount-reason.ts",
+      "lineRange": [
+        6,
+        17
+      ],
+      "summary": "有折扣时强制校验折扣原因，零折扣时跳过。",
+      "tags": [
+        "validation",
+        "discount"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/audit/money.ts",
+      "target": "function:apps/web/src/lib/audit/money.ts:auditMoney",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/money.ts",
+      "target": "function:apps/web/src/lib/audit/money.ts:auditMoney",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/operation-log.repository.ts",
+      "target": "function:apps/web/src/lib/audit/operation-log.repository.ts:insertOperationLog",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/operation-log.repository.ts",
+      "target": "function:apps/web/src/lib/audit/operation-log.repository.ts:insertOperationLog",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/reasons.ts",
+      "target": "function:apps/web/src/lib/audit/reasons.ts:isValidAbnormalReason",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/reasons.ts",
+      "target": "function:apps/web/src/lib/audit/reasons.ts:isValidAbnormalReason",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/reasons.ts",
+      "target": "function:apps/web/src/lib/audit/reasons.ts:requiresAbnormalReasonDetail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/reasons.ts",
+      "target": "function:apps/web/src/lib/audit/reasons.ts:requiresAbnormalReasonDetail",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/registry.ts",
+      "target": "function:apps/web/src/lib/audit/registry.ts:getAuditEventDefinition",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/registry.ts",
+      "target": "function:apps/web/src/lib/audit/registry.ts:getAuditEventDefinition",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/resolve-actor.ts",
+      "target": "function:apps/web/src/lib/audit/resolve-actor.ts:staffAuditActor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/resolve-actor.ts",
+      "target": "function:apps/web/src/lib/audit/resolve-actor.ts:staffAuditActor",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/resolve-actor.ts",
+      "target": "function:apps/web/src/lib/audit/resolve-actor.ts:loadStaffAuditActor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/resolve-actor.ts",
+      "target": "function:apps/web/src/lib/audit/resolve-actor.ts:loadStaffAuditActor",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/resolve-actor.ts",
+      "target": "function:apps/web/src/lib/audit/resolve-actor.ts:auditOperatorRole",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/resolve-actor.ts",
+      "target": "function:apps/web/src/lib/audit/resolve-actor.ts:auditOperatorRole",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/resolve-actor.ts",
+      "target": "function:apps/web/src/lib/audit/resolve-actor.ts:ownerAuditActor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/resolve-actor.ts",
+      "target": "function:apps/web/src/lib/audit/resolve-actor.ts:ownerAuditActor",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/resolve-actor.ts",
+      "target": "function:apps/web/src/lib/audit/resolve-actor.ts:frontdeskAuditActor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/resolve-actor.ts",
+      "target": "function:apps/web/src/lib/audit/resolve-actor.ts:frontdeskAuditActor",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/resolve-actor.ts",
+      "target": "function:apps/web/src/lib/audit/resolve-actor.ts:resolveOwnerOperatorName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/resolve-actor.ts",
+      "target": "function:apps/web/src/lib/audit/resolve-actor.ts:resolveOwnerOperatorName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/validate-abnormal-reason.ts",
+      "target": "function:apps/web/src/lib/audit/validate-abnormal-reason.ts:validateRequiredAbnormalReason",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/validate-abnormal-reason.ts",
+      "target": "function:apps/web/src/lib/audit/validate-abnormal-reason.ts:validateRequiredAbnormalReason",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/apply-bill-split-discount.test.ts",
+      "target": "function:apps/web/src/lib/checkout-discount/apply-bill-split-discount.test.ts:mockAdmin",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts",
+      "target": "function:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts:applyBillSplitDiscount",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts",
+      "target": "function:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts:applyBillSplitDiscount",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/record-discount-audit.ts",
+      "target": "function:apps/web/src/lib/checkout-discount/record-discount-audit.ts:hasDiscountAuditForBillSplit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/record-discount-audit.ts",
+      "target": "function:apps/web/src/lib/checkout-discount/record-discount-audit.ts:hasDiscountAuditForBillSplit",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/record-discount-audit.ts",
+      "target": "function:apps/web/src/lib/checkout-discount/record-discount-audit.ts:recordDiscountAppliedAuditIfNeeded",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/record-discount-audit.ts",
+      "target": "function:apps/web/src/lib/checkout-discount/record-discount-audit.ts:recordDiscountAppliedAuditIfNeeded",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/validate-discount-reason.ts",
+      "target": "function:apps/web/src/lib/checkout-discount/validate-discount-reason.ts:validateDiscountReason",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/validate-discount-reason.ts",
+      "target": "function:apps/web/src/lib/checkout-discount/validate-discount-reason.ts:validateDiscountReason",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/builders/unpaid-table-closed.ts",
+      "target": "file:apps/web/src/lib/audit/money.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/builders/unpaid-table-closed.ts",
+      "target": "file:apps/web/src/lib/audit/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/registry.ts",
+      "target": "file:apps/web/src/lib/audit/builders/abnormal-owner-action.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/registry.ts",
+      "target": "file:apps/web/src/lib/audit/builders/discount-applied.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/registry.ts",
+      "target": "file:apps/web/src/lib/audit/builders/item-deleted.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/registry.ts",
+      "target": "file:apps/web/src/lib/audit/builders/item-qty-decremented.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/registry.ts",
+      "target": "file:apps/web/src/lib/audit/builders/unpaid-table-closed.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/registry.ts",
+      "target": "file:apps/web/src/lib/audit/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/resolve-actor.ts",
+      "target": "file:apps/web/src/lib/audit/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/resolve-actor.ts",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/types.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/validate-abnormal-reason.test.ts",
+      "target": "file:apps/web/src/lib/audit/validate-abnormal-reason.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/validate-abnormal-reason.ts",
+      "target": "file:apps/web/src/lib/audit/reasons.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/apply-bill-split-discount.test.ts",
+      "target": "file:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts",
+      "target": "file:apps/web/src/lib/audit/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts",
+      "target": "file:apps/web/src/lib/checkout-discount/record-discount-audit.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts",
+      "target": "file:apps/web/src/lib/checkout-discount/validate-discount-reason.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts",
+      "target": "file:apps/web/src/lib/checkout-split-math.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/record-discount-audit.ts",
+      "target": "file:apps/web/src/lib/audit/builders/discount-applied.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/record-discount-audit.ts",
+      "target": "file:apps/web/src/lib/audit/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/record-discount-audit.ts",
+      "target": "file:apps/web/src/lib/audit/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/validate-discount-reason.test.ts",
+      "target": "file:apps/web/src/lib/checkout-discount/validate-discount-reason.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/validate-discount-reason.ts",
+      "target": "file:apps/web/src/lib/audit/validate-abnormal-reason.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/audit/validate-abnormal-reason.ts:validateRequiredAbnormalReason",
+      "target": "function:apps/web/src/lib/audit/reasons.ts:isValidAbnormalReason",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/audit/validate-abnormal-reason.ts:validateRequiredAbnormalReason",
+      "target": "function:apps/web/src/lib/audit/reasons.ts:requiresAbnormalReasonDetail",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/audit/resolve-actor.ts:loadStaffAuditActor",
+      "target": "function:apps/web/src/lib/audit/resolve-actor.ts:staffAuditActor",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-discount/validate-discount-reason.ts:validateDiscountReason",
+      "target": "function:apps/web/src/lib/audit/validate-abnormal-reason.ts:validateRequiredAbnormalReason",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts:applyBillSplitDiscount",
+      "target": "function:apps/web/src/lib/checkout-discount/validate-discount-reason.ts:validateDiscountReason",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts:applyBillSplitDiscount",
+      "target": "function:apps/web/src/lib/checkout-discount/record-discount-audit.ts:recordDiscountAppliedAuditIfNeeded",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts:applyBillSplitDiscount",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:clampCheckoutDiscountRate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-discount/record-discount-audit.ts:recordDiscountAppliedAuditIfNeeded",
+      "target": "function:apps/web/src/lib/checkout-discount/record-discount-audit.ts:hasDiscountAuditForBillSplit",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-discount/record-discount-audit.ts:recordDiscountAppliedAuditIfNeeded",
+      "target": "function:apps/web/src/lib/audit/audit.service.ts:recordAudit",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-discount/record-discount-audit.ts:recordDiscountAppliedAuditIfNeeded",
+      "target": "function:apps/web/src/lib/audit/builders/discount-applied.ts:computeDiscountAmounts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/validate-abnormal-reason.ts",
+      "target": "file:apps/web/src/lib/audit/validate-abnormal-reason.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts",
+      "target": "file:apps/web/src/lib/checkout-discount/apply-bill-split-discount.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-discount/validate-discount-reason.ts",
+      "target": "file:apps/web/src/lib/checkout-discount/validate-discount-reason.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

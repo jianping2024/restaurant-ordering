@@ -1,0 +1,26 @@
+{
+  "nodes": [
+    {
+      "id": "service:apps/print-agent/dev/fake-printer/Dockerfile",
+      "type": "service",
+      "name": "Dockerfile",
+      "filePath": "apps/print-agent/dev/fake-printer/Dockerfile",
+      "summary": "Docker 镜像构建定义，打包应用运行环境。",
+      "tags": [
+        "infrastructure",
+        "deployment",
+        "printing"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "service:apps/print-agent/dev/fake-printer/Dockerfile",
+      "target": "file:apps/web/src/app/layout.tsx",
+      "type": "deploys",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

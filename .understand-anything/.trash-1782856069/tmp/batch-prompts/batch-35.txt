@@ -1,0 +1,46 @@
+Analyze these files and produce GraphNode and GraphEdge objects.
+Project root: `/Users/chenjianping/Documents/restaurant-ordering`
+Project: `undefined` — undefined
+Languages: ["config","css","dockerfile","go","html","iss","javascript","json","markdown","mod","mts","powershell","python","shell","sql","sum","txt","typescript","unknown","yaml"]
+Batch: `35/38`
+Skill directory: `/Users/chenjianping/.cursor/plugins/cache/understand-anything/understand-anything/54754a6f97051d1d76c8758353d8ea41afe502a6/skills/understand`
+Output: `/Users/chenjianping/Documents/restaurant-ordering/.understand-anything/intermediate/batch-35.json`
+
+Pre-resolved import data:
+```json
+{"apps/print-agent/schedule_test.go":[],"apps/print-agent/schedule.go":[],"apps/print-agent/scripts/gen-tray-status-icons.py":[],"apps/print-agent/setup_browser_other.go":[],"apps/print-agent/setup_browser_windows.go":[],"apps/print-agent/setup_wizard.go":[],"apps/print-agent/single_instance_common_test.go":[],"apps/print-agent/single_instance_common.go":[],"apps/print-agent/single_instance_stub.go":[],"apps/print-agent/single_instance_windows.go":[],"apps/print-agent/sink_tcp.go":[],"apps/print-agent/sink_winspool_stub.go":[],"apps/print-agent/sink_winspool_windows.go":[],"apps/print-agent/sink.go":[],"apps/print-agent/spawn_kill_windows.go":[],"apps/print-agent/spawn_stub.go":[],"apps/print-agent/spawn_tracking_windows.go":[],"apps/print-agent/spawn_windows.go":[],"apps/print-agent/text_encoding_test.go":[],"apps/print-agent/text_encoding.go":[],"apps/print-agent/tray_actions_windows.go":[],"apps/print-agent/tray_configure_windows.go":[],"apps/print-agent/tray_icon.go":[],"apps/print-agent/tray_local_http_stub.go":[],"apps/print-agent/tray_local_http_windows.go":[]}
+```
+
+Cross-batch neighbors:
+```json
+{}
+```
+
+Files:
+1. `apps/print-agent/schedule_test.go` (52 lines, language: `go`, fileCategory: `code`)
+2. `apps/print-agent/schedule.go` (179 lines, language: `go`, fileCategory: `code`)
+3. `apps/print-agent/scripts/gen-tray-status-icons.py` (59 lines, language: `python`, fileCategory: `code`)
+4. `apps/print-agent/setup_browser_other.go` (23 lines, language: `go`, fileCategory: `code`)
+5. `apps/print-agent/setup_browser_windows.go` (31 lines, language: `go`, fileCategory: `code`)
+6. `apps/print-agent/setup_wizard.go` (52 lines, language: `go`, fileCategory: `code`)
+7. `apps/print-agent/single_instance_common_test.go` (23 lines, language: `go`, fileCategory: `code`)
+8. `apps/print-agent/single_instance_common.go` (29 lines, language: `go`, fileCategory: `code`)
+9. `apps/print-agent/single_instance_stub.go` (7 lines, language: `go`, fileCategory: `code`)
+10. `apps/print-agent/single_instance_windows.go` (70 lines, language: `go`, fileCategory: `code`)
+11. `apps/print-agent/sink_tcp.go` (20 lines, language: `go`, fileCategory: `code`)
+12. `apps/print-agent/sink_winspool_stub.go` (17 lines, language: `go`, fileCategory: `code`)
+13. `apps/print-agent/sink_winspool_windows.go` (201 lines, language: `go`, fileCategory: `code`)
+14. `apps/print-agent/sink.go` (14 lines, language: `go`, fileCategory: `code`)
+15. `apps/print-agent/spawn_kill_windows.go` (35 lines, language: `go`, fileCategory: `code`)
+16. `apps/print-agent/spawn_stub.go` (13 lines, language: `go`, fileCategory: `code`)
+17. `apps/print-agent/spawn_tracking_windows.go` (51 lines, language: `go`, fileCategory: `code`)
+18. `apps/print-agent/spawn_windows.go` (41 lines, language: `go`, fileCategory: `code`)
+19. `apps/print-agent/text_encoding_test.go` (20 lines, language: `go`, fileCategory: `code`)
+20. `apps/print-agent/text_encoding.go` (56 lines, language: `go`, fileCategory: `code`)
+21. `apps/print-agent/tray_actions_windows.go` (104 lines, language: `go`, fileCategory: `code`)
+22. `apps/print-agent/tray_configure_windows.go` (41 lines, language: `go`, fileCategory: `code`)
+23. `apps/print-agent/tray_icon.go` (33 lines, language: `go`, fileCategory: `code`)
+24. `apps/print-agent/tray_local_http_stub.go` (18 lines, language: `go`, fileCategory: `code`)
+25. `apps/print-agent/tray_local_http_windows.go` (165 lines, language: `go`, fileCategory: `code`)
+
+> **Language directive**: Generate all textual content in **zh** (Chinese). Keep technical terms in English when no standard translation exists.

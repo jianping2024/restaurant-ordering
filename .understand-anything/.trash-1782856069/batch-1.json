@@ -1,0 +1,3043 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/app/api/dashboard/menu/categories/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/dashboard/menu/categories/route.ts",
+      "summary": "Dashboard 菜单分类 API 路由，提供 POST/PATCH/DELETE 处理分类创建、更新与删除。",
+      "tags": [
+        "api-handler",
+        "dashboard",
+        "menu",
+        "categories"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/dashboard/menu/items/[id]/image/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/dashboard/menu/items/[id]/image/route.ts",
+      "summary": "Dashboard 菜品图片 API，处理菜单项图片上传与设置。",
+      "tags": [
+        "api-handler",
+        "dashboard",
+        "menu",
+        "image-upload"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/dashboard/menu/items/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/dashboard/menu/items/route.ts",
+      "summary": "Dashboard 菜单菜品 API 路由，支持创建、更新、删除及批量上下架。",
+      "tags": [
+        "api-handler",
+        "dashboard",
+        "menu",
+        "items"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/dashboard/menu/print-stations/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/dashboard/menu/print-stations/route.ts",
+      "summary": "Dashboard 打印档口 API 路由，管理厨房/前台打印站点的 CRUD 与排序。",
+      "tags": [
+        "api-handler",
+        "dashboard",
+        "print-station"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/menu/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/menu/page.tsx",
+      "summary": "Dashboard 菜单管理页面，服务端预加载菜单数据并渲染 MenuManager 组件。",
+      "tags": [
+        "entry-point",
+        "dashboard",
+        "menu",
+        "server-component"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/tables/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/tables/page.tsx",
+      "summary": "Dashboard 餐桌管理页面，加载前台餐桌数据并渲染 TablesManager。",
+      "tags": [
+        "entry-point",
+        "dashboard",
+        "tables",
+        "server-component"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "type": "file",
+      "name": "BuffetSettingsManager.tsx",
+      "filePath": "apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "summary": "自助餐定价规则主管理组件，整合日历、时段、价格矩阵、预览等子面板与 API 客户端。",
+      "tags": [
+        "component",
+        "dashboard",
+        "buffet",
+        "pricing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/CloseTableSessionAction.tsx",
+      "type": "file",
+      "name": "CloseTableSessionAction.tsx",
+      "filePath": "apps/web/src/components/dashboard/CloseTableSessionAction.tsx",
+      "summary": "关闭桌台会话操作组件，含二次确认、审计原因选择与 Toast 反馈。",
+      "tags": [
+        "component",
+        "dashboard",
+        "table-session",
+        "audit"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/DashboardDatePicker.tsx",
+      "type": "file",
+      "name": "DashboardDatePicker.tsx",
+      "filePath": "apps/web/src/components/dashboard/DashboardDatePicker.tsx",
+      "summary": "Dashboard 日期选择器，弹出式日历并支持 UI 语言本地化格式。",
+      "tags": [
+        "component",
+        "dashboard",
+        "date-picker",
+        "i18n"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/DishSortOrderButtons.tsx",
+      "type": "file",
+      "name": "DishSortOrderButtons.tsx",
+      "filePath": "apps/web/src/components/dashboard/DishSortOrderButtons.tsx",
+      "summary": "菜品排序上下移动按钮组，用于 MenuManager 中调整菜品顺序。",
+      "tags": [
+        "component",
+        "dashboard",
+        "menu",
+        "sort-order"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "type": "file",
+      "name": "MenuManager.tsx",
+      "filePath": "apps/web/src/components/dashboard/MenuManager.tsx",
+      "summary": "菜单管理主界面，涵盖分类树、菜品 CRUD、图片上传、VAT、打印档口绑定等完整管理流程。",
+      "tags": [
+        "component",
+        "dashboard",
+        "menu",
+        "crud"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/PrintStationsManager.tsx",
+      "type": "file",
+      "name": "PrintStationsManager.tsx",
+      "filePath": "apps/web/src/components/dashboard/PrintStationsManager.tsx",
+      "summary": "打印档口管理 UI，支持创建、编辑、排序及与分类/菜品的绑定统计。",
+      "tags": [
+        "component",
+        "dashboard",
+        "print-station"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/StaffAccountsManager.tsx",
+      "type": "file",
+      "name": "StaffAccountsManager.tsx",
+      "filePath": "apps/web/src/components/dashboard/StaffAccountsManager.tsx",
+      "summary": "员工账号管理组件，处理登录名、角色、密码创建与编辑。",
+      "tags": [
+        "component",
+        "dashboard",
+        "staff",
+        "auth"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/TableGroupsManager.tsx",
+      "type": "file",
+      "name": "TableGroupsManager.tsx",
+      "filePath": "apps/web/src/components/dashboard/TableGroupsManager.tsx",
+      "summary": "餐桌分组管理组件，支持分组 CRUD、排序及桌台分配。",
+      "tags": [
+        "component",
+        "dashboard",
+        "table-groups"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "type": "file",
+      "name": "TablesManager.tsx",
+      "filePath": "apps/web/src/components/dashboard/TablesManager.tsx",
+      "summary": "餐桌管理主组件，Tab 切换桌台列表与分组管理，含 Supabase 实时刷新。",
+      "tags": [
+        "component",
+        "dashboard",
+        "tables"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx",
+      "type": "file",
+      "name": "BuffetCalendarPanel.tsx",
+      "filePath": "apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx",
+      "summary": "自助餐日历例外面板，管理特殊日期定价覆盖与冲突检测。",
+      "tags": [
+        "component",
+        "buffet",
+        "calendar",
+        "pricing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/buffet/BuffetFridayWeekendPanel.tsx",
+      "type": "file",
+      "name": "BuffetFridayWeekendPanel.tsx",
+      "filePath": "apps/web/src/components/dashboard/buffet/BuffetFridayWeekendPanel.tsx",
+      "summary": "周五/周末自助餐策略面板，配置周末切换时间与默认规则。",
+      "tags": [
+        "component",
+        "buffet",
+        "weekend-policy"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx",
+      "type": "file",
+      "name": "BuffetPriceMatrix.tsx",
+      "filePath": "apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx",
+      "summary": "自助餐价格矩阵组件，按日类型与时段编辑各规则价格。",
+      "tags": [
+        "component",
+        "buffet",
+        "price-matrix"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx",
+      "type": "file",
+      "name": "BuffetPricePreview.tsx",
+      "filePath": "apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx",
+      "summary": "自助餐价格预览组件，模拟指定日期时间查询生效价格规则。",
+      "tags": [
+        "component",
+        "buffet",
+        "price-preview"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/buffet/BuffetRulesToolbar.tsx",
+      "type": "file",
+      "name": "BuffetRulesToolbar.tsx",
+      "filePath": "apps/web/src/components/dashboard/buffet/BuffetRulesToolbar.tsx",
+      "summary": "自助餐规则工具栏，提供规则筛选、状态切换与批量操作入口。",
+      "tags": [
+        "component",
+        "buffet",
+        "toolbar"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/buffet/BuffetSettingsTabs.tsx",
+      "type": "file",
+      "name": "BuffetSettingsTabs.tsx",
+      "filePath": "apps/web/src/components/dashboard/buffet/BuffetSettingsTabs.tsx",
+      "summary": "自助餐设置 Tab 切换组件，在规则/时段/日历等视图间导航。",
+      "tags": [
+        "component",
+        "buffet",
+        "tabs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/buffet/BuffetTimeSlotsPanel.tsx",
+      "type": "file",
+      "name": "BuffetTimeSlotsPanel.tsx",
+      "filePath": "apps/web/src/components/dashboard/buffet/BuffetTimeSlotsPanel.tsx",
+      "summary": "自助餐时段配置面板，管理各规则的用餐时段与容量。",
+      "tags": [
+        "component",
+        "buffet",
+        "time-slots"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/buffet/BuffetToolbarSelect.tsx",
+      "type": "file",
+      "name": "BuffetToolbarSelect.tsx",
+      "filePath": "apps/web/src/components/dashboard/buffet/BuffetToolbarSelect.tsx",
+      "summary": "自助餐工具栏样式化下拉选择器组件。",
+      "tags": [
+        "component",
+        "buffet",
+        "select"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/buffet/SlotTimeHmField.tsx",
+      "type": "file",
+      "name": "SlotTimeHmField.tsx",
+      "filePath": "apps/web/src/components/dashboard/buffet/SlotTimeHmField.tsx",
+      "summary": "时段起止 HH:MM 输入字段，封装 TimeHmInput 与样式。",
+      "tags": [
+        "component",
+        "buffet",
+        "time-input"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/buffet/buffet-field-styles.ts",
+      "type": "file",
+      "name": "buffet-field-styles.ts",
+      "filePath": "apps/web/src/components/dashboard/buffet/buffet-field-styles.ts",
+      "summary": "自助餐表单 Tailwind CSS 样式类名常量集合。",
+      "tags": [
+        "utility",
+        "buffet",
+        "styles"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx",
+      "type": "file",
+      "name": "SettingsPageHelp.tsx",
+      "filePath": "apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx",
+      "summary": "设置页帮助入口，点击图标打开 Modal 展示操作指南。",
+      "tags": [
+        "component",
+        "settings",
+        "help"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "file",
+      "name": "Button.tsx",
+      "filePath": "apps/web/src/components/ui/Button.tsx",
+      "summary": "通用 Button 与 ButtonLink 组件，统一 variant/size 样式与 loading 状态。",
+      "tags": [
+        "component",
+        "ui",
+        "button"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/ui/ConfirmModal.tsx",
+      "type": "file",
+      "name": "ConfirmModal.tsx",
+      "filePath": "apps/web/src/components/ui/ConfirmModal.tsx",
+      "summary": "确认对话框组件，基于 Modal 与 Button 实现二次确认交互。",
+      "tags": [
+        "component",
+        "ui",
+        "modal",
+        "confirm"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/ui/DecimalInput.tsx",
+      "type": "file",
+      "name": "DecimalInput.tsx",
+      "filePath": "apps/web/src/components/ui/DecimalInput.tsx",
+      "summary": "受控小数输入框，集成 number-input 解析与格式化。",
+      "tags": [
+        "component",
+        "ui",
+        "input",
+        "decimal"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/ui/Input.tsx",
+      "type": "file",
+      "name": "Input.tsx",
+      "filePath": "apps/web/src/components/ui/Input.tsx",
+      "summary": "通用文本 Input 组件，统一样式与 forwardRef 支持。",
+      "tags": [
+        "component",
+        "ui",
+        "input"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/ui/IntegerInput.tsx",
+      "type": "file",
+      "name": "IntegerInput.tsx",
+      "filePath": "apps/web/src/components/ui/IntegerInput.tsx",
+      "summary": "受控整数输入框，支持 min/max 与 focus 清零行为。",
+      "tags": [
+        "component",
+        "ui",
+        "input",
+        "integer"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/ui/Modal.tsx",
+      "type": "file",
+      "name": "Modal.tsx",
+      "filePath": "apps/web/src/components/ui/Modal.tsx",
+      "summary": "模态对话框基础组件，处理遮罩、关闭与无障碍焦点。",
+      "tags": [
+        "component",
+        "ui",
+        "modal"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/ui/PromptModal.tsx",
+      "type": "file",
+      "name": "PromptModal.tsx",
+      "filePath": "apps/web/src/components/ui/PromptModal.tsx",
+      "summary": "带文本输入的提示对话框，用于需要用户输入确认的场景。",
+      "tags": [
+        "component",
+        "ui",
+        "modal",
+        "prompt"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/menu/categories/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/dashboard/menu/categories/route.ts",
+      "lineRange": [
+        17,
+        36
+      ],
+      "summary": "创建菜单分类，校验权限并调用 server 层 createMenuCategory。",
+      "tags": [
+        "api-handler",
+        "create"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/menu/categories/route.ts:PATCH",
+      "type": "function",
+      "name": "PATCH",
+      "filePath": "apps/web/src/app/api/dashboard/menu/categories/route.ts",
+      "lineRange": [
+        38,
+        54
+      ],
+      "summary": "更新菜单分类属性或父级关系。",
+      "tags": [
+        "api-handler",
+        "update"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/menu/categories/route.ts:DELETE",
+      "type": "function",
+      "name": "DELETE",
+      "filePath": "apps/web/src/app/api/dashboard/menu/categories/route.ts",
+      "lineRange": [
+        56,
+        77
+      ],
+      "summary": "删除菜单分类，含子树与绑定检查。",
+      "tags": [
+        "api-handler",
+        "delete"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/menu/items/[id]/image/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/dashboard/menu/items/[id]/image/route.ts",
+      "lineRange": [
+        11,
+        34
+      ],
+      "summary": "上传并设置指定菜品图片，调用 setMenuItemImage。",
+      "tags": [
+        "api-handler",
+        "image-upload"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/menu/items/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/dashboard/menu/items/route.ts",
+      "lineRange": [
+        18,
+        31
+      ],
+      "summary": "创建新菜单菜品。",
+      "tags": [
+        "api-handler",
+        "create"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/menu/items/route.ts:PATCH",
+      "type": "function",
+      "name": "PATCH",
+      "filePath": "apps/web/src/app/api/dashboard/menu/items/route.ts",
+      "lineRange": [
+        33,
+        84
+      ],
+      "summary": "更新菜品属性、排序或批量上下架。",
+      "tags": [
+        "api-handler",
+        "update"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/menu/items/route.ts:DELETE",
+      "type": "function",
+      "name": "DELETE",
+      "filePath": "apps/web/src/app/api/dashboard/menu/items/route.ts",
+      "lineRange": [
+        86,
+        99
+      ],
+      "summary": "删除指定菜单菜品。",
+      "tags": [
+        "api-handler",
+        "delete"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/menu/print-stations/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/dashboard/menu/print-stations/route.ts",
+      "lineRange": [
+        17,
+        30
+      ],
+      "summary": "创建打印档口。",
+      "tags": [
+        "api-handler",
+        "create"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/menu/print-stations/route.ts:PATCH",
+      "type": "function",
+      "name": "PATCH",
+      "filePath": "apps/web/src/app/api/dashboard/menu/print-stations/route.ts",
+      "lineRange": [
+        32,
+        66
+      ],
+      "summary": "更新档口或调整排序。",
+      "tags": [
+        "api-handler",
+        "update"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/menu/print-stations/route.ts:DELETE",
+      "type": "function",
+      "name": "DELETE",
+      "filePath": "apps/web/src/app/api/dashboard/menu/print-stations/route.ts",
+      "lineRange": [
+        68,
+        81
+      ],
+      "summary": "删除打印档口。",
+      "tags": [
+        "api-handler",
+        "delete"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/menu/page.tsx:MenuPage",
+      "type": "function",
+      "name": "MenuPage",
+      "filePath": "apps/web/src/app/dashboard/menu/page.tsx",
+      "lineRange": [
+        20,
+        39
+      ],
+      "summary": "服务端页面组件，加载菜单数据并传递初始 Tab 偏好。",
+      "tags": [
+        "entry-point",
+        "server-component"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/tables/page.tsx:TablesPage",
+      "type": "function",
+      "name": "TablesPage",
+      "filePath": "apps/web/src/app/dashboard/tables/page.tsx",
+      "lineRange": [
+        10,
+        27
+      ],
+      "summary": "服务端页面组件，加载前台餐桌数据渲染 TablesManager。",
+      "tags": [
+        "entry-point",
+        "server-component"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/BuffetSettingsManager.tsx:buildRuleDraft",
+      "type": "function",
+      "name": "buildRuleDraft",
+      "filePath": "apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "lineRange": [
+        89,
+        112
+      ],
+      "summary": "将数据库规则记录转换为可编辑 draft 对象。",
+      "tags": [
+        "utility",
+        "buffet"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/BuffetSettingsManager.tsx:ruleToDraft",
+      "type": "function",
+      "name": "ruleToDraft",
+      "filePath": "apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "lineRange": [
+        114,
+        127
+      ],
+      "summary": "规则实体到表单 draft 的映射辅助函数。",
+      "tags": [
+        "utility",
+        "buffet"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/BuffetSettingsManager.tsx:BuffetSettingsManager",
+      "type": "function",
+      "name": "BuffetSettingsManager",
+      "filePath": "apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "lineRange": [
+        129,
+        1104
+      ],
+      "summary": "自助餐定价主容器，协调子面板状态与 client API 调用。",
+      "tags": [
+        "component",
+        "buffet",
+        "state-management"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/CloseTableSessionAction.tsx:CloseTableSessionAction",
+      "type": "function",
+      "name": "CloseTableSessionAction",
+      "filePath": "apps/web/src/components/dashboard/CloseTableSessionAction.tsx",
+      "lineRange": [
+        26,
+        196
+      ],
+      "summary": "渲染关闭会话按钮并处理确认、原因收集与 API 响应。",
+      "tags": [
+        "component",
+        "table-session"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/DashboardDatePicker.tsx:computePopupCoords",
+      "type": "function",
+      "name": "computePopupCoords",
+      "filePath": "apps/web/src/components/dashboard/DashboardDatePicker.tsx",
+      "lineRange": [
+        28,
+        44
+      ],
+      "summary": "计算日期弹出层相对输入框的屏幕坐标。",
+      "tags": [
+        "utility",
+        "layout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/DashboardDatePicker.tsx:DashboardDatePicker",
+      "type": "function",
+      "name": "DashboardDatePicker",
+      "filePath": "apps/web/src/components/dashboard/DashboardDatePicker.tsx",
+      "lineRange": [
+        60,
+        160
+      ],
+      "summary": "可弹出日历的受控日期选择器组件。",
+      "tags": [
+        "component",
+        "date-picker"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/DishSortOrderButtons.tsx:DishSortOrderButtons",
+      "type": "function",
+      "name": "DishSortOrderButtons",
+      "filePath": "apps/web/src/components/dashboard/DishSortOrderButtons.tsx",
+      "lineRange": [
+        12,
+        43
+      ],
+      "summary": "上下箭头按钮组，触发相邻 sort_order 交换。",
+      "tags": [
+        "component",
+        "sort-order"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/MenuManager.tsx:MenuManager",
+      "type": "function",
+      "name": "MenuManager",
+      "filePath": "apps/web/src/components/dashboard/MenuManager.tsx",
+      "lineRange": [
+        158,
+        1738
+      ],
+      "summary": "菜单管理核心 UI，处理分类树、菜品表单、图片与档口绑定。",
+      "tags": [
+        "component",
+        "menu",
+        "crud"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/PrintStationsManager.tsx:PrintStationsManager",
+      "type": "function",
+      "name": "PrintStationsManager",
+      "filePath": "apps/web/src/components/dashboard/PrintStationsManager.tsx",
+      "lineRange": [
+        50,
+        445
+      ],
+      "summary": "打印档口列表与编辑 Modal 管理。",
+      "tags": [
+        "component",
+        "print-station"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/StaffAccountsManager.tsx:errorMessage",
+      "type": "function",
+      "name": "errorMessage",
+      "filePath": "apps/web/src/components/dashboard/StaffAccountsManager.tsx",
+      "lineRange": [
+        37,
+        48
+      ],
+      "summary": "将 API 错误映射为用户可读消息。",
+      "tags": [
+        "utility",
+        "error-handling"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/StaffAccountsManager.tsx:StaffAccountsManager",
+      "type": "function",
+      "name": "StaffAccountsManager",
+      "filePath": "apps/web/src/components/dashboard/StaffAccountsManager.tsx",
+      "lineRange": [
+        50,
+        485
+      ],
+      "summary": "员工账号 CRUD 与角色分配界面。",
+      "tags": [
+        "component",
+        "staff"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/TableGroupsManager.tsx:TableGroupsManager",
+      "type": "function",
+      "name": "TableGroupsManager",
+      "filePath": "apps/web/src/components/dashboard/TableGroupsManager.tsx",
+      "lineRange": [
+        48,
+        403
+      ],
+      "summary": "餐桌分组 CRUD 与桌台分配 picker。",
+      "tags": [
+        "component",
+        "table-groups"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/TablesManager.tsx:requestDashboardTables",
+      "type": "function",
+      "name": "requestDashboardTables",
+      "filePath": "apps/web/src/components/dashboard/TablesManager.tsx",
+      "lineRange": [
+        63,
+        76
+      ],
+      "summary": "客户端请求刷新 Dashboard 餐桌列表数据。",
+      "tags": [
+        "utility",
+        "data-fetch"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/TablesManager.tsx:TablesManager",
+      "type": "function",
+      "name": "TablesManager",
+      "filePath": "apps/web/src/components/dashboard/TablesManager.tsx",
+      "lineRange": [
+        78,
+        637
+      ],
+      "summary": "餐桌与分组 Tab 主界面，含批量添加与实时订阅。",
+      "tags": [
+        "component",
+        "tables"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx:BuffetCalendarPanel",
+      "type": "function",
+      "name": "BuffetCalendarPanel",
+      "filePath": "apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx",
+      "lineRange": [
+        30,
+        228
+      ],
+      "summary": "管理日历例外日期与规则覆盖。",
+      "tags": [
+        "component",
+        "calendar"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/buffet/BuffetFridayWeekendPanel.tsx:BuffetFridayWeekendPanel",
+      "type": "function",
+      "name": "BuffetFridayWeekendPanel",
+      "filePath": "apps/web/src/components/dashboard/buffet/BuffetFridayWeekendPanel.tsx",
+      "lineRange": [
+        22,
+        101
+      ],
+      "summary": "配置周五/周末策略与时间切换。",
+      "tags": [
+        "component",
+        "weekend"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx:pickBestRule",
+      "type": "function",
+      "name": "pickBestRule",
+      "filePath": "apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx",
+      "lineRange": [
+        24,
+        42
+      ],
+      "summary": "从多条规则中选取当前矩阵单元最优规则。",
+      "tags": [
+        "utility",
+        "pricing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx:BuffetPriceMatrix",
+      "type": "function",
+      "name": "BuffetPriceMatrix",
+      "filePath": "apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx",
+      "lineRange": [
+        50,
+        159
+      ],
+      "summary": "按日类型×时段渲染可编辑价格矩阵。",
+      "tags": [
+        "component",
+        "price-matrix"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/buffet/BuffetRulesToolbar.tsx:BuffetRulesToolbar",
+      "type": "function",
+      "name": "BuffetRulesToolbar",
+      "filePath": "apps/web/src/components/dashboard/buffet/BuffetRulesToolbar.tsx",
+      "lineRange": [
+        30,
+        99
+      ],
+      "summary": "规则列表顶部工具栏：筛选与操作按钮。",
+      "tags": [
+        "component",
+        "toolbar"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/buffet/BuffetSettingsTabs.tsx:BuffetSettingsTabs",
+      "type": "function",
+      "name": "BuffetSettingsTabs",
+      "filePath": "apps/web/src/components/dashboard/buffet/BuffetSettingsTabs.tsx",
+      "lineRange": [
+        12,
+        40
+      ],
+      "summary": "自助餐设置视图 Tab 导航。",
+      "tags": [
+        "component",
+        "tabs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/buffet/BuffetTimeSlotsPanel.tsx:BuffetTimeSlotsPanel",
+      "type": "function",
+      "name": "BuffetTimeSlotsPanel",
+      "filePath": "apps/web/src/components/dashboard/buffet/BuffetTimeSlotsPanel.tsx",
+      "lineRange": [
+        29,
+        163
+      ],
+      "summary": "编辑规则关联的用餐时段列表。",
+      "tags": [
+        "component",
+        "time-slots"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/buffet/BuffetToolbarSelect.tsx:BuffetToolbarSelect",
+      "type": "function",
+      "name": "BuffetToolbarSelect",
+      "filePath": "apps/web/src/components/dashboard/buffet/BuffetToolbarSelect.tsx",
+      "lineRange": [
+        14,
+        36
+      ],
+      "summary": "样式化 select 下拉，用于规则工具栏筛选。",
+      "tags": [
+        "component",
+        "select"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/buffet/SlotTimeHmField.tsx:SlotTimeHmField",
+      "type": "function",
+      "name": "SlotTimeHmField",
+      "filePath": "apps/web/src/components/dashboard/buffet/SlotTimeHmField.tsx",
+      "lineRange": [
+        17,
+        43
+      ],
+      "summary": "时段起止时间输入行，组合 TimeHmInput。",
+      "tags": [
+        "component",
+        "time-input"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/buffet/buffet-field-styles.ts:buffetSegmentBtnClass",
+      "type": "function",
+      "name": "buffetSegmentBtnClass",
+      "filePath": "apps/web/src/components/dashboard/buffet/buffet-field-styles.ts",
+      "lineRange": [
+        24,
+        30
+      ],
+      "summary": "分段按钮 active/inactive Tailwind 类名生成器。",
+      "tags": [
+        "utility",
+        "styles"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx:HelpIcon",
+      "type": "function",
+      "name": "HelpIcon",
+      "filePath": "apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx",
+      "lineRange": [
+        12,
+        27
+      ],
+      "summary": "帮助问号图标 SVG 组件。",
+      "tags": [
+        "component",
+        "icon"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx:SettingsPageHelp",
+      "type": "function",
+      "name": "SettingsPageHelp",
+      "filePath": "apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx",
+      "lineRange": [
+        30,
+        49
+      ],
+      "summary": "点击打开帮助 Modal 的设置页帮助入口。",
+      "tags": [
+        "component",
+        "help"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/ui/Button.tsx:buttonClasses",
+      "type": "function",
+      "name": "buttonClasses",
+      "filePath": "apps/web/src/components/ui/Button.tsx",
+      "lineRange": [
+        37,
+        47
+      ],
+      "summary": "根据 variant/size 生成 Button Tailwind 类名。",
+      "tags": [
+        "utility",
+        "styles"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/ui/Button.tsx:ButtonLink",
+      "type": "function",
+      "name": "ButtonLink",
+      "filePath": "apps/web/src/components/ui/Button.tsx",
+      "lineRange": [
+        84,
+        107
+      ],
+      "summary": "链接样式的 Button 变体，基于 next/link。",
+      "tags": [
+        "component",
+        "button",
+        "link"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/ui/ConfirmModal.tsx:ConfirmModal",
+      "type": "function",
+      "name": "ConfirmModal",
+      "filePath": "apps/web/src/components/ui/ConfirmModal.tsx",
+      "lineRange": [
+        22,
+        54
+      ],
+      "summary": "二次确认 Modal，含确认/取消回调。",
+      "tags": [
+        "component",
+        "modal"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/ui/DecimalInput.tsx:DecimalInput",
+      "type": "function",
+      "name": "DecimalInput",
+      "filePath": "apps/web/src/components/ui/DecimalInput.tsx",
+      "lineRange": [
+        13,
+        48
+      ],
+      "summary": "受控小数输入，blur 时规范化数值。",
+      "tags": [
+        "component",
+        "input"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/ui/IntegerInput.tsx:IntegerInput",
+      "type": "function",
+      "name": "IntegerInput",
+      "filePath": "apps/web/src/components/ui/IntegerInput.tsx",
+      "lineRange": [
+        14,
+        58
+      ],
+      "summary": "受控整数输入，集成 parseNonNegativeInt。",
+      "tags": [
+        "component",
+        "input"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/ui/Modal.tsx:Modal",
+      "type": "function",
+      "name": "Modal",
+      "filePath": "apps/web/src/components/ui/Modal.tsx",
+      "lineRange": [
+        20,
+        66
+      ],
+      "summary": "基础 Modal：遮罩、标题、关闭与 children 槽。",
+      "tags": [
+        "component",
+        "modal"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/ui/PromptModal.tsx:PromptModal",
+      "type": "function",
+      "name": "PromptModal",
+      "filePath": "apps/web/src/components/ui/PromptModal.tsx",
+      "lineRange": [
+        23,
+        84
+      ],
+      "summary": "带单行输入的确认对话框。",
+      "tags": [
+        "component",
+        "modal",
+        "prompt"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx:BuffetPricePreview",
+      "type": "function",
+      "name": "BuffetPricePreview",
+      "filePath": "apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx",
+      "lineRange": [
+        47,
+        250
+      ],
+      "summary": "模拟日期时间查询自助餐生效价格。",
+      "tags": [
+        "component",
+        "preview"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/ui/Button.tsx:Button",
+      "type": "function",
+      "name": "Button",
+      "filePath": "apps/web/src/components/ui/Button.tsx",
+      "lineRange": [
+        55,
+        83
+      ],
+      "summary": "主 Button 组件，支持 loading 与 disabled。",
+      "tags": [
+        "component",
+        "button"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/ui/Input.tsx:Input",
+      "type": "function",
+      "name": "Input",
+      "filePath": "apps/web/src/components/ui/Input.tsx",
+      "lineRange": [
+        10,
+        36
+      ],
+      "summary": "通用 forwardRef 文本输入框。",
+      "tags": [
+        "component",
+        "input"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/categories/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/categories/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/categories/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/categories/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/categories/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/categories/route.ts:PATCH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/categories/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/categories/route.ts:PATCH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/categories/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/categories/route.ts:DELETE",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/categories/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/categories/route.ts:DELETE",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/items/[id]/image/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/items/[id]/image/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/items/[id]/image/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/items/[id]/image/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/items/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/items/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/items/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/items/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/items/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/items/route.ts:PATCH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/items/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/items/route.ts:PATCH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/items/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/items/route.ts:DELETE",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/items/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/items/route.ts:DELETE",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/print-stations/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/print-stations/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/print-stations/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/print-stations/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/print-stations/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/print-stations/route.ts:PATCH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/print-stations/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/print-stations/route.ts:PATCH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/print-stations/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/print-stations/route.ts:DELETE",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/print-stations/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/menu/print-stations/route.ts:DELETE",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/menu/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/menu/page.tsx:MenuPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/menu/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/menu/page.tsx:MenuPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/tables/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/tables/page.tsx:TablesPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/tables/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/tables/page.tsx:TablesPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/BuffetSettingsManager.tsx:buildRuleDraft",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/BuffetSettingsManager.tsx:ruleToDraft",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/BuffetSettingsManager.tsx:BuffetSettingsManager",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/BuffetSettingsManager.tsx:BuffetSettingsManager",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/CloseTableSessionAction.tsx",
+      "target": "function:apps/web/src/components/dashboard/CloseTableSessionAction.tsx:CloseTableSessionAction",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/CloseTableSessionAction.tsx",
+      "target": "function:apps/web/src/components/dashboard/CloseTableSessionAction.tsx:CloseTableSessionAction",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardDatePicker.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardDatePicker.tsx:computePopupCoords",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardDatePicker.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardDatePicker.tsx:DashboardDatePicker",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardDatePicker.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardDatePicker.tsx:DashboardDatePicker",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DishSortOrderButtons.tsx",
+      "target": "function:apps/web/src/components/dashboard/DishSortOrderButtons.tsx:DishSortOrderButtons",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DishSortOrderButtons.tsx",
+      "target": "function:apps/web/src/components/dashboard/DishSortOrderButtons.tsx:DishSortOrderButtons",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/MenuManager.tsx:MenuManager",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/MenuManager.tsx:MenuManager",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintStationsManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/PrintStationsManager.tsx:PrintStationsManager",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintStationsManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/PrintStationsManager.tsx:PrintStationsManager",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/StaffAccountsManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/StaffAccountsManager.tsx:errorMessage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/StaffAccountsManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/StaffAccountsManager.tsx:StaffAccountsManager",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/StaffAccountsManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/StaffAccountsManager.tsx:StaffAccountsManager",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TableGroupsManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/TableGroupsManager.tsx:TableGroupsManager",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TableGroupsManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/TableGroupsManager.tsx:TableGroupsManager",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/TablesManager.tsx:requestDashboardTables",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/TablesManager.tsx:TablesManager",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/TablesManager.tsx:TablesManager",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx:BuffetCalendarPanel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx:BuffetCalendarPanel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetFridayWeekendPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/BuffetFridayWeekendPanel.tsx:BuffetFridayWeekendPanel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetFridayWeekendPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/BuffetFridayWeekendPanel.tsx:BuffetFridayWeekendPanel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx:pickBestRule",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx:BuffetPriceMatrix",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx:BuffetPriceMatrix",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetRulesToolbar.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/BuffetRulesToolbar.tsx:BuffetRulesToolbar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetRulesToolbar.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/BuffetRulesToolbar.tsx:BuffetRulesToolbar",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetSettingsTabs.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/BuffetSettingsTabs.tsx:BuffetSettingsTabs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetSettingsTabs.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/BuffetSettingsTabs.tsx:BuffetSettingsTabs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetTimeSlotsPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/BuffetTimeSlotsPanel.tsx:BuffetTimeSlotsPanel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetTimeSlotsPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/BuffetTimeSlotsPanel.tsx:BuffetTimeSlotsPanel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetToolbarSelect.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/BuffetToolbarSelect.tsx:BuffetToolbarSelect",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetToolbarSelect.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/BuffetToolbarSelect.tsx:BuffetToolbarSelect",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/SlotTimeHmField.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/SlotTimeHmField.tsx:SlotTimeHmField",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/SlotTimeHmField.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/SlotTimeHmField.tsx:SlotTimeHmField",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/buffet-field-styles.ts",
+      "target": "function:apps/web/src/components/dashboard/buffet/buffet-field-styles.ts:buffetSegmentBtnClass",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/buffet-field-styles.ts",
+      "target": "function:apps/web/src/components/dashboard/buffet/buffet-field-styles.ts:buffetSegmentBtnClass",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx",
+      "target": "function:apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx:HelpIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx",
+      "target": "function:apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx:SettingsPageHelp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx",
+      "target": "function:apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx:SettingsPageHelp",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui/Button.tsx",
+      "target": "function:apps/web/src/components/ui/Button.tsx:buttonClasses",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/ui/Button.tsx",
+      "target": "function:apps/web/src/components/ui/Button.tsx:buttonClasses",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui/Button.tsx",
+      "target": "function:apps/web/src/components/ui/Button.tsx:ButtonLink",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/ui/Button.tsx",
+      "target": "function:apps/web/src/components/ui/Button.tsx:ButtonLink",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui/ConfirmModal.tsx",
+      "target": "function:apps/web/src/components/ui/ConfirmModal.tsx:ConfirmModal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/ui/ConfirmModal.tsx",
+      "target": "function:apps/web/src/components/ui/ConfirmModal.tsx:ConfirmModal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui/DecimalInput.tsx",
+      "target": "function:apps/web/src/components/ui/DecimalInput.tsx:DecimalInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/ui/DecimalInput.tsx",
+      "target": "function:apps/web/src/components/ui/DecimalInput.tsx:DecimalInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui/IntegerInput.tsx",
+      "target": "function:apps/web/src/components/ui/IntegerInput.tsx:IntegerInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/ui/IntegerInput.tsx",
+      "target": "function:apps/web/src/components/ui/IntegerInput.tsx:IntegerInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui/Modal.tsx",
+      "target": "function:apps/web/src/components/ui/Modal.tsx:Modal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/ui/Modal.tsx",
+      "target": "function:apps/web/src/components/ui/Modal.tsx:Modal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui/PromptModal.tsx",
+      "target": "function:apps/web/src/components/ui/PromptModal.tsx:PromptModal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/ui/PromptModal.tsx",
+      "target": "function:apps/web/src/components/ui/PromptModal.tsx:PromptModal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx:BuffetPricePreview",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx",
+      "target": "function:apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx:BuffetPricePreview",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui/Button.tsx",
+      "target": "function:apps/web/src/components/ui/Button.tsx:Button",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/ui/Button.tsx",
+      "target": "function:apps/web/src/components/ui/Button.tsx:Button",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui/Input.tsx",
+      "target": "function:apps/web/src/components/ui/Input.tsx:Input",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/ui/Input.tsx",
+      "target": "function:apps/web/src/components/ui/Input.tsx:Input",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/categories/route.ts",
+      "target": "file:apps/web/src/lib/dashboard-menu-api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/categories/route.ts",
+      "target": "file:apps/web/src/lib/dashboard-menu-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/items/[id]/image/route.ts",
+      "target": "file:apps/web/src/lib/dashboard-menu-api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/items/[id]/image/route.ts",
+      "target": "file:apps/web/src/lib/dashboard-menu-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/items/route.ts",
+      "target": "file:apps/web/src/lib/dashboard-menu-api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/items/route.ts",
+      "target": "file:apps/web/src/lib/dashboard-menu-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/print-stations/route.ts",
+      "target": "file:apps/web/src/lib/dashboard-menu-api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/menu/print-stations/route.ts",
+      "target": "file:apps/web/src/lib/dashboard-menu-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/menu/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/menu/page.tsx",
+      "target": "file:apps/web/src/lib/dashboard-menu.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/menu/page.tsx",
+      "target": "file:apps/web/src/lib/menu-manager-tab-preference.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/tables/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/tables/page.tsx",
+      "target": "file:apps/web/src/lib/dashboard-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/tables/page.tsx",
+      "target": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/buffet/buffet-field-styles.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/buffet/BuffetFridayWeekendPanel.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/buffet/BuffetRulesToolbar.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/buffet/BuffetSettingsTabs.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/buffet/BuffetTimeSlotsPanel.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/DashboardDatePicker.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/ui/ConfirmModal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/ui/DecimalInput.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/ui/IntegerInput.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/ui/Modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/ui/PromptModal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/ui/Toast.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/lib/buffet-pricing-admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/lib/dashboard-buffet-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/CloseTableSessionAction.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/CloseTableSessionAction.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/CloseTableSessionAction.tsx",
+      "target": "file:apps/web/src/components/ui/ConfirmModal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/CloseTableSessionAction.tsx",
+      "target": "file:apps/web/src/components/ui/ReasonConfirmDialog.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/CloseTableSessionAction.tsx",
+      "target": "file:apps/web/src/components/ui/Toast.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/CloseTableSessionAction.tsx",
+      "target": "file:apps/web/src/lib/audit/reason-labels.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/CloseTableSessionAction.tsx",
+      "target": "file:apps/web/src/lib/close-table-session-ui.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/CloseTableSessionAction.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardDatePicker.tsx",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/DishSortOrderButtons.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/PrintStationsManager.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/components/ui/Input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/components/ui/Modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/lib/dashboard-menu-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/lib/menu-admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/lib/menu-code-uniqueness.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/lib/menu-image.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/lib/menu-item-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/lib/menu-manager-tab-preference.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/lib/menu-print-label.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/lib/menu-vat-rate.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/lib/note-presets.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/lib/number-input.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/lib/print-station-admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/lib/print-station-resolve.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/lib/sort-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintStationsManager.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintStationsManager.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintStationsManager.tsx",
+      "target": "file:apps/web/src/components/ui/Input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintStationsManager.tsx",
+      "target": "file:apps/web/src/components/ui/Modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintStationsManager.tsx",
+      "target": "file:apps/web/src/lib/dashboard-menu-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintStationsManager.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintStationsManager.tsx",
+      "target": "file:apps/web/src/lib/print-station-admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintStationsManager.tsx",
+      "target": "file:apps/web/src/lib/sort-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintStationsManager.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/StaffAccountsManager.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/StaffAccountsManager.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/StaffAccountsManager.tsx",
+      "target": "file:apps/web/src/components/ui/Input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/StaffAccountsManager.tsx",
+      "target": "file:apps/web/src/components/ui/Modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/StaffAccountsManager.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/StaffAccountsManager.tsx",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/StaffAccountsManager.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TableGroupsManager.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TableGroupsManager.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TableGroupsManager.tsx",
+      "target": "file:apps/web/src/components/ui/Input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TableGroupsManager.tsx",
+      "target": "file:apps/web/src/components/ui/Modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TableGroupsManager.tsx",
+      "target": "file:apps/web/src/lib/dashboard-table-groups-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TableGroupsManager.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TableGroupsManager.tsx",
+      "target": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TableGroupsManager.tsx",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/buffet/BuffetSettingsTabs.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/TableGroupsManager.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "target": "file:apps/web/src/components/ui/IntegerInput.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "target": "file:apps/web/src/components/ui/Modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "target": "file:apps/web/src/components/ui/Toast.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "target": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "target": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "target": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx",
+      "target": "file:apps/web/src/components/dashboard/DashboardDatePicker.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx",
+      "target": "file:apps/web/src/components/ui/Toast.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx",
+      "target": "file:apps/web/src/lib/buffet-pricing-admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetFridayWeekendPanel.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetFridayWeekendPanel.tsx",
+      "target": "file:apps/web/src/components/ui/TimeHmInput.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetFridayWeekendPanel.tsx",
+      "target": "file:apps/web/src/lib/buffet-pricing-admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetFridayWeekendPanel.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx",
+      "target": "file:apps/web/src/lib/buffet-pricing-admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx",
+      "target": "file:apps/web/src/components/dashboard/DashboardDatePicker.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx",
+      "target": "file:apps/web/src/components/ui/TimeHmInput.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx",
+      "target": "file:apps/web/src/lib/buffet-pricing-admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx",
+      "target": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetRulesToolbar.tsx",
+      "target": "file:apps/web/src/components/dashboard/buffet/buffet-field-styles.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetRulesToolbar.tsx",
+      "target": "file:apps/web/src/components/dashboard/buffet/BuffetToolbarSelect.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetRulesToolbar.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetRulesToolbar.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetRulesToolbar.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetTimeSlotsPanel.tsx",
+      "target": "file:apps/web/src/components/dashboard/buffet/buffet-field-styles.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetTimeSlotsPanel.tsx",
+      "target": "file:apps/web/src/components/dashboard/buffet/SlotTimeHmField.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetTimeSlotsPanel.tsx",
+      "target": "file:apps/web/src/components/ui/IntegerInput.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetTimeSlotsPanel.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/BuffetTimeSlotsPanel.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/SlotTimeHmField.tsx",
+      "target": "file:apps/web/src/components/ui/TimeHmInput.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/buffet/SlotTimeHmField.tsx",
+      "target": "file:apps/web/src/lib/number-input.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx",
+      "target": "file:apps/web/src/components/ui/Modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/ui/ConfirmModal.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/ui/ConfirmModal.tsx",
+      "target": "file:apps/web/src/components/ui/Modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/ui/DecimalInput.tsx",
+      "target": "file:apps/web/src/lib/number-input.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/ui/IntegerInput.tsx",
+      "target": "file:apps/web/src/lib/number-input.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/ui/PromptModal.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/ui/PromptModal.tsx",
+      "target": "file:apps/web/src/components/ui/Modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/menu/categories/route.ts:POST",
+      "target": "function:apps/web/src/lib/dashboard-menu-server.ts:createMenuCategory",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/menu/categories/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/dashboard-menu-server.ts:updateMenuCategory",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/menu/categories/route.ts:DELETE",
+      "target": "function:apps/web/src/lib/dashboard-menu-server.ts:deleteMenuCategory",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/menu/items/[id]/image/route.ts:POST",
+      "target": "function:apps/web/src/lib/dashboard-menu-server.ts:setMenuItemImage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/menu/items/route.ts:POST",
+      "target": "function:apps/web/src/lib/dashboard-menu-server.ts:createMenuItem",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/menu/items/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/dashboard-menu-server.ts:updateMenuItem",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/menu/items/route.ts:DELETE",
+      "target": "function:apps/web/src/lib/dashboard-menu-server.ts:deleteMenuItem",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/menu/print-stations/route.ts:POST",
+      "target": "function:apps/web/src/lib/dashboard-menu-server.ts:createPrintStation",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/menu/print-stations/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/dashboard-menu-server.ts:updatePrintStation",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/menu/print-stations/route.ts:DELETE",
+      "target": "function:apps/web/src/lib/dashboard-menu-server.ts:deletePrintStation",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/dashboard/menu/page.tsx:MenuPage",
+      "target": "function:apps/web/src/lib/dashboard-menu.ts:loadDashboardMenu",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/dashboard/MenuManager.tsx:MenuManager",
+      "target": "function:apps/web/src/lib/dashboard-menu-client.ts:createMenuItemClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/dashboard/TablesManager.tsx:TablesManager",
+      "target": "function:apps/web/src/lib/supabase/client.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/dashboard/buffet/BuffetPricePreview.tsx:BuffetPricePreview",
+      "target": "function:apps/web/src/lib/supabase/client.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/dashboard/CloseTableSessionAction.tsx:CloseTableSessionAction",
+      "target": "function:apps/web/src/lib/close-table-session-ui.ts:interpretCloseTableSessionResponse",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/ui/ConfirmModal.tsx:ConfirmModal",
+      "target": "function:apps/web/src/components/ui/Modal.tsx:Modal",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/ui/PromptModal.tsx:PromptModal",
+      "target": "function:apps/web/src/components/ui/Modal.tsx:Modal",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/ui/DecimalInput.tsx:DecimalInput",
+      "target": "function:apps/web/src/lib/number-input.ts:parseDecimalInput",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/ui/IntegerInput.tsx:IntegerInput",
+      "target": "function:apps/web/src/lib/number-input.ts:parseNonNegativeInt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/dashboard/buffet/SlotTimeHmField.tsx:SlotTimeHmField",
+      "target": "function:apps/web/src/components/ui/TimeHmInput.tsx:TimeHmInput",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/menu/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/tables/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/buffet/BuffetCalendarPanel.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/buffet/BuffetPriceMatrix.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/PrintStationsManager.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/MenuManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/DishSortOrderButtons.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/TablesManager.tsx",
+      "target": "file:apps/web/src/components/dashboard/TableGroupsManager.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/ui/ConfirmModal.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/ui/PromptModal.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

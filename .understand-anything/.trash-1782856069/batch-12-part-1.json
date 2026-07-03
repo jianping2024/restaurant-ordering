@@ -1,0 +1,1350 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/print-agent-config.ts",
+      "type": "file",
+      "name": "print-agent-config.ts",
+      "filePath": "apps/web/src/lib/print-agent-config.ts",
+      "summary": "服务端/客户端共享工具库 print-agent-config.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-config.ts:defaultPrintAgentCloudConfig",
+      "type": "function",
+      "name": "defaultPrintAgentCloudConfig",
+      "filePath": "apps/web/src/lib/print-agent-config.ts",
+      "lineRange": [
+        50,
+        72
+      ],
+      "summary": "函数 defaultPrintAgentCloudConfig，实现 print-agent-config 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-config.ts:cloudConfigToForm",
+      "type": "function",
+      "name": "cloudConfigToForm",
+      "filePath": "apps/web/src/lib/print-agent-config.ts",
+      "lineRange": [
+        81,
+        100
+      ],
+      "summary": "函数 cloudConfigToForm，实现 print-agent-config 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-config.ts:formToCloudConfig",
+      "type": "function",
+      "name": "formToCloudConfig",
+      "filePath": "apps/web/src/lib/print-agent-config.ts",
+      "lineRange": [
+        102,
+        134
+      ],
+      "summary": "函数 formToCloudConfig，实现 print-agent-config 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-config.ts:parseDefaultReceiptStationId",
+      "type": "function",
+      "name": "parseDefaultReceiptStationId",
+      "filePath": "apps/web/src/lib/print-agent-config.ts",
+      "lineRange": [
+        141,
+        147
+      ],
+      "summary": "解析/规范化工具函数 parseDefaultReceiptStationId。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-config.ts:normalizePrintAgentCloudConfig",
+      "type": "function",
+      "name": "normalizePrintAgentCloudConfig",
+      "filePath": "apps/web/src/lib/print-agent-config.ts",
+      "lineRange": [
+        149,
+        166
+      ],
+      "summary": "解析/规范化工具函数 normalizePrintAgentCloudConfig。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-config.ts:validatePrintAgentCloudConfig",
+      "type": "function",
+      "name": "validatePrintAgentCloudConfig",
+      "filePath": "apps/web/src/lib/print-agent-config.ts",
+      "lineRange": [
+        168,
+        186
+      ],
+      "summary": "函数 validatePrintAgentCloudConfig，实现 print-agent-config 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-constants.ts",
+      "type": "file",
+      "name": "print-agent-constants.ts",
+      "filePath": "apps/web/src/lib/print-agent-constants.ts",
+      "summary": "服务端/客户端共享工具库 print-agent-constants.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "type": "file",
+      "name": "print-agent-dashboard-auth.ts",
+      "filePath": "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "summary": "服务端/客户端共享工具库 print-agent-dashboard-auth.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "dashboard",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-dashboard-auth.ts:getOwnerRestaurantId",
+      "type": "function",
+      "name": "getOwnerRestaurantId",
+      "filePath": "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "lineRange": [
+        9,
+        43
+      ],
+      "summary": "函数 getOwnerRestaurantId，实现 print-agent-dashboard-auth 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-jwt.ts",
+      "type": "file",
+      "name": "print-agent-jwt.ts",
+      "filePath": "apps/web/src/lib/print-agent-jwt.ts",
+      "summary": "服务端/客户端共享工具库 print-agent-jwt.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-pairing-code.ts",
+      "type": "file",
+      "name": "print-agent-pairing-code.ts",
+      "filePath": "apps/web/src/lib/print-agent-pairing-code.ts",
+      "summary": "服务端/客户端共享工具库 print-agent-pairing-code.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-pairing-code.ts:randomPairingCode",
+      "type": "function",
+      "name": "randomPairingCode",
+      "filePath": "apps/web/src/lib/print-agent-pairing-code.ts",
+      "lineRange": [
+        20,
+        27
+      ],
+      "summary": "函数 randomPairingCode，实现 print-agent-pairing-code 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-pairing-code.ts:maskPairingCode",
+      "type": "function",
+      "name": "maskPairingCode",
+      "filePath": "apps/web/src/lib/print-agent-pairing-code.ts",
+      "lineRange": [
+        29,
+        33
+      ],
+      "summary": "函数 maskPairingCode，实现 print-agent-pairing-code 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-pairing-slots.ts",
+      "type": "file",
+      "name": "print-agent-pairing-slots.ts",
+      "filePath": "apps/web/src/lib/print-agent-pairing-slots.ts",
+      "summary": "服务端/客户端共享工具库 print-agent-pairing-slots.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-pairing-slots.ts:isPendingPairing",
+      "type": "function",
+      "name": "isPendingPairing",
+      "filePath": "apps/web/src/lib/print-agent-pairing-slots.ts",
+      "lineRange": [
+        10,
+        18
+      ],
+      "summary": "函数 isPendingPairing，实现 print-agent-pairing-slots 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-routing.test.ts",
+      "type": "file",
+      "name": "print-agent-routing.test.ts",
+      "filePath": "apps/web/src/lib/print-agent-routing.test.ts",
+      "summary": "服务端/客户端共享工具库 print-agent-routing.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-routing.ts",
+      "type": "file",
+      "name": "print-agent-routing.ts",
+      "filePath": "apps/web/src/lib/print-agent-routing.ts",
+      "summary": "服务端/客户端共享工具库 print-agent-routing.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-routing.ts:parseReceiptStationId",
+      "type": "function",
+      "name": "parseReceiptStationId",
+      "filePath": "apps/web/src/lib/print-agent-routing.ts",
+      "lineRange": [
+        29,
+        34
+      ],
+      "summary": "解析/规范化工具函数 parseReceiptStationId。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-routing.ts:stationIdsFromRoutingSnapshot",
+      "type": "function",
+      "name": "stationIdsFromRoutingSnapshot",
+      "filePath": "apps/web/src/lib/print-agent-routing.ts",
+      "lineRange": [
+        37,
+        44
+      ],
+      "summary": "函数 stationIdsFromRoutingSnapshot，实现 print-agent-routing 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-routing.ts:printJobTargetStationId",
+      "type": "function",
+      "name": "printJobTargetStationId",
+      "filePath": "apps/web/src/lib/print-agent-routing.ts",
+      "lineRange": [
+        52,
+        67
+      ],
+      "summary": "函数 printJobTargetStationId，实现 print-agent-routing 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-routing.ts:isPrintJobVisibleToDevice",
+      "type": "function",
+      "name": "isPrintJobVisibleToDevice",
+      "filePath": "apps/web/src/lib/print-agent-routing.ts",
+      "lineRange": [
+        73,
+        87
+      ],
+      "summary": "函数 isPrintJobVisibleToDevice，实现 print-agent-routing 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-routing.ts:filterPrintJobsForDevice",
+      "type": "function",
+      "name": "filterPrintJobsForDevice",
+      "filePath": "apps/web/src/lib/print-agent-routing.ts",
+      "lineRange": [
+        89,
+        94
+      ],
+      "summary": "函数 filterPrintJobsForDevice，实现 print-agent-routing 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-routing.ts:normalizeStationPrintersInput",
+      "type": "function",
+      "name": "normalizeStationPrintersInput",
+      "filePath": "apps/web/src/lib/print-agent-routing.ts",
+      "lineRange": [
+        96,
+        105
+      ],
+      "summary": "解析/规范化工具函数 normalizeStationPrintersInput。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-routing.ts:loadDeviceRoutingStationIds",
+      "type": "function",
+      "name": "loadDeviceRoutingStationIds",
+      "filePath": "apps/web/src/lib/print-agent-routing.ts",
+      "lineRange": [
+        113,
+        127
+      ],
+      "summary": "数据加载函数 loadDeviceRoutingStationIds，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-routing.ts:findStationMappingConflicts",
+      "type": "function",
+      "name": "findStationMappingConflicts",
+      "filePath": "apps/web/src/lib/print-agent-routing.ts",
+      "lineRange": [
+        135,
+        174
+      ],
+      "summary": "函数 findStationMappingConflicts，实现 print-agent-routing 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-routing.ts:saveDeviceRoutingSnapshot",
+      "type": "function",
+      "name": "saveDeviceRoutingSnapshot",
+      "filePath": "apps/web/src/lib/print-agent-routing.ts",
+      "lineRange": [
+        176,
+        223
+      ],
+      "summary": "函数 saveDeviceRoutingSnapshot，实现 print-agent-routing 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-routing.ts:stationLabelsFromRoutingSnapshot",
+      "type": "function",
+      "name": "stationLabelsFromRoutingSnapshot",
+      "filePath": "apps/web/src/lib/print-agent-routing.ts",
+      "lineRange": [
+        225,
+        229
+      ],
+      "summary": "函数 stationLabelsFromRoutingSnapshot，实现 print-agent-routing 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-job-max-age.ts",
+      "type": "file",
+      "name": "print-job-max-age.ts",
+      "filePath": "apps/web/src/lib/print-job-max-age.ts",
+      "summary": "服务端/客户端共享工具库 print-job-max-age.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-job-max-age.ts:printJobMaxAgeCutoffDate",
+      "type": "function",
+      "name": "printJobMaxAgeCutoffDate",
+      "filePath": "apps/web/src/lib/print-job-max-age.ts",
+      "lineRange": [
+        7,
+        9
+      ],
+      "summary": "函数 printJobMaxAgeCutoffDate，实现 print-job-max-age 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-job-max-age.ts:printJobMaxAgeCutoffIso",
+      "type": "function",
+      "name": "printJobMaxAgeCutoffIso",
+      "filePath": "apps/web/src/lib/print-job-max-age.ts",
+      "lineRange": [
+        11,
+        13
+      ],
+      "summary": "函数 printJobMaxAgeCutoffIso，实现 print-job-max-age 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-jobs-scope.ts",
+      "type": "file",
+      "name": "print-jobs-scope.ts",
+      "filePath": "apps/web/src/lib/print-jobs-scope.ts",
+      "summary": "服务端/客户端共享工具库 print-jobs-scope.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-jobs-scope.ts:rejectForbiddenPrintJobsScopeParams",
+      "type": "function",
+      "name": "rejectForbiddenPrintJobsScopeParams",
+      "filePath": "apps/web/src/lib/print-jobs-scope.ts",
+      "lineRange": [
+        11,
+        19
+      ],
+      "summary": "函数 rejectForbiddenPrintJobsScopeParams，实现 print-jobs-scope 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-jobs-scope.ts:rejectUnexpectedPrintJobsQueryParams",
+      "type": "function",
+      "name": "rejectUnexpectedPrintJobsQueryParams",
+      "filePath": "apps/web/src/lib/print-jobs-scope.ts",
+      "lineRange": [
+        21,
+        32
+      ],
+      "summary": "函数 rejectUnexpectedPrintJobsQueryParams，实现 print-jobs-scope 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-jobs-scope.ts:filterPrintJobsByRestaurant",
+      "type": "function",
+      "name": "filterPrintJobsByRestaurant",
+      "filePath": "apps/web/src/lib/print-jobs-scope.ts",
+      "lineRange": [
+        34,
+        40
+      ],
+      "summary": "函数 filterPrintJobsByRestaurant，实现 print-jobs-scope 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-receipt-printer-options.ts",
+      "type": "file",
+      "name": "print-receipt-printer-options.ts",
+      "filePath": "apps/web/src/lib/print-receipt-printer-options.ts",
+      "summary": "服务端/客户端共享工具库 print-receipt-printer-options.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-receipt-printer-options.ts:stationDisplayName",
+      "type": "function",
+      "name": "stationDisplayName",
+      "filePath": "apps/web/src/lib/print-receipt-printer-options.ts",
+      "lineRange": [
+        22,
+        26
+      ],
+      "summary": "函数 stationDisplayName，实现 print-receipt-printer-options 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-receipt-printer-options.ts:buildReceiptPrinterSnapshot",
+      "type": "function",
+      "name": "buildReceiptPrinterSnapshot",
+      "filePath": "apps/web/src/lib/print-receipt-printer-options.ts",
+      "lineRange": [
+        29,
+        65
+      ],
+      "summary": "函数 buildReceiptPrinterSnapshot，实现 print-receipt-printer-options 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-receipt-printer-options.ts:presentReceiptPrintersForCheckout",
+      "type": "function",
+      "name": "presentReceiptPrintersForCheckout",
+      "filePath": "apps/web/src/lib/print-receipt-printer-options.ts",
+      "lineRange": [
+        68,
+        95
+      ],
+      "summary": "函数 presentReceiptPrintersForCheckout，实现 print-receipt-printer-options 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-receipt-printer-options.ts:parseReceiptPrinterRoutingSnapshot",
+      "type": "function",
+      "name": "parseReceiptPrinterRoutingSnapshot",
+      "filePath": "apps/web/src/lib/print-receipt-printer-options.ts",
+      "lineRange": [
+        97,
+        114
+      ],
+      "summary": "解析/规范化工具函数 parseReceiptPrinterRoutingSnapshot。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-receipt-printer-options.ts:isValidReceiptPrinterId",
+      "type": "function",
+      "name": "isValidReceiptPrinterId",
+      "filePath": "apps/web/src/lib/print-receipt-printer-options.ts",
+      "lineRange": [
+        116,
+        124
+      ],
+      "summary": "函数 isValidReceiptPrinterId，实现 print-receipt-printer-options 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/request-client-ip.ts",
+      "type": "file",
+      "name": "request-client-ip.ts",
+      "filePath": "apps/web/src/lib/request-client-ip.ts",
+      "summary": "服务端/客户端共享工具库 request-client-ip.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/request-client-ip.ts:clientIpFromRequest",
+      "type": "function",
+      "name": "clientIpFromRequest",
+      "filePath": "apps/web/src/lib/request-client-ip.ts",
+      "lineRange": [
+        1,
+        7
+      ],
+      "summary": "函数 clientIpFromRequest，实现 request-client-ip 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "type": "file",
+      "name": "restaurant-receipt-printers-server.ts",
+      "filePath": "apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "summary": "服务端/客户端共享工具库 restaurant-receipt-printers-server.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:loadRestaurantReceiptPrinterSnapshot",
+      "type": "function",
+      "name": "loadRestaurantReceiptPrinterSnapshot",
+      "filePath": "apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "lineRange": [
+        13,
+        49
+      ],
+      "summary": "数据加载函数 loadRestaurantReceiptPrinterSnapshot，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:assertReceiptPrinterIdAllowed",
+      "type": "function",
+      "name": "assertReceiptPrinterIdAllowed",
+      "filePath": "apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "lineRange": [
+        51,
+        61
+      ],
+      "summary": "函数 assertReceiptPrinterIdAllowed，实现 restaurant-receipt-printers-server 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:resolveReceiptPrinterId",
+      "type": "function",
+      "name": "resolveReceiptPrinterId",
+      "filePath": "apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "lineRange": [
+        71,
+        105
+      ],
+      "summary": "函数 resolveReceiptPrinterId，实现 restaurant-receipt-printers-server 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/print-agent-config.ts",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:defaultPrintAgentCloudConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-config.ts",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:defaultPrintAgentCloudConfig",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-config.ts",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:cloudConfigToForm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-config.ts",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:cloudConfigToForm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-config.ts",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:formToCloudConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-config.ts",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:formToCloudConfig",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-config.ts",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:parseDefaultReceiptStationId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-config.ts",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:parseDefaultReceiptStationId",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-config.ts",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:normalizePrintAgentCloudConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-config.ts",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:normalizePrintAgentCloudConfig",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-config.ts",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:validatePrintAgentCloudConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-config.ts",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:validatePrintAgentCloudConfig",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-config.ts:cloudConfigToForm",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:defaultPrintAgentCloudConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-config.ts:cloudConfigToForm",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:normalizePrintAgentCloudConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-config.ts:normalizePrintAgentCloudConfig",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:defaultPrintAgentCloudConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-config.ts:normalizePrintAgentCloudConfig",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:defaultPrintAgentCloudConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-config.ts:normalizePrintAgentCloudConfig",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:parseDefaultReceiptStationId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-config.ts:validatePrintAgentCloudConfig",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:normalizePrintAgentCloudConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-config.ts:validatePrintAgentCloudConfig",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:cloudConfigToForm",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-config.ts:validatePrintAgentCloudConfig",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:formToCloudConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "target": "function:apps/web/src/lib/print-agent-dashboard-auth.ts:getOwnerRestaurantId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "target": "function:apps/web/src/lib/print-agent-dashboard-auth.ts:getOwnerRestaurantId",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-pairing-code.ts",
+      "target": "function:apps/web/src/lib/print-agent-pairing-code.ts:randomPairingCode",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-pairing-code.ts",
+      "target": "function:apps/web/src/lib/print-agent-pairing-code.ts:randomPairingCode",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-pairing-code.ts",
+      "target": "function:apps/web/src/lib/print-agent-pairing-code.ts:maskPairingCode",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-pairing-code.ts",
+      "target": "function:apps/web/src/lib/print-agent-pairing-code.ts:maskPairingCode",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-pairing-slots.ts",
+      "target": "function:apps/web/src/lib/print-agent-pairing-slots.ts:isPendingPairing",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-pairing-slots.ts",
+      "target": "function:apps/web/src/lib/print-agent-pairing-slots.ts:isPendingPairing",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.test.ts",
+      "target": "file:apps/web/src/lib/print-agent-routing.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:parseReceiptStationId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:parseReceiptStationId",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:stationIdsFromRoutingSnapshot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:stationIdsFromRoutingSnapshot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:printJobTargetStationId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:printJobTargetStationId",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:isPrintJobVisibleToDevice",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:isPrintJobVisibleToDevice",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:filterPrintJobsForDevice",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:filterPrintJobsForDevice",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:normalizeStationPrintersInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:normalizeStationPrintersInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:loadDeviceRoutingStationIds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:loadDeviceRoutingStationIds",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:findStationMappingConflicts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:findStationMappingConflicts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:saveDeviceRoutingSnapshot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:saveDeviceRoutingSnapshot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:stationLabelsFromRoutingSnapshot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:stationLabelsFromRoutingSnapshot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-routing.ts",
+      "target": "file:apps/web/src/lib/print-receipt-printer-options.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-routing.ts:stationIdsFromRoutingSnapshot",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:parseReceiptStationId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-routing.ts:printJobTargetStationId",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:parseReceiptStationId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-routing.ts:isPrintJobVisibleToDevice",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:printJobTargetStationId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-routing.ts:filterPrintJobsForDevice",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:isPrintJobVisibleToDevice",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-routing.ts:loadDeviceRoutingStationIds",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:stationIdsFromRoutingSnapshot",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-routing.ts:findStationMappingConflicts",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:stationIdsFromRoutingSnapshot",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-routing.ts:saveDeviceRoutingSnapshot",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:findStationMappingConflicts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-job-max-age.ts",
+      "target": "function:apps/web/src/lib/print-job-max-age.ts:printJobMaxAgeCutoffDate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-job-max-age.ts",
+      "target": "function:apps/web/src/lib/print-job-max-age.ts:printJobMaxAgeCutoffDate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-job-max-age.ts",
+      "target": "function:apps/web/src/lib/print-job-max-age.ts:printJobMaxAgeCutoffIso",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-job-max-age.ts",
+      "target": "function:apps/web/src/lib/print-job-max-age.ts:printJobMaxAgeCutoffIso",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-job-max-age.ts:printJobMaxAgeCutoffIso",
+      "target": "function:apps/web/src/lib/print-job-max-age.ts:printJobMaxAgeCutoffDate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-jobs-scope.ts",
+      "target": "function:apps/web/src/lib/print-jobs-scope.ts:rejectForbiddenPrintJobsScopeParams",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-jobs-scope.ts",
+      "target": "function:apps/web/src/lib/print-jobs-scope.ts:rejectForbiddenPrintJobsScopeParams",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-jobs-scope.ts",
+      "target": "function:apps/web/src/lib/print-jobs-scope.ts:rejectUnexpectedPrintJobsQueryParams",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-jobs-scope.ts",
+      "target": "function:apps/web/src/lib/print-jobs-scope.ts:rejectUnexpectedPrintJobsQueryParams",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-jobs-scope.ts",
+      "target": "function:apps/web/src/lib/print-jobs-scope.ts:filterPrintJobsByRestaurant",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-jobs-scope.ts",
+      "target": "function:apps/web/src/lib/print-jobs-scope.ts:filterPrintJobsByRestaurant",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-receipt-printer-options.ts",
+      "target": "function:apps/web/src/lib/print-receipt-printer-options.ts:stationDisplayName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-receipt-printer-options.ts",
+      "target": "function:apps/web/src/lib/print-receipt-printer-options.ts:stationDisplayName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-receipt-printer-options.ts",
+      "target": "function:apps/web/src/lib/print-receipt-printer-options.ts:buildReceiptPrinterSnapshot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-receipt-printer-options.ts",
+      "target": "function:apps/web/src/lib/print-receipt-printer-options.ts:buildReceiptPrinterSnapshot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-receipt-printer-options.ts",
+      "target": "function:apps/web/src/lib/print-receipt-printer-options.ts:presentReceiptPrintersForCheckout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-receipt-printer-options.ts",
+      "target": "function:apps/web/src/lib/print-receipt-printer-options.ts:presentReceiptPrintersForCheckout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-receipt-printer-options.ts",
+      "target": "function:apps/web/src/lib/print-receipt-printer-options.ts:parseReceiptPrinterRoutingSnapshot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-receipt-printer-options.ts",
+      "target": "function:apps/web/src/lib/print-receipt-printer-options.ts:parseReceiptPrinterRoutingSnapshot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-receipt-printer-options.ts",
+      "target": "function:apps/web/src/lib/print-receipt-printer-options.ts:isValidReceiptPrinterId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/print-receipt-printer-options.ts",
+      "target": "function:apps/web/src/lib/print-receipt-printer-options.ts:isValidReceiptPrinterId",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-receipt-printer-options.ts:buildReceiptPrinterSnapshot",
+      "target": "function:apps/web/src/lib/print-receipt-printer-options.ts:stationDisplayName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-receipt-printer-options.ts:presentReceiptPrintersForCheckout",
+      "target": "function:apps/web/src/lib/print-receipt-printer-options.ts:stationDisplayName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/request-client-ip.ts",
+      "target": "function:apps/web/src/lib/request-client-ip.ts:clientIpFromRequest",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/request-client-ip.ts",
+      "target": "function:apps/web/src/lib/request-client-ip.ts:clientIpFromRequest",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "target": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:loadRestaurantReceiptPrinterSnapshot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "target": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:loadRestaurantReceiptPrinterSnapshot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "target": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:assertReceiptPrinterIdAllowed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "target": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:assertReceiptPrinterIdAllowed",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "target": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:resolveReceiptPrinterId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "target": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:resolveReceiptPrinterId",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "target": "file:apps/web/src/lib/print-agent-config.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "target": "file:apps/web/src/lib/print-receipt-printer-options.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:resolveReceiptPrinterId",
+      "target": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:loadRestaurantReceiptPrinterSnapshot",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:resolveReceiptPrinterId",
+      "target": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:assertReceiptPrinterIdAllowed",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:resolveReceiptPrinterId",
+      "target": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:assertReceiptPrinterIdAllowed",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

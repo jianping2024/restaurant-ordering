@@ -1,0 +1,986 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/menu-vat-rate.test.ts",
+      "type": "file",
+      "name": "menu-vat-rate.test.ts",
+      "filePath": "apps/web/src/lib/menu-vat-rate.test.ts",
+      "summary": "菜品增值税率解析与规范化函数的单元测试。",
+      "tags": [
+        "test",
+        "menu",
+        "vat"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/menu-vat-rate.ts",
+      "type": "file",
+      "name": "menu-vat-rate.ts",
+      "filePath": "apps/web/src/lib/menu-vat-rate.ts",
+      "summary": "菜品增值税率常量与解析工具，校验并规范化允许的税率选项。",
+      "tags": [
+        "utility",
+        "menu",
+        "vat"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-vat-rate.ts:parseMenuVatRate",
+      "type": "function",
+      "name": "parseMenuVatRate",
+      "filePath": "apps/web/src/lib/menu-vat-rate.ts",
+      "lineRange": [
+        8,
+        13
+      ],
+      "summary": "解析并校验菜品增值税率输入。",
+      "tags": [
+        "validation",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-vat-rate.ts:normalizeMenuVatRate",
+      "type": "function",
+      "name": "normalizeMenuVatRate",
+      "filePath": "apps/web/src/lib/menu-vat-rate.ts",
+      "lineRange": [
+        15,
+        17
+      ],
+      "summary": "将税率规范化为允许值或默认值。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-vat-rate.ts:isAllowedMenuVatRate",
+      "type": "function",
+      "name": "isAllowedMenuVatRate",
+      "filePath": "apps/web/src/lib/menu-vat-rate.ts",
+      "lineRange": [
+        19,
+        21
+      ],
+      "summary": "判断税率是否在允许列表中。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/number-input.test.ts",
+      "type": "file",
+      "name": "number-input.test.ts",
+      "filePath": "apps/web/src/lib/number-input.test.ts",
+      "summary": "数字与时:分输入格式化/解析函数的单元测试。",
+      "tags": [
+        "test",
+        "utility",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/number-input.ts",
+      "type": "file",
+      "name": "number-input.ts",
+      "filePath": "apps/web/src/lib/number-input.ts",
+      "summary": "通用数字输入工具：时:分格式化、非负整数与小数输入的规范化与解析。",
+      "tags": [
+        "utility",
+        "validation",
+        "form"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/number-input.ts:formatHmDigitsWhileTyping",
+      "type": "function",
+      "name": "formatHmDigitsWhileTyping",
+      "filePath": "apps/web/src/lib/number-input.ts",
+      "lineRange": [
+        12,
+        27
+      ],
+      "summary": "输入过程中实时格式化时:分数字。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/number-input.ts:normalizeHmFromDigits",
+      "type": "function",
+      "name": "normalizeHmFromDigits",
+      "filePath": "apps/web/src/lib/number-input.ts",
+      "lineRange": [
+        29,
+        51
+      ],
+      "summary": "从纯数字字符串规范化为 HH:mm。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/number-input.ts:normalizeHmInput",
+      "type": "function",
+      "name": "normalizeHmInput",
+      "filePath": "apps/web/src/lib/number-input.ts",
+      "lineRange": [
+        54,
+        77
+      ],
+      "summary": "规范化时:分输入值，处理不完整输入。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/number-input.ts:parseNonNegativeInt",
+      "type": "function",
+      "name": "parseNonNegativeInt",
+      "filePath": "apps/web/src/lib/number-input.ts",
+      "lineRange": [
+        80,
+        95
+      ],
+      "summary": "解析非负整数字符串。",
+      "tags": [
+        "validation",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/number-input.ts:normalizeDecimalInput",
+      "type": "function",
+      "name": "normalizeDecimalInput",
+      "filePath": "apps/web/src/lib/number-input.ts",
+      "lineRange": [
+        105,
+        120
+      ],
+      "summary": "规范化小数输入字符串。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/number-input.ts:parseDecimalInput",
+      "type": "function",
+      "name": "parseDecimalInput",
+      "filePath": "apps/web/src/lib/number-input.ts",
+      "lineRange": [
+        122,
+        131
+      ],
+      "summary": "解析小数字符串为数值。",
+      "tags": [
+        "validation",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/number-input.ts:formatDecimalInputValue",
+      "type": "function",
+      "name": "formatDecimalInputValue",
+      "filePath": "apps/web/src/lib/number-input.ts",
+      "lineRange": [
+        134,
+        137
+      ],
+      "summary": "格式化小数为输入框显示值。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-station-admin.ts",
+      "type": "file",
+      "name": "print-station-admin.ts",
+      "filePath": "apps/web/src/lib/print-station-admin.ts",
+      "summary": "打印站点管理辅助：显示名称获取与绑定计数。",
+      "tags": [
+        "utility",
+        "printing",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-station-admin.ts:getPrintStationDisplayName",
+      "type": "function",
+      "name": "getPrintStationDisplayName",
+      "filePath": "apps/web/src/lib/print-station-admin.ts",
+      "lineRange": [
+        4,
+        8
+      ],
+      "summary": "获取打印站点在当前语言下的显示名。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-station-admin.ts:countPrintStationBindings",
+      "type": "function",
+      "name": "countPrintStationBindings",
+      "filePath": "apps/web/src/lib/print-station-admin.ts",
+      "lineRange": [
+        10,
+        19
+      ],
+      "summary": "统计打印站点绑定的分类/菜品数量。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-station-resolve.ts",
+      "type": "file",
+      "name": "print-station-resolve.ts",
+      "filePath": "apps/web/src/lib/print-station-resolve.ts",
+      "summary": "解析菜品有效打印站点 ID，处理默认站点与分类继承逻辑。",
+      "tags": [
+        "utility",
+        "printing",
+        "menu"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-station-resolve.ts:resolveEffectivePrintStationId",
+      "type": "function",
+      "name": "resolveEffectivePrintStationId",
+      "filePath": "apps/web/src/lib/print-station-resolve.ts",
+      "lineRange": [
+        12,
+        31
+      ],
+      "summary": "解析菜品最终生效的打印站点 ID。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/sort-order-persist.ts",
+      "type": "file",
+      "name": "sort-order-persist.ts",
+      "filePath": "apps/web/src/lib/sort-order-persist.ts",
+      "summary": "菜单菜品 sort_order 相邻交换的数据库持久化，批量更新两条记录。",
+      "tags": [
+        "utility",
+        "sort-order",
+        "database"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/sort-order-persist.ts:persistMenuItemSortOrderSwap",
+      "type": "function",
+      "name": "persistMenuItemSortOrderSwap",
+      "filePath": "apps/web/src/lib/sort-order-persist.ts",
+      "lineRange": [
+        5,
+        47
+      ],
+      "summary": "将相邻菜品 sort_order 交换持久化到数据库。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/sort-order.test.ts",
+      "type": "file",
+      "name": "sort-order.test.ts",
+      "filePath": "apps/web/src/lib/sort-order.test.ts",
+      "summary": "sort_order 比较、交换与相邻步骤算法的单元测试。",
+      "tags": [
+        "test",
+        "sort-order",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/sort-order.ts",
+      "type": "file",
+      "name": "sort-order.ts",
+      "filePath": "apps/web/src/lib/sort-order.ts",
+      "summary": "通用 sort_order 工具：比较、排序、相邻交换步骤计算与应用。",
+      "tags": [
+        "utility",
+        "sort-order",
+        "algorithm"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/sort-order.ts:nextSortOrder",
+      "type": "function",
+      "name": "nextSortOrder",
+      "filePath": "apps/web/src/lib/sort-order.ts",
+      "lineRange": [
+        5,
+        8
+      ],
+      "summary": "计算新记录的下一个 sort_order 值。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/sort-order.ts:compareSortOrder",
+      "type": "function",
+      "name": "compareSortOrder",
+      "filePath": "apps/web/src/lib/sort-order.ts",
+      "lineRange": [
+        10,
+        15
+      ],
+      "summary": "比较两个 sort_order 值。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/sort-order.ts:compareSortOrderThenCreatedAt",
+      "type": "function",
+      "name": "compareSortOrderThenCreatedAt",
+      "filePath": "apps/web/src/lib/sort-order.ts",
+      "lineRange": [
+        17,
+        22
+      ],
+      "summary": "先比 sort_order 再比创建时间。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/sort-order.ts:sortBySortOrderThenCreatedAt",
+      "type": "function",
+      "name": "sortBySortOrderThenCreatedAt",
+      "filePath": "apps/web/src/lib/sort-order.ts",
+      "lineRange": [
+        24,
+        28
+      ],
+      "summary": "按 sort_order 与创建时间排序数组。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/sort-order.ts:swapAdjacentSortOrders",
+      "type": "function",
+      "name": "swapAdjacentSortOrders",
+      "filePath": "apps/web/src/lib/sort-order.ts",
+      "lineRange": [
+        31,
+        36
+      ],
+      "summary": "交换相邻两项的 sort_order 值。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/sort-order.ts:adjacentSortOrderSwapSteps",
+      "type": "function",
+      "name": "adjacentSortOrderSwapSteps",
+      "filePath": "apps/web/src/lib/sort-order.ts",
+      "lineRange": [
+        42,
+        56
+      ],
+      "summary": "计算将项移到目标位置所需的相邻交换步骤。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/sort-order.ts:applyAdjacentSortOrderSwap",
+      "type": "function",
+      "name": "applyAdjacentSortOrderSwap",
+      "filePath": "apps/web/src/lib/sort-order.ts",
+      "lineRange": [
+        59,
+        73
+      ],
+      "summary": "按步骤依次应用相邻 sort_order 交换。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "type": "file",
+      "name": "tables-manager-tab-preference.ts",
+      "filePath": "apps/web/src/lib/tables-manager-tab-preference.ts",
+      "summary": "桌台管理器 Tab 偏好持久化，通过 localStorage 保存当前标签页状态。",
+      "tags": [
+        "utility",
+        "tables",
+        "preference"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/tables-manager-tab-preference.ts:tablesManagerTabStorageKey",
+      "type": "function",
+      "name": "tablesManagerTabStorageKey",
+      "filePath": "apps/web/src/lib/tables-manager-tab-preference.ts",
+      "lineRange": [
+        7,
+        9
+      ],
+      "summary": "生成桌台管理器 Tab 的 localStorage 键名。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/tables-manager-tab-preference.ts:isTablesManagerTab",
+      "type": "function",
+      "name": "isTablesManagerTab",
+      "filePath": "apps/web/src/lib/tables-manager-tab-preference.ts",
+      "lineRange": [
+        11,
+        13
+      ],
+      "summary": "判断字符串是否为有效桌台管理器 Tab。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/tables-manager-tab-preference.ts:parseTablesManagerTab",
+      "type": "function",
+      "name": "parseTablesManagerTab",
+      "filePath": "apps/web/src/lib/tables-manager-tab-preference.ts",
+      "lineRange": [
+        15,
+        18
+      ],
+      "summary": "解析并校验桌台管理器 Tab 值。",
+      "tags": [
+        "validation",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/tables-manager-tab-preference.ts:loadSavedTablesManagerTab",
+      "type": "function",
+      "name": "loadSavedTablesManagerTab",
+      "filePath": "apps/web/src/lib/tables-manager-tab-preference.ts",
+      "lineRange": [
+        20,
+        28
+      ],
+      "summary": "从 localStorage 读取桌台管理器 Tab 偏好。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/tables-manager-tab-preference.ts:saveTablesManagerTab",
+      "type": "function",
+      "name": "saveTablesManagerTab",
+      "filePath": "apps/web/src/lib/tables-manager-tab-preference.ts",
+      "lineRange": [
+        30,
+        37
+      ],
+      "summary": "保存桌台管理器 Tab 至 localStorage。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/tables-manager-tab-preference.ts:tablesManagerPath",
+      "type": "function",
+      "name": "tablesManagerPath",
+      "filePath": "apps/web/src/lib/tables-manager-tab-preference.ts",
+      "lineRange": [
+        39,
+        41
+      ],
+      "summary": "生成带 Tab 参数的桌台管理路径。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/menu-vat-rate.test.ts",
+      "target": "file:apps/web/src/lib/menu-vat-rate.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-vat-rate.ts",
+      "target": "function:apps/web/src/lib/menu-vat-rate.ts:parseMenuVatRate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-vat-rate.ts",
+      "target": "function:apps/web/src/lib/menu-vat-rate.ts:parseMenuVatRate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-vat-rate.ts",
+      "target": "function:apps/web/src/lib/menu-vat-rate.ts:normalizeMenuVatRate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-vat-rate.ts",
+      "target": "function:apps/web/src/lib/menu-vat-rate.ts:normalizeMenuVatRate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-vat-rate.ts",
+      "target": "function:apps/web/src/lib/menu-vat-rate.ts:isAllowedMenuVatRate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-vat-rate.ts",
+      "target": "function:apps/web/src/lib/menu-vat-rate.ts:isAllowedMenuVatRate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.test.ts",
+      "target": "file:apps/web/src/lib/number-input.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:formatHmDigitsWhileTyping",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:formatHmDigitsWhileTyping",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:normalizeHmFromDigits",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:normalizeHmInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:normalizeHmInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:parseNonNegativeInt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:parseNonNegativeInt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:normalizeDecimalInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:normalizeDecimalInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:parseDecimalInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:parseDecimalInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:formatDecimalInputValue",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "function:apps/web/src/lib/number-input.ts:formatDecimalInputValue",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-station-admin.ts",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/print-station-admin.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/print-station-admin.ts",
+      "target": "function:apps/web/src/lib/print-station-admin.ts:getPrintStationDisplayName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-station-admin.ts",
+      "target": "function:apps/web/src/lib/print-station-admin.ts:getPrintStationDisplayName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-station-admin.ts",
+      "target": "function:apps/web/src/lib/print-station-admin.ts:countPrintStationBindings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-station-admin.ts",
+      "target": "function:apps/web/src/lib/print-station-admin.ts:countPrintStationBindings",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-station-resolve.ts",
+      "target": "function:apps/web/src/lib/print-station-resolve.ts:resolveEffectivePrintStationId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-station-resolve.ts",
+      "target": "function:apps/web/src/lib/print-station-resolve.ts:resolveEffectivePrintStationId",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order-persist.ts",
+      "target": "file:apps/web/src/lib/sort-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order-persist.ts",
+      "target": "function:apps/web/src/lib/sort-order-persist.ts:persistMenuItemSortOrderSwap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order-persist.ts",
+      "target": "function:apps/web/src/lib/sort-order-persist.ts:persistMenuItemSortOrderSwap",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order.test.ts",
+      "target": "file:apps/web/src/lib/sort-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order.ts",
+      "target": "function:apps/web/src/lib/sort-order.ts:nextSortOrder",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order.ts",
+      "target": "function:apps/web/src/lib/sort-order.ts:nextSortOrder",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order.ts",
+      "target": "function:apps/web/src/lib/sort-order.ts:compareSortOrder",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order.ts",
+      "target": "function:apps/web/src/lib/sort-order.ts:compareSortOrder",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order.ts",
+      "target": "function:apps/web/src/lib/sort-order.ts:compareSortOrderThenCreatedAt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order.ts",
+      "target": "function:apps/web/src/lib/sort-order.ts:compareSortOrderThenCreatedAt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order.ts",
+      "target": "function:apps/web/src/lib/sort-order.ts:sortBySortOrderThenCreatedAt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order.ts",
+      "target": "function:apps/web/src/lib/sort-order.ts:sortBySortOrderThenCreatedAt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order.ts",
+      "target": "function:apps/web/src/lib/sort-order.ts:swapAdjacentSortOrders",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order.ts",
+      "target": "function:apps/web/src/lib/sort-order.ts:swapAdjacentSortOrders",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order.ts",
+      "target": "function:apps/web/src/lib/sort-order.ts:adjacentSortOrderSwapSteps",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order.ts",
+      "target": "function:apps/web/src/lib/sort-order.ts:adjacentSortOrderSwapSteps",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order.ts",
+      "target": "function:apps/web/src/lib/sort-order.ts:applyAdjacentSortOrderSwap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order.ts",
+      "target": "function:apps/web/src/lib/sort-order.ts:applyAdjacentSortOrderSwap",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:tablesManagerTabStorageKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:tablesManagerTabStorageKey",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:isTablesManagerTab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:isTablesManagerTab",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:parseTablesManagerTab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:parseTablesManagerTab",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:loadSavedTablesManagerTab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:loadSavedTablesManagerTab",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:saveTablesManagerTab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:saveTablesManagerTab",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:tablesManagerPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/tables-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/tables-manager-tab-preference.ts:tablesManagerPath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-vat-rate.ts",
+      "target": "file:apps/web/src/lib/menu-vat-rate.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/number-input.ts",
+      "target": "file:apps/web/src/lib/number-input.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/sort-order.ts",
+      "target": "file:apps/web/src/lib/sort-order.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:apps/web/src/lib/sort-order-persist.ts:persistMenuItemSortOrderSwap",
+      "target": "function:apps/web/src/lib/sort-order.ts:swapAdjacentSortOrders",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

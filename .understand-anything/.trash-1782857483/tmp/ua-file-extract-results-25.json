@@ -1,0 +1,1208 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 22,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "supabase/migrations/20240101000000_initial_schema.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 2716,
+      "nonEmptyLines": 1550,
+      "definitions": [
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "display_name",
+            "sort_order",
+            "deleted_at",
+            "created_at"
+          ],
+          "startLine": 267,
+          "endLine": 275
+        },
+        {
+          "name": "AS",
+          "kind": "table",
+          "fields": [],
+          "startLine": 769,
+          "endLine": 774
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "order_ids",
+            "split_mode",
+            "persons",
+            "result",
+            "total_amount",
+            "status",
+            "created_at",
+            "session_id",
+            "table_id",
+            "display_name"
+          ],
+          "startLine": 939,
+          "endLine": 954
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "restaurant_id",
+            "on_date",
+            "kind"
+          ],
+          "startLine": 962,
+          "endLine": 967
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "buffet_id",
+            "time_slot_id",
+            "calendar_kind",
+            "valid_from",
+            "valid_to",
+            "adult_price",
+            "child_price",
+            "priority",
+            "is_active",
+            "note",
+            "created_at"
+          ],
+          "startLine": 975,
+          "endLine": 991
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "name",
+            "start_time",
+            "end_time",
+            "weekdays",
+            "sort_order",
+            "created_at"
+          ],
+          "startLine": 999,
+          "endLine": 1008
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "name",
+            "is_active",
+            "description",
+            "created_at",
+            "updated_at"
+          ],
+          "startLine": 1016,
+          "endLine": 1024
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "session_id",
+            "order_id",
+            "menu_item_id",
+            "vote",
+            "reasons",
+            "comment",
+            "created_at",
+            "updated_at"
+          ],
+          "startLine": 1032,
+          "endLine": 1044
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "session_id",
+            "source",
+            "shown_at",
+            "completed_at",
+            "skipped_at",
+            "created_at"
+          ],
+          "startLine": 1050,
+          "endLine": 1059
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "parent_id",
+            "name_pt",
+            "name_en",
+            "name_zh",
+            "sort_order",
+            "active",
+            "created_at",
+            "print_station_id",
+            "item_code"
+          ],
+          "startLine": 1065,
+          "endLine": 1077
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "name_pt",
+            "name_en",
+            "name_zh",
+            "description_pt",
+            "description_en",
+            "price",
+            "category",
+            "emoji",
+            "available",
+            "sort_order",
+            "created_at",
+            "image_url",
+            "note_preset_keys",
+            "category_en",
+            "category_zh",
+            "category_id",
+            "print_station_id",
+            "item_code"
+          ],
+          "startLine": 1087,
+          "endLine": 1108
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "status",
+            "items",
+            "total_amount",
+            "created_at",
+            "updated_at",
+            "session_id",
+            "table_id",
+            "display_name"
+          ],
+          "startLine": 1118,
+          "endLine": 1130
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "pairing_id",
+            "label",
+            "paired_at",
+            "valid_until",
+            "revoked_at",
+            "last_seen",
+            "routing_snapshot",
+            "agent_version",
+            "mapped_station_count",
+            "last_print_at",
+            "last_print_status",
+            "schedule_open"
+          ],
+          "startLine": 1138,
+          "endLine": 1153
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "code",
+            "expires_at",
+            "consumed_at",
+            "created_by",
+            "created_at",
+            "revoked_at"
+          ],
+          "startLine": 1183,
+          "endLine": 1193
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "type",
+            "payload",
+            "status",
+            "claimed_by",
+            "attempts",
+            "error_message",
+            "created_at",
+            "updated_at",
+            "table_display",
+            "table_id"
+          ],
+          "startLine": 1203,
+          "endLine": 1222
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "name_pt",
+            "name_en",
+            "name_zh",
+            "sort_order",
+            "ticket_layout",
+            "created_at"
+          ],
+          "startLine": 1230,
+          "endLine": 1240
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "user_id",
+            "role",
+            "display_name",
+            "login_name",
+            "email",
+            "created_by",
+            "created_at",
+            "updated_at",
+            "disabled_at"
+          ],
+          "startLine": 1246,
+          "endLine": 1259
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "name",
+            "slug",
+            "owner_id",
+            "logo_url",
+            "address",
+            "phone",
+            "plan",
+            "kitchen_password",
+            "created_at",
+            "waiter_password",
+            "geo_latitude",
+            "geo_longitude",
+            "print_locale",
+            "print_agent_config",
+            "kitchen_password_version",
+            "waiter_password_version",
+            "order_radius_meters",
+            "buffet_friday_weekend_from"
+          ],
+          "startLine": 1265,
+          "endLine": 1288
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "status",
+            "opened_at",
+            "closed_at",
+            "merge_into_session_id",
+            "closed_reason",
+            "table_id",
+            "closed_by_user_id"
+          ],
+          "startLine": 1337,
+          "endLine": 1348
+        },
+        {
+          "name": "public",
+          "kind": "view",
+          "fields": [],
+          "startLine": 1318,
+          "endLine": 1318
+        },
+        {
+          "name": "idx_bill_splits_restaurant",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1465,
+          "endLine": 1465
+        },
+        {
+          "name": "idx_bill_splits_session",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1469,
+          "endLine": 1469
+        },
+        {
+          "name": "idx_buffet_price_rules_lookup",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1473,
+          "endLine": 1473
+        },
+        {
+          "name": "idx_buffet_time_slots_restaurant",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1477,
+          "endLine": 1477
+        },
+        {
+          "name": "idx_buffets_restaurant",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1481,
+          "endLine": 1481
+        },
+        {
+          "name": "idx_dish_feedback_restaurant_created",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1485,
+          "endLine": 1485
+        },
+        {
+          "name": "idx_dish_feedback_vote",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1489,
+          "endLine": 1489
+        },
+        {
+          "name": "idx_feedback_sessions_restaurant_created",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1493,
+          "endLine": 1493
+        },
+        {
+          "name": "idx_menu_categories_code_per_parent",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1497,
+          "endLine": 1497
+        },
+        {
+          "name": "idx_menu_categories_print_station",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1501,
+          "endLine": 1501
+        },
+        {
+          "name": "idx_menu_categories_restaurant",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1505,
+          "endLine": 1505
+        },
+        {
+          "name": "idx_menu_items_category",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1509,
+          "endLine": 1509
+        },
+        {
+          "name": "idx_menu_items_category_id",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1513,
+          "endLine": 1513
+        },
+        {
+          "name": "idx_menu_items_code_per_restaurant",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1517,
+          "endLine": 1517
+        },
+        {
+          "name": "idx_menu_items_note_preset_keys",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1521,
+          "endLine": 1521
+        },
+        {
+          "name": "idx_menu_items_print_station",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1525,
+          "endLine": 1525
+        },
+        {
+          "name": "idx_menu_items_restaurant",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1529,
+          "endLine": 1529
+        },
+        {
+          "name": "idx_orders_restaurant",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1533,
+          "endLine": 1533
+        },
+        {
+          "name": "idx_orders_restaurant_table_id",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1537,
+          "endLine": 1537
+        },
+        {
+          "name": "idx_orders_session",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1541,
+          "endLine": 1541
+        },
+        {
+          "name": "idx_orders_status",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1545,
+          "endLine": 1545
+        },
+        {
+          "name": "idx_print_agent_devices_restaurant",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1549,
+          "endLine": 1549
+        },
+        {
+          "name": "idx_print_agent_pairings_claim_lookup",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1553,
+          "endLine": 1553
+        },
+        {
+          "name": "idx_print_agent_pairings_restaurant_expires",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1557,
+          "endLine": 1557
+        },
+        {
+          "name": "idx_print_agent_pairings_restaurant_pending",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1561,
+          "endLine": 1561
+        },
+        {
+          "name": "idx_print_jobs_restaurant_status_created",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1565,
+          "endLine": 1565
+        },
+        {
+          "name": "idx_print_jobs_restaurant_table_id",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1569,
+          "endLine": 1569
+        },
+        {
+          "name": "idx_print_stations_restaurant",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1573,
+          "endLine": 1573
+        },
+        {
+          "name": "idx_restaurant_tables_restaurant_active",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1577,
+          "endLine": 1577
+        },
+        {
+          "name": "idx_table_sessions_merge_into",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1581,
+          "endLine": 1581
+        },
+        {
+          "name": "idx_table_sessions_restaurant_table_id",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1585,
+          "endLine": 1585
+        },
+        {
+          "name": "idx_table_sessions_status",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1589,
+          "endLine": 1589
+        },
+        {
+          "name": "restaurant_staff_accounts_restaurant_id_idx",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1593,
+          "endLine": 1593
+        },
+        {
+          "name": "restaurant_staff_accounts_user_id_idx",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1597,
+          "endLine": 1597
+        },
+        {
+          "name": "restaurant_tables_active_display_name_unique",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1601,
+          "endLine": 1601
+        },
+        {
+          "name": "uniq_active_table_session",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1605,
+          "endLine": 1605
+        },
+        {
+          "name": "uniq_dish_feedback_session_item",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1609,
+          "endLine": 1609
+        },
+        {
+          "name": "uniq_feedback_session",
+          "kind": "index",
+          "fields": [],
+          "startLine": 1613,
+          "endLine": 1613
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 58
+      }
+    },
+    {
+      "path": "supabase/migrations/20260529120000_restaurant_feature_flags.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 6,
+      "nonEmptyLines": 5,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 0
+      }
+    },
+    {
+      "path": "supabase/migrations/20260623120000_checkout_request_and_session_close_rpc.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 547,
+      "nonEmptyLines": 487,
+      "definitions": [
+        {
+          "name": "idx_bill_splits_one_active_per_session",
+          "kind": "index",
+          "fields": [],
+          "startLine": 4,
+          "endLine": 4
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 1
+      }
+    },
+    {
+      "path": "supabase/migrations/20260623150000_bill_splits_customer_nif.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 177,
+      "nonEmptyLines": 158,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 0
+      }
+    },
+    {
+      "path": "supabase/migrations/20260624120000_platform_admin.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 33,
+      "nonEmptyLines": 27,
+      "definitions": [
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "user_id",
+            "role",
+            "display_name",
+            "disabled_at",
+            "created_at"
+          ],
+          "startLine": 3,
+          "endLine": 10
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "actor_user_id",
+            "action",
+            "target_type",
+            "target_id",
+            "restaurant_id",
+            "metadata",
+            "created_at"
+          ],
+          "startLine": 12,
+          "endLine": 21
+        },
+        {
+          "name": "idx_platform_admin_audit_log_created",
+          "kind": "index",
+          "fields": [],
+          "startLine": 23,
+          "endLine": 23
+        },
+        {
+          "name": "idx_platform_admin_audit_log_restaurant",
+          "kind": "index",
+          "fields": [],
+          "startLine": 26,
+          "endLine": 26
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 4
+      }
+    },
+    {
+      "path": "supabase/migrations/20260625120000_restaurant_suspension.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 9,
+      "nonEmptyLines": 7,
+      "definitions": [
+        {
+          "name": "idx_restaurants_suspended_at",
+          "kind": "index",
+          "fields": [],
+          "startLine": 7,
+          "endLine": 7
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 1
+      }
+    },
+    {
+      "path": "supabase/migrations/20260626120000_restaurants_country_code.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 18,
+      "nonEmptyLines": 14,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 0
+      }
+    },
+    {
+      "path": "supabase/migrations/20260627115000_frontdesk_menu_management.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 65,
+      "nonEmptyLines": 59,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 0
+      }
+    },
+    {
+      "path": "supabase/migrations/20260627120000_print_agent_support_tokens.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 16,
+      "nonEmptyLines": 13,
+      "definitions": [
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "device_id",
+            "restaurant_id",
+            "actor_user_id",
+            "expires_at",
+            "consumed_at",
+            "created_at"
+          ],
+          "startLine": 3,
+          "endLine": 11
+        },
+        {
+          "name": "idx_print_agent_support_tokens_device_created",
+          "kind": "index",
+          "fields": [],
+          "startLine": 13,
+          "endLine": 13
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 2
+      }
+    },
+    {
+      "path": "supabase/migrations/20260628120000_restaurant_table_groups.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 184,
+      "nonEmptyLines": 158,
+      "definitions": [
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "name",
+            "remarks",
+            "sort_order",
+            "created_at"
+          ],
+          "startLine": 3,
+          "endLine": 13
+        },
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "group_id",
+            "table_id",
+            "restaurant_id"
+          ],
+          "startLine": 21,
+          "endLine": 26
+        },
+        {
+          "name": "restaurant_table_groups_restaurant_name_unique",
+          "kind": "index",
+          "fields": [],
+          "startLine": 15,
+          "endLine": 15
+        },
+        {
+          "name": "idx_restaurant_table_groups_restaurant_sort",
+          "kind": "index",
+          "fields": [],
+          "startLine": 18,
+          "endLine": 18
+        },
+        {
+          "name": "restaurant_table_group_members_restaurant_table_unique",
+          "kind": "index",
+          "fields": [],
+          "startLine": 28,
+          "endLine": 28
+        },
+        {
+          "name": "idx_restaurant_table_group_members_group",
+          "kind": "index",
+          "fields": [],
+          "startLine": 31,
+          "endLine": 31
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 6
+      }
+    },
+    {
+      "path": "supabase/migrations/20260629120000_staff_frontdesk_role.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 20,
+      "nonEmptyLines": 16,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 0
+      }
+    },
+    {
+      "path": "supabase/migrations/20260629130000_resume_ordering_preserve_partial_split.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 118,
+      "nonEmptyLines": 105,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 0
+      }
+    },
+    {
+      "path": "supabase/migrations/20260630120000_table_sessions_opened_by_user_id.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 5,
+      "nonEmptyLines": 4,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 0
+      }
+    },
+    {
+      "path": "supabase/migrations/20260701120000_abnormal_operations.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 76,
+      "nonEmptyLines": 69,
+      "definitions": [
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "type",
+            "risk_level",
+            "status",
+            "order_id",
+            "session_id",
+            "table_id",
+            "table_name",
+            "operator_id",
+            "operator_name",
+            "operator_role",
+            "amount_impact",
+            "reason",
+            "reason_detail",
+            "before_data",
+            "after_data",
+            "owner_note",
+            "confirmed_by",
+            "confirmed_at",
+            "created_at",
+            "updated_at"
+          ],
+          "startLine": 3,
+          "endLine": 42
+        },
+        {
+          "name": "idx_abnormal_operations_restaurant_created",
+          "kind": "index",
+          "fields": [],
+          "startLine": 44,
+          "endLine": 44
+        },
+        {
+          "name": "idx_abnormal_operations_restaurant_status",
+          "kind": "index",
+          "fields": [],
+          "startLine": 47,
+          "endLine": 47
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 3
+      }
+    },
+    {
+      "path": "supabase/migrations/20260702120000_operation_logs_and_manual_close.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 234,
+      "nonEmptyLines": 211,
+      "definitions": [
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "action_type",
+            "entity_type",
+            "entity_id",
+            "operator_id",
+            "operator_name",
+            "operator_role",
+            "before_data",
+            "after_data",
+            "reason",
+            "reason_detail",
+            "ip_address",
+            "device_info",
+            "created_at"
+          ],
+          "startLine": 3,
+          "endLine": 19
+        },
+        {
+          "name": "idx_operation_logs_restaurant_created",
+          "kind": "index",
+          "fields": [],
+          "startLine": 21,
+          "endLine": 21
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 2
+      }
+    },
+    {
+      "path": "supabase/migrations/20260703120000_table_sessions_closed_at_analytics.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 4,
+      "nonEmptyLines": 4,
+      "definitions": [
+        {
+          "name": "idx_table_sessions_restaurant_closed_at",
+          "kind": "index",
+          "fields": [],
+          "startLine": 2,
+          "endLine": 2
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 1
+      }
+    },
+    {
+      "path": "supabase/migrations/20260704120000_menu_items_vat_rate.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 9,
+      "nonEmptyLines": 7,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 0
+      }
+    },
+    {
+      "path": "supabase/migrations/20260705120000_menu_items_sort_order_unique.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 25,
+      "nonEmptyLines": 22,
+      "definitions": [
+        {
+          "name": "idx_menu_items_category_sort_order",
+          "kind": "index",
+          "fields": [],
+          "startLine": 19,
+          "endLine": 19
+        },
+        {
+          "name": "idx_menu_items_uncategorized_sort_order",
+          "kind": "index",
+          "fields": [],
+          "startLine": 23,
+          "endLine": 23
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 2
+      }
+    },
+    {
+      "path": "supabase/migrations/20260706120000_bill_split_checkout_discount.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 220,
+      "nonEmptyLines": 191,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 0
+      }
+    },
+    {
+      "path": "supabase/migrations/20260708120000_drop_confirm_bill_split_payment_legacy_overload.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 6,
+      "nonEmptyLines": 5,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 0
+      }
+    },
+    {
+      "path": "supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 433,
+      "nonEmptyLines": 381,
+      "definitions": [
+        {
+          "name": "public",
+          "kind": "table",
+          "fields": [
+            "id",
+            "restaurant_id",
+            "session_id",
+            "person_name",
+            "amount",
+            "bill_split_id",
+            "created_by_user_id",
+            "created_at"
+          ],
+          "startLine": 3,
+          "endLine": 12
+        },
+        {
+          "name": "idx_session_collected_payments_session",
+          "kind": "index",
+          "fields": [],
+          "startLine": 14,
+          "endLine": 14
+        },
+        {
+          "name": "idx_session_collected_payments_restaurant",
+          "kind": "index",
+          "fields": [],
+          "startLine": 17,
+          "endLine": 17
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 3
+      }
+    },
+    {
+      "path": "supabase/migrations/20260710120000_resume_ordering_preserve_by_item_split.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 121,
+      "nonEmptyLines": 107,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 0
+      }
+    }
+  ]
+}

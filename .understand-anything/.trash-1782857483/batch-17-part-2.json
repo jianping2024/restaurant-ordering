@@ -1,0 +1,1031 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/print-agent-credential.ts",
+      "type": "file",
+      "name": "print-agent-credential.ts",
+      "filePath": "apps/web/src/lib/print-agent-credential.ts",
+      "summary": "导出打印代理凭证续期提醒阈值常量 PRINT_AGENT_CREDENTIAL_REMINDER_BEFORE_DAYS。",
+      "tags": [
+        "print-agent",
+        "credential",
+        "configuration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "type": "file",
+      "name": "print-agent-devices-server.ts",
+      "filePath": "apps/web/src/lib/print-agent-devices-server.ts",
+      "summary": "服务端加载餐厅打印代理设备列表，聚合在线状态、路由快照与需续期设备。",
+      "tags": [
+        "print-agent",
+        "service",
+        "server",
+        "supabase"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevicesNeedingRenewal",
+      "type": "function",
+      "name": "loadPrintAgentDevicesNeedingRenewal",
+      "filePath": "apps/web/src/lib/print-agent-devices-server.ts",
+      "lineRange": [
+        7,
+        22
+      ],
+      "summary": "从 Supabase 加载需续期的打印代理设备。",
+      "tags": [
+        "print-agent",
+        "server",
+        "supabase"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevices",
+      "type": "function",
+      "name": "loadPrintAgentDevices",
+      "filePath": "apps/web/src/lib/print-agent-devices-server.ts",
+      "lineRange": [
+        24,
+        49
+      ],
+      "summary": "加载餐厅全部未撤销打印代理设备及路由快照。",
+      "tags": [
+        "print-agent",
+        "server",
+        "supabase"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-devices-server.ts:loadOnlinePrintAgentDevices",
+      "type": "function",
+      "name": "loadOnlinePrintAgentDevices",
+      "filePath": "apps/web/src/lib/print-agent-devices-server.ts",
+      "lineRange": [
+        52,
+        57
+      ],
+      "summary": "过滤 last_seen 在线的打印代理设备子集。",
+      "tags": [
+        "print-agent",
+        "server"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-download.test.ts",
+      "type": "file",
+      "name": "print-agent-download.test.ts",
+      "filePath": "apps/web/src/lib/print-agent-download.test.ts",
+      "summary": "打印代理下载 URL 解析相关函数的单元测试。",
+      "tags": [
+        "test",
+        "print-agent",
+        "download"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-download.ts",
+      "type": "file",
+      "name": "print-agent-download.ts",
+      "filePath": "apps/web/src/lib/print-agent-download.ts",
+      "summary": "解析 GitHub Release 与站内 API 路径，生成 Windows 打印代理安装包与便携版下载链接。",
+      "tags": [
+        "print-agent",
+        "download",
+        "utility",
+        "github"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-download.ts:isPrintAgentDownloadArtifact",
+      "type": "function",
+      "name": "isPrintAgentDownloadArtifact",
+      "filePath": "apps/web/src/lib/print-agent-download.ts",
+      "lineRange": [
+        51,
+        53
+      ],
+      "summary": "校验 artifact 字符串是否为合法下载类型。",
+      "tags": [
+        "print-agent",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentGithubRepo",
+      "type": "function",
+      "name": "getPrintAgentGithubRepo",
+      "filePath": "apps/web/src/lib/print-agent-download.ts",
+      "lineRange": [
+        55,
+        59
+      ],
+      "summary": "从环境变量解析 owner/repo 格式的 GitHub 仓库名。",
+      "tags": [
+        "print-agent",
+        "github"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentVersion",
+      "type": "function",
+      "name": "getPrintAgentVersion",
+      "filePath": "apps/web/src/lib/print-agent-download.ts",
+      "lineRange": [
+        62,
+        73
+      ],
+      "summary": "从环境变量或 VERSION 文件读取打印代理版本号。",
+      "tags": [
+        "print-agent",
+        "version"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-download.ts:isPinnedPrintAgentReleaseAvailable",
+      "type": "function",
+      "name": "isPinnedPrintAgentReleaseAvailable",
+      "filePath": "apps/web/src/lib/print-agent-download.ts",
+      "lineRange": [
+        94,
+        102
+      ],
+      "summary": "检查固定版本 Windows 安装包是否在 GitHub 可用。",
+      "tags": [
+        "print-agent",
+        "download"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-download.ts:resolvePrintAgentGitHubDownloadUrl",
+      "type": "function",
+      "name": "resolvePrintAgentGitHubDownloadUrl",
+      "filePath": "apps/web/src/lib/print-agent-download.ts",
+      "lineRange": [
+        105,
+        122
+      ],
+      "summary": "解析指定 artifact 的 GitHub 下载地址，含回退逻辑。",
+      "tags": [
+        "print-agent",
+        "download"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-download.ts:findLatestPublishedPrintAgentRelease",
+      "type": "function",
+      "name": "findLatestPublishedPrintAgentRelease",
+      "filePath": "apps/web/src/lib/print-agent-download.ts",
+      "lineRange": [
+        125,
+        154
+      ],
+      "summary": "查询 GitHub API 获取最新已发布打印代理版本与资产链接。",
+      "tags": [
+        "print-agent",
+        "github"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentDownloadUrls",
+      "type": "function",
+      "name": "getPrintAgentDownloadUrls",
+      "filePath": "apps/web/src/lib/print-agent-download.ts",
+      "lineRange": [
+        157,
+        174
+      ],
+      "summary": "汇总站内 API 与 GitHub 的各平台安装包下载 URL。",
+      "tags": [
+        "print-agent",
+        "download"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-heartbeat.ts",
+      "type": "file",
+      "name": "print-agent-heartbeat.ts",
+      "filePath": "apps/web/src/lib/print-agent-heartbeat.ts",
+      "summary": "根据 last_seen 判断打印代理设备是否在线，并以相对时间格式化最近心跳。",
+      "tags": [
+        "print-agent",
+        "heartbeat",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-heartbeat.ts:isPrintAgentDeviceOnline",
+      "type": "function",
+      "name": "isPrintAgentDeviceOnline",
+      "filePath": "apps/web/src/lib/print-agent-heartbeat.ts",
+      "lineRange": [
+        18,
+        26
+      ],
+      "summary": "根据 last_seen 与心跳离线阈值判断设备在线。",
+      "tags": [
+        "print-agent",
+        "heartbeat"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-heartbeat.ts:formatLastSeenRelative",
+      "type": "function",
+      "name": "formatLastSeenRelative",
+      "filePath": "apps/web/src/lib/print-agent-heartbeat.ts",
+      "lineRange": [
+        28,
+        50
+      ],
+      "summary": "用 Intl.RelativeTimeFormat 格式化最近心跳相对时间。",
+      "tags": [
+        "print-agent",
+        "formatting"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-local.ts",
+      "type": "file",
+      "name": "print-agent-local.ts",
+      "filePath": "apps/web/src/lib/print-agent-local.ts",
+      "summary": "构建本地打印代理配置 URL、探测 localhost 健康检查并在浏览器打开配置页。",
+      "tags": [
+        "print-agent",
+        "local",
+        "utility",
+        "client"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-local.ts:buildPrintAgentConfigureUrl",
+      "type": "function",
+      "name": "buildPrintAgentConfigureUrl",
+      "filePath": "apps/web/src/lib/print-agent-local.ts",
+      "lineRange": [
+        7,
+        19
+      ],
+      "summary": "拼接本地打印代理配置页 URL 与配对参数。",
+      "tags": [
+        "print-agent",
+        "local"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-local.ts:printAgentLocalHealthUrl",
+      "type": "function",
+      "name": "printAgentLocalHealthUrl",
+      "filePath": "apps/web/src/lib/print-agent-local.ts",
+      "lineRange": [
+        21,
+        23
+      ],
+      "summary": "返回 localhost 打印代理健康检查端点 URL。",
+      "tags": [
+        "print-agent",
+        "local"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-local.ts:probeLocalPrintAgent",
+      "type": "function",
+      "name": "probeLocalPrintAgent",
+      "filePath": "apps/web/src/lib/print-agent-local.ts",
+      "lineRange": [
+        26,
+        48
+      ],
+      "summary": "带超时的 fetch 探测本地打印代理是否运行。",
+      "tags": [
+        "print-agent",
+        "local"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-local.ts:openPrintAgentConfigure",
+      "type": "function",
+      "name": "openPrintAgentConfigure",
+      "filePath": "apps/web/src/lib/print-agent-local.ts",
+      "lineRange": [
+        55,
+        81
+      ],
+      "summary": "打开配置 URL 或回退提示用户手动启动代理。",
+      "tags": [
+        "print-agent",
+        "local"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/restaurant-features.ts",
+      "type": "file",
+      "name": "restaurant-features.ts",
+      "filePath": "apps/web/src/lib/restaurant-features.ts",
+      "summary": "从 @mesa/shared 重新导出餐厅功能开关类型与常量，供 web 与 ops 共享。",
+      "tags": [
+        "barrel",
+        "feature-flags",
+        "shared"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/settings-nav.ts",
+      "type": "file",
+      "name": "settings-nav.ts",
+      "filePath": "apps/web/src/lib/settings-nav.ts",
+      "summary": "仪表盘设置页导航标签定义及当前激活项、宽布局路径判断辅助函数。",
+      "tags": [
+        "dashboard",
+        "navigation",
+        "settings",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/settings-nav.ts:getActiveSettingsNavItem",
+      "type": "function",
+      "name": "getActiveSettingsNavItem",
+      "filePath": "apps/web/src/lib/settings-nav.ts",
+      "lineRange": [
+        73,
+        75
+      ],
+      "summary": "根据 pathname 匹配当前激活的设置导航项。",
+      "tags": [
+        "settings",
+        "navigation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/settings-nav.ts:isSettingsWideLayout",
+      "type": "function",
+      "name": "isSettingsWideLayout",
+      "filePath": "apps/web/src/lib/settings-nav.ts",
+      "lineRange": [
+        77,
+        79
+      ],
+      "summary": "判断设置子路径是否使用宽布局（如打印助手页）。",
+      "tags": [
+        "settings",
+        "layout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/site-origin.ts",
+      "type": "file",
+      "name": "site-origin.ts",
+      "filePath": "apps/web/src/lib/site-origin.ts",
+      "summary": "解析站点 origin：优先环境变量 NEXT_PUBLIC_BASE_URL，回退到请求头 host。",
+      "tags": [
+        "utility",
+        "configuration",
+        "url"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/site-origin.ts:getSiteOrigin",
+      "type": "function",
+      "name": "getSiteOrigin",
+      "filePath": "apps/web/src/lib/site-origin.ts",
+      "lineRange": [
+        4,
+        14
+      ],
+      "summary": "解析请求或环境变量中的站点 origin（含协议与 host）。",
+      "tags": [
+        "utility",
+        "url"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-auth-client.ts",
+      "type": "file",
+      "name": "staff-auth-client.ts",
+      "filePath": "apps/web/src/lib/staff-auth-client.ts",
+      "summary": "客户端解析员工会话：区分店主与 staff 账号角色，并提供员工登出封装。",
+      "tags": [
+        "auth",
+        "staff",
+        "client",
+        "session"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-auth-client.ts:resolveStaffSession",
+      "type": "function",
+      "name": "resolveStaffSession",
+      "filePath": "apps/web/src/lib/staff-auth-client.ts",
+      "lineRange": [
+        15,
+        60
+      ],
+      "summary": "解析 slug 下当前用户是店主还是 staff 及其角色。",
+      "tags": [
+        "auth",
+        "staff",
+        "session"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-auth-client.ts:staffSignOut",
+      "type": "function",
+      "name": "staffSignOut",
+      "filePath": "apps/web/src/lib/staff-auth-client.ts",
+      "lineRange": [
+        62,
+        64
+      ],
+      "summary": "员工端登出封装，委托 signOutFromSupabase。",
+      "tags": [
+        "auth",
+        "staff",
+        "sign-out"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "file",
+      "name": "client.ts",
+      "filePath": "apps/web/src/lib/supabase/client.ts",
+      "summary": "创建浏览器端 Supabase 客户端单例工厂，供客户端组件与 Hook 使用。",
+      "tags": [
+        "supabase",
+        "client",
+        "factory"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/supabase/client.ts:createClient",
+      "type": "function",
+      "name": "createClient",
+      "filePath": "apps/web/src/lib/supabase/client.ts",
+      "lineRange": [
+        4,
+        9
+      ],
+      "summary": "创建 @supabase/ssr 浏览器客户端实例。",
+      "tags": [
+        "supabase",
+        "factory"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/use-checkout-request-count.ts",
+      "type": "file",
+      "name": "use-checkout-request-count.ts",
+      "filePath": "apps/web/src/lib/use-checkout-request-count.ts",
+      "summary": "React Hook：订阅 bill_splits Realtime 与可见性变化，维护仪表盘待处理结账请求计数徽章。",
+      "tags": [
+        "hook",
+        "checkout",
+        "realtime",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/use-checkout-request-count.ts:useCheckoutRequestCount",
+      "type": "function",
+      "name": "useCheckoutRequestCount",
+      "filePath": "apps/web/src/lib/use-checkout-request-count.ts",
+      "lineRange": [
+        13,
+        78
+      ],
+      "summary": "订阅 Realtime 与失效事件，返回待处理结账请求数量。",
+      "tags": [
+        "hook",
+        "checkout",
+        "realtime"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "file:apps/web/src/lib/print-agent-heartbeat.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "file:apps/web/src/lib/print-agent-routing.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevicesNeedingRenewal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevicesNeedingRenewal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevices",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevices",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "function:apps/web/src/lib/print-agent-devices-server.ts:loadOnlinePrintAgentDevices",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "target": "function:apps/web/src/lib/print-agent-devices-server.ts:loadOnlinePrintAgentDevices",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.test.ts",
+      "target": "file:apps/web/src/lib/print-agent-download.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:isPrintAgentDownloadArtifact",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:isPrintAgentDownloadArtifact",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentGithubRepo",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentGithubRepo",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentVersion",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentVersion",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:isPinnedPrintAgentReleaseAvailable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:isPinnedPrintAgentReleaseAvailable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:resolvePrintAgentGitHubDownloadUrl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:resolvePrintAgentGitHubDownloadUrl",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:findLatestPublishedPrintAgentRelease",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:findLatestPublishedPrintAgentRelease",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentDownloadUrls",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "function:apps/web/src/lib/print-agent-download.ts:getPrintAgentDownloadUrls",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-heartbeat.ts",
+      "target": "function:apps/web/src/lib/print-agent-heartbeat.ts:isPrintAgentDeviceOnline",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-heartbeat.ts",
+      "target": "function:apps/web/src/lib/print-agent-heartbeat.ts:isPrintAgentDeviceOnline",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-heartbeat.ts",
+      "target": "function:apps/web/src/lib/print-agent-heartbeat.ts:formatLastSeenRelative",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-heartbeat.ts",
+      "target": "function:apps/web/src/lib/print-agent-heartbeat.ts:formatLastSeenRelative",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-local.ts",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:buildPrintAgentConfigureUrl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-local.ts",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:buildPrintAgentConfigureUrl",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-local.ts",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:printAgentLocalHealthUrl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-local.ts",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:printAgentLocalHealthUrl",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-local.ts",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:probeLocalPrintAgent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-local.ts",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:probeLocalPrintAgent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-local.ts",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:openPrintAgentConfigure",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-local.ts",
+      "target": "function:apps/web/src/lib/print-agent-local.ts:openPrintAgentConfigure",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/settings-nav.ts",
+      "target": "function:apps/web/src/lib/settings-nav.ts:getActiveSettingsNavItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/settings-nav.ts",
+      "target": "function:apps/web/src/lib/settings-nav.ts:getActiveSettingsNavItem",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/settings-nav.ts",
+      "target": "function:apps/web/src/lib/settings-nav.ts:isSettingsWideLayout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/settings-nav.ts",
+      "target": "function:apps/web/src/lib/settings-nav.ts:isSettingsWideLayout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/site-origin.ts",
+      "target": "function:apps/web/src/lib/site-origin.ts:getSiteOrigin",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/site-origin.ts",
+      "target": "function:apps/web/src/lib/site-origin.ts:getSiteOrigin",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "file:apps/web/src/lib/auth/sign-out-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "function:apps/web/src/lib/staff-auth-client.ts:resolveStaffSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "function:apps/web/src/lib/staff-auth-client.ts:resolveStaffSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "function:apps/web/src/lib/staff-auth-client.ts:staffSignOut",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-auth-client.ts",
+      "target": "function:apps/web/src/lib/staff-auth-client.ts:staffSignOut",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/client.ts",
+      "target": "function:apps/web/src/lib/supabase/client.ts:createClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/client.ts",
+      "target": "function:apps/web/src/lib/supabase/client.ts:createClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/use-checkout-request-count.ts",
+      "target": "file:apps/web/src/lib/checkout-request-count-sync.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/use-checkout-request-count.ts",
+      "target": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/use-checkout-request-count.ts",
+      "target": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/use-checkout-request-count.ts",
+      "target": "function:apps/web/src/lib/use-checkout-request-count.ts:useCheckoutRequestCount",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/use-checkout-request-count.ts",
+      "target": "function:apps/web/src/lib/use-checkout-request-count.ts:useCheckoutRequestCount",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-download.ts",
+      "target": "file:apps/web/src/lib/print-agent-download.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevicesNeedingRenewal",
+      "target": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevicesNeedingRenewal",
+      "target": "function:apps/web/src/lib/print-agent-credential-expiry.ts:devicesNeedingRenewal",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevices",
+      "target": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevices",
+      "target": "function:apps/web/src/lib/print-agent-heartbeat.ts:isPrintAgentDeviceOnline",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-devices-server.ts:loadOnlinePrintAgentDevices",
+      "target": "function:apps/web/src/lib/print-agent-devices-server.ts:loadPrintAgentDevices",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-auth-client.ts:resolveStaffSession",
+      "target": "function:apps/web/src/lib/supabase/client.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-auth-client.ts:resolveStaffSession",
+      "target": "function:apps/web/src/lib/staff-account.ts:parseStaffUserMetadata",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-auth-client.ts:staffSignOut",
+      "target": "function:apps/web/src/lib/auth/sign-out-client.ts:signOutFromSupabase",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/use-checkout-request-count.ts:useCheckoutRequestCount",
+      "target": "function:apps/web/src/lib/supabase/client.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/use-checkout-request-count.ts:useCheckoutRequestCount",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:countPendingCheckoutRequests",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/use-checkout-request-count.ts:useCheckoutRequestCount",
+      "target": "file:apps/web/src/lib/checkout-request-count-sync.ts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

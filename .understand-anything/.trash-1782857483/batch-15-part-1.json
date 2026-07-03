@@ -1,0 +1,802 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "summary": "租户服务员单桌页面，服务端鉴权后加载桌台详情并渲染 WaiterTableDetail。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "waiter"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx:WaiterTablePage",
+      "type": "function",
+      "name": "WaiterTablePage",
+      "filePath": "apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "lineRange": [
+        22,
+        75
+      ],
+      "summary": "服务端页面组件，解析 tableId、鉴权并加载服务员单桌初始数据。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/[slug]/waiter/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/[slug]/waiter/page.tsx",
+      "summary": "租户服务员看板页面，鉴权后加载初始看板数据并渲染 WaiterDisplay。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/[slug]/waiter/page.tsx:WaiterPage",
+      "type": "function",
+      "name": "WaiterPage",
+      "filePath": "apps/web/src/app/[slug]/waiter/page.tsx",
+      "lineRange": [
+        11,
+        40
+      ],
+      "summary": "服务端页面组件，按 slug 鉴权并加载服务员看板初始数据。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/dashboard/buffet/route.ts",
+      "summary": "Dashboard 自助餐 API 路由，提供 GET/POST/PATCH/DELETE 全生命周期管理。",
+      "tags": [
+        "api-handler",
+        "nextjs",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/buffet/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/dashboard/buffet/route.ts",
+      "lineRange": [
+        30,
+        37
+      ],
+      "summary": "HTTP GET 处理器，按路由职责返回数据或列表。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/buffet/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/dashboard/buffet/route.ts",
+      "lineRange": [
+        39,
+        99
+      ],
+      "summary": "HTTP POST 处理器，创建资源并返回结果。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/buffet/route.ts:PATCH",
+      "type": "function",
+      "name": "PATCH",
+      "filePath": "apps/web/src/app/api/dashboard/buffet/route.ts",
+      "lineRange": [
+        101,
+        174
+      ],
+      "summary": "HTTP PATCH 处理器，更新资源字段。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/buffet/route.ts:DELETE",
+      "type": "function",
+      "name": "DELETE",
+      "filePath": "apps/web/src/app/api/dashboard/buffet/route.ts",
+      "lineRange": [
+        176,
+        205
+      ],
+      "summary": "HTTP DELETE 处理器，删除指定资源。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "summary": "Dashboard 桌台分组 API，支持创建、更新排序与删除分组。",
+      "tags": [
+        "api-handler",
+        "nextjs",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "lineRange": [
+        20,
+        40
+      ],
+      "summary": "HTTP POST 处理器，创建资源并返回结果。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:PATCH",
+      "type": "function",
+      "name": "PATCH",
+      "filePath": "apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "lineRange": [
+        42,
+        79
+      ],
+      "summary": "HTTP PATCH 处理器，更新资源字段。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:DELETE",
+      "type": "function",
+      "name": "DELETE",
+      "filePath": "apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "lineRange": [
+        81,
+        94
+      ],
+      "summary": "HTTP DELETE 处理器，删除指定资源。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/dashboard/tables/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/dashboard/tables/route.ts",
+      "summary": "Dashboard 桌台 API，处理桌台增删改与 display_name 校验。",
+      "tags": [
+        "api-handler",
+        "nextjs",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/tables/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/dashboard/tables/route.ts",
+      "lineRange": [
+        18,
+        57
+      ],
+      "summary": "HTTP POST 处理器，创建资源并返回结果。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/tables/route.ts:PATCH",
+      "type": "function",
+      "name": "PATCH",
+      "filePath": "apps/web/src/app/api/dashboard/tables/route.ts",
+      "lineRange": [
+        59,
+        123
+      ],
+      "summary": "HTTP PATCH 处理器，更新资源字段。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/tables/route.ts:DELETE",
+      "type": "function",
+      "name": "DELETE",
+      "filePath": "apps/web/src/app/api/dashboard/tables/route.ts",
+      "lineRange": [
+        125,
+        187
+      ],
+      "summary": "HTTP DELETE 处理器，删除指定资源。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts",
+      "summary": "服务员 API：返回单桌可执行操作目标（转台、并台等）。",
+      "tags": [
+        "api-handler",
+        "nextjs",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts",
+      "lineRange": [
+        9,
+        44
+      ],
+      "summary": "HTTP GET 处理器，按路由职责返回数据或列表。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts",
+      "summary": "服务员 API：按 tableId 返回单桌看板详情数据。",
+      "tags": [
+        "api-handler",
+        "nextjs",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts",
+      "lineRange": [
+        9,
+        38
+      ],
+      "summary": "HTTP GET 处理器，按路由职责返回数据或列表。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "summary": "Dashboard 服务员单桌页面，校验 dashboard 权限后渲染桌台详情。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "dashboard",
+        "waiter"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx:DashboardWaiterTablePage",
+      "type": "function",
+      "name": "DashboardWaiterTablePage",
+      "filePath": "apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "lineRange": [
+        22,
+        70
+      ],
+      "summary": "Dashboard 服务员单桌服务端页面，校验权限并加载桌台详情。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx:WaiterTablePage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx:WaiterTablePage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/lib/menu-item-code.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/lib/staff-board.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/lib/staff-routes.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/waiter/page.tsx:WaiterPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/waiter/page.tsx:WaiterPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/page.tsx",
+      "target": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/page.tsx",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/page.tsx",
+      "target": "file:apps/web/src/lib/staff-board.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/waiter/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/buffet/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/buffet/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/buffet/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/buffet/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/buffet/route.ts:PATCH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/buffet/route.ts:PATCH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/buffet/route.ts:DELETE",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/buffet/route.ts:DELETE",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "file:apps/web/src/lib/dashboard-api-shared.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/buffet/route.ts",
+      "target": "file:apps/web/src/lib/dashboard-buffet-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:PATCH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:PATCH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:DELETE",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/table-groups/route.ts:DELETE",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "target": "file:apps/web/src/lib/dashboard-api-shared.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "target": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/tables/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/tables/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/tables/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/tables/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/tables/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/tables/route.ts:PATCH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/tables/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/tables/route.ts:PATCH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/tables/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/tables/route.ts:DELETE",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/tables/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/tables/route.ts:DELETE",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/tables/route.ts",
+      "target": "file:apps/web/src/lib/dashboard-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/tables/route.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts",
+      "target": "file:apps/web/src/lib/staff-board.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts",
+      "target": "file:apps/web/src/lib/staff-board.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx:DashboardWaiterTablePage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx:DashboardWaiterTablePage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/lib/menu-item-code.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/lib/staff-board.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/lib/staff-routes.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

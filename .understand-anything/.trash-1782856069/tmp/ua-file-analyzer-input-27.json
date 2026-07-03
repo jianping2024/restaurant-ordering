@@ -1,0 +1,56 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {
+      "path": "apps/print-agent/README.md",
+      "language": "markdown",
+      "sizeLines": 159,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "apps/print-agent/RELEASE_NOTES.md",
+      "language": "markdown",
+      "sizeLines": 99,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "apps/print-agent/configure_ui.html",
+      "language": "html",
+      "sizeLines": 867,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "apps/print-agent/go.mod",
+      "language": "mod",
+      "sizeLines": 21,
+      "fileCategory": "config"
+    },
+    {
+      "path": "apps/print-agent/go.sum",
+      "language": "sum",
+      "sizeLines": 38,
+      "fileCategory": "config"
+    },
+    {
+      "path": "apps/print-agent/pair_ui.html",
+      "language": "html",
+      "sizeLines": 170,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "apps/print-agent/setup_ui.html",
+      "language": "html",
+      "sizeLines": 582,
+      "fileCategory": "markup"
+    }
+  ],
+  "batchImportData": {
+    "apps/print-agent/README.md": [],
+    "apps/print-agent/RELEASE_NOTES.md": [],
+    "apps/print-agent/configure_ui.html": [],
+    "apps/print-agent/go.mod": [],
+    "apps/print-agent/go.sum": [],
+    "apps/print-agent/pair_ui.html": [],
+    "apps/print-agent/setup_ui.html": []
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {
+      "path": "packages/shared/src/country-code.test.ts",
+      "language": "typescript",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/country-code.ts",
+      "language": "typescript",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/create-restaurant.ts",
+      "language": "typescript",
+      "sizeLines": 125,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/slug.ts",
+      "language": "typescript",
+      "sizeLines": 14,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "packages/shared/src/country-code.test.ts": [
+      "packages/shared/src/country-code.ts"
+    ],
+    "packages/shared/src/country-code.ts": [],
+    "packages/shared/src/create-restaurant.ts": [
+      "packages/shared/src/country-code.ts",
+      "packages/shared/src/slug.ts"
+    ],
+    "packages/shared/src/slug.ts": []
+  }
+}

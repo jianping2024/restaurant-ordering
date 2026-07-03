@@ -1,0 +1,1031 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/print-agent/printer_discover_cache_test.go",
+      "type": "file",
+      "name": "printer_discover_cache_test.go",
+      "filePath": "apps/print-agent/printer_discover_cache_test.go",
+      "summary": "测试打印机发现 API 的 force-refresh 参数与缓存行为。",
+      "tags": [
+        "test",
+        "print-agent",
+        "printer",
+        "cache"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/printer_discover_cache.go",
+      "type": "file",
+      "name": "printer_discover_cache.go",
+      "filePath": "apps/print-agent/printer_discover_cache.go",
+      "summary": "打印机发现结果带 TTL 的内存缓存，供配置向导 API 复用。",
+      "tags": [
+        "print-agent",
+        "printer",
+        "cache",
+        "discovery"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/printer_io_errors_test.go",
+      "type": "file",
+      "name": "printer_io_errors_test.go",
+      "filePath": "apps/print-agent/printer_io_errors_test.go",
+      "summary": "测试 printerIOFailure 对超时、断连等 IO 错误的分类判定。",
+      "tags": [
+        "test",
+        "print-agent",
+        "printer",
+        "error-handling"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/printer_io_errors.go",
+      "type": "file",
+      "name": "printer_io_errors.go",
+      "filePath": "apps/print-agent/printer_io_errors.go",
+      "summary": "将底层打印机 IO 错误归类为可重试或永久性失败。",
+      "tags": [
+        "print-agent",
+        "printer",
+        "error-handling",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/printer_readiness_test.go",
+      "type": "file",
+      "name": "printer_readiness_test.go",
+      "filePath": "apps/print-agent/printer_readiness_test.go",
+      "summary": "测试打印机 target key 生成与未知 scheme 的准备打印错误路径。",
+      "tags": [
+        "test",
+        "print-agent",
+        "printer",
+        "readiness"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/printer_readiness.go",
+      "type": "file",
+      "name": "printer_readiness.go",
+      "filePath": "apps/print-agent/printer_readiness.go",
+      "summary": "打印前检查目标打印机（TCP/Winspool）是否可达并就绪。",
+      "tags": [
+        "print-agent",
+        "printer",
+        "readiness",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/printer_target_test.go",
+      "type": "file",
+      "name": "printer_target_test.go",
+      "filePath": "apps/print-agent/printer_target_test.go",
+      "summary": "测试 parsePrinterTarget 对 tcp:// 与 winspool:// URI 的解析。",
+      "tags": [
+        "test",
+        "print-agent",
+        "printer",
+        "parsing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/printer_target.go",
+      "type": "file",
+      "name": "printer_target.go",
+      "filePath": "apps/print-agent/printer_target.go",
+      "summary": "解析打印机目标 URI 并根据任务路由配置选择对应打印机。",
+      "tags": [
+        "print-agent",
+        "printer",
+        "routing",
+        "data-model"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/receipt_defer.go",
+      "type": "file",
+      "name": "receipt_defer.go",
+      "filePath": "apps/print-agent/receipt_defer.go",
+      "summary": "小票打印延迟路由：解析创建时间、映射工位并决定 receipt 打印机。",
+      "tags": [
+        "print-agent",
+        "receipt",
+        "routing",
+        "defer"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/remote_config.go",
+      "type": "file",
+      "name": "remote_config.go",
+      "filePath": "apps/print-agent/remote_config.go",
+      "summary": "从云端拉取运行时配置（轮询间隔、营业时段）与打印工位列表。",
+      "tags": [
+        "print-agent",
+        "remote-config",
+        "api-handler",
+        "cloud"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/routing_sync_test.go",
+      "type": "file",
+      "name": "routing_sync_test.go",
+      "filePath": "apps/print-agent/routing_sync_test.go",
+      "summary": "测试路由同步 API 冲突错误与通用错误的 JSON 解析。",
+      "tags": [
+        "test",
+        "print-agent",
+        "routing",
+        "sync"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/routing_sync.go",
+      "type": "file",
+      "name": "routing_sync.go",
+      "filePath": "apps/print-agent/routing_sync.go",
+      "summary": "将本地打印机-工位映射同步到云端，并解析冲突响应。",
+      "tags": [
+        "print-agent",
+        "routing",
+        "sync",
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/printer_discover_cache_test.go:TestPrintersAPIForceRefresh",
+      "type": "function",
+      "name": "TestPrintersAPIForceRefresh",
+      "filePath": "apps/print-agent/printer_discover_cache_test.go",
+      "lineRange": [
+        9,
+        18
+      ],
+      "summary": "验证 force-refresh 查询参数解析。",
+      "tags": [
+        "test",
+        "cache"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/printer_discover_cache_test.go:TestDiscoverPrintersForAPICache",
+      "type": "function",
+      "name": "TestDiscoverPrintersForAPICache",
+      "filePath": "apps/print-agent/printer_discover_cache_test.go",
+      "lineRange": [
+        20,
+        39
+      ],
+      "summary": "验证缓存命中时跳过重新发现。",
+      "tags": [
+        "test",
+        "cache"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/printer_discover_cache.go:discoverPrintersForAPI",
+      "type": "function",
+      "name": "discoverPrintersForAPI",
+      "filePath": "apps/print-agent/printer_discover_cache.go",
+      "lineRange": [
+        28,
+        47
+      ],
+      "summary": "带缓存的打印机发现，支持 force-refresh 绕过 TTL。",
+      "tags": [
+        "discovery",
+        "cache"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/printer_io_errors_test.go:TestPrinterIOFailure",
+      "type": "function",
+      "name": "TestPrinterIOFailure",
+      "filePath": "apps/print-agent/printer_io_errors_test.go",
+      "lineRange": [
+        9,
+        25
+      ],
+      "summary": "验证各类 IO 错误被正确识别为 printer 故障。",
+      "tags": [
+        "test",
+        "error-handling"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/printer_io_errors.go:printerIOFailure",
+      "type": "function",
+      "name": "printerIOFailure",
+      "filePath": "apps/print-agent/printer_io_errors.go",
+      "lineRange": [
+        11,
+        42
+      ],
+      "summary": "判断错误是否为打印机 IO 失败（超时、断连、拒绝等）。",
+      "tags": [
+        "error-handling",
+        "printer"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/printer_readiness_test.go:TestTargetKey",
+      "type": "function",
+      "name": "TestTargetKey",
+      "filePath": "apps/print-agent/printer_readiness_test.go",
+      "lineRange": [
+        8,
+        15
+      ],
+      "summary": "验证打印机 target 唯一键生成。",
+      "tags": [
+        "test",
+        "printer"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/printer_readiness_test.go:TestPreparePrintUnknownScheme",
+      "type": "function",
+      "name": "TestPreparePrintUnknownScheme",
+      "filePath": "apps/print-agent/printer_readiness_test.go",
+      "lineRange": [
+        17,
+        25
+      ],
+      "summary": "验证未知 scheme 返回 ErrUnknownScheme。",
+      "tags": [
+        "test",
+        "error-handling"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/printer_readiness.go:targetKey",
+      "type": "function",
+      "name": "targetKey",
+      "filePath": "apps/print-agent/printer_readiness.go",
+      "lineRange": [
+        16,
+        25
+      ],
+      "summary": "为 printerTarget 生成用于阻塞追踪的唯一键。",
+      "tags": [
+        "printer",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/printer_readiness.go:targetCheckReady",
+      "type": "function",
+      "name": "targetCheckReady",
+      "filePath": "apps/print-agent/printer_readiness.go",
+      "lineRange": [
+        35,
+        44
+      ],
+      "summary": "按 scheme 分发到 TCP 或 Winspool 就绪检查。",
+      "tags": [
+        "readiness",
+        "printer"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/printer_readiness.go:tcpCheckReady",
+      "type": "function",
+      "name": "tcpCheckReady",
+      "filePath": "apps/print-agent/printer_readiness.go",
+      "lineRange": [
+        46,
+        57
+      ],
+      "summary": "通过 TCP dial 检测 ESC/POS 网络打印机是否在线。",
+      "tags": [
+        "readiness",
+        "tcp"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/printer_target_test.go:TestParsePrinterTarget",
+      "type": "function",
+      "name": "TestParsePrinterTarget",
+      "filePath": "apps/print-agent/printer_target_test.go",
+      "lineRange": [
+        5,
+        25
+      ],
+      "summary": "表驱动测试 tcp:// 与 winspool:// 目标解析。",
+      "tags": [
+        "test",
+        "parsing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/printer_target.go:parsePrinterTarget",
+      "type": "function",
+      "name": "parsePrinterTarget",
+      "filePath": "apps/print-agent/printer_target.go",
+      "lineRange": [
+        20,
+        48
+      ],
+      "summary": "将 tcp:// 或 winspool:// URI 解析为 printerTarget 结构。",
+      "tags": [
+        "parsing",
+        "printer"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/receipt_defer.go:parseJobCreatedAt",
+      "type": "function",
+      "name": "parseJobCreatedAt",
+      "filePath": "apps/print-agent/receipt_defer.go",
+      "lineRange": [
+        16,
+        31
+      ],
+      "summary": "从任务 created_at 字段解析时间戳。",
+      "tags": [
+        "parsing",
+        "receipt"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/receipt_defer.go:firstMappedStation",
+      "type": "function",
+      "name": "firstMappedStation",
+      "filePath": "apps/print-agent/receipt_defer.go",
+      "lineRange": [
+        41,
+        51
+      ],
+      "summary": "返回配置中第一个已映射工位 ID。",
+      "tags": [
+        "routing",
+        "receipt"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/receipt_defer.go:mappedStationIDsSorted",
+      "type": "function",
+      "name": "mappedStationIDsSorted",
+      "filePath": "apps/print-agent/receipt_defer.go",
+      "lineRange": [
+        62,
+        72
+      ],
+      "summary": "返回已映射工位 ID 的排序列表。",
+      "tags": [
+        "routing",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/receipt_defer.go:resolveReceiptRouting",
+      "type": "function",
+      "name": "resolveReceiptRouting",
+      "filePath": "apps/print-agent/receipt_defer.go",
+      "lineRange": [
+        74,
+        86
+      ],
+      "summary": "解析小票任务的打印机路由，含延迟窗口逻辑。",
+      "tags": [
+        "routing",
+        "receipt"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/remote_config.go:applyCloudRuntimeConfig",
+      "type": "function",
+      "name": "applyCloudRuntimeConfig",
+      "filePath": "apps/print-agent/remote_config.go",
+      "lineRange": [
+        26,
+        47
+      ],
+      "summary": "拉取并应用云端运行时配置到本地 agentConfig。",
+      "tags": [
+        "remote-config",
+        "cloud"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/remote_config.go:logAgentStartup",
+      "type": "function",
+      "name": "logAgentStartup",
+      "filePath": "apps/print-agent/remote_config.go",
+      "lineRange": [
+        49,
+        75
+      ],
+      "summary": "启动时输出 schedule、轮询间隔与工位数量日志。",
+      "tags": [
+        "logging",
+        "startup"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/remote_config.go:formatScheduleLines",
+      "type": "function",
+      "name": "formatScheduleLines",
+      "filePath": "apps/print-agent/remote_config.go",
+      "lineRange": [
+        77,
+        98
+      ],
+      "summary": "将营业时段配置格式化为可读日志行。",
+      "tags": [
+        "logging",
+        "formatting"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/remote_config.go:fetchCloudRuntimeConfig",
+      "type": "function",
+      "name": "fetchCloudRuntimeConfig",
+      "filePath": "apps/print-agent/remote_config.go",
+      "lineRange": [
+        100,
+        120
+      ],
+      "summary": "HTTP GET 拉取云端 runtime config JSON。",
+      "tags": [
+        "api-handler",
+        "cloud"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/remote_config.go:fetchPrintStations",
+      "type": "function",
+      "name": "fetchPrintStations",
+      "filePath": "apps/print-agent/remote_config.go",
+      "lineRange": [
+        122,
+        145
+      ],
+      "summary": "HTTP GET 拉取餐厅打印工位列表。",
+      "tags": [
+        "api-handler",
+        "cloud"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/routing_sync_test.go:TestParseRoutingSyncErrorConflict",
+      "type": "function",
+      "name": "TestParseRoutingSyncErrorConflict",
+      "filePath": "apps/print-agent/routing_sync_test.go",
+      "lineRange": [
+        8,
+        30
+      ],
+      "summary": "验证 409 冲突响应解析为 RoutingSyncError。",
+      "tags": [
+        "test",
+        "sync",
+        "conflict"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/routing_sync_test.go:TestParseRoutingSyncErrorGeneric",
+      "type": "function",
+      "name": "TestParseRoutingSyncErrorGeneric",
+      "filePath": "apps/print-agent/routing_sync_test.go",
+      "lineRange": [
+        32,
+        40
+      ],
+      "summary": "验证非冲突错误返回通用 error。",
+      "tags": [
+        "test",
+        "sync"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/routing_sync.go:Error",
+      "type": "function",
+      "name": "Error",
+      "filePath": "apps/print-agent/routing_sync.go",
+      "lineRange": [
+        26,
+        34
+      ],
+      "summary": "实现 error 接口，格式化路由同步错误消息。",
+      "tags": [
+        "error-handling",
+        "sync"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/routing_sync.go:parseRoutingSyncError",
+      "type": "function",
+      "name": "parseRoutingSyncError",
+      "filePath": "apps/print-agent/routing_sync.go",
+      "lineRange": [
+        36,
+        64
+      ],
+      "summary": "解析云端路由同步 API 的错误 JSON 响应。",
+      "tags": [
+        "parsing",
+        "sync"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/routing_sync.go:syncRoutingToCloud",
+      "type": "function",
+      "name": "syncRoutingToCloud",
+      "filePath": "apps/print-agent/routing_sync.go",
+      "lineRange": [
+        66,
+        97
+      ],
+      "summary": "POST 本地工位-打印机映射到云端 sync 端点。",
+      "tags": [
+        "sync",
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:apps/print-agent/routing_sync.go:RoutingSyncConflict",
+      "type": "class",
+      "name": "RoutingSyncConflict",
+      "filePath": "apps/print-agent/routing_sync.go",
+      "lineRange": [
+        13,
+        18
+      ],
+      "summary": "描述工位已被其他设备占用的冲突详情。",
+      "tags": [
+        "data-model",
+        "sync",
+        "conflict"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:apps/print-agent/routing_sync.go:RoutingSyncError",
+      "type": "class",
+      "name": "RoutingSyncError",
+      "filePath": "apps/print-agent/routing_sync.go",
+      "lineRange": [
+        20,
+        24
+      ],
+      "summary": "路由同步 API 结构化错误，含冲突列表。",
+      "tags": [
+        "data-model",
+        "sync",
+        "error-handling"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/print-agent/printer_discover_cache_test.go",
+      "target": "function:apps/print-agent/printer_discover_cache_test.go:TestPrintersAPIForceRefresh",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/printer_discover_cache_test.go",
+      "target": "function:apps/print-agent/printer_discover_cache_test.go:TestDiscoverPrintersForAPICache",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/printer_discover_cache_test.go",
+      "target": "function:apps/print-agent/printer_discover_cache_test.go:TestPrintersAPIForceRefresh",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/printer_discover_cache_test.go",
+      "target": "function:apps/print-agent/printer_discover_cache_test.go:TestDiscoverPrintersForAPICache",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/printer_discover_cache.go",
+      "target": "function:apps/print-agent/printer_discover_cache.go:discoverPrintersForAPI",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/printer_io_errors_test.go",
+      "target": "function:apps/print-agent/printer_io_errors_test.go:TestPrinterIOFailure",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/printer_io_errors_test.go",
+      "target": "function:apps/print-agent/printer_io_errors_test.go:TestPrinterIOFailure",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/printer_io_errors.go",
+      "target": "function:apps/print-agent/printer_io_errors.go:printerIOFailure",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/printer_readiness_test.go",
+      "target": "function:apps/print-agent/printer_readiness_test.go:TestTargetKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/printer_readiness_test.go",
+      "target": "function:apps/print-agent/printer_readiness_test.go:TestPreparePrintUnknownScheme",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/printer_readiness_test.go",
+      "target": "function:apps/print-agent/printer_readiness_test.go:TestTargetKey",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/printer_readiness_test.go",
+      "target": "function:apps/print-agent/printer_readiness_test.go:TestPreparePrintUnknownScheme",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/printer_readiness.go",
+      "target": "function:apps/print-agent/printer_readiness.go:targetKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/printer_readiness.go",
+      "target": "function:apps/print-agent/printer_readiness.go:targetCheckReady",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/printer_readiness.go",
+      "target": "function:apps/print-agent/printer_readiness.go:tcpCheckReady",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/printer_readiness.go:targetCheckReady",
+      "target": "function:apps/print-agent/printer_readiness.go:tcpCheckReady",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/printer_target_test.go",
+      "target": "function:apps/print-agent/printer_target_test.go:TestParsePrinterTarget",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/printer_target_test.go",
+      "target": "function:apps/print-agent/printer_target_test.go:TestParsePrinterTarget",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/printer_target.go",
+      "target": "function:apps/print-agent/printer_target.go:parsePrinterTarget",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/receipt_defer.go",
+      "target": "function:apps/print-agent/receipt_defer.go:parseJobCreatedAt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/receipt_defer.go",
+      "target": "function:apps/print-agent/receipt_defer.go:firstMappedStation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/receipt_defer.go",
+      "target": "function:apps/print-agent/receipt_defer.go:mappedStationIDsSorted",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/receipt_defer.go",
+      "target": "function:apps/print-agent/receipt_defer.go:resolveReceiptRouting",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/receipt_defer.go:resolveReceiptRouting",
+      "target": "function:apps/print-agent/receipt_defer.go:parseJobCreatedAt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/receipt_defer.go:resolveReceiptRouting",
+      "target": "function:apps/print-agent/receipt_defer.go:firstMappedStation",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/remote_config.go",
+      "target": "function:apps/print-agent/remote_config.go:applyCloudRuntimeConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/remote_config.go",
+      "target": "function:apps/print-agent/remote_config.go:logAgentStartup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/remote_config.go",
+      "target": "function:apps/print-agent/remote_config.go:formatScheduleLines",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/remote_config.go",
+      "target": "function:apps/print-agent/remote_config.go:fetchCloudRuntimeConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/remote_config.go",
+      "target": "function:apps/print-agent/remote_config.go:fetchPrintStations",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/remote_config.go:applyCloudRuntimeConfig",
+      "target": "function:apps/print-agent/remote_config.go:fetchCloudRuntimeConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/remote_config.go:applyCloudRuntimeConfig",
+      "target": "function:apps/print-agent/notify_version_windows.go:maybeNotifyVersionUpgrade",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/remote_config.go:logAgentStartup",
+      "target": "function:apps/print-agent/remote_config.go:formatScheduleLines",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/remote_config.go:logAgentStartup",
+      "target": "function:apps/print-agent/poll.go:defaultPollConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/routing_sync_test.go",
+      "target": "function:apps/print-agent/routing_sync_test.go:TestParseRoutingSyncErrorConflict",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/routing_sync_test.go",
+      "target": "function:apps/print-agent/routing_sync_test.go:TestParseRoutingSyncErrorGeneric",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/routing_sync_test.go",
+      "target": "function:apps/print-agent/routing_sync_test.go:TestParseRoutingSyncErrorConflict",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/routing_sync_test.go",
+      "target": "function:apps/print-agent/routing_sync_test.go:TestParseRoutingSyncErrorGeneric",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/routing_sync.go",
+      "target": "function:apps/print-agent/routing_sync.go:Error",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/routing_sync.go",
+      "target": "function:apps/print-agent/routing_sync.go:parseRoutingSyncError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/routing_sync.go",
+      "target": "function:apps/print-agent/routing_sync.go:syncRoutingToCloud",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/routing_sync.go",
+      "target": "function:apps/print-agent/routing_sync.go:Error",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/routing_sync.go:syncRoutingToCloud",
+      "target": "function:apps/print-agent/routing_sync.go:parseRoutingSyncError",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/routing_sync.go",
+      "target": "class:apps/print-agent/routing_sync.go:RoutingSyncConflict",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/routing_sync.go",
+      "target": "class:apps/print-agent/routing_sync.go:RoutingSyncConflict",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/routing_sync.go",
+      "target": "class:apps/print-agent/routing_sync.go:RoutingSyncError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/routing_sync.go",
+      "target": "class:apps/print-agent/routing_sync.go:RoutingSyncError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/printer_discover_cache.go",
+      "target": "file:apps/print-agent/printer_discover_cache_test.go",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/printer_io_errors.go",
+      "target": "file:apps/print-agent/printer_io_errors_test.go",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/printer_readiness.go",
+      "target": "file:apps/print-agent/printer_readiness_test.go",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/printer_target.go",
+      "target": "file:apps/print-agent/printer_target_test.go",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/routing_sync.go",
+      "target": "file:apps/print-agent/routing_sync_test.go",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:apps/print-agent/printer_discover_cache_test.go:TestPrintersAPIForceRefresh",
+      "target": "function:apps/print-agent/printer_discover_cache.go:discoverPrintersForAPI",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/printer_io_errors_test.go:TestPrinterIOFailure",
+      "target": "function:apps/print-agent/printer_io_errors.go:printerIOFailure",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/printer_readiness_test.go:TestTargetKey",
+      "target": "function:apps/print-agent/printer_readiness.go:targetKey",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/printer_target_test.go:TestParsePrinterTarget",
+      "target": "function:apps/print-agent/printer_target.go:parsePrinterTarget",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/routing_sync_test.go:TestParseRoutingSyncErrorConflict",
+      "target": "function:apps/print-agent/routing_sync.go:parseRoutingSyncError",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/routing_sync_test.go:TestParseRoutingSyncErrorGeneric",
+      "target": "function:apps/print-agent/routing_sync.go:parseRoutingSyncError",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

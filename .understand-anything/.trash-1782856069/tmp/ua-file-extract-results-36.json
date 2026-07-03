@@ -1,0 +1,3009 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 25,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/print-agent/tray_locale_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 11,
+      "nonEmptyLines": 9,
+      "functions": [
+        {
+          "name": "loadTrayUILocale",
+          "startLine": 5,
+          "endLine": 11,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loadTrayUILocale",
+          "callee": "loadConfig",
+          "lineNumber": 6
+        },
+        {
+          "caller": "loadTrayUILocale",
+          "callee": "defaultConfigPath",
+          "lineNumber": 6
+        },
+        {
+          "caller": "loadTrayUILocale",
+          "callee": "cfg.uiLocale",
+          "lineNumber": 10
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/tray_shutdown_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 68,
+      "nonEmptyLines": 60,
+      "functions": [
+        {
+          "name": "stopTrayAgentWork",
+          "startLine": 18,
+          "endLine": 27,
+          "params": [
+            "rt"
+          ]
+        },
+        {
+          "name": "requestTrayRestart",
+          "startLine": 31,
+          "endLine": 46,
+          "params": [
+            "rt"
+          ]
+        },
+        {
+          "name": "requestTrayExit",
+          "startLine": 50,
+          "endLine": 59,
+          "params": [
+            "rt"
+          ]
+        },
+        {
+          "name": "exitTrayAgent",
+          "startLine": 62,
+          "endLine": 68,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "stopTrayAgentWork",
+          "callee": "log.Println",
+          "lineNumber": 19
+        },
+        {
+          "caller": "stopTrayAgentWork",
+          "callee": "rt.cancel",
+          "lineNumber": 21
+        },
+        {
+          "caller": "stopTrayAgentWork",
+          "callee": "shutdownAllWizardServers",
+          "lineNumber": 23
+        },
+        {
+          "caller": "stopTrayAgentWork",
+          "callee": "shutdownTrayLocalHTTP",
+          "lineNumber": 24
+        },
+        {
+          "caller": "stopTrayAgentWork",
+          "callee": "terminateSpawnedChildren",
+          "lineNumber": 25
+        },
+        {
+          "caller": "stopTrayAgentWork",
+          "callee": "releaseAgentSingleInstance",
+          "lineNumber": 26
+        },
+        {
+          "caller": "requestTrayRestart",
+          "callee": "log.Println",
+          "lineNumber": 32
+        },
+        {
+          "caller": "requestTrayRestart",
+          "callee": "spawnAgentRestart",
+          "lineNumber": 33
+        },
+        {
+          "caller": "requestTrayRestart",
+          "callee": "log.Printf",
+          "lineNumber": 34
+        },
+        {
+          "caller": "requestTrayRestart",
+          "callee": "loadTrayUILocale",
+          "lineNumber": 35
+        },
+        {
+          "caller": "requestTrayRestart",
+          "callee": "messageBoxOK",
+          "lineNumber": 36
+        },
+        {
+          "caller": "requestTrayRestart",
+          "callee": "uiT",
+          "lineNumber": 36
+        },
+        {
+          "caller": "requestTrayRestart",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 36
+        },
+        {
+          "caller": "requestTrayRestart",
+          "callee": "uiT",
+          "lineNumber": 36
+        },
+        {
+          "caller": "requestTrayRestart",
+          "callee": "err.Error",
+          "lineNumber": 36
+        },
+        {
+          "caller": "requestTrayRestart",
+          "callee": "stopTrayAgentWork",
+          "lineNumber": 39
+        },
+        {
+          "caller": "requestTrayRestart",
+          "callee": "systray.Quit",
+          "lineNumber": 40
+        },
+        {
+          "caller": "requestTrayRestart",
+          "callee": "func() {\n\t\ttime.Sleep(2 * time.Second)\n\t\texitTrayAgent()\n\t}",
+          "lineNumber": 41
+        },
+        {
+          "caller": "requestTrayRestart",
+          "callee": "time.Sleep",
+          "lineNumber": 42
+        },
+        {
+          "caller": "requestTrayRestart",
+          "callee": "exitTrayAgent",
+          "lineNumber": 43
+        },
+        {
+          "caller": "requestTrayRestart",
+          "callee": "exitTrayAgent",
+          "lineNumber": 45
+        },
+        {
+          "caller": "requestTrayExit",
+          "callee": "stopTrayAgentWork",
+          "lineNumber": 51
+        },
+        {
+          "caller": "requestTrayExit",
+          "callee": "systray.Quit",
+          "lineNumber": 52
+        },
+        {
+          "caller": "requestTrayExit",
+          "callee": "func() {\n\t\ttime.Sleep(2 * time.Second)\n\t\texitTrayAgent()\n\t}",
+          "lineNumber": 54
+        },
+        {
+          "caller": "requestTrayExit",
+          "callee": "time.Sleep",
+          "lineNumber": 55
+        },
+        {
+          "caller": "requestTrayExit",
+          "callee": "exitTrayAgent",
+          "lineNumber": 56
+        },
+        {
+          "caller": "requestTrayExit",
+          "callee": "exitTrayAgent",
+          "lineNumber": 58
+        },
+        {
+          "caller": "exitTrayAgent",
+          "callee": "exitOnce.Do",
+          "lineNumber": 63
+        },
+        {
+          "caller": "exitTrayAgent",
+          "callee": "log.Println",
+          "lineNumber": 64
+        },
+        {
+          "caller": "exitTrayAgent",
+          "callee": "os.Exit",
+          "lineNumber": 65
+        },
+        {
+          "caller": "exitTrayAgent",
+          "callee": "killCurrentProcess",
+          "lineNumber": 66
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/tray_ui_locale_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 51,
+      "nonEmptyLines": 44,
+      "functions": [
+        {
+          "name": "TestSetTrayUILocalePersists",
+          "startLine": 11,
+          "endLine": 27,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestUILocaleOptionTitleMarksCurrent",
+          "startLine": 29,
+          "endLine": 36,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestSetTrayUILocaleCreatesConfig",
+          "startLine": 38,
+          "endLine": 51,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestSetTrayUILocalePersists",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "TestUILocaleOptionTitleMarksCurrent",
+          "line": 29,
+          "isDefault": false
+        },
+        {
+          "name": "TestSetTrayUILocaleCreatesConfig",
+          "line": 38,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestSetTrayUILocalePersists",
+          "callee": "t.TempDir",
+          "lineNumber": 12
+        },
+        {
+          "caller": "TestSetTrayUILocalePersists",
+          "callee": "filepath.Join",
+          "lineNumber": 14
+        },
+        {
+          "caller": "TestSetTrayUILocalePersists",
+          "callee": "t.Cleanup",
+          "lineNumber": 15
+        },
+        {
+          "caller": "TestSetTrayUILocalePersists",
+          "callee": "setTrayUILocale",
+          "lineNumber": 17
+        },
+        {
+          "caller": "TestSetTrayUILocalePersists",
+          "callee": "t.Fatal",
+          "lineNumber": 18
+        },
+        {
+          "caller": "TestSetTrayUILocalePersists",
+          "callee": "loadConfig",
+          "lineNumber": 20
+        },
+        {
+          "caller": "TestSetTrayUILocalePersists",
+          "callee": "t.Fatal",
+          "lineNumber": 22
+        },
+        {
+          "caller": "TestSetTrayUILocalePersists",
+          "callee": "cfg.uiLocale",
+          "lineNumber": 24
+        },
+        {
+          "caller": "TestSetTrayUILocalePersists",
+          "callee": "t.Fatalf",
+          "lineNumber": 25
+        },
+        {
+          "caller": "TestSetTrayUILocalePersists",
+          "callee": "cfg.uiLocale",
+          "lineNumber": 25
+        },
+        {
+          "caller": "TestUILocaleOptionTitleMarksCurrent",
+          "callee": "uiLocaleOptionTitle",
+          "lineNumber": 30
+        },
+        {
+          "caller": "TestUILocaleOptionTitleMarksCurrent",
+          "callee": "uiT",
+          "lineNumber": 30
+        },
+        {
+          "caller": "TestUILocaleOptionTitleMarksCurrent",
+          "callee": "t.Fatalf",
+          "lineNumber": 31
+        },
+        {
+          "caller": "TestUILocaleOptionTitleMarksCurrent",
+          "callee": "uiLocaleOptionTitle",
+          "lineNumber": 33
+        },
+        {
+          "caller": "TestUILocaleOptionTitleMarksCurrent",
+          "callee": "uiT",
+          "lineNumber": 33
+        },
+        {
+          "caller": "TestUILocaleOptionTitleMarksCurrent",
+          "callee": "t.Fatalf",
+          "lineNumber": 34
+        },
+        {
+          "caller": "TestSetTrayUILocaleCreatesConfig",
+          "callee": "t.TempDir",
+          "lineNumber": 39
+        },
+        {
+          "caller": "TestSetTrayUILocaleCreatesConfig",
+          "callee": "filepath.Join",
+          "lineNumber": 40
+        },
+        {
+          "caller": "TestSetTrayUILocaleCreatesConfig",
+          "callee": "t.Cleanup",
+          "lineNumber": 43
+        },
+        {
+          "caller": "TestSetTrayUILocaleCreatesConfig",
+          "callee": "setTrayUILocale",
+          "lineNumber": 45
+        },
+        {
+          "caller": "TestSetTrayUILocaleCreatesConfig",
+          "callee": "t.Fatal",
+          "lineNumber": 46
+        },
+        {
+          "caller": "TestSetTrayUILocaleCreatesConfig",
+          "callee": "os.Stat",
+          "lineNumber": 48
+        },
+        {
+          "caller": "TestSetTrayUILocaleCreatesConfig",
+          "callee": "t.Fatal",
+          "lineNumber": 49
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/tray_ui_locale_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 25,
+      "nonEmptyLines": 21,
+      "functions": [
+        {
+          "name": "setTrayUILocale",
+          "startLine": 5,
+          "endLine": 13,
+          "params": [
+            "code"
+          ]
+        },
+        {
+          "name": "uiLocaleOptionTitle",
+          "startLine": 15,
+          "endLine": 21,
+          "params": [
+            "menuLocale",
+            "option"
+          ]
+        },
+        {
+          "name": "uiLocaleOptionLogLabel",
+          "startLine": 23,
+          "endLine": 25,
+          "params": [
+            "code"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "setTrayUILocale",
+          "callee": "defaultConfigPath",
+          "lineNumber": 6
+        },
+        {
+          "caller": "setTrayUILocale",
+          "callee": "loadConfig",
+          "lineNumber": 7
+        },
+        {
+          "caller": "setTrayUILocale",
+          "callee": "normalizeUILocale",
+          "lineNumber": 11
+        },
+        {
+          "caller": "setTrayUILocale",
+          "callee": "saveConfig",
+          "lineNumber": 12
+        },
+        {
+          "caller": "uiLocaleOptionTitle",
+          "callee": "uiT",
+          "lineNumber": 16
+        },
+        {
+          "caller": "uiLocaleOptionTitle",
+          "callee": "normalizeUILocale",
+          "lineNumber": 17
+        },
+        {
+          "caller": "uiLocaleOptionTitle",
+          "callee": "normalizeUILocale",
+          "lineNumber": 17
+        },
+        {
+          "caller": "uiLocaleOptionLogLabel",
+          "callee": "uiT",
+          "lineNumber": 24
+        },
+        {
+          "caller": "uiLocaleOptionLogLabel",
+          "callee": "normalizeUILocale",
+          "lineNumber": 24
+        },
+        {
+          "caller": "uiLocaleOptionLogLabel",
+          "callee": "normalizeUILocale",
+          "lineNumber": 24
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/ui_i18n.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 559,
+      "nonEmptyLines": 551,
+      "functions": [
+        {
+          "name": "uiT",
+          "startLine": 6,
+          "endLine": 16,
+          "params": [
+            "locale",
+            "key"
+          ]
+        },
+        {
+          "name": "uiBundleMap",
+          "startLine": 18,
+          "endLine": 26,
+          "params": [
+            "locale"
+          ]
+        },
+        {
+          "name": "uiError",
+          "startLine": 28,
+          "endLine": 34,
+          "params": [
+            "locale",
+            "key"
+          ]
+        },
+        {
+          "name": "uiStringsZH",
+          "startLine": 42,
+          "endLine": 213,
+          "params": []
+        },
+        {
+          "name": "uiStringsEN",
+          "startLine": 215,
+          "endLine": 386,
+          "params": []
+        },
+        {
+          "name": "uiStringsPT",
+          "startLine": 388,
+          "endLine": 559,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "uiT",
+          "callee": "normalizeUILocale",
+          "lineNumber": 7
+        },
+        {
+          "caller": "uiBundleMap",
+          "callee": "normalizeUILocale",
+          "lineNumber": 19
+        },
+        {
+          "caller": "uiBundleMap",
+          "callee": "make",
+          "lineNumber": 20
+        },
+        {
+          "caller": "uiBundleMap",
+          "callee": "len",
+          "lineNumber": 20
+        },
+        {
+          "caller": "uiBundleMap",
+          "callee": "testPrintPhrase",
+          "lineNumber": 24
+        },
+        {
+          "caller": "uiError",
+          "callee": "uiT",
+          "lineNumber": 29
+        },
+        {
+          "caller": "uiError",
+          "callee": "len",
+          "lineNumber": 30
+        },
+        {
+          "caller": "uiError",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 31
+        },
+        {
+          "caller": "uiError",
+          "callee": "errString",
+          "lineNumber": 33
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/ui_locale_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 25,
+      "nonEmptyLines": 22,
+      "functions": [
+        {
+          "name": "TestNormalizeUILocale",
+          "startLine": 5,
+          "endLine": 14,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestUILocaleDefaultZh",
+          "startLine": 16,
+          "endLine": 25,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestNormalizeUILocale",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "TestUILocaleDefaultZh",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestNormalizeUILocale",
+          "callee": "normalizeUILocale",
+          "lineNumber": 10
+        },
+        {
+          "caller": "TestNormalizeUILocale",
+          "callee": "t.Fatalf",
+          "lineNumber": 11
+        },
+        {
+          "caller": "TestUILocaleDefaultZh",
+          "callee": "c.uiLocale",
+          "lineNumber": 18
+        },
+        {
+          "caller": "TestUILocaleDefaultZh",
+          "callee": "t.Fatalf",
+          "lineNumber": 19
+        },
+        {
+          "caller": "TestUILocaleDefaultZh",
+          "callee": "c.uiLocale",
+          "lineNumber": 19
+        },
+        {
+          "caller": "TestUILocaleDefaultZh",
+          "callee": "c.uiLocale",
+          "lineNumber": 22
+        },
+        {
+          "caller": "TestUILocaleDefaultZh",
+          "callee": "t.Fatalf",
+          "lineNumber": 23
+        },
+        {
+          "caller": "TestUILocaleDefaultZh",
+          "callee": "c.uiLocale",
+          "lineNumber": 23
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/ui_locale.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 48,
+      "nonEmptyLines": 42,
+      "functions": [
+        {
+          "name": "normalizeUILocale",
+          "startLine": 7,
+          "endLine": 16,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "normalizePrintLocale",
+          "startLine": 19,
+          "endLine": 32,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "localeUsesGBK",
+          "startLine": 34,
+          "endLine": 36,
+          "params": [
+            "locale"
+          ]
+        },
+        {
+          "name": "uiLocale",
+          "startLine": 38,
+          "endLine": 43,
+          "params": []
+        },
+        {
+          "name": "testPrintPhrase",
+          "startLine": 46,
+          "endLine": 48,
+          "params": [
+            "locale"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "normalizeUILocale",
+          "callee": "strings.ToLower",
+          "lineNumber": 8
+        },
+        {
+          "caller": "normalizeUILocale",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 8
+        },
+        {
+          "caller": "normalizePrintLocale",
+          "callee": "strings.ToLower",
+          "lineNumber": 20
+        },
+        {
+          "caller": "normalizePrintLocale",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 20
+        },
+        {
+          "caller": "localeUsesGBK",
+          "callee": "normalizePrintLocale",
+          "lineNumber": 35
+        },
+        {
+          "caller": "uiLocale",
+          "callee": "normalizeUILocale",
+          "lineNumber": 42
+        },
+        {
+          "caller": "testPrintPhrase",
+          "callee": "labelsFor",
+          "lineNumber": 47
+        },
+        {
+          "caller": "testPrintPhrase",
+          "callee": "normalizeUILocale",
+          "lineNumber": 47
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/VERSION",
+      "language": "unknown",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "nonEmptyLines": 1,
+      "metrics": {}
+    },
+    {
+      "path": "apps/print-agent/version_compare_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 21,
+      "nonEmptyLines": 19,
+      "functions": [
+        {
+          "name": "TestAgentVersionOlderThan",
+          "startLine": 5,
+          "endLine": 21,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestAgentVersionOlderThan",
+          "line": 5,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestAgentVersionOlderThan",
+          "callee": "agentVersionOlderThan",
+          "lineNumber": 17
+        },
+        {
+          "caller": "TestAgentVersionOlderThan",
+          "callee": "t.Fatalf",
+          "lineNumber": 18
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/version_compare.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 52,
+      "nonEmptyLines": 49,
+      "functions": [
+        {
+          "name": "agentVersionOlderThan",
+          "startLine": 9,
+          "endLine": 24,
+          "params": [
+            "current",
+            "recommended"
+          ]
+        },
+        {
+          "name": "parseSemverTriple",
+          "startLine": 26,
+          "endLine": 52,
+          "params": [
+            "s"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "agentVersionOlderThan",
+          "callee": "parseSemverTriple",
+          "lineNumber": 10
+        },
+        {
+          "caller": "agentVersionOlderThan",
+          "callee": "parseSemverTriple",
+          "lineNumber": 11
+        },
+        {
+          "caller": "agentVersionOlderThan",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 13
+        },
+        {
+          "caller": "agentVersionOlderThan",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 14
+        },
+        {
+          "caller": "agentVersionOlderThan",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 15
+        },
+        {
+          "caller": "agentVersionOlderThan",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 15
+        },
+        {
+          "caller": "parseSemverTriple",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 28
+        },
+        {
+          "caller": "parseSemverTriple",
+          "callee": "strings.TrimPrefix",
+          "lineNumber": 29
+        },
+        {
+          "caller": "parseSemverTriple",
+          "callee": "strings.Split",
+          "lineNumber": 33
+        },
+        {
+          "caller": "parseSemverTriple",
+          "callee": "len",
+          "lineNumber": 34
+        },
+        {
+          "caller": "parseSemverTriple",
+          "callee": "len",
+          "lineNumber": 38
+        },
+        {
+          "caller": "parseSemverTriple",
+          "callee": "strings.HasPrefix",
+          "lineNumber": 42
+        },
+        {
+          "caller": "parseSemverTriple",
+          "callee": "strings.TrimPrefix",
+          "lineNumber": 43
+        },
+        {
+          "caller": "parseSemverTriple",
+          "callee": "strconv.Atoi",
+          "lineNumber": 45
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/version.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 4,
+      "nonEmptyLines": 3,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/winspool_job_status_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 18,
+      "nonEmptyLines": 16,
+      "functions": [
+        {
+          "name": "TestWinspoolJobStatusIsProblem",
+          "startLine": 5,
+          "endLine": 18,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestWinspoolJobStatusIsProblem",
+          "line": 5,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestWinspoolJobStatusIsProblem",
+          "callee": "winspoolJobStatusIsProblem",
+          "lineNumber": 6
+        },
+        {
+          "caller": "TestWinspoolJobStatusIsProblem",
+          "callee": "t.Fatal",
+          "lineNumber": 7
+        },
+        {
+          "caller": "TestWinspoolJobStatusIsProblem",
+          "callee": "winspoolJobStatusIsProblem",
+          "lineNumber": 9
+        },
+        {
+          "caller": "TestWinspoolJobStatusIsProblem",
+          "callee": "t.Fatal",
+          "lineNumber": 10
+        },
+        {
+          "caller": "TestWinspoolJobStatusIsProblem",
+          "callee": "winspoolJobStatusIsProblem",
+          "lineNumber": 12
+        },
+        {
+          "caller": "TestWinspoolJobStatusIsProblem",
+          "callee": "t.Fatal",
+          "lineNumber": 13
+        },
+        {
+          "caller": "TestWinspoolJobStatusIsProblem",
+          "callee": "winspoolJobStatusIsProblem",
+          "lineNumber": 15
+        },
+        {
+          "caller": "TestWinspoolJobStatusIsProblem",
+          "callee": "t.Fatal",
+          "lineNumber": 16
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/winspool_job_status.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 12,
+      "nonEmptyLines": 10,
+      "functions": [
+        {
+          "name": "winspoolJobStatusIsProblem",
+          "startLine": 9,
+          "endLine": 12,
+          "params": [
+            "flags"
+          ]
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/wizard_announce_stub.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 10,
+      "nonEmptyLines": 8,
+      "functions": [
+        {
+          "name": "announceWizardURL",
+          "startLine": 5,
+          "endLine": 10,
+          "params": [
+            "title",
+            "url"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "announceWizardURL",
+          "callee": "openBrowser",
+          "lineNumber": 6
+        },
+        {
+          "caller": "announceWizardURL",
+          "callee": "agentLogLocale",
+          "lineNumber": 7
+        },
+        {
+          "caller": "announceWizardURL",
+          "callee": "agentLogTech",
+          "lineNumber": 8
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/wizard_announce_windows.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 17,
+      "nonEmptyLines": 14,
+      "functions": [
+        {
+          "name": "announceWizardURL",
+          "startLine": 9,
+          "endLine": 17,
+          "params": [
+            "_",
+            "url"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "announceWizardURL",
+          "callee": "openBrowser",
+          "lineNumber": 10
+        },
+        {
+          "caller": "announceWizardURL",
+          "callee": "loadTrayUILocale",
+          "lineNumber": 11
+        },
+        {
+          "caller": "announceWizardURL",
+          "callee": "messageBoxOK",
+          "lineNumber": 12
+        },
+        {
+          "caller": "announceWizardURL",
+          "callee": "uiT",
+          "lineNumber": 13
+        },
+        {
+          "caller": "announceWizardURL",
+          "callee": "fmt.Sprintf",
+          "lineNumber": 14
+        },
+        {
+          "caller": "announceWizardURL",
+          "callee": "uiT",
+          "lineNumber": 14
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/wizard_mapping_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 41,
+      "nonEmptyLines": 38,
+      "functions": [
+        {
+          "name": "TestApplyPrinterSetupClearsAllMappings",
+          "startLine": 5,
+          "endLine": 23,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestApplyPrinterSetupKeepsValidMappings",
+          "startLine": 25,
+          "endLine": 41,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestApplyPrinterSetupClearsAllMappings",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "TestApplyPrinterSetupKeepsValidMappings",
+          "line": 25,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestApplyPrinterSetupClearsAllMappings",
+          "callee": "applyPrinterSetup",
+          "lineNumber": 11
+        },
+        {
+          "caller": "TestApplyPrinterSetupClearsAllMappings",
+          "callee": "t.Fatal",
+          "lineNumber": 15
+        },
+        {
+          "caller": "TestApplyPrinterSetupClearsAllMappings",
+          "callee": "len",
+          "lineNumber": 17
+        },
+        {
+          "caller": "TestApplyPrinterSetupClearsAllMappings",
+          "callee": "t.Fatalf",
+          "lineNumber": 18
+        },
+        {
+          "caller": "TestApplyPrinterSetupClearsAllMappings",
+          "callee": "t.Fatalf",
+          "lineNumber": 21
+        },
+        {
+          "caller": "TestApplyPrinterSetupKeepsValidMappings",
+          "callee": "applyPrinterSetup",
+          "lineNumber": 27
+        },
+        {
+          "caller": "TestApplyPrinterSetupKeepsValidMappings",
+          "callee": "t.Fatal",
+          "lineNumber": 33
+        },
+        {
+          "caller": "TestApplyPrinterSetupKeepsValidMappings",
+          "callee": "len",
+          "lineNumber": 35
+        },
+        {
+          "caller": "TestApplyPrinterSetupKeepsValidMappings",
+          "callee": "t.Fatalf",
+          "lineNumber": 36
+        },
+        {
+          "caller": "TestApplyPrinterSetupKeepsValidMappings",
+          "callee": "t.Fatalf",
+          "lineNumber": 39
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/wizard_persist.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 54,
+      "nonEmptyLines": 50,
+      "functions": [
+        {
+          "name": "persistStationPrinterSetup",
+          "startLine": 9,
+          "endLine": 54,
+          "params": [
+            "configPath",
+            "cfg",
+            "c",
+            "body"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "persistStationPrinterSetup",
+          "callee": "applyPrinterSetup",
+          "lineNumber": 15
+        },
+        {
+          "caller": "persistStationPrinterSetup",
+          "callee": "err.Error",
+          "lineNumber": 17
+        },
+        {
+          "caller": "persistStationPrinterSetup",
+          "callee": "syncRoutingToCloud",
+          "lineNumber": 20
+        },
+        {
+          "caller": "persistStationPrinterSetup",
+          "callee": "isRoutingSyncConflict",
+          "lineNumber": 21
+        },
+        {
+          "caller": "persistStationPrinterSetup",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 28
+        },
+        {
+          "caller": "persistStationPrinterSetup",
+          "callee": "syncErr.Error",
+          "lineNumber": 28
+        },
+        {
+          "caller": "persistStationPrinterSetup",
+          "callee": "saveConfig",
+          "lineNumber": 38
+        },
+        {
+          "caller": "persistStationPrinterSetup",
+          "callee": "err.Error",
+          "lineNumber": 39
+        },
+        {
+          "caller": "persistStationPrinterSetup",
+          "callee": "len",
+          "lineNumber": 42
+        },
+        {
+          "caller": "persistStationPrinterSetup",
+          "callee": "agentLog",
+          "lineNumber": 44
+        },
+        {
+          "caller": "persistStationPrinterSetup",
+          "callee": "agentLog",
+          "lineNumber": 46
+        },
+        {
+          "caller": "persistStationPrinterSetup",
+          "callee": "len",
+          "lineNumber": 46
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/wizard_routes.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 306,
+      "nonEmptyLines": 289,
+      "functions": [
+        {
+          "name": "discoverAllPrinters",
+          "startLine": 23,
+          "endLine": 55,
+          "params": [
+            "timeout",
+            "workers"
+          ]
+        },
+        {
+          "name": "dedupePrinterList",
+          "startLine": 57,
+          "endLine": 78,
+          "params": [
+            "list"
+          ]
+        },
+        {
+          "name": "reloadConfig",
+          "startLine": 80,
+          "endLine": 88,
+          "params": [
+            "configPath",
+            "fallback"
+          ]
+        },
+        {
+          "name": "writeConfigureState",
+          "startLine": 90,
+          "endLine": 107,
+          "params": [
+            "w",
+            "cfg"
+          ]
+        },
+        {
+          "name": "registerUILocaleRoute",
+          "startLine": 109,
+          "endLine": 143,
+          "params": [
+            "mux",
+            "configPath",
+            "cfg"
+          ]
+        },
+        {
+          "name": "applyPrinterSetup",
+          "startLine": 145,
+          "endLine": 168,
+          "params": [
+            "cfg",
+            "body"
+          ]
+        },
+        {
+          "name": "registerPrinterWizardRoutes",
+          "startLine": 170,
+          "endLine": 250,
+          "params": [
+            "mux",
+            "configPath",
+            "cfg",
+            "logPrefix"
+          ]
+        },
+        {
+          "name": "registerPairWizardRoute",
+          "startLine": 252,
+          "endLine": 306,
+          "params": [
+            "mux",
+            "configPath",
+            "cfg",
+            "logPrefix",
+            "onSuccess"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "printerListEntry",
+          "startLine": 12,
+          "endLine": 15,
+          "methods": [],
+          "properties": [
+            "Addr",
+            "Label"
+          ]
+        },
+        {
+          "name": "setupRequestBody",
+          "startLine": 17,
+          "endLine": 21,
+          "methods": [],
+          "properties": [
+            "StationPrinters",
+            "UILocale",
+            "TextEncoding"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "discoverAllPrinters",
+          "callee": "discoverPrinters9100",
+          "lineNumber": 30
+        },
+        {
+          "caller": "discoverAllPrinters",
+          "callee": "append",
+          "lineNumber": 35
+        },
+        {
+          "caller": "discoverAllPrinters",
+          "callee": "dedupePrinterList",
+          "lineNumber": 40
+        },
+        {
+          "caller": "discoverAllPrinters",
+          "callee": "listWinspoolPrinterNames",
+          "lineNumber": 41
+        },
+        {
+          "caller": "discoverAllPrinters",
+          "callee": "sort.Strings",
+          "lineNumber": 42
+        },
+        {
+          "caller": "discoverAllPrinters",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 44
+        },
+        {
+          "caller": "discoverAllPrinters",
+          "callee": "append",
+          "lineNumber": 48
+        },
+        {
+          "caller": "discoverAllPrinters",
+          "callee": "dedupePrinterList",
+          "lineNumber": 53
+        },
+        {
+          "caller": "dedupePrinterList",
+          "callee": "len",
+          "lineNumber": 58
+        },
+        {
+          "caller": "dedupePrinterList",
+          "callee": "make",
+          "lineNumber": 61
+        },
+        {
+          "caller": "dedupePrinterList",
+          "callee": "len",
+          "lineNumber": 61
+        },
+        {
+          "caller": "dedupePrinterList",
+          "callee": "make",
+          "lineNumber": 62
+        },
+        {
+          "caller": "dedupePrinterList",
+          "callee": "len",
+          "lineNumber": 62
+        },
+        {
+          "caller": "dedupePrinterList",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 64
+        },
+        {
+          "caller": "dedupePrinterList",
+          "callee": "strings.ToLower",
+          "lineNumber": 68
+        },
+        {
+          "caller": "dedupePrinterList",
+          "callee": "strings.Join",
+          "lineNumber": 68
+        },
+        {
+          "caller": "dedupePrinterList",
+          "callee": "strings.Fields",
+          "lineNumber": 68
+        },
+        {
+          "caller": "dedupePrinterList",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 74
+        },
+        {
+          "caller": "dedupePrinterList",
+          "callee": "append",
+          "lineNumber": 75
+        },
+        {
+          "caller": "reloadConfig",
+          "callee": "loadConfig",
+          "lineNumber": 81
+        },
+        {
+          "caller": "writeConfigureState",
+          "callee": "len",
+          "lineNumber": 93
+        },
+        {
+          "caller": "writeConfigureState",
+          "callee": "cfg.uiLocale",
+          "lineNumber": 95
+        },
+        {
+          "caller": "writeConfigureState",
+          "callee": "writePairJSON",
+          "lineNumber": 96
+        },
+        {
+          "caller": "writeConfigureState",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 97
+        },
+        {
+          "caller": "writeConfigureState",
+          "callee": "normalizeTextEncoding",
+          "lineNumber": 103
+        },
+        {
+          "caller": "writeConfigureState",
+          "callee": "uiBundleMap",
+          "lineNumber": 104
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "mux.HandleFunc",
+          "lineNumber": 110
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "http.Error",
+          "lineNumber": 112
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "json.NewDecoder(io.LimitReader(r.Body, 512)).Decode",
+          "lineNumber": 119
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "json.NewDecoder",
+          "lineNumber": 119
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "io.LimitReader",
+          "lineNumber": 119
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "writePairJSON",
+          "lineNumber": 120
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "reloadConfig",
+          "lineNumber": 123
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 124
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "normalizeUILocale",
+          "lineNumber": 125
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 127
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "normalizeTextEncoding",
+          "lineNumber": 128
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "saveConfig",
+          "lineNumber": 130
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "writePairJSON",
+          "lineNumber": 131
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "err.Error",
+          "lineNumber": 131
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "c.uiLocale",
+          "lineNumber": 135
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "writePairJSON",
+          "lineNumber": 136
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "normalizeTextEncoding",
+          "lineNumber": 139
+        },
+        {
+          "caller": "registerUILocaleRoute",
+          "callee": "uiBundleMap",
+          "lineNumber": 140
+        },
+        {
+          "caller": "applyPrinterSetup",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 151
+        },
+        {
+          "caller": "applyPrinterSetup",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 152
+        },
+        {
+          "caller": "applyPrinterSetup",
+          "callee": "parsePrinterTarget",
+          "lineNumber": 156
+        },
+        {
+          "caller": "applyPrinterSetup",
+          "callee": "len",
+          "lineNumber": 162
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "registerWizardUISharedRoute",
+          "lineNumber": 171
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "mux.HandleFunc",
+          "lineNumber": 173
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "discoverPrintersForAPI",
+          "lineNumber": 174
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "printersAPIForceRefresh",
+          "lineNumber": 174
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "len",
+          "lineNumber": 175
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "len",
+          "lineNumber": 175
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "writePairJSON",
+          "lineNumber": 176
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "err.Error",
+          "lineNumber": 176
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "writePairJSON",
+          "lineNumber": 179
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "mux.HandleFunc",
+          "lineNumber": 182
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "reloadConfig",
+          "lineNumber": 183
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 185
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "writePairJSON",
+          "lineNumber": 186
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "fetchPrintStations",
+          "lineNumber": 189
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "writePairJSON",
+          "lineNumber": 191
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "err.Error",
+          "lineNumber": 191
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "writePairJSON",
+          "lineNumber": 194
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "mux.HandleFunc",
+          "lineNumber": 197
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "reloadConfig",
+          "lineNumber": 198
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "writeConfigureState",
+          "lineNumber": 200
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "mux.HandleFunc",
+          "lineNumber": 203
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "http.Error",
+          "lineNumber": 205
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "reloadConfig",
+          "lineNumber": 208
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 209
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "writePairJSON",
+          "lineNumber": 210
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "json.NewDecoder(io.LimitReader(r.Body, 65536)).Decode",
+          "lineNumber": 214
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "json.NewDecoder",
+          "lineNumber": 214
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "io.LimitReader",
+          "lineNumber": 214
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "writePairJSON",
+          "lineNumber": 215
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 218
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "normalizeUILocale",
+          "lineNumber": 219
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 221
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "normalizeTextEncoding",
+          "lineNumber": 222
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "persistStationPrinterSetup",
+          "lineNumber": 224
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "writePairJSON",
+          "lineNumber": 225
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "mux.HandleFunc",
+          "lineNumber": 228
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "http.Error",
+          "lineNumber": 230
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "reloadConfig",
+          "lineNumber": 233
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 234
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "writePairJSON",
+          "lineNumber": 235
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "json.NewDecoder(io.LimitReader(r.Body, 4096)).Decode",
+          "lineNumber": 239
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "json.NewDecoder",
+          "lineNumber": 239
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "io.LimitReader",
+          "lineNumber": 239
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "writePairJSON",
+          "lineNumber": 240
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "runTestPrintForStation",
+          "lineNumber": 243
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "writePairJSON",
+          "lineNumber": 244
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "err.Error",
+          "lineNumber": 244
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "agentLog",
+          "lineNumber": 247
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 247
+        },
+        {
+          "caller": "registerPrinterWizardRoutes",
+          "callee": "writePairJSON",
+          "lineNumber": 248
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "mux.HandleFunc",
+          "lineNumber": 253
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "http.Error",
+          "lineNumber": 255
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "json.NewDecoder(io.LimitReader(r.Body, 4096)).Decode",
+          "lineNumber": 262
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "json.NewDecoder",
+          "lineNumber": 262
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "io.LimitReader",
+          "lineNumber": 262
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "writePairJSON",
+          "lineNumber": 263
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "normalizeAPIBase",
+          "lineNumber": 266
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "writePairJSON",
+          "lineNumber": 268
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "err.Error",
+          "lineNumber": 268
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 271
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "len",
+          "lineNumber": 272
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "writePairJSON",
+          "lineNumber": 273
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "writePairJSON",
+          "lineNumber": 278
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "deviceIDForPairing",
+          "lineNumber": 283
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "claim",
+          "lineNumber": 284
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "err.Error",
+          "lineNumber": 286
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "strings.Contains",
+          "lineNumber": 287
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "strings.Contains",
+          "lineNumber": 287
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "writePairJSON",
+          "lineNumber": 290
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "savePairConfig",
+          "lineNumber": 293
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "writePairJSON",
+          "lineNumber": 294
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "err.Error",
+          "lineNumber": 294
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "reloadConfig",
+          "lineNumber": 298
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "agentLogLocale",
+          "lineNumber": 300
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "localeFromConfigPath",
+          "lineNumber": 300
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "writePairJSON",
+          "lineNumber": 301
+        },
+        {
+          "caller": "registerPairWizardRoute",
+          "callee": "onSuccess",
+          "lineNumber": 303
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 8,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "apps/print-agent/wizard_server_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 37,
+      "nonEmptyLines": 31,
+      "functions": [
+        {
+          "name": "TestShutdownHTTPServerNil",
+          "startLine": 10,
+          "endLine": 12,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestShutdownAllWizardServersEmpty",
+          "startLine": 14,
+          "endLine": 16,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestShutdownHTTPServerStopsListener",
+          "startLine": 18,
+          "endLine": 37,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestShutdownHTTPServerNil",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "TestShutdownAllWizardServersEmpty",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "TestShutdownHTTPServerStopsListener",
+          "line": 18,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestShutdownHTTPServerNil",
+          "callee": "shutdownHTTPServer",
+          "lineNumber": 11
+        },
+        {
+          "caller": "TestShutdownAllWizardServersEmpty",
+          "callee": "shutdownAllWizardServers",
+          "lineNumber": 15
+        },
+        {
+          "caller": "TestShutdownHTTPServerStopsListener",
+          "callee": "http.HandlerFunc",
+          "lineNumber": 19
+        },
+        {
+          "caller": "TestShutdownHTTPServerStopsListener",
+          "callee": "net.Listen",
+          "lineNumber": 20
+        },
+        {
+          "caller": "TestShutdownHTTPServerStopsListener",
+          "callee": "t.Fatal",
+          "lineNumber": 22
+        },
+        {
+          "caller": "TestShutdownHTTPServerStopsListener",
+          "callee": "ln.Addr().String",
+          "lineNumber": 24
+        },
+        {
+          "caller": "TestShutdownHTTPServerStopsListener",
+          "callee": "ln.Addr",
+          "lineNumber": 24
+        },
+        {
+          "caller": "TestShutdownHTTPServerStopsListener",
+          "callee": "func() { _ = srv.Serve(ln) }",
+          "lineNumber": 25
+        },
+        {
+          "caller": "TestShutdownHTTPServerStopsListener",
+          "callee": "srv.Serve",
+          "lineNumber": 25
+        },
+        {
+          "caller": "TestShutdownHTTPServerStopsListener",
+          "callee": "shutdownHTTPServer",
+          "lineNumber": 27
+        },
+        {
+          "caller": "TestShutdownHTTPServerStopsListener",
+          "callee": "http.NewRequest",
+          "lineNumber": 29
+        },
+        {
+          "caller": "TestShutdownHTTPServerStopsListener",
+          "callee": "t.Fatal",
+          "lineNumber": 31
+        },
+        {
+          "caller": "TestShutdownHTTPServerStopsListener",
+          "callee": "http.DefaultClient.Do",
+          "lineNumber": 33
+        },
+        {
+          "caller": "TestShutdownHTTPServerStopsListener",
+          "callee": "t.Fatal",
+          "lineNumber": 35
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/wizard_server.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 70,
+      "nonEmptyLines": 63,
+      "functions": [
+        {
+          "name": "trackWizardServer",
+          "startLine": 15,
+          "endLine": 22,
+          "params": [
+            "srv"
+          ]
+        },
+        {
+          "name": "untrackWizardServer",
+          "startLine": 24,
+          "endLine": 36,
+          "params": [
+            "srv"
+          ]
+        },
+        {
+          "name": "shutdownHTTPServer",
+          "startLine": 39,
+          "endLine": 47,
+          "params": [
+            "srv",
+            "timeout"
+          ]
+        },
+        {
+          "name": "shutdownAllWizardServers",
+          "startLine": 50,
+          "endLine": 57,
+          "params": []
+        },
+        {
+          "name": "waitLocalWizard",
+          "startLine": 59,
+          "endLine": 70,
+          "params": [
+            "ctx",
+            "srv",
+            "done"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "trackWizardServer",
+          "callee": "wizardServersMu.Lock",
+          "lineNumber": 19
+        },
+        {
+          "caller": "trackWizardServer",
+          "callee": "append",
+          "lineNumber": 20
+        },
+        {
+          "caller": "trackWizardServer",
+          "callee": "wizardServersMu.Unlock",
+          "lineNumber": 21
+        },
+        {
+          "caller": "untrackWizardServer",
+          "callee": "wizardServersMu.Lock",
+          "lineNumber": 28
+        },
+        {
+          "caller": "untrackWizardServer",
+          "callee": "wizardServersMu.Unlock",
+          "lineNumber": 29
+        },
+        {
+          "caller": "untrackWizardServer",
+          "callee": "append",
+          "lineNumber": 32
+        },
+        {
+          "caller": "shutdownHTTPServer",
+          "callee": "context.WithTimeout",
+          "lineNumber": 43
+        },
+        {
+          "caller": "shutdownHTTPServer",
+          "callee": "context.Background",
+          "lineNumber": 43
+        },
+        {
+          "caller": "shutdownHTTPServer",
+          "callee": "srv.Shutdown",
+          "lineNumber": 44
+        },
+        {
+          "caller": "shutdownHTTPServer",
+          "callee": "cancel",
+          "lineNumber": 45
+        },
+        {
+          "caller": "shutdownHTTPServer",
+          "callee": "srv.Close",
+          "lineNumber": 46
+        },
+        {
+          "caller": "shutdownAllWizardServers",
+          "callee": "wizardServersMu.Lock",
+          "lineNumber": 51
+        },
+        {
+          "caller": "shutdownAllWizardServers",
+          "callee": "append",
+          "lineNumber": 52
+        },
+        {
+          "caller": "shutdownAllWizardServers",
+          "callee": "wizardServersMu.Unlock",
+          "lineNumber": 53
+        },
+        {
+          "caller": "shutdownAllWizardServers",
+          "callee": "shutdownHTTPServer",
+          "lineNumber": 55
+        },
+        {
+          "caller": "waitLocalWizard",
+          "callee": "trackWizardServer",
+          "lineNumber": 60
+        },
+        {
+          "caller": "waitLocalWizard",
+          "callee": "untrackWizardServer",
+          "lineNumber": 61
+        },
+        {
+          "caller": "waitLocalWizard",
+          "callee": "ctx.Done",
+          "lineNumber": 63
+        },
+        {
+          "caller": "waitLocalWizard",
+          "callee": "shutdownHTTPServer",
+          "lineNumber": 64
+        },
+        {
+          "caller": "waitLocalWizard",
+          "callee": "ctx.Err",
+          "lineNumber": 65
+        },
+        {
+          "caller": "waitLocalWizard",
+          "callee": "shutdownHTTPServer",
+          "lineNumber": 67
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/wizard_test_print_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 27,
+      "nonEmptyLines": 24,
+      "functions": [
+        {
+          "name": "TestRunTestPrintForStationNeedsMapping",
+          "startLine": 8,
+          "endLine": 13,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestRunTestPrintForStationPicksFirstMapped",
+          "startLine": 15,
+          "endLine": 27,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestRunTestPrintForStationNeedsMapping",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "TestRunTestPrintForStationPicksFirstMapped",
+          "line": 15,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestRunTestPrintForStationNeedsMapping",
+          "callee": "runTestPrintForStation",
+          "lineNumber": 9
+        },
+        {
+          "caller": "TestRunTestPrintForStationNeedsMapping",
+          "callee": "t.Fatal",
+          "lineNumber": 11
+        },
+        {
+          "caller": "TestRunTestPrintForStationPicksFirstMapped",
+          "callee": "runTestPrintForStation",
+          "lineNumber": 20
+        },
+        {
+          "caller": "TestRunTestPrintForStationPicksFirstMapped",
+          "callee": "t.Fatal",
+          "lineNumber": 22
+        },
+        {
+          "caller": "TestRunTestPrintForStationPicksFirstMapped",
+          "callee": "strings.Contains",
+          "lineNumber": 24
+        },
+        {
+          "caller": "TestRunTestPrintForStationPicksFirstMapped",
+          "callee": "err.Error",
+          "lineNumber": 24
+        },
+        {
+          "caller": "TestRunTestPrintForStationPicksFirstMapped",
+          "callee": "t.Logf",
+          "lineNumber": 25
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/wizard_test_print.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 65,
+      "nonEmptyLines": 58,
+      "functions": [
+        {
+          "name": "runTestPrintForStation",
+          "startLine": 13,
+          "endLine": 65,
+          "params": [
+            "cfg",
+            "stationID",
+            "printerOverride"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "testPrintRequest",
+          "startLine": 8,
+          "endLine": 11,
+          "methods": [],
+          "properties": [
+            "StationID",
+            "Printer"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "runTestPrintForStation",
+          "callee": "uiError",
+          "lineNumber": 15
+        },
+        {
+          "caller": "runTestPrintForStation",
+          "callee": "cfg.uiLocale",
+          "lineNumber": 17
+        },
+        {
+          "caller": "runTestPrintForStation",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 18
+        },
+        {
+          "caller": "runTestPrintForStation",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 19
+        },
+        {
+          "caller": "runTestPrintForStation",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 25
+        },
+        {
+          "caller": "runTestPrintForStation",
+          "callee": "cfg.firstMappedStation",
+          "lineNumber": 28
+        },
+        {
+          "caller": "runTestPrintForStation",
+          "callee": "uiError",
+          "lineNumber": 31
+        },
+        {
+          "caller": "runTestPrintForStation",
+          "callee": "parsePrinterTarget",
+          "lineNumber": 34
+        },
+        {
+          "caller": "runTestPrintForStation",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 40
+        },
+        {
+          "caller": "runTestPrintForStation",
+          "callee": "strings.Index",
+          "lineNumber": 42
+        },
+        {
+          "caller": "runTestPrintForStation",
+          "callee": "strings.TrimPrefix",
+          "lineNumber": 43
+        },
+        {
+          "caller": "runTestPrintForStation",
+          "callee": "strings.IndexAny",
+          "lineNumber": 44
+        },
+        {
+          "caller": "runTestPrintForStation",
+          "callee": "json.Marshal",
+          "lineNumber": 55
+        },
+        {
+          "caller": "runTestPrintForStation",
+          "callee": "escposFromJob",
+          "lineNumber": 60
+        },
+        {
+          "caller": "runTestPrintForStation",
+          "callee": "printToTarget",
+          "lineNumber": 61
+        },
+        {
+          "caller": "runTestPrintForStation",
+          "callee": "uiError",
+          "lineNumber": 62
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "apps/print-agent/wizard_ui_shared_test.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 59,
+      "nonEmptyLines": 53,
+      "functions": [
+        {
+          "name": "TestIsWizardStaticPath",
+          "startLine": 8,
+          "endLine": 15,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestWizardUISharedJSEmbedded",
+          "startLine": 17,
+          "endLine": 28,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestConfigureUIUsesSharedWizardJS",
+          "startLine": 30,
+          "endLine": 38,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestSetupUIUsesSharedWizardJS",
+          "startLine": 40,
+          "endLine": 48,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "TestMappingSaveI18nKeys",
+          "startLine": 50,
+          "endLine": 59,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestIsWizardStaticPath",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "TestWizardUISharedJSEmbedded",
+          "line": 17,
+          "isDefault": false
+        },
+        {
+          "name": "TestConfigureUIUsesSharedWizardJS",
+          "line": 30,
+          "isDefault": false
+        },
+        {
+          "name": "TestSetupUIUsesSharedWizardJS",
+          "line": 40,
+          "isDefault": false
+        },
+        {
+          "name": "TestMappingSaveI18nKeys",
+          "line": 50,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TestIsWizardStaticPath",
+          "callee": "isWizardStaticPath",
+          "lineNumber": 9
+        },
+        {
+          "caller": "TestIsWizardStaticPath",
+          "callee": "t.Fatal",
+          "lineNumber": 10
+        },
+        {
+          "caller": "TestIsWizardStaticPath",
+          "callee": "isWizardStaticPath",
+          "lineNumber": 12
+        },
+        {
+          "caller": "TestIsWizardStaticPath",
+          "callee": "t.Fatal",
+          "lineNumber": 13
+        },
+        {
+          "caller": "TestWizardUISharedJSEmbedded",
+          "callee": "string",
+          "lineNumber": 18
+        },
+        {
+          "caller": "TestWizardUISharedJSEmbedded",
+          "callee": "strings.Contains",
+          "lineNumber": 19
+        },
+        {
+          "caller": "TestWizardUISharedJSEmbedded",
+          "callee": "t.Fatal",
+          "lineNumber": 20
+        },
+        {
+          "caller": "TestWizardUISharedJSEmbedded",
+          "callee": "strings.Contains",
+          "lineNumber": 22
+        },
+        {
+          "caller": "TestWizardUISharedJSEmbedded",
+          "callee": "t.Fatal",
+          "lineNumber": 23
+        },
+        {
+          "caller": "TestWizardUISharedJSEmbedded",
+          "callee": "strings.Contains",
+          "lineNumber": 25
+        },
+        {
+          "caller": "TestWizardUISharedJSEmbedded",
+          "callee": "t.Fatal",
+          "lineNumber": 26
+        },
+        {
+          "caller": "TestConfigureUIUsesSharedWizardJS",
+          "callee": "string",
+          "lineNumber": 31
+        },
+        {
+          "caller": "TestConfigureUIUsesSharedWizardJS",
+          "callee": "strings.Contains",
+          "lineNumber": 32
+        },
+        {
+          "caller": "TestConfigureUIUsesSharedWizardJS",
+          "callee": "t.Fatal",
+          "lineNumber": 33
+        },
+        {
+          "caller": "TestConfigureUIUsesSharedWizardJS",
+          "callee": "strings.Contains",
+          "lineNumber": 35
+        },
+        {
+          "caller": "TestConfigureUIUsesSharedWizardJS",
+          "callee": "t.Fatal",
+          "lineNumber": 36
+        },
+        {
+          "caller": "TestSetupUIUsesSharedWizardJS",
+          "callee": "string",
+          "lineNumber": 41
+        },
+        {
+          "caller": "TestSetupUIUsesSharedWizardJS",
+          "callee": "strings.Contains",
+          "lineNumber": 42
+        },
+        {
+          "caller": "TestSetupUIUsesSharedWizardJS",
+          "callee": "t.Fatal",
+          "lineNumber": 43
+        },
+        {
+          "caller": "TestSetupUIUsesSharedWizardJS",
+          "callee": "strings.Contains",
+          "lineNumber": 45
+        },
+        {
+          "caller": "TestSetupUIUsesSharedWizardJS",
+          "callee": "t.Fatal",
+          "lineNumber": 46
+        },
+        {
+          "caller": "TestMappingSaveI18nKeys",
+          "callee": "uiBundleMap",
+          "lineNumber": 52
+        },
+        {
+          "caller": "TestMappingSaveI18nKeys",
+          "callee": "strings.TrimSpace",
+          "lineNumber": 54
+        },
+        {
+          "caller": "TestMappingSaveI18nKeys",
+          "callee": "t.Fatalf",
+          "lineNumber": 55
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 5,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/wizard_ui_shared.go",
+      "language": "go",
+      "fileCategory": "code",
+      "totalLines": 21,
+      "nonEmptyLines": 17,
+      "functions": [
+        {
+          "name": "registerWizardUISharedRoute",
+          "startLine": 11,
+          "endLine": 17,
+          "params": [
+            "mux"
+          ]
+        },
+        {
+          "name": "isWizardStaticPath",
+          "startLine": 19,
+          "endLine": 21,
+          "params": [
+            "path"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "registerWizardUISharedRoute",
+          "callee": "mux.HandleFunc",
+          "lineNumber": 12
+        },
+        {
+          "caller": "registerWizardUISharedRoute",
+          "callee": "w.Header().Set",
+          "lineNumber": 13
+        },
+        {
+          "caller": "registerWizardUISharedRoute",
+          "callee": "w.Header",
+          "lineNumber": 13
+        },
+        {
+          "caller": "registerWizardUISharedRoute",
+          "callee": "w.Header().Set",
+          "lineNumber": 14
+        },
+        {
+          "caller": "registerWizardUISharedRoute",
+          "callee": "w.Header",
+          "lineNumber": 14
+        },
+        {
+          "caller": "registerWizardUISharedRoute",
+          "callee": "w.Write",
+          "lineNumber": 15
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/print-agent/wizard_ui_shared.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 98,
+      "nonEmptyLines": 86,
+      "callGraph": [
+        {
+          "caller": "fmt",
+          "callee": "t(ui, key).replace",
+          "lineNumber": 15
+        },
+        {
+          "caller": "fmt",
+          "callee": "t",
+          "lineNumber": 15
+        },
+        {
+          "caller": "fmt2",
+          "callee": "t",
+          "lineNumber": 19
+        },
+        {
+          "caller": "fmt2",
+          "callee": "s.replace",
+          "lineNumber": 20
+        },
+        {
+          "caller": "fmt2",
+          "callee": "s.replace",
+          "lineNumber": 21
+        },
+        {
+          "caller": "formatSaveError",
+          "callee": "Array.isArray",
+          "lineNumber": 27
+        },
+        {
+          "caller": "formatSaveError",
+          "callee": "j.conflicts.map",
+          "lineNumber": 28
+        },
+        {
+          "caller": "formatSaveError",
+          "callee": "String(c.other_device_label).trim",
+          "lineNumber": 29
+        },
+        {
+          "caller": "formatSaveError",
+          "callee": "String",
+          "lineNumber": 29
+        },
+        {
+          "caller": "formatSaveError",
+          "callee": "String(c.other_device_id || '').slice",
+          "lineNumber": 30
+        },
+        {
+          "caller": "formatSaveError",
+          "callee": "String",
+          "lineNumber": 30
+        },
+        {
+          "caller": "formatSaveError",
+          "callee": "fmt2",
+          "lineNumber": 31
+        },
+        {
+          "caller": "formatSaveError",
+          "callee": "t",
+          "lineNumber": 33
+        },
+        {
+          "caller": "formatSaveError",
+          "callee": "lines.join",
+          "lineNumber": 33
+        },
+        {
+          "caller": "formatSaveError",
+          "callee": "t",
+          "lineNumber": 35
+        },
+        {
+          "caller": "collectFromRows",
+          "callee": "scope.querySelectorAll('.station-printer').forEach",
+          "lineNumber": 43
+        },
+        {
+          "caller": "collectFromRows",
+          "callee": "scope.querySelectorAll",
+          "lineNumber": 43
+        },
+        {
+          "caller": "collectFromRows",
+          "callee": "sel.closest",
+          "lineNumber": 44
+        },
+        {
+          "caller": "mappingCount",
+          "callee": "Object.keys",
+          "lineNumber": 55
+        },
+        {
+          "caller": "isMappingCleared",
+          "callee": "mappingCount",
+          "lineNumber": 59
+        },
+        {
+          "caller": "saveOkMessage",
+          "callee": "isMappingCleared",
+          "lineNumber": 63
+        },
+        {
+          "caller": "saveOkMessage",
+          "callee": "t",
+          "lineNumber": 63
+        },
+        {
+          "caller": "saveOkMessage",
+          "callee": "t",
+          "lineNumber": 63
+        },
+        {
+          "caller": "postSetup",
+          "callee": "fetch('/api/setup', {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify({ station_printers: stationPrinters || {} }),\n    }).then",
+          "lineNumber": 67
+        },
+        {
+          "caller": "postSetup",
+          "callee": "fetch",
+          "lineNumber": 67
+        },
+        {
+          "caller": "postSetup",
+          "callee": "JSON.stringify",
+          "lineNumber": 70
+        },
+        {
+          "caller": "postSetup",
+          "callee": "r.json().then",
+          "lineNumber": 72
+        },
+        {
+          "caller": "postSetup",
+          "callee": "r.json",
+          "lineNumber": 72
+        },
+        {
+          "caller": "setTestBlockVisible",
+          "callee": "(ids || DEFAULT_TEST_BLOCK_IDS).forEach",
+          "lineNumber": 79
+        },
+        {
+          "caller": "setTestBlockVisible",
+          "callee": "document.getElementById",
+          "lineNumber": 80
+        },
+        {
+          "caller": "setTestBlockVisible",
+          "callee": "el.classList.toggle",
+          "lineNumber": 81
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    }
+  ]
+}

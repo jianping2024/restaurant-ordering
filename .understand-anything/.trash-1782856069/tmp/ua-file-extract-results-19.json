@@ -1,0 +1,2875 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 19,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/checkout/resume-ordering/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 47,
+      "nonEmptyLines": 39,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 7,
+          "endLine": 47,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 7,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "params.slug?.trim",
+          "lineNumber": 11
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 13
+        },
+        {
+          "caller": "POST",
+          "callee": "req.json",
+          "lineNumber": 18
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 20
+        },
+        {
+          "caller": "POST",
+          "callee": "body.table_id.trim",
+          "lineNumber": 23
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 25
+        },
+        {
+          "caller": "POST",
+          "callee": "authorizeCheckoutConfirmPayment",
+          "lineNumber": 28
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 30
+        },
+        {
+          "caller": "POST",
+          "callee": "resumeTableSessionOrdering",
+          "lineNumber": 33
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 40
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 46
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/demo/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 8,
+      "nonEmptyLines": 6,
+      "functions": [
+        {
+          "name": "DemoHubPage",
+          "startLine": 6,
+          "endLine": 8,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "metadata",
+          "line": 4,
+          "isDefault": false
+        },
+        {
+          "name": "DemoHubPage",
+          "line": 6,
+          "isDefault": true
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/layout.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 67,
+      "nonEmptyLines": 61,
+      "functions": [
+        {
+          "name": "RootLayout",
+          "startLine": 44,
+          "endLine": 67,
+          "params": [
+            "{\n  children,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "metadata",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "RootLayout",
+          "line": 44,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "RootLayout",
+          "callee": "getServerLanguage",
+          "lineNumber": 49
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/CheckoutRequestsManager.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 742,
+      "nonEmptyLines": 689,
+      "functions": [
+        {
+          "name": "CheckoutRequestsManager",
+          "startLine": 74,
+          "endLine": 742,
+          "params": [
+            "{\n  initialRequests,\n  restaurantId,\n  restaurantSlug,\n  canCloseTable = false,\n  initialTableId,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "CheckoutRequestsManager",
+          "line": 74,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useState",
+          "lineNumber": 81
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useState",
+          "lineNumber": 82
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useCheckoutBillDiscount",
+          "lineNumber": 83
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useLanguage",
+          "lineNumber": 84
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "getMessages",
+          "lineNumber": 85
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useMemo",
+          "lineNumber": 86
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "abnormalReasonOptions",
+          "lineNumber": 87
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useMemo",
+          "lineNumber": 90
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "createClient",
+          "lineNumber": 90
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useState",
+          "lineNumber": 91
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useState",
+          "lineNumber": 92
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useState",
+          "lineNumber": 93
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useState",
+          "lineNumber": 96
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useCheckoutBillPrintCooldown",
+          "lineNumber": 97
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useState",
+          "lineNumber": 98
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useRef",
+          "lineNumber": 99
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useRef",
+          "lineNumber": 100
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useRef",
+          "lineNumber": 101
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useEffect",
+          "lineNumber": 103
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "setSoundEnabled",
+          "lineNumber": 104
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "loadCheckoutSoundEnabled",
+          "lineNumber": 104
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useEffect",
+          "lineNumber": 107
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "requests.find",
+          "lineNumber": 109
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "tableIdsEqual",
+          "lineNumber": 109
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "setSelectedRequestId",
+          "lineNumber": 111
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useEffect",
+          "lineNumber": 116
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "playCheckoutRequestChime",
+          "lineNumber": 121
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useCallback",
+          "lineNumber": 125
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "supabase\n      .from('bill_splits')\n      .select('*')\n      .eq('restaurant_id', restaurantId)\n      .eq('status', 'requested')\n      .not('session_id', 'is', null)\n      .order('created_at', { ascending: true })\n      .limit",
+          "lineNumber": 127
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "supabase\n      .from('bill_splits')\n      .select('*')\n      .eq('restaurant_id', restaurantId)\n      .eq('status', 'requested')\n      .not('session_id', 'is', null)\n      .order",
+          "lineNumber": 127
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "supabase\n      .from('bill_splits')\n      .select('*')\n      .eq('restaurant_id', restaurantId)\n      .eq('status', 'requested')\n      .not",
+          "lineNumber": 127
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "supabase\n      .from('bill_splits')\n      .select('*')\n      .eq('restaurant_id', restaurantId)\n      .eq",
+          "lineNumber": 127
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "supabase\n      .from('bill_splits')\n      .select('*')\n      .eq",
+          "lineNumber": 127
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "supabase\n      .from('bill_splits')\n      .select",
+          "lineNumber": 127
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "supabase\n      .from",
+          "lineNumber": 127
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "setRequests",
+          "lineNumber": 137
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "mergeBillSplitsFromRefresh",
+          "lineNumber": 137
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useEffect",
+          "lineNumber": 140
+        },
+        {
+          "caller": "subscribe",
+          "callee": "refreshCheckoutRequests",
+          "lineNumber": 145
+        },
+        {
+          "caller": "subscribe",
+          "callee": "supabase\n        .channel(`checkout-requests-${restaurantId}`)\n        .on(\n          'postgres_changes',\n          {\n            event: '*',\n            schema: 'public',\n            table: 'bill_splits',\n            filter: `restaurant_id=eq.${restaurantId}`,\n          },\n          () => void refreshCheckoutRequests(),\n        )\n        .subscribe",
+          "lineNumber": 146
+        },
+        {
+          "caller": "subscribe",
+          "callee": "supabase\n        .channel(`checkout-requests-${restaurantId}`)\n        .on",
+          "lineNumber": 146
+        },
+        {
+          "caller": "subscribe",
+          "callee": "supabase\n        .channel",
+          "lineNumber": 146
+        },
+        {
+          "caller": "subscribe",
+          "callee": "refreshCheckoutRequests",
+          "lineNumber": 156
+        },
+        {
+          "caller": "unsubscribe",
+          "callee": "supabase.removeChannel",
+          "lineNumber": 163
+        },
+        {
+          "caller": "onVisible",
+          "callee": "subscribe",
+          "lineNumber": 169
+        },
+        {
+          "caller": "onVisible",
+          "callee": "unsubscribe",
+          "lineNumber": 170
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "subscribe",
+          "lineNumber": 173
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "document.addEventListener",
+          "lineNumber": 174
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "unsubscribe",
+          "lineNumber": 177
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "document.removeEventListener",
+          "lineNumber": 178
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useEffect",
+          "lineNumber": 182
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "requests.some",
+          "lineNumber": 183
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "setSelectedRequestId",
+          "lineNumber": 184
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useEffect",
+          "lineNumber": 188
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "setSelectedLines",
+          "lineNumber": 190
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "requests.find",
+          "lineNumber": 194
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "setSelectedLines",
+          "lineNumber": 196
+        },
+        {
+          "caller": "loadLines",
+          "callee": "supabase\n        .from('orders')\n        .select('*')\n        .eq('restaurant_id', restaurantId)\n        .eq",
+          "lineNumber": 202
+        },
+        {
+          "caller": "loadLines",
+          "callee": "supabase\n        .from('orders')\n        .select('*')\n        .eq",
+          "lineNumber": 202
+        },
+        {
+          "caller": "loadLines",
+          "callee": "supabase\n        .from('orders')\n        .select",
+          "lineNumber": 202
+        },
+        {
+          "caller": "loadLines",
+          "callee": "supabase\n        .from",
+          "lineNumber": 202
+        },
+        {
+          "caller": "loadLines",
+          "callee": "setSelectedLines",
+          "lineNumber": 210
+        },
+        {
+          "caller": "loadLines",
+          "callee": "distinctMenuItemIdsFromOrders",
+          "lineNumber": 214
+        },
+        {
+          "caller": "loadLines",
+          "callee": "supabase\n          .from('menu_items')\n          .select('id, item_code')\n          .eq('restaurant_id', restaurantId)\n          .in",
+          "lineNumber": 217
+        },
+        {
+          "caller": "loadLines",
+          "callee": "supabase\n          .from('menu_items')\n          .select('id, item_code')\n          .eq",
+          "lineNumber": 217
+        },
+        {
+          "caller": "loadLines",
+          "callee": "supabase\n          .from('menu_items')\n          .select",
+          "lineNumber": 217
+        },
+        {
+          "caller": "loadLines",
+          "callee": "supabase\n          .from",
+          "lineNumber": 217
+        },
+        {
+          "caller": "loadLines",
+          "callee": "menuItemCodeLookupFromRows",
+          "lineNumber": 222
+        },
+        {
+          "caller": "loadLines",
+          "callee": "setSelectedLines",
+          "lineNumber": 225
+        },
+        {
+          "caller": "loadLines",
+          "callee": "checkoutLinesFromOrders",
+          "lineNumber": 225
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "loadLines",
+          "lineNumber": 228
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useEffect",
+          "lineNumber": 234
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "Array.from",
+          "lineNumber": 235
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "requests\n          .map((request) => request.session_id)\n          .filter",
+          "lineNumber": 237
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "requests\n          .map",
+          "lineNumber": 237
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "setCollectedPaymentsBySession",
+          "lineNumber": 243
+        },
+        {
+          "caller": "loadCollectedLedgers",
+          "callee": "supabase\n        .from('session_collected_payments')\n        .select(SESSION_COLLECTED_PAYMENT_SELECT)\n        .eq('restaurant_id', restaurantId)\n        .in('session_id', sessionIds)\n        .order",
+          "lineNumber": 249
+        },
+        {
+          "caller": "loadCollectedLedgers",
+          "callee": "supabase\n        .from('session_collected_payments')\n        .select(SESSION_COLLECTED_PAYMENT_SELECT)\n        .eq('restaurant_id', restaurantId)\n        .in",
+          "lineNumber": 249
+        },
+        {
+          "caller": "loadCollectedLedgers",
+          "callee": "supabase\n        .from('session_collected_payments')\n        .select(SESSION_COLLECTED_PAYMENT_SELECT)\n        .eq",
+          "lineNumber": 249
+        },
+        {
+          "caller": "loadCollectedLedgers",
+          "callee": "supabase\n        .from('session_collected_payments')\n        .select",
+          "lineNumber": 249
+        },
+        {
+          "caller": "loadCollectedLedgers",
+          "callee": "supabase\n        .from",
+          "lineNumber": 249
+        },
+        {
+          "caller": "loadCollectedLedgers",
+          "callee": "setCollectedPaymentsBySession",
+          "lineNumber": 258
+        },
+        {
+          "caller": "loadCollectedLedgers",
+          "callee": "setCollectedPaymentsBySession",
+          "lineNumber": 262
+        },
+        {
+          "caller": "loadCollectedLedgers",
+          "callee": "groupCollectedPaymentsBySession",
+          "lineNumber": 263
+        },
+        {
+          "caller": "loadCollectedLedgers",
+          "callee": "parseSessionCollectedPaymentsWithSession",
+          "lineNumber": 263
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "loadCollectedLedgers",
+          "lineNumber": 267
+        },
+        {
+          "caller": "getDiscountRate",
+          "callee": "billDiscount.getDisplayRate",
+          "lineNumber": 274
+        },
+        {
+          "caller": "getDiscountedSplitResult",
+          "callee": "discountedSplitRows",
+          "lineNumber": 276
+        },
+        {
+          "caller": "getDiscountedSplitResult",
+          "callee": "getDiscountRate",
+          "lineNumber": 276
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useCallback",
+          "lineNumber": 278
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "setRequests",
+          "lineNumber": 287
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "prev.map",
+          "lineNumber": 288
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "billDiscount.finishSetup",
+          "lineNumber": 290
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useCallback",
+          "lineNumber": 295
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "showToast",
+          "lineNumber": 303
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "billDiscount.setApplying",
+          "lineNumber": 306
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "requestCheckoutApplyDiscount",
+          "lineNumber": 308
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "showToast",
+          "lineNumber": 324
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "patchRequestDiscount",
+          "lineNumber": 327
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "showToast",
+          "lineNumber": 330
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "billDiscount.setApplying",
+          "lineNumber": 333
+        },
+        {
+          "caller": "handleDiscountRateBlur",
+          "callee": "getDiscountRate",
+          "lineNumber": 340
+        },
+        {
+          "caller": "handleDiscountRateBlur",
+          "callee": "billDiscount.beginSetupIfNeeded",
+          "lineNumber": 342
+        },
+        {
+          "caller": "handleDiscountRateBlur",
+          "callee": "billDiscount.finishSetup",
+          "lineNumber": 350
+        },
+        {
+          "caller": "handleDiscountRateBlur",
+          "callee": "persistDiscount",
+          "lineNumber": 353
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "getDiscountedSplitResult",
+          "lineNumber": 362
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "showToast",
+          "lineNumber": 366
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "sumCollectedByPersonName",
+          "lineNumber": 370
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "getCollectedForSession",
+          "lineNumber": 371
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "suggestedCollectionAmount",
+          "lineNumber": 373
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "checkoutPersonKey",
+          "lineNumber": 375
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "setProcessingKeys",
+          "lineNumber": 376
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "new Set(prev).add",
+          "lineNumber": 376
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "requestCheckoutConfirmPayment",
+          "lineNumber": 378
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "showToast",
+          "lineNumber": 385
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "supabase\n          .from('session_collected_payments')\n          .select(SESSION_COLLECTED_PAYMENT_SELECT)\n          .eq('restaurant_id', restaurantId)\n          .eq('session_id', request.session_id)\n          .order",
+          "lineNumber": 390
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "supabase\n          .from('session_collected_payments')\n          .select(SESSION_COLLECTED_PAYMENT_SELECT)\n          .eq('restaurant_id', restaurantId)\n          .eq",
+          "lineNumber": 390
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "supabase\n          .from('session_collected_payments')\n          .select(SESSION_COLLECTED_PAYMENT_SELECT)\n          .eq",
+          "lineNumber": 390
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "supabase\n          .from('session_collected_payments')\n          .select",
+          "lineNumber": 390
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "supabase\n          .from",
+          "lineNumber": 390
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "parseSessionCollectedPayments",
+          "lineNumber": 396
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "setCollectedPaymentsBySession",
+          "lineNumber": 397
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "next.set",
+          "lineNumber": 399
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "setRequests",
+          "lineNumber": 404
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "prev.filter",
+          "lineNumber": 406
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "prev.map",
+          "lineNumber": 407
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "invalidateCheckoutRequestCount",
+          "lineNumber": 409
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "showToast",
+          "lineNumber": 411
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "setProcessingKeys",
+          "lineNumber": 413
+        },
+        {
+          "caller": "submitConfirmPersonPaid",
+          "callee": "next.delete",
+          "lineNumber": 415
+        },
+        {
+          "caller": "handleConfirmPersonPaid",
+          "callee": "submitConfirmPersonPaid",
+          "lineNumber": 422
+        },
+        {
+          "caller": "handleResumeOrdering",
+          "callee": "showToast",
+          "lineNumber": 427
+        },
+        {
+          "caller": "handleResumeOrdering",
+          "callee": "checkoutResumeOrderingKey",
+          "lineNumber": 431
+        },
+        {
+          "caller": "handleResumeOrdering",
+          "callee": "setProcessingKeys",
+          "lineNumber": 432
+        },
+        {
+          "caller": "handleResumeOrdering",
+          "callee": "new Set(prev).add",
+          "lineNumber": 432
+        },
+        {
+          "caller": "handleResumeOrdering",
+          "callee": "requestCheckoutResumeOrdering",
+          "lineNumber": 434
+        },
+        {
+          "caller": "handleResumeOrdering",
+          "callee": "showToast",
+          "lineNumber": 443
+        },
+        {
+          "caller": "handleResumeOrdering",
+          "callee": "setSelectedRequestId",
+          "lineNumber": 447
+        },
+        {
+          "caller": "handleResumeOrdering",
+          "callee": "refreshCheckoutRequests",
+          "lineNumber": 448
+        },
+        {
+          "caller": "handleResumeOrdering",
+          "callee": "invalidateCheckoutRequestCount",
+          "lineNumber": 449
+        },
+        {
+          "caller": "handleResumeOrdering",
+          "callee": "showToast",
+          "lineNumber": 450
+        },
+        {
+          "caller": "handleResumeOrdering",
+          "callee": "showToast",
+          "lineNumber": 452
+        },
+        {
+          "caller": "handleResumeOrdering",
+          "callee": "setProcessingKeys",
+          "lineNumber": 454
+        },
+        {
+          "caller": "handleResumeOrdering",
+          "callee": "next.delete",
+          "lineNumber": 456
+        },
+        {
+          "caller": "handleResumeOrdering",
+          "callee": "setResumeConfirmOpen",
+          "lineNumber": 459
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "showToast",
+          "lineNumber": 465
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "isOnCooldown",
+          "lineNumber": 468
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "showToast",
+          "lineNumber": 469
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "t.printBillCooldown.replace",
+          "lineNumber": 470
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "String",
+          "lineNumber": 470
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "cooldownSecondsLeft",
+          "lineNumber": 470
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "checkoutBillPrintKey",
+          "lineNumber": 476
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "setProcessingKeys",
+          "lineNumber": 477
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "new Set(prev).add",
+          "lineNumber": 477
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "requestOrderReceiptPrint",
+          "lineNumber": 479
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "getDiscountRate",
+          "lineNumber": 485
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "showToast",
+          "lineNumber": 489
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "showToast",
+          "lineNumber": 493
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "startCooldown",
+          "lineNumber": 497
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "showToast",
+          "lineNumber": 498
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "showToast",
+          "lineNumber": 500
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "setProcessingKeys",
+          "lineNumber": 502
+        },
+        {
+          "caller": "handlePrintBill",
+          "callee": "next.delete",
+          "lineNumber": 504
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "t.pendingBadge.replace",
+          "lineNumber": 510
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "String",
+          "lineNumber": 510
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "requests.find",
+          "lineNumber": 512
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useMemo",
+          "lineNumber": 515
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useCallback",
+          "lineNumber": 525
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "collectedPaymentsBySession.get",
+          "lineNumber": 528
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useCallback",
+          "lineNumber": 533
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "getCollectedForSession",
+          "lineNumber": 535
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "billDiscount.getDisplayRate",
+          "lineNumber": 536
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "buildCheckoutSettlementSummary",
+          "lineNumber": 537
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "checkoutPaymentProgress",
+          "lineNumber": 538
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "t.paymentProgress\n              .replace('{paid}', String(progress.paidCount))\n              .replace",
+          "lineNumber": 541
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "t.paymentProgress\n              .replace",
+          "lineNumber": 541
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "String",
+          "lineNumber": 542
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "String",
+          "lineNumber": 543
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "checkoutSplitModeLabel",
+          "lineNumber": 548
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "hasCheckoutCollections",
+          "lineNumber": 550
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useMemo",
+          "lineNumber": 556
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "getCollectedForSession",
+          "lineNumber": 557
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "getRequestCheckoutMeta",
+          "lineNumber": 560
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useMemo",
+          "lineNumber": 562
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "sumCollectedByPersonName",
+          "lineNumber": 563
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "resumeCheckoutBlockReason",
+          "lineNumber": 567
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "useMemo",
+          "lineNumber": 569
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "resumeOrderingConfirmVariant",
+          "lineNumber": 571
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "unpaidSplitRowsWithIndex",
+          "lineNumber": 577
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "getDiscountedSplitResult",
+          "lineNumber": 577
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "setSoundEnabled",
+          "lineNumber": 604
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "saveCheckoutSoundEnabled",
+          "lineNumber": 605
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "requests.map",
+          "lineNumber": 631
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "getRequestCheckoutMeta",
+          "lineNumber": 632
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "setSelectedRequestId",
+          "lineNumber": 644
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "getDiscountRate",
+          "lineNumber": 662
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "hasConfirmedPerson",
+          "lineNumber": 664
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "cooldownSecondsLeft",
+          "lineNumber": 667
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "isOnCooldown",
+          "lineNumber": 668
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "setSelectedRequestId",
+          "lineNumber": 672
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "billDiscount.handleRateChange",
+          "lineNumber": 674
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "billDiscount.handleRateFocus",
+          "lineNumber": 677
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "handleDiscountRateBlur",
+          "lineNumber": 682
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "handleConfirmPersonPaid",
+          "lineNumber": 684
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "handlePrintBill",
+          "lineNumber": 686
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "setResumeConfirmOpen",
+          "lineNumber": 687
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "setSelectedRequestId",
+          "lineNumber": 689
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "refreshCheckoutRequests",
+          "lineNumber": 690
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "invalidateCheckoutRequestCount",
+          "lineNumber": 691
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "requests.find",
+          "lineNumber": 720
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "persistDiscount",
+          "lineNumber": 721
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "setResumeConfirmOpen",
+          "lineNumber": 726
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "processingKeys.has",
+          "lineNumber": 733
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "checkoutResumeOrderingKey",
+          "lineNumber": 733
+        },
+        {
+          "caller": "CheckoutRequestsManager",
+          "callee": "handleResumeOrdering",
+          "lineNumber": 737
+        }
+      ],
+      "metrics": {
+        "importCount": 26,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/CheckoutRequestsPageClient.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 30,
+      "nonEmptyLines": 27,
+      "functions": [
+        {
+          "name": "CheckoutRequestsPageClient",
+          "startLine": 14,
+          "endLine": 30,
+          "params": [
+            "{\n  checkoutRequests,\n  restaurantId,\n  restaurantSlug,\n  canCloseTable,\n  initialTableId,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "CheckoutRequestsPageClient",
+          "line": 14,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/checkout/CheckoutRequestDetail.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 390,
+      "nonEmptyLines": 377,
+      "functions": [
+        {
+          "name": "SettlementBar",
+          "startLine": 63,
+          "endLine": 105,
+          "params": [
+            "{\n  summary,\n  t,\n}"
+          ]
+        },
+        {
+          "name": "CheckoutRequestDetail",
+          "startLine": 107,
+          "endLine": 390,
+          "params": [
+            "{\n  request,\n  summary,\n  splitModeLabel,\n  partialPaid,\n  collectedPayments,\n  pendingSplitRows,\n  collectedByPerson,\n  selectedLines,\n  processingKeys,\n  discountRate,\n  discountApplying,\n  discountLocked,\n  resumeBlockReason,\n  canCloseTable,\n  printCooldownSeconds,\n  printOnCooldown,\n  showBackButton,\n  lang,\n  t,\n  onBack,\n  onDiscountRateChange,\n  onDiscountRateFocus,\n  onDiscountRateBlur,\n  onConfirmPersonPaid,\n  onPrintBill,\n  onResumeOrderingClick,\n  onCloseTable,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "CheckoutRequestDetail",
+          "line": 107,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SettlementBar",
+          "callee": "summary.consumption.toFixed",
+          "lineNumber": 76
+        },
+        {
+          "caller": "SettlementBar",
+          "callee": "t.settlementDiscount.replace",
+          "lineNumber": 81
+        },
+        {
+          "caller": "SettlementBar",
+          "callee": "String",
+          "lineNumber": 81
+        },
+        {
+          "caller": "SettlementBar",
+          "callee": "summary.payable.toFixed",
+          "lineNumber": 87
+        },
+        {
+          "caller": "SettlementBar",
+          "callee": "summary.collected.toFixed",
+          "lineNumber": 93
+        },
+        {
+          "caller": "SettlementBar",
+          "callee": "summary.pending.toFixed",
+          "lineNumber": 99
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "useState",
+          "lineNumber": 136
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "formatCheckoutWaitDuration",
+          "lineNumber": 137
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "formatCollectedPaymentTime",
+          "lineNumber": 141
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "formatPortugueseNif",
+          "lineNumber": 180
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "pendingSplitRows.map",
+          "lineNumber": 195
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "collectedByPerson.get",
+          "lineNumber": 196
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "row.name.trim",
+          "lineNumber": 196
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "checkoutRowCollectAmount",
+          "lineNumber": 197
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "localizeSplitPersonName",
+          "lineNumber": 206
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "t.personOwedTotal.replace",
+          "lineNumber": 210
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "row.amount.toFixed",
+          "lineNumber": 210
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "priorCollected.toFixed",
+          "lineNumber": 212
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "collectNow.toFixed",
+          "lineNumber": 218
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "onConfirmPersonPaid",
+          "lineNumber": 222
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "isCheckoutRequestBusy",
+          "lineNumber": 223
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "processingKeys.has",
+          "lineNumber": 226
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "checkoutPersonKey",
+          "lineNumber": 226
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "t.confirmOnePaidAmount.replace",
+          "lineNumber": 228
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "collectNow.toFixed",
+          "lineNumber": 228
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "collectedPayments.map",
+          "lineNumber": 242
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "localizeSplitPersonName",
+          "lineNumber": 248
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "formatOrderDateTime",
+          "lineNumber": 255
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "formatCollectedPaymentTime",
+          "lineNumber": 257
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "payment.amount.toFixed",
+          "lineNumber": 261
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "totalCollectedAmount(collectedPayments).toFixed",
+          "lineNumber": 269
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "totalCollectedAmount",
+          "lineNumber": 269
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "setOrderItemsOpen",
+          "lineNumber": 278
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "t.orderItemsCount.replace",
+          "lineNumber": 281
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "String",
+          "lineNumber": 281
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "selectedLines.map",
+          "lineNumber": 289
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "line.lineTotal.toFixed",
+          "lineNumber": 305
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "request.total_amount.toFixed",
+          "lineNumber": 312
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "processingKeys.has",
+          "lineNumber": 346
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "checkoutBillPrintKey",
+          "lineNumber": 346
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "processingKeys.has",
+          "lineNumber": 350
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "checkoutBillPrintKey",
+          "lineNumber": 350
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "t.printBillCooldown.replace",
+          "lineNumber": 353
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "String",
+          "lineNumber": 353
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "processingKeys.has",
+          "lineNumber": 363
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "checkoutResumeOrderingKey",
+          "lineNumber": 363
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "isCheckoutRequestBusy",
+          "lineNumber": 364
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "processingKeys.has",
+          "lineNumber": 369
+        },
+        {
+          "caller": "CheckoutRequestDetail",
+          "callee": "checkoutResumeOrderingKey",
+          "lineNumber": 369
+        }
+      ],
+      "metrics": {
+        "importCount": 12,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/checkout/CheckoutRequestListCard.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 95,
+      "nonEmptyLines": 90,
+      "functions": [
+        {
+          "name": "CheckoutRequestListCard",
+          "startLine": 26,
+          "endLine": 95,
+          "params": [
+            "{\n  request,\n  selected,\n  summary,\n  splitModeLabel,\n  paymentProgressLabel,\n  partialPaid,\n  lang,\n  t,\n  onSelect,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "CheckoutRequestListCard",
+          "line": 26,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "CheckoutRequestListCard",
+          "callee": "formatCheckoutWaitDuration",
+          "lineNumber": 37
+        },
+        {
+          "caller": "CheckoutRequestListCard",
+          "callee": "formatCollectedPaymentTime",
+          "lineNumber": 41
+        },
+        {
+          "caller": "CheckoutRequestListCard",
+          "callee": "summary.pending.toFixed",
+          "lineNumber": 84
+        },
+        {
+          "caller": "CheckoutRequestListCard",
+          "callee": "summary.consumption.toFixed",
+          "lineNumber": 88
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/demo/DemoHubPageClient.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 109,
+      "nonEmptyLines": 104,
+      "functions": [
+        {
+          "name": "DemoHubPageClient",
+          "startLine": 56,
+          "endLine": 109,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "DemoHubPageClient",
+          "line": 56,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "DemoHubPageClient",
+          "callee": "useLanguage",
+          "lineNumber": 57
+        },
+        {
+          "caller": "DemoHubPageClient",
+          "callee": "roleCards.map",
+          "lineNumber": 93
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/audit/reason-labels.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 29,
+      "nonEmptyLines": 26,
+      "functions": [
+        {
+          "name": "abnormalReasonOptions",
+          "startLine": 16,
+          "endLine": 29,
+          "params": [
+            "lang",
+            "group"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "abnormalReasonOptions",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "abnormalReasonOptions",
+          "callee": "getMessages",
+          "lineNumber": 17
+        },
+        {
+          "caller": "abnormalReasonOptions",
+          "callee": "REASON_CODES[group].map",
+          "lineNumber": 25
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/checkout-discount/use-checkout-bill-discount.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 87,
+      "nonEmptyLines": 75,
+      "functions": [
+        {
+          "name": "useCheckoutBillDiscount",
+          "startLine": 13,
+          "endLine": 87,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "useCheckoutBillDiscount",
+          "line": 13,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "useState",
+          "lineNumber": 14
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "useState",
+          "lineNumber": 15
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "useRef",
+          "lineNumber": 17
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "useCallback",
+          "lineNumber": 19
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "clampCheckoutDiscountRate",
+          "lineNumber": 21
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "useCallback",
+          "lineNumber": 25
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "setDraftRateById",
+          "lineNumber": 26
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "useCallback",
+          "lineNumber": 33
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "setDraftRateById",
+          "lineNumber": 34
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "clampCheckoutDiscountRate",
+          "lineNumber": 36
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "useCallback",
+          "lineNumber": 40
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "getDisplayRate",
+          "lineNumber": 41
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "useCallback",
+          "lineNumber": 44
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "clampCheckoutDiscountRate",
+          "lineNumber": 46
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "serverReason?.trim",
+          "lineNumber": 50
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "setPendingSetup",
+          "lineNumber": 53
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "useCallback",
+          "lineNumber": 59
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "setDraftRateById",
+          "lineNumber": 62
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "setPendingSetup",
+          "lineNumber": 64
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "useCallback",
+          "lineNumber": 67
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "clearDraft",
+          "lineNumber": 68
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "setPendingSetup",
+          "lineNumber": 69
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "useCallback",
+          "lineNumber": 72
+        },
+        {
+          "caller": "useCheckoutBillDiscount",
+          "callee": "setApplyingRequestId",
+          "lineNumber": 73
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/checkout-request-state.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 60,
+      "nonEmptyLines": 54,
+      "functions": [
+        {
+          "name": "mergeSplitResultPaid",
+          "startLine": 4,
+          "endLine": 23,
+          "params": [
+            "incoming",
+            "existing"
+          ]
+        },
+        {
+          "name": "mergeBillSplitsFromRefresh",
+          "startLine": 26,
+          "endLine": 39,
+          "params": [
+            "prev",
+            "incoming"
+          ]
+        },
+        {
+          "name": "checkoutPersonKey",
+          "startLine": 41,
+          "endLine": 43,
+          "params": [
+            "billSplitId",
+            "rowIndex"
+          ]
+        },
+        {
+          "name": "checkoutBillPrintKey",
+          "startLine": 45,
+          "endLine": 47,
+          "params": [
+            "billSplitId"
+          ]
+        },
+        {
+          "name": "checkoutResumeOrderingKey",
+          "startLine": 49,
+          "endLine": 51,
+          "params": [
+            "billSplitId"
+          ]
+        },
+        {
+          "name": "isCheckoutRequestBusy",
+          "startLine": 53,
+          "endLine": 60,
+          "params": [
+            "processingKeys",
+            "billSplitId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "mergeSplitResultPaid",
+          "line": 4,
+          "isDefault": false
+        },
+        {
+          "name": "mergeBillSplitsFromRefresh",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "checkoutPersonKey",
+          "line": 41,
+          "isDefault": false
+        },
+        {
+          "name": "checkoutBillPrintKey",
+          "line": 45,
+          "isDefault": false
+        },
+        {
+          "name": "checkoutResumeOrderingKey",
+          "line": 49,
+          "isDefault": false
+        },
+        {
+          "name": "isCheckoutRequestBusy",
+          "line": 53,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "mergeSplitResultPaid",
+          "callee": "Math.max",
+          "lineNumber": 12
+        },
+        {
+          "caller": "mergeSplitResultPaid",
+          "callee": "merged.push",
+          "lineNumber": 17
+        },
+        {
+          "caller": "mergeBillSplitsFromRefresh",
+          "callee": "prev.map",
+          "lineNumber": 30
+        },
+        {
+          "caller": "mergeBillSplitsFromRefresh",
+          "callee": "incoming.map",
+          "lineNumber": 31
+        },
+        {
+          "caller": "mergeBillSplitsFromRefresh",
+          "callee": "prevById.get",
+          "lineNumber": 32
+        },
+        {
+          "caller": "mergeBillSplitsFromRefresh",
+          "callee": "mergeSplitResultPaid",
+          "lineNumber": 36
+        },
+        {
+          "caller": "isCheckoutRequestBusy",
+          "callee": "processingKeys.forEach",
+          "lineNumber": 56
+        },
+        {
+          "caller": "isCheckoutRequestBusy",
+          "callee": "key.startsWith",
+          "lineNumber": 57
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 6,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/checkout-session-lines.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 38,
+      "nonEmptyLines": 35,
+      "functions": [
+        {
+          "name": "lineName",
+          "startLine": 14,
+          "endLine": 16,
+          "params": [
+            "item"
+          ]
+        },
+        {
+          "name": "checkoutLinesFromOrders",
+          "startLine": 19,
+          "endLine": 38,
+          "params": [
+            "orders",
+            "itemCodeByMenuId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "checkoutLinesFromOrders",
+          "line": 19,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "lineName",
+          "callee": "(item.name_pt || item.name || item.name_en || item.name_zh || '').trim",
+          "lineNumber": 15
+        },
+        {
+          "caller": "checkoutLinesFromOrders",
+          "callee": "(order.items || []).forEach",
+          "lineNumber": 25
+        },
+        {
+          "caller": "checkoutLinesFromOrders",
+          "callee": "lines.push",
+          "lineNumber": 26
+        },
+        {
+          "caller": "checkoutLinesFromOrders",
+          "callee": "lineName",
+          "lineNumber": 29
+        },
+        {
+          "caller": "checkoutLinesFromOrders",
+          "callee": "resolveMenuItemCode",
+          "lineNumber": 33
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/checkout-session-payments.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 172,
+      "nonEmptyLines": 160,
+      "functions": [
+        {
+          "name": "billSplit",
+          "startLine": 14,
+          "endLine": 30,
+          "params": [
+            "overrides"
+          ]
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/checkout-session-payments.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 132,
+      "nonEmptyLines": 116,
+      "functions": [
+        {
+          "name": "unpaidSplitRowsWithIndex",
+          "startLine": 10,
+          "endLine": 14,
+          "params": [
+            "rows"
+          ]
+        },
+        {
+          "name": "parseSessionCollectedPayments",
+          "startLine": 26,
+          "endLine": 41,
+          "params": [
+            "data"
+          ]
+        },
+        {
+          "name": "parseSessionCollectedPaymentsWithSession",
+          "startLine": 43,
+          "endLine": 59,
+          "params": [
+            "data"
+          ]
+        },
+        {
+          "name": "sumCollectedByPersonName",
+          "startLine": 61,
+          "endLine": 71,
+          "params": [
+            "payments"
+          ]
+        },
+        {
+          "name": "totalCollectedAmount",
+          "startLine": 73,
+          "endLine": 75,
+          "params": [
+            "payments"
+          ]
+        },
+        {
+          "name": "suggestedCollectionAmount",
+          "startLine": 78,
+          "endLine": 86,
+          "params": [
+            "personName",
+            "newPayable",
+            "collectedByPerson"
+          ]
+        },
+        {
+          "name": "isWholeTableSplit",
+          "startLine": 88,
+          "endLine": 90,
+          "params": [
+            "split"
+          ]
+        },
+        {
+          "name": "hasConfirmedPerson",
+          "startLine": 92,
+          "endLine": 94,
+          "params": [
+            "split"
+          ]
+        },
+        {
+          "name": "resumeOrderingConfirmVariant",
+          "startLine": 104,
+          "endLine": 113,
+          "params": [
+            "split",
+            "collectedPayments"
+          ]
+        },
+        {
+          "name": "resumeCheckoutBlockReason",
+          "startLine": 115,
+          "endLine": 123,
+          "params": [
+            "split",
+            "collectedPayments"
+          ]
+        },
+        {
+          "name": "httpStatusForResumeOrderingRpcCode",
+          "startLine": 125,
+          "endLine": 132,
+          "params": [
+            "code"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "unpaidSplitRowsWithIndex",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "SESSION_COLLECTED_PAYMENT_SELECT",
+          "line": 23,
+          "isDefault": false
+        },
+        {
+          "name": "parseSessionCollectedPayments",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "parseSessionCollectedPaymentsWithSession",
+          "line": 43,
+          "isDefault": false
+        },
+        {
+          "name": "sumCollectedByPersonName",
+          "line": 61,
+          "isDefault": false
+        },
+        {
+          "name": "totalCollectedAmount",
+          "line": 73,
+          "isDefault": false
+        },
+        {
+          "name": "suggestedCollectionAmount",
+          "line": 78,
+          "isDefault": false
+        },
+        {
+          "name": "isWholeTableSplit",
+          "line": 88,
+          "isDefault": false
+        },
+        {
+          "name": "hasConfirmedPerson",
+          "line": 92,
+          "isDefault": false
+        },
+        {
+          "name": "resumeOrderingConfirmVariant",
+          "line": 104,
+          "isDefault": false
+        },
+        {
+          "name": "resumeCheckoutBlockReason",
+          "line": 115,
+          "isDefault": false
+        },
+        {
+          "name": "httpStatusForResumeOrderingRpcCode",
+          "line": 125,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "unpaidSplitRowsWithIndex",
+          "callee": "rows\n    .map((row, index) => ({ row, index }))\n    .filter",
+          "lineNumber": 11
+        },
+        {
+          "caller": "unpaidSplitRowsWithIndex",
+          "callee": "rows\n    .map",
+          "lineNumber": 11
+        },
+        {
+          "caller": "parseSessionCollectedPayments",
+          "callee": "(data ?? []).map",
+          "lineNumber": 35
+        },
+        {
+          "caller": "parseSessionCollectedPayments",
+          "callee": "Number",
+          "lineNumber": 38
+        },
+        {
+          "caller": "parseSessionCollectedPaymentsWithSession",
+          "callee": "(data ?? []).map",
+          "lineNumber": 52
+        },
+        {
+          "caller": "parseSessionCollectedPaymentsWithSession",
+          "callee": "Number",
+          "lineNumber": 56
+        },
+        {
+          "caller": "sumCollectedByPersonName",
+          "callee": "payment.person_name.trim",
+          "lineNumber": 66
+        },
+        {
+          "caller": "sumCollectedByPersonName",
+          "callee": "map.set",
+          "lineNumber": 68
+        },
+        {
+          "caller": "sumCollectedByPersonName",
+          "callee": "map.get",
+          "lineNumber": 68
+        },
+        {
+          "caller": "sumCollectedByPersonName",
+          "callee": "Number",
+          "lineNumber": 68
+        },
+        {
+          "caller": "totalCollectedAmount",
+          "callee": "payments.reduce",
+          "lineNumber": 74
+        },
+        {
+          "caller": "totalCollectedAmount",
+          "callee": "Number",
+          "lineNumber": 74
+        },
+        {
+          "caller": "suggestedCollectionAmount",
+          "callee": "collectedByPerson.get",
+          "lineNumber": 83
+        },
+        {
+          "caller": "suggestedCollectionAmount",
+          "callee": "personName.trim",
+          "lineNumber": 83
+        },
+        {
+          "caller": "suggestedCollectionAmount",
+          "callee": "Number",
+          "lineNumber": 84
+        },
+        {
+          "caller": "suggestedCollectionAmount",
+          "callee": "Math.max",
+          "lineNumber": 85
+        },
+        {
+          "caller": "suggestedCollectionAmount",
+          "callee": "Math.round",
+          "lineNumber": 85
+        },
+        {
+          "caller": "isWholeTableSplit",
+          "callee": "normalizeSplitRows",
+          "lineNumber": 89
+        },
+        {
+          "caller": "hasConfirmedPerson",
+          "callee": "(split.result || []).some",
+          "lineNumber": 93
+        },
+        {
+          "caller": "resumeOrderingConfirmVariant",
+          "callee": "hasConfirmedPerson",
+          "lineNumber": 109
+        },
+        {
+          "caller": "resumeCheckoutBlockReason",
+          "callee": "isWholeTableSplit",
+          "lineNumber": 119
+        },
+        {
+          "caller": "resumeCheckoutBlockReason",
+          "callee": "hasConfirmedPerson",
+          "lineNumber": 120
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 12,
+        "functionCount": 11,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/checkout-settlement.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 117,
+      "nonEmptyLines": 109,
+      "functions": [
+        {
+          "name": "billSplit",
+          "startLine": 13,
+          "endLine": 32,
+          "params": [
+            "overrides"
+          ]
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/checkout-settlement.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 96,
+      "nonEmptyLines": 88,
+      "functions": [
+        {
+          "name": "buildCheckoutSettlementSummary",
+          "startLine": 16,
+          "endLine": 31,
+          "params": [
+            "request",
+            "discountRate",
+            "collectedPayments"
+          ]
+        },
+        {
+          "name": "checkoutPaymentProgress",
+          "startLine": 33,
+          "endLine": 42,
+          "params": [
+            "request"
+          ]
+        },
+        {
+          "name": "hasCheckoutCollections",
+          "startLine": 44,
+          "endLine": 50,
+          "params": [
+            "request",
+            "collectedPayments"
+          ]
+        },
+        {
+          "name": "checkoutSplitModeLabel",
+          "startLine": 52,
+          "endLine": 60,
+          "params": [
+            "splitMode",
+            "labels"
+          ]
+        },
+        {
+          "name": "checkoutRowCollectAmount",
+          "startLine": 63,
+          "endLine": 69,
+          "params": [
+            "rowAmount",
+            "priorCollectedForPerson"
+          ]
+        },
+        {
+          "name": "formatCheckoutWaitDuration",
+          "startLine": 71,
+          "endLine": 79,
+          "params": [
+            "createdAt",
+            "labels"
+          ]
+        },
+        {
+          "name": "groupCollectedPaymentsBySession",
+          "startLine": 81,
+          "endLine": 96,
+          "params": [
+            "rows"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "buildCheckoutSettlementSummary",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "checkoutPaymentProgress",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "hasCheckoutCollections",
+          "line": 44,
+          "isDefault": false
+        },
+        {
+          "name": "checkoutSplitModeLabel",
+          "line": 52,
+          "isDefault": false
+        },
+        {
+          "name": "checkoutRowCollectAmount",
+          "line": 63,
+          "isDefault": false
+        },
+        {
+          "name": "formatCheckoutWaitDuration",
+          "line": 71,
+          "isDefault": false
+        },
+        {
+          "name": "groupCollectedPaymentsBySession",
+          "line": 81,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "buildCheckoutSettlementSummary",
+          "callee": "checkoutPayableAmount",
+          "lineNumber": 21
+        },
+        {
+          "caller": "buildCheckoutSettlementSummary",
+          "callee": "totalCollectedAmount",
+          "lineNumber": 22
+        },
+        {
+          "caller": "buildCheckoutSettlementSummary",
+          "callee": "Math.max",
+          "lineNumber": 23
+        },
+        {
+          "caller": "buildCheckoutSettlementSummary",
+          "callee": "Math.round",
+          "lineNumber": 23
+        },
+        {
+          "caller": "buildCheckoutSettlementSummary",
+          "callee": "Number",
+          "lineNumber": 25
+        },
+        {
+          "caller": "checkoutPaymentProgress",
+          "callee": "normalizeSplitRows",
+          "lineNumber": 37
+        },
+        {
+          "caller": "checkoutPaymentProgress",
+          "callee": "rows.filter",
+          "lineNumber": 39
+        },
+        {
+          "caller": "hasCheckoutCollections",
+          "callee": "(request.result ?? []).some",
+          "lineNumber": 49
+        },
+        {
+          "caller": "checkoutRowCollectAmount",
+          "callee": "Number",
+          "lineNumber": 67
+        },
+        {
+          "caller": "checkoutRowCollectAmount",
+          "callee": "Math.max",
+          "lineNumber": 68
+        },
+        {
+          "caller": "checkoutRowCollectAmount",
+          "callee": "Math.round",
+          "lineNumber": 68
+        },
+        {
+          "caller": "formatCheckoutWaitDuration",
+          "callee": "Date.now",
+          "lineNumber": 75
+        },
+        {
+          "caller": "formatCheckoutWaitDuration",
+          "callee": "new Date(createdAt).getTime",
+          "lineNumber": 75
+        },
+        {
+          "caller": "formatCheckoutWaitDuration",
+          "callee": "Math.floor",
+          "lineNumber": 76
+        },
+        {
+          "caller": "formatCheckoutWaitDuration",
+          "callee": "labels.durationMinutes.replace",
+          "lineNumber": 78
+        },
+        {
+          "caller": "formatCheckoutWaitDuration",
+          "callee": "String",
+          "lineNumber": 78
+        },
+        {
+          "caller": "groupCollectedPaymentsBySession",
+          "callee": "map.get",
+          "lineNumber": 86
+        },
+        {
+          "caller": "groupCollectedPaymentsBySession",
+          "callee": "list.push",
+          "lineNumber": 87
+        },
+        {
+          "caller": "groupCollectedPaymentsBySession",
+          "callee": "map.set",
+          "lineNumber": 93
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 7,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/checkout-split-math.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 54,
+      "nonEmptyLines": 48,
+      "functions": [
+        {
+          "name": "billSplit",
+          "startLine": 13,
+          "endLine": 29,
+          "params": [
+            "overrides"
+          ]
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/checkout-split-math.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 35,
+      "nonEmptyLines": 29,
+      "functions": [
+        {
+          "name": "normalizeSplitRows",
+          "startLine": 3,
+          "endLine": 10,
+          "params": [
+            "split"
+          ]
+        },
+        {
+          "name": "clampCheckoutDiscountRate",
+          "startLine": 12,
+          "endLine": 14,
+          "params": [
+            "discountRate"
+          ]
+        },
+        {
+          "name": "applyDiscountToRows",
+          "startLine": 16,
+          "endLine": 22,
+          "params": [
+            "rows",
+            "discountRate"
+          ]
+        },
+        {
+          "name": "discountedSplitRows",
+          "startLine": 24,
+          "endLine": 26,
+          "params": [
+            "split",
+            "discountRate"
+          ]
+        },
+        {
+          "name": "sumSplitRowAmounts",
+          "startLine": 28,
+          "endLine": 30,
+          "params": [
+            "rows"
+          ]
+        },
+        {
+          "name": "checkoutPayableAmount",
+          "startLine": 33,
+          "endLine": 35,
+          "params": [
+            "split",
+            "discountRate"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "normalizeSplitRows",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "clampCheckoutDiscountRate",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "applyDiscountToRows",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "discountedSplitRows",
+          "line": 24,
+          "isDefault": false
+        },
+        {
+          "name": "sumSplitRowAmounts",
+          "line": 28,
+          "isDefault": false
+        },
+        {
+          "name": "checkoutPayableAmount",
+          "line": 33,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "normalizeSplitRows",
+          "callee": "Number",
+          "lineNumber": 7
+        },
+        {
+          "caller": "clampCheckoutDiscountRate",
+          "callee": "Math.min",
+          "lineNumber": 13
+        },
+        {
+          "caller": "clampCheckoutDiscountRate",
+          "callee": "Math.max",
+          "lineNumber": 13
+        },
+        {
+          "caller": "applyDiscountToRows",
+          "callee": "clampCheckoutDiscountRate",
+          "lineNumber": 17
+        },
+        {
+          "caller": "applyDiscountToRows",
+          "callee": "rows.map",
+          "lineNumber": 18
+        },
+        {
+          "caller": "applyDiscountToRows",
+          "callee": "Number",
+          "lineNumber": 20
+        },
+        {
+          "caller": "discountedSplitRows",
+          "callee": "applyDiscountToRows",
+          "lineNumber": 25
+        },
+        {
+          "caller": "discountedSplitRows",
+          "callee": "normalizeSplitRows",
+          "lineNumber": 25
+        },
+        {
+          "caller": "sumSplitRowAmounts",
+          "callee": "rows.reduce",
+          "lineNumber": 29
+        },
+        {
+          "caller": "sumSplitRowAmounts",
+          "callee": "Number",
+          "lineNumber": 29
+        },
+        {
+          "caller": "checkoutPayableAmount",
+          "callee": "Math.max",
+          "lineNumber": 34
+        },
+        {
+          "caller": "checkoutPayableAmount",
+          "callee": "sumSplitRowAmounts",
+          "lineNumber": 34
+        },
+        {
+          "caller": "checkoutPayableAmount",
+          "callee": "discountedSplitRows",
+          "lineNumber": 34
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 6,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-overview-i18n.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 92,
+      "nonEmptyLines": 85,
+      "functions": [
+        {
+          "name": "order",
+          "startLine": 11,
+          "endLine": 23,
+          "params": [
+            "partial"
+          ]
+        },
+        {
+          "name": "localizedOverviewLabels",
+          "startLine": 26,
+          "endLine": 58,
+          "params": [
+            "lang",
+            "todayOrders",
+            "recentOrders"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "localizedOverviewLabels",
+          "callee": "buildTodayTopSellingItems",
+          "lineNumber": 42
+        },
+        {
+          "caller": "localizedOverviewLabels",
+          "callee": "buildFeedbackInsights",
+          "lineNumber": 43
+        },
+        {
+          "caller": "localizedOverviewLabels",
+          "callee": "formatOverviewDate",
+          "lineNumber": 51
+        },
+        {
+          "caller": "localizedOverviewLabels",
+          "callee": "formatOrderDateTime",
+          "lineNumber": 54
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    }
+  ]
+}

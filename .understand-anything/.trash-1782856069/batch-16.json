@@ -1,0 +1,1777 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/components/dashboard/OrdersHistoryManager.tsx",
+      "type": "file",
+      "name": "OrdersHistoryManager.tsx",
+      "filePath": "apps/web/src/components/dashboard/OrdersHistoryManager.tsx",
+      "summary": "仪表盘 OrdersHistory.tsx 管理器，提供 CRUD、排序与表单校验的客户端界面。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/OrdersHistoryManager.tsx:OrdersHistoryManager",
+      "type": "function",
+      "name": "OrdersHistoryManager",
+      "filePath": "apps/web/src/components/dashboard/OrdersHistoryManager.tsx",
+      "lineRange": [
+        38,
+        353
+      ],
+      "summary": "导出的 React 组件或类 OrdersHistoryManager。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx",
+      "type": "file",
+      "name": "PrintAgentCredentialExpiryAlert.tsx",
+      "filePath": "apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx:PrintAgentCredentialExpiryAlert",
+      "type": "function",
+      "name": "PrintAgentCredentialExpiryAlert",
+      "filePath": "apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx",
+      "lineRange": [
+        19,
+        68
+      ],
+      "summary": "导出的 React 组件或类 PrintAgentCredentialExpiryAlert。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx",
+      "type": "file",
+      "name": "PrintAgentDevicesPanel.tsx",
+      "filePath": "apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard",
+        "printing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx:PrintAgentDevicesPanel",
+      "type": "function",
+      "name": "PrintAgentDevicesPanel",
+      "filePath": "apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx",
+      "lineRange": [
+        19,
+        214
+      ],
+      "summary": "导出的 React 组件或类 PrintAgentDevicesPanel。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx",
+      "type": "file",
+      "name": "PrintAgentDownloadPanel.tsx",
+      "filePath": "apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx:PrintAgentDownloadPanel",
+      "type": "function",
+      "name": "PrintAgentDownloadPanel",
+      "filePath": "apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx",
+      "lineRange": [
+        20,
+        136
+      ],
+      "summary": "导出的 React 组件或类 PrintAgentDownloadPanel。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx",
+      "type": "file",
+      "name": "PrintAgentPairingPanel.tsx",
+      "filePath": "apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard",
+        "printing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx:PrintAgentPairingPanel",
+      "type": "function",
+      "name": "PrintAgentPairingPanel",
+      "filePath": "apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx",
+      "lineRange": [
+        23,
+        322
+      ],
+      "summary": "导出的 React 组件或类 PrintAgentPairingPanel。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx",
+      "type": "file",
+      "name": "PrintAgentSchedulePanel.tsx",
+      "filePath": "apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard",
+        "printing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx:PrintAgentSchedulePanel",
+      "type": "function",
+      "name": "PrintAgentSchedulePanel",
+      "filePath": "apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx",
+      "lineRange": [
+        21,
+        247
+      ],
+      "summary": "导出的 React 组件或类 PrintAgentSchedulePanel。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx:PollIntervalField",
+      "type": "function",
+      "name": "PollIntervalField",
+      "filePath": "apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx",
+      "lineRange": [
+        249,
+        284
+      ],
+      "summary": "函数 PollIntervalField，实现 PrintAgentSchedulePanel 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx",
+      "type": "file",
+      "name": "ReceiptBillPrinterPanel.tsx",
+      "filePath": "apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx:ReceiptBillPrinterPanel",
+      "type": "function",
+      "name": "ReceiptBillPrinterPanel",
+      "filePath": "apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx",
+      "lineRange": [
+        13,
+        93
+      ],
+      "summary": "导出的 React 组件或类 ReceiptBillPrinterPanel。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx",
+      "type": "file",
+      "name": "ReceiptPrinterSelect.tsx",
+      "filePath": "apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx:ReceiptPrinterSelect",
+      "type": "function",
+      "name": "ReceiptPrinterSelect",
+      "filePath": "apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx",
+      "lineRange": [
+        17,
+        93
+      ],
+      "summary": "导出的 React 组件或类 ReceiptPrinterSelect。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/RestaurantOnboarding.tsx",
+      "type": "file",
+      "name": "RestaurantOnboarding.tsx",
+      "filePath": "apps/web/src/components/dashboard/RestaurantOnboarding.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/RestaurantOnboarding.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/RestaurantOnboarding.tsx:RestaurantOnboarding",
+      "type": "function",
+      "name": "RestaurantOnboarding",
+      "filePath": "apps/web/src/components/dashboard/RestaurantOnboarding.tsx",
+      "lineRange": [
+        22,
+        146
+      ],
+      "summary": "导出的 React 组件或类 RestaurantOnboarding。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/RestaurantSuspensionBanner.tsx",
+      "type": "file",
+      "name": "RestaurantSuspensionBanner.tsx",
+      "filePath": "apps/web/src/components/dashboard/RestaurantSuspensionBanner.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/RestaurantSuspensionBanner.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/RestaurantSuspensionBanner.tsx:RestaurantSuspensionBanner",
+      "type": "function",
+      "name": "RestaurantSuspensionBanner",
+      "filePath": "apps/web/src/components/dashboard/RestaurantSuspensionBanner.tsx",
+      "lineRange": [
+        7,
+        17
+      ],
+      "summary": "导出的 React 组件或类 RestaurantSuspensionBanner。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/SettingsForm.tsx",
+      "type": "file",
+      "name": "SettingsForm.tsx",
+      "filePath": "apps/web/src/components/dashboard/SettingsForm.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/SettingsForm.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/SettingsForm.tsx:SettingsForm",
+      "type": "function",
+      "name": "SettingsForm",
+      "filePath": "apps/web/src/components/dashboard/SettingsForm.tsx",
+      "lineRange": [
+        17,
+        322
+      ],
+      "summary": "导出的 React 组件或类 SettingsForm。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/dashboard-nav-link.ts",
+      "type": "file",
+      "name": "dashboard-nav-link.ts",
+      "filePath": "apps/web/src/components/dashboard/dashboard-nav-link.ts",
+      "summary": "源码文件 apps/web/src/components/dashboard/dashboard-nav-link.ts，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/dashboard-nav-link.ts:dashboardNavLinkClassName",
+      "type": "function",
+      "name": "dashboardNavLinkClassName",
+      "filePath": "apps/web/src/components/dashboard/dashboard-nav-link.ts",
+      "lineRange": [
+        5,
+        12
+      ],
+      "summary": "函数 dashboardNavLinkClassName，实现 dashboard-nav-link 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "type": "file",
+      "name": "BuffetSettingsGuide.tsx",
+      "filePath": "apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx:BuffetSettingsGuide",
+      "type": "function",
+      "name": "BuffetSettingsGuide",
+      "filePath": "apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "lineRange": [
+        7,
+        23
+      ],
+      "summary": "导出的 React 组件或类 BuffetSettingsGuide。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "type": "file",
+      "name": "SettingsTabs.tsx",
+      "filePath": "apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/settings/SettingsTabs.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/settings/SettingsTabs.tsx:SettingsTabs",
+      "type": "function",
+      "name": "SettingsTabs",
+      "filePath": "apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "lineRange": [
+        17,
+        47
+      ],
+      "summary": "导出的 React 组件或类 SettingsTabs。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "type": "file",
+      "name": "KitchenDisplay.tsx",
+      "filePath": "apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "summary": "源码文件 apps/web/src/components/kitchen/KitchenDisplay.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "kitchen"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplay",
+      "type": "function",
+      "name": "KitchenDisplay",
+      "filePath": "apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "lineRange": [
+        62,
+        72
+      ],
+      "summary": "导出的 React 组件或类 KitchenDisplay。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplayInner",
+      "type": "function",
+      "name": "KitchenDisplayInner",
+      "filePath": "apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "lineRange": [
+        74,
+        378
+      ],
+      "summary": "函数 KitchenDisplayInner，实现 KitchenDisplay 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:OpenTablePlaceholder",
+      "type": "function",
+      "name": "OpenTablePlaceholder",
+      "filePath": "apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "lineRange": [
+        380,
+        400
+      ],
+      "summary": "函数 OpenTablePlaceholder，实现 KitchenDisplay 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:OrderCard",
+      "type": "function",
+      "name": "OrderCard",
+      "filePath": "apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "lineRange": [
+        403,
+        587
+      ],
+      "summary": "函数 OrderCard，实现 KitchenDisplay 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "file",
+      "name": "LanguageProvider.tsx",
+      "filePath": "apps/web/src/components/providers/LanguageProvider.tsx",
+      "summary": "源码文件 apps/web/src/components/providers/LanguageProvider.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/providers/LanguageProvider.tsx:LanguageProvider",
+      "type": "function",
+      "name": "LanguageProvider",
+      "filePath": "apps/web/src/components/providers/LanguageProvider.tsx",
+      "lineRange": [
+        23,
+        60
+      ],
+      "summary": "导出的 React 组件或类 LanguageProvider。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/providers/LanguageProvider.tsx:useLanguage",
+      "type": "function",
+      "name": "useLanguage",
+      "filePath": "apps/web/src/components/providers/LanguageProvider.tsx",
+      "lineRange": [
+        62,
+        64
+      ],
+      "summary": "React Hook useLanguage，封装可复用状态与副作用逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/providers/ThemeProvider.tsx",
+      "type": "file",
+      "name": "ThemeProvider.tsx",
+      "filePath": "apps/web/src/components/providers/ThemeProvider.tsx",
+      "summary": "源码文件 apps/web/src/components/providers/ThemeProvider.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/providers/ThemeProvider.tsx:ThemeProvider",
+      "type": "function",
+      "name": "ThemeProvider",
+      "filePath": "apps/web/src/components/providers/ThemeProvider.tsx",
+      "lineRange": [
+        26,
+        66
+      ],
+      "summary": "导出的 React 组件或类 ThemeProvider。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/providers/ThemeProvider.tsx:useThemeMode",
+      "type": "function",
+      "name": "useThemeMode",
+      "filePath": "apps/web/src/components/providers/ThemeProvider.tsx",
+      "lineRange": [
+        68,
+        70
+      ],
+      "summary": "React Hook useThemeMode，封装可复用状态与副作用逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "type": "file",
+      "name": "StaffAuthenticatedShell.tsx",
+      "filePath": "apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "summary": "源码文件 apps/web/src/components/staff/StaffAuthenticatedShell.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/staff/StaffAuthenticatedShell.tsx:StaffAuthenticatedShell",
+      "type": "function",
+      "name": "StaffAuthenticatedShell",
+      "filePath": "apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "lineRange": [
+        35,
+        92
+      ],
+      "summary": "导出的 React 组件或类 StaffAuthenticatedShell。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "type": "file",
+      "name": "StaffLoginForm.tsx",
+      "filePath": "apps/web/src/components/staff/StaffLoginForm.tsx",
+      "summary": "源码文件 apps/web/src/components/staff/StaffLoginForm.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/staff/StaffLoginForm.tsx:StaffLoginForm",
+      "type": "function",
+      "name": "StaffLoginForm",
+      "filePath": "apps/web/src/components/staff/StaffLoginForm.tsx",
+      "lineRange": [
+        21,
+        149
+      ],
+      "summary": "导出的 React 组件或类 StaffLoginForm。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "type": "file",
+      "name": "StaffRoleToolbar.tsx",
+      "filePath": "apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "summary": "源码文件 apps/web/src/components/staff/StaffRoleToolbar.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/staff/StaffRoleToolbar.tsx:StaffRoleToolbar",
+      "type": "function",
+      "name": "StaffRoleToolbar",
+      "filePath": "apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "lineRange": [
+        18,
+        57
+      ],
+      "summary": "导出的 React 组件或类 StaffRoleToolbar。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "type": "file",
+      "name": "LanguageSwitcher.tsx",
+      "filePath": "apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "summary": "可复用 UI 基础组件 LanguageSwitcher.tsx，供业务页面组合使用。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/ui/LanguageSwitcher.tsx:LanguageSwitcher",
+      "type": "function",
+      "name": "LanguageSwitcher",
+      "filePath": "apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "lineRange": [
+        18,
+        145
+      ],
+      "summary": "导出的 React 组件或类 LanguageSwitcher。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/ui/ProductLogo.tsx",
+      "type": "file",
+      "name": "ProductLogo.tsx",
+      "filePath": "apps/web/src/components/ui/ProductLogo.tsx",
+      "summary": "可复用 UI 基础组件 ProductLogo.tsx，供业务页面组合使用。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/ui/ProductLogo.tsx:ProductLogo",
+      "type": "function",
+      "name": "ProductLogo",
+      "filePath": "apps/web/src/components/ui/ProductLogo.tsx",
+      "lineRange": [
+        16,
+        30
+      ],
+      "summary": "导出的 React 组件或类 ProductLogo。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/ui/ThemeToggle.tsx",
+      "type": "file",
+      "name": "ThemeToggle.tsx",
+      "filePath": "apps/web/src/components/ui/ThemeToggle.tsx",
+      "summary": "可复用 UI 基础组件 ThemeToggle.tsx，供业务页面组合使用。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/ui/ThemeToggle.tsx:ThemeToggle",
+      "type": "function",
+      "name": "ThemeToggle",
+      "filePath": "apps/web/src/components/ui/ThemeToggle.tsx",
+      "lineRange": [
+        5,
+        20
+      ],
+      "summary": "导出的 React 组件或类 ThemeToggle。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "type": "file",
+      "name": "WaiterTableDetailHeader.tsx",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "summary": "源码文件 apps/web/src/components/waiter/WaiterTableDetailHeader.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "waiter"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx:WaiterTableDetailHeader",
+      "type": "function",
+      "name": "WaiterTableDetailHeader",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "lineRange": [
+        17,
+        53
+      ],
+      "summary": "导出的 React 组件或类 WaiterTableDetailHeader。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/components/dashboard/OrdersHistoryManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/OrdersHistoryManager.tsx:OrdersHistoryManager",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/OrdersHistoryManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/OrdersHistoryManager.tsx:OrdersHistoryManager",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/OrdersHistoryManager.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/OrdersHistoryManager.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/OrdersHistoryManager.tsx",
+      "target": "file:apps/web/src/lib/order-list-display.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/OrdersHistoryManager.tsx",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/OrdersHistoryManager.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx",
+      "target": "function:apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx:PrintAgentCredentialExpiryAlert",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx",
+      "target": "function:apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx:PrintAgentCredentialExpiryAlert",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx",
+      "target": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx:PrintAgentDevicesPanel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx:PrintAgentDevicesPanel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx",
+      "target": "file:apps/web/src/components/ui/ConfirmModal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx",
+      "target": "file:apps/web/src/lib/print-agent-heartbeat.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx:PrintAgentDownloadPanel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx:PrintAgentDownloadPanel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx",
+      "target": "file:apps/web/src/lib/print-agent-download.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx:PrintAgentPairingPanel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx:PrintAgentPairingPanel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx",
+      "target": "file:apps/web/src/lib/pairing-code-countdown.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx",
+      "target": "file:apps/web/src/lib/print-agent-local.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx",
+      "target": "file:apps/web/src/lib/print-agent-pairing-slots.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx:PrintAgentSchedulePanel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx:PrintAgentSchedulePanel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx:PollIntervalField",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx",
+      "target": "file:apps/web/src/components/ui/IntegerInput.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx",
+      "target": "file:apps/web/src/components/ui/TimeHmInput.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx",
+      "target": "file:apps/web/src/lib/print-agent-config.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx:ReceiptBillPrinterPanel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx:ReceiptBillPrinterPanel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx",
+      "target": "file:apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx",
+      "target": "function:apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx:ReceiptPrinterSelect",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx",
+      "target": "function:apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx:ReceiptPrinterSelect",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx",
+      "target": "file:apps/web/src/lib/fetch-receipt-printers.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx",
+      "target": "file:apps/web/src/lib/print-receipt-printer-options.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/RestaurantOnboarding.tsx",
+      "target": "function:apps/web/src/components/dashboard/RestaurantOnboarding.tsx:RestaurantOnboarding",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/RestaurantOnboarding.tsx",
+      "target": "function:apps/web/src/components/dashboard/RestaurantOnboarding.tsx:RestaurantOnboarding",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/RestaurantOnboarding.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/RestaurantOnboarding.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/RestaurantOnboarding.tsx",
+      "target": "file:apps/web/src/components/ui/Input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/RestaurantOnboarding.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/RestaurantOnboarding.tsx",
+      "target": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/RestaurantSuspensionBanner.tsx",
+      "target": "function:apps/web/src/components/dashboard/RestaurantSuspensionBanner.tsx:RestaurantSuspensionBanner",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/RestaurantSuspensionBanner.tsx",
+      "target": "function:apps/web/src/components/dashboard/RestaurantSuspensionBanner.tsx:RestaurantSuspensionBanner",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/SettingsForm.tsx",
+      "target": "function:apps/web/src/components/dashboard/SettingsForm.tsx:SettingsForm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/SettingsForm.tsx",
+      "target": "function:apps/web/src/components/dashboard/SettingsForm.tsx:SettingsForm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/SettingsForm.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/SettingsForm.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/SettingsForm.tsx",
+      "target": "file:apps/web/src/components/ui/Input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/SettingsForm.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/SettingsForm.tsx",
+      "target": "file:apps/web/src/lib/order-radius.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/SettingsForm.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/dashboard-nav-link.ts",
+      "target": "function:apps/web/src/components/dashboard/dashboard-nav-link.ts:dashboardNavLinkClassName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/dashboard-nav-link.ts",
+      "target": "function:apps/web/src/components/dashboard/dashboard-nav-link.ts:dashboardNavLinkClassName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "target": "function:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx:BuffetSettingsGuide",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "target": "function:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx:BuffetSettingsGuide",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "target": "file:apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "target": "function:apps/web/src/components/dashboard/settings/SettingsTabs.tsx:SettingsTabs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "target": "function:apps/web/src/components/dashboard/settings/SettingsTabs.tsx:SettingsTabs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "target": "file:apps/web/src/lib/settings-nav.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplay",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplay",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:KitchenDisplayInner",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:OpenTablePlaceholder",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "function:apps/web/src/components/kitchen/KitchenDisplay.tsx:OrderCard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/checkout-notification-sound.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/order-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/order-status.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/staff-board-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/lib/use-restaurant-realtime-refresh.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "target": "function:apps/web/src/components/providers/LanguageProvider.tsx:LanguageProvider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "target": "function:apps/web/src/components/providers/LanguageProvider.tsx:LanguageProvider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "target": "function:apps/web/src/components/providers/LanguageProvider.tsx:useLanguage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "target": "function:apps/web/src/components/providers/LanguageProvider.tsx:useLanguage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/providers/ThemeProvider.tsx",
+      "target": "function:apps/web/src/components/providers/ThemeProvider.tsx:ThemeProvider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/providers/ThemeProvider.tsx",
+      "target": "function:apps/web/src/components/providers/ThemeProvider.tsx:ThemeProvider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/providers/ThemeProvider.tsx",
+      "target": "function:apps/web/src/components/providers/ThemeProvider.tsx:useThemeMode",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/providers/ThemeProvider.tsx",
+      "target": "function:apps/web/src/components/providers/ThemeProvider.tsx:useThemeMode",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "target": "function:apps/web/src/components/staff/StaffAuthenticatedShell.tsx:StaffAuthenticatedShell",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "target": "function:apps/web/src/components/staff/StaffAuthenticatedShell.tsx:StaffAuthenticatedShell",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "target": "file:apps/web/src/components/waiter/waiter-messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "target": "file:apps/web/src/lib/staff-auth-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "target": "function:apps/web/src/components/staff/StaffLoginForm.tsx:StaffLoginForm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "target": "function:apps/web/src/components/staff/StaffLoginForm.tsx:StaffLoginForm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "target": "file:apps/web/src/components/ui/Input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "target": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "target": "function:apps/web/src/components/staff/StaffRoleToolbar.tsx:StaffRoleToolbar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "target": "function:apps/web/src/components/staff/StaffRoleToolbar.tsx:StaffRoleToolbar",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "target": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "target": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "target": "function:apps/web/src/components/ui/LanguageSwitcher.tsx:LanguageSwitcher",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "target": "function:apps/web/src/components/ui/LanguageSwitcher.tsx:LanguageSwitcher",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/ui/ProductLogo.tsx",
+      "target": "function:apps/web/src/components/ui/ProductLogo.tsx:ProductLogo",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/ui/ProductLogo.tsx",
+      "target": "function:apps/web/src/components/ui/ProductLogo.tsx:ProductLogo",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui/ThemeToggle.tsx",
+      "target": "function:apps/web/src/components/ui/ThemeToggle.tsx:ThemeToggle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/ui/ThemeToggle.tsx",
+      "target": "function:apps/web/src/components/ui/ThemeToggle.tsx:ThemeToggle",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui/ThemeToggle.tsx",
+      "target": "file:apps/web/src/components/providers/ThemeProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx:WaiterTableDetailHeader",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx:WaiterTableDetailHeader",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "target": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "target": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "target": "file:apps/web/src/components/waiter/waiter-ui.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

@@ -1,0 +1,581 @@
+{
+  "nodes": [
+    {
+      "id": "file:packages/shared/src/print-agent-support-snapshot.ts",
+      "type": "file",
+      "name": "print-agent-support-snapshot.ts",
+      "filePath": "packages/shared/src/print-agent-support-snapshot.ts",
+      "summary": "源码文件 packages/shared/src/print-agent-support-snapshot.ts，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/shared/src/print-agent-support-snapshot.ts:consumePrintAgentSupportToken",
+      "type": "function",
+      "name": "consumePrintAgentSupportToken",
+      "filePath": "packages/shared/src/print-agent-support-snapshot.ts",
+      "lineRange": [
+        26,
+        44
+      ],
+      "summary": "函数 consumePrintAgentSupportToken，实现 print-agent-support-snapshot 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/print-agent-support-snapshot.ts:loadPrintAgentSupportSnapshot",
+      "type": "function",
+      "name": "loadPrintAgentSupportSnapshot",
+      "filePath": "packages/shared/src/print-agent-support-snapshot.ts",
+      "lineRange": [
+        46,
+        98
+      ],
+      "summary": "数据加载函数 loadPrintAgentSupportSnapshot，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/shared/src/restaurant-features.test.ts",
+      "type": "file",
+      "name": "restaurant-features.test.ts",
+      "filePath": "packages/shared/src/restaurant-features.test.ts",
+      "summary": "单元测试 restaurant-features.test.ts，验证相邻业务模块行为。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/restaurant-features.ts",
+      "type": "file",
+      "name": "restaurant-features.ts",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "summary": "源码文件 packages/shared/src/restaurant-features.ts，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-features.ts:groupRestaurantFeaturesByModule",
+      "type": "function",
+      "name": "groupRestaurantFeaturesByModule",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "lineRange": [
+        60,
+        71
+      ],
+      "summary": "函数 groupRestaurantFeaturesByModule，实现 restaurant-features 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-features.ts:getRestaurantFeatureModule",
+      "type": "function",
+      "name": "getRestaurantFeatureModule",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "lineRange": [
+        73,
+        81
+      ],
+      "summary": "函数 getRestaurantFeatureModule，实现 restaurant-features 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-features.ts:normalizeRestaurantFeatureFlags",
+      "type": "function",
+      "name": "normalizeRestaurantFeatureFlags",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "lineRange": [
+        83,
+        93
+      ],
+      "summary": "解析/规范化工具函数 normalizeRestaurantFeatureFlags。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-features.ts:isRestaurantFeatureEnabled",
+      "type": "function",
+      "name": "isRestaurantFeatureEnabled",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "lineRange": [
+        95,
+        100
+      ],
+      "summary": "函数 isRestaurantFeatureEnabled，实现 restaurant-features 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-features.ts:parseFeatureFlagsPatch",
+      "type": "function",
+      "name": "parseFeatureFlagsPatch",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "lineRange": [
+        102,
+        114
+      ],
+      "summary": "解析/规范化工具函数 parseFeatureFlagsPatch。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-features.ts:parseFeatureFlagsRecord",
+      "type": "function",
+      "name": "parseFeatureFlagsRecord",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "lineRange": [
+        116,
+        125
+      ],
+      "summary": "解析/规范化工具函数 parseFeatureFlagsRecord。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-features.ts:mergeRestaurantFeatureFlags",
+      "type": "function",
+      "name": "mergeRestaurantFeatureFlags",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "lineRange": [
+        127,
+        132
+      ],
+      "summary": "函数 mergeRestaurantFeatureFlags，实现 restaurant-features 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-features.ts:isDashboardKitchenShortcutEnabled",
+      "type": "function",
+      "name": "isDashboardKitchenShortcutEnabled",
+      "filePath": "packages/shared/src/restaurant-features.ts",
+      "lineRange": [
+        134,
+        136
+      ],
+      "summary": "函数 isDashboardKitchenShortcutEnabled，实现 restaurant-features 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/restaurant-suspension.ts",
+      "type": "file",
+      "name": "restaurant-suspension.ts",
+      "filePath": "packages/shared/src/restaurant-suspension.ts",
+      "summary": "源码文件 packages/shared/src/restaurant-suspension.ts，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/restaurant-suspension.ts:isRestaurantSuspended",
+      "type": "function",
+      "name": "isRestaurantSuspended",
+      "filePath": "packages/shared/src/restaurant-suspension.ts",
+      "lineRange": [
+        1,
+        3
+      ],
+      "summary": "函数 isRestaurantSuspended，实现 restaurant-suspension 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/staff-user-ban.ts",
+      "type": "file",
+      "name": "staff-user-ban.ts",
+      "filePath": "packages/shared/src/staff-user-ban.ts",
+      "summary": "源码文件 packages/shared/src/staff-user-ban.ts，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/staff-user-ban.ts:kickStaffUserSessions",
+      "type": "function",
+      "name": "kickStaffUserSessions",
+      "filePath": "packages/shared/src/staff-user-ban.ts",
+      "lineRange": [
+        3,
+        9
+      ],
+      "summary": "函数 kickStaffUserSessions，实现 staff-user-ban 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/staff-user-ban.ts:setStaffUserBanned",
+      "type": "function",
+      "name": "setStaffUserBanned",
+      "filePath": "packages/shared/src/staff-user-ban.ts",
+      "lineRange": [
+        11,
+        15
+      ],
+      "summary": "函数 setStaffUserBanned，实现 staff-user-ban 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:packages/shared/tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "packages/shared/tsconfig.json",
+      "summary": "TypeScript 编译配置，定义严格模式与路径别名。",
+      "tags": [
+        "configuration",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:packages/ui/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "packages/ui/package.json",
+      "summary": "npm 工作区包清单，声明依赖、脚本与构建配置。",
+      "tags": [
+        "configuration",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/ui/src/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/ui/src/index.ts",
+      "summary": "源码文件 packages/ui/src/index.ts，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/ui/src/PasswordInput.tsx",
+      "type": "file",
+      "name": "PasswordInput.tsx",
+      "filePath": "packages/ui/src/PasswordInput.tsx",
+      "summary": "源码文件 packages/ui/src/PasswordInput.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/ui/src/PasswordInput.tsx:EyeIcon",
+      "type": "function",
+      "name": "EyeIcon",
+      "filePath": "packages/ui/src/PasswordInput.tsx",
+      "lineRange": [
+        18,
+        34
+      ],
+      "summary": "函数 EyeIcon，实现 PasswordInput 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/ui/src/PasswordInput.tsx:EyeOffIcon",
+      "type": "function",
+      "name": "EyeOffIcon",
+      "filePath": "packages/ui/src/PasswordInput.tsx",
+      "lineRange": [
+        36,
+        51
+      ],
+      "summary": "函数 EyeOffIcon，实现 PasswordInput 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:packages/ui/tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "packages/ui/tsconfig.json",
+      "summary": "TypeScript 编译配置，定义严格模式与路径别名。",
+      "tags": [
+        "configuration",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/seed.sql",
+      "type": "table",
+      "name": "seed.sql",
+      "filePath": "supabase/seed.sql",
+      "summary": "数据库种子数据，用于本地开发与演示环境初始化。",
+      "tags": [
+        "database",
+        "migration"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:packages/shared/src/print-agent-support-snapshot.ts",
+      "target": "function:packages/shared/src/print-agent-support-snapshot.ts:consumePrintAgentSupportToken",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-support-snapshot.ts",
+      "target": "function:packages/shared/src/print-agent-support-snapshot.ts:consumePrintAgentSupportToken",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-support-snapshot.ts",
+      "target": "function:packages/shared/src/print-agent-support-snapshot.ts:loadPrintAgentSupportSnapshot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-support-snapshot.ts",
+      "target": "function:packages/shared/src/print-agent-support-snapshot.ts:loadPrintAgentSupportSnapshot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.test.ts",
+      "target": "file:packages/shared/src/restaurant-features.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:groupRestaurantFeaturesByModule",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:groupRestaurantFeaturesByModule",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:getRestaurantFeatureModule",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:getRestaurantFeatureModule",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:normalizeRestaurantFeatureFlags",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:normalizeRestaurantFeatureFlags",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:isRestaurantFeatureEnabled",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:isRestaurantFeatureEnabled",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:parseFeatureFlagsPatch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:parseFeatureFlagsPatch",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:parseFeatureFlagsRecord",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:parseFeatureFlagsRecord",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:mergeRestaurantFeatureFlags",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:mergeRestaurantFeatureFlags",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:isDashboardKitchenShortcutEnabled",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-features.ts",
+      "target": "function:packages/shared/src/restaurant-features.ts:isDashboardKitchenShortcutEnabled",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/shared/src/restaurant-features.ts:isRestaurantFeatureEnabled",
+      "target": "function:packages/shared/src/restaurant-features.ts:normalizeRestaurantFeatureFlags",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/shared/src/restaurant-features.ts:mergeRestaurantFeatureFlags",
+      "target": "function:packages/shared/src/restaurant-features.ts:normalizeRestaurantFeatureFlags",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/shared/src/restaurant-features.ts:isDashboardKitchenShortcutEnabled",
+      "target": "function:packages/shared/src/restaurant-features.ts:isRestaurantFeatureEnabled",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-suspension.ts",
+      "target": "function:packages/shared/src/restaurant-suspension.ts:isRestaurantSuspended",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/restaurant-suspension.ts",
+      "target": "function:packages/shared/src/restaurant-suspension.ts:isRestaurantSuspended",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/staff-user-ban.ts",
+      "target": "function:packages/shared/src/staff-user-ban.ts:kickStaffUserSessions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/staff-user-ban.ts",
+      "target": "function:packages/shared/src/staff-user-ban.ts:kickStaffUserSessions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/staff-user-ban.ts",
+      "target": "function:packages/shared/src/staff-user-ban.ts:setStaffUserBanned",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/staff-user-ban.ts",
+      "target": "function:packages/shared/src/staff-user-ban.ts:setStaffUserBanned",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/ui/src/PasswordInput.tsx",
+      "target": "function:packages/ui/src/PasswordInput.tsx:EyeIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/ui/src/PasswordInput.tsx",
+      "target": "function:packages/ui/src/PasswordInput.tsx:EyeOffIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    }
+  ]
+}

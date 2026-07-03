@@ -1,0 +1,19 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {"path": "apps/print-agent/dev/Dockerfile.agent", "language": "dockerfile", "sizeLines": 12, "fileCategory": "infra"},
+    {"path": "apps/print-agent/dev/README.md", "language": "markdown", "sizeLines": 109, "fileCategory": "docs"},
+    {"path": "apps/print-agent/dev/config.docker.json", "language": "json", "sizeLines": 28, "fileCategory": "config"},
+    {"path": "apps/print-agent/dev/config.example.json", "language": "json", "sizeLines": 28, "fileCategory": "config"},
+    {"path": "apps/print-agent/dev/docker-compose.yml", "language": "yaml", "sizeLines": 67, "fileCategory": "infra"},
+    {"path": "apps/print-agent/dev/print-dev.sh", "language": "shell", "sizeLines": 99, "fileCategory": "script"}
+  ],
+  "batchImportData": {
+    "apps/print-agent/dev/Dockerfile.agent": [],
+    "apps/print-agent/dev/README.md": [],
+    "apps/print-agent/dev/config.docker.json": [],
+    "apps/print-agent/dev/config.example.json": [],
+    "apps/print-agent/dev/docker-compose.yml": [],
+    "apps/print-agent/dev/print-dev.sh": []
+  }
+}

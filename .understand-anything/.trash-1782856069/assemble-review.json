@@ -1,0 +1,15 @@
+{
+  "status": "approved_with_notes",
+  "issues": [],
+  "notes": [
+    "合并脚本已规范化节点 ID 与复杂度，并丢弃部分跨批次悬空 import 边（目标节点缺失）。",
+    "importMap 恢复补充了 5 条 imports 边；其余缺失目标多为跨批次引用，合并时已安全丢弃。",
+    "38 个批次全部产出 batch-N.json 或 part 文件，节点覆盖 759 个扫描文件中的绝大部分。",
+    "扫描清单中有 133 个文件未生成图节点（多为极小配置文件）。"
+  ],
+  "stats": {
+    "nodes": 1795,
+    "edges": 3551,
+    "missingFromScan": 133
+  }
+}

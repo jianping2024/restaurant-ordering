@@ -1,0 +1,1395 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/app/api/dashboard/abnormal-operations/[id]/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/dashboard/abnormal-operations/[id]/route.ts",
+      "summary": "店主仪表盘 PATCH API，用于更新单条异常操作记录的状态并触发审计。",
+      "tags": [
+        "api-handler",
+        "dashboard",
+        "abnormal-operations"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/abnormal-operations/[id]/route.ts:PATCH",
+      "type": "function",
+      "name": "PATCH",
+      "filePath": "apps/web/src/app/api/dashboard/abnormal-operations/[id]/route.ts",
+      "lineRange": [
+        13,
+        75
+      ],
+      "summary": "校验店主上下文与速率限制后 PATCH 异常操作状态并返回更新行。",
+      "tags": [
+        "api-handler",
+        "patch"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/app/api/dashboard/abnormal-operations/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/dashboard/abnormal-operations/route.ts",
+      "summary": "店主仪表盘 GET API，按筛选条件分页列出异常操作记录。",
+      "tags": [
+        "api-handler",
+        "dashboard",
+        "abnormal-operations"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/abnormal-operations/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/dashboard/abnormal-operations/route.ts",
+      "lineRange": [
+        11,
+        33
+      ],
+      "summary": "解析列表查询参数并返回异常操作分页结果。",
+      "tags": [
+        "api-handler",
+        "get"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/dashboard/close-table-session/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/dashboard/close-table-session/route.ts",
+      "summary": "仪表盘手动关台 API，校验操作者身份后关闭指定桌台会话。",
+      "tags": [
+        "api-handler",
+        "dashboard",
+        "table-session"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/dashboard/close-table-session/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/dashboard/close-table-session/route.ts",
+      "lineRange": [
+        9,
+        80
+      ],
+      "summary": "解析桌台 ID 与确认信息后执行手动关台并映射 UI 响应。",
+      "tags": [
+        "api-handler",
+        "table-session"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/checkout/apply-discount/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/checkout/apply-discount/route.ts",
+      "summary": "结账流程 POST API，对指定账单分单应用折扣并校验支付授权。",
+      "tags": [
+        "api-handler",
+        "checkout",
+        "discount"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/checkout/apply-discount/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/checkout/apply-discount/route.ts",
+      "lineRange": [
+        7,
+        71
+      ],
+      "summary": "校验账单分单与折扣参数，授权后调用 applyBillSplitDiscount。",
+      "tags": [
+        "api-handler",
+        "checkout"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/orders/[orderId]/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/kitchen/orders/[orderId]/route.ts",
+      "summary": "厨房员工 PATCH API，支持订单项作废/数量调整并写入审计日志。",
+      "tags": [
+        "api-handler",
+        "kitchen",
+        "order-void"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/orders/[orderId]/route.ts:PATCH",
+      "type": "function",
+      "name": "PATCH",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/kitchen/orders/[orderId]/route.ts",
+      "lineRange": [
+        10,
+        113
+      ],
+      "summary": "厨房员工认证后批量 PATCH 订单项并触发作废审计。",
+      "tags": [
+        "api-handler",
+        "kitchen"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/route.ts",
+      "summary": "服务员 PATCH API，在会话守卫下修改订单项并记录作废审计。",
+      "tags": [
+        "api-handler",
+        "waiter",
+        "order-void"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/route.ts:PATCH",
+      "type": "function",
+      "name": "PATCH",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/route.ts",
+      "lineRange": [
+        11,
+        112
+      ],
+      "summary": "服务员认证与会话守卫后 PATCH 订单项并记录审计。",
+      "tags": [
+        "api-handler",
+        "waiter"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "type": "file",
+      "name": "AbnormalOperationsManager.tsx",
+      "filePath": "apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "summary": "店主仪表盘异常操作管理 UI，提供筛选、列表、详情与状态变更交互。",
+      "tags": [
+        "component",
+        "dashboard",
+        "abnormal-operations"
+      ],
+      "complexity": "complex",
+      "languageNotes": "大型 React 客户端组件，组合 Modal、Toast 与 i18n。"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx:detectDatePreset",
+      "type": "function",
+      "name": "detectDatePreset",
+      "filePath": "apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "lineRange": [
+        53,
+        62
+      ],
+      "summary": "根据起止日期检测当前日期预设（今日/近7天/近30天等）。",
+      "tags": [
+        "utility",
+        "date"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx:AbnormalOperationsManager",
+      "type": "function",
+      "name": "AbnormalOperationsManager",
+      "filePath": "apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "lineRange": [
+        118,
+        627
+      ],
+      "summary": "异常操作管理主组件：筛选栏、数据表格、详情 Modal 与 PATCH 交互。",
+      "tags": [
+        "component",
+        "dashboard"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/lib/abnormal-operations-rate-limit.ts",
+      "type": "file",
+      "name": "abnormal-operations-rate-limit.ts",
+      "filePath": "apps/web/src/lib/abnormal-operations-rate-limit.ts",
+      "summary": "异常操作列表与 PATCH 请求的内存级速率限制封装。",
+      "tags": [
+        "utility",
+        "rate-limit",
+        "abnormal-operations"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/abnormal-operations-rate-limit.ts:abnormalOperationsListRateLimitCheck",
+      "type": "function",
+      "name": "abnormalOperationsListRateLimitCheck",
+      "filePath": "apps/web/src/lib/abnormal-operations-rate-limit.ts",
+      "lineRange": [
+        10,
+        17
+      ],
+      "summary": "对异常操作列表 GET 请求执行内存速率限制检查。",
+      "tags": [
+        "rate-limit",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/abnormal-operations-rate-limit.ts:abnormalOperationsPatchRateLimitCheck",
+      "type": "function",
+      "name": "abnormalOperationsPatchRateLimitCheck",
+      "filePath": "apps/web/src/lib/abnormal-operations-rate-limit.ts",
+      "lineRange": [
+        19,
+        26
+      ],
+      "summary": "对异常操作 PATCH 请求执行内存速率限制检查。",
+      "tags": [
+        "rate-limit",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/abnormal-operations.test.ts",
+      "type": "file",
+      "name": "abnormal-operations.test.ts",
+      "filePath": "apps/web/src/lib/abnormal-operations.test.ts",
+      "summary": "异常操作领域逻辑单元测试，覆盖日期范围解析与风险等级计算。",
+      "tags": [
+        "test",
+        "abnormal-operations"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/abnormal-operations.ts",
+      "type": "file",
+      "name": "abnormal-operations.ts",
+      "filePath": "apps/web/src/lib/abnormal-operations.ts",
+      "summary": "异常操作模块 barrel 文件，重导出查询、类型与日历工具。",
+      "tags": [
+        "barrel",
+        "abnormal-operations",
+        "entry-point"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/abnormal-operations/client-api.ts",
+      "type": "file",
+      "name": "client-api.ts",
+      "filePath": "apps/web/src/lib/abnormal-operations/client-api.ts",
+      "summary": "异常操作仪表盘客户端 fetch 封装，含列表查询与 PATCH 请求。",
+      "tags": [
+        "service",
+        "client-api",
+        "abnormal-operations"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/abnormal-operations/client-api.ts:toQuery",
+      "type": "function",
+      "name": "toQuery",
+      "filePath": "apps/web/src/lib/abnormal-operations/client-api.ts",
+      "lineRange": [
+        21,
+        34
+      ],
+      "summary": "将列表筛选对象序列化为 URL 查询参数字符串。",
+      "tags": [
+        "utility",
+        "serialization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/abnormal-operations/client-api.ts:fetchAbnormalOperations",
+      "type": "function",
+      "name": "fetchAbnormalOperations",
+      "filePath": "apps/web/src/lib/abnormal-operations/client-api.ts",
+      "lineRange": [
+        36,
+        56
+      ],
+      "summary": "调用仪表盘 API 获取异常操作列表 JSON。",
+      "tags": [
+        "client-api",
+        "fetch"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/abnormal-operations/client-api.ts:patchAbnormalOperationClient",
+      "type": "function",
+      "name": "patchAbnormalOperationClient",
+      "filePath": "apps/web/src/lib/abnormal-operations/client-api.ts",
+      "lineRange": [
+        58,
+        84
+      ],
+      "summary": "客户端 PATCH 单条异常操作并解析响应或错误。",
+      "tags": [
+        "client-api",
+        "patch"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/abnormal-operations/list-patch-merge.test.ts",
+      "type": "file",
+      "name": "list-patch-merge.test.ts",
+      "filePath": "apps/web/src/lib/abnormal-operations/list-patch-merge.test.ts",
+      "summary": "列表 PATCH 合并逻辑的单元测试，验证行级状态更新合并行为。",
+      "tags": [
+        "test",
+        "abnormal-operations"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/abnormal-operations/list-patch-merge.ts",
+      "type": "file",
+      "name": "list-patch-merge.ts",
+      "filePath": "apps/web/src/lib/abnormal-operations/list-patch-merge.ts",
+      "summary": "将 PATCH 响应合并回异常操作列表数据的纯函数工具。",
+      "tags": [
+        "utility",
+        "abnormal-operations"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/abnormal-operations/list-patch-merge.ts:mergePatchedAbnormalOperationRow",
+      "type": "function",
+      "name": "mergePatchedAbnormalOperationRow",
+      "filePath": "apps/web/src/lib/abnormal-operations/list-patch-merge.ts",
+      "lineRange": [
+        8,
+        37
+      ],
+      "summary": "用 PATCH 返回的行替换列表中对应 id 的条目。",
+      "tags": [
+        "utility",
+        "immutable-update"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/abnormal-operations/load-owner-context.ts",
+      "type": "file",
+      "name": "load-owner-context.ts",
+      "filePath": "apps/web/src/lib/abnormal-operations/load-owner-context.ts",
+      "summary": "加载店主异常操作 API 所需的 Supabase 客户端与审计操作者上下文。",
+      "tags": [
+        "service",
+        "auth",
+        "abnormal-operations"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/abnormal-operations/load-owner-context.ts:loadOwnerAbnormalOperationsContext",
+      "type": "function",
+      "name": "loadOwnerAbnormalOperationsContext",
+      "filePath": "apps/web/src/lib/abnormal-operations/load-owner-context.ts",
+      "lineRange": [
+        16,
+        40
+      ],
+      "summary": "加载店主仪表盘访问权限、Supabase admin 客户端与审计 actor。",
+      "tags": [
+        "auth",
+        "context-loader"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "type": "file",
+      "name": "owner-query.ts",
+      "filePath": "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "summary": "异常操作核心查询与状态机：列表、统计、风险分级及 PATCH 持久化。",
+      "tags": [
+        "service",
+        "data-model",
+        "abnormal-operations"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:riskLevelForVoidedItem",
+      "type": "function",
+      "name": "riskLevelForVoidedItem",
+      "filePath": "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "lineRange": [
+        68,
+        74
+      ],
+      "summary": "根据作废行金额计算异常操作风险等级。",
+      "tags": [
+        "business-rule",
+        "risk"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:riskLevelForDiscountRate",
+      "type": "function",
+      "name": "riskLevelForDiscountRate",
+      "filePath": "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "lineRange": [
+        76,
+        81
+      ],
+      "summary": "根据折扣比例计算异常操作风险等级。",
+      "tags": [
+        "business-rule",
+        "risk"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:parseAbnormalOperationsDateRange",
+      "type": "function",
+      "name": "parseAbnormalOperationsDateRange",
+      "filePath": "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "lineRange": [
+        83,
+        111
+      ],
+      "summary": "解析并校验异常操作查询的里斯本时区日期范围。",
+      "tags": [
+        "validation",
+        "date"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:compareAbnormalOperations",
+      "type": "function",
+      "name": "compareAbnormalOperations",
+      "filePath": "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "lineRange": [
+        113,
+        120
+      ],
+      "summary": "异常操作列表排序比较器（时间、风险等）。",
+      "tags": [
+        "utility",
+        "sorting"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:computeStats",
+      "type": "function",
+      "name": "computeStats",
+      "filePath": "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "lineRange": [
+        122,
+        137
+      ],
+      "summary": "聚合列表结果计算待处理/已确认等统计计数。",
+      "tags": [
+        "aggregation",
+        "stats"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:listAbnormalOperations",
+      "type": "function",
+      "name": "listAbnormalOperations",
+      "filePath": "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "lineRange": [
+        139,
+        191
+      ],
+      "summary": "按筛选条件查询 abnormal_operations 并附带统计与分页。",
+      "tags": [
+        "query",
+        "database"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:getAbnormalOperationById",
+      "type": "function",
+      "name": "getAbnormalOperationById",
+      "filePath": "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "lineRange": [
+        193,
+        207
+      ],
+      "summary": "按 ID 获取单条异常操作记录。",
+      "tags": [
+        "query",
+        "database"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:canTransitionAbnormalStatus",
+      "type": "function",
+      "name": "canTransitionAbnormalStatus",
+      "filePath": "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "lineRange": [
+        209,
+        215
+      ],
+      "summary": "校验异常操作状态流转是否合法。",
+      "tags": [
+        "validation",
+        "state-machine"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:patchAbnormalOperation",
+      "type": "function",
+      "name": "patchAbnormalOperation",
+      "filePath": "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "lineRange": [
+        217,
+        267
+      ],
+      "summary": "持久化异常操作状态/备注更新到数据库。",
+      "tags": [
+        "mutation",
+        "database"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/app/api/dashboard/abnormal-operations/[id]/route.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations-rate-limit.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/abnormal-operations/[id]/route.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations/load-owner-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/abnormal-operations/[id]/route.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations/patch-abnormal-operation.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/abnormal-operations/[id]/route.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/abnormal-operations/[id]/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/abnormal-operations/[id]/route.ts:PATCH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/abnormal-operations/[id]/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/abnormal-operations/[id]/route.ts:PATCH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/abnormal-operations/route.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations-rate-limit.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/abnormal-operations/route.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations/load-owner-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/abnormal-operations/route.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/abnormal-operations/route.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations/parse-list-query.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/abnormal-operations/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/abnormal-operations/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/abnormal-operations/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/abnormal-operations/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/close-table-session/route.ts",
+      "target": "file:apps/web/src/lib/close-table-session-ui.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/close-table-session/route.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/close-table-session/route.ts",
+      "target": "file:apps/web/src/lib/table-session/close-table-session.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/close-table-session/route.ts",
+      "target": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/close-table-session/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/close-table-session/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/dashboard/close-table-session/route.ts",
+      "target": "function:apps/web/src/app/api/dashboard/close-table-session/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/apply-discount/route.ts",
+      "target": "file:apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/apply-discount/route.ts",
+      "target": "file:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/apply-discount/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/checkout/apply-discount/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/apply-discount/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/checkout/apply-discount/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/orders/[orderId]/route.ts",
+      "target": "file:apps/web/src/lib/audit/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/orders/[orderId]/route.ts",
+      "target": "file:apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/orders/[orderId]/route.ts",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/orders/[orderId]/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/orders/[orderId]/route.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/orders/[orderId]/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/orders/[orderId]/route.ts:PATCH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/orders/[orderId]/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/orders/[orderId]/route.ts:PATCH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/route.ts",
+      "target": "file:apps/web/src/lib/audit/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/route.ts",
+      "target": "file:apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/route.ts",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/route.ts",
+      "target": "file:apps/web/src/lib/waiter-session-guard.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/route.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/route.ts:PATCH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/route.ts:PATCH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "target": "file:apps/web/src/components/ui/Modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "target": "file:apps/web/src/components/ui/Toast.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "target": "file:apps/web/src/lib/abnormal-operations.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "target": "file:apps/web/src/lib/abnormal-operations/client-api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "target": "file:apps/web/src/lib/abnormal-operations/list-patch-merge.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "target": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "target": "file:apps/web/src/lib/abnormal-operations/reason-display.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "target": "file:apps/web/src/lib/abnormal-operations/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx:detectDatePreset",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx:AbnormalOperationsManager",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx:AbnormalOperationsManager",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations-rate-limit.ts",
+      "target": "file:apps/web/src/lib/in-memory-rate-limit.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations-rate-limit.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations-rate-limit.ts:abnormalOperationsListRateLimitCheck",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations-rate-limit.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations-rate-limit.ts:abnormalOperationsListRateLimitCheck",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations-rate-limit.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations-rate-limit.ts:abnormalOperationsPatchRateLimitCheck",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations-rate-limit.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations-rate-limit.ts:abnormalOperationsPatchRateLimitCheck",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations.test.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations.test.ts",
+      "target": "file:apps/web/src/lib/audit/reasons.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/client-api.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/client-api.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/client-api.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/client-api.ts:toQuery",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/client-api.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/client-api.ts:fetchAbnormalOperations",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/client-api.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/client-api.ts:fetchAbnormalOperations",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/client-api.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/client-api.ts:patchAbnormalOperationClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/client-api.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/client-api.ts:patchAbnormalOperationClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/list-patch-merge.test.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations/list-patch-merge.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/list-patch-merge.test.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/list-patch-merge.test.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/list-patch-merge.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/list-patch-merge.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/list-patch-merge.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/list-patch-merge.ts:mergePatchedAbnormalOperationRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/list-patch-merge.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/list-patch-merge.ts:mergePatchedAbnormalOperationRow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/load-owner-context.ts",
+      "target": "file:apps/web/src/lib/audit/load-owner-dashboard-actor.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/load-owner-context.ts",
+      "target": "file:apps/web/src/lib/audit/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/load-owner-context.ts",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/load-owner-context.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/load-owner-context.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/load-owner-context.ts:loadOwnerAbnormalOperationsContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/load-owner-context.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/load-owner-context.ts:loadOwnerAbnormalOperationsContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "file:apps/web/src/lib/audit/reasons.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "file:apps/web/src/lib/lisbon-calendar.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:riskLevelForVoidedItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:riskLevelForVoidedItem",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:riskLevelForDiscountRate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:riskLevelForDiscountRate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:parseAbnormalOperationsDateRange",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:parseAbnormalOperationsDateRange",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:compareAbnormalOperations",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:compareAbnormalOperations",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:computeStats",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:listAbnormalOperations",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:listAbnormalOperations",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:getAbnormalOperationById",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:getAbnormalOperationById",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:canTransitionAbnormalStatus",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:canTransitionAbnormalStatus",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:patchAbnormalOperation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:patchAbnormalOperation",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/abnormal-operations/[id]/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/abnormal-operations/load-owner-context.ts:loadOwnerAbnormalOperationsContext",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/abnormal-operations/[id]/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/abnormal-operations-rate-limit.ts:abnormalOperationsPatchRateLimitCheck",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/abnormal-operations/[id]/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/abnormal-operations/patch-abnormal-operation.service.ts:patchAbnormalOperationWithAudit",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/abnormal-operations/route.ts:GET",
+      "target": "function:apps/web/src/lib/abnormal-operations/load-owner-context.ts:loadOwnerAbnormalOperationsContext",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/abnormal-operations/route.ts:GET",
+      "target": "function:apps/web/src/lib/abnormal-operations-rate-limit.ts:abnormalOperationsListRateLimitCheck",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/abnormal-operations/route.ts:GET",
+      "target": "function:apps/web/src/lib/abnormal-operations/parse-list-query.ts:parseAbnormalOperationsListQuery",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/abnormal-operations/route.ts:GET",
+      "target": "function:apps/web/src/lib/abnormal-operations/owner-query.ts:listAbnormalOperations",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/close-table-session/route.ts:POST",
+      "target": "function:apps/web/src/lib/table-session/load-close-table-actor.ts:loadCloseTableSessionActor",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/dashboard/close-table-session/route.ts:POST",
+      "target": "function:apps/web/src/lib/table-session/close-table-session.service.ts:closeTableSessionManual",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/checkout/apply-discount/route.ts:POST",
+      "target": "function:apps/web/src/lib/checkout-confirm-payment-auth.ts:authorizeCheckoutConfirmPayment",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/checkout/apply-discount/route.ts:POST",
+      "target": "function:apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts:applyBillSplitDiscount",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/orders/[orderId]/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/order-item-void/patch-order-items.service.ts:patchOrderItemsWithVoidAudit",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/order-item-void/patch-order-items.service.ts:patchOrderItemsWithVoidAudit",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx:AbnormalOperationsManager",
+      "target": "function:apps/web/src/lib/abnormal-operations/client-api.ts:fetchAbnormalOperations",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx:AbnormalOperationsManager",
+      "target": "function:apps/web/src/lib/abnormal-operations/client-api.ts:patchAbnormalOperationClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/abnormal-operations/list-patch-merge.ts",
+      "target": "file:apps/web/src/lib/abnormal-operations/list-patch-merge.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

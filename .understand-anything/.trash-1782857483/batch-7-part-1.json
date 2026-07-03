@@ -1,0 +1,1284 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/app/[slug]/bill/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/[slug]/bill/page.tsx",
+      "summary": "顾客账单路由页（Server Component），加载餐厅门禁、桌台会话与菜单编码后渲染 BillPage。",
+      "tags": [
+        "entry-point",
+        "server-component",
+        "customer",
+        "billing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/[slug]/bill/page.tsx:BillRoute",
+      "type": "function",
+      "name": "BillRoute",
+      "filePath": "apps/web/src/app/[slug]/bill/page.tsx",
+      "lineRange": [
+        19,
+        111
+      ],
+      "summary": "账单路由默认导出，服务端加载数据并渲染 BillPage 或维护页。",
+      "tags": [
+        "server-component",
+        "routing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/[slug]/menu/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/[slug]/menu/page.tsx",
+      "summary": "顾客菜单路由页，校验维护状态与会话上下文后渲染 MenuPage，并导出 generateMetadata。",
+      "tags": [
+        "entry-point",
+        "server-component",
+        "customer",
+        "menu"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/[slug]/menu/page.tsx:CustomerMenuPage",
+      "type": "function",
+      "name": "CustomerMenuPage",
+      "filePath": "apps/web/src/app/[slug]/menu/page.tsx",
+      "lineRange": [
+        14,
+        66
+      ],
+      "summary": "顾客菜单页主体，加载会话后渲染 MenuPage。",
+      "tags": [
+        "server-component",
+        "routing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/[slug]/menu/page.tsx:generateMetadata",
+      "type": "function",
+      "name": "generateMetadata",
+      "filePath": "apps/web/src/app/[slug]/menu/page.tsx",
+      "lineRange": [
+        68,
+        80
+      ],
+      "summary": "为顾客菜单页生成 SEO metadata。",
+      "tags": [
+        "seo",
+        "metadata"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts",
+      "summary": "结账请求 API（POST），解析分账人员与葡萄牙 NIF 后委托 checkout-request-server 提交结账。",
+      "tags": [
+        "api-handler",
+        "checkout",
+        "payment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts:parsePersons",
+      "type": "function",
+      "name": "parsePersons",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts",
+      "lineRange": [
+        16,
+        75
+      ],
+      "summary": "解析结账请求体中的分账人员列表与金额分配。",
+      "tags": [
+        "validation",
+        "checkout"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts:parseResult",
+      "type": "function",
+      "name": "parseResult",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts",
+      "lineRange": [
+        77,
+        89
+      ],
+      "summary": "将结账服务结果映射为 API 响应 JSON。",
+      "tags": [
+        "serialization",
+        "checkout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts",
+      "lineRange": [
+        91,
+        163
+      ],
+      "summary": "处理 HTTP POST 请求的路由处理器。",
+      "tags": [
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/customer/bill/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/customer/bill/route.ts",
+      "summary": "顾客账单 API（GET），基于会话上下文返回当前桌台订单与分账状态。",
+      "tags": [
+        "api-handler",
+        "customer",
+        "billing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/customer/bill/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/customer/bill/route.ts",
+      "lineRange": [
+        12,
+        75
+      ],
+      "summary": "处理 HTTP GET 请求的路由处理器。",
+      "tags": [
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/customer/session/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/customer/session/route.ts",
+      "summary": "顾客会话 API（GET），返回桌台会话、订单列表及顾客侧上下文快照。",
+      "tags": [
+        "api-handler",
+        "customer",
+        "session"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/customer/session/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/customer/session/route.ts",
+      "lineRange": [
+        11,
+        56
+      ],
+      "summary": "处理 HTTP GET 请求的路由处理器。",
+      "tags": [
+        "api-handler"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "summary": "追加订单 API（POST），校验购物车、地理围栏、速率限制后写入订单并确保开台会话。",
+      "tags": [
+        "api-handler",
+        "ordering",
+        "validation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "lineRange": [
+        26,
+        222
+      ],
+      "summary": "处理 HTTP POST 请求的路由处理器。",
+      "tags": [
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts",
+      "summary": "服务员自助餐开台 API（POST），鉴权后规划并应用 buffet 开台写入与桌台会话更新。",
+      "tags": [
+        "api-handler",
+        "waiter",
+        "buffet"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts",
+      "lineRange": [
+        12,
+        167
+      ],
+      "summary": "处理 HTTP POST 请求的路由处理器。",
+      "tags": [
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts",
+      "summary": "档口小票自动入队 API（POST），校验入队令牌与速率限制后触发 station-ticket 入队。",
+      "tags": [
+        "api-handler",
+        "kitchen",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts",
+      "lineRange": [
+        12,
+        127
+      ],
+      "summary": "处理 HTTP POST 请求的路由处理器。",
+      "tags": [
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/page.tsx",
+      "summary": "店主仪表盘入口 Server 页，加载访问权限与概览数据后渲染 DashboardPageClient。",
+      "tags": [
+        "entry-point",
+        "dashboard",
+        "owner"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/page.tsx:DashboardPage",
+      "type": "function",
+      "name": "DashboardPage",
+      "filePath": "apps/web/src/app/dashboard/page.tsx",
+      "lineRange": [
+        6,
+        29
+      ],
+      "summary": "仪表盘 Server 页，鉴权并传递概览数据给客户端。",
+      "tags": [
+        "server-component",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/demo/menu/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/demo/menu/page.tsx",
+      "summary": "演示菜单页，使用 demo-data 静态餐厅与桌台数据展示 MenuPage 组件。",
+      "tags": [
+        "entry-point",
+        "demo",
+        "menu"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/demo/menu/page.tsx:DemoMenuPage",
+      "type": "function",
+      "name": "DemoMenuPage",
+      "filePath": "apps/web/src/app/demo/menu/page.tsx",
+      "lineRange": [
+        50,
+        70
+      ],
+      "summary": "演示菜单页组件，注入 demo 餐厅与桌台 props。",
+      "tags": [
+        "demo",
+        "menu"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "type": "file",
+      "name": "DashboardPageClient.tsx",
+      "filePath": "apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "summary": "仪表盘客户端主界面，展示今日 KPI、热销榜、反馈洞察、待处理结账与最近订单。",
+      "tags": [
+        "component",
+        "dashboard",
+        "analytics"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/DashboardPageClient.tsx:DashboardPageClient",
+      "type": "function",
+      "name": "DashboardPageClient",
+      "filePath": "apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "lineRange": [
+        34,
+        251
+      ],
+      "summary": "仪表盘交互 UI，渲染 KPI 卡片、热销、反馈与订单列表。",
+      "tags": [
+        "component",
+        "dashboard"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx",
+      "type": "file",
+      "name": "DashboardTopSellingPanel.tsx",
+      "filePath": "apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx",
+      "summary": "仪表盘热销菜品面板，以条形单元格可视化销量并复用 ValueAnalyticsTopTable。",
+      "tags": [
+        "component",
+        "dashboard",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx:quantityBarCell",
+      "type": "function",
+      "name": "quantityBarCell",
+      "filePath": "apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx",
+      "lineRange": [
+        24,
+        35
+      ],
+      "summary": "渲染热销菜品销量条形图单元格。",
+      "tags": [
+        "visualization",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx:DashboardTopSellingPanel",
+      "type": "function",
+      "name": "DashboardTopSellingPanel",
+      "filePath": "apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx",
+      "lineRange": [
+        37,
+        81
+      ],
+      "summary": "热销面板容器，组合条形单元格与排行表格。",
+      "tags": [
+        "component",
+        "analytics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/FeedbackInsightsPanel.tsx",
+      "type": "file",
+      "name": "FeedbackInsightsPanel.tsx",
+      "filePath": "apps/web/src/components/dashboard/FeedbackInsightsPanel.tsx",
+      "summary": "顾客反馈洞察面板，汇总评分分布、常见标签与近期评论摘要。",
+      "tags": [
+        "component",
+        "dashboard",
+        "feedback"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/FeedbackInsightsPanel.tsx:FeedbackInsightsPanel",
+      "type": "function",
+      "name": "FeedbackInsightsPanel",
+      "filePath": "apps/web/src/components/dashboard/FeedbackInsightsPanel.tsx",
+      "lineRange": [
+        39,
+        135
+      ],
+      "summary": "展示反馈评分、标签云与样例评论。",
+      "tags": [
+        "component",
+        "feedback"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx",
+      "type": "file",
+      "name": "ValueAnalyticsTopTable.tsx",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx",
+      "summary": "可复用的热销排行表格组件，展示菜品名称、销量与收入列。",
+      "tags": [
+        "component",
+        "analytics",
+        "table"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx:ValueAnalyticsTopTable",
+      "type": "function",
+      "name": "ValueAnalyticsTopTable",
+      "filePath": "apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx",
+      "lineRange": [
+        18,
+        77
+      ],
+      "summary": "渲染热销菜品表格行与列头。",
+      "tags": [
+        "component",
+        "table"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/app/[slug]/bill/page.tsx",
+      "target": "file:apps/web/src/components/customer/RestaurantMaintenancePage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/bill/page.tsx",
+      "target": "file:apps/web/src/components/menu/BillPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/bill/page.tsx",
+      "target": "file:apps/web/src/lib/customer-session-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/bill/page.tsx",
+      "target": "file:apps/web/src/lib/menu-item-code.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/bill/page.tsx",
+      "target": "file:apps/web/src/lib/staff-routes.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/bill/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/bill/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/bill/page.tsx:BillRoute",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/bill/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/bill/page.tsx:BillRoute",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/menu/page.tsx",
+      "target": "file:apps/web/src/components/customer/RestaurantMaintenancePage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/menu/page.tsx",
+      "target": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/menu/page.tsx",
+      "target": "file:apps/web/src/lib/customer-session-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/menu/page.tsx",
+      "target": "file:apps/web/src/lib/staff-routes.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/menu/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/menu/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/menu/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/menu/page.tsx:CustomerMenuPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/menu/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/menu/page.tsx:CustomerMenuPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/menu/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/menu/page.tsx:generateMetadata",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/menu/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/menu/page.tsx:generateMetadata",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts",
+      "target": "file:apps/web/src/lib/checkout-request-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts",
+      "target": "file:apps/web/src/lib/customer-session-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts",
+      "target": "file:apps/web/src/lib/pt-nif.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts:parsePersons",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts:parseResult",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/customer/bill/route.ts",
+      "target": "file:apps/web/src/lib/customer-session-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/customer/bill/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/customer/bill/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/customer/bill/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/customer/bill/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/customer/bill/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/customer/session/route.ts",
+      "target": "file:apps/web/src/lib/customer-session-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/customer/session/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/customer/session/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/customer/session/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/customer/session/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/customer/session/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "target": "file:apps/web/src/lib/cart-totals.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "target": "file:apps/web/src/lib/customer-session-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "target": "file:apps/web/src/lib/geo-distance.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "target": "file:apps/web/src/lib/guest-table-ordering.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "target": "file:apps/web/src/lib/order-append-rate-limit.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "target": "file:apps/web/src/lib/order-enqueue-token.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "target": "file:apps/web/src/lib/order-radius.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "target": "file:apps/web/src/lib/order-status.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "target": "file:apps/web/src/lib/request-client-ip.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "target": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "target": "file:apps/web/src/lib/table-session-open.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts",
+      "target": "file:apps/web/src/lib/buffet-open-table.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts",
+      "target": "file:apps/web/src/lib/buffet-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts",
+      "target": "file:apps/web/src/lib/staff-board.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts",
+      "target": "file:apps/web/src/lib/table-session-open.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts",
+      "target": "file:apps/web/src/lib/customer-session-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts",
+      "target": "file:apps/web/src/lib/order-enqueue-token.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts",
+      "target": "file:apps/web/src/lib/request-client-ip.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts",
+      "target": "file:apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts",
+      "target": "file:apps/web/src/lib/station-ticket-enqueue.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/page.tsx",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/page.tsx",
+      "target": "file:apps/web/src/lib/dashboard-overview.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/page.tsx:DashboardPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/page.tsx:DashboardPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/demo/menu/page.tsx",
+      "target": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/demo/menu/page.tsx",
+      "target": "file:apps/web/src/lib/demo-data.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/demo/menu/page.tsx",
+      "target": "file:apps/web/src/lib/menu-vat-rate.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/demo/menu/page.tsx",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/demo/menu/page.tsx",
+      "target": "file:apps/web/src/lib/staff-routes.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/demo/menu/page.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/demo/menu/page.tsx",
+      "target": "function:apps/web/src/app/demo/menu/page.tsx:DemoMenuPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/demo/menu/page.tsx",
+      "target": "function:apps/web/src/app/demo/menu/page.tsx:DemoMenuPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "target": "file:apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "target": "file:apps/web/src/components/dashboard/FeedbackInsightsPanel.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "target": "file:apps/web/src/lib/buffet-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "target": "file:apps/web/src/lib/dashboard-overview.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "target": "file:apps/web/src/lib/format-dashboard-date.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "target": "file:apps/web/src/lib/order-list-display.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardPageClient.tsx:DashboardPageClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardPageClient.tsx:DashboardPageClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx",
+      "target": "file:apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx",
+      "target": "file:apps/web/src/lib/dashboard-overview.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx:quantityBarCell",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx:DashboardTopSellingPanel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx:DashboardTopSellingPanel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/FeedbackInsightsPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/FeedbackInsightsPanel.tsx:FeedbackInsightsPanel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/FeedbackInsightsPanel.tsx",
+      "target": "function:apps/web/src/components/dashboard/FeedbackInsightsPanel.tsx:FeedbackInsightsPanel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx:ValueAnalyticsTopTable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx",
+      "target": "function:apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx:ValueAnalyticsTopTable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/bill/page.tsx",
+      "target": "file:apps/web/src/components/menu/BillPage.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/menu/page.tsx",
+      "target": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/app/demo/menu/page.tsx",
+      "target": "file:apps/web/src/components/menu/MenuPage.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "target": "file:apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "target": "file:apps/web/src/components/dashboard/FeedbackInsightsPanel.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx",
+      "target": "file:apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts:POST",
+      "target": "function:apps/web/src/lib/checkout-request-server.ts:submitCheckoutRequestForTable",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts:POST",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:resolveAppendCartItems",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts:POST",
+      "target": "function:apps/web/src/lib/table-session-open.ts:ensureOpenTableSession",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts:POST",
+      "target": "function:apps/web/src/lib/buffet-open-table.ts:planBuffetOpenWrites",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts:POST",
+      "target": "function:apps/web/src/lib/station-ticket-enqueue.ts:enqueueStationTicketsForOrder",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/[slug]/bill/page.tsx:BillRoute",
+      "target": "function:apps/web/src/lib/customer-session-context.ts:loadCustomerRestaurantGate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

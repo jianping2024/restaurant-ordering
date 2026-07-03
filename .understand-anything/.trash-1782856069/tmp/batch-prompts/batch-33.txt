@@ -1,0 +1,46 @@
+Analyze these files and produce GraphNode and GraphEdge objects.
+Project root: `/Users/chenjianping/Documents/restaurant-ordering`
+Project: `undefined` — undefined
+Languages: ["config","css","dockerfile","go","html","iss","javascript","json","markdown","mod","mts","powershell","python","shell","sql","sum","txt","typescript","unknown","yaml"]
+Batch: `33/38`
+Skill directory: `/Users/chenjianping/.cursor/plugins/cache/understand-anything/understand-anything/54754a6f97051d1d76c8758353d8ea41afe502a6/skills/understand`
+Output: `/Users/chenjianping/Documents/restaurant-ordering/.understand-anything/intermediate/batch-33.json`
+
+Pre-resolved import data:
+```json
+{"apps/print-agent/brand.go":[],"apps/print-agent/config_reload.go":[],"apps/print-agent/config_test.go":[],"apps/print-agent/config.go":[],"apps/print-agent/configure_ui_dom_test.go":[],"apps/print-agent/configure_wizard.go":[],"apps/print-agent/console_stub.go":[],"apps/print-agent/console_windows.go":[],"apps/print-agent/credential_expiry_test.go":[],"apps/print-agent/credential_expiry.go":[],"apps/print-agent/dev/fake-printer/go.mod":[],"apps/print-agent/dev/fake-printer/main.go":[],"apps/print-agent/discover.go":[],"apps/print-agent/escpos_cut_test.go":[],"apps/print-agent/escpos_encoding_test.go":[],"apps/print-agent/escpos_encoding.go":[],"apps/print-agent/escpos_receipt_test.go":[],"apps/print-agent/escpos_station_test.go":[],"apps/print-agent/escpos_zh_encoding_test.go":[],"apps/print-agent/escpos.go":[],"apps/print-agent/heartbeat_test.go":[],"apps/print-agent/heartbeat.go":[],"apps/print-agent/installer/mesa-print-agent.iss":[],"apps/print-agent/job_max_age_test.go":[],"apps/print-agent/job_max_age.go":[]}
+```
+
+Cross-batch neighbors:
+```json
+{}
+```
+
+Files:
+1. `apps/print-agent/brand.go` (8 lines, language: `go`, fileCategory: `code`)
+2. `apps/print-agent/config_reload.go` (17 lines, language: `go`, fileCategory: `code`)
+3. `apps/print-agent/config_test.go` (94 lines, language: `go`, fileCategory: `code`)
+4. `apps/print-agent/config.go` (218 lines, language: `go`, fileCategory: `code`)
+5. `apps/print-agent/configure_ui_dom_test.go` (59 lines, language: `go`, fileCategory: `code`)
+6. `apps/print-agent/configure_wizard.go` (96 lines, language: `go`, fileCategory: `code`)
+7. `apps/print-agent/console_stub.go` (5 lines, language: `go`, fileCategory: `code`)
+8. `apps/print-agent/console_windows.go` (144 lines, language: `go`, fileCategory: `code`)
+9. `apps/print-agent/credential_expiry_test.go` (23 lines, language: `go`, fileCategory: `code`)
+10. `apps/print-agent/credential_expiry.go` (79 lines, language: `go`, fileCategory: `code`)
+11. `apps/print-agent/dev/fake-printer/go.mod` (3 lines, language: `mod`, fileCategory: `config`)
+12. `apps/print-agent/dev/fake-printer/main.go` (125 lines, language: `go`, fileCategory: `code`)
+13. `apps/print-agent/discover.go` (195 lines, language: `go`, fileCategory: `code`)
+14. `apps/print-agent/escpos_cut_test.go` (114 lines, language: `go`, fileCategory: `code`)
+15. `apps/print-agent/escpos_encoding_test.go` (87 lines, language: `go`, fileCategory: `code`)
+16. `apps/print-agent/escpos_encoding.go` (171 lines, language: `go`, fileCategory: `code`)
+17. `apps/print-agent/escpos_receipt_test.go` (284 lines, language: `go`, fileCategory: `code`)
+18. `apps/print-agent/escpos_station_test.go` (109 lines, language: `go`, fileCategory: `code`)
+19. `apps/print-agent/escpos_zh_encoding_test.go` (93 lines, language: `go`, fileCategory: `code`)
+20. `apps/print-agent/escpos.go` (828 lines, language: `go`, fileCategory: `code`)
+21. `apps/print-agent/heartbeat_test.go` (22 lines, language: `go`, fileCategory: `code`)
+22. `apps/print-agent/heartbeat.go` (79 lines, language: `go`, fileCategory: `code`)
+23. `apps/print-agent/installer/mesa-print-agent.iss` (50 lines, language: `iss`, fileCategory: `code`)
+24. `apps/print-agent/job_max_age_test.go` (17 lines, language: `go`, fileCategory: `code`)
+25. `apps/print-agent/job_max_age.go` (16 lines, language: `go`, fileCategory: `code`)
+
+> **Language directive**: Generate all textual content in **zh** (Chinese). Keep technical terms in English when no standard translation exists.

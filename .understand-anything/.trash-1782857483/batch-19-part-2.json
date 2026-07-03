@@ -1,0 +1,1376 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/checkout-request-state.ts",
+      "type": "file",
+      "name": "checkout-request-state.ts",
+      "filePath": "apps/web/src/lib/checkout-request-state.ts",
+      "summary": "结账请求客户端状态工具：合并刷新数据、生成处理中 key，并判断请求是否忙碌。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-request-state.ts:mergeSplitResultPaid",
+      "type": "function",
+      "name": "mergeSplitResultPaid",
+      "filePath": "apps/web/src/lib/checkout-request-state.ts",
+      "lineRange": [
+        4,
+        23
+      ],
+      "summary": "函数 mergeSplitResultPaid，实现 checkout-request-state 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-request-state.ts:mergeBillSplitsFromRefresh",
+      "type": "function",
+      "name": "mergeBillSplitsFromRefresh",
+      "filePath": "apps/web/src/lib/checkout-request-state.ts",
+      "lineRange": [
+        26,
+        39
+      ],
+      "summary": "函数 mergeBillSplitsFromRefresh，实现 checkout-request-state 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-request-state.ts:checkoutPersonKey",
+      "type": "function",
+      "name": "checkoutPersonKey",
+      "filePath": "apps/web/src/lib/checkout-request-state.ts",
+      "lineRange": [
+        41,
+        43
+      ],
+      "summary": "函数 checkoutPersonKey，实现 checkout-request-state 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-request-state.ts:checkoutBillPrintKey",
+      "type": "function",
+      "name": "checkoutBillPrintKey",
+      "filePath": "apps/web/src/lib/checkout-request-state.ts",
+      "lineRange": [
+        45,
+        47
+      ],
+      "summary": "函数 checkoutBillPrintKey，实现 checkout-request-state 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-request-state.ts:checkoutResumeOrderingKey",
+      "type": "function",
+      "name": "checkoutResumeOrderingKey",
+      "filePath": "apps/web/src/lib/checkout-request-state.ts",
+      "lineRange": [
+        49,
+        51
+      ],
+      "summary": "函数 checkoutResumeOrderingKey，实现 checkout-request-state 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-request-state.ts:isCheckoutRequestBusy",
+      "type": "function",
+      "name": "isCheckoutRequestBusy",
+      "filePath": "apps/web/src/lib/checkout-request-state.ts",
+      "lineRange": [
+        53,
+        60
+      ],
+      "summary": "函数 isCheckoutRequestBusy，实现 checkout-request-state 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-session-lines.ts",
+      "type": "file",
+      "name": "checkout-session-lines.ts",
+      "filePath": "apps/web/src/lib/checkout-session-lines.ts",
+      "summary": "服务端/客户端共享工具库 checkout-session-lines.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-session-lines.ts:checkoutLinesFromOrders",
+      "type": "function",
+      "name": "checkoutLinesFromOrders",
+      "filePath": "apps/web/src/lib/checkout-session-lines.ts",
+      "lineRange": [
+        19,
+        38
+      ],
+      "summary": "函数 checkoutLinesFromOrders，实现 checkout-session-lines 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-session-payments.test.ts",
+      "type": "file",
+      "name": "checkout-session-payments.test.ts",
+      "filePath": "apps/web/src/lib/checkout-session-payments.test.ts",
+      "summary": "服务端/客户端共享工具库 checkout-session-payments.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-session-payments.test.ts:billSplit",
+      "type": "function",
+      "name": "billSplit",
+      "filePath": "apps/web/src/lib/checkout-session-payments.test.ts",
+      "lineRange": [
+        14,
+        30
+      ],
+      "summary": "函数 billSplit，实现 checkout-session-payments.test 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "type": "file",
+      "name": "checkout-session-payments.ts",
+      "filePath": "apps/web/src/lib/checkout-session-payments.ts",
+      "summary": "结账收款领域逻辑：解析 session_collected_payments、按人汇总、计算建议收款额，并判断恢复点餐条件。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-session-payments.ts:unpaidSplitRowsWithIndex",
+      "type": "function",
+      "name": "unpaidSplitRowsWithIndex",
+      "filePath": "apps/web/src/lib/checkout-session-payments.ts",
+      "lineRange": [
+        10,
+        14
+      ],
+      "summary": "函数 unpaidSplitRowsWithIndex，实现 checkout-session-payments 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-session-payments.ts:parseSessionCollectedPayments",
+      "type": "function",
+      "name": "parseSessionCollectedPayments",
+      "filePath": "apps/web/src/lib/checkout-session-payments.ts",
+      "lineRange": [
+        26,
+        41
+      ],
+      "summary": "解析/规范化工具函数 parseSessionCollectedPayments。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-session-payments.ts:parseSessionCollectedPaymentsWithSession",
+      "type": "function",
+      "name": "parseSessionCollectedPaymentsWithSession",
+      "filePath": "apps/web/src/lib/checkout-session-payments.ts",
+      "lineRange": [
+        43,
+        59
+      ],
+      "summary": "解析/规范化工具函数 parseSessionCollectedPaymentsWithSession。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-session-payments.ts:sumCollectedByPersonName",
+      "type": "function",
+      "name": "sumCollectedByPersonName",
+      "filePath": "apps/web/src/lib/checkout-session-payments.ts",
+      "lineRange": [
+        61,
+        71
+      ],
+      "summary": "函数 sumCollectedByPersonName，实现 checkout-session-payments 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-session-payments.ts:totalCollectedAmount",
+      "type": "function",
+      "name": "totalCollectedAmount",
+      "filePath": "apps/web/src/lib/checkout-session-payments.ts",
+      "lineRange": [
+        73,
+        75
+      ],
+      "summary": "函数 totalCollectedAmount，实现 checkout-session-payments 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-session-payments.ts:suggestedCollectionAmount",
+      "type": "function",
+      "name": "suggestedCollectionAmount",
+      "filePath": "apps/web/src/lib/checkout-session-payments.ts",
+      "lineRange": [
+        78,
+        86
+      ],
+      "summary": "函数 suggestedCollectionAmount，实现 checkout-session-payments 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-session-payments.ts:isWholeTableSplit",
+      "type": "function",
+      "name": "isWholeTableSplit",
+      "filePath": "apps/web/src/lib/checkout-session-payments.ts",
+      "lineRange": [
+        88,
+        90
+      ],
+      "summary": "函数 isWholeTableSplit，实现 checkout-session-payments 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-session-payments.ts:hasConfirmedPerson",
+      "type": "function",
+      "name": "hasConfirmedPerson",
+      "filePath": "apps/web/src/lib/checkout-session-payments.ts",
+      "lineRange": [
+        92,
+        94
+      ],
+      "summary": "函数 hasConfirmedPerson，实现 checkout-session-payments 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-session-payments.ts:resumeOrderingConfirmVariant",
+      "type": "function",
+      "name": "resumeOrderingConfirmVariant",
+      "filePath": "apps/web/src/lib/checkout-session-payments.ts",
+      "lineRange": [
+        104,
+        113
+      ],
+      "summary": "函数 resumeOrderingConfirmVariant，实现 checkout-session-payments 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-session-payments.ts:resumeCheckoutBlockReason",
+      "type": "function",
+      "name": "resumeCheckoutBlockReason",
+      "filePath": "apps/web/src/lib/checkout-session-payments.ts",
+      "lineRange": [
+        115,
+        123
+      ],
+      "summary": "函数 resumeCheckoutBlockReason，实现 checkout-session-payments 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-session-payments.ts:httpStatusForResumeOrderingRpcCode",
+      "type": "function",
+      "name": "httpStatusForResumeOrderingRpcCode",
+      "filePath": "apps/web/src/lib/checkout-session-payments.ts",
+      "lineRange": [
+        125,
+        132
+      ],
+      "summary": "函数 httpStatusForResumeOrderingRpcCode，实现 checkout-session-payments 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-settlement.test.ts",
+      "type": "file",
+      "name": "checkout-settlement.test.ts",
+      "filePath": "apps/web/src/lib/checkout-settlement.test.ts",
+      "summary": "服务端/客户端共享工具库 checkout-settlement.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-settlement.test.ts:billSplit",
+      "type": "function",
+      "name": "billSplit",
+      "filePath": "apps/web/src/lib/checkout-settlement.test.ts",
+      "lineRange": [
+        13,
+        32
+      ],
+      "summary": "函数 billSplit，实现 checkout-settlement.test 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-settlement.ts",
+      "type": "file",
+      "name": "checkout-settlement.ts",
+      "filePath": "apps/web/src/lib/checkout-settlement.ts",
+      "summary": "结账结算摘要与展示工具：汇总消费/应付/已收/待收、付款进度、分账模式标签与等待时长格式化。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-settlement.ts:buildCheckoutSettlementSummary",
+      "type": "function",
+      "name": "buildCheckoutSettlementSummary",
+      "filePath": "apps/web/src/lib/checkout-settlement.ts",
+      "lineRange": [
+        16,
+        31
+      ],
+      "summary": "函数 buildCheckoutSettlementSummary，实现 checkout-settlement 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-settlement.ts:checkoutPaymentProgress",
+      "type": "function",
+      "name": "checkoutPaymentProgress",
+      "filePath": "apps/web/src/lib/checkout-settlement.ts",
+      "lineRange": [
+        33,
+        42
+      ],
+      "summary": "函数 checkoutPaymentProgress，实现 checkout-settlement 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-settlement.ts:hasCheckoutCollections",
+      "type": "function",
+      "name": "hasCheckoutCollections",
+      "filePath": "apps/web/src/lib/checkout-settlement.ts",
+      "lineRange": [
+        44,
+        50
+      ],
+      "summary": "函数 hasCheckoutCollections，实现 checkout-settlement 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-settlement.ts:checkoutSplitModeLabel",
+      "type": "function",
+      "name": "checkoutSplitModeLabel",
+      "filePath": "apps/web/src/lib/checkout-settlement.ts",
+      "lineRange": [
+        52,
+        60
+      ],
+      "summary": "函数 checkoutSplitModeLabel，实现 checkout-settlement 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-settlement.ts:checkoutRowCollectAmount",
+      "type": "function",
+      "name": "checkoutRowCollectAmount",
+      "filePath": "apps/web/src/lib/checkout-settlement.ts",
+      "lineRange": [
+        63,
+        69
+      ],
+      "summary": "函数 checkoutRowCollectAmount，实现 checkout-settlement 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-settlement.ts:formatCheckoutWaitDuration",
+      "type": "function",
+      "name": "formatCheckoutWaitDuration",
+      "filePath": "apps/web/src/lib/checkout-settlement.ts",
+      "lineRange": [
+        71,
+        79
+      ],
+      "summary": "函数 formatCheckoutWaitDuration，实现 checkout-settlement 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-settlement.ts:groupCollectedPaymentsBySession",
+      "type": "function",
+      "name": "groupCollectedPaymentsBySession",
+      "filePath": "apps/web/src/lib/checkout-settlement.ts",
+      "lineRange": [
+        81,
+        96
+      ],
+      "summary": "函数 groupCollectedPaymentsBySession，实现 checkout-settlement 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-split-math.test.ts",
+      "type": "file",
+      "name": "checkout-split-math.test.ts",
+      "filePath": "apps/web/src/lib/checkout-split-math.test.ts",
+      "summary": "服务端/客户端共享工具库 checkout-split-math.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-math.test.ts:billSplit",
+      "type": "function",
+      "name": "billSplit",
+      "filePath": "apps/web/src/lib/checkout-split-math.test.ts",
+      "lineRange": [
+        13,
+        29
+      ],
+      "summary": "函数 billSplit，实现 checkout-split-math.test 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-split-math.ts",
+      "type": "file",
+      "name": "checkout-split-math.ts",
+      "filePath": "apps/web/src/lib/checkout-split-math.ts",
+      "summary": "分账金额数学库：规范化分账行、折扣钳制与应用、计算应付总额。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-math.ts:normalizeSplitRows",
+      "type": "function",
+      "name": "normalizeSplitRows",
+      "filePath": "apps/web/src/lib/checkout-split-math.ts",
+      "lineRange": [
+        3,
+        10
+      ],
+      "summary": "解析/规范化工具函数 normalizeSplitRows。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-math.ts:clampCheckoutDiscountRate",
+      "type": "function",
+      "name": "clampCheckoutDiscountRate",
+      "filePath": "apps/web/src/lib/checkout-split-math.ts",
+      "lineRange": [
+        12,
+        14
+      ],
+      "summary": "函数 clampCheckoutDiscountRate，实现 checkout-split-math 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-math.ts:applyDiscountToRows",
+      "type": "function",
+      "name": "applyDiscountToRows",
+      "filePath": "apps/web/src/lib/checkout-split-math.ts",
+      "lineRange": [
+        16,
+        22
+      ],
+      "summary": "函数 applyDiscountToRows，实现 checkout-split-math 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-math.ts:discountedSplitRows",
+      "type": "function",
+      "name": "discountedSplitRows",
+      "filePath": "apps/web/src/lib/checkout-split-math.ts",
+      "lineRange": [
+        24,
+        26
+      ],
+      "summary": "函数 discountedSplitRows，实现 checkout-split-math 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-math.ts:sumSplitRowAmounts",
+      "type": "function",
+      "name": "sumSplitRowAmounts",
+      "filePath": "apps/web/src/lib/checkout-split-math.ts",
+      "lineRange": [
+        28,
+        30
+      ],
+      "summary": "函数 sumSplitRowAmounts，实现 checkout-split-math 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-split-math.ts:checkoutPayableAmount",
+      "type": "function",
+      "name": "checkoutPayableAmount",
+      "filePath": "apps/web/src/lib/checkout-split-math.ts",
+      "lineRange": [
+        33,
+        35
+      ],
+      "summary": "函数 checkoutPayableAmount，实现 checkout-split-math 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/dashboard-overview-i18n.test.ts",
+      "type": "file",
+      "name": "dashboard-overview-i18n.test.ts",
+      "filePath": "apps/web/src/lib/dashboard-overview-i18n.test.ts",
+      "summary": "服务端/客户端共享工具库 dashboard-overview-i18n.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-overview-i18n.test.ts:order",
+      "type": "function",
+      "name": "order",
+      "filePath": "apps/web/src/lib/dashboard-overview-i18n.test.ts",
+      "lineRange": [
+        11,
+        23
+      ],
+      "summary": "函数 order，实现 dashboard-overview-i18n.test 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-overview-i18n.test.ts:localizedOverviewLabels",
+      "type": "function",
+      "name": "localizedOverviewLabels",
+      "filePath": "apps/web/src/lib/dashboard-overview-i18n.test.ts",
+      "lineRange": [
+        26,
+        58
+      ],
+      "summary": "函数 localizedOverviewLabels，实现 dashboard-overview-i18n.test 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/checkout-request-state.ts",
+      "target": "function:apps/web/src/lib/checkout-request-state.ts:mergeSplitResultPaid",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-state.ts",
+      "target": "function:apps/web/src/lib/checkout-request-state.ts:mergeSplitResultPaid",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-state.ts",
+      "target": "function:apps/web/src/lib/checkout-request-state.ts:mergeBillSplitsFromRefresh",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-state.ts",
+      "target": "function:apps/web/src/lib/checkout-request-state.ts:mergeBillSplitsFromRefresh",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-state.ts",
+      "target": "function:apps/web/src/lib/checkout-request-state.ts:checkoutPersonKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-state.ts",
+      "target": "function:apps/web/src/lib/checkout-request-state.ts:checkoutPersonKey",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-state.ts",
+      "target": "function:apps/web/src/lib/checkout-request-state.ts:checkoutBillPrintKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-state.ts",
+      "target": "function:apps/web/src/lib/checkout-request-state.ts:checkoutBillPrintKey",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-state.ts",
+      "target": "function:apps/web/src/lib/checkout-request-state.ts:checkoutResumeOrderingKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-state.ts",
+      "target": "function:apps/web/src/lib/checkout-request-state.ts:checkoutResumeOrderingKey",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-state.ts",
+      "target": "function:apps/web/src/lib/checkout-request-state.ts:isCheckoutRequestBusy",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-state.ts",
+      "target": "function:apps/web/src/lib/checkout-request-state.ts:isCheckoutRequestBusy",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-state.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-request-state.ts:mergeBillSplitsFromRefresh",
+      "target": "function:apps/web/src/lib/checkout-request-state.ts:mergeSplitResultPaid",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-lines.ts",
+      "target": "function:apps/web/src/lib/checkout-session-lines.ts:checkoutLinesFromOrders",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-lines.ts",
+      "target": "function:apps/web/src/lib/checkout-session-lines.ts:checkoutLinesFromOrders",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-lines.ts",
+      "target": "file:apps/web/src/lib/menu-item-code.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-lines.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.test.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.test.ts:billSplit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.test.ts",
+      "target": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:unpaidSplitRowsWithIndex",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:unpaidSplitRowsWithIndex",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:parseSessionCollectedPayments",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:parseSessionCollectedPayments",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:parseSessionCollectedPaymentsWithSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:parseSessionCollectedPaymentsWithSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:sumCollectedByPersonName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:sumCollectedByPersonName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:totalCollectedAmount",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:totalCollectedAmount",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:suggestedCollectionAmount",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:suggestedCollectionAmount",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:isWholeTableSplit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:isWholeTableSplit",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:hasConfirmedPerson",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:hasConfirmedPerson",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:resumeOrderingConfirmVariant",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:resumeOrderingConfirmVariant",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:resumeCheckoutBlockReason",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:resumeCheckoutBlockReason",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:httpStatusForResumeOrderingRpcCode",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:httpStatusForResumeOrderingRpcCode",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "file:apps/web/src/lib/checkout-split-math.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-session-payments.ts:resumeOrderingConfirmVariant",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:hasConfirmedPerson",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-session-payments.ts:resumeCheckoutBlockReason",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:isWholeTableSplit",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-session-payments.ts:resumeCheckoutBlockReason",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:hasConfirmedPerson",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.test.ts",
+      "target": "function:apps/web/src/lib/checkout-settlement.test.ts:billSplit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.test.ts",
+      "target": "file:apps/web/src/lib/checkout-settlement.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "function:apps/web/src/lib/checkout-settlement.ts:buildCheckoutSettlementSummary",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "function:apps/web/src/lib/checkout-settlement.ts:buildCheckoutSettlementSummary",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "function:apps/web/src/lib/checkout-settlement.ts:checkoutPaymentProgress",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "function:apps/web/src/lib/checkout-settlement.ts:checkoutPaymentProgress",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "function:apps/web/src/lib/checkout-settlement.ts:hasCheckoutCollections",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "function:apps/web/src/lib/checkout-settlement.ts:hasCheckoutCollections",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "function:apps/web/src/lib/checkout-settlement.ts:checkoutSplitModeLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "function:apps/web/src/lib/checkout-settlement.ts:checkoutSplitModeLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "function:apps/web/src/lib/checkout-settlement.ts:checkoutRowCollectAmount",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "function:apps/web/src/lib/checkout-settlement.ts:checkoutRowCollectAmount",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "function:apps/web/src/lib/checkout-settlement.ts:formatCheckoutWaitDuration",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "function:apps/web/src/lib/checkout-settlement.ts:formatCheckoutWaitDuration",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "function:apps/web/src/lib/checkout-settlement.ts:groupCollectedPaymentsBySession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "function:apps/web/src/lib/checkout-settlement.ts:groupCollectedPaymentsBySession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "file:apps/web/src/lib/checkout-split-math.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-math.test.ts",
+      "target": "function:apps/web/src/lib/checkout-split-math.test.ts:billSplit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-math.test.ts",
+      "target": "file:apps/web/src/lib/checkout-split-math.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-math.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-math.ts",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:normalizeSplitRows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-math.ts",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:normalizeSplitRows",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-math.ts",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:clampCheckoutDiscountRate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-math.ts",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:clampCheckoutDiscountRate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-math.ts",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:applyDiscountToRows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-math.ts",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:applyDiscountToRows",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-math.ts",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:discountedSplitRows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-math.ts",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:discountedSplitRows",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-math.ts",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:sumSplitRowAmounts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-math.ts",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:sumSplitRowAmounts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-math.ts",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:checkoutPayableAmount",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-math.ts",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:checkoutPayableAmount",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-math.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-split-math.ts:applyDiscountToRows",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:clampCheckoutDiscountRate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-split-math.ts:discountedSplitRows",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:applyDiscountToRows",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-split-math.ts:discountedSplitRows",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:normalizeSplitRows",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-split-math.ts:checkoutPayableAmount",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:sumSplitRowAmounts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-split-math.ts:checkoutPayableAmount",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:discountedSplitRows",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview-i18n.test.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview-i18n.test.ts:order",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview-i18n.test.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview-i18n.test.ts:localizedOverviewLabels",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview-i18n.test.ts",
+      "target": "file:apps/web/src/lib/dashboard-overview.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview-i18n.test.ts",
+      "target": "file:apps/web/src/lib/format-dashboard-date.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview-i18n.test.ts",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview-i18n.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-session-payments.ts",
+      "target": "file:apps/web/src/lib/checkout-session-payments.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-settlement.ts",
+      "target": "file:apps/web/src/lib/checkout-settlement.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-split-math.ts",
+      "target": "file:apps/web/src/lib/checkout-split-math.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-settlement.ts:buildCheckoutSettlementSummary",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:checkoutPayableAmount",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-settlement.ts:buildCheckoutSettlementSummary",
+      "target": "function:apps/web/src/lib/checkout-session-payments.ts:totalCollectedAmount",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-settlement.ts:checkoutPaymentProgress",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:normalizeSplitRows",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-session-payments.ts:isWholeTableSplit",
+      "target": "function:apps/web/src/lib/checkout-split-math.ts:normalizeSplitRows",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-session-lines.ts:checkoutLinesFromOrders",
+      "target": "function:apps/web/src/lib/menu-item-code.ts:resolveMenuItemCode",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

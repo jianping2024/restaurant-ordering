@@ -1,0 +1,5128 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 27,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 470,
+      "nonEmptyLines": 442,
+      "functions": [
+        {
+          "name": "BuffetPanelSection",
+          "startLine": 33,
+          "endLine": 51,
+          "params": [
+            "{\n  children,\n  edge,\n  className = '',\n  wideOnSm = false,\n}"
+          ]
+        },
+        {
+          "name": "WaiterCheckoutPendingBanner",
+          "startLine": 53,
+          "endLine": 64,
+          "params": [
+            "{ message }"
+          ]
+        },
+        {
+          "name": "BuffetGuestCounter",
+          "startLine": 82,
+          "endLine": 108,
+          "params": [
+            "{\n  label,\n  qty,\n  onQtyChange,\n  onDecrement,\n  onIncrement,\n}"
+          ]
+        },
+        {
+          "name": "BuffetPriceMeta",
+          "startLine": 110,
+          "endLine": 133,
+          "params": [
+            "{\n  t,\n  buffetPriceLoading,\n  buffetPriceDisplay,\n}"
+          ]
+        },
+        {
+          "name": "WaiterTableBuffetPanel",
+          "startLine": 135,
+          "endLine": 215,
+          "params": [
+            "{\n  t,\n  activeBuffets,\n  selectedBuffet,\n  buffetId,\n  onBuffetIdChange,\n  buffetAdults,\n  buffetChildren,\n  onSetGuestCount,\n  buffetPriceLoading,\n  buffetPriceDisplay,\n  buffetActionLabel,\n  buffetSubmitting,\n  onSave,\n}"
+          ]
+        },
+        {
+          "name": "ContinueOrderingControl",
+          "startLine": 217,
+          "endLine": 243,
+          "params": [
+            "{\n  menuHref,\n  label,\n  checkoutLocked,\n  onCheckoutLocked,\n}"
+          ]
+        },
+        {
+          "name": "ToolbarCloseTableControl",
+          "startLine": 245,
+          "endLine": 295,
+          "params": [
+            "{\n  tableId,\n  isCheckoutPending,\n  showCloseTable,\n  isDemo,\n  closingDemoTable,\n  closeLabel,\n  closeOperatingLabel,\n  onDemoCloseClick,\n  onTableClosed,\n}"
+          ]
+        },
+        {
+          "name": "GoToBillControl",
+          "startLine": 297,
+          "endLine": 329,
+          "params": [
+            "{\n  billHref,\n  label,\n  checkoutLocked,\n  onCheckoutLocked,\n}"
+          ]
+        },
+        {
+          "name": "WaiterTableOccupiedToolbar",
+          "startLine": 348,
+          "endLine": 415,
+          "params": [
+            "{\n  t,\n  tableId,\n  menuHref,\n  billHref,\n  isCheckoutPending,\n  onCheckoutLocked,\n  onTransfer,\n  onMerge,\n  showGoToBill,\n  showCloseTable,\n  isDemo,\n  closingDemoTable,\n  onDemoCloseClick,\n  onTableClosed,\n}"
+          ]
+        },
+        {
+          "name": "WaiterTableOrderedItemsPanel",
+          "startLine": 426,
+          "endLine": 470,
+          "params": [
+            "{\n  title,\n  lines,\n  isCheckoutPending,\n  decrementingKey,\n  orderLineKey,\n  onDecrement,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "WaiterCheckoutPendingBanner",
+          "line": 53,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterTableBuffetPanel",
+          "line": 135,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterTableOccupiedToolbar",
+          "line": 348,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterTableOrderedItemsPanel",
+          "line": 426,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "BuffetPanelSection",
+          "callee": "buffetStripSectionClass",
+          "lineNumber": 46
+        },
+        {
+          "caller": "BuffetPriceMeta",
+          "callee": "formatBuffetPriceTemplate",
+          "lineNumber": 125
+        },
+        {
+          "caller": "WaiterTableBuffetPanel",
+          "callee": "onBuffetIdChange",
+          "lineNumber": 162
+        },
+        {
+          "caller": "WaiterTableBuffetPanel",
+          "callee": "activeBuffets.map",
+          "lineNumber": 166
+        },
+        {
+          "caller": "WaiterTableBuffetPanel",
+          "callee": "onSetGuestCount",
+          "lineNumber": 180
+        },
+        {
+          "caller": "WaiterTableBuffetPanel",
+          "callee": "onSetGuestCount",
+          "lineNumber": 181
+        },
+        {
+          "caller": "WaiterTableBuffetPanel",
+          "callee": "onSetGuestCount",
+          "lineNumber": 182
+        },
+        {
+          "caller": "WaiterTableBuffetPanel",
+          "callee": "onSetGuestCount",
+          "lineNumber": 190
+        },
+        {
+          "caller": "WaiterTableBuffetPanel",
+          "callee": "onSetGuestCount",
+          "lineNumber": 191
+        },
+        {
+          "caller": "WaiterTableBuffetPanel",
+          "callee": "onSetGuestCount",
+          "lineNumber": 192
+        },
+        {
+          "caller": "WaiterTableBuffetPanel",
+          "callee": "formatBuffetPriceTemplate",
+          "lineNumber": 199
+        },
+        {
+          "caller": "WaiterTableOrderedItemsPanel",
+          "callee": "lines.map",
+          "lineNumber": 443
+        },
+        {
+          "caller": "WaiterTableOrderedItemsPanel",
+          "callee": "onDecrement",
+          "lineNumber": 458
+        },
+        {
+          "caller": "WaiterTableOrderedItemsPanel",
+          "callee": "orderLineKey",
+          "lineNumber": 460
+        }
+      ],
+      "metrics": {
+        "importCount": 10,
+        "exportCount": 4,
+        "functionCount": 10,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/waiter/waiter-table-card.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 30,
+      "nonEmptyLines": 27,
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/waiter/waiter-table-card.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 126,
+      "nonEmptyLines": 114,
+      "functions": [
+        {
+          "name": "buildWaiterTableCard",
+          "startLine": 31,
+          "endLine": 113,
+          "params": [
+            "tableId",
+            "displayName",
+            "orders",
+            "itemCodeByMenuId"
+          ]
+        },
+        {
+          "name": "sumActiveOrderItemsTotal",
+          "startLine": 116,
+          "endLine": 126,
+          "params": [
+            "orders"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "buildWaiterTableCard",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "sumActiveOrderItemsTotal",
+          "line": 116,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "buildWaiterTableCard",
+          "callee": "aggregateBuffetForOrders",
+          "lineNumber": 47
+        },
+        {
+          "caller": "buildWaiterTableCard",
+          "callee": "guestCountFromTableOrders",
+          "lineNumber": 49
+        },
+        {
+          "caller": "buildWaiterTableCard",
+          "callee": "buffetLines.push",
+          "lineNumber": 55
+        },
+        {
+          "caller": "buildWaiterTableCard",
+          "callee": "formatOrderItemListLabel",
+          "lineNumber": 58
+        },
+        {
+          "caller": "buildWaiterTableCard",
+          "callee": "order.items.forEach",
+          "lineNumber": 82
+        },
+        {
+          "caller": "buildWaiterTableCard",
+          "callee": "normalizeOrderItemStatus",
+          "lineNumber": 83
+        },
+        {
+          "caller": "buildWaiterTableCard",
+          "callee": "isBuffetBaseItem",
+          "lineNumber": 86
+        },
+        {
+          "caller": "buildWaiterTableCard",
+          "callee": "buffetLines.push",
+          "lineNumber": 88
+        },
+        {
+          "caller": "buildWaiterTableCard",
+          "callee": "formatOrderItemListLabel",
+          "lineNumber": 91
+        },
+        {
+          "caller": "buildWaiterTableCard",
+          "callee": "menuLines.push",
+          "lineNumber": 99
+        },
+        {
+          "caller": "buildWaiterTableCard",
+          "callee": "formatOrderItemNameLabel",
+          "lineNumber": 102
+        },
+        {
+          "caller": "buildWaiterTableCard",
+          "callee": "formatOrderItemQuantityLabel",
+          "lineNumber": 103
+        },
+        {
+          "caller": "buildWaiterTableCard",
+          "callee": "resolveMenuItemCode",
+          "lineNumber": 104
+        },
+        {
+          "caller": "buildWaiterTableCard",
+          "callee": "sumActiveOrderItemsTotal",
+          "lineNumber": 111
+        },
+        {
+          "caller": "sumActiveOrderItemsTotal",
+          "callee": "order.items.filter",
+          "lineNumber": 119
+        },
+        {
+          "caller": "sumActiveOrderItemsTotal",
+          "callee": "normalizeOrderItemStatus",
+          "lineNumber": 120
+        },
+        {
+          "caller": "sumActiveOrderItemsTotal",
+          "callee": "sumLineTotals",
+          "lineNumber": 123
+        }
+      ],
+      "metrics": {
+        "importCount": 8,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/auto-enqueue-station-tickets.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 49,
+      "nonEmptyLines": 42,
+      "functions": [
+        {
+          "name": "messageForError",
+          "startLine": 9,
+          "endLine": 14,
+          "params": [
+            "code",
+            "t"
+          ]
+        },
+        {
+          "name": "autoEnqueueStationTicketsAfterSubmit",
+          "startLine": 17,
+          "endLine": 49,
+          "params": [
+            "params"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "autoEnqueueStationTicketsAfterSubmit",
+          "line": 17,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "autoEnqueueStationTicketsAfterSubmit",
+          "callee": "fetch",
+          "lineNumber": 29
+        },
+        {
+          "caller": "autoEnqueueStationTicketsAfterSubmit",
+          "callee": "JSON.stringify",
+          "lineNumber": 32
+        },
+        {
+          "caller": "autoEnqueueStationTicketsAfterSubmit",
+          "callee": "res.json",
+          "lineNumber": 38
+        },
+        {
+          "caller": "autoEnqueueStationTicketsAfterSubmit",
+          "callee": "SILENT_ERRORS.has",
+          "lineNumber": 42
+        },
+        {
+          "caller": "autoEnqueueStationTicketsAfterSubmit",
+          "callee": "showToast",
+          "lineNumber": 45
+        },
+        {
+          "caller": "autoEnqueueStationTicketsAfterSubmit",
+          "callee": "messageForError",
+          "lineNumber": 45
+        },
+        {
+          "caller": "autoEnqueueStationTicketsAfterSubmit",
+          "callee": "showToast",
+          "lineNumber": 47
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 97,
+      "nonEmptyLines": 90,
+      "functions": [
+        {
+          "name": "buildBillSplitOrderLines",
+          "startLine": 38,
+          "endLine": 46,
+          "params": [
+            "orders"
+          ]
+        },
+        {
+          "name": "buildByItemLineSpec",
+          "startLine": 48,
+          "endLine": 68,
+          "params": [
+            "line"
+          ]
+        },
+        {
+          "name": "buildByItemLineSpecs",
+          "startLine": 70,
+          "endLine": 72,
+          "params": [
+            "lines"
+          ]
+        },
+        {
+          "name": "byItemSplitLineFromOrderLine",
+          "startLine": 74,
+          "endLine": 97,
+          "params": [
+            "line",
+            "displayName"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "buildBillSplitOrderLines",
+          "line": 38,
+          "isDefault": false
+        },
+        {
+          "name": "buildByItemLineSpec",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "buildByItemLineSpecs",
+          "line": 70,
+          "isDefault": false
+        },
+        {
+          "name": "byItemSplitLineFromOrderLine",
+          "line": 74,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "buildBillSplitOrderLines",
+          "callee": "orders.flatMap",
+          "lineNumber": 39
+        },
+        {
+          "caller": "buildBillSplitOrderLines",
+          "callee": "order.items.map",
+          "lineNumber": 40
+        },
+        {
+          "caller": "buildByItemLineSpec",
+          "callee": "isBuffetBaseItem",
+          "lineNumber": 50
+        },
+        {
+          "caller": "buildByItemLineSpec",
+          "callee": "Math.max",
+          "lineNumber": 55
+        },
+        {
+          "caller": "buildByItemLineSpec",
+          "callee": "Math.max",
+          "lineNumber": 56
+        },
+        {
+          "caller": "buildByItemLineSpecs",
+          "callee": "lines.map",
+          "lineNumber": 71
+        },
+        {
+          "caller": "byItemSplitLineFromOrderLine",
+          "callee": "buildByItemLineSpec",
+          "lineNumber": 78
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/bill-split-by-item.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 258,
+      "nonEmptyLines": 239,
+      "functions": [
+        {
+          "name": "row",
+          "startLine": 23,
+          "endLine": 35,
+          "params": [
+            "id",
+            "name",
+            "qty"
+          ]
+        },
+        {
+          "name": "buffetRow",
+          "startLine": 37,
+          "endLine": 44,
+          "params": [
+            "id",
+            "name",
+            "adultQty",
+            "childQty"
+          ]
+        },
+        {
+          "name": "menuSpec",
+          "startLine": 46,
+          "endLine": 54,
+          "params": [
+            "key",
+            "lineQty",
+            "unitPrice"
+          ]
+        },
+        {
+          "name": "buffetSpec",
+          "startLine": 56,
+          "endLine": 72,
+          "params": [
+            "key",
+            "adults",
+            "children",
+            "adultUnitPrice",
+            "childUnitPrice"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "buffetRow",
+          "callee": "row",
+          "lineNumber": 43
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/bill-split-by-item.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 923,
+      "nonEmptyLines": 835,
+      "functions": [
+        {
+          "name": "sanitizeQtyDigits",
+          "startLine": 54,
+          "endLine": 56,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "validateQtyParts",
+          "startLine": 58,
+          "endLine": 94,
+          "params": [
+            "parts"
+          ]
+        },
+        {
+          "name": "parseConsumerRowQty",
+          "startLine": 96,
+          "endLine": 105,
+          "params": [
+            "row"
+          ]
+        },
+        {
+          "name": "qtyPartsIssueLabel",
+          "startLine": 107,
+          "endLine": 116,
+          "params": [
+            "issue",
+            "labels"
+          ]
+        },
+        {
+          "name": "getQtyPartsRowHint",
+          "startLine": 118,
+          "endLine": 126,
+          "params": [
+            "row",
+            "labels"
+          ]
+        },
+        {
+          "name": "createByItemConsumerRow",
+          "startLine": 128,
+          "endLine": 137,
+          "params": [
+            "opts"
+          ]
+        },
+        {
+          "name": "removeByItemConsumerRow",
+          "startLine": 140,
+          "endLine": 147,
+          "params": [
+            "rows",
+            "rowId",
+            "opts"
+          ]
+        },
+        {
+          "name": "parseBuffetHeadcountInput",
+          "startLine": 155,
+          "endLine": 160,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "resolveBuffetRowCounts",
+          "startLine": 163,
+          "endLine": 172,
+          "params": [
+            "row"
+          ]
+        },
+        {
+          "name": "parseBuffetConsumerRows",
+          "startLine": 174,
+          "endLine": 184,
+          "params": [
+            "rows"
+          ]
+        },
+        {
+          "name": "buffetSharesFromAllocations",
+          "startLine": 186,
+          "endLine": 207,
+          "params": [
+            "allocations"
+          ]
+        },
+        {
+          "name": "withDefaultByItemLineRows",
+          "startLine": 210,
+          "endLine": 221,
+          "params": [
+            "allocations",
+            "lineSpecs"
+          ]
+        },
+        {
+          "name": "lineQtyRational",
+          "startLine": 223,
+          "endLine": 225,
+          "params": [
+            "lineQty"
+          ]
+        },
+        {
+          "name": "parseConsumerRows",
+          "startLine": 227,
+          "endLine": 238,
+          "params": [
+            "rows"
+          ]
+        },
+        {
+          "name": "buffetCountSummary",
+          "startLine": 247,
+          "endLine": 264,
+          "params": [
+            "labels",
+            "counts"
+          ]
+        },
+        {
+          "name": "evaluateBuffetLineShares",
+          "startLine": 266,
+          "endLine": 332,
+          "params": [
+            "adultsNeeded",
+            "childrenNeeded",
+            "allocations"
+          ]
+        },
+        {
+          "name": "getBuffetLineStatusFromRows",
+          "startLine": 334,
+          "endLine": 354,
+          "params": [
+            "rows",
+            "spec"
+          ]
+        },
+        {
+          "name": "getBuffetLineStatusFromShares",
+          "startLine": 356,
+          "endLine": 371,
+          "params": [
+            "spec",
+            "shares"
+          ]
+        },
+        {
+          "name": "allocatedSum",
+          "startLine": 385,
+          "endLine": 388,
+          "params": [
+            "shares"
+          ]
+        },
+        {
+          "name": "qtyDiff",
+          "startLine": 390,
+          "endLine": 395,
+          "params": [
+            "target",
+            "allocated"
+          ]
+        },
+        {
+          "name": "evaluateByItemLineShares",
+          "startLine": 397,
+          "endLine": 423,
+          "params": [
+            "lineQty",
+            "shares"
+          ]
+        },
+        {
+          "name": "getByItemLineStatusFromRows",
+          "startLine": 425,
+          "endLine": 461,
+          "params": [
+            "rows",
+            "spec"
+          ]
+        },
+        {
+          "name": "getByItemLineStatusFromShares",
+          "startLine": 463,
+          "endLine": 474,
+          "params": [
+            "spec",
+            "shares"
+          ]
+        },
+        {
+          "name": "buffetStatusParts",
+          "startLine": 493,
+          "endLine": 511,
+          "params": [
+            "labels",
+            "kind",
+            "adults",
+            "children"
+          ]
+        },
+        {
+          "name": "byItemLineStatusSummary",
+          "startLine": 516,
+          "endLine": 605,
+          "params": [
+            "status",
+            "labels",
+            "qtyLabels",
+            "opts"
+          ]
+        },
+        {
+          "name": "isByItemLineComplete",
+          "startLine": 607,
+          "endLine": 609,
+          "params": [
+            "status"
+          ]
+        },
+        {
+          "name": "countByItemAllocationProgress",
+          "startLine": 611,
+          "endLine": 621,
+          "params": [
+            "lineSpecs",
+            "allocations"
+          ]
+        },
+        {
+          "name": "isRowQtyOverAllocated",
+          "startLine": 623,
+          "endLine": 636,
+          "params": [
+            "row",
+            "rows",
+            "lineQty"
+          ]
+        },
+        {
+          "name": "lineAllocationComplete",
+          "startLine": 638,
+          "endLine": 645,
+          "params": [
+            "lineQty",
+            "shares"
+          ]
+        },
+        {
+          "name": "byItemLinePriceShare",
+          "startLine": 647,
+          "endLine": 676,
+          "params": [
+            "lineTotal",
+            "shares",
+            "personName"
+          ]
+        },
+        {
+          "name": "buffetLineAllocationComplete",
+          "startLine": 678,
+          "endLine": 687,
+          "params": [
+            "line",
+            "shares"
+          ]
+        },
+        {
+          "name": "buildByItemAllocationsFromRows",
+          "startLine": 689,
+          "endLine": 704,
+          "params": [
+            "lineSpecs",
+            "rowsByKey"
+          ]
+        },
+        {
+          "name": "buildByItemAllocationsFromPersons",
+          "startLine": 706,
+          "endLine": 751,
+          "params": [
+            "persons",
+            "lineSpecs"
+          ]
+        },
+        {
+          "name": "calcByItemSplitResults",
+          "startLine": 753,
+          "endLine": 806,
+          "params": [
+            "params"
+          ]
+        },
+        {
+          "name": "buildSplitPersonsFromAllocations",
+          "startLine": 808,
+          "endLine": 830,
+          "params": [
+            "allocations"
+          ]
+        },
+        {
+          "name": "consumersForLineFromPersons",
+          "startLine": 832,
+          "endLine": 870,
+          "params": [
+            "persons",
+            "lineKey",
+            "spec"
+          ]
+        },
+        {
+          "name": "buffetShareUnitPrice",
+          "startLine": 872,
+          "endLine": 879,
+          "params": [
+            "item",
+            "guestType"
+          ]
+        },
+        {
+          "name": "shareQtyLabel",
+          "startLine": 881,
+          "endLine": 883,
+          "params": [
+            "share"
+          ]
+        },
+        {
+          "name": "legacyEqualShareQtyLabel",
+          "startLine": 888,
+          "endLine": 892,
+          "params": [
+            "lineQty",
+            "assigneeCount"
+          ]
+        },
+        {
+          "name": "legacyEqualLineShare",
+          "startLine": 895,
+          "endLine": 909,
+          "params": [
+            "lineTotal",
+            "assigneeIds",
+            "personId"
+          ]
+        },
+        {
+          "name": "legacyAssigneeIdsForKey",
+          "startLine": 912,
+          "endLine": 923,
+          "params": [
+            "persons",
+            "lineKey"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ByItemLineSpec",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "ByItemSplitLine",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "sanitizeQtyDigits",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "validateQtyParts",
+          "line": 58,
+          "isDefault": false
+        },
+        {
+          "name": "parseConsumerRowQty",
+          "line": 96,
+          "isDefault": false
+        },
+        {
+          "name": "qtyPartsIssueLabel",
+          "line": 107,
+          "isDefault": false
+        },
+        {
+          "name": "getQtyPartsRowHint",
+          "line": 118,
+          "isDefault": false
+        },
+        {
+          "name": "createByItemConsumerRow",
+          "line": 128,
+          "isDefault": false
+        },
+        {
+          "name": "removeByItemConsumerRow",
+          "line": 140,
+          "isDefault": false
+        },
+        {
+          "name": "parseBuffetHeadcountInput",
+          "line": 155,
+          "isDefault": false
+        },
+        {
+          "name": "resolveBuffetRowCounts",
+          "line": 163,
+          "isDefault": false
+        },
+        {
+          "name": "parseBuffetConsumerRows",
+          "line": 174,
+          "isDefault": false
+        },
+        {
+          "name": "withDefaultByItemLineRows",
+          "line": 210,
+          "isDefault": false
+        },
+        {
+          "name": "parseConsumerRows",
+          "line": 227,
+          "isDefault": false
+        },
+        {
+          "name": "getBuffetLineStatusFromRows",
+          "line": 334,
+          "isDefault": false
+        },
+        {
+          "name": "getBuffetLineStatusFromShares",
+          "line": 356,
+          "isDefault": false
+        },
+        {
+          "name": "getByItemLineStatusFromRows",
+          "line": 425,
+          "isDefault": false
+        },
+        {
+          "name": "getByItemLineStatusFromShares",
+          "line": 463,
+          "isDefault": false
+        },
+        {
+          "name": "byItemLineStatusSummary",
+          "line": 516,
+          "isDefault": false
+        },
+        {
+          "name": "isByItemLineComplete",
+          "line": 607,
+          "isDefault": false
+        },
+        {
+          "name": "countByItemAllocationProgress",
+          "line": 611,
+          "isDefault": false
+        },
+        {
+          "name": "isRowQtyOverAllocated",
+          "line": 623,
+          "isDefault": false
+        },
+        {
+          "name": "lineAllocationComplete",
+          "line": 638,
+          "isDefault": false
+        },
+        {
+          "name": "byItemLinePriceShare",
+          "line": 647,
+          "isDefault": false
+        },
+        {
+          "name": "buffetLineAllocationComplete",
+          "line": 678,
+          "isDefault": false
+        },
+        {
+          "name": "buildByItemAllocationsFromRows",
+          "line": 689,
+          "isDefault": false
+        },
+        {
+          "name": "buildByItemAllocationsFromPersons",
+          "line": 706,
+          "isDefault": false
+        },
+        {
+          "name": "calcByItemSplitResults",
+          "line": 753,
+          "isDefault": false
+        },
+        {
+          "name": "buildSplitPersonsFromAllocations",
+          "line": 808,
+          "isDefault": false
+        },
+        {
+          "name": "consumersForLineFromPersons",
+          "line": 832,
+          "isDefault": false
+        },
+        {
+          "name": "buffetShareUnitPrice",
+          "line": 872,
+          "isDefault": false
+        },
+        {
+          "name": "shareQtyLabel",
+          "line": 881,
+          "isDefault": false
+        },
+        {
+          "name": "parseQtyInput",
+          "line": 885,
+          "isDefault": false
+        },
+        {
+          "name": "legacyEqualShareQtyLabel",
+          "line": 888,
+          "isDefault": false
+        },
+        {
+          "name": "legacyEqualLineShare",
+          "line": 895,
+          "isDefault": false
+        },
+        {
+          "name": "legacyAssigneeIdsForKey",
+          "line": 912,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "sanitizeQtyDigits",
+          "callee": "raw.replace(/\\D/g, '').slice",
+          "lineNumber": 55
+        },
+        {
+          "caller": "sanitizeQtyDigits",
+          "callee": "raw.replace",
+          "lineNumber": 55
+        },
+        {
+          "caller": "validateQtyParts",
+          "callee": "parts.whole.trim",
+          "lineNumber": 66
+        },
+        {
+          "caller": "validateQtyParts",
+          "callee": "parts.num.trim",
+          "lineNumber": 67
+        },
+        {
+          "caller": "validateQtyParts",
+          "callee": "parts.den.trim",
+          "lineNumber": 68
+        },
+        {
+          "caller": "validateQtyParts",
+          "callee": "Number",
+          "lineNumber": 82
+        },
+        {
+          "caller": "validateQtyParts",
+          "callee": "Number",
+          "lineNumber": 83
+        },
+        {
+          "caller": "validateQtyParts",
+          "callee": "Number.isFinite",
+          "lineNumber": 84
+        },
+        {
+          "caller": "validateQtyParts",
+          "callee": "Number.isFinite",
+          "lineNumber": 85
+        },
+        {
+          "caller": "validateQtyParts",
+          "callee": "Number",
+          "lineNumber": 86
+        },
+        {
+          "caller": "validateQtyParts",
+          "callee": "Number.isFinite",
+          "lineNumber": 87
+        },
+        {
+          "caller": "validateQtyParts",
+          "callee": "normalizeRational",
+          "lineNumber": 88
+        },
+        {
+          "caller": "validateQtyParts",
+          "callee": "Number",
+          "lineNumber": 91
+        },
+        {
+          "caller": "validateQtyParts",
+          "callee": "Number.isFinite",
+          "lineNumber": 92
+        },
+        {
+          "caller": "validateQtyParts",
+          "callee": "rationalFromInt",
+          "lineNumber": 93
+        },
+        {
+          "caller": "parseConsumerRowQty",
+          "callee": "validateQtyParts",
+          "lineNumber": 97
+        },
+        {
+          "caller": "getQtyPartsRowHint",
+          "callee": "validateQtyParts",
+          "lineNumber": 119
+        },
+        {
+          "caller": "getQtyPartsRowHint",
+          "callee": "qtyPartsIssueLabel",
+          "lineNumber": 125
+        },
+        {
+          "caller": "createByItemConsumerRow",
+          "callee": "Math.random().toString(36).slice",
+          "lineNumber": 130
+        },
+        {
+          "caller": "createByItemConsumerRow",
+          "callee": "Math.random().toString",
+          "lineNumber": 130
+        },
+        {
+          "caller": "createByItemConsumerRow",
+          "callee": "Math.random",
+          "lineNumber": 130
+        },
+        {
+          "caller": "removeByItemConsumerRow",
+          "callee": "rows.filter",
+          "lineNumber": 145
+        },
+        {
+          "caller": "removeByItemConsumerRow",
+          "callee": "createByItemConsumerRow",
+          "lineNumber": 146
+        },
+        {
+          "caller": "parseBuffetHeadcountInput",
+          "callee": "sanitizeQtyDigits",
+          "lineNumber": 156
+        },
+        {
+          "caller": "parseBuffetHeadcountInput",
+          "callee": "Number",
+          "lineNumber": 158
+        },
+        {
+          "caller": "parseBuffetHeadcountInput",
+          "callee": "Number.isFinite",
+          "lineNumber": 159
+        },
+        {
+          "caller": "resolveBuffetRowCounts",
+          "callee": "(row.adultQty ?? '').trim",
+          "lineNumber": 164
+        },
+        {
+          "caller": "resolveBuffetRowCounts",
+          "callee": "(row.childQty ?? '').trim",
+          "lineNumber": 165
+        },
+        {
+          "caller": "resolveBuffetRowCounts",
+          "callee": "parseBuffetHeadcountInput",
+          "lineNumber": 166
+        },
+        {
+          "caller": "resolveBuffetRowCounts",
+          "callee": "parseBuffetHeadcountInput",
+          "lineNumber": 167
+        },
+        {
+          "caller": "resolveBuffetRowCounts",
+          "callee": "row.name.trim",
+          "lineNumber": 168
+        },
+        {
+          "caller": "parseBuffetConsumerRows",
+          "callee": "row.name.trim",
+          "lineNumber": 177
+        },
+        {
+          "caller": "parseBuffetConsumerRows",
+          "callee": "resolveBuffetRowCounts",
+          "lineNumber": 179
+        },
+        {
+          "caller": "parseBuffetConsumerRows",
+          "callee": "parsed.push",
+          "lineNumber": 181
+        },
+        {
+          "caller": "buffetSharesFromAllocations",
+          "callee": "shares.push",
+          "lineNumber": 192
+        },
+        {
+          "caller": "buffetSharesFromAllocations",
+          "callee": "rationalFromInt",
+          "lineNumber": 194
+        },
+        {
+          "caller": "buffetSharesFromAllocations",
+          "callee": "shares.push",
+          "lineNumber": 199
+        },
+        {
+          "caller": "buffetSharesFromAllocations",
+          "callee": "rationalFromInt",
+          "lineNumber": 201
+        },
+        {
+          "caller": "withDefaultByItemLineRows",
+          "callee": "lineSpecs.filter",
+          "lineNumber": 214
+        },
+        {
+          "caller": "withDefaultByItemLineRows",
+          "callee": "createByItemConsumerRow",
+          "lineNumber": 218
+        },
+        {
+          "caller": "lineQtyRational",
+          "callee": "rationalFromNumber",
+          "lineNumber": 224
+        },
+        {
+          "caller": "parseConsumerRows",
+          "callee": "row.name.trim",
+          "lineNumber": 232
+        },
+        {
+          "caller": "parseConsumerRows",
+          "callee": "parseConsumerRowQty",
+          "lineNumber": 233
+        },
+        {
+          "caller": "parseConsumerRows",
+          "callee": "parsed.push",
+          "lineNumber": 235
+        },
+        {
+          "caller": "buffetCountSummary",
+          "callee": "parts.push",
+          "lineNumber": 250
+        },
+        {
+          "caller": "buffetCountSummary",
+          "callee": "labels.buffetAdultProgress\n        .replace('{allocated}', String(counts.adultsAssigned))\n        .replace",
+          "lineNumber": 251
+        },
+        {
+          "caller": "buffetCountSummary",
+          "callee": "labels.buffetAdultProgress\n        .replace",
+          "lineNumber": 251
+        },
+        {
+          "caller": "buffetCountSummary",
+          "callee": "String",
+          "lineNumber": 252
+        },
+        {
+          "caller": "buffetCountSummary",
+          "callee": "String",
+          "lineNumber": 253
+        },
+        {
+          "caller": "buffetCountSummary",
+          "callee": "parts.push",
+          "lineNumber": 257
+        },
+        {
+          "caller": "buffetCountSummary",
+          "callee": "labels.buffetChildProgress\n        .replace('{allocated}', String(counts.childrenAssigned))\n        .replace",
+          "lineNumber": 258
+        },
+        {
+          "caller": "buffetCountSummary",
+          "callee": "labels.buffetChildProgress\n        .replace",
+          "lineNumber": 258
+        },
+        {
+          "caller": "buffetCountSummary",
+          "callee": "String",
+          "lineNumber": 259
+        },
+        {
+          "caller": "buffetCountSummary",
+          "callee": "String",
+          "lineNumber": 260
+        },
+        {
+          "caller": "buffetCountSummary",
+          "callee": "parts.join",
+          "lineNumber": 263
+        },
+        {
+          "caller": "evaluateBuffetLineShares",
+          "callee": "rationalFromInt",
+          "lineNumber": 273
+        },
+        {
+          "caller": "evaluateBuffetLineShares",
+          "callee": "allocations.map",
+          "lineNumber": 284
+        },
+        {
+          "caller": "evaluateBuffetLineShares",
+          "callee": "row.name.trim().toLowerCase",
+          "lineNumber": 284
+        },
+        {
+          "caller": "evaluateBuffetLineShares",
+          "callee": "row.name.trim",
+          "lineNumber": 284
+        },
+        {
+          "caller": "evaluateBuffetLineShares",
+          "callee": "names.some",
+          "lineNumber": 285
+        },
+        {
+          "caller": "evaluateBuffetLineShares",
+          "callee": "rationalFromInt",
+          "lineNumber": 286
+        },
+        {
+          "caller": "evaluateBuffetLineShares",
+          "callee": "rationalFromInt",
+          "lineNumber": 289
+        },
+        {
+          "caller": "evaluateBuffetLineShares",
+          "callee": "allocations.reduce",
+          "lineNumber": 292
+        },
+        {
+          "caller": "evaluateBuffetLineShares",
+          "callee": "allocations.reduce",
+          "lineNumber": 293
+        },
+        {
+          "caller": "evaluateBuffetLineShares",
+          "callee": "rationalFromInt",
+          "lineNumber": 296
+        },
+        {
+          "caller": "evaluateBuffetLineShares",
+          "callee": "Math.max",
+          "lineNumber": 313
+        },
+        {
+          "caller": "evaluateBuffetLineShares",
+          "callee": "Math.max",
+          "lineNumber": 314
+        },
+        {
+          "caller": "evaluateBuffetLineShares",
+          "callee": "Math.max",
+          "lineNumber": 324
+        },
+        {
+          "caller": "evaluateBuffetLineShares",
+          "callee": "Math.max",
+          "lineNumber": 325
+        },
+        {
+          "caller": "getBuffetLineStatusFromRows",
+          "callee": "resolveBuffetRowCounts",
+          "lineNumber": 339
+        },
+        {
+          "caller": "getBuffetLineStatusFromRows",
+          "callee": "row.name.trim",
+          "lineNumber": 340
+        },
+        {
+          "caller": "getBuffetLineStatusFromRows",
+          "callee": "rationalFromInt",
+          "lineNumber": 341
+        },
+        {
+          "caller": "getBuffetLineStatusFromRows",
+          "callee": "rows.filter",
+          "lineNumber": 345
+        },
+        {
+          "caller": "getBuffetLineStatusFromRows",
+          "callee": "row.name.trim",
+          "lineNumber": 345
+        },
+        {
+          "caller": "getBuffetLineStatusFromRows",
+          "callee": "namedRows.map",
+          "lineNumber": 346
+        },
+        {
+          "caller": "getBuffetLineStatusFromRows",
+          "callee": "row.name.trim().toLowerCase",
+          "lineNumber": 346
+        },
+        {
+          "caller": "getBuffetLineStatusFromRows",
+          "callee": "row.name.trim",
+          "lineNumber": 346
+        },
+        {
+          "caller": "getBuffetLineStatusFromRows",
+          "callee": "parseBuffetConsumerRows",
+          "lineNumber": 348
+        },
+        {
+          "caller": "getBuffetLineStatusFromRows",
+          "callee": "partial.reduce",
+          "lineNumber": 349
+        },
+        {
+          "caller": "getBuffetLineStatusFromRows",
+          "callee": "rationalFromInt",
+          "lineNumber": 350
+        },
+        {
+          "caller": "getBuffetLineStatusFromRows",
+          "callee": "evaluateBuffetLineShares",
+          "lineNumber": 353
+        },
+        {
+          "caller": "getBuffetLineStatusFromRows",
+          "callee": "parseBuffetConsumerRows",
+          "lineNumber": 353
+        },
+        {
+          "caller": "getBuffetLineStatusFromShares",
+          "callee": "byName.get",
+          "lineNumber": 365
+        },
+        {
+          "caller": "getBuffetLineStatusFromShares",
+          "callee": "byName.set",
+          "lineNumber": 368
+        },
+        {
+          "caller": "getBuffetLineStatusFromShares",
+          "callee": "evaluateBuffetLineShares",
+          "lineNumber": 370
+        },
+        {
+          "caller": "getBuffetLineStatusFromShares",
+          "callee": "Array.from",
+          "lineNumber": 370
+        },
+        {
+          "caller": "getBuffetLineStatusFromShares",
+          "callee": "byName.values",
+          "lineNumber": 370
+        },
+        {
+          "caller": "allocatedSum",
+          "callee": "sumRationals",
+          "lineNumber": 387
+        },
+        {
+          "caller": "allocatedSum",
+          "callee": "shares.map",
+          "lineNumber": 387
+        },
+        {
+          "caller": "qtyDiff",
+          "callee": "normalizeRational",
+          "lineNumber": 391
+        },
+        {
+          "caller": "evaluateByItemLineShares",
+          "callee": "lineQtyRational",
+          "lineNumber": 401
+        },
+        {
+          "caller": "evaluateByItemLineShares",
+          "callee": "shares.map",
+          "lineNumber": 406
+        },
+        {
+          "caller": "evaluateByItemLineShares",
+          "callee": "share.name.trim().toLowerCase",
+          "lineNumber": 406
+        },
+        {
+          "caller": "evaluateByItemLineShares",
+          "callee": "share.name.trim",
+          "lineNumber": 406
+        },
+        {
+          "caller": "evaluateByItemLineShares",
+          "callee": "allocatedSum",
+          "lineNumber": 407
+        },
+        {
+          "caller": "evaluateByItemLineShares",
+          "callee": "names.some",
+          "lineNumber": 408
+        },
+        {
+          "caller": "evaluateByItemLineShares",
+          "callee": "qtyDiff",
+          "lineNumber": 415
+        },
+        {
+          "caller": "evaluateByItemLineShares",
+          "callee": "normalizeRational",
+          "lineNumber": 420
+        },
+        {
+          "caller": "getByItemLineStatusFromRows",
+          "callee": "getBuffetLineStatusFromRows",
+          "lineNumber": 430
+        },
+        {
+          "caller": "getByItemLineStatusFromRows",
+          "callee": "validateQtyParts",
+          "lineNumber": 434
+        },
+        {
+          "caller": "getByItemLineStatusFromRows",
+          "callee": "parseConsumerRows",
+          "lineNumber": 440
+        },
+        {
+          "caller": "getByItemLineStatusFromRows",
+          "callee": "allocatedSum",
+          "lineNumber": 441
+        },
+        {
+          "caller": "getByItemLineStatusFromRows",
+          "callee": "parseConsumerRowQty",
+          "lineNumber": 446
+        },
+        {
+          "caller": "getByItemLineStatusFromRows",
+          "callee": "row.name.trim",
+          "lineNumber": 447
+        },
+        {
+          "caller": "getByItemLineStatusFromRows",
+          "callee": "parseConsumerRows",
+          "lineNumber": 448
+        },
+        {
+          "caller": "getByItemLineStatusFromRows",
+          "callee": "allocatedSum",
+          "lineNumber": 449
+        },
+        {
+          "caller": "getByItemLineStatusFromRows",
+          "callee": "rows.map((row) => row.name.trim()).filter",
+          "lineNumber": 453
+        },
+        {
+          "caller": "getByItemLineStatusFromRows",
+          "callee": "rows.map",
+          "lineNumber": 453
+        },
+        {
+          "caller": "getByItemLineStatusFromRows",
+          "callee": "row.name.trim",
+          "lineNumber": 453
+        },
+        {
+          "caller": "getByItemLineStatusFromRows",
+          "callee": "names.map",
+          "lineNumber": 454
+        },
+        {
+          "caller": "getByItemLineStatusFromRows",
+          "callee": "name.toLowerCase",
+          "lineNumber": 454
+        },
+        {
+          "caller": "getByItemLineStatusFromRows",
+          "callee": "parseConsumerRows",
+          "lineNumber": 456
+        },
+        {
+          "caller": "getByItemLineStatusFromRows",
+          "callee": "allocatedSum",
+          "lineNumber": 457
+        },
+        {
+          "caller": "getByItemLineStatusFromRows",
+          "callee": "evaluateByItemLineShares",
+          "lineNumber": 460
+        },
+        {
+          "caller": "getByItemLineStatusFromRows",
+          "callee": "parseConsumerRows",
+          "lineNumber": 460
+        },
+        {
+          "caller": "getByItemLineStatusFromShares",
+          "callee": "getBuffetLineStatusFromShares",
+          "lineNumber": 468
+        },
+        {
+          "caller": "getByItemLineStatusFromShares",
+          "callee": "evaluateByItemLineShares",
+          "lineNumber": 470
+        },
+        {
+          "caller": "getByItemLineStatusFromShares",
+          "callee": "shares.map",
+          "lineNumber": 472
+        },
+        {
+          "caller": "buffetStatusParts",
+          "callee": "parts.push",
+          "lineNumber": 501
+        },
+        {
+          "caller": "buffetStatusParts",
+          "callee": "(kind === 'short' ? labels.buffetShortAdult : labels.buffetOverAdult).replace",
+          "lineNumber": 502
+        },
+        {
+          "caller": "buffetStatusParts",
+          "callee": "String",
+          "lineNumber": 502
+        },
+        {
+          "caller": "buffetStatusParts",
+          "callee": "parts.push",
+          "lineNumber": 506
+        },
+        {
+          "caller": "buffetStatusParts",
+          "callee": "(kind === 'short' ? labels.buffetShortChild : labels.buffetOverChild).replace",
+          "lineNumber": 507
+        },
+        {
+          "caller": "buffetStatusParts",
+          "callee": "String",
+          "lineNumber": 507
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "formatRational",
+          "lineNumber": 522
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "buffetCountSummary",
+          "lineNumber": 534
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "labels.complete.replace",
+          "lineNumber": 537
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "formatRational",
+          "lineNumber": 537
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "buffetStatusParts(labels, 'short', status.adultsNeeded, status.childrenNeeded).join",
+          "lineNumber": 541
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "buffetStatusParts",
+          "lineNumber": 541
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "buffetCountSummary",
+          "lineNumber": 542
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "[remain, counts].filter(Boolean).join",
+          "lineNumber": 544
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "[remain, counts].filter",
+          "lineNumber": 544
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "buffetStatusParts(\n        labels,\n        'short',\n        status.adultsRemaining,\n        status.childrenRemaining,\n      ).join",
+          "lineNumber": 549
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "buffetStatusParts",
+          "lineNumber": 549
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "buffetCountSummary",
+          "lineNumber": 555
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "[remain, counts].filter(Boolean).join",
+          "lineNumber": 557
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "[remain, counts].filter",
+          "lineNumber": 557
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "buffetStatusParts(\n        labels,\n        'over',\n        status.adultsExcess,\n        status.childrenExcess,\n      ).join",
+          "lineNumber": 562
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "buffetStatusParts",
+          "lineNumber": 562
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "buffetCountSummary",
+          "lineNumber": 568
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "[over, counts].filter(Boolean).join",
+          "lineNumber": 570
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "[over, counts].filter",
+          "lineNumber": 570
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "labels.remaining\n          .replace('{qty}', formatRational(status.remaining))\n          .replace",
+          "lineNumber": 576
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "labels.remaining\n          .replace",
+          "lineNumber": 576
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "formatRational",
+          "lineNumber": 577
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "labels.over\n          .replace('{qty}', formatRational(status.excess))\n          .replace",
+          "lineNumber": 583
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "labels.over\n          .replace",
+          "lineNumber": 583
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "formatRational",
+          "lineNumber": 584
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "qtyPartsIssueLabel",
+          "lineNumber": 595
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "labels.unassigned.replace",
+          "lineNumber": 601
+        },
+        {
+          "caller": "byItemLineStatusSummary",
+          "callee": "formatRational",
+          "lineNumber": 601
+        },
+        {
+          "caller": "countByItemAllocationProgress",
+          "callee": "getByItemLineStatusFromRows",
+          "lineNumber": 617
+        },
+        {
+          "caller": "countByItemAllocationProgress",
+          "callee": "isByItemLineComplete",
+          "lineNumber": 618
+        },
+        {
+          "caller": "isRowQtyOverAllocated",
+          "callee": "parseConsumerRowQty",
+          "lineNumber": 628
+        },
+        {
+          "caller": "isRowQtyOverAllocated",
+          "callee": "rows\n    .filter((candidate) => candidate.id !== row.id)\n    .map((candidate) => parseConsumerRowQty(candidate))\n    .filter",
+          "lineNumber": 630
+        },
+        {
+          "caller": "isRowQtyOverAllocated",
+          "callee": "rows\n    .filter((candidate) => candidate.id !== row.id)\n    .map",
+          "lineNumber": 630
+        },
+        {
+          "caller": "isRowQtyOverAllocated",
+          "callee": "rows\n    .filter",
+          "lineNumber": 630
+        },
+        {
+          "caller": "isRowQtyOverAllocated",
+          "callee": "parseConsumerRowQty",
+          "lineNumber": 632
+        },
+        {
+          "caller": "isRowQtyOverAllocated",
+          "callee": "qtyDiff",
+          "lineNumber": 634
+        },
+        {
+          "caller": "isRowQtyOverAllocated",
+          "callee": "lineQtyRational",
+          "lineNumber": 634
+        },
+        {
+          "caller": "isRowQtyOverAllocated",
+          "callee": "sumRationals",
+          "lineNumber": 634
+        },
+        {
+          "caller": "lineAllocationComplete",
+          "callee": "sumRationals",
+          "lineNumber": 643
+        },
+        {
+          "caller": "lineAllocationComplete",
+          "callee": "shares.map",
+          "lineNumber": 643
+        },
+        {
+          "caller": "lineAllocationComplete",
+          "callee": "rationalsEqual",
+          "lineNumber": 644
+        },
+        {
+          "caller": "lineAllocationComplete",
+          "callee": "lineQtyRational",
+          "lineNumber": 644
+        },
+        {
+          "caller": "byItemLinePriceShare",
+          "callee": "Math.round",
+          "lineNumber": 652
+        },
+        {
+          "caller": "byItemLinePriceShare",
+          "callee": "sumRationals",
+          "lineNumber": 655
+        },
+        {
+          "caller": "byItemLinePriceShare",
+          "callee": "shares.map",
+          "lineNumber": 655
+        },
+        {
+          "caller": "byItemLinePriceShare",
+          "callee": "[...shares].sort",
+          "lineNumber": 656
+        },
+        {
+          "caller": "byItemLinePriceShare",
+          "callee": "a.name.localeCompare",
+          "lineNumber": 656
+        },
+        {
+          "caller": "byItemLinePriceShare",
+          "callee": "Math.floor",
+          "lineNumber": 661
+        },
+        {
+          "caller": "byItemLinePriceShare",
+          "callee": "centsByName.set",
+          "lineNumber": 664
+        },
+        {
+          "caller": "byItemLinePriceShare",
+          "callee": "centsByName.set",
+          "lineNumber": 671
+        },
+        {
+          "caller": "byItemLinePriceShare",
+          "callee": "centsByName.get",
+          "lineNumber": 671
+        },
+        {
+          "caller": "byItemLinePriceShare",
+          "callee": "centsByName.get",
+          "lineNumber": 675
+        },
+        {
+          "caller": "buffetLineAllocationComplete",
+          "callee": "getBuffetLineStatusFromShares",
+          "lineNumber": 682
+        },
+        {
+          "caller": "buildByItemAllocationsFromRows",
+          "callee": "buffetSharesFromAllocations",
+          "lineNumber": 696
+        },
+        {
+          "caller": "buildByItemAllocationsFromRows",
+          "callee": "parseBuffetConsumerRows",
+          "lineNumber": 696
+        },
+        {
+          "caller": "buildByItemAllocationsFromRows",
+          "callee": "parseConsumerRows",
+          "lineNumber": 700
+        },
+        {
+          "caller": "buildByItemAllocationsFromPersons",
+          "callee": "Object.fromEntries",
+          "lineNumber": 711
+        },
+        {
+          "caller": "buildByItemAllocationsFromPersons",
+          "callee": "lineSpecs.map",
+          "lineNumber": 712
+        },
+        {
+          "caller": "buildByItemAllocationsFromPersons",
+          "callee": "rows.push",
+          "lineNumber": 723
+        },
+        {
+          "caller": "buildByItemAllocationsFromPersons",
+          "callee": "normalizeRational",
+          "lineNumber": 725
+        },
+        {
+          "caller": "buildByItemAllocationsFromPersons",
+          "callee": "rows.push",
+          "lineNumber": 735
+        },
+        {
+          "caller": "buildByItemAllocationsFromPersons",
+          "callee": "Object.entries",
+          "lineNumber": 740
+        },
+        {
+          "caller": "buildByItemAllocationsFromPersons",
+          "callee": "shares.every",
+          "lineNumber": 741
+        },
+        {
+          "caller": "buildByItemAllocationsFromPersons",
+          "callee": "lineQtyRational",
+          "lineNumber": 743
+        },
+        {
+          "caller": "buildByItemAllocationsFromPersons",
+          "callee": "shares.map",
+          "lineNumber": 744
+        },
+        {
+          "caller": "buildByItemAllocationsFromPersons",
+          "callee": "normalizeRational",
+          "lineNumber": 746
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "buffetLineAllocationComplete",
+          "lineNumber": 763
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "Math.round",
+          "lineNumber": 768
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "people.get",
+          "lineNumber": 769
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "existing.items.push",
+          "lineNumber": 774
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "line.name.trim",
+          "lineNumber": 775
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "Math.round",
+          "lineNumber": 779
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "people.set",
+          "lineNumber": 780
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "lineAllocationComplete",
+          "lineNumber": 785
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "byItemLinePriceShare",
+          "lineNumber": 789
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "people.get",
+          "lineNumber": 790
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "existing.items.push",
+          "lineNumber": 795
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "line.name.trim",
+          "lineNumber": 796
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "Math.round",
+          "lineNumber": 800
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "people.set",
+          "lineNumber": 801
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "Array.from(people.values()).sort",
+          "lineNumber": 805
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "Array.from",
+          "lineNumber": 805
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "people.values",
+          "lineNumber": 805
+        },
+        {
+          "caller": "calcByItemSplitResults",
+          "callee": "a.name.localeCompare",
+          "lineNumber": 805
+        },
+        {
+          "caller": "buildSplitPersonsFromAllocations",
+          "callee": "Object.entries",
+          "lineNumber": 813
+        },
+        {
+          "caller": "buildSplitPersonsFromAllocations",
+          "callee": "normalizeRational",
+          "lineNumber": 815
+        },
+        {
+          "caller": "buildSplitPersonsFromAllocations",
+          "callee": "byName.get",
+          "lineNumber": 816
+        },
+        {
+          "caller": "buildSplitPersonsFromAllocations",
+          "callee": "rows.push",
+          "lineNumber": 817
+        },
+        {
+          "caller": "buildSplitPersonsFromAllocations",
+          "callee": "byName.set",
+          "lineNumber": 823
+        },
+        {
+          "caller": "buildSplitPersonsFromAllocations",
+          "callee": "Array.from(byName.entries())\n    .sort(([a], [b]) => a.localeCompare(b))\n    .map",
+          "lineNumber": 827
+        },
+        {
+          "caller": "buildSplitPersonsFromAllocations",
+          "callee": "Array.from(byName.entries())\n    .sort",
+          "lineNumber": 827
+        },
+        {
+          "caller": "buildSplitPersonsFromAllocations",
+          "callee": "Array.from",
+          "lineNumber": 827
+        },
+        {
+          "caller": "buildSplitPersonsFromAllocations",
+          "callee": "byName.entries",
+          "lineNumber": 827
+        },
+        {
+          "caller": "buildSplitPersonsFromAllocations",
+          "callee": "a.localeCompare",
+          "lineNumber": 828
+        },
+        {
+          "caller": "consumersForLineFromPersons",
+          "callee": "person.item_shares?.filter",
+          "lineNumber": 841
+        },
+        {
+          "caller": "consumersForLineFromPersons",
+          "callee": "explicit.push",
+          "lineNumber": 848
+        },
+        {
+          "caller": "consumersForLineFromPersons",
+          "callee": "normalizeRational",
+          "lineNumber": 850
+        },
+        {
+          "caller": "consumersForLineFromPersons",
+          "callee": "(person.items || []).includes",
+          "lineNumber": 856
+        },
+        {
+          "caller": "consumersForLineFromPersons",
+          "callee": "legacyNames.push",
+          "lineNumber": 857
+        },
+        {
+          "caller": "consumersForLineFromPersons",
+          "callee": "lineQtyRational",
+          "lineNumber": 865
+        },
+        {
+          "caller": "consumersForLineFromPersons",
+          "callee": "legacyNames.map",
+          "lineNumber": 866
+        },
+        {
+          "caller": "consumersForLineFromPersons",
+          "callee": "normalizeRational",
+          "lineNumber": 868
+        },
+        {
+          "caller": "shareQtyLabel",
+          "callee": "formatRational",
+          "lineNumber": 882
+        },
+        {
+          "caller": "legacyEqualShareQtyLabel",
+          "callee": "rationalFromNumber",
+          "lineNumber": 889
+        },
+        {
+          "caller": "legacyEqualShareQtyLabel",
+          "callee": "Math.max",
+          "lineNumber": 890
+        },
+        {
+          "caller": "legacyEqualShareQtyLabel",
+          "callee": "formatRational",
+          "lineNumber": 891
+        },
+        {
+          "caller": "legacyEqualShareQtyLabel",
+          "callee": "normalizeRational",
+          "lineNumber": 891
+        },
+        {
+          "caller": "legacyEqualLineShare",
+          "callee": "[...assigneeIds].sort",
+          "lineNumber": 902
+        },
+        {
+          "caller": "legacyEqualLineShare",
+          "callee": "sorted.indexOf",
+          "lineNumber": 903
+        },
+        {
+          "caller": "legacyEqualLineShare",
+          "callee": "Math.round",
+          "lineNumber": 905
+        },
+        {
+          "caller": "legacyEqualLineShare",
+          "callee": "Math.floor",
+          "lineNumber": 906
+        },
+        {
+          "caller": "legacyAssigneeIdsForKey",
+          "callee": "persons.forEach",
+          "lineNumber": 917
+        },
+        {
+          "caller": "legacyAssigneeIdsForKey",
+          "callee": "(person.items || []).includes",
+          "lineNumber": 918
+        },
+        {
+          "caller": "legacyAssigneeIdsForKey",
+          "callee": "assignees.push",
+          "lineNumber": 919
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 36,
+        "functionCount": 41,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/bill-split-draft.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 127,
+      "nonEmptyLines": 121,
+      "functions": [
+        {
+          "name": "menuLine",
+          "startLine": 8,
+          "endLine": 20,
+          "params": [
+            "key",
+            "qty",
+            "price"
+          ]
+        },
+        {
+          "name": "menuSpec",
+          "startLine": 22,
+          "endLine": 30,
+          "params": [
+            "key",
+            "qty",
+            "price"
+          ]
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/bill-split-draft.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 74,
+      "nonEmptyLines": 67,
+      "functions": [
+        {
+          "name": "computeSplitResults",
+          "startLine": 22,
+          "endLine": 61,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "validateSplitDraft",
+          "startLine": 63,
+          "endLine": 74,
+          "params": [
+            "input"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "computeSplitResults",
+          "line": 22,
+          "isDefault": false
+        },
+        {
+          "name": "validateSplitDraft",
+          "line": 63,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "computeSplitResults",
+          "callee": "splitPeople.slice(0, personCount).map",
+          "lineNumber": 40
+        },
+        {
+          "caller": "computeSplitResults",
+          "callee": "splitPeople.slice",
+          "lineNumber": 40
+        },
+        {
+          "caller": "computeSplitResults",
+          "callee": "calcByItemSplitResults",
+          "lineNumber": 47
+        },
+        {
+          "caller": "computeSplitResults",
+          "callee": "orderLines.map",
+          "lineNumber": 48
+        },
+        {
+          "caller": "computeSplitResults",
+          "callee": "byItemSplitLineFromOrderLine",
+          "lineNumber": 49
+        },
+        {
+          "caller": "computeSplitResults",
+          "callee": "(item.name || item.name_pt || '').trim",
+          "lineNumber": 49
+        },
+        {
+          "caller": "computeSplitResults",
+          "callee": "customAmounts.slice(0, -1).reduce",
+          "lineNumber": 55
+        },
+        {
+          "caller": "computeSplitResults",
+          "callee": "customAmounts.slice",
+          "lineNumber": 55
+        },
+        {
+          "caller": "computeSplitResults",
+          "callee": "Math.max",
+          "lineNumber": 56
+        },
+        {
+          "caller": "computeSplitResults",
+          "callee": "customAmounts.map",
+          "lineNumber": 57
+        },
+        {
+          "caller": "validateSplitDraft",
+          "callee": "computeSplitResults",
+          "lineNumber": 64
+        },
+        {
+          "caller": "validateSplitDraft",
+          "callee": "validateBillSplit",
+          "lineNumber": 65
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/bill-split-validate.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 83,
+      "nonEmptyLines": 73,
+      "functions": [
+        {
+          "name": "amountsMatch",
+          "startLine": 16,
+          "endLine": 29,
+          "params": [
+            "splitMode",
+            "splitSum",
+            "total",
+            "results"
+          ]
+        },
+        {
+          "name": "validateBillSplit",
+          "startLine": 31,
+          "endLine": 83,
+          "params": [
+            "params"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "validateBillSplit",
+          "line": 31,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "amountsMatch",
+          "callee": "Number.isFinite",
+          "lineNumber": 22
+        },
+        {
+          "caller": "amountsMatch",
+          "callee": "Number.isFinite",
+          "lineNumber": 22
+        },
+        {
+          "caller": "amountsMatch",
+          "callee": "results.map",
+          "lineNumber": 25
+        },
+        {
+          "caller": "amountsMatch",
+          "callee": "Math.floor",
+          "lineNumber": 25
+        },
+        {
+          "caller": "amountsMatch",
+          "callee": "Number",
+          "lineNumber": 25
+        },
+        {
+          "caller": "amountsMatch",
+          "callee": "ints.every",
+          "lineNumber": 26
+        },
+        {
+          "caller": "amountsMatch",
+          "callee": "Math.abs",
+          "lineNumber": 28
+        },
+        {
+          "caller": "validateBillSplit",
+          "callee": "itemLines?.map",
+          "lineNumber": 44
+        },
+        {
+          "caller": "validateBillSplit",
+          "callee": "getByItemLineStatusFromShares",
+          "lineNumber": 55
+        },
+        {
+          "caller": "validateBillSplit",
+          "callee": "isByItemLineComplete",
+          "lineNumber": 59
+        },
+        {
+          "caller": "validateBillSplit",
+          "callee": "customAmounts.some",
+          "lineNumber": 66
+        },
+        {
+          "caller": "validateBillSplit",
+          "callee": "customAmounts.slice(0, -1).reduce",
+          "lineNumber": 70
+        },
+        {
+          "caller": "validateBillSplit",
+          "callee": "customAmounts.slice",
+          "lineNumber": 70
+        },
+        {
+          "caller": "validateBillSplit",
+          "callee": "results.reduce",
+          "lineNumber": 77
+        },
+        {
+          "caller": "validateBillSplit",
+          "callee": "Number",
+          "lineNumber": 77
+        },
+        {
+          "caller": "validateBillSplit",
+          "callee": "amountsMatch",
+          "lineNumber": 78
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/buffet-open-table.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 397,
+      "nonEmptyLines": 372,
+      "functions": [
+        {
+          "name": "buffetLine",
+          "startLine": 25,
+          "endLine": 39,
+          "params": [
+            "adults",
+            "children",
+            "addedAt",
+            "price"
+          ]
+        },
+        {
+          "name": "orderRow",
+          "startLine": 41,
+          "endLine": 57,
+          "params": [
+            "id",
+            "tableId",
+            "items",
+            "createdAt",
+            "updatedAt",
+            "status"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "buffetLine",
+          "callee": "buildBuffetBaseLine",
+          "lineNumber": 31
+        },
+        {
+          "caller": "buffetLine",
+          "callee": "assert.ok",
+          "lineNumber": 37
+        },
+        {
+          "caller": "from",
+          "callee": "assert.equal",
+          "lineNumber": 149
+        },
+        {
+          "caller": "eq",
+          "callee": "assert.equal",
+          "lineNumber": 158
+        },
+        {
+          "caller": "eq",
+          "callee": "assert.equal",
+          "lineNumber": 159
+        },
+        {
+          "caller": "eq",
+          "callee": "updates.push",
+          "lineNumber": 160
+        },
+        {
+          "caller": "from",
+          "callee": "assert.equal",
+          "lineNumber": 216
+        },
+        {
+          "caller": "eq",
+          "callee": "updateIds.push",
+          "lineNumber": 223
+        },
+        {
+          "caller": "eq",
+          "callee": "assert.equal",
+          "lineNumber": 227
+        },
+        {
+          "caller": "eq",
+          "callee": "assert.equal",
+          "lineNumber": 228
+        },
+        {
+          "caller": "eq",
+          "callee": "Promise.resolve",
+          "lineNumber": 239
+        },
+        {
+          "caller": "from",
+          "callee": "assert.equal",
+          "lineNumber": 289
+        },
+        {
+          "caller": "eq",
+          "callee": "assert.equal",
+          "lineNumber": 295
+        },
+        {
+          "caller": "eq",
+          "callee": "assert.equal",
+          "lineNumber": 296
+        },
+        {
+          "caller": "eq",
+          "callee": "assert.equal",
+          "lineNumber": 299
+        },
+        {
+          "caller": "eq",
+          "callee": "assert.equal",
+          "lineNumber": 300
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/buffet-open-table.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 283,
+      "nonEmptyLines": 252,
+      "functions": [
+        {
+          "name": "pickLatestTableOrder",
+          "startLine": 65,
+          "endLine": 73,
+          "params": [
+            "sessionOrders",
+            "tableId"
+          ]
+        },
+        {
+          "name": "mapToBuffetSessionOrders",
+          "startLine": 75,
+          "endLine": 93,
+          "params": [
+            "rows"
+          ]
+        },
+        {
+          "name": "buffetLinesChanged",
+          "startLine": 95,
+          "endLine": 97,
+          "params": [
+            "before",
+            "after"
+          ]
+        },
+        {
+          "name": "menuItemsSnapshot",
+          "startLine": 99,
+          "endLine": 101,
+          "params": [
+            "items"
+          ]
+        },
+        {
+          "name": "menuItemsUnchanged",
+          "startLine": 103,
+          "endLine": 105,
+          "params": [
+            "before",
+            "after"
+          ]
+        },
+        {
+          "name": "activeLineTotal",
+          "startLine": 107,
+          "endLine": 112,
+          "params": [
+            "items",
+            "orderStatus"
+          ]
+        },
+        {
+          "name": "planBuffetOpenWrites",
+          "startLine": 115,
+          "endLine": 169,
+          "params": [
+            "sessionOrders",
+            "params"
+          ]
+        },
+        {
+          "name": "patchOrderRow",
+          "startLine": 171,
+          "endLine": 173,
+          "params": [
+            "order",
+            "patch"
+          ]
+        },
+        {
+          "name": "applyBuffetOpenOptimisticToOrders",
+          "startLine": 176,
+          "endLine": 222,
+          "params": [
+            "orders",
+            "params"
+          ]
+        },
+        {
+          "name": "applyBuffetOpenToSession",
+          "startLine": 228,
+          "endLine": 283,
+          "params": [
+            "admin",
+            "params"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "OPTIMISTIC_OPEN_SESSION_ID",
+          "line": 23,
+          "isDefault": false
+        },
+        {
+          "name": "pickLatestTableOrder",
+          "line": 65,
+          "isDefault": false
+        },
+        {
+          "name": "mapToBuffetSessionOrders",
+          "line": 75,
+          "isDefault": false
+        },
+        {
+          "name": "planBuffetOpenWrites",
+          "line": 115,
+          "isDefault": false
+        },
+        {
+          "name": "applyBuffetOpenOptimisticToOrders",
+          "line": 176,
+          "isDefault": false
+        },
+        {
+          "name": "applyBuffetOpenToSession",
+          "line": 228,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "pickLatestTableOrder",
+          "callee": "sessionOrders\n    .filter((row) => tableIdsEqual(row.table_id, tableId))\n    .sort",
+          "lineNumber": 69
+        },
+        {
+          "caller": "pickLatestTableOrder",
+          "callee": "sessionOrders\n    .filter",
+          "lineNumber": 69
+        },
+        {
+          "caller": "pickLatestTableOrder",
+          "callee": "tableIdsEqual",
+          "lineNumber": 70
+        },
+        {
+          "caller": "pickLatestTableOrder",
+          "callee": "String(b.created_at).localeCompare",
+          "lineNumber": 71
+        },
+        {
+          "caller": "pickLatestTableOrder",
+          "callee": "String",
+          "lineNumber": 71
+        },
+        {
+          "caller": "pickLatestTableOrder",
+          "callee": "String",
+          "lineNumber": 71
+        },
+        {
+          "caller": "mapToBuffetSessionOrders",
+          "callee": "rows.map",
+          "lineNumber": 85
+        },
+        {
+          "caller": "buffetLinesChanged",
+          "callee": "JSON.stringify",
+          "lineNumber": 96
+        },
+        {
+          "caller": "buffetLinesChanged",
+          "callee": "JSON.stringify",
+          "lineNumber": 96
+        },
+        {
+          "caller": "menuItemsSnapshot",
+          "callee": "items.filter",
+          "lineNumber": 100
+        },
+        {
+          "caller": "menuItemsSnapshot",
+          "callee": "isBuffetBaseItem",
+          "lineNumber": 100
+        },
+        {
+          "caller": "menuItemsUnchanged",
+          "callee": "JSON.stringify",
+          "lineNumber": 104
+        },
+        {
+          "caller": "menuItemsUnchanged",
+          "callee": "menuItemsSnapshot",
+          "lineNumber": 104
+        },
+        {
+          "caller": "menuItemsUnchanged",
+          "callee": "JSON.stringify",
+          "lineNumber": 104
+        },
+        {
+          "caller": "menuItemsUnchanged",
+          "callee": "menuItemsSnapshot",
+          "lineNumber": 104
+        },
+        {
+          "caller": "activeLineTotal",
+          "callee": "items.filter",
+          "lineNumber": 108
+        },
+        {
+          "caller": "activeLineTotal",
+          "callee": "normalizeOrderItemStatus",
+          "lineNumber": 109
+        },
+        {
+          "caller": "activeLineTotal",
+          "callee": "sumLineTotals",
+          "lineNumber": 111
+        },
+        {
+          "caller": "planBuffetOpenWrites",
+          "callee": "pickLatestTableOrder",
+          "lineNumber": 120
+        },
+        {
+          "caller": "planBuffetOpenWrites",
+          "callee": "voidActiveBuffetBaseLines",
+          "lineNumber": 127
+        },
+        {
+          "caller": "planBuffetOpenWrites",
+          "callee": "buffetLinesChanged",
+          "lineNumber": 128
+        },
+        {
+          "caller": "planBuffetOpenWrites",
+          "callee": "voidOtherOrders.push",
+          "lineNumber": 130
+        },
+        {
+          "caller": "planBuffetOpenWrites",
+          "callee": "activeLineTotal",
+          "lineNumber": 133
+        },
+        {
+          "caller": "planBuffetOpenWrites",
+          "callee": "mergeBuffetLineOntoOrderItems",
+          "lineNumber": 139
+        },
+        {
+          "caller": "planBuffetOpenWrites",
+          "callee": "activeLineTotal",
+          "lineNumber": 147
+        },
+        {
+          "caller": "planBuffetOpenWrites",
+          "callee": "menuItemsUnchanged",
+          "lineNumber": 148
+        },
+        {
+          "caller": "planBuffetOpenWrites",
+          "callee": "deriveOrderStatusFromItems",
+          "lineNumber": 150
+        },
+        {
+          "caller": "planBuffetOpenWrites",
+          "callee": "sumLineTotals",
+          "lineNumber": 165
+        },
+        {
+          "caller": "planBuffetOpenWrites",
+          "callee": "deriveOrderStatusFromItems",
+          "lineNumber": 166
+        },
+        {
+          "caller": "applyBuffetOpenOptimisticToOrders",
+          "callee": "planBuffetOpenWrites",
+          "lineNumber": 180
+        },
+        {
+          "caller": "applyBuffetOpenOptimisticToOrders",
+          "callee": "mapToBuffetSessionOrders",
+          "lineNumber": 180
+        },
+        {
+          "caller": "applyBuffetOpenOptimisticToOrders",
+          "callee": "new Date().toISOString",
+          "lineNumber": 181
+        },
+        {
+          "caller": "applyBuffetOpenOptimisticToOrders",
+          "callee": "next.findIndex",
+          "lineNumber": 185
+        },
+        {
+          "caller": "applyBuffetOpenOptimisticToOrders",
+          "callee": "patchOrderRow",
+          "lineNumber": 187
+        },
+        {
+          "caller": "applyBuffetOpenOptimisticToOrders",
+          "callee": "next.findIndex",
+          "lineNumber": 196
+        },
+        {
+          "caller": "applyBuffetOpenOptimisticToOrders",
+          "callee": "patchOrderRow",
+          "lineNumber": 198
+        },
+        {
+          "caller": "applyBuffetOpenToSession",
+          "callee": "planBuffetOpenWrites",
+          "lineNumber": 232
+        },
+        {
+          "caller": "applyBuffetOpenToSession",
+          "callee": "admin\n      .from('orders')\n      .update({ items: voidWrite.items, total_amount: voidWrite.total_amount })\n      .eq",
+          "lineNumber": 235
+        },
+        {
+          "caller": "applyBuffetOpenToSession",
+          "callee": "admin\n      .from('orders')\n      .update",
+          "lineNumber": 235
+        },
+        {
+          "caller": "applyBuffetOpenToSession",
+          "callee": "admin\n      .from",
+          "lineNumber": 235
+        },
+        {
+          "caller": "applyBuffetOpenToSession",
+          "callee": "admin\n      .from('orders')\n      .update({\n        items: carrier.items,\n        total_amount: carrier.total_amount,\n        status: carrier.status,\n      })\n      .eq('id', carrier.orderId)\n      .eq('updated_at', carrier.updated_at)\n      .select('id')\n      .maybeSingle",
+          "lineNumber": 247
+        },
+        {
+          "caller": "applyBuffetOpenToSession",
+          "callee": "admin\n      .from('orders')\n      .update({\n        items: carrier.items,\n        total_amount: carrier.total_amount,\n        status: carrier.status,\n      })\n      .eq('id', carrier.orderId)\n      .eq('updated_at', carrier.updated_at)\n      .select",
+          "lineNumber": 247
+        },
+        {
+          "caller": "applyBuffetOpenToSession",
+          "callee": "admin\n      .from('orders')\n      .update({\n        items: carrier.items,\n        total_amount: carrier.total_amount,\n        status: carrier.status,\n      })\n      .eq('id', carrier.orderId)\n      .eq",
+          "lineNumber": 247
+        },
+        {
+          "caller": "applyBuffetOpenToSession",
+          "callee": "admin\n      .from('orders')\n      .update({\n        items: carrier.items,\n        total_amount: carrier.total_amount,\n        status: carrier.status,\n      })\n      .eq",
+          "lineNumber": 247
+        },
+        {
+          "caller": "applyBuffetOpenToSession",
+          "callee": "admin\n      .from('orders')\n      .update",
+          "lineNumber": 247
+        },
+        {
+          "caller": "applyBuffetOpenToSession",
+          "callee": "admin\n      .from",
+          "lineNumber": 247
+        },
+        {
+          "caller": "applyBuffetOpenToSession",
+          "callee": "admin.from('orders').insert",
+          "lineNumber": 269
+        },
+        {
+          "caller": "applyBuffetOpenToSession",
+          "callee": "admin.from",
+          "lineNumber": 269
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 6,
+        "functionCount": 10,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/buffet-order.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 144,
+      "nonEmptyLines": 124,
+      "functions": [
+        {
+          "name": "orderWithBuffet",
+          "startLine": 23,
+          "endLine": 43,
+          "params": [
+            "adults",
+            "children"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "orderWithBuffet",
+          "callee": "buildBuffetBaseLine",
+          "lineNumber": 24
+        },
+        {
+          "caller": "orderWithBuffet",
+          "callee": "assert.ok",
+          "lineNumber": 30
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/buffet-order.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 234,
+      "nonEmptyLines": 211,
+      "functions": [
+        {
+          "name": "voidActiveBuffetBaseLines",
+          "startLine": 6,
+          "endLine": 13,
+          "params": [
+            "items"
+          ]
+        },
+        {
+          "name": "activeBuffetBaseLines",
+          "startLine": 15,
+          "endLine": 25,
+          "params": [
+            "orders"
+          ]
+        },
+        {
+          "name": "latestActiveBuffetBaseLine",
+          "startLine": 28,
+          "endLine": 45,
+          "params": [
+            "orders"
+          ]
+        },
+        {
+          "name": "mergeBuffetLineOntoOrderItems",
+          "startLine": 48,
+          "endLine": 53,
+          "params": [
+            "existingItems",
+            "newLine"
+          ]
+        },
+        {
+          "name": "aggregateBuffetForOrders",
+          "startLine": 55,
+          "endLine": 73,
+          "params": [
+            "orders"
+          ]
+        },
+        {
+          "name": "normalizeBuffetGuestCounts",
+          "startLine": 76,
+          "endLine": 84,
+          "params": [
+            "adultCount",
+            "childCount"
+          ]
+        },
+        {
+          "name": "isBuffetGuestCountsUnchanged",
+          "startLine": 87,
+          "endLine": 97,
+          "params": [
+            "orders",
+            "buffetId",
+            "adultCount",
+            "childCount"
+          ]
+        },
+        {
+          "name": "formatBuffetHeadcountLabel",
+          "startLine": 100,
+          "endLine": 102,
+          "params": [
+            "adults",
+            "children"
+          ]
+        },
+        {
+          "name": "formatBuffetReceiptQtyLabel",
+          "startLine": 105,
+          "endLine": 111,
+          "params": [
+            "adults",
+            "children"
+          ]
+        },
+        {
+          "name": "formatBuffetPriceTemplate",
+          "startLine": 114,
+          "endLine": 119,
+          "params": [
+            "template",
+            "values"
+          ]
+        },
+        {
+          "name": "parseBuffetUnitPrices",
+          "startLine": 125,
+          "endLine": 133,
+          "params": [
+            "resolved"
+          ]
+        },
+        {
+          "name": "computeBuffetSubtotal",
+          "startLine": 135,
+          "endLine": 143,
+          "params": [
+            "adultCount",
+            "childCount",
+            "adultPrice",
+            "childPrice"
+          ]
+        },
+        {
+          "name": "resolveBuffetOpenPricePreview",
+          "startLine": 146,
+          "endLine": 160,
+          "params": [
+            "resolved",
+            "adultCount",
+            "childCount"
+          ]
+        },
+        {
+          "name": "formatBuffetGuestCountsOptional",
+          "startLine": 163,
+          "endLine": 173,
+          "params": [
+            "adults",
+            "children",
+            "templates"
+          ]
+        },
+        {
+          "name": "parseResolvedBuffetPriceRpcRow",
+          "startLine": 183,
+          "endLine": 197,
+          "params": [
+            "priceRows"
+          ]
+        },
+        {
+          "name": "buildBuffetBaseLine",
+          "startLine": 199,
+          "endLine": 234,
+          "params": [
+            "params"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "voidActiveBuffetBaseLines",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "latestActiveBuffetBaseLine",
+          "line": 28,
+          "isDefault": false
+        },
+        {
+          "name": "mergeBuffetLineOntoOrderItems",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "aggregateBuffetForOrders",
+          "line": 55,
+          "isDefault": false
+        },
+        {
+          "name": "normalizeBuffetGuestCounts",
+          "line": 76,
+          "isDefault": false
+        },
+        {
+          "name": "isBuffetGuestCountsUnchanged",
+          "line": 87,
+          "isDefault": false
+        },
+        {
+          "name": "formatBuffetHeadcountLabel",
+          "line": 100,
+          "isDefault": false
+        },
+        {
+          "name": "formatBuffetReceiptQtyLabel",
+          "line": 105,
+          "isDefault": false
+        },
+        {
+          "name": "formatBuffetPriceTemplate",
+          "line": 114,
+          "isDefault": false
+        },
+        {
+          "name": "computeBuffetSubtotal",
+          "line": 135,
+          "isDefault": false
+        },
+        {
+          "name": "resolveBuffetOpenPricePreview",
+          "line": 146,
+          "isDefault": false
+        },
+        {
+          "name": "formatBuffetGuestCountsOptional",
+          "line": 163,
+          "isDefault": false
+        },
+        {
+          "name": "parseResolvedBuffetPriceRpcRow",
+          "line": 183,
+          "isDefault": false
+        },
+        {
+          "name": "buildBuffetBaseLine",
+          "line": 199,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "voidActiveBuffetBaseLines",
+          "callee": "new Date().toISOString",
+          "lineNumber": 7
+        },
+        {
+          "caller": "voidActiveBuffetBaseLines",
+          "callee": "items.map",
+          "lineNumber": 8
+        },
+        {
+          "caller": "voidActiveBuffetBaseLines",
+          "callee": "isBuffetBaseItem",
+          "lineNumber": 9
+        },
+        {
+          "caller": "activeBuffetBaseLines",
+          "callee": "isBuffetBaseItem",
+          "lineNumber": 19
+        },
+        {
+          "caller": "activeBuffetBaseLines",
+          "callee": "normalizeOrderItemStatus",
+          "lineNumber": 20
+        },
+        {
+          "caller": "activeBuffetBaseLines",
+          "callee": "lines.push",
+          "lineNumber": 21
+        },
+        {
+          "caller": "latestActiveBuffetBaseLine",
+          "callee": "activeBuffetBaseLines",
+          "lineNumber": 29
+        },
+        {
+          "caller": "latestActiveBuffetBaseLine",
+          "callee": "active.map((l) => l.buffet_id).filter",
+          "lineNumber": 32
+        },
+        {
+          "caller": "latestActiveBuffetBaseLine",
+          "callee": "active.map",
+          "lineNumber": 32
+        },
+        {
+          "caller": "mergeBuffetLineOntoOrderItems",
+          "callee": "voidActiveBuffetBaseLines",
+          "lineNumber": 52
+        },
+        {
+          "caller": "aggregateBuffetForOrders",
+          "callee": "latestActiveBuffetBaseLine",
+          "lineNumber": 58
+        },
+        {
+          "caller": "normalizeBuffetGuestCounts",
+          "callee": "Math.max",
+          "lineNumber": 81
+        },
+        {
+          "caller": "normalizeBuffetGuestCounts",
+          "callee": "Math.floor",
+          "lineNumber": 81
+        },
+        {
+          "caller": "normalizeBuffetGuestCounts",
+          "callee": "Math.max",
+          "lineNumber": 82
+        },
+        {
+          "caller": "normalizeBuffetGuestCounts",
+          "callee": "Math.floor",
+          "lineNumber": 82
+        },
+        {
+          "caller": "isBuffetGuestCountsUnchanged",
+          "callee": "aggregateBuffetForOrders",
+          "lineNumber": 93
+        },
+        {
+          "caller": "isBuffetGuestCountsUnchanged",
+          "callee": "normalizeBuffetGuestCounts",
+          "lineNumber": 95
+        },
+        {
+          "caller": "formatBuffetReceiptQtyLabel",
+          "callee": "normalizeBuffetGuestCounts",
+          "lineNumber": 106
+        },
+        {
+          "caller": "formatBuffetPriceTemplate",
+          "callee": "Object.entries(values).reduce",
+          "lineNumber": 115
+        },
+        {
+          "caller": "formatBuffetPriceTemplate",
+          "callee": "Object.entries",
+          "lineNumber": 115
+        },
+        {
+          "caller": "formatBuffetPriceTemplate",
+          "callee": "out.replaceAll",
+          "lineNumber": 116
+        },
+        {
+          "caller": "formatBuffetPriceTemplate",
+          "callee": "value.toFixed",
+          "lineNumber": 116
+        },
+        {
+          "caller": "parseBuffetUnitPrices",
+          "callee": "Number",
+          "lineNumber": 129
+        },
+        {
+          "caller": "parseBuffetUnitPrices",
+          "callee": "Number",
+          "lineNumber": 130
+        },
+        {
+          "caller": "parseBuffetUnitPrices",
+          "callee": "Number.isFinite",
+          "lineNumber": 131
+        },
+        {
+          "caller": "parseBuffetUnitPrices",
+          "callee": "Number.isFinite",
+          "lineNumber": 131
+        },
+        {
+          "caller": "computeBuffetSubtotal",
+          "callee": "normalizeBuffetGuestCounts",
+          "lineNumber": 141
+        },
+        {
+          "caller": "resolveBuffetOpenPricePreview",
+          "callee": "parseBuffetUnitPrices",
+          "lineNumber": 152
+        },
+        {
+          "caller": "resolveBuffetOpenPricePreview",
+          "callee": "computeBuffetSubtotal",
+          "lineNumber": 158
+        },
+        {
+          "caller": "formatBuffetGuestCountsOptional",
+          "callee": "normalizeBuffetGuestCounts",
+          "lineNumber": 169
+        },
+        {
+          "caller": "formatBuffetGuestCountsOptional",
+          "callee": "parts.push",
+          "lineNumber": 170
+        },
+        {
+          "caller": "formatBuffetGuestCountsOptional",
+          "callee": "templates.adults.replace",
+          "lineNumber": 170
+        },
+        {
+          "caller": "formatBuffetGuestCountsOptional",
+          "callee": "String",
+          "lineNumber": 170
+        },
+        {
+          "caller": "formatBuffetGuestCountsOptional",
+          "callee": "parts.push",
+          "lineNumber": 171
+        },
+        {
+          "caller": "formatBuffetGuestCountsOptional",
+          "callee": "templates.children.replace",
+          "lineNumber": 171
+        },
+        {
+          "caller": "formatBuffetGuestCountsOptional",
+          "callee": "String",
+          "lineNumber": 171
+        },
+        {
+          "caller": "formatBuffetGuestCountsOptional",
+          "callee": "parts.join",
+          "lineNumber": 172
+        },
+        {
+          "caller": "parseResolvedBuffetPriceRpcRow",
+          "callee": "Array.isArray",
+          "lineNumber": 184
+        },
+        {
+          "caller": "parseResolvedBuffetPriceRpcRow",
+          "callee": "Number",
+          "lineNumber": 192
+        },
+        {
+          "caller": "parseResolvedBuffetPriceRpcRow",
+          "callee": "Number",
+          "lineNumber": 193
+        },
+        {
+          "caller": "buildBuffetBaseLine",
+          "callee": "parseBuffetUnitPrices",
+          "lineNumber": 205
+        },
+        {
+          "caller": "buildBuffetBaseLine",
+          "callee": "normalizeBuffetGuestCounts",
+          "lineNumber": 207
+        },
+        {
+          "caller": "buildBuffetBaseLine",
+          "callee": "computeBuffetSubtotal",
+          "lineNumber": 208
+        },
+        {
+          "caller": "buildBuffetBaseLine",
+          "callee": "new Date().toISOString",
+          "lineNumber": 214
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 14,
+        "functionCount": 16,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/cart-totals.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 59,
+      "nonEmptyLines": 53,
+      "functions": [
+        {
+          "name": "parseMoney",
+          "startLine": 7,
+          "endLine": 18,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "parseQty",
+          "startLine": 20,
+          "endLine": 32,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "lineTotal",
+          "startLine": 34,
+          "endLine": 40,
+          "params": [
+            "it"
+          ]
+        },
+        {
+          "name": "sumLineTotals",
+          "startLine": 42,
+          "endLine": 47,
+          "params": [
+            "items"
+          ]
+        },
+        {
+          "name": "coerceCartPrice",
+          "startLine": 50,
+          "endLine": 53,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "coerceCartQty",
+          "startLine": 56,
+          "endLine": 59,
+          "params": [
+            "value"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "lineTotal",
+          "line": 34,
+          "isDefault": false
+        },
+        {
+          "name": "sumLineTotals",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "coerceCartPrice",
+          "line": 50,
+          "isDefault": false
+        },
+        {
+          "name": "coerceCartQty",
+          "line": 56,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "parseMoney",
+          "callee": "Number.isFinite",
+          "lineNumber": 8
+        },
+        {
+          "caller": "parseMoney",
+          "callee": "value.trim().replace",
+          "lineNumber": 10
+        },
+        {
+          "caller": "parseMoney",
+          "callee": "value.trim",
+          "lineNumber": 10
+        },
+        {
+          "caller": "parseMoney",
+          "callee": "t.includes",
+          "lineNumber": 12
+        },
+        {
+          "caller": "parseMoney",
+          "callee": "t.includes",
+          "lineNumber": 12
+        },
+        {
+          "caller": "parseMoney",
+          "callee": "t.replace",
+          "lineNumber": 12
+        },
+        {
+          "caller": "parseMoney",
+          "callee": "t.replace",
+          "lineNumber": 12
+        },
+        {
+          "caller": "parseMoney",
+          "callee": "Number",
+          "lineNumber": 13
+        },
+        {
+          "caller": "parseMoney",
+          "callee": "normalized.replace",
+          "lineNumber": 13
+        },
+        {
+          "caller": "parseMoney",
+          "callee": "Number.isFinite",
+          "lineNumber": 14
+        },
+        {
+          "caller": "parseMoney",
+          "callee": "Number",
+          "lineNumber": 16
+        },
+        {
+          "caller": "parseMoney",
+          "callee": "Number.isFinite",
+          "lineNumber": 17
+        },
+        {
+          "caller": "parseQty",
+          "callee": "Number.isFinite",
+          "lineNumber": 23
+        },
+        {
+          "caller": "parseQty",
+          "callee": "value.trim",
+          "lineNumber": 25
+        },
+        {
+          "caller": "parseQty",
+          "callee": "Number",
+          "lineNumber": 27
+        },
+        {
+          "caller": "parseQty",
+          "callee": "Number.isFinite",
+          "lineNumber": 28
+        },
+        {
+          "caller": "parseQty",
+          "callee": "Number",
+          "lineNumber": 30
+        },
+        {
+          "caller": "parseQty",
+          "callee": "Number.isFinite",
+          "lineNumber": 31
+        },
+        {
+          "caller": "lineTotal",
+          "callee": "parseMoney",
+          "lineNumber": 35
+        },
+        {
+          "caller": "lineTotal",
+          "callee": "parseQty",
+          "lineNumber": 37
+        },
+        {
+          "caller": "lineTotal",
+          "callee": "Number.isFinite",
+          "lineNumber": 38
+        },
+        {
+          "caller": "lineTotal",
+          "callee": "Number.isFinite",
+          "lineNumber": 38
+        },
+        {
+          "caller": "sumLineTotals",
+          "callee": "items.reduce",
+          "lineNumber": 43
+        },
+        {
+          "caller": "sumLineTotals",
+          "callee": "lineTotal",
+          "lineNumber": 44
+        },
+        {
+          "caller": "sumLineTotals",
+          "callee": "Number",
+          "lineNumber": 45
+        },
+        {
+          "caller": "coerceCartPrice",
+          "callee": "parseMoney",
+          "lineNumber": 51
+        },
+        {
+          "caller": "coerceCartPrice",
+          "callee": "Number.isFinite",
+          "lineNumber": 52
+        },
+        {
+          "caller": "coerceCartQty",
+          "callee": "parseQty",
+          "lineNumber": 57
+        },
+        {
+          "caller": "coerceCartQty",
+          "callee": "Number.isFinite",
+          "lineNumber": 58
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 4,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/checkout-confirm-payment.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 183,
+      "nonEmptyLines": 164,
+      "functions": [
+        {
+          "name": "billSplit",
+          "startLine": 16,
+          "endLine": 32,
+          "params": [
+            "overrides"
+          ]
+        },
+        {
+          "name": "mockAdminRpc",
+          "startLine": 34,
+          "endLine": 41,
+          "params": [
+            "data",
+            "rpcError"
+          ]
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/checkout-confirm-payment.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 177,
+      "nonEmptyLines": 163,
+      "functions": [
+        {
+          "name": "httpStatusForConfirmPaymentRpcCode",
+          "startLine": 60,
+          "endLine": 62,
+          "params": [
+            "code"
+          ]
+        },
+        {
+          "name": "parseRpcOrderIds",
+          "startLine": 64,
+          "endLine": 68,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "confirmBillSplitPayment",
+          "startLine": 70,
+          "endLine": 177,
+          "params": [
+            "params"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "applyDiscountToRows",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "checkoutPayableAmount",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "clampCheckoutDiscountRate",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "discountedSplitRows",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "normalizeSplitRows",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "sumSplitRowAmounts",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "httpStatusForConfirmPaymentRpcCode",
+          "line": 60,
+          "isDefault": false
+        },
+        {
+          "name": "confirmBillSplitPayment",
+          "line": 70,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "parseRpcOrderIds",
+          "callee": "Array.isArray",
+          "lineNumber": 65
+        },
+        {
+          "caller": "parseRpcOrderIds",
+          "callee": "raw.filter",
+          "lineNumber": 66
+        },
+        {
+          "caller": "confirmBillSplitPayment",
+          "callee": "admin.rpc",
+          "lineNumber": 91
+        },
+        {
+          "caller": "confirmBillSplitPayment",
+          "callee": "httpStatusForConfirmPaymentRpcCode",
+          "lineNumber": 113
+        },
+        {
+          "caller": "confirmBillSplitPayment",
+          "callee": "Number",
+          "lineNumber": 121
+        },
+        {
+          "caller": "confirmBillSplitPayment",
+          "callee": "receiptPrinterId?.trim",
+          "lineNumber": 125
+        },
+        {
+          "caller": "confirmBillSplitPayment",
+          "callee": "Number",
+          "lineNumber": 126
+        },
+        {
+          "caller": "confirmBillSplitPayment",
+          "callee": "enqueueReceiptPrint",
+          "lineNumber": 135
+        },
+        {
+          "caller": "confirmBillSplitPayment",
+          "callee": "receiptPayerNameForPrint",
+          "lineNumber": 143
+        },
+        {
+          "caller": "confirmBillSplitPayment",
+          "callee": "enqueueReceiptPrint",
+          "lineNumber": 160
+        },
+        {
+          "caller": "confirmBillSplitPayment",
+          "callee": "parseRpcOrderIds",
+          "lineNumber": 172
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 8,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/checkout-request-payload.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 19,
+      "nonEmptyLines": 17,
+      "functions": [
+        {
+          "name": "wholeTableCheckoutPayload",
+          "startLine": 11,
+          "endLine": 19,
+          "params": [
+            "total"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "wholeTableCheckoutPayload",
+          "line": 11,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/checkout-request-server.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 154,
+      "nonEmptyLines": 140,
+      "functions": [
+        {
+          "name": "submitCheckoutRequestForTable",
+          "startLine": 17,
+          "endLine": 154,
+          "params": [
+            "admin",
+            "restaurantId",
+            "tableId",
+            "payload"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "CheckoutRequestPayload",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "submitCheckoutRequestForTable",
+          "line": 17,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('restaurant_tables')\n    .select('id, display_name')\n    .eq('restaurant_id', restaurantId)\n    .eq('id', tableId)\n    .is('deleted_at', null)\n    .maybeSingle",
+          "lineNumber": 23
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('restaurant_tables')\n    .select('id, display_name')\n    .eq('restaurant_id', restaurantId)\n    .eq('id', tableId)\n    .is",
+          "lineNumber": 23
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('restaurant_tables')\n    .select('id, display_name')\n    .eq('restaurant_id', restaurantId)\n    .eq",
+          "lineNumber": 23
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('restaurant_tables')\n    .select('id, display_name')\n    .eq",
+          "lineNumber": 23
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('restaurant_tables')\n    .select",
+          "lineNumber": 23
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from",
+          "lineNumber": 23
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('table_sessions')\n    .select('id, status')\n    .eq('restaurant_id', restaurantId)\n    .eq('table_id', tableId)\n    .in('status', ['open', 'billing'])\n    .order('opened_at', { ascending: false })\n    .limit(1)\n    .maybeSingle",
+          "lineNumber": 34
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('table_sessions')\n    .select('id, status')\n    .eq('restaurant_id', restaurantId)\n    .eq('table_id', tableId)\n    .in('status', ['open', 'billing'])\n    .order('opened_at', { ascending: false })\n    .limit",
+          "lineNumber": 34
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('table_sessions')\n    .select('id, status')\n    .eq('restaurant_id', restaurantId)\n    .eq('table_id', tableId)\n    .in('status', ['open', 'billing'])\n    .order",
+          "lineNumber": 34
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('table_sessions')\n    .select('id, status')\n    .eq('restaurant_id', restaurantId)\n    .eq('table_id', tableId)\n    .in",
+          "lineNumber": 34
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('table_sessions')\n    .select('id, status')\n    .eq('restaurant_id', restaurantId)\n    .eq",
+          "lineNumber": 34
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('table_sessions')\n    .select('id, status')\n    .eq",
+          "lineNumber": 34
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('table_sessions')\n    .select",
+          "lineNumber": 34
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from",
+          "lineNumber": 34
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "loadCustomerSessionOrders",
+          "lineNumber": 59
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "buildBillSplitOrderLines",
+          "lineNumber": 65
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "buildByItemLineSpecs",
+          "lineNumber": 70
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "sumLineTotals",
+          "lineNumber": 71
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "validateBillSplit",
+          "lineNumber": 72
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "buildByItemAllocationsFromPersons",
+          "lineNumber": 79
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('bill_splits')\n    .select('*')\n    .eq('restaurant_id', restaurantId)\n    .eq('session_id', sessionId)\n    .in('status', ['pending', 'confirmed', 'requested'])\n    .order('created_at', { ascending: false })\n    .limit(1)\n    .maybeSingle",
+          "lineNumber": 86
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('bill_splits')\n    .select('*')\n    .eq('restaurant_id', restaurantId)\n    .eq('session_id', sessionId)\n    .in('status', ['pending', 'confirmed', 'requested'])\n    .order('created_at', { ascending: false })\n    .limit",
+          "lineNumber": 86
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('bill_splits')\n    .select('*')\n    .eq('restaurant_id', restaurantId)\n    .eq('session_id', sessionId)\n    .in('status', ['pending', 'confirmed', 'requested'])\n    .order",
+          "lineNumber": 86
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('bill_splits')\n    .select('*')\n    .eq('restaurant_id', restaurantId)\n    .eq('session_id', sessionId)\n    .in",
+          "lineNumber": 86
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('bill_splits')\n    .select('*')\n    .eq('restaurant_id', restaurantId)\n    .eq",
+          "lineNumber": 86
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('bill_splits')\n    .select('*')\n    .eq",
+          "lineNumber": 86
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('bill_splits')\n    .select",
+          "lineNumber": 86
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from",
+          "lineNumber": 86
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('session_collected_payments')\n    .select('id', { count: 'exact', head: true })\n    .eq('restaurant_id', restaurantId)\n    .eq",
+          "lineNumber": 96
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('session_collected_payments')\n    .select('id', { count: 'exact', head: true })\n    .eq",
+          "lineNumber": 96
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from('session_collected_payments')\n    .select",
+          "lineNumber": 96
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin\n    .from",
+          "lineNumber": 96
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "validateCheckoutContinuation",
+          "lineNumber": 103
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "orders.map",
+          "lineNumber": 114
+        },
+        {
+          "caller": "submitCheckoutRequestForTable",
+          "callee": "admin.rpc",
+          "lineNumber": 115
+        }
+      ],
+      "metrics": {
+        "importCount": 8,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/checkout-split-continuation.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 226,
+      "nonEmptyLines": 213,
+      "functions": [
+        {
+          "name": "split",
+          "startLine": 15,
+          "endLine": 31,
+          "params": [
+            "overrides"
+          ]
+        },
+        {
+          "name": "menuSpec",
+          "startLine": 33,
+          "endLine": 38,
+          "params": [
+            "key"
+          ]
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/checkout-split-continuation.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 204,
+      "nonEmptyLines": 187,
+      "functions": [
+        {
+          "name": "hasPaidSplitRow",
+          "startLine": 15,
+          "endLine": 17,
+          "params": [
+            "split"
+          ]
+        },
+        {
+          "name": "isPausedCheckoutSplit",
+          "startLine": 20,
+          "endLine": 25,
+          "params": [
+            "split",
+            "sessionStatus"
+          ]
+        },
+        {
+          "name": "isCheckoutSplitLocked",
+          "startLine": 28,
+          "endLine": 36,
+          "params": [
+            "split",
+            "hasCollectedLedger"
+          ]
+        },
+        {
+          "name": "paidSplitPersonNames",
+          "startLine": 39,
+          "endLine": 45,
+          "params": [
+            "split"
+          ]
+        },
+        {
+          "name": "shouldShowCheckoutSubmitted",
+          "startLine": 48,
+          "endLine": 56,
+          "params": [
+            "split",
+            "sessionStatus"
+          ]
+        },
+        {
+          "name": "lockedByItemLineKeys",
+          "startLine": 62,
+          "endLine": 83,
+          "params": [
+            "split",
+            "hasCollectedLedger"
+          ]
+        },
+        {
+          "name": "rationalToRowQtyFields",
+          "startLine": 85,
+          "endLine": 103,
+          "params": [
+            "qty"
+          ]
+        },
+        {
+          "name": "buffetRowsFromShares",
+          "startLine": 105,
+          "endLine": 127,
+          "params": [
+            "shares"
+          ]
+        },
+        {
+          "name": "buildByItemConsumerRowsFromPersons",
+          "startLine": 130,
+          "endLine": 150,
+          "params": [
+            "persons",
+            "lineSpecs"
+          ]
+        },
+        {
+          "name": "allocationsEqualForKey",
+          "startLine": 152,
+          "endLine": 169,
+          "params": [
+            "left",
+            "right"
+          ]
+        },
+        {
+          "name": "validateCheckoutContinuation",
+          "startLine": 171,
+          "endLine": 204,
+          "params": [
+            "params"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "hasPaidSplitRow",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "isPausedCheckoutSplit",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "isCheckoutSplitLocked",
+          "line": 28,
+          "isDefault": false
+        },
+        {
+          "name": "paidSplitPersonNames",
+          "line": 39,
+          "isDefault": false
+        },
+        {
+          "name": "shouldShowCheckoutSubmitted",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "lockedByItemLineKeys",
+          "line": 62,
+          "isDefault": false
+        },
+        {
+          "name": "buildByItemConsumerRowsFromPersons",
+          "line": 130,
+          "isDefault": false
+        },
+        {
+          "name": "validateCheckoutContinuation",
+          "line": 171,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "hasPaidSplitRow",
+          "callee": "(split?.result ?? []).some",
+          "lineNumber": 16
+        },
+        {
+          "caller": "isCheckoutSplitLocked",
+          "callee": "hasPaidSplitRow",
+          "lineNumber": 33
+        },
+        {
+          "caller": "paidSplitPersonNames",
+          "callee": "(split?.result ?? [])\n      .filter((row) => row.paid)\n      .map",
+          "lineNumber": 41
+        },
+        {
+          "caller": "paidSplitPersonNames",
+          "callee": "(split?.result ?? [])\n      .filter",
+          "lineNumber": 41
+        },
+        {
+          "caller": "paidSplitPersonNames",
+          "callee": "row.name.trim().toLowerCase",
+          "lineNumber": 43
+        },
+        {
+          "caller": "paidSplitPersonNames",
+          "callee": "row.name.trim",
+          "lineNumber": 43
+        },
+        {
+          "caller": "shouldShowCheckoutSubmitted",
+          "callee": "isPausedCheckoutSplit",
+          "lineNumber": 54
+        },
+        {
+          "caller": "lockedByItemLineKeys",
+          "callee": "paidSplitPersonNames",
+          "lineNumber": 69
+        },
+        {
+          "caller": "lockedByItemLineKeys",
+          "callee": "paidNames.has",
+          "lineNumber": 73
+        },
+        {
+          "caller": "lockedByItemLineKeys",
+          "callee": "person.name.trim().toLowerCase",
+          "lineNumber": 73
+        },
+        {
+          "caller": "lockedByItemLineKeys",
+          "callee": "person.name.trim",
+          "lineNumber": 73
+        },
+        {
+          "caller": "lockedByItemLineKeys",
+          "callee": "keys.add",
+          "lineNumber": 76
+        },
+        {
+          "caller": "lockedByItemLineKeys",
+          "callee": "keys.add",
+          "lineNumber": 79
+        },
+        {
+          "caller": "rationalToRowQtyFields",
+          "callee": "normalizeRational",
+          "lineNumber": 86
+        },
+        {
+          "caller": "rationalToRowQtyFields",
+          "callee": "String",
+          "lineNumber": 88
+        },
+        {
+          "caller": "rationalToRowQtyFields",
+          "callee": "Math.abs",
+          "lineNumber": 91
+        },
+        {
+          "caller": "rationalToRowQtyFields",
+          "callee": "Math.floor",
+          "lineNumber": 92
+        },
+        {
+          "caller": "rationalToRowQtyFields",
+          "callee": "String",
+          "lineNumber": 98
+        },
+        {
+          "caller": "rationalToRowQtyFields",
+          "callee": "String",
+          "lineNumber": 99
+        },
+        {
+          "caller": "rationalToRowQtyFields",
+          "callee": "String",
+          "lineNumber": 102
+        },
+        {
+          "caller": "buffetRowsFromShares",
+          "callee": "share.name.trim",
+          "lineNumber": 110
+        },
+        {
+          "caller": "buffetRowsFromShares",
+          "callee": "byName.get",
+          "lineNumber": 112
+        },
+        {
+          "caller": "buffetRowsFromShares",
+          "callee": "Math.round",
+          "lineNumber": 113
+        },
+        {
+          "caller": "buffetRowsFromShares",
+          "callee": "byName.set",
+          "lineNumber": 116
+        },
+        {
+          "caller": "buffetRowsFromShares",
+          "callee": "Array.from(byName.entries()).map",
+          "lineNumber": 118
+        },
+        {
+          "caller": "buffetRowsFromShares",
+          "callee": "Array.from",
+          "lineNumber": 118
+        },
+        {
+          "caller": "buffetRowsFromShares",
+          "callee": "byName.entries",
+          "lineNumber": 118
+        },
+        {
+          "caller": "buffetRowsFromShares",
+          "callee": "createByItemConsumerRow",
+          "lineNumber": 119
+        },
+        {
+          "caller": "buffetRowsFromShares",
+          "callee": "String",
+          "lineNumber": 121
+        },
+        {
+          "caller": "buffetRowsFromShares",
+          "callee": "String",
+          "lineNumber": 122
+        },
+        {
+          "caller": "buildByItemConsumerRowsFromPersons",
+          "callee": "buildByItemAllocationsFromPersons",
+          "lineNumber": 134
+        },
+        {
+          "caller": "buildByItemConsumerRowsFromPersons",
+          "callee": "buffetRowsFromShares",
+          "lineNumber": 140
+        },
+        {
+          "caller": "buildByItemConsumerRowsFromPersons",
+          "callee": "shares.map",
+          "lineNumber": 143
+        },
+        {
+          "caller": "buildByItemConsumerRowsFromPersons",
+          "callee": "createByItemConsumerRow",
+          "lineNumber": 144
+        },
+        {
+          "caller": "buildByItemConsumerRowsFromPersons",
+          "callee": "rationalToRowQtyFields",
+          "lineNumber": 146
+        },
+        {
+          "caller": "allocationsEqualForKey",
+          "callee": "[...a].sort",
+          "lineNumber": 159
+        },
+        {
+          "caller": "allocationsEqualForKey",
+          "callee": "x.name.localeCompare",
+          "lineNumber": 159
+        },
+        {
+          "caller": "allocationsEqualForKey",
+          "callee": "[...b].sort",
+          "lineNumber": 160
+        },
+        {
+          "caller": "allocationsEqualForKey",
+          "callee": "x.name.localeCompare",
+          "lineNumber": 160
+        },
+        {
+          "caller": "allocationsEqualForKey",
+          "callee": "rowA.name.trim",
+          "lineNumber": 164
+        },
+        {
+          "caller": "allocationsEqualForKey",
+          "callee": "rowB.name.trim",
+          "lineNumber": 164
+        },
+        {
+          "caller": "allocationsEqualForKey",
+          "callee": "rationalsEqual",
+          "lineNumber": 165
+        },
+        {
+          "caller": "validateCheckoutContinuation",
+          "callee": "isCheckoutSplitLocked",
+          "lineNumber": 178
+        },
+        {
+          "caller": "validateCheckoutContinuation",
+          "callee": "lockedByItemLineKeys",
+          "lineNumber": 192
+        },
+        {
+          "caller": "validateCheckoutContinuation",
+          "callee": "buildByItemAllocationsFromPersons",
+          "lineNumber": 194
+        },
+        {
+          "caller": "validateCheckoutContinuation",
+          "callee": "buildByItemAllocationsFromPersons",
+          "lineNumber": 195
+        },
+        {
+          "caller": "validateCheckoutContinuation",
+          "callee": "Array.from",
+          "lineNumber": 196
+        },
+        {
+          "caller": "validateCheckoutContinuation",
+          "callee": "allocationsEqualForKey",
+          "lineNumber": 197
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 8,
+        "functionCount": 11,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/consumer-name-roster.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 118,
+      "nonEmptyLines": 107,
+      "functions": [
+        {
+          "name": "row",
+          "startLine": 12,
+          "endLine": 18,
+          "params": [
+            "id",
+            "name"
+          ]
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/consumer-name-roster.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 79,
+      "nonEmptyLines": 70,
+      "functions": [
+        {
+          "name": "normalizeConsumerName",
+          "startLine": 6,
+          "endLine": 8,
+          "params": [
+            "name"
+          ]
+        },
+        {
+          "name": "addToConsumerRoster",
+          "startLine": 11,
+          "endLine": 17,
+          "params": [
+            "roster",
+            "name"
+          ]
+        },
+        {
+          "name": "collectActiveConsumerNames",
+          "startLine": 20,
+          "endLine": 32,
+          "params": [
+            "allocations"
+          ]
+        },
+        {
+          "name": "namesUsedOnOtherDishRows",
+          "startLine": 34,
+          "endLine": 45,
+          "params": [
+            "rows",
+            "rowId"
+          ]
+        },
+        {
+          "name": "filterConsumerNameOptions",
+          "startLine": 47,
+          "endLine": 54,
+          "params": [
+            "options",
+            "query"
+          ]
+        },
+        {
+          "name": "availableConsumerNamesForRow",
+          "startLine": 56,
+          "endLine": 63,
+          "params": [
+            "params"
+          ]
+        },
+        {
+          "name": "suggestConsumerNamesForRow",
+          "startLine": 65,
+          "endLine": 75,
+          "params": [
+            "params"
+          ]
+        },
+        {
+          "name": "shouldShowConsumerNameMenu",
+          "startLine": 77,
+          "endLine": 79,
+          "params": [
+            "options",
+            "query"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "MIN_ACTIVE_CONSUMER_NAME_LENGTH",
+          "line": 4,
+          "isDefault": false
+        },
+        {
+          "name": "normalizeConsumerName",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "addToConsumerRoster",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "collectActiveConsumerNames",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "namesUsedOnOtherDishRows",
+          "line": 34,
+          "isDefault": false
+        },
+        {
+          "name": "filterConsumerNameOptions",
+          "line": 47,
+          "isDefault": false
+        },
+        {
+          "name": "availableConsumerNamesForRow",
+          "line": 56,
+          "isDefault": false
+        },
+        {
+          "name": "suggestConsumerNamesForRow",
+          "line": 65,
+          "isDefault": false
+        },
+        {
+          "name": "shouldShowConsumerNameMenu",
+          "line": 77,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "normalizeConsumerName",
+          "callee": "name.trim",
+          "lineNumber": 7
+        },
+        {
+          "caller": "addToConsumerRoster",
+          "callee": "normalizeConsumerName",
+          "lineNumber": 12
+        },
+        {
+          "caller": "addToConsumerRoster",
+          "callee": "trimmed.toLowerCase",
+          "lineNumber": 14
+        },
+        {
+          "caller": "addToConsumerRoster",
+          "callee": "roster.some",
+          "lineNumber": 15
+        },
+        {
+          "caller": "addToConsumerRoster",
+          "callee": "entry.toLowerCase",
+          "lineNumber": 15
+        },
+        {
+          "caller": "addToConsumerRoster",
+          "callee": "[...roster, trimmed].sort",
+          "lineNumber": 16
+        },
+        {
+          "caller": "addToConsumerRoster",
+          "callee": "a.localeCompare",
+          "lineNumber": 16
+        },
+        {
+          "caller": "collectActiveConsumerNames",
+          "callee": "Object.values",
+          "lineNumber": 24
+        },
+        {
+          "caller": "collectActiveConsumerNames",
+          "callee": "normalizeConsumerName",
+          "lineNumber": 26
+        },
+        {
+          "caller": "collectActiveConsumerNames",
+          "callee": "addToConsumerRoster",
+          "lineNumber": 28
+        },
+        {
+          "caller": "namesUsedOnOtherDishRows",
+          "callee": "normalizeConsumerName",
+          "lineNumber": 41
+        },
+        {
+          "caller": "namesUsedOnOtherDishRows",
+          "callee": "used.add",
+          "lineNumber": 42
+        },
+        {
+          "caller": "namesUsedOnOtherDishRows",
+          "callee": "name.toLowerCase",
+          "lineNumber": 42
+        },
+        {
+          "caller": "filterConsumerNameOptions",
+          "callee": "query.trim().toLowerCase",
+          "lineNumber": 48
+        },
+        {
+          "caller": "filterConsumerNameOptions",
+          "callee": "query.trim",
+          "lineNumber": 48
+        },
+        {
+          "caller": "filterConsumerNameOptions",
+          "callee": "options.filter",
+          "lineNumber": 50
+        },
+        {
+          "caller": "filterConsumerNameOptions",
+          "callee": "name.toLowerCase",
+          "lineNumber": 51
+        },
+        {
+          "caller": "filterConsumerNameOptions",
+          "callee": "lower.includes",
+          "lineNumber": 52
+        },
+        {
+          "caller": "availableConsumerNamesForRow",
+          "callee": "namesUsedOnOtherDishRows",
+          "lineNumber": 61
+        },
+        {
+          "caller": "availableConsumerNamesForRow",
+          "callee": "params.roster.filter",
+          "lineNumber": 62
+        },
+        {
+          "caller": "availableConsumerNamesForRow",
+          "callee": "blocked.has",
+          "lineNumber": 62
+        },
+        {
+          "caller": "availableConsumerNamesForRow",
+          "callee": "name.toLowerCase",
+          "lineNumber": 62
+        },
+        {
+          "caller": "suggestConsumerNamesForRow",
+          "callee": "filterConsumerNameOptions",
+          "lineNumber": 71
+        },
+        {
+          "caller": "suggestConsumerNamesForRow",
+          "callee": "availableConsumerNamesForRow",
+          "lineNumber": 72
+        },
+        {
+          "caller": "shouldShowConsumerNameMenu",
+          "callee": "filterConsumerNameOptions",
+          "lineNumber": 78
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 9,
+        "functionCount": 8,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/customer-bill-checkout-resume.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 45,
+      "nonEmptyLines": 41,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/customer-bill-checkout-resume.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 28,
+      "nonEmptyLines": 26,
+      "functions": [
+        {
+          "name": "detectCheckoutResumedFromBillContext",
+          "startLine": 14,
+          "endLine": 28,
+          "params": [
+            "ctx"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "detectCheckoutResumedFromBillContext",
+          "line": 14,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/customer-bill-sync.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 39,
+      "nonEmptyLines": 35,
+      "functions": [
+        {
+          "name": "billOrdersFingerprint",
+          "startLine": 9,
+          "endLine": 21,
+          "params": [
+            "orders"
+          ]
+        },
+        {
+          "name": "isBillOrdersComplete",
+          "startLine": 23,
+          "endLine": 25,
+          "params": [
+            "displayed",
+            "fresh"
+          ]
+        },
+        {
+          "name": "deriveBillView",
+          "startLine": 27,
+          "endLine": 32,
+          "params": [
+            "orders"
+          ]
+        },
+        {
+          "name": "syncCustomerBill",
+          "startLine": 34,
+          "endLine": 39,
+          "params": [
+            "slug",
+            "tableId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "billOrdersFingerprint",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "isBillOrdersComplete",
+          "line": 23,
+          "isDefault": false
+        },
+        {
+          "name": "deriveBillView",
+          "line": 27,
+          "isDefault": false
+        },
+        {
+          "name": "syncCustomerBill",
+          "line": 34,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "billOrdersFingerprint",
+          "callee": "orders\n    .map((order) => {\n      const items = (order.items || [])\n        .map(\n          (item, idx) =>\n            `${idx}:${item.qty}:${item.price}:${item.kind ?? ''}:${item.adult_count ?? ''}:${item.child_count ?? ''}`,\n        )\n        .join(',');\n      return `${order.id}|${items}`;\n    })\n    .join",
+          "lineNumber": 10
+        },
+        {
+          "caller": "billOrdersFingerprint",
+          "callee": "orders\n    .map",
+          "lineNumber": 10
+        },
+        {
+          "caller": "billOrdersFingerprint",
+          "callee": "(order.items || [])\n        .map(\n          (item, idx) =>\n            `${idx}:${item.qty}:${item.price}:${item.kind ?? ''}:${item.adult_count ?? ''}:${item.child_count ?? ''}`,\n        )\n        .join",
+          "lineNumber": 12
+        },
+        {
+          "caller": "billOrdersFingerprint",
+          "callee": "(order.items || [])\n        .map",
+          "lineNumber": 12
+        },
+        {
+          "caller": "isBillOrdersComplete",
+          "callee": "billOrdersFingerprint",
+          "lineNumber": 24
+        },
+        {
+          "caller": "isBillOrdersComplete",
+          "callee": "billOrdersFingerprint",
+          "lineNumber": 24
+        },
+        {
+          "caller": "deriveBillView",
+          "callee": "buildBillSplitOrderLines",
+          "lineNumber": 28
+        },
+        {
+          "caller": "deriveBillView",
+          "callee": "buildByItemLineSpecs",
+          "lineNumber": 29
+        },
+        {
+          "caller": "deriveBillView",
+          "callee": "orderLines.reduce",
+          "lineNumber": 30
+        },
+        {
+          "caller": "syncCustomerBill",
+          "callee": "requestCustomerBillContext",
+          "lineNumber": 35
+        },
+        {
+          "caller": "syncCustomerBill",
+          "callee": "deriveBillView",
+          "lineNumber": 38
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/customer-geo-order.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 33,
+      "nonEmptyLines": 31,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    }
+  ]
+}

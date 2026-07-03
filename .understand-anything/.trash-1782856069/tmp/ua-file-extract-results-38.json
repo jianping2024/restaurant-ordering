@@ -1,0 +1,666 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 11,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "packages/shared/src/print-agent-support-snapshot.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 98,
+      "nonEmptyLines": 91,
+      "functions": [
+        {
+          "name": "consumePrintAgentSupportToken",
+          "startLine": 26,
+          "endLine": 44,
+          "params": [
+            "admin",
+            "jti",
+            "expected"
+          ]
+        },
+        {
+          "name": "loadPrintAgentSupportSnapshot",
+          "startLine": 46,
+          "endLine": 98,
+          "params": [
+            "admin",
+            "deviceId",
+            "restaurantId",
+            "options"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "consumePrintAgentSupportToken",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "loadPrintAgentSupportSnapshot",
+          "line": 46,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "consumePrintAgentSupportToken",
+          "callee": "new Date().toISOString",
+          "lineNumber": 31
+        },
+        {
+          "caller": "consumePrintAgentSupportToken",
+          "callee": "admin\n    .from('print_agent_support_tokens')\n    .update({ consumed_at: now })\n    .eq('id', jti)\n    .eq('device_id', expected.deviceId)\n    .eq('restaurant_id', expected.restaurantId)\n    .is('consumed_at', null)\n    .gt('expires_at', now)\n    .select('id')\n    .maybeSingle",
+          "lineNumber": 32
+        },
+        {
+          "caller": "consumePrintAgentSupportToken",
+          "callee": "admin\n    .from('print_agent_support_tokens')\n    .update({ consumed_at: now })\n    .eq('id', jti)\n    .eq('device_id', expected.deviceId)\n    .eq('restaurant_id', expected.restaurantId)\n    .is('consumed_at', null)\n    .gt('expires_at', now)\n    .select",
+          "lineNumber": 32
+        },
+        {
+          "caller": "consumePrintAgentSupportToken",
+          "callee": "admin\n    .from('print_agent_support_tokens')\n    .update({ consumed_at: now })\n    .eq('id', jti)\n    .eq('device_id', expected.deviceId)\n    .eq('restaurant_id', expected.restaurantId)\n    .is('consumed_at', null)\n    .gt",
+          "lineNumber": 32
+        },
+        {
+          "caller": "consumePrintAgentSupportToken",
+          "callee": "admin\n    .from('print_agent_support_tokens')\n    .update({ consumed_at: now })\n    .eq('id', jti)\n    .eq('device_id', expected.deviceId)\n    .eq('restaurant_id', expected.restaurantId)\n    .is",
+          "lineNumber": 32
+        },
+        {
+          "caller": "consumePrintAgentSupportToken",
+          "callee": "admin\n    .from('print_agent_support_tokens')\n    .update({ consumed_at: now })\n    .eq('id', jti)\n    .eq('device_id', expected.deviceId)\n    .eq",
+          "lineNumber": 32
+        },
+        {
+          "caller": "consumePrintAgentSupportToken",
+          "callee": "admin\n    .from('print_agent_support_tokens')\n    .update({ consumed_at: now })\n    .eq('id', jti)\n    .eq",
+          "lineNumber": 32
+        },
+        {
+          "caller": "consumePrintAgentSupportToken",
+          "callee": "admin\n    .from('print_agent_support_tokens')\n    .update({ consumed_at: now })\n    .eq",
+          "lineNumber": 32
+        },
+        {
+          "caller": "consumePrintAgentSupportToken",
+          "callee": "admin\n    .from('print_agent_support_tokens')\n    .update",
+          "lineNumber": 32
+        },
+        {
+          "caller": "consumePrintAgentSupportToken",
+          "callee": "admin\n    .from",
+          "lineNumber": 32
+        },
+        {
+          "caller": "consumePrintAgentSupportToken",
+          "callee": "Boolean",
+          "lineNumber": 43
+        },
+        {
+          "caller": "loadPrintAgentSupportSnapshot",
+          "callee": "Promise.all",
+          "lineNumber": 52
+        },
+        {
+          "caller": "loadPrintAgentSupportSnapshot",
+          "callee": "admin\n      .from('print_agent_devices')\n      .select(\n        'id, label, paired_at, valid_until, revoked_at, last_seen, agent_version, last_print_at, last_print_status',\n      )\n      .eq('id', deviceId)\n      .eq('restaurant_id', restaurantId)\n      .maybeSingle",
+          "lineNumber": 53
+        },
+        {
+          "caller": "loadPrintAgentSupportSnapshot",
+          "callee": "admin\n      .from('print_agent_devices')\n      .select(\n        'id, label, paired_at, valid_until, revoked_at, last_seen, agent_version, last_print_at, last_print_status',\n      )\n      .eq('id', deviceId)\n      .eq",
+          "lineNumber": 53
+        },
+        {
+          "caller": "loadPrintAgentSupportSnapshot",
+          "callee": "admin\n      .from('print_agent_devices')\n      .select(\n        'id, label, paired_at, valid_until, revoked_at, last_seen, agent_version, last_print_at, last_print_status',\n      )\n      .eq",
+          "lineNumber": 53
+        },
+        {
+          "caller": "loadPrintAgentSupportSnapshot",
+          "callee": "admin\n      .from('print_agent_devices')\n      .select",
+          "lineNumber": 53
+        },
+        {
+          "caller": "loadPrintAgentSupportSnapshot",
+          "callee": "admin\n      .from",
+          "lineNumber": 53
+        },
+        {
+          "caller": "loadPrintAgentSupportSnapshot",
+          "callee": "admin\n      .from('restaurants')\n      .select('id, name, slug, print_locale, country_code, print_agent_config')\n      .eq('id', restaurantId)\n      .maybeSingle",
+          "lineNumber": 61
+        },
+        {
+          "caller": "loadPrintAgentSupportSnapshot",
+          "callee": "admin\n      .from('restaurants')\n      .select('id, name, slug, print_locale, country_code, print_agent_config')\n      .eq",
+          "lineNumber": 61
+        },
+        {
+          "caller": "loadPrintAgentSupportSnapshot",
+          "callee": "admin\n      .from('restaurants')\n      .select",
+          "lineNumber": 61
+        },
+        {
+          "caller": "loadPrintAgentSupportSnapshot",
+          "callee": "admin\n      .from",
+          "lineNumber": 61
+        },
+        {
+          "caller": "loadPrintAgentSupportSnapshot",
+          "callee": "Array.isArray",
+          "lineNumber": 72
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/restaurant-features.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 46,
+      "nonEmptyLines": 40,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/restaurant-features.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 136,
+      "nonEmptyLines": 115,
+      "functions": [
+        {
+          "name": "groupRestaurantFeaturesByModule",
+          "startLine": 60,
+          "endLine": 71,
+          "params": []
+        },
+        {
+          "name": "getRestaurantFeatureModule",
+          "startLine": 73,
+          "endLine": 81,
+          "params": [
+            "moduleId"
+          ]
+        },
+        {
+          "name": "normalizeRestaurantFeatureFlags",
+          "startLine": 83,
+          "endLine": 93,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "isRestaurantFeatureEnabled",
+          "startLine": 95,
+          "endLine": 100,
+          "params": [
+            "flags",
+            "key"
+          ]
+        },
+        {
+          "name": "parseFeatureFlagsPatch",
+          "startLine": 102,
+          "endLine": 114,
+          "params": [
+            "body"
+          ]
+        },
+        {
+          "name": "parseFeatureFlagsRecord",
+          "startLine": 116,
+          "endLine": 125,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "mergeRestaurantFeatureFlags",
+          "startLine": 127,
+          "endLine": 132,
+          "params": [
+            "current",
+            "patch"
+          ]
+        },
+        {
+          "name": "isDashboardKitchenShortcutEnabled",
+          "startLine": 134,
+          "endLine": 136,
+          "params": [
+            "flags"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RESTAURANT_FEATURE_MODULES",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "RESTAURANT_FEATURE_DEFINITIONS",
+          "line": 36,
+          "isDefault": false
+        },
+        {
+          "name": "groupRestaurantFeaturesByModule",
+          "line": 60,
+          "isDefault": false
+        },
+        {
+          "name": "getRestaurantFeatureModule",
+          "line": 73,
+          "isDefault": false
+        },
+        {
+          "name": "normalizeRestaurantFeatureFlags",
+          "line": 83,
+          "isDefault": false
+        },
+        {
+          "name": "isRestaurantFeatureEnabled",
+          "line": 95,
+          "isDefault": false
+        },
+        {
+          "name": "parseFeatureFlagsPatch",
+          "line": 102,
+          "isDefault": false
+        },
+        {
+          "name": "parseFeatureFlagsRecord",
+          "line": 116,
+          "isDefault": false
+        },
+        {
+          "name": "mergeRestaurantFeatureFlags",
+          "line": 127,
+          "isDefault": false
+        },
+        {
+          "name": "isDashboardKitchenShortcutEnabled",
+          "line": 134,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "groupRestaurantFeaturesByModule",
+          "callee": "[...RESTAURANT_FEATURE_MODULES].sort",
+          "lineNumber": 61
+        },
+        {
+          "caller": "groupRestaurantFeaturesByModule",
+          "callee": "sortedModules\n    .map((module) => ({\n      module,\n      features: RESTAURANT_FEATURE_DEFINITIONS.filter((def) => def.moduleId === module.id),\n    }))\n    .filter",
+          "lineNumber": 65
+        },
+        {
+          "caller": "groupRestaurantFeaturesByModule",
+          "callee": "sortedModules\n    .map",
+          "lineNumber": 65
+        },
+        {
+          "caller": "groupRestaurantFeaturesByModule",
+          "callee": "RESTAURANT_FEATURE_DEFINITIONS.filter",
+          "lineNumber": 68
+        },
+        {
+          "caller": "getRestaurantFeatureModule",
+          "callee": "MODULE_BY_ID.get",
+          "lineNumber": 76
+        },
+        {
+          "caller": "normalizeRestaurantFeatureFlags",
+          "callee": "Array.isArray",
+          "lineNumber": 85
+        },
+        {
+          "caller": "isRestaurantFeatureEnabled",
+          "callee": "normalizeRestaurantFeatureFlags",
+          "lineNumber": 99
+        },
+        {
+          "caller": "parseFeatureFlagsPatch",
+          "callee": "Array.isArray",
+          "lineNumber": 103
+        },
+        {
+          "caller": "parseFeatureFlagsPatch",
+          "callee": "Array.isArray",
+          "lineNumber": 105
+        },
+        {
+          "caller": "parseFeatureFlagsPatch",
+          "callee": "Object.entries",
+          "lineNumber": 108
+        },
+        {
+          "caller": "parseFeatureFlagsPatch",
+          "callee": "KNOWN_KEYS.has",
+          "lineNumber": 109
+        },
+        {
+          "caller": "parseFeatureFlagsRecord",
+          "callee": "Array.isArray",
+          "lineNumber": 117
+        },
+        {
+          "caller": "parseFeatureFlagsRecord",
+          "callee": "Object.entries",
+          "lineNumber": 119
+        },
+        {
+          "caller": "parseFeatureFlagsRecord",
+          "callee": "KNOWN_KEYS.has",
+          "lineNumber": 120
+        },
+        {
+          "caller": "parseFeatureFlagsRecord",
+          "callee": "Object.keys",
+          "lineNumber": 124
+        },
+        {
+          "caller": "mergeRestaurantFeatureFlags",
+          "callee": "normalizeRestaurantFeatureFlags",
+          "lineNumber": 131
+        },
+        {
+          "caller": "isDashboardKitchenShortcutEnabled",
+          "callee": "isRestaurantFeatureEnabled",
+          "lineNumber": 135
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 10,
+        "functionCount": 8,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/restaurant-suspension.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 3,
+      "nonEmptyLines": 3,
+      "functions": [
+        {
+          "name": "isRestaurantSuspended",
+          "startLine": 1,
+          "endLine": 3,
+          "params": [
+            "suspendedAt"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "isRestaurantSuspended",
+          "line": 1,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/staff-user-ban.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 15,
+      "nonEmptyLines": 13,
+      "functions": [
+        {
+          "name": "kickStaffUserSessions",
+          "startLine": 3,
+          "endLine": 9,
+          "params": [
+            "admin",
+            "userId"
+          ]
+        },
+        {
+          "name": "setStaffUserBanned",
+          "startLine": 11,
+          "endLine": 15,
+          "params": [
+            "admin",
+            "userId",
+            "banned"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "kickStaffUserSessions",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "setStaffUserBanned",
+          "line": 11,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "kickStaffUserSessions",
+          "callee": "admin.auth.admin.signOut",
+          "lineNumber": 5
+        },
+        {
+          "caller": "setStaffUserBanned",
+          "callee": "admin.auth.admin.updateUserById",
+          "lineNumber": 12
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/tsconfig.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 14,
+      "nonEmptyLines": 14,
+      "sections": [
+        {
+          "heading": "compilerOptions",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "include",
+          "level": 1,
+          "line": 13
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 2
+      }
+    },
+    {
+      "path": "packages/ui/package.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 19,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "name",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "version",
+          "level": 1,
+          "line": 3
+        },
+        {
+          "heading": "private",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "main",
+          "level": 1,
+          "line": 5
+        },
+        {
+          "heading": "types",
+          "level": 1,
+          "line": 6
+        },
+        {
+          "heading": "exports",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "peerDependencies",
+          "level": 1,
+          "line": 10
+        },
+        {
+          "heading": "devDependencies",
+          "level": 1,
+          "line": 14
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 8
+      }
+    },
+    {
+      "path": "packages/ui/src/index.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "nonEmptyLines": 1,
+      "exports": [
+        {
+          "name": "PasswordInput",
+          "line": 1,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/ui/src/PasswordInput.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 160,
+      "nonEmptyLines": 150,
+      "functions": [
+        {
+          "name": "EyeIcon",
+          "startLine": 18,
+          "endLine": 34,
+          "params": [
+            "{ className }"
+          ]
+        },
+        {
+          "name": "EyeOffIcon",
+          "startLine": 36,
+          "endLine": 51,
+          "params": [
+            "{ className }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "PasswordInput",
+          "line": 89,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/ui/tsconfig.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 15,
+      "nonEmptyLines": 15,
+      "sections": [
+        {
+          "heading": "compilerOptions",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "include",
+          "level": 1,
+          "line": 14
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 2
+      }
+    },
+    {
+      "path": "supabase/seed.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 81,
+      "nonEmptyLines": 72,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 0
+      }
+    }
+  ]
+}

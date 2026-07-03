@@ -1,0 +1,97 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 1,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/print-agent/dev/fake-printer/Dockerfile",
+      "language": "dockerfile",
+      "fileCategory": "infra",
+      "totalLines": 12,
+      "nonEmptyLines": 11,
+      "services": [
+        {
+          "name": "build",
+          "image": "golang:1.22-alpine",
+          "ports": [],
+          "startLine": 1,
+          "endLine": 5
+        },
+        {
+          "name": "alpine",
+          "image": "alpine:3.20",
+          "ports": [
+            9100
+          ],
+          "startLine": 6,
+          "endLine": 13
+        }
+      ],
+      "steps": [
+        {
+          "name": "FROM golang:1.22-alpine AS build",
+          "startLine": 1,
+          "endLine": 1
+        },
+        {
+          "name": "WORKDIR /src",
+          "startLine": 2,
+          "endLine": 2
+        },
+        {
+          "name": "COPY go.mod main.go ./",
+          "startLine": 3,
+          "endLine": 3
+        },
+        {
+          "name": "RUN go build -o /fake-printer .",
+          "startLine": 4,
+          "endLine": 4
+        },
+        {
+          "name": "FROM alpine:3.20",
+          "startLine": 6,
+          "endLine": 6
+        },
+        {
+          "name": "RUN apk add --no-cache ca-certificates",
+          "startLine": 7,
+          "endLine": 7
+        },
+        {
+          "name": "COPY --from=build /fake-printer /usr/local/bin/fake-printer",
+          "startLine": 8,
+          "endLine": 8
+        },
+        {
+          "name": "ENV PRINTER_NAME=fake",
+          "startLine": 9,
+          "endLine": 9
+        },
+        {
+          "name": "ENV PRINTER_PORT=9100",
+          "startLine": 10,
+          "endLine": 10
+        },
+        {
+          "name": "EXPOSE 9100",
+          "startLine": 11,
+          "endLine": 11
+        },
+        {
+          "name": "ENTRYPOINT [\"fake-printer\"]",
+          "startLine": 12,
+          "endLine": 12
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "serviceCount": 2,
+        "stepCount": 11
+      }
+    }
+  ]
+}

@@ -1,0 +1,356 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {
+      "path": "apps/web/src/app/[slug]/bill/page.tsx",
+      "language": "typescript",
+      "sizeLines": 111,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/[slug]/menu/page.tsx",
+      "language": "typescript",
+      "sizeLines": 80,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts",
+      "language": "typescript",
+      "sizeLines": 163,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/customer/bill/route.ts",
+      "language": "typescript",
+      "sizeLines": 75,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/customer/session/route.ts",
+      "language": "typescript",
+      "sizeLines": 56,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts",
+      "language": "typescript",
+      "sizeLines": 222,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts",
+      "language": "typescript",
+      "sizeLines": 167,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts",
+      "language": "typescript",
+      "sizeLines": 127,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/dashboard/page.tsx",
+      "language": "typescript",
+      "sizeLines": 29,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/demo/menu/page.tsx",
+      "language": "typescript",
+      "sizeLines": 70,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "language": "typescript",
+      "sizeLines": 251,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx",
+      "language": "typescript",
+      "sizeLines": 81,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/FeedbackInsightsPanel.tsx",
+      "language": "typescript",
+      "sizeLines": 135,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx",
+      "language": "typescript",
+      "sizeLines": 77,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/menu/BillPage.tsx",
+      "language": "typescript",
+      "sizeLines": 1109,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "language": "typescript",
+      "sizeLines": 185,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx",
+      "language": "typescript",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "language": "typescript",
+      "sizeLines": 182,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/menu/ByItemQtyInput.tsx",
+      "language": "typescript",
+      "sizeLines": 71,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/menu/ByItemSplitSection.tsx",
+      "language": "typescript",
+      "sizeLines": 104,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/menu/CartDrawer.tsx",
+      "language": "typescript",
+      "sizeLines": 192,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/menu/CartQtyStepper.tsx",
+      "language": "typescript",
+      "sizeLines": 80,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/menu/ConsumerNameCombobox.test.ts",
+      "language": "typescript",
+      "sizeLines": 34,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/menu/ConsumerNameCombobox.tsx",
+      "language": "typescript",
+      "sizeLines": 153,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/menu/MenuItemCard.tsx",
+      "language": "typescript",
+      "sizeLines": 84,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/menu/MenuPage.tsx",
+      "language": "typescript",
+      "sizeLines": 624,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/waiter/WaiterOrderQtyMinus.tsx",
+      "language": "typescript",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "apps/web/src/app/[slug]/bill/page.tsx": [
+      "apps/web/src/components/customer/RestaurantMaintenancePage.tsx",
+      "apps/web/src/components/menu/BillPage.tsx",
+      "apps/web/src/lib/customer-session-context.ts",
+      "apps/web/src/lib/menu-item-code.ts",
+      "apps/web/src/lib/staff-routes.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/[slug]/menu/page.tsx": [
+      "apps/web/src/components/customer/RestaurantMaintenancePage.tsx",
+      "apps/web/src/components/menu/MenuPage.tsx",
+      "apps/web/src/lib/customer-session-context.ts",
+      "apps/web/src/lib/staff-routes.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/checkout/request/route.ts": [
+      "apps/web/src/lib/checkout-request-server.ts",
+      "apps/web/src/lib/customer-session-context.ts",
+      "apps/web/src/lib/pt-nif.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/customer/bill/route.ts": [
+      "apps/web/src/lib/customer-session-context.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/customer/session/route.ts": [
+      "apps/web/src/lib/customer-session-context.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts": [
+      "apps/web/src/lib/cart-totals.ts",
+      "apps/web/src/lib/customer-session-context.ts",
+      "apps/web/src/lib/geo-distance.ts",
+      "apps/web/src/lib/guest-table-ordering.ts",
+      "apps/web/src/lib/order-append-rate-limit.ts",
+      "apps/web/src/lib/order-enqueue-token.ts",
+      "apps/web/src/lib/order-radius.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/lib/request-client-ip.ts",
+      "apps/web/src/lib/resolve-append-cart-items.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/table-session-open.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/staff/waiter/buffet/route.ts": [
+      "apps/web/src/lib/buffet-open-table.ts",
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/table-session-open.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/station-tickets/auto/route.ts": [
+      "apps/web/src/lib/customer-session-context.ts",
+      "apps/web/src/lib/order-enqueue-token.ts",
+      "apps/web/src/lib/request-client-ip.ts",
+      "apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "apps/web/src/lib/station-ticket-enqueue.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/dashboard/page.tsx": [
+      "apps/web/src/components/dashboard/DashboardPageClient.tsx",
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/dashboard-overview.ts"
+    ],
+    "apps/web/src/app/demo/menu/page.tsx": [
+      "apps/web/src/components/menu/MenuPage.tsx",
+      "apps/web/src/lib/demo-data.ts",
+      "apps/web/src/lib/menu-vat-rate.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-routes.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/DashboardPageClient.tsx": [
+      "apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx",
+      "apps/web/src/components/dashboard/FeedbackInsightsPanel.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/lib/dashboard-overview.ts",
+      "apps/web/src/lib/format-dashboard-date.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/order-list-display.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/DashboardTopSellingPanel.tsx": [
+      "apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx",
+      "apps/web/src/lib/dashboard-overview.ts"
+    ],
+    "apps/web/src/components/dashboard/FeedbackInsightsPanel.tsx": [],
+    "apps/web/src/components/dashboard/ValueAnalyticsTopTable.tsx": [],
+    "apps/web/src/components/menu/BillPage.tsx": [
+      "apps/web/src/components/menu/ByItemSplitSection.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "apps/web/src/components/ui/Toast.tsx",
+      "apps/web/src/lib/bill-split-draft.ts",
+      "apps/web/src/lib/checkout-split-continuation.ts",
+      "apps/web/src/lib/customer-bill-checkout-resume.ts",
+      "apps/web/src/lib/customer-bill-sync.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/menu-item-code.ts",
+      "apps/web/src/lib/number-input.ts",
+      "apps/web/src/lib/order-list-display.ts",
+      "apps/web/src/lib/pt-nif.ts",
+      "apps/web/src/lib/request-checkout-confirm-payment.ts",
+      "apps/web/src/lib/request-checkout-request.ts",
+      "apps/web/src/lib/request-customer-context.ts",
+      "apps/web/src/lib/request-order-receipt-print.ts",
+      "apps/web/src/lib/split-person-label.ts",
+      "apps/web/src/lib/supabase/client.ts",
+      "apps/web/src/lib/use-bill-orders.ts",
+      "apps/web/src/lib/use-by-item-split-state.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/menu/BuffetDishAllocator.tsx": [
+      "apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx",
+      "apps/web/src/components/menu/ConsumerNameCombobox.tsx",
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/bill-split-by-item.ts",
+      "apps/web/src/lib/consumer-name-roster.ts"
+    ],
+    "apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx": [],
+    "apps/web/src/components/menu/ByItemDishAllocator.tsx": [
+      "apps/web/src/components/menu/BuffetDishAllocator.tsx",
+      "apps/web/src/components/menu/ByItemConsumerRowRemoveButton.tsx",
+      "apps/web/src/components/menu/ByItemQtyInput.tsx",
+      "apps/web/src/components/menu/ConsumerNameCombobox.tsx",
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/bill-split-by-item.ts",
+      "apps/web/src/lib/consumer-name-roster.ts"
+    ],
+    "apps/web/src/components/menu/ByItemQtyInput.tsx": [
+      "apps/web/src/lib/bill-split-by-item.ts"
+    ],
+    "apps/web/src/components/menu/ByItemSplitSection.tsx": [
+      "apps/web/src/components/menu/ByItemDishAllocator.tsx",
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/bill-split-by-item.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/menu-item-code.ts",
+      "apps/web/src/lib/order-list-display.ts"
+    ],
+    "apps/web/src/components/menu/CartDrawer.tsx": [
+      "apps/web/src/components/menu/CartQtyStepper.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/lib/cart-totals.ts",
+      "apps/web/src/lib/note-presets.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/menu/CartQtyStepper.tsx": [
+      "apps/web/src/components/ui/IntegerInput.tsx"
+    ],
+    "apps/web/src/components/menu/ConsumerNameCombobox.test.ts": [
+      "apps/web/src/lib/consumer-name-roster.ts"
+    ],
+    "apps/web/src/components/menu/ConsumerNameCombobox.tsx": [
+      "apps/web/src/lib/consumer-name-roster.ts"
+    ],
+    "apps/web/src/components/menu/MenuItemCard.tsx": [
+      "apps/web/src/components/menu/CartQtyStepper.tsx",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/menu/MenuPage.tsx": [
+      "apps/web/src/components/menu/CartDrawer.tsx",
+      "apps/web/src/components/menu/MenuItemCard.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Toast.tsx",
+      "apps/web/src/lib/auto-enqueue-station-tickets.ts",
+      "apps/web/src/lib/cart-totals.ts",
+      "apps/web/src/lib/customer-geo-order.ts",
+      "apps/web/src/lib/customer-menu-order-gate.ts",
+      "apps/web/src/lib/guest-table-ordering.ts",
+      "apps/web/src/lib/i18n/menu-page-messages.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/order-list-display.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/lib/request-customer-context.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/waiter/WaiterOrderQtyMinus.tsx": []
+  }
+}

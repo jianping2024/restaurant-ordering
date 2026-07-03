@@ -1,0 +1,976 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "type": "file",
+      "name": "waiter-table-detail-icons.tsx",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "summary": "服务员桌台详情页使用的 SVG 图标组件集合，涵盖桌台、时钟、加单、转台、并台、账单与关台等操作图标。",
+      "tags": [
+        "component",
+        "waiter",
+        "icons",
+        "ui"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterTableIcon",
+      "type": "function",
+      "name": "WaiterTableIcon",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "lineRange": [
+        3,
+        10
+      ],
+      "summary": "桌台 SVG 图标组件。",
+      "tags": [
+        "component",
+        "icon",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterClockIcon",
+      "type": "function",
+      "name": "WaiterClockIcon",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "lineRange": [
+        12,
+        19
+      ],
+      "summary": "时钟 SVG 图标，表示等待或时长。",
+      "tags": [
+        "component",
+        "icon",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterPlusIcon",
+      "type": "function",
+      "name": "WaiterPlusIcon",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "lineRange": [
+        21,
+        27
+      ],
+      "summary": "加号 SVG 图标，用于加单操作。",
+      "tags": [
+        "component",
+        "icon",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterTransferIcon",
+      "type": "function",
+      "name": "WaiterTransferIcon",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "lineRange": [
+        29,
+        35
+      ],
+      "summary": "转台 SVG 图标组件。",
+      "tags": [
+        "component",
+        "icon",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterMergeIcon",
+      "type": "function",
+      "name": "WaiterMergeIcon",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "lineRange": [
+        37,
+        45
+      ],
+      "summary": "并台 SVG 图标组件。",
+      "tags": [
+        "component",
+        "icon",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterBillIcon",
+      "type": "function",
+      "name": "WaiterBillIcon",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "lineRange": [
+        47,
+        54
+      ],
+      "summary": "账单 SVG 图标组件。",
+      "tags": [
+        "component",
+        "icon",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterPowerIcon",
+      "type": "function",
+      "name": "WaiterPowerIcon",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "lineRange": [
+        56,
+        63
+      ],
+      "summary": "电源/关台 SVG 图标组件。",
+      "tags": [
+        "component",
+        "icon",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterClocheIcon",
+      "type": "function",
+      "name": "WaiterClocheIcon",
+      "filePath": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "lineRange": [
+        65,
+        72
+      ],
+      "summary": "餐盖 SVG 图标，表示出餐或自助餐相关操作。",
+      "tags": [
+        "component",
+        "icon",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/auth/sign-out-client.ts",
+      "type": "file",
+      "name": "sign-out-client.ts",
+      "filePath": "apps/web/src/lib/auth/sign-out-client.ts",
+      "summary": "客户端登出工具：调用 Supabase 清除会话并将仪表盘用户重定向到登录页。",
+      "tags": [
+        "auth",
+        "client",
+        "utility",
+        "sign-out"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/auth/sign-out-client.ts:signOutFromSupabase",
+      "type": "function",
+      "name": "signOutFromSupabase",
+      "filePath": "apps/web/src/lib/auth/sign-out-client.ts",
+      "lineRange": [
+        5,
+        8
+      ],
+      "summary": "调用 Supabase 客户端 signOut 清除浏览器会话。",
+      "tags": [
+        "auth",
+        "sign-out",
+        "supabase"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/auth/sign-out-client.ts:dashboardSignOutAndRedirect",
+      "type": "function",
+      "name": "dashboardSignOutAndRedirect",
+      "filePath": "apps/web/src/lib/auth/sign-out-client.ts",
+      "lineRange": [
+        10,
+        17
+      ],
+      "summary": "登出后跳转 /auth/login 并刷新路由。",
+      "tags": [
+        "auth",
+        "sign-out",
+        "navigation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "type": "file",
+      "name": "sign-out-confirm.tsx",
+      "filePath": "apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "summary": "登出确认弹窗组件与状态 Hook，复用 ConfirmModal 并接入 i18n 文案。",
+      "tags": [
+        "auth",
+        "component",
+        "hook",
+        "i18n"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/auth/sign-out-confirm.tsx:SignOutConfirmModal",
+      "type": "function",
+      "name": "SignOutConfirmModal",
+      "filePath": "apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "lineRange": [
+        15,
+        37
+      ],
+      "summary": "基于 ConfirmModal 的登出确认对话框，文案来自 i18n。",
+      "tags": [
+        "component",
+        "auth",
+        "modal"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/auth/sign-out-confirm.tsx:useSignOutConfirmState",
+      "type": "function",
+      "name": "useSignOutConfirmState",
+      "filePath": "apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "lineRange": [
+        39,
+        64
+      ],
+      "summary": "管理登出确认弹窗开关与确认中状态的 Hook。",
+      "tags": [
+        "hook",
+        "auth",
+        "state"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-notification-sound.ts",
+      "type": "file",
+      "name": "checkout-notification-sound.ts",
+      "filePath": "apps/web/src/lib/checkout-notification-sound.ts",
+      "summary": "使用 Web Audio API 播放结账请求提示音，供厨房与结账管理界面在新请求时提醒。",
+      "tags": [
+        "checkout",
+        "audio",
+        "utility",
+        "notification"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-notification-sound.ts:playCheckoutRequestChime",
+      "type": "function",
+      "name": "playCheckoutRequestChime",
+      "filePath": "apps/web/src/lib/checkout-notification-sound.ts",
+      "lineRange": [
+        2,
+        37
+      ],
+      "summary": "用 Web Audio 播放双音调结账提醒铃声。",
+      "tags": [
+        "audio",
+        "checkout",
+        "notification"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-request-count-sync.test.ts",
+      "type": "file",
+      "name": "checkout-request-count-sync.test.ts",
+      "filePath": "apps/web/src/lib/checkout-request-count-sync.test.ts",
+      "summary": "针对结账请求计数失效事件的单元测试，验证自定义事件派发行为。",
+      "tags": [
+        "test",
+        "checkout",
+        "event-handler"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/checkout-request-count-sync.ts",
+      "type": "file",
+      "name": "checkout-request-count-sync.ts",
+      "filePath": "apps/web/src/lib/checkout-request-count-sync.ts",
+      "summary": "定义结账请求计数失效的浏览器自定义事件名，并提供触发全局刷新的辅助函数。",
+      "tags": [
+        "checkout",
+        "event-handler",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-request-count-sync.ts:invalidateCheckoutRequestCount",
+      "type": "function",
+      "name": "invalidateCheckoutRequestCount",
+      "filePath": "apps/web/src/lib/checkout-request-count-sync.ts",
+      "lineRange": [
+        4,
+        7
+      ],
+      "summary": "派发 CHECKOUT_REQUEST_COUNT_INVALIDATE_EVENT 触发计数刷新。",
+      "tags": [
+        "checkout",
+        "event-handler"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "file",
+      "name": "messages.ts",
+      "filePath": "apps/web/src/lib/i18n/messages.ts",
+      "summary": "全站 UI 多语言文案主词典，按语言导出 MESSAGES 并提供 getMessages 应用品牌令牌替换。",
+      "tags": [
+        "i18n",
+        "localization",
+        "type-definition",
+        "utility"
+      ],
+      "complexity": "complex",
+      "languageNotes": "近三千行静态文案对象，按 UI_LANG 分语言键值。"
+    },
+    {
+      "id": "function:apps/web/src/lib/i18n/messages.ts:getMessages",
+      "type": "function",
+      "name": "getMessages",
+      "filePath": "apps/web/src/lib/i18n/messages.ts",
+      "lineRange": [
+        2928,
+        2930
+      ],
+      "summary": "按 UI 语言返回 MESSAGES 并应用品牌令牌替换。",
+      "tags": [
+        "i18n",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/ops-app-url.test.ts",
+      "type": "file",
+      "name": "ops-app-url.test.ts",
+      "filePath": "apps/web/src/lib/ops-app-url.test.ts",
+      "summary": "测试 getOpsAppUrl 从环境变量解析 Mesa 运营后台 URL 的逻辑。",
+      "tags": [
+        "test",
+        "ops",
+        "configuration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/ops-app-url.ts",
+      "type": "file",
+      "name": "ops-app-url.ts",
+      "filePath": "apps/web/src/lib/ops-app-url.ts",
+      "summary": "从 NEXT_PUBLIC_OPS_APP_URL 读取并规范化 Mesa 运营控制台基础 URL。",
+      "tags": [
+        "ops",
+        "configuration",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/ops-app-url.ts:getOpsAppUrl",
+      "type": "function",
+      "name": "getOpsAppUrl",
+      "filePath": "apps/web/src/lib/ops-app-url.ts",
+      "lineRange": [
+        2,
+        7
+      ],
+      "summary": "读取并去除尾部斜杠的 OPS 应用 URL。",
+      "tags": [
+        "ops",
+        "configuration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "type": "file",
+      "name": "patch-staff-order-items-client.ts",
+      "filePath": "apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "summary": "员工端作废订单行的客户端 API 封装，向餐厅 slug 下的 staff order-items 接口发送 PATCH。",
+      "tags": [
+        "order-void",
+        "api-handler",
+        "client",
+        "staff"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts:patchStaffOrderItemsClient",
+      "type": "function",
+      "name": "patchStaffOrderItemsClient",
+      "filePath": "apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "lineRange": [
+        18,
+        38
+      ],
+      "summary": "向 staff order-items API 发送作废/修改 PATCH 请求。",
+      "tags": [
+        "api-handler",
+        "order-void",
+        "staff"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/pairing-code-countdown.ts",
+      "type": "file",
+      "name": "pairing-code-countdown.ts",
+      "filePath": "apps/web/src/lib/pairing-code-countdown.ts",
+      "summary": "打印代理配对码倒计时格式化与剩余毫秒计算，用于配对面板展示。",
+      "tags": [
+        "print-agent",
+        "utility",
+        "countdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/pairing-code-countdown.ts:formatPairingCountdown",
+      "type": "function",
+      "name": "formatPairingCountdown",
+      "filePath": "apps/web/src/lib/pairing-code-countdown.ts",
+      "lineRange": [
+        2,
+        10
+      ],
+      "summary": "将剩余毫秒格式化为 mm:ss 倒计时字符串。",
+      "tags": [
+        "print-agent",
+        "formatting"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/pairing-code-countdown.ts:pairingExpiryRemainingMs",
+      "type": "function",
+      "name": "pairingExpiryRemainingMs",
+      "filePath": "apps/web/src/lib/pairing-code-countdown.ts",
+      "lineRange": [
+        12,
+        14
+      ],
+      "summary": "计算配对码 ISO 到期时间与当前时间的毫秒差。",
+      "tags": [
+        "print-agent",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "type": "file",
+      "name": "print-agent-credential-expiry.ts",
+      "filePath": "apps/web/src/lib/print-agent-credential-expiry.ts",
+      "summary": "判断打印代理设备凭证是否临近到期，计算剩余天数并格式化有效期日期。",
+      "tags": [
+        "print-agent",
+        "credential",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-credential-expiry.ts:devicesNeedingRenewal",
+      "type": "function",
+      "name": "devicesNeedingRenewal",
+      "filePath": "apps/web/src/lib/print-agent-credential-expiry.ts",
+      "lineRange": [
+        10,
+        22
+      ],
+      "summary": "筛选 valid_until 在提醒窗口内的未撤销设备。",
+      "tags": [
+        "print-agent",
+        "credential"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-credential-expiry.ts:daysUntilValidUntil",
+      "type": "function",
+      "name": "daysUntilValidUntil",
+      "filePath": "apps/web/src/lib/print-agent-credential-expiry.ts",
+      "lineRange": [
+        24,
+        29
+      ],
+      "summary": "计算凭证有效期距今天数（向上取整）。",
+      "tags": [
+        "print-agent",
+        "credential"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-credential-expiry.ts:formatValidUntilDate",
+      "type": "function",
+      "name": "formatValidUntilDate",
+      "filePath": "apps/web/src/lib/print-agent-credential-expiry.ts",
+      "lineRange": [
+        31,
+        37
+      ],
+      "summary": "以 pt-PT 区域格式显示凭证到期日。",
+      "tags": [
+        "print-agent",
+        "formatting"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterTableIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterTableIcon",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterClockIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterClockIcon",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterPlusIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterPlusIcon",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterTransferIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterTransferIcon",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterMergeIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterMergeIcon",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterBillIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterBillIcon",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterPowerIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterPowerIcon",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterClocheIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "target": "function:apps/web/src/components/waiter/waiter-table-detail-icons.tsx:WaiterClocheIcon",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-client.ts",
+      "target": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-client.ts",
+      "target": "function:apps/web/src/lib/auth/sign-out-client.ts:signOutFromSupabase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-client.ts",
+      "target": "function:apps/web/src/lib/auth/sign-out-client.ts:signOutFromSupabase",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-client.ts",
+      "target": "function:apps/web/src/lib/auth/sign-out-client.ts:dashboardSignOutAndRedirect",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-client.ts",
+      "target": "function:apps/web/src/lib/auth/sign-out-client.ts:dashboardSignOutAndRedirect",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "target": "file:apps/web/src/components/ui/ConfirmModal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "target": "function:apps/web/src/lib/auth/sign-out-confirm.tsx:SignOutConfirmModal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "target": "function:apps/web/src/lib/auth/sign-out-confirm.tsx:SignOutConfirmModal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "target": "function:apps/web/src/lib/auth/sign-out-confirm.tsx:useSignOutConfirmState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "target": "function:apps/web/src/lib/auth/sign-out-confirm.tsx:useSignOutConfirmState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-notification-sound.ts",
+      "target": "function:apps/web/src/lib/checkout-notification-sound.ts:playCheckoutRequestChime",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-notification-sound.ts",
+      "target": "function:apps/web/src/lib/checkout-notification-sound.ts:playCheckoutRequestChime",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-count-sync.test.ts",
+      "target": "file:apps/web/src/lib/checkout-request-count-sync.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-count-sync.ts",
+      "target": "function:apps/web/src/lib/checkout-request-count-sync.ts:invalidateCheckoutRequestCount",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-count-sync.ts",
+      "target": "function:apps/web/src/lib/checkout-request-count-sync.ts:invalidateCheckoutRequestCount",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/i18n/messages.ts",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/i18n/messages.ts",
+      "target": "file:apps/web/src/lib/i18n/brand-tokens.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/i18n/messages.ts",
+      "target": "function:apps/web/src/lib/i18n/messages.ts:getMessages",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/i18n/messages.ts",
+      "target": "function:apps/web/src/lib/i18n/messages.ts:getMessages",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/ops-app-url.test.ts",
+      "target": "file:apps/web/src/lib/ops-app-url.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/ops-app-url.ts",
+      "target": "function:apps/web/src/lib/ops-app-url.ts:getOpsAppUrl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/ops-app-url.ts",
+      "target": "function:apps/web/src/lib/ops-app-url.ts:getOpsAppUrl",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "target": "function:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts:patchStaffOrderItemsClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "target": "function:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts:patchStaffOrderItemsClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/pairing-code-countdown.ts",
+      "target": "function:apps/web/src/lib/pairing-code-countdown.ts:formatPairingCountdown",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/pairing-code-countdown.ts",
+      "target": "function:apps/web/src/lib/pairing-code-countdown.ts:formatPairingCountdown",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/pairing-code-countdown.ts",
+      "target": "function:apps/web/src/lib/pairing-code-countdown.ts:pairingExpiryRemainingMs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/pairing-code-countdown.ts",
+      "target": "function:apps/web/src/lib/pairing-code-countdown.ts:pairingExpiryRemainingMs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "target": "file:apps/web/src/lib/print-agent-credential.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "target": "function:apps/web/src/lib/print-agent-credential-expiry.ts:devicesNeedingRenewal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "target": "function:apps/web/src/lib/print-agent-credential-expiry.ts:devicesNeedingRenewal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "target": "function:apps/web/src/lib/print-agent-credential-expiry.ts:daysUntilValidUntil",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "target": "function:apps/web/src/lib/print-agent-credential-expiry.ts:daysUntilValidUntil",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "target": "function:apps/web/src/lib/print-agent-credential-expiry.ts:formatValidUntilDate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-credential-expiry.ts",
+      "target": "function:apps/web/src/lib/print-agent-credential-expiry.ts:formatValidUntilDate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-request-count-sync.ts",
+      "target": "file:apps/web/src/lib/checkout-request-count-sync.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/ops-app-url.ts",
+      "target": "file:apps/web/src/lib/ops-app-url.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:apps/web/src/lib/auth/sign-out-client.ts:signOutFromSupabase",
+      "target": "function:apps/web/src/lib/supabase/client.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/auth/sign-out-client.ts:dashboardSignOutAndRedirect",
+      "target": "function:apps/web/src/lib/auth/sign-out-client.ts:signOutFromSupabase",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/auth/sign-out-confirm.tsx:SignOutConfirmModal",
+      "target": "function:apps/web/src/components/providers/LanguageProvider.tsx:useLanguage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/auth/sign-out-confirm.tsx:SignOutConfirmModal",
+      "target": "function:apps/web/src/lib/i18n/messages.ts:getMessages",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/i18n/messages.ts:getMessages",
+      "target": "file:apps/web/src/lib/i18n/brand-tokens.ts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-credential-expiry.ts:devicesNeedingRenewal",
+      "target": "file:apps/web/src/lib/print-agent-credential.ts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "target": "file:apps/web/src/components/ui/ConfirmModal.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

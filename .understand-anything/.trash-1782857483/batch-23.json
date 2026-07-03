@@ -1,0 +1,319 @@
+{
+  "nodes": [
+    {
+      "id": "file:packages/shared/src/hmac-jwt.ts",
+      "type": "file",
+      "name": "hmac-jwt.ts",
+      "filePath": "packages/shared/src/hmac-jwt.ts",
+      "summary": "共享包中的 HMAC-SHA256 JWT 底层工具，提供 base64url 编解码、常量时间字符串比较，以及通用签名与验签函数，供打印代理相关 JWT 模块复用。",
+      "tags": ["utility", "security", "jwt", "shared", "cryptography"],
+      "complexity": "simple",
+      "languageNotes": "使用 Node.js crypto 模块的 createHmac 与 timingSafeEqual，无第三方 JWT 库依赖。"
+    },
+    {
+      "id": "function:packages/shared/src/hmac-jwt.ts:b64urlJson",
+      "type": "function",
+      "name": "b64urlJson",
+      "filePath": "packages/shared/src/hmac-jwt.ts",
+      "lineRange": [3, 5],
+      "summary": "将任意 JSON 对象序列化并编码为 base64url 字符串，用于 JWT header 与 payload 段。",
+      "tags": ["utility", "serialization", "jwt", "encoding"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/hmac-jwt.ts:safeEqualStrings",
+      "type": "function",
+      "name": "safeEqualStrings",
+      "filePath": "packages/shared/src/hmac-jwt.ts",
+      "lineRange": [7, 12],
+      "summary": "以常量时间方式比较两个 UTF-8 字符串，防止 JWT 签名比对时的时序侧信道攻击。",
+      "tags": ["utility", "security", "timing-safe", "comparison"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/hmac-jwt.ts:signHmacJwt",
+      "type": "function",
+      "name": "signHmacJwt",
+      "filePath": "packages/shared/src/hmac-jwt.ts",
+      "lineRange": [14, 23],
+      "summary": "根据任意 claims 对象与共享密钥生成 HS256 JWT 字符串，组装 header、payload 与 HMAC 签名三段。",
+      "tags": ["utility", "jwt", "signing", "hmac"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/hmac-jwt.ts:verifyHmacJwt",
+      "type": "function",
+      "name": "verifyHmacJwt",
+      "filePath": "packages/shared/src/hmac-jwt.ts",
+      "lineRange": [25, 40],
+      "summary": "验证 JWT 格式与 HMAC 签名，签名有效时解析并返回泛型 payload，否则返回 null。",
+      "tags": ["utility", "jwt", "verification", "security"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/print-agent-jwt.test.ts",
+      "type": "file",
+      "name": "print-agent-jwt.test.ts",
+      "filePath": "packages/shared/src/print-agent-jwt.test.ts",
+      "summary": "针对打印代理 JWT 与支持 JWT 的 Node 内置测试，覆盖签名验签、错误密钥拒绝及默认 TTL 常量。",
+      "tags": ["test", "jwt", "printing", "shared", "security"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/print-agent-jwt.ts",
+      "type": "file",
+      "name": "print-agent-jwt.ts",
+      "filePath": "packages/shared/src/print-agent-jwt.ts",
+      "summary": "定义打印代理设备 JWT 的 claims 类型，封装带餐厅与设备标识的签发与验签逻辑，并校验 typ 与过期时间。",
+      "tags": ["utility", "jwt", "printing", "authentication", "shared"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/print-agent-jwt.ts:signPrintAgentJwt",
+      "type": "function",
+      "name": "signPrintAgentJwt",
+      "filePath": "packages/shared/src/print-agent-jwt.ts",
+      "lineRange": [11, 27],
+      "summary": "为指定餐厅与设备生成 typ 为 print_agent 的 JWT，自动填充 iat/exp 时间戳。",
+      "tags": ["jwt", "signing", "printing", "authentication"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/print-agent-jwt.ts:verifyPrintAgentJwt",
+      "type": "function",
+      "name": "verifyPrintAgentJwt",
+      "filePath": "packages/shared/src/print-agent-jwt.ts",
+      "lineRange": [29, 36],
+      "summary": "验签打印代理 JWT 并校验 typ、必填字段与 exp 是否未过期，失败返回 null。",
+      "tags": ["jwt", "verification", "printing", "authentication"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/shared/src/print-agent-support-jwt.ts",
+      "type": "file",
+      "name": "print-agent-support-jwt.ts",
+      "filePath": "packages/shared/src/print-agent-support-jwt.ts",
+      "summary": "定义打印代理远程支持会话 JWT，包含 jti、actor_user_id 等 claims，默认 15 分钟 TTL，供运维协助场景使用。",
+      "tags": ["utility", "jwt", "printing", "support", "shared"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/print-agent-support-jwt.ts:signPrintAgentSupportJwt",
+      "type": "function",
+      "name": "signPrintAgentSupportJwt",
+      "filePath": "packages/shared/src/print-agent-support-jwt.ts",
+      "lineRange": [15, 33],
+      "summary": "签发 typ 为 print_agent_support 的短期支持令牌，可自定义过期秒数，默认使用 PRINT_AGENT_SUPPORT_TOKEN_TTL_SEC。",
+      "tags": ["jwt", "signing", "support", "authentication"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/shared/src/print-agent-support-jwt.ts:verifyPrintAgentSupportJwt",
+      "type": "function",
+      "name": "verifyPrintAgentSupportJwt",
+      "filePath": "packages/shared/src/print-agent-support-jwt.ts",
+      "lineRange": [35, 47],
+      "summary": "验签支持 JWT 并校验 typ、jti、餐厅/设备/操作者字段及 exp，确保令牌完整且未过期。",
+      "tags": ["jwt", "verification", "support", "authentication"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:packages/shared/src/hmac-jwt.ts",
+      "target": "function:packages/shared/src/hmac-jwt.ts:b64urlJson",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/hmac-jwt.ts",
+      "target": "function:packages/shared/src/hmac-jwt.ts:b64urlJson",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/hmac-jwt.ts",
+      "target": "function:packages/shared/src/hmac-jwt.ts:safeEqualStrings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/hmac-jwt.ts",
+      "target": "function:packages/shared/src/hmac-jwt.ts:safeEqualStrings",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/hmac-jwt.ts",
+      "target": "function:packages/shared/src/hmac-jwt.ts:signHmacJwt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/hmac-jwt.ts",
+      "target": "function:packages/shared/src/hmac-jwt.ts:signHmacJwt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/hmac-jwt.ts",
+      "target": "function:packages/shared/src/hmac-jwt.ts:verifyHmacJwt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/hmac-jwt.ts",
+      "target": "function:packages/shared/src/hmac-jwt.ts:verifyHmacJwt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/shared/src/hmac-jwt.ts:signHmacJwt",
+      "target": "function:packages/shared/src/hmac-jwt.ts:b64urlJson",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/shared/src/hmac-jwt.ts:verifyHmacJwt",
+      "target": "function:packages/shared/src/hmac-jwt.ts:safeEqualStrings",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-jwt.test.ts",
+      "target": "file:packages/shared/src/print-agent-jwt.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-jwt.test.ts",
+      "target": "file:packages/shared/src/print-agent-support-jwt.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-jwt.ts",
+      "target": "file:packages/shared/src/print-agent-jwt.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-support-jwt.ts",
+      "target": "file:packages/shared/src/print-agent-jwt.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-jwt.ts",
+      "target": "function:packages/shared/src/print-agent-jwt.ts:signPrintAgentJwt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-jwt.ts",
+      "target": "function:packages/shared/src/print-agent-jwt.ts:signPrintAgentJwt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-jwt.ts",
+      "target": "function:packages/shared/src/print-agent-jwt.ts:verifyPrintAgentJwt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-jwt.ts",
+      "target": "function:packages/shared/src/print-agent-jwt.ts:verifyPrintAgentJwt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-jwt.ts",
+      "target": "file:packages/shared/src/hmac-jwt.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:packages/shared/src/print-agent-jwt.ts:signPrintAgentJwt",
+      "target": "function:packages/shared/src/hmac-jwt.ts:signHmacJwt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/shared/src/print-agent-jwt.ts:verifyPrintAgentJwt",
+      "target": "function:packages/shared/src/hmac-jwt.ts:verifyHmacJwt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-support-jwt.ts",
+      "target": "function:packages/shared/src/print-agent-support-jwt.ts:signPrintAgentSupportJwt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-support-jwt.ts",
+      "target": "function:packages/shared/src/print-agent-support-jwt.ts:signPrintAgentSupportJwt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-support-jwt.ts",
+      "target": "function:packages/shared/src/print-agent-support-jwt.ts:verifyPrintAgentSupportJwt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-support-jwt.ts",
+      "target": "function:packages/shared/src/print-agent-support-jwt.ts:verifyPrintAgentSupportJwt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/shared/src/print-agent-support-jwt.ts",
+      "target": "file:packages/shared/src/hmac-jwt.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:packages/shared/src/print-agent-support-jwt.ts:signPrintAgentSupportJwt",
+      "target": "function:packages/shared/src/hmac-jwt.ts:signHmacJwt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/shared/src/print-agent-support-jwt.ts:verifyPrintAgentSupportJwt",
+      "target": "function:packages/shared/src/hmac-jwt.ts:verifyHmacJwt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

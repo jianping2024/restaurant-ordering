@@ -1,0 +1,1341 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/run-nightly-auto-close.ts",
+      "type": "file",
+      "name": "run-nightly-auto-close.ts",
+      "filePath": "apps/web/src/lib/run-nightly-auto-close.ts",
+      "summary": "Cron 入口：按餐厅时区触发批量关闭未结账单会话。",
+      "tags": [
+        "service",
+        "cron",
+        "table-session"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/run-nightly-auto-close.ts:executeNightlyAutoClose",
+      "type": "function",
+      "name": "executeNightlyAutoClose",
+      "filePath": "apps/web/src/lib/run-nightly-auto-close.ts",
+      "lineRange": [
+        8,
+        13
+      ],
+      "summary": "创建 admin 客户端并按各餐厅时区执行批量关台。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-account.ts",
+      "type": "file",
+      "name": "staff-account.ts",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "summary": "员工账号角色、登录名规范化、邮箱合成、密码校验与 metadata 解析。",
+      "tags": [
+        "utility",
+        "auth",
+        "staff"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:isStaffRole",
+      "type": "function",
+      "name": "isStaffRole",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        5,
+        7
+      ],
+      "summary": "类型守卫：判断字符串是否为合法员工角色。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:normalizeLoginName",
+      "type": "function",
+      "name": "normalizeLoginName",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        28,
+        30
+      ],
+      "summary": "登录名 trim 并转小写。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:sanitizeStaffLoginInput",
+      "type": "function",
+      "name": "sanitizeStaffLoginInput",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        33,
+        36
+      ],
+      "summary": "从邮箱或登录名输入提取纯登录名部分。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:validateLoginName",
+      "type": "function",
+      "name": "validateLoginName",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        38,
+        44
+      ],
+      "summary": "校验登录名字符集与长度，返回错误消息。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:hashAlphanumeric",
+      "type": "function",
+      "name": "hashAlphanumeric",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        46,
+        55
+      ],
+      "summary": "函数 hashAlphanumeric。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:suggestLoginNameFromDisplay",
+      "type": "function",
+      "name": "suggestLoginNameFromDisplay",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        62,
+        122
+      ],
+      "summary": "根据显示名与角色生成唯一登录名建议（含哈希后缀）。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:buildStaffEmail",
+      "type": "function",
+      "name": "buildStaffEmail",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        125,
+        128
+      ],
+      "summary": "由登录名合成 @staff 域邮箱。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:composeStaffEmail",
+      "type": "function",
+      "name": "composeStaffEmail",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        131,
+        137
+      ],
+      "summary": "兼容登录名或完整邮箱输入，统一输出 staff 邮箱。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:staffPasswordValid",
+      "type": "function",
+      "name": "staffPasswordValid",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        139,
+        141
+      ],
+      "summary": "校验员工密码最小长度要求。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:parseStaffUserMetadata",
+      "type": "function",
+      "name": "parseStaffUserMetadata",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        152,
+        168
+      ],
+      "summary": "从 Supabase user metadata 解析 StaffAccountMetadata。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "file",
+      "name": "staff-api-auth.ts",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "summary": "员工 API 路由的身份认证，按 slug 加载餐厅并校验 Supabase 会话与角色。",
+      "tags": [
+        "middleware",
+        "auth",
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthErrorStatus",
+      "type": "function",
+      "name": "staffAuthErrorStatus",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        21,
+        25
+      ],
+      "summary": "将 StaffAuthError 映射为 HTTP 状态码。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:loadRestaurantBySlug",
+      "type": "function",
+      "name": "loadRestaurantBySlug",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        27,
+        52
+      ],
+      "summary": "通过 slug 加载餐厅 id，不存在返回 null。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequest",
+      "type": "function",
+      "name": "staffAuthFromRequest",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        55,
+        117
+      ],
+      "summary": "从请求 Cookie 会话校验指定 slug 餐厅的员工身份与角色。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthForPage",
+      "type": "function",
+      "name": "staffAuthForPage",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        120,
+        125
+      ],
+      "summary": "Server Component 版员工认证（无 Request 对象）。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:openTableAuthFromRequest",
+      "type": "function",
+      "name": "openTableAuthFromRequest",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        128,
+        133
+      ],
+      "summary": "开台操作专用的员工角色认证。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequestWithRoles",
+      "type": "function",
+      "name": "staffAuthFromRequestWithRoles",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        136,
+        146
+      ],
+      "summary": "允许多角色的员工认证变体。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "type": "file",
+      "name": "staff-dashboard-api.ts",
+      "filePath": "apps/web/src/lib/staff-dashboard-api.ts",
+      "summary": "仪表盘员工 CRUD 的共享加载、行映射、metadata 与创建请求体校验。",
+      "tags": [
+        "service",
+        "auth",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-dashboard-api.ts:loadOwnerRestaurantWithSlug",
+      "type": "function",
+      "name": "loadOwnerRestaurantWithSlug",
+      "filePath": "apps/web/src/lib/staff-dashboard-api.ts",
+      "lineRange": [
+        12,
+        34
+      ],
+      "summary": "组合 getOwnerRestaurantId 与餐厅详情加载。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-dashboard-api.ts:mapStaffRow",
+      "type": "function",
+      "name": "mapStaffRow",
+      "filePath": "apps/web/src/lib/staff-dashboard-api.ts",
+      "lineRange": [
+        36,
+        49
+      ],
+      "summary": "将数据库 staff 行映射为 API 响应 DTO。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-dashboard-api.ts:staffMetadataPayload",
+      "type": "function",
+      "name": "staffMetadataPayload",
+      "filePath": "apps/web/src/lib/staff-dashboard-api.ts",
+      "lineRange": [
+        51,
+        66
+      ],
+      "summary": "构建 Supabase Auth 用户 metadata 写入 payload。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-dashboard-api.ts:validateStaffCreateBody",
+      "type": "function",
+      "name": "validateStaffCreateBody",
+      "filePath": "apps/web/src/lib/staff-dashboard-api.ts",
+      "lineRange": [
+        68,
+        88
+      ],
+      "summary": "校验创建员工请求体的 role、loginName、password 等字段。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "file",
+      "name": "admin.ts",
+      "filePath": "apps/web/src/lib/supabase/admin.ts",
+      "summary": "创建 Supabase service-role 管理客户端，绕过 RLS 用于服务端操作。",
+      "tags": [
+        "singleton",
+        "data-access",
+        "supabase"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "function",
+      "name": "createAdminClient",
+      "filePath": "apps/web/src/lib/supabase/admin.ts",
+      "lineRange": [
+        4,
+        13
+      ],
+      "summary": "实例化 Supabase service-role 客户端。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/supabase/middleware.ts",
+      "type": "file",
+      "name": "middleware.ts",
+      "filePath": "apps/web/src/lib/supabase/middleware.ts",
+      "summary": "Next.js 中间件会话刷新、Cookie 同步与仪表盘/员工路由访问控制。",
+      "tags": [
+        "middleware",
+        "auth",
+        "supabase"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/supabase/middleware.ts:updateSession",
+      "type": "function",
+      "name": "updateSession",
+      "filePath": "apps/web/src/lib/supabase/middleware.ts",
+      "lineRange": [
+        14,
+        87
+      ],
+      "summary": "刷新 Supabase 会话、写 Cookie，并按路径重定向未授权访问。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "file",
+      "name": "server.ts",
+      "filePath": "apps/web/src/lib/supabase/server.ts",
+      "summary": "Server Component / Route Handler 用的 Supabase 服务端客户端工厂。",
+      "tags": [
+        "factory",
+        "supabase",
+        "server"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "function",
+      "name": "createClient",
+      "filePath": "apps/web/src/lib/supabase/server.ts",
+      "lineRange": [
+        5,
+        28
+      ],
+      "summary": "基于 Next.js cookies() 创建服务端 Supabase 客户端。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "type": "file",
+      "name": "load-close-table-actor.ts",
+      "filePath": "apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "summary": "关台操作审计 actor 解析，区分店主、前台与员工身份。",
+      "tags": [
+        "service",
+        "audit",
+        "table-session"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-session/load-close-table-actor.ts:loadCloseTableSessionActor",
+      "type": "function",
+      "name": "loadCloseTableSessionActor",
+      "filePath": "apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "lineRange": [
+        22,
+        84
+      ],
+      "summary": "解析关台操作的审计 actor（店主/前台/员工）。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/lib/verify-cron-secret.ts",
+      "type": "file",
+      "name": "verify-cron-secret.ts",
+      "filePath": "apps/web/src/lib/verify-cron-secret.ts",
+      "summary": "校验 Cron 请求头中的 CRON_SECRET 是否匹配环境变量。",
+      "tags": [
+        "validation",
+        "security",
+        "cron"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/verify-cron-secret.ts:verifyCronSecret",
+      "type": "function",
+      "name": "verifyCronSecret",
+      "filePath": "apps/web/src/lib/verify-cron-secret.ts",
+      "lineRange": [
+        2,
+        7
+      ],
+      "summary": "比对 Authorization 头与环境 CRON_SECRET。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-session-guard.ts",
+      "type": "file",
+      "name": "waiter-session-guard.ts",
+      "filePath": "apps/web/src/lib/waiter-session-guard.ts",
+      "summary": "服务员改单/关台前检查桌台会话是否处于 billing 等阻塞状态。",
+      "tags": [
+        "validation",
+        "waiter",
+        "table-session"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-session-guard.ts:tableSessionBlocksWaiterMutation",
+      "type": "function",
+      "name": "tableSessionBlocksWaiterMutation",
+      "filePath": "apps/web/src/lib/waiter-session-guard.ts",
+      "lineRange": [
+        5,
+        21
+      ],
+      "summary": "检查桌台是否有 billing 会话阻塞服务员改单。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-session-guard.ts:sessionIdBlocksWaiterMutation",
+      "type": "function",
+      "name": "sessionIdBlocksWaiterMutation",
+      "filePath": "apps/web/src/lib/waiter-session-guard.ts",
+      "lineRange": [
+        24,
+        35
+      ],
+      "summary": "按 sessionId 检查是否处于 billing 阻塞态。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-session-guard.ts:sessionBillingResponse",
+      "type": "function",
+      "name": "sessionBillingResponse",
+      "filePath": "apps/web/src/lib/waiter-session-guard.ts",
+      "lineRange": [
+        37,
+        39
+      ],
+      "summary": "返回 billing 阻塞的标准 JSON 错误响应。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/zoned-time.ts",
+      "type": "file",
+      "name": "zoned-time.ts",
+      "filePath": "apps/web/src/lib/zoned-time.ts",
+      "summary": "按 IANA 时区提取年月日时分，供夜间自动关台等定时逻辑使用。",
+      "tags": [
+        "utility",
+        "timezone",
+        "date"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/zoned-time.ts:getZonedCalendarParts",
+      "type": "function",
+      "name": "getZonedCalendarParts",
+      "filePath": "apps/web/src/lib/zoned-time.ts",
+      "lineRange": [
+        2,
+        28
+      ],
+      "summary": "用 Intl.DateTimeFormat 提取指定时区的日历分量。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/middleware.ts",
+      "type": "file",
+      "name": "middleware.ts",
+      "filePath": "apps/web/src/middleware.ts",
+      "summary": "Next.js 全局 middleware 入口，委托 updateSession 处理所有匹配路由。",
+      "tags": [
+        "entry-point",
+        "middleware",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/middleware.ts:middleware",
+      "type": "function",
+      "name": "middleware",
+      "filePath": "apps/web/src/middleware.ts",
+      "lineRange": [
+        4,
+        6
+      ],
+      "summary": "Next.js middleware 包装，调用 updateSession。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/run-nightly-auto-close.ts",
+      "target": "function:apps/web/src/lib/run-nightly-auto-close.ts:executeNightlyAutoClose",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/run-nightly-auto-close.ts",
+      "target": "function:apps/web/src/lib/run-nightly-auto-close.ts:executeNightlyAutoClose",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:isStaffRole",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:isStaffRole",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:normalizeLoginName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:normalizeLoginName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:sanitizeStaffLoginInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:sanitizeStaffLoginInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:validateLoginName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:validateLoginName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:hashAlphanumeric",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:suggestLoginNameFromDisplay",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:suggestLoginNameFromDisplay",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:buildStaffEmail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:buildStaffEmail",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:composeStaffEmail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:composeStaffEmail",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:staffPasswordValid",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:staffPasswordValid",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:parseStaffUserMetadata",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:parseStaffUserMetadata",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthErrorStatus",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthErrorStatus",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:loadRestaurantBySlug",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:loadRestaurantBySlug",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequest",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequest",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthForPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthForPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:openTableAuthFromRequest",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:openTableAuthFromRequest",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequestWithRoles",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequestWithRoles",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:loadOwnerRestaurantWithSlug",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:loadOwnerRestaurantWithSlug",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:mapStaffRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:mapStaffRow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:staffMetadataPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:staffMetadataPayload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:validateStaffCreateBody",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:validateStaffCreateBody",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/admin.ts",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/admin.ts",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/middleware.ts",
+      "target": "function:apps/web/src/lib/supabase/middleware.ts:updateSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/middleware.ts",
+      "target": "function:apps/web/src/lib/supabase/middleware.ts:updateSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/server.ts",
+      "target": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/server.ts",
+      "target": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "target": "function:apps/web/src/lib/table-session/load-close-table-actor.ts:loadCloseTableSessionActor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "target": "function:apps/web/src/lib/table-session/load-close-table-actor.ts:loadCloseTableSessionActor",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/verify-cron-secret.ts",
+      "target": "function:apps/web/src/lib/verify-cron-secret.ts:verifyCronSecret",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/verify-cron-secret.ts",
+      "target": "function:apps/web/src/lib/verify-cron-secret.ts:verifyCronSecret",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-session-guard.ts",
+      "target": "function:apps/web/src/lib/waiter-session-guard.ts:tableSessionBlocksWaiterMutation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-session-guard.ts",
+      "target": "function:apps/web/src/lib/waiter-session-guard.ts:tableSessionBlocksWaiterMutation",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-session-guard.ts",
+      "target": "function:apps/web/src/lib/waiter-session-guard.ts:sessionIdBlocksWaiterMutation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-session-guard.ts",
+      "target": "function:apps/web/src/lib/waiter-session-guard.ts:sessionIdBlocksWaiterMutation",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-session-guard.ts",
+      "target": "function:apps/web/src/lib/waiter-session-guard.ts:sessionBillingResponse",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-session-guard.ts",
+      "target": "function:apps/web/src/lib/waiter-session-guard.ts:sessionBillingResponse",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/zoned-time.ts",
+      "target": "function:apps/web/src/lib/zoned-time.ts:getZonedCalendarParts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/zoned-time.ts",
+      "target": "function:apps/web/src/lib/zoned-time.ts:getZonedCalendarParts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/middleware.ts",
+      "target": "function:apps/web/src/middleware.ts:middleware",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/middleware.ts",
+      "target": "function:apps/web/src/middleware.ts:middleware",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/run-nightly-auto-close.ts",
+      "target": "file:apps/web/src/lib/auto-close-active-sessions.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/run-nightly-auto-close.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/run-nightly-auto-close.ts",
+      "target": "file:apps/web/src/lib/zoned-time.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "file:apps/web/src/lib/db-migration-error.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "file:apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/middleware.ts",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "target": "file:apps/web/src/lib/audit/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "target": "file:apps/web/src/lib/audit/load-owner-dashboard-actor.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "target": "file:apps/web/src/lib/audit/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/middleware.ts",
+      "target": "file:apps/web/src/lib/supabase/middleware.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/run-nightly-auto-close.ts:executeNightlyAutoClose",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/run-nightly-auto-close.ts:executeNightlyAutoClose",
+      "target": "function:apps/web/src/lib/zoned-time.ts:getZonedCalendarParts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-api-auth.ts:loadRestaurantBySlug",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequest",
+      "target": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequest",
+      "target": "function:apps/web/src/lib/staff-account.ts:parseStaffUserMetadata",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-api-auth.ts:openTableAuthFromRequest",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequestWithRoles",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-dashboard-api.ts:loadOwnerRestaurantWithSlug",
+      "target": "function:apps/web/src/lib/print-agent-dashboard-auth.ts:getOwnerRestaurantId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-dashboard-api.ts:loadOwnerRestaurantWithSlug",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-dashboard-api.ts:validateStaffCreateBody",
+      "target": "function:apps/web/src/lib/staff-account.ts:isStaffRole",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-dashboard-api.ts:validateStaffCreateBody",
+      "target": "function:apps/web/src/lib/staff-account.ts:validateLoginName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-dashboard-api.ts:validateStaffCreateBody",
+      "target": "function:apps/web/src/lib/staff-account.ts:staffPasswordValid",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-dashboard-api.ts:staffMetadataPayload",
+      "target": "function:apps/web/src/lib/staff-account.ts:composeStaffEmail",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/run-nightly-auto-close.ts:executeNightlyAutoClose",
+      "target": "function:apps/web/src/lib/auto-close-active-sessions.ts:closeAllOpenBillingSessions",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/run-nightly-auto-close.ts:executeNightlyAutoClose",
+      "target": "function:apps/web/src/lib/auto-close-active-sessions.ts:isNightlyAutoCloseDue",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequest",
+      "target": "function:apps/web/src/lib/db-migration-error.ts:isDbMigrationRequiredError",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/supabase/middleware.ts:updateSession",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:loadDashboardAccess",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/supabase/middleware.ts:updateSession",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:isOwnerDashboardPath",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/table-session/load-close-table-actor.ts:loadCloseTableSessionActor",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:loadDashboardAccess",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/table-session/load-close-table-actor.ts:loadCloseTableSessionActor",
+      "target": "function:apps/web/src/lib/audit/load-owner-dashboard-actor.ts:loadOwnerDashboardAuditActor",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/table-session/load-close-table-actor.ts:loadCloseTableSessionActor",
+      "target": "function:apps/web/src/lib/audit/index.ts:staffAuditActor",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/middleware.ts:middleware",
+      "target": "function:apps/web/src/lib/supabase/middleware.ts:updateSession",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/middleware.ts",
+      "target": "file:apps/web/src/lib/supabase/middleware.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

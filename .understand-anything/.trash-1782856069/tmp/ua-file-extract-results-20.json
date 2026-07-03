@@ -1,0 +1,1145 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 19,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/web/src/lib/format-dashboard-date.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 46,
+      "nonEmptyLines": 41,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/format-dashboard-date.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 70,
+      "nonEmptyLines": 62,
+      "functions": [
+        {
+          "name": "dashboardCalendarDay",
+          "startLine": 29,
+          "endLine": 36,
+          "params": [
+            "date"
+          ]
+        },
+        {
+          "name": "formatCollectedPaymentTime",
+          "startLine": 39,
+          "endLine": 51,
+          "params": [
+            "lang",
+            "iso",
+            "now"
+          ]
+        },
+        {
+          "name": "formatOverviewDate",
+          "startLine": 54,
+          "endLine": 65,
+          "params": [
+            "lang",
+            "date"
+          ]
+        },
+        {
+          "name": "formatOrderDateTime",
+          "startLine": 67,
+          "endLine": 70,
+          "params": [
+            "lang",
+            "iso"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "DASHBOARD_DISPLAY_TZ",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "formatCollectedPaymentTime",
+          "line": 39,
+          "isDefault": false
+        },
+        {
+          "name": "formatOverviewDate",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "formatOrderDateTime",
+          "line": 67,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "dashboardCalendarDay",
+          "callee": "new Intl.DateTimeFormat('en-CA', {\n    year: 'numeric',\n    month: '2-digit',\n    day: '2-digit',\n    timeZone: DASHBOARD_DISPLAY_TZ,\n  }).format",
+          "lineNumber": 30
+        },
+        {
+          "caller": "formatCollectedPaymentTime",
+          "callee": "dashboardCalendarDay",
+          "lineNumber": 47
+        },
+        {
+          "caller": "formatCollectedPaymentTime",
+          "callee": "dashboardCalendarDay",
+          "lineNumber": 47
+        },
+        {
+          "caller": "formatCollectedPaymentTime",
+          "callee": "new Intl.DateTimeFormat(locale, opts).format",
+          "lineNumber": 50
+        },
+        {
+          "caller": "formatOverviewDate",
+          "callee": "new Intl.DateTimeFormat(locale, OVERVIEW_DATE_OPTS).formatToParts",
+          "lineNumber": 57
+        },
+        {
+          "caller": "formatOverviewDate",
+          "callee": "parts.find",
+          "lineNumber": 58
+        },
+        {
+          "caller": "formatOverviewDate",
+          "callee": "parts.find",
+          "lineNumber": 59
+        },
+        {
+          "caller": "formatOverviewDate",
+          "callee": "parts.find",
+          "lineNumber": 60
+        },
+        {
+          "caller": "formatOverviewDate",
+          "callee": "parts.find",
+          "lineNumber": 61
+        },
+        {
+          "caller": "formatOverviewDate",
+          "callee": "new Intl.DateTimeFormat(locale, OVERVIEW_DATE_OPTS).format",
+          "lineNumber": 64
+        },
+        {
+          "caller": "formatOrderDateTime",
+          "callee": "new Intl.DateTimeFormat(locale, ORDER_TIME_OPTS).format",
+          "lineNumber": 69
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/i18n.server.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 11,
+      "nonEmptyLines": 10,
+      "functions": [
+        {
+          "name": "getServerLanguage",
+          "startLine": 8,
+          "endLine": 11,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "getServerLanguage",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getServerLanguage",
+          "callee": "cookies().get",
+          "lineNumber": 9
+        },
+        {
+          "caller": "getServerLanguage",
+          "callee": "cookies",
+          "lineNumber": 9
+        },
+        {
+          "caller": "getServerLanguage",
+          "callee": "isUILanguage",
+          "lineNumber": 10
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/i18n.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 64,
+      "nonEmptyLines": 57,
+      "functions": [
+        {
+          "name": "mockBrowserStorage",
+          "startLine": 7,
+          "endLine": 26,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "mockBrowserStorage",
+          "callee": "data.has",
+          "lineNumber": 10
+        },
+        {
+          "caller": "mockBrowserStorage",
+          "callee": "data.get",
+          "lineNumber": 10
+        },
+        {
+          "caller": "mockBrowserStorage",
+          "callee": "data.set",
+          "lineNumber": 12
+        },
+        {
+          "caller": "mockBrowserStorage",
+          "callee": "data.delete",
+          "lineNumber": 15
+        },
+        {
+          "caller": "mockBrowserStorage",
+          "callee": "data.clear",
+          "lineNumber": 17
+        },
+        {
+          "caller": "mockBrowserStorage",
+          "callee": "Object.defineProperty",
+          "lineNumber": 19
+        },
+        {
+          "caller": "mockBrowserStorage",
+          "callee": "Object.defineProperty",
+          "lineNumber": 20
+        },
+        {
+          "caller": "mockBrowserStorage",
+          "callee": "Object.defineProperty",
+          "lineNumber": 21
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/i18n.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 37,
+      "nonEmptyLines": 31,
+      "functions": [
+        {
+          "name": "isUILanguage",
+          "startLine": 16,
+          "endLine": 18,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "getClientLanguage",
+          "startLine": 20,
+          "endLine": 30,
+          "params": []
+        },
+        {
+          "name": "setClientLanguage",
+          "startLine": 32,
+          "endLine": 37,
+          "params": [
+            "lang"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "UI_LANG_COOKIE",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "DEFAULT_UI_LANG",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "SUPPORTED_UI_LANGS",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "HTML_LANG_BY_UI",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "isUILanguage",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "getClientLanguage",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "setClientLanguage",
+          "line": 32,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "isUILanguage",
+          "callee": "SUPPORTED_UI_LANGS.includes",
+          "lineNumber": 17
+        },
+        {
+          "caller": "getClientLanguage",
+          "callee": "localStorage.getItem",
+          "lineNumber": 22
+        },
+        {
+          "caller": "getClientLanguage",
+          "callee": "isUILanguage",
+          "lineNumber": 23
+        },
+        {
+          "caller": "getClientLanguage",
+          "callee": "localStorage.getItem",
+          "lineNumber": 24
+        },
+        {
+          "caller": "getClientLanguage",
+          "callee": "isUILanguage",
+          "lineNumber": 25
+        },
+        {
+          "caller": "getClientLanguage",
+          "callee": "setClientLanguage",
+          "lineNumber": 26
+        },
+        {
+          "caller": "setClientLanguage",
+          "callee": "localStorage.setItem",
+          "lineNumber": 34
+        },
+        {
+          "caller": "setClientLanguage",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 35
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 7,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/i18n/brand-tokens.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 23,
+      "nonEmptyLines": 21,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/i18n/brand-tokens.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 39,
+      "nonEmptyLines": 36,
+      "functions": [
+        {
+          "name": "getBrandTokens",
+          "startLine": 11,
+          "endLine": 18,
+          "params": [
+            "lang"
+          ]
+        },
+        {
+          "name": "applyBrandTokens",
+          "startLine": 20,
+          "endLine": 39,
+          "params": [
+            "value",
+            "tokens"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "getBrandTokens",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "applyBrandTokens",
+          "line": 20,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getBrandTokens",
+          "callee": "printAgentLabel",
+          "lineNumber": 14
+        },
+        {
+          "caller": "applyBrandTokens",
+          "callee": "Object.entries",
+          "lineNumber": 23
+        },
+        {
+          "caller": "applyBrandTokens",
+          "callee": "out.replaceAll",
+          "lineNumber": 24
+        },
+        {
+          "caller": "applyBrandTokens",
+          "callee": "Array.isArray",
+          "lineNumber": 28
+        },
+        {
+          "caller": "applyBrandTokens",
+          "callee": "value.map",
+          "lineNumber": 29
+        },
+        {
+          "caller": "applyBrandTokens",
+          "callee": "applyBrandTokens",
+          "lineNumber": 29
+        },
+        {
+          "caller": "applyBrandTokens",
+          "callee": "Object.entries",
+          "lineNumber": 33
+        },
+        {
+          "caller": "applyBrandTokens",
+          "callee": "applyBrandTokens",
+          "lineNumber": 34
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 59,
+      "nonEmptyLines": 55,
+      "functions": [
+        {
+          "name": "VoidItemReasonDialog",
+          "startLine": 23,
+          "endLine": 59,
+          "params": [
+            "{\n  open,\n  onClose,\n  lang,\n  item,\n  onConfirm,\n  confirming = false,\n  externalError = null,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "VoidItemReasonDialog",
+          "line": 23,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "VoidItemReasonDialog",
+          "callee": "useMemo",
+          "lineNumber": 32
+        },
+        {
+          "caller": "VoidItemReasonDialog",
+          "callee": "voidItemReasonDialogCopy",
+          "lineNumber": 32
+        },
+        {
+          "caller": "VoidItemReasonDialog",
+          "callee": "useMemo",
+          "lineNumber": 33
+        },
+        {
+          "caller": "VoidItemReasonDialog",
+          "callee": "voidItemReasonDialogTitle",
+          "lineNumber": 33
+        },
+        {
+          "caller": "VoidItemReasonDialog",
+          "callee": "voidItemWasServed",
+          "lineNumber": 34
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/order-item-void/void-item-reason-ui.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 39,
+      "nonEmptyLines": 35,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 68,
+      "nonEmptyLines": 62,
+      "functions": [
+        {
+          "name": "voidItemDisplayName",
+          "startLine": 21,
+          "endLine": 23,
+          "params": [
+            "item"
+          ]
+        },
+        {
+          "name": "voidItemWasServed",
+          "startLine": 25,
+          "endLine": 27,
+          "params": [
+            "item"
+          ]
+        },
+        {
+          "name": "voidItemReasonDialogTitle",
+          "startLine": 29,
+          "endLine": 41,
+          "params": [
+            "lang",
+            "item"
+          ]
+        },
+        {
+          "name": "voidItemReasonDialogCopy",
+          "startLine": 43,
+          "endLine": 58,
+          "params": [
+            "lang"
+          ]
+        },
+        {
+          "name": "voidItemReasonErrorMessage",
+          "startLine": 60,
+          "endLine": 68,
+          "params": [
+            "lang",
+            "code"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "voidItemDisplayName",
+          "line": 21,
+          "isDefault": false
+        },
+        {
+          "name": "voidItemWasServed",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "voidItemReasonDialogTitle",
+          "line": 29,
+          "isDefault": false
+        },
+        {
+          "name": "voidItemReasonDialogCopy",
+          "line": 43,
+          "isDefault": false
+        },
+        {
+          "name": "voidItemReasonErrorMessage",
+          "line": 60,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "voidItemDisplayName",
+          "callee": "formatOrderItemNameLabel",
+          "lineNumber": 22
+        },
+        {
+          "caller": "voidItemReasonDialogTitle",
+          "callee": "getMessages",
+          "lineNumber": 33
+        },
+        {
+          "caller": "voidItemReasonDialogTitle",
+          "callee": "orderHistory.voidItemReasonTitleWithItem.replace",
+          "lineNumber": 35
+        },
+        {
+          "caller": "voidItemReasonDialogTitle",
+          "callee": "voidItemDisplayName",
+          "lineNumber": 37
+        },
+        {
+          "caller": "voidItemReasonDialogCopy",
+          "callee": "getMessages",
+          "lineNumber": 44
+        },
+        {
+          "caller": "voidItemReasonDialogCopy",
+          "callee": "abnormalReasonOptions",
+          "lineNumber": 56
+        },
+        {
+          "caller": "voidItemReasonErrorMessage",
+          "callee": "voidItemReasonDialogCopy",
+          "lineNumber": 64
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 5,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/print-job-error-hints.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 90,
+      "nonEmptyLines": 87,
+      "functions": [
+        {
+          "name": "printJobErrorHint",
+          "startLine": 83,
+          "endLine": 90,
+          "params": [
+            "errorMessage",
+            "lang"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "printJobErrorHint",
+          "line": 83,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "printJobErrorHint",
+          "callee": "errorMessage?.trim",
+          "lineNumber": 84
+        },
+        {
+          "caller": "printJobErrorHint",
+          "callee": "errorMessage.trim",
+          "lineNumber": 85
+        },
+        {
+          "caller": "printJobErrorHint",
+          "callee": "row.match",
+          "lineNumber": 87
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/receipt-printer-preference.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 55,
+      "nonEmptyLines": 49,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/receipt-printer-preference.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 21,
+      "nonEmptyLines": 19,
+      "functions": [
+        {
+          "name": "loadCheckoutSoundEnabled",
+          "startLine": 3,
+          "endLine": 12,
+          "params": []
+        },
+        {
+          "name": "saveCheckoutSoundEnabled",
+          "startLine": 14,
+          "endLine": 21,
+          "params": [
+            "enabled"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "loadCheckoutSoundEnabled",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "saveCheckoutSoundEnabled",
+          "line": 14,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loadCheckoutSoundEnabled",
+          "callee": "localStorage.getItem",
+          "lineNumber": 6
+        },
+        {
+          "caller": "saveCheckoutSoundEnabled",
+          "callee": "localStorage.setItem",
+          "lineNumber": 17
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/request-checkout-apply-discount.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 51,
+      "nonEmptyLines": 51,
+      "functions": [
+        {
+          "name": "requestCheckoutApplyDiscount",
+          "startLine": 1,
+          "endLine": 51,
+          "params": [
+            "params"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "requestCheckoutApplyDiscount",
+          "line": 1,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "requestCheckoutApplyDiscount",
+          "callee": "fetch",
+          "lineNumber": 18
+        },
+        {
+          "caller": "requestCheckoutApplyDiscount",
+          "callee": "encodeURIComponent",
+          "lineNumber": 19
+        },
+        {
+          "caller": "requestCheckoutApplyDiscount",
+          "callee": "JSON.stringify",
+          "lineNumber": 24
+        },
+        {
+          "caller": "requestCheckoutApplyDiscount",
+          "callee": "res.json().catch",
+          "lineNumber": 32
+        },
+        {
+          "caller": "requestCheckoutApplyDiscount",
+          "callee": "res.json",
+          "lineNumber": 32
+        },
+        {
+          "caller": "requestCheckoutApplyDiscount",
+          "callee": "Number",
+          "lineNumber": 44
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/request-checkout-confirm-payment.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 48,
+      "nonEmptyLines": 47,
+      "functions": [
+        {
+          "name": "requestCheckoutConfirmPayment",
+          "startLine": 3,
+          "endLine": 48,
+          "params": [
+            "params"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "requestCheckoutConfirmPayment",
+          "line": 3,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "requestCheckoutConfirmPayment",
+          "callee": "fetch",
+          "lineNumber": 15
+        },
+        {
+          "caller": "requestCheckoutConfirmPayment",
+          "callee": "encodeURIComponent",
+          "lineNumber": 16
+        },
+        {
+          "caller": "requestCheckoutConfirmPayment",
+          "callee": "JSON.stringify",
+          "lineNumber": 21
+        },
+        {
+          "caller": "requestCheckoutConfirmPayment",
+          "callee": "res.json().catch",
+          "lineNumber": 29
+        },
+        {
+          "caller": "requestCheckoutConfirmPayment",
+          "callee": "res.json",
+          "lineNumber": 29
+        },
+        {
+          "caller": "requestCheckoutConfirmPayment",
+          "callee": "Number",
+          "lineNumber": 43
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/request-checkout-resume-ordering.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 24,
+      "nonEmptyLines": 24,
+      "functions": [
+        {
+          "name": "requestCheckoutResumeOrdering",
+          "startLine": 1,
+          "endLine": 24,
+          "params": [
+            "params"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "requestCheckoutResumeOrdering",
+          "line": 1,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "requestCheckoutResumeOrdering",
+          "callee": "fetch",
+          "lineNumber": 7
+        },
+        {
+          "caller": "requestCheckoutResumeOrdering",
+          "callee": "encodeURIComponent",
+          "lineNumber": 8
+        },
+        {
+          "caller": "requestCheckoutResumeOrdering",
+          "callee": "JSON.stringify",
+          "lineNumber": 13
+        },
+        {
+          "caller": "requestCheckoutResumeOrdering",
+          "callee": "res.json().catch",
+          "lineNumber": 16
+        },
+        {
+          "caller": "requestCheckoutResumeOrdering",
+          "callee": "res.json",
+          "lineNumber": 16
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/resume-table-session-ordering.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 45,
+      "nonEmptyLines": 41,
+      "functions": [
+        {
+          "name": "mockAdminRpc",
+          "startLine": 9,
+          "endLine": 16,
+          "params": [
+            "data",
+            "rpcError"
+          ]
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/resume-table-session-ordering.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 53,
+      "nonEmptyLines": 46,
+      "functions": [
+        {
+          "name": "resumeTableSessionOrdering",
+          "startLine": 16,
+          "endLine": 53,
+          "params": [
+            "params"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "resumeTableSessionOrdering",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "resumeTableSessionOrdering",
+          "callee": "admin.rpc",
+          "lineNumber": 23
+        },
+        {
+          "caller": "resumeTableSessionOrdering",
+          "callee": "httpStatusForResumeOrderingRpcCode",
+          "lineNumber": 42
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/use-checkout-bill-print-cooldown.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 41,
+      "nonEmptyLines": 33,
+      "functions": [
+        {
+          "name": "useCheckoutBillPrintCooldown",
+          "startLine": 8,
+          "endLine": 41,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "CHECKOUT_BILL_PRINT_COOLDOWN_MS",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "useCheckoutBillPrintCooldown",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "useCheckoutBillPrintCooldown",
+          "callee": "useState",
+          "lineNumber": 9
+        },
+        {
+          "caller": "useCheckoutBillPrintCooldown",
+          "callee": "useState",
+          "lineNumber": 10
+        },
+        {
+          "caller": "useCheckoutBillPrintCooldown",
+          "callee": "useEffect",
+          "lineNumber": 12
+        },
+        {
+          "caller": "useCheckoutBillPrintCooldown",
+          "callee": "Object.values(cooldownUntilById).some",
+          "lineNumber": 13
+        },
+        {
+          "caller": "useCheckoutBillPrintCooldown",
+          "callee": "Object.values",
+          "lineNumber": 13
+        },
+        {
+          "caller": "useCheckoutBillPrintCooldown",
+          "callee": "Date.now",
+          "lineNumber": 13
+        },
+        {
+          "caller": "useCheckoutBillPrintCooldown",
+          "callee": "window.setInterval",
+          "lineNumber": 15
+        },
+        {
+          "caller": "useCheckoutBillPrintCooldown",
+          "callee": "setTick",
+          "lineNumber": 15
+        },
+        {
+          "caller": "useCheckoutBillPrintCooldown",
+          "callee": "window.clearInterval",
+          "lineNumber": 16
+        },
+        {
+          "caller": "useCheckoutBillPrintCooldown",
+          "callee": "useCallback",
+          "lineNumber": 19
+        },
+        {
+          "caller": "useCheckoutBillPrintCooldown",
+          "callee": "Math.ceil",
+          "lineNumber": 22
+        },
+        {
+          "caller": "useCheckoutBillPrintCooldown",
+          "callee": "Date.now",
+          "lineNumber": 22
+        },
+        {
+          "caller": "useCheckoutBillPrintCooldown",
+          "callee": "useCallback",
+          "lineNumber": 28
+        },
+        {
+          "caller": "useCheckoutBillPrintCooldown",
+          "callee": "cooldownSecondsLeft",
+          "lineNumber": 29
+        },
+        {
+          "caller": "useCheckoutBillPrintCooldown",
+          "callee": "useCallback",
+          "lineNumber": 33
+        },
+        {
+          "caller": "useCheckoutBillPrintCooldown",
+          "callee": "setCooldownUntilById",
+          "lineNumber": 34
+        },
+        {
+          "caller": "useCheckoutBillPrintCooldown",
+          "callee": "Date.now",
+          "lineNumber": 36
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    }
+  ]
+}

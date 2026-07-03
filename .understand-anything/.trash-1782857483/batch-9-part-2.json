@@ -1,0 +1,1278 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "type": "file",
+      "name": "checkout-confirm-payment-auth.ts",
+      "filePath": "apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "summary": "结账确认支付授权，支持员工或店主身份并加载对应审计操作者。",
+      "tags": [
+        "checkout",
+        "auth",
+        "audit"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/checkout-confirm-payment-auth.ts:authorizeCheckoutConfirmPayment",
+      "type": "function",
+      "name": "authorizeCheckoutConfirmPayment",
+      "filePath": "apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "lineRange": [
+        18,
+        82
+      ],
+      "summary": "授权结账确认：员工或店主身份并附带审计 actor。",
+      "tags": [
+        "checkout",
+        "auth"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/close-active-table-session-with-cleanup.ts",
+      "type": "file",
+      "name": "close-active-table-session-with-cleanup.ts",
+      "filePath": "apps/web/src/lib/close-active-table-session-with-cleanup.ts",
+      "summary": "关闭活跃桌台会话并执行运营清理的 RPC 封装，含审计参数。",
+      "tags": [
+        "table-session",
+        "utility",
+        "cleanup"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/close-active-table-session-with-cleanup.ts:closeActiveTableSessionWithOperationalCleanup",
+      "type": "function",
+      "name": "closeActiveTableSessionWithOperationalCleanup",
+      "filePath": "apps/web/src/lib/close-active-table-session-with-cleanup.ts",
+      "lineRange": [
+        22,
+        57
+      ],
+      "summary": "调用 close_table_session_with_cleanup RPC 关闭桌台。",
+      "tags": [
+        "table-session",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/dashboard-access.test.ts",
+      "type": "file",
+      "name": "dashboard-access.test.ts",
+      "filePath": "apps/web/src/lib/dashboard-access.test.ts",
+      "summary": "dashboard 路径与角色访问控制的单元测试。",
+      "tags": [
+        "test",
+        "dashboard",
+        "access-control"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "file",
+      "name": "dashboard-access.ts",
+      "filePath": "apps/web/src/lib/dashboard-access.ts",
+      "summary": "Dashboard 访问核心模块，解析店主/前台/收银角色并加载餐厅上下文。",
+      "tags": [
+        "middleware",
+        "access-control",
+        "dashboard"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-access.ts:loadDashboardAccess",
+      "type": "function",
+      "name": "loadDashboardAccess",
+      "filePath": "apps/web/src/lib/dashboard-access.ts",
+      "lineRange": [
+        69,
+        152
+      ],
+      "summary": "加载当前用户的 dashboard 访问上下文（店主或员工）。",
+      "tags": [
+        "access-control",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-access.ts:isOwnerDashboardUser",
+      "type": "function",
+      "name": "isOwnerDashboardUser",
+      "filePath": "apps/web/src/lib/dashboard-access.ts",
+      "lineRange": [
+        154,
+        164
+      ],
+      "summary": "判断用户是否为餐厅店主。",
+      "tags": [
+        "access-control",
+        "owner"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-access.ts:isCashierStaffUser",
+      "type": "function",
+      "name": "isCashierStaffUser",
+      "filePath": "apps/web/src/lib/dashboard-access.ts",
+      "lineRange": [
+        166,
+        172
+      ],
+      "summary": "判断用户是否为活跃收银员工。",
+      "tags": [
+        "access-control",
+        "cashier"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-access.ts:isFrontdeskStaffUser",
+      "type": "function",
+      "name": "isFrontdeskStaffUser",
+      "filePath": "apps/web/src/lib/dashboard-access.ts",
+      "lineRange": [
+        174,
+        180
+      ],
+      "summary": "判断用户是否为活跃前台员工。",
+      "tags": [
+        "access-control",
+        "frontdesk"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-access.ts:loadFrontdeskOperationalContext",
+      "type": "function",
+      "name": "loadFrontdeskOperationalContext",
+      "filePath": "apps/web/src/lib/dashboard-access.ts",
+      "lineRange": [
+        183,
+        229
+      ],
+      "summary": "加载前台运营上下文，含餐厅停用检查。",
+      "tags": [
+        "access-control",
+        "frontdesk"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-access.ts:loadMenuManagementContext",
+      "type": "function",
+      "name": "loadMenuManagementContext",
+      "filePath": "apps/web/src/lib/dashboard-access.ts",
+      "lineRange": [
+        236,
+        262
+      ],
+      "summary": "加载菜单管理所需的可写餐厅上下文。",
+      "tags": [
+        "access-control",
+        "menu"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-access.ts:loadOverviewDashboardContext",
+      "type": "function",
+      "name": "loadOverviewDashboardContext",
+      "filePath": "apps/web/src/lib/dashboard-access.ts",
+      "lineRange": [
+        265,
+        285
+      ],
+      "summary": "加载概览页所需的 dashboard 与前台上下文。",
+      "tags": [
+        "access-control",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/dashboard-feature-registry.test.ts",
+      "type": "file",
+      "name": "dashboard-feature-registry.test.ts",
+      "filePath": "apps/web/src/lib/dashboard-feature-registry.test.ts",
+      "summary": "Dashboard 功能注册表与导航路径映射的单元测试。",
+      "tags": [
+        "test",
+        "dashboard",
+        "navigation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/dashboard-feature-registry.ts",
+      "type": "file",
+      "name": "dashboard-feature-registry.ts",
+      "filePath": "apps/web/src/lib/dashboard-feature-registry.ts",
+      "summary": "Dashboard 功能与导航注册表，按角色定义可见菜单与中间件路径白名单。",
+      "tags": [
+        "navigation",
+        "access-control",
+        "registry"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-feature-registry.ts:navItemsForRole",
+      "type": "function",
+      "name": "navItemsForRole",
+      "filePath": "apps/web/src/lib/dashboard-feature-registry.ts",
+      "lineRange": [
+        137,
+        147
+      ],
+      "summary": "按员工角色返回可见导航项列表。",
+      "tags": [
+        "navigation",
+        "registry"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-feature-registry.ts:middlewareAllowsPath",
+      "type": "function",
+      "name": "middlewareAllowsPath",
+      "filePath": "apps/web/src/lib/dashboard-feature-registry.ts",
+      "lineRange": [
+        273,
+        281
+      ],
+      "summary": "中间件路径白名单：判断角色能否访问给定 pathname。",
+      "tags": [
+        "middleware",
+        "access-control"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-feature-registry.ts:navPathsForRole",
+      "type": "function",
+      "name": "navPathsForRole",
+      "filePath": "apps/web/src/lib/dashboard-feature-registry.ts",
+      "lineRange": [
+        283,
+        288
+      ],
+      "summary": "返回角色对应的导航路径数组。",
+      "tags": [
+        "navigation",
+        "registry"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-feature-registry.ts:featureByPath",
+      "type": "function",
+      "name": "featureByPath",
+      "filePath": "apps/web/src/lib/dashboard-feature-registry.ts",
+      "lineRange": [
+        290,
+        297
+      ],
+      "summary": "根据 pathname 查找匹配的 dashboard 功能定义。",
+      "tags": [
+        "registry",
+        "routing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/dashboard-paths.ts",
+      "type": "file",
+      "name": "dashboard-paths.ts",
+      "filePath": "apps/web/src/lib/dashboard-paths.ts",
+      "summary": "Dashboard 路径分类工具，判断设置/运营/收银等路径前缀。",
+      "tags": [
+        "utility",
+        "routing",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-paths.ts:isDashboardSettingsPath",
+      "type": "function",
+      "name": "isDashboardSettingsPath",
+      "filePath": "apps/web/src/lib/dashboard-paths.ts",
+      "lineRange": [
+        1,
+        3
+      ],
+      "summary": "判断路径是否为 dashboard 设置页前缀。",
+      "tags": [
+        "utility",
+        "routing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-paths.ts:isOwnerOperationalPath",
+      "type": "function",
+      "name": "isOwnerOperationalPath",
+      "filePath": "apps/web/src/lib/dashboard-paths.ts",
+      "lineRange": [
+        6,
+        13
+      ],
+      "summary": "判断路径是否为店主运营功能页。",
+      "tags": [
+        "utility",
+        "routing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-paths.ts:isOwnerOverviewPath",
+      "type": "function",
+      "name": "isOwnerOverviewPath",
+      "filePath": "apps/web/src/lib/dashboard-paths.ts",
+      "lineRange": [
+        15,
+        17
+      ],
+      "summary": "判断路径是否为店主概览页。",
+      "tags": [
+        "utility",
+        "routing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-paths.ts:isOwnerDashboardPath",
+      "type": "function",
+      "name": "isOwnerDashboardPath",
+      "filePath": "apps/web/src/lib/dashboard-paths.ts",
+      "lineRange": [
+        19,
+        25
+      ],
+      "summary": "聚合判断路径是否属于店主 dashboard 范围。",
+      "tags": [
+        "utility",
+        "routing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-paths.ts:isCashierCheckoutPath",
+      "type": "function",
+      "name": "isCashierCheckoutPath",
+      "filePath": "apps/web/src/lib/dashboard-paths.ts",
+      "lineRange": [
+        27,
+        29
+      ],
+      "summary": "判断路径是否为收银结账页。",
+      "tags": [
+        "utility",
+        "routing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-paths.ts:isFrontdeskOperationalPath",
+      "type": "function",
+      "name": "isFrontdeskOperationalPath",
+      "filePath": "apps/web/src/lib/dashboard-paths.ts",
+      "lineRange": [
+        31,
+        35
+      ],
+      "summary": "判断路径是否为前台运营页（含设置子路径）。",
+      "tags": [
+        "utility",
+        "routing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/db-migration-error.ts",
+      "type": "file",
+      "name": "db-migration-error.ts",
+      "filePath": "apps/web/src/lib/db-migration-error.ts",
+      "summary": "检测 Supabase 返回的数据库迁移缺失错误（列或表不存在）。",
+      "tags": [
+        "utility",
+        "database",
+        "error-handling"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/db-migration-error.ts:isDbMigrationRequiredError",
+      "type": "function",
+      "name": "isDbMigrationRequiredError",
+      "filePath": "apps/web/src/lib/db-migration-error.ts",
+      "lineRange": [
+        2,
+        7
+      ],
+      "summary": "识别 Postgres 列/表缺失类错误以提示需要迁移。",
+      "tags": [
+        "utility",
+        "database"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/expire-stale-print-jobs.ts",
+      "type": "file",
+      "name": "expire-stale-print-jobs.ts",
+      "filePath": "apps/web/src/lib/expire-stale-print-jobs.ts",
+      "summary": "将超时 pending/processing 打印任务标记为 failed 的清理逻辑。",
+      "tags": [
+        "print",
+        "utility",
+        "cleanup"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/expire-stale-print-jobs.ts:expireStalePrintJobs",
+      "type": "function",
+      "name": "expireStalePrintJobs",
+      "filePath": "apps/web/src/lib/expire-stale-print-jobs.ts",
+      "lineRange": [
+        12,
+        30
+      ],
+      "summary": "批量将超龄打印任务更新为 failed。",
+      "tags": [
+        "print",
+        "cleanup"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/expire-stale-print-jobs.ts:maybeExpireStalePrintJobs",
+      "type": "function",
+      "name": "maybeExpireStalePrintJobs",
+      "filePath": "apps/web/src/lib/expire-stale-print-jobs.ts",
+      "lineRange": [
+        33,
+        42
+      ],
+      "summary": "带节流地触发过期打印任务清理。",
+      "tags": [
+        "print",
+        "cleanup"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/fetch-receipt-printers.ts",
+      "type": "file",
+      "name": "fetch-receipt-printers.ts",
+      "filePath": "apps/web/src/lib/fetch-receipt-printers.ts",
+      "summary": "客户端获取收据打印机列表的 fetch 封装。",
+      "tags": [
+        "utility",
+        "print",
+        "client"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/fetch-receipt-printers.ts:fetchReceiptPrinters",
+      "type": "function",
+      "name": "fetchReceiptPrinters",
+      "filePath": "apps/web/src/lib/fetch-receipt-printers.ts",
+      "lineRange": [
+        4,
+        24
+      ],
+      "summary": "请求 API 获取收据打印机列表。",
+      "tags": [
+        "utility",
+        "print"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-auth.ts",
+      "type": "file",
+      "name": "print-agent-auth.ts",
+      "filePath": "apps/web/src/lib/print-agent-auth.ts",
+      "summary": "打印代理 Bearer JWT 校验与设备活跃状态验证工具。",
+      "tags": [
+        "security",
+        "print-agent",
+        "jwt"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-auth.ts:getBearerToken",
+      "type": "function",
+      "name": "getBearerToken",
+      "filePath": "apps/web/src/lib/print-agent-auth.ts",
+      "lineRange": [
+        5,
+        9
+      ],
+      "summary": "从请求头提取 Bearer token。",
+      "tags": [
+        "security",
+        "jwt"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-auth.ts:verifyAgentBearer",
+      "type": "function",
+      "name": "verifyAgentBearer",
+      "filePath": "apps/web/src/lib/print-agent-auth.ts",
+      "lineRange": [
+        12,
+        20
+      ],
+      "summary": "校验打印代理 JWT 并返回 claims。",
+      "tags": [
+        "security",
+        "print-agent"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-auth.ts:verifyActiveAgentBearer",
+      "type": "function",
+      "name": "verifyActiveAgentBearer",
+      "filePath": "apps/web/src/lib/print-agent-auth.ts",
+      "lineRange": [
+        23,
+        31
+      ],
+      "summary": "校验 JWT 并确认设备在库中仍为活跃。",
+      "tags": [
+        "security",
+        "print-agent"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-auth.ts:isUuid",
+      "type": "function",
+      "name": "isUuid",
+      "filePath": "apps/web/src/lib/print-agent-auth.ts",
+      "lineRange": [
+        33,
+        35
+      ],
+      "summary": "UUID 格式校验辅助函数。",
+      "tags": [
+        "utility",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-claim-rate-limit.ts",
+      "type": "file",
+      "name": "print-agent-claim-rate-limit.ts",
+      "filePath": "apps/web/src/lib/print-agent-claim-rate-limit.ts",
+      "summary": "打印代理 claim 接口按 IP 的内存速率限制。",
+      "tags": [
+        "security",
+        "rate-limit",
+        "print-agent"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-claim-rate-limit.ts:claimRateLimitCheck",
+      "type": "function",
+      "name": "claimRateLimitCheck",
+      "filePath": "apps/web/src/lib/print-agent-claim-rate-limit.ts",
+      "lineRange": [
+        19,
+        34
+      ],
+      "summary": "检查 claim 请求 IP 是否超限。",
+      "tags": [
+        "rate-limit",
+        "print-agent"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-claim-rate-limit.ts:claimRecordFailure",
+      "type": "function",
+      "name": "claimRecordFailure",
+      "filePath": "apps/web/src/lib/print-agent-claim-rate-limit.ts",
+      "lineRange": [
+        36,
+        43
+      ],
+      "summary": "记录 claim 失败次数。",
+      "tags": [
+        "rate-limit",
+        "print-agent"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/print-agent-claim-rate-limit.ts:claimRecordSuccess",
+      "type": "function",
+      "name": "claimRecordSuccess",
+      "filePath": "apps/web/src/lib/print-agent-claim-rate-limit.ts",
+      "lineRange": [
+        45,
+        48
+      ],
+      "summary": "claim 成功后重置计数。",
+      "tags": [
+        "rate-limit",
+        "print-agent"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/print-agent-config.test.ts",
+      "type": "file",
+      "name": "print-agent-config.test.ts",
+      "filePath": "apps/web/src/lib/print-agent-config.test.ts",
+      "summary": "打印代理云端配置解析与校验的单元测试。",
+      "tags": [
+        "test",
+        "print-agent",
+        "config"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "target": "file:apps/web/src/lib/audit/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "target": "file:apps/web/src/lib/audit/load-owner-dashboard-actor.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "target": "file:apps/web/src/lib/audit/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "target": "function:apps/web/src/lib/checkout-confirm-payment-auth.ts:authorizeCheckoutConfirmPayment",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "target": "function:apps/web/src/lib/checkout-confirm-payment-auth.ts:authorizeCheckoutConfirmPayment",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/close-active-table-session-with-cleanup.ts",
+      "target": "function:apps/web/src/lib/close-active-table-session-with-cleanup.ts:closeActiveTableSessionWithOperationalCleanup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/close-active-table-session-with-cleanup.ts",
+      "target": "function:apps/web/src/lib/close-active-table-session-with-cleanup.ts:closeActiveTableSessionWithOperationalCleanup",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.test.ts",
+      "target": "file:apps/web/src/lib/dashboard-paths.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.test.ts",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:loadDashboardAccess",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:loadDashboardAccess",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:isOwnerDashboardUser",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:isOwnerDashboardUser",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:isCashierStaffUser",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:isCashierStaffUser",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:isFrontdeskStaffUser",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:isFrontdeskStaffUser",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:loadFrontdeskOperationalContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:loadFrontdeskOperationalContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:loadMenuManagementContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:loadMenuManagementContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:loadOverviewDashboardContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:loadOverviewDashboardContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-feature-registry.test.ts",
+      "target": "file:apps/web/src/lib/dashboard-feature-registry.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-feature-registry.ts",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-feature-registry.ts",
+      "target": "file:apps/web/src/lib/dashboard-paths.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-feature-registry.ts",
+      "target": "function:apps/web/src/lib/dashboard-feature-registry.ts:navItemsForRole",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-feature-registry.ts",
+      "target": "function:apps/web/src/lib/dashboard-feature-registry.ts:navItemsForRole",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-feature-registry.ts",
+      "target": "function:apps/web/src/lib/dashboard-feature-registry.ts:middlewareAllowsPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-feature-registry.ts",
+      "target": "function:apps/web/src/lib/dashboard-feature-registry.ts:middlewareAllowsPath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-feature-registry.ts",
+      "target": "function:apps/web/src/lib/dashboard-feature-registry.ts:navPathsForRole",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-feature-registry.ts",
+      "target": "function:apps/web/src/lib/dashboard-feature-registry.ts:navPathsForRole",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-feature-registry.ts",
+      "target": "function:apps/web/src/lib/dashboard-feature-registry.ts:featureByPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-feature-registry.ts",
+      "target": "function:apps/web/src/lib/dashboard-feature-registry.ts:featureByPath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-paths.ts",
+      "target": "function:apps/web/src/lib/dashboard-paths.ts:isDashboardSettingsPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-paths.ts",
+      "target": "function:apps/web/src/lib/dashboard-paths.ts:isDashboardSettingsPath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-paths.ts",
+      "target": "function:apps/web/src/lib/dashboard-paths.ts:isOwnerOperationalPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-paths.ts",
+      "target": "function:apps/web/src/lib/dashboard-paths.ts:isOwnerOperationalPath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-paths.ts",
+      "target": "function:apps/web/src/lib/dashboard-paths.ts:isOwnerOverviewPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-paths.ts",
+      "target": "function:apps/web/src/lib/dashboard-paths.ts:isOwnerOverviewPath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-paths.ts",
+      "target": "function:apps/web/src/lib/dashboard-paths.ts:isOwnerDashboardPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-paths.ts",
+      "target": "function:apps/web/src/lib/dashboard-paths.ts:isOwnerDashboardPath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-paths.ts",
+      "target": "function:apps/web/src/lib/dashboard-paths.ts:isCashierCheckoutPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-paths.ts",
+      "target": "function:apps/web/src/lib/dashboard-paths.ts:isCashierCheckoutPath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-paths.ts",
+      "target": "function:apps/web/src/lib/dashboard-paths.ts:isFrontdeskOperationalPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-paths.ts",
+      "target": "function:apps/web/src/lib/dashboard-paths.ts:isFrontdeskOperationalPath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/db-migration-error.ts",
+      "target": "function:apps/web/src/lib/db-migration-error.ts:isDbMigrationRequiredError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/db-migration-error.ts",
+      "target": "function:apps/web/src/lib/db-migration-error.ts:isDbMigrationRequiredError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/expire-stale-print-jobs.ts",
+      "target": "file:apps/web/src/lib/print-job-max-age.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/expire-stale-print-jobs.ts",
+      "target": "function:apps/web/src/lib/expire-stale-print-jobs.ts:expireStalePrintJobs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/expire-stale-print-jobs.ts",
+      "target": "function:apps/web/src/lib/expire-stale-print-jobs.ts:expireStalePrintJobs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/expire-stale-print-jobs.ts",
+      "target": "function:apps/web/src/lib/expire-stale-print-jobs.ts:maybeExpireStalePrintJobs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/expire-stale-print-jobs.ts",
+      "target": "function:apps/web/src/lib/expire-stale-print-jobs.ts:maybeExpireStalePrintJobs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/fetch-receipt-printers.ts",
+      "target": "file:apps/web/src/lib/print-receipt-printer-options.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/fetch-receipt-printers.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/fetch-receipt-printers.ts",
+      "target": "function:apps/web/src/lib/fetch-receipt-printers.ts:fetchReceiptPrinters",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/fetch-receipt-printers.ts",
+      "target": "function:apps/web/src/lib/fetch-receipt-printers.ts:fetchReceiptPrinters",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-auth.ts",
+      "target": "file:apps/web/src/lib/print-agent-jwt.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-auth.ts",
+      "target": "function:apps/web/src/lib/print-agent-auth.ts:getBearerToken",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-auth.ts",
+      "target": "function:apps/web/src/lib/print-agent-auth.ts:getBearerToken",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-auth.ts",
+      "target": "function:apps/web/src/lib/print-agent-auth.ts:verifyAgentBearer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-auth.ts",
+      "target": "function:apps/web/src/lib/print-agent-auth.ts:verifyAgentBearer",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-auth.ts",
+      "target": "function:apps/web/src/lib/print-agent-auth.ts:verifyActiveAgentBearer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-auth.ts",
+      "target": "function:apps/web/src/lib/print-agent-auth.ts:verifyActiveAgentBearer",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-auth.ts",
+      "target": "function:apps/web/src/lib/print-agent-auth.ts:isUuid",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-auth.ts",
+      "target": "function:apps/web/src/lib/print-agent-auth.ts:isUuid",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-claim-rate-limit.ts",
+      "target": "function:apps/web/src/lib/print-agent-claim-rate-limit.ts:claimRateLimitCheck",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-claim-rate-limit.ts",
+      "target": "function:apps/web/src/lib/print-agent-claim-rate-limit.ts:claimRateLimitCheck",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-claim-rate-limit.ts",
+      "target": "function:apps/web/src/lib/print-agent-claim-rate-limit.ts:claimRecordFailure",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-claim-rate-limit.ts",
+      "target": "function:apps/web/src/lib/print-agent-claim-rate-limit.ts:claimRecordFailure",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-claim-rate-limit.ts",
+      "target": "function:apps/web/src/lib/print-agent-claim-rate-limit.ts:claimRecordSuccess",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-claim-rate-limit.ts",
+      "target": "function:apps/web/src/lib/print-agent-claim-rate-limit.ts:claimRecordSuccess",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/print-agent-config.test.ts",
+      "target": "file:apps/web/src/lib/print-agent-config.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/checkout-confirm-payment-auth.ts:authorizeCheckoutConfirmPayment",
+      "target": "function:apps/web/src/lib/audit/load-owner-dashboard-actor.ts:loadOwnerDashboardAuditActor",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-access.ts:loadMenuManagementContext",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:loadDashboardAccess",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-access.ts:loadOverviewDashboardContext",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:loadDashboardAccess",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-feature-registry.ts:middlewareAllowsPath",
+      "target": "function:apps/web/src/lib/dashboard-paths.ts:isOwnerDashboardPath",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-auth.ts:verifyAgentBearer",
+      "target": "function:apps/web/src/lib/print-agent-jwt.ts:verifyPrintAgentJwt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/print-agent-auth.ts:verifyActiveAgentBearer",
+      "target": "function:apps/web/src/lib/print-agent-auth.ts:verifyAgentBearer",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/expire-stale-print-jobs.ts:maybeExpireStalePrintJobs",
+      "target": "function:apps/web/src/lib/expire-stale-print-jobs.ts:expireStalePrintJobs",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-access.ts",
+      "target": "file:apps/web/src/lib/dashboard-access.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-feature-registry.ts",
+      "target": "file:apps/web/src/lib/dashboard-feature-registry.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

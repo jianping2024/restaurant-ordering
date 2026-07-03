@@ -1,0 +1,85 @@
+[
+  {
+    "order": 1,
+    "title": "应用根布局",
+    "description": "Next.js 根布局注入主题、语言 Provider 与全局 Toast，是所有租户端页面的外壳。",
+    "nodeIds": [
+      "file:apps/web/src/app/layout.tsx"
+    ],
+    "languageLesson": "Next.js App Router 中 layout.tsx 包裹所有子路由，适合放置 i18n 与主题等横切关注点。"
+  },
+  {
+    "order": 2,
+    "title": "产品落地页",
+    "description": "营销落地页展示 MesaGo 功能亮点，引导餐厅老板登录仪表盘。",
+    "nodeIds": [
+      "file:apps/web/src/app/page.tsx"
+    ]
+  },
+  {
+    "order": 3,
+    "title": "服务员工作台",
+    "description": "服务员界面管理桌台会话、加菜、结账请求与自助餐开台。",
+    "nodeIds": [
+      "file:apps/web/src/components/waiter/waiter-table-detail-ui.test.ts",
+      "file:apps/web/src/components/waiter/waiter-table-detail-ui.tsx",
+      "file:apps/web/src/components/waiter/waiter-ui.ts",
+      "file:apps/web/src/app/dashboard/waiter/page.tsx"
+    ]
+  },
+  {
+    "order": 4,
+    "title": "厨房显示",
+    "description": "厨房端实时展示待制作订单，支持划菜与打印厨房小票。",
+    "nodeIds": [
+      "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/orders/[orderId]/route.ts",
+      "file:apps/web/src/app/[slug]/kitchen/page.tsx",
+      "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "file:apps/web/src/app/demo/kitchen/page.tsx"
+    ]
+  },
+  {
+    "order": 5,
+    "title": "老板仪表盘 — 菜单管理",
+    "description": "老板在仪表盘维护菜品分类、价格、图片与厨房打印站绑定。",
+    "nodeIds": [
+      "file:apps/web/src/app/dashboard/menu/page.tsx",
+      "file:apps/web/src/components/dashboard/MenuManager.tsx"
+    ]
+  },
+  {
+    "order": 6,
+    "title": "数据库迁移",
+    "description": "Supabase 迁移定义餐厅、订单、桌台会话等核心表结构与 RLS 租户隔离策略。",
+    "nodeIds": [
+      "table:supabase/migrations/20240101000000_initial_schema.sql",
+      "table:supabase/migrations/20260529120000_restaurant_feature_flags.sql",
+      "table:supabase/migrations/20260623120000_checkout_request_and_session_close_rpc.sql"
+    ],
+    "languageLesson": "Postgres RLS 确保每个 restaurant_id 只能访问本租户数据，是多租户 SaaS 的安全基石。"
+  },
+  {
+    "order": 7,
+    "title": "打印代理",
+    "description": "Go 打印代理在餐厅局域网轮询打印任务，通过 ESC/POS 驱动厨房与结账单打印机。",
+    "nodeIds": [
+      "file:apps/print-agent/main.go"
+    ]
+  },
+  {
+    "order": 8,
+    "title": "平台运维控制台",
+    "description": "ops 应用供 Mesa 平台管理员管理餐厅租户、打印设备配对与审计日志。",
+    "nodeIds": [
+      "file:apps/ops/src/app/layout.tsx"
+    ]
+  },
+  {
+    "order": 9,
+    "title": "共享类型包",
+    "description": "@mesa/shared 在 web 与 ops 之间共享类型与安全服务端工具。",
+    "nodeIds": [
+      "file:packages/shared/src/index.ts"
+    ]
+  }
+]

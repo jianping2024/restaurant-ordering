@@ -1,0 +1,182 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {
+      "path": "apps/print-agent/job_route_test.go",
+      "language": "go",
+      "sizeLines": 42,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/job_route.go",
+      "language": "go",
+      "sizeLines": 59,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/log_strings.go",
+      "language": "go",
+      "sizeLines": 166,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/main.go",
+      "language": "go",
+      "sizeLines": 226,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/notify_credential_stub.go",
+      "language": "go",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/notify_credential_windows.go",
+      "language": "go",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/notify_version_stub.go",
+      "language": "go",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/notify_version_windows.go",
+      "language": "go",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/notify_windows.go",
+      "language": "go",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/pair_wizard_test.go",
+      "language": "go",
+      "sizeLines": 28,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/pair_wizard.go",
+      "language": "go",
+      "sizeLines": 108,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/poll_log_throttle.go",
+      "language": "go",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/poll.go",
+      "language": "go",
+      "sizeLines": 172,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/printer_discover_cache_test.go",
+      "language": "go",
+      "sizeLines": 39,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/printer_discover_cache.go",
+      "language": "go",
+      "sizeLines": 47,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/printer_io_errors_test.go",
+      "language": "go",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/printer_io_errors.go",
+      "language": "go",
+      "sizeLines": 42,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/printer_readiness_test.go",
+      "language": "go",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/printer_readiness.go",
+      "language": "go",
+      "sizeLines": 57,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/printer_target_test.go",
+      "language": "go",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/printer_target.go",
+      "language": "go",
+      "sizeLines": 69,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/receipt_defer.go",
+      "language": "go",
+      "sizeLines": 86,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/remote_config.go",
+      "language": "go",
+      "sizeLines": 145,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/routing_sync_test.go",
+      "language": "go",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/print-agent/routing_sync.go",
+      "language": "go",
+      "sizeLines": 105,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "apps/print-agent/job_route_test.go": [],
+    "apps/print-agent/job_route.go": [],
+    "apps/print-agent/log_strings.go": [],
+    "apps/print-agent/main.go": [],
+    "apps/print-agent/notify_credential_stub.go": [],
+    "apps/print-agent/notify_credential_windows.go": [],
+    "apps/print-agent/notify_version_stub.go": [],
+    "apps/print-agent/notify_version_windows.go": [],
+    "apps/print-agent/notify_windows.go": [],
+    "apps/print-agent/pair_wizard_test.go": [],
+    "apps/print-agent/pair_wizard.go": [],
+    "apps/print-agent/poll_log_throttle.go": [],
+    "apps/print-agent/poll.go": [],
+    "apps/print-agent/printer_discover_cache_test.go": [],
+    "apps/print-agent/printer_discover_cache.go": [],
+    "apps/print-agent/printer_io_errors_test.go": [],
+    "apps/print-agent/printer_io_errors.go": [],
+    "apps/print-agent/printer_readiness_test.go": [],
+    "apps/print-agent/printer_readiness.go": [],
+    "apps/print-agent/printer_target_test.go": [],
+    "apps/print-agent/printer_target.go": [],
+    "apps/print-agent/receipt_defer.go": [],
+    "apps/print-agent/remote_config.go": [],
+    "apps/print-agent/routing_sync_test.go": [],
+    "apps/print-agent/routing_sync.go": []
+  }
+}

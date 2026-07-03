@@ -1,0 +1,4256 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 24,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/web/src/components/dashboard/OrdersHistoryManager.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 353,
+      "nonEmptyLines": 325,
+      "functions": [
+        {
+          "name": "OrdersHistoryManager",
+          "startLine": 38,
+          "endLine": 353,
+          "params": [
+            "{ initialOrders, tables = [], pageTitle }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "OrdersHistoryManager",
+          "line": 38,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useLanguage",
+          "lineNumber": 39
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "getMessages",
+          "lineNumber": 40
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "getMessages",
+          "lineNumber": 41
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useState",
+          "lineNumber": 43
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useState",
+          "lineNumber": 44
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useState",
+          "lineNumber": 45
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useState",
+          "lineNumber": 46
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useRef",
+          "lineNumber": 47
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useEffect",
+          "lineNumber": 49
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "setOrders",
+          "lineNumber": 50
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useMemo",
+          "lineNumber": 53
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "mergeTablesWithOrderHistory(tables, orders).map",
+          "lineNumber": 55
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "mergeTablesWithOrderHistory",
+          "lineNumber": 55
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useMemo",
+          "lineNumber": 62
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useMemo",
+          "lineNumber": 111
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "selectedTables.map",
+          "lineNumber": 112
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "orders.filter",
+          "lineNumber": 113
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "selectedTableIds.has",
+          "lineNumber": 114
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "fromTs.setHours",
+          "lineNumber": 118
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "new Date(order.created_at).getTime",
+          "lineNumber": 119
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "fromTs.getTime",
+          "lineNumber": 119
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "toTs.setHours",
+          "lineNumber": 123
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "new Date(order.created_at).getTime",
+          "lineNumber": 124
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "toTs.getTime",
+          "lineNumber": 124
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "toTs.setHours",
+          "lineNumber": 127
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "new Date(order.created_at).getTime",
+          "lineNumber": 128
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "toTs.getTime",
+          "lineNumber": 128
+        },
+        {
+          "caller": "latestOrderTime",
+          "callee": "new Date(\n      Math.max(...sourceOrders.map((order) => new Date(order.created_at).getTime())),\n    ).toLocaleString",
+          "lineNumber": 135
+        },
+        {
+          "caller": "latestOrderTime",
+          "callee": "Math.max",
+          "lineNumber": 136
+        },
+        {
+          "caller": "latestOrderTime",
+          "callee": "sourceOrders.map",
+          "lineNumber": 136
+        },
+        {
+          "caller": "latestOrderTime",
+          "callee": "new Date(order.created_at).getTime",
+          "lineNumber": 136
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useMemo",
+          "lineNumber": 139
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "format",
+          "lineNumber": 141
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "format",
+          "lineNumber": 141
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "format",
+          "lineNumber": 142
+        },
+        {
+          "caller": "applyPreset",
+          "callee": "startOfToday",
+          "lineNumber": 147
+        },
+        {
+          "caller": "applyPreset",
+          "callee": "setDateRange",
+          "lineNumber": 149
+        },
+        {
+          "caller": "applyPreset",
+          "callee": "setDateRange",
+          "lineNumber": 153
+        },
+        {
+          "caller": "applyPreset",
+          "callee": "subDays",
+          "lineNumber": 153
+        },
+        {
+          "caller": "applyPreset",
+          "callee": "setDateRange",
+          "lineNumber": 156
+        },
+        {
+          "caller": "applyPreset",
+          "callee": "startOfMonth",
+          "lineNumber": 156
+        },
+        {
+          "caller": "applyPreset",
+          "callee": "endOfMonth",
+          "lineNumber": 156
+        },
+        {
+          "caller": "clearRange",
+          "callee": "setDateRange",
+          "lineNumber": 159
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useEffect",
+          "lineNumber": 161
+        },
+        {
+          "caller": "onPointerDown",
+          "callee": "pickerRef.current?.contains",
+          "lineNumber": 164
+        },
+        {
+          "caller": "onPointerDown",
+          "callee": "setPickerOpen",
+          "lineNumber": 165
+        },
+        {
+          "caller": "onEsc",
+          "callee": "setPickerOpen",
+          "lineNumber": 169
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "document.addEventListener",
+          "lineNumber": 171
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "document.addEventListener",
+          "lineNumber": 172
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "document.removeEventListener",
+          "lineNumber": 174
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "document.removeEventListener",
+          "lineNumber": 175
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "useMemo",
+          "lineNumber": 179
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "orderListGuestLabelsFromLang",
+          "lineNumber": 179
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "window.open",
+          "lineNumber": 182
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "printOrders.flatMap",
+          "lineNumber": 185
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "order.items.filter",
+          "lineNumber": 186
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "lineItems.map(item => `\n      <tr>\n        <td style=\"padding:6px 0;\">${item.emoji} ${item.name_pt}</td>\n        <td style=\"padding:6px 0; text-align:center;\">${formatOrderListItemPrintQty(item, buffetGuestLabels)}</td>\n        <td style=\"padding:6px 0; text-align:right;\">€${(item.price * item.qty).toFixed(2)}</td>\n      </tr>\n    `).join",
+          "lineNumber": 188
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "lineItems.map",
+          "lineNumber": 188
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "formatOrderListItemPrintQty",
+          "lineNumber": 191
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "(item.price * item.qty).toFixed",
+          "lineNumber": 192
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "printOrders.reduce",
+          "lineNumber": 195
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "printWindow.document.write",
+          "lineNumber": 197
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "latestOrderTime",
+          "lineNumber": 204
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "totalAmount.toFixed",
+          "lineNumber": 216
+        },
+        {
+          "caller": "handlePrintOrders",
+          "callee": "printWindow.document.close",
+          "lineNumber": 221
+        },
+        {
+          "caller": "renderItemChips",
+          "callee": "chips.map",
+          "lineNumber": 228
+        },
+        {
+          "caller": "renderListCard",
+          "callee": "renderItemChips",
+          "lineNumber": 244
+        },
+        {
+          "caller": "renderMetaAmount",
+          "callee": "amount.toFixed",
+          "lineNumber": 249
+        },
+        {
+          "caller": "renderHistoryOrderCard",
+          "callee": "renderListCard",
+          "lineNumber": 263
+        },
+        {
+          "caller": "renderHistoryOrderCard",
+          "callee": "latestOrderTime",
+          "lineNumber": 270
+        },
+        {
+          "caller": "renderHistoryOrderCard",
+          "callee": "countOrderListItems",
+          "lineNumber": 273
+        },
+        {
+          "caller": "renderHistoryOrderCard",
+          "callee": "renderMetaAmount",
+          "lineNumber": 276
+        },
+        {
+          "caller": "renderHistoryOrderCard",
+          "callee": "renderPrintButton",
+          "lineNumber": 277
+        },
+        {
+          "caller": "renderHistoryOrderCard",
+          "callee": "handlePrintOrders",
+          "lineNumber": 277
+        },
+        {
+          "caller": "renderHistoryOrderCard",
+          "callee": "buildOrderListDisplayChips",
+          "lineNumber": 279
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "setSelectedTables",
+          "lineNumber": 293
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "setPickerOpen",
+          "lineNumber": 307
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "applyPreset",
+          "lineNumber": 315
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "applyPreset",
+          "lineNumber": 316
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "applyPreset",
+          "lineNumber": 317
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "setPickerOpen",
+          "lineNumber": 329
+        },
+        {
+          "caller": "OrdersHistoryManager",
+          "callee": "filteredOrders.map",
+          "lineNumber": 348
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 68,
+      "nonEmptyLines": 59,
+      "functions": [
+        {
+          "name": "PrintAgentCredentialExpiryAlert",
+          "startLine": 19,
+          "endLine": 68,
+          "params": [
+            "{ devices, variant = 'bar' }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "PrintAgentCredentialExpiryAlert",
+          "line": 19,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "PrintAgentCredentialExpiryAlert",
+          "callee": "useLanguage",
+          "lineNumber": 20
+        },
+        {
+          "caller": "PrintAgentCredentialExpiryAlert",
+          "callee": "getMessages",
+          "lineNumber": 21
+        },
+        {
+          "caller": "PrintAgentCredentialExpiryAlert",
+          "callee": "daysUntilValidUntil",
+          "lineNumber": 29
+        },
+        {
+          "caller": "PrintAgentCredentialExpiryAlert",
+          "callee": "formatValidUntilDate",
+          "lineNumber": 30
+        },
+        {
+          "caller": "PrintAgentCredentialExpiryAlert",
+          "callee": "t.credentialExpirySingle.replace('{date}', dateStr).replace",
+          "lineNumber": 34
+        },
+        {
+          "caller": "PrintAgentCredentialExpiryAlert",
+          "callee": "t.credentialExpirySingle.replace",
+          "lineNumber": 34
+        },
+        {
+          "caller": "PrintAgentCredentialExpiryAlert",
+          "callee": "String",
+          "lineNumber": 34
+        },
+        {
+          "caller": "PrintAgentCredentialExpiryAlert",
+          "callee": "t.credentialExpiryMultiple\n          .replace('{count}', String(devices.length))\n          .replace('{date}', dateStr)\n          .replace",
+          "lineNumber": 35
+        },
+        {
+          "caller": "PrintAgentCredentialExpiryAlert",
+          "callee": "t.credentialExpiryMultiple\n          .replace('{count}', String(devices.length))\n          .replace",
+          "lineNumber": 35
+        },
+        {
+          "caller": "PrintAgentCredentialExpiryAlert",
+          "callee": "t.credentialExpiryMultiple\n          .replace",
+          "lineNumber": 35
+        },
+        {
+          "caller": "PrintAgentCredentialExpiryAlert",
+          "callee": "String",
+          "lineNumber": 36
+        },
+        {
+          "caller": "PrintAgentCredentialExpiryAlert",
+          "callee": "String",
+          "lineNumber": 38
+        },
+        {
+          "caller": "PrintAgentCredentialExpiryAlert",
+          "callee": "devices.map",
+          "lineNumber": 50
+        },
+        {
+          "caller": "PrintAgentCredentialExpiryAlert",
+          "callee": "t.credentialExpiryDeviceRow\n              .replace('{name}', d.label?.trim() || t.credentialExpiryUnlabeledName)\n              .replace",
+          "lineNumber": 52
+        },
+        {
+          "caller": "PrintAgentCredentialExpiryAlert",
+          "callee": "t.credentialExpiryDeviceRow\n              .replace",
+          "lineNumber": 52
+        },
+        {
+          "caller": "PrintAgentCredentialExpiryAlert",
+          "callee": "d.label?.trim",
+          "lineNumber": 53
+        },
+        {
+          "caller": "PrintAgentCredentialExpiryAlert",
+          "callee": "formatValidUntilDate",
+          "lineNumber": 54
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 214,
+      "nonEmptyLines": 203,
+      "functions": [
+        {
+          "name": "deviceLabel",
+          "startLine": 13,
+          "endLine": 17,
+          "params": [
+            "d",
+            "fallback"
+          ]
+        },
+        {
+          "name": "PrintAgentDevicesPanel",
+          "startLine": 19,
+          "endLine": 214,
+          "params": [
+            "{\n  initialDevices,\n  recommendedVersion = '',\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "PrintAgentDevicesPanel",
+          "line": 19,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "deviceLabel",
+          "callee": "d.label?.trim",
+          "lineNumber": 14
+        },
+        {
+          "caller": "deviceLabel",
+          "callee": "d.id.slice",
+          "lineNumber": 16
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "useLanguage",
+          "lineNumber": 26
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "getMessages",
+          "lineNumber": 27
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "useState",
+          "lineNumber": 29
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "useState",
+          "lineNumber": 30
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "useState",
+          "lineNumber": 31
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "useState",
+          "lineNumber": 32
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "useState",
+          "lineNumber": 33
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "useState",
+          "lineNumber": 35
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "Date.now",
+          "lineNumber": 35
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "useCallback",
+          "lineNumber": 37
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "setLoading",
+          "lineNumber": 38
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "fetch",
+          "lineNumber": 40
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "res.json",
+          "lineNumber": 42
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "setDevices",
+          "lineNumber": 43
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "setLoading",
+          "lineNumber": 45
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "useEffect",
+          "lineNumber": 49
+        },
+        {
+          "caller": "onVisible",
+          "callee": "refresh",
+          "lineNumber": 51
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "document.addEventListener",
+          "lineNumber": 53
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "document.removeEventListener",
+          "lineNumber": 54
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "useEffect",
+          "lineNumber": 57
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "window.setInterval",
+          "lineNumber": 58
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "setNowMs",
+          "lineNumber": 58
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "Date.now",
+          "lineNumber": 58
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "window.clearInterval",
+          "lineNumber": 59
+        },
+        {
+          "caller": "runRevoke",
+          "callee": "setRevokingId",
+          "lineNumber": 65
+        },
+        {
+          "caller": "runRevoke",
+          "callee": "setError",
+          "lineNumber": 66
+        },
+        {
+          "caller": "runRevoke",
+          "callee": "fetch",
+          "lineNumber": 68
+        },
+        {
+          "caller": "runRevoke",
+          "callee": "res.json",
+          "lineNumber": 72
+        },
+        {
+          "caller": "runRevoke",
+          "callee": "setError",
+          "lineNumber": 74
+        },
+        {
+          "caller": "runRevoke",
+          "callee": "setRevokeTarget",
+          "lineNumber": 78
+        },
+        {
+          "caller": "runRevoke",
+          "callee": "setDevices",
+          "lineNumber": 79
+        },
+        {
+          "caller": "runRevoke",
+          "callee": "prev.filter",
+          "lineNumber": 79
+        },
+        {
+          "caller": "runRevoke",
+          "callee": "setError",
+          "lineNumber": 81
+        },
+        {
+          "caller": "runRevoke",
+          "callee": "setRevokingId",
+          "lineNumber": 83
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "refresh",
+          "lineNumber": 105
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "devices.map",
+          "lineNumber": 114
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "isPrintAgentDeviceOnline",
+          "lineNumber": 115
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "deviceLabel",
+          "lineNumber": 120
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "setRevokeTarget",
+          "lineNumber": 143
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "formatLastSeenRelative",
+          "lineNumber": 153
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "t.devicesVersionBehind.replace",
+          "lineNumber": 162
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "d.mapped_station_labels.join",
+          "lineNumber": 171
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "String",
+          "lineNumber": 173
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "formatLastSeenRelative",
+          "lineNumber": 181
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "setRevokeTarget",
+          "lineNumber": 199
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "t.devicesRevokeMessage.replace",
+          "lineNumber": 203
+        },
+        {
+          "caller": "PrintAgentDevicesPanel",
+          "callee": "deviceLabel",
+          "lineNumber": 203
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 136,
+      "nonEmptyLines": 127,
+      "functions": [
+        {
+          "name": "withVersion",
+          "startLine": 16,
+          "endLine": 18,
+          "params": [
+            "template",
+            "version"
+          ]
+        },
+        {
+          "name": "PrintAgentDownloadPanel",
+          "startLine": 20,
+          "endLine": 136,
+          "params": [
+            "{\n  urls,\n  version,\n  releaseReady = true,\n  publishedFallback = null,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "PrintAgentDownloadPanel",
+          "line": 20,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "withVersion",
+          "callee": "template.replaceAll",
+          "lineNumber": 17
+        },
+        {
+          "caller": "PrintAgentDownloadPanel",
+          "callee": "useLanguage",
+          "lineNumber": 26
+        },
+        {
+          "caller": "PrintAgentDownloadPanel",
+          "callee": "getMessages",
+          "lineNumber": 27
+        },
+        {
+          "caller": "PrintAgentDownloadPanel",
+          "callee": "withVersion",
+          "lineNumber": 39
+        },
+        {
+          "caller": "PrintAgentDownloadPanel",
+          "callee": "withVersion",
+          "lineNumber": 46
+        },
+        {
+          "caller": "PrintAgentDownloadPanel",
+          "callee": "withVersion",
+          "lineNumber": 51
+        },
+        {
+          "caller": "PrintAgentDownloadPanel",
+          "callee": "withVersion",
+          "lineNumber": 71
+        },
+        {
+          "caller": "PrintAgentDownloadPanel",
+          "callee": "withVersion",
+          "lineNumber": 84
+        },
+        {
+          "caller": "PrintAgentDownloadPanel",
+          "callee": "withVersion",
+          "lineNumber": 99
+        },
+        {
+          "caller": "PrintAgentDownloadPanel",
+          "callee": "withVersion",
+          "lineNumber": 108
+        },
+        {
+          "caller": "PrintAgentDownloadPanel",
+          "callee": "withVersion",
+          "lineNumber": 116
+        },
+        {
+          "caller": "PrintAgentDownloadPanel",
+          "callee": "withVersion",
+          "lineNumber": 124
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 322,
+      "nonEmptyLines": 301,
+      "functions": [
+        {
+          "name": "PrintAgentPairingPanel",
+          "startLine": 23,
+          "endLine": 322,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "PrintAgentPairingPanel",
+          "line": 23,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "useLanguage",
+          "lineNumber": 24
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "getMessages",
+          "lineNumber": 25
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "useState",
+          "lineNumber": 26
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "useState",
+          "lineNumber": 27
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "useState",
+          "lineNumber": 28
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "useState",
+          "lineNumber": 29
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "useState",
+          "lineNumber": 30
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "useState",
+          "lineNumber": 31
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "useState",
+          "lineNumber": 32
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "useState",
+          "lineNumber": 33
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "useState",
+          "lineNumber": 34
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "useState",
+          "lineNumber": 35
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "useCallback",
+          "lineNumber": 37
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "setLoading",
+          "lineNumber": 38
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "setError",
+          "lineNumber": 39
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "fetch",
+          "lineNumber": 41
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "res.json",
+          "lineNumber": 42
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "setError",
+          "lineNumber": 48
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "setPairings",
+          "lineNumber": 51
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "setError",
+          "lineNumber": 53
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "setLoading",
+          "lineNumber": 55
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "useEffect",
+          "lineNumber": 59
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "load",
+          "lineNumber": 60
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "useEffect",
+          "lineNumber": 63
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "setCountdown",
+          "lineNumber": 65
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "setCodeExpired",
+          "lineNumber": 66
+        },
+        {
+          "caller": "tick",
+          "callee": "pairingExpiryRemainingMs",
+          "lineNumber": 70
+        },
+        {
+          "caller": "tick",
+          "callee": "setCodeExpired",
+          "lineNumber": 72
+        },
+        {
+          "caller": "tick",
+          "callee": "setCountdown",
+          "lineNumber": 73
+        },
+        {
+          "caller": "tick",
+          "callee": "setCodeExpired",
+          "lineNumber": 76
+        },
+        {
+          "caller": "tick",
+          "callee": "setCountdown",
+          "lineNumber": 77
+        },
+        {
+          "caller": "tick",
+          "callee": "formatPairingCountdown",
+          "lineNumber": 77
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "tick",
+          "lineNumber": 79
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "window.setInterval",
+          "lineNumber": 80
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "window.clearInterval",
+          "lineNumber": 81
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "pairings.filter",
+          "lineNumber": 84
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "useCallback",
+          "lineNumber": 88
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "navigator.clipboard.writeText",
+          "lineNumber": 90
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "setCodeCopied",
+          "lineNumber": 91
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "window.setTimeout",
+          "lineNumber": 92
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "setCodeCopied",
+          "lineNumber": 92
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "useCallback",
+          "lineNumber": 98
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "setConfigureProbe",
+          "lineNumber": 100
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "copyPairingCode",
+          "lineNumber": 102
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "openPrintAgentConfigure",
+          "lineNumber": 104
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "setConfigureProbe",
+          "lineNumber": 106
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "setConfigureProbe",
+          "lineNumber": 108
+        },
+        {
+          "caller": "createPairing",
+          "callee": "setCreating",
+          "lineNumber": 115
+        },
+        {
+          "caller": "createPairing",
+          "callee": "setError",
+          "lineNumber": 116
+        },
+        {
+          "caller": "createPairing",
+          "callee": "setFreshCode",
+          "lineNumber": 117
+        },
+        {
+          "caller": "createPairing",
+          "callee": "setConfigureProbe",
+          "lineNumber": 118
+        },
+        {
+          "caller": "createPairing",
+          "callee": "setCodeCopied",
+          "lineNumber": 119
+        },
+        {
+          "caller": "createPairing",
+          "callee": "fetch",
+          "lineNumber": 121
+        },
+        {
+          "caller": "createPairing",
+          "callee": "res.json",
+          "lineNumber": 125
+        },
+        {
+          "caller": "createPairing",
+          "callee": "setError",
+          "lineNumber": 132
+        },
+        {
+          "caller": "createPairing",
+          "callee": "setFreshCode",
+          "lineNumber": 136
+        },
+        {
+          "caller": "createPairing",
+          "callee": "openConfigure",
+          "lineNumber": 137
+        },
+        {
+          "caller": "createPairing",
+          "callee": "load",
+          "lineNumber": 139
+        },
+        {
+          "caller": "createPairing",
+          "callee": "setError",
+          "lineNumber": 141
+        },
+        {
+          "caller": "createPairing",
+          "callee": "setCreating",
+          "lineNumber": 143
+        },
+        {
+          "caller": "revokePairing",
+          "callee": "setRevokingId",
+          "lineNumber": 148
+        },
+        {
+          "caller": "revokePairing",
+          "callee": "setError",
+          "lineNumber": 149
+        },
+        {
+          "caller": "revokePairing",
+          "callee": "fetch",
+          "lineNumber": 151
+        },
+        {
+          "caller": "revokePairing",
+          "callee": "encodeURIComponent",
+          "lineNumber": 151
+        },
+        {
+          "caller": "revokePairing",
+          "callee": "res.json",
+          "lineNumber": 155
+        },
+        {
+          "caller": "revokePairing",
+          "callee": "setError",
+          "lineNumber": 157
+        },
+        {
+          "caller": "revokePairing",
+          "callee": "load",
+          "lineNumber": 160
+        },
+        {
+          "caller": "revokePairing",
+          "callee": "setError",
+          "lineNumber": 162
+        },
+        {
+          "caller": "revokePairing",
+          "callee": "setRevokingId",
+          "lineNumber": 164
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "copyPairingCode",
+          "lineNumber": 191
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "t.pairingExpiresCountdown.replace",
+          "lineNumber": 198
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "new Date(freshCode.expires_at).toLocaleString",
+          "lineNumber": 202
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "openConfigure",
+          "lineNumber": 213
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "setFreshCode",
+          "lineNumber": 222
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "setConfigureProbe",
+          "lineNumber": 223
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "createPairing",
+          "lineNumber": 257
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "load",
+          "lineNumber": 264
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "pairings.map",
+          "lineNumber": 279
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "new Date(p.expires_at).toLocaleString",
+          "lineNumber": 288
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "revokePairing",
+          "lineNumber": 294
+        },
+        {
+          "caller": "PrintAgentPairingPanel",
+          "callee": "openConfigure",
+          "lineNumber": 313
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 284,
+      "nonEmptyLines": 265,
+      "functions": [
+        {
+          "name": "PrintAgentSchedulePanel",
+          "startLine": 21,
+          "endLine": 247,
+          "params": [
+            "{\n  initialForm,\n}"
+          ]
+        },
+        {
+          "name": "PollIntervalField",
+          "startLine": 249,
+          "endLine": 284,
+          "params": [
+            "{\n  label,\n  hint,\n  value,\n  onChange,\n  min,\n  max,\n  suffix,\n  className = '',\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "PrintAgentSchedulePanel",
+          "line": 21,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "useLanguage",
+          "lineNumber": 26
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "getMessages",
+          "lineNumber": 27
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "getMessages",
+          "lineNumber": 28
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "useState",
+          "lineNumber": 29
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "useState",
+          "lineNumber": 30
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "useState",
+          "lineNumber": 31
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "useState",
+          "lineNumber": 32
+        },
+        {
+          "caller": "setField",
+          "callee": "setForm",
+          "lineNumber": 35
+        },
+        {
+          "caller": "setField",
+          "callee": "setSaved",
+          "lineNumber": 36
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "useCallback",
+          "lineNumber": 39
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setSaving",
+          "lineNumber": 40
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setError",
+          "lineNumber": 41
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setSaved",
+          "lineNumber": 42
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "formToCloudConfig",
+          "lineNumber": 46
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setError",
+          "lineNumber": 48
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "fetch",
+          "lineNumber": 51
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "JSON.stringify",
+          "lineNumber": 55
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "res.json",
+          "lineNumber": 57
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setError",
+          "lineNumber": 59
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setForm",
+          "lineNumber": 63
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setSaved",
+          "lineNumber": 65
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setError",
+          "lineNumber": 67
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setSaving",
+          "lineNumber": 69
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "useEffect",
+          "lineNumber": 73
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "(async () => {\n      try {\n        const res = await fetch('/api/print-agent/settings', { credentials: 'include' });\n        if (!res.ok) return;\n        const data = (await res.json()) as { form?: PrintAgentSettingsForm };\n        if (data.form) setForm(data.form);\n      } catch {\n        /* keep SSR initial */\n      }\n    })",
+          "lineNumber": 74
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "fetch",
+          "lineNumber": 76
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "res.json",
+          "lineNumber": 78
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setForm",
+          "lineNumber": 79
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "Math.round",
+          "lineNumber": 97
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setField",
+          "lineNumber": 118
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "TIMEZONES.map",
+          "lineNumber": 121
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setField",
+          "lineNumber": 135
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setField",
+          "lineNumber": 142
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setField",
+          "lineNumber": 154
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setField",
+          "lineNumber": 161
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setField",
+          "lineNumber": 187
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setField",
+          "lineNumber": 199
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setField",
+          "lineNumber": 207
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "setField",
+          "lineNumber": 217
+        },
+        {
+          "caller": "PrintAgentSchedulePanel",
+          "callee": "save",
+          "lineNumber": 238
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 93,
+      "nonEmptyLines": 87,
+      "functions": [
+        {
+          "name": "ReceiptBillPrinterPanel",
+          "startLine": 13,
+          "endLine": 93,
+          "params": [
+            "{\n  restaurantSlug,\n  initialDefaultReceiptStationId = '',\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ReceiptBillPrinterPanel",
+          "line": 13,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "useLanguage",
+          "lineNumber": 17
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "getMessages",
+          "lineNumber": 18
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "useState",
+          "lineNumber": 19
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "useState",
+          "lineNumber": 20
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "useState",
+          "lineNumber": 21
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "useState",
+          "lineNumber": 22
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "useEffect",
+          "lineNumber": 24
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "setPrinterId",
+          "lineNumber": 25
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "useCallback",
+          "lineNumber": 28
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "setSaving",
+          "lineNumber": 29
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "setError",
+          "lineNumber": 30
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "setSaved",
+          "lineNumber": 31
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "fetch",
+          "lineNumber": 33
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "JSON.stringify",
+          "lineNumber": 37
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "res.json",
+          "lineNumber": 41
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "setError",
+          "lineNumber": 46
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "setPrinterId",
+          "lineNumber": 49
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "setSaved",
+          "lineNumber": 50
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "setError",
+          "lineNumber": 52
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "setSaving",
+          "lineNumber": 54
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "setPrinterId",
+          "lineNumber": 68
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "setSaved",
+          "lineNumber": 69
+        },
+        {
+          "caller": "ReceiptBillPrinterPanel",
+          "callee": "save",
+          "lineNumber": 77
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 93,
+      "nonEmptyLines": 86,
+      "functions": [
+        {
+          "name": "ReceiptPrinterSelect",
+          "startLine": 17,
+          "endLine": 93,
+          "params": [
+            "{\n  restaurantSlug,\n  value,\n  onChange,\n  className,\n  labelClassName = 'text-[13px] text-brand-text-muted block mb-1.5',\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ReceiptPrinterSelect",
+          "line": 17,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "useLanguage",
+          "lineNumber": 24
+        },
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "getMessages",
+          "lineNumber": 25
+        },
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "useState",
+          "lineNumber": 26
+        },
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "useState",
+          "lineNumber": 27
+        },
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "useEffect",
+          "lineNumber": 29
+        },
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "setLoading",
+          "lineNumber": 31
+        },
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "fetchReceiptPrinters({ slug: restaurantSlug, lang }).then",
+          "lineNumber": 32
+        },
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "fetchReceiptPrinters",
+          "lineNumber": 32
+        },
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "setPrinters",
+          "lineNumber": 34
+        },
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "setLoading",
+          "lineNumber": 35
+        },
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "useEffect",
+          "lineNumber": 42
+        },
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "printers.some",
+          "lineNumber": 44
+        },
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "onChange",
+          "lineNumber": 45
+        },
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "printers.find",
+          "lineNumber": 49
+        },
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "t.receiptPrinterCurrent.replace",
+          "lineNumber": 53
+        },
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "t.receiptPrinterCurrent.replace",
+          "lineNumber": 55
+        },
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "onChange",
+          "lineNumber": 68
+        },
+        {
+          "caller": "ReceiptPrinterSelect",
+          "callee": "printers.map",
+          "lineNumber": 72
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/RestaurantOnboarding.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 146,
+      "nonEmptyLines": 129,
+      "functions": [
+        {
+          "name": "toSlug",
+          "startLine": 11,
+          "endLine": 19,
+          "params": [
+            "name"
+          ]
+        },
+        {
+          "name": "RestaurantOnboarding",
+          "startLine": 22,
+          "endLine": 146,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "RestaurantOnboarding",
+          "line": 22,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "toSlug",
+          "callee": "name\n    .toLowerCase()\n    .normalize('NFD')\n    .replace(/[̀-ͯ]/g, '')\n    .replace(/[^a-z0-9\\s-]/g, '')\n    .trim()\n    .replace",
+          "lineNumber": 12
+        },
+        {
+          "caller": "toSlug",
+          "callee": "name\n    .toLowerCase()\n    .normalize('NFD')\n    .replace(/[̀-ͯ]/g, '')\n    .replace(/[^a-z0-9\\s-]/g, '')\n    .trim",
+          "lineNumber": 12
+        },
+        {
+          "caller": "toSlug",
+          "callee": "name\n    .toLowerCase()\n    .normalize('NFD')\n    .replace(/[̀-ͯ]/g, '')\n    .replace",
+          "lineNumber": 12
+        },
+        {
+          "caller": "toSlug",
+          "callee": "name\n    .toLowerCase()\n    .normalize('NFD')\n    .replace",
+          "lineNumber": 12
+        },
+        {
+          "caller": "toSlug",
+          "callee": "name\n    .toLowerCase()\n    .normalize",
+          "lineNumber": 12
+        },
+        {
+          "caller": "toSlug",
+          "callee": "name\n    .toLowerCase",
+          "lineNumber": 12
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "useRouter",
+          "lineNumber": 23
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "useLanguage",
+          "lineNumber": 24
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "getMessages",
+          "lineNumber": 25
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "useState",
+          "lineNumber": 26
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "useState",
+          "lineNumber": 27
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "useState",
+          "lineNumber": 28
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "useState",
+          "lineNumber": 29
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "useEffect",
+          "lineNumber": 32
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "localStorage.getItem",
+          "lineNumber": 33
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "setInitializing",
+          "lineNumber": 35
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "JSON.parse",
+          "lineNumber": 40
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "setRestaurantName",
+          "lineNumber": 41
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "createClient",
+          "lineNumber": 43
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "supabase.auth.getUser().then",
+          "lineNumber": 44
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 44
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "setInitializing",
+          "lineNumber": 46
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "supabase.from('restaurants').insert",
+          "lineNumber": 50
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "supabase.from",
+          "lineNumber": 50
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 57
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "router.refresh",
+          "lineNumber": 58
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "setInitializing",
+          "lineNumber": 62
+        },
+        {
+          "caller": "handleCreate",
+          "callee": "e.preventDefault",
+          "lineNumber": 71
+        },
+        {
+          "caller": "handleCreate",
+          "callee": "restaurantName.trim",
+          "lineNumber": 72
+        },
+        {
+          "caller": "handleCreate",
+          "callee": "setError",
+          "lineNumber": 73
+        },
+        {
+          "caller": "handleCreate",
+          "callee": "setLoading",
+          "lineNumber": 74
+        },
+        {
+          "caller": "handleCreate",
+          "callee": "createClient",
+          "lineNumber": 77
+        },
+        {
+          "caller": "handleCreate",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 78
+        },
+        {
+          "caller": "handleCreate",
+          "callee": "toSlug",
+          "lineNumber": 81
+        },
+        {
+          "caller": "handleCreate",
+          "callee": "Date.now().toString",
+          "lineNumber": 82
+        },
+        {
+          "caller": "handleCreate",
+          "callee": "Date.now",
+          "lineNumber": 82
+        },
+        {
+          "caller": "handleCreate",
+          "callee": "supabase.from('restaurants').insert",
+          "lineNumber": 84
+        },
+        {
+          "caller": "handleCreate",
+          "callee": "supabase.from",
+          "lineNumber": 84
+        },
+        {
+          "caller": "handleCreate",
+          "callee": "restaurantName.trim",
+          "lineNumber": 85
+        },
+        {
+          "caller": "handleCreate",
+          "callee": "setError",
+          "lineNumber": 91
+        },
+        {
+          "caller": "handleCreate",
+          "callee": "router.refresh",
+          "lineNumber": 95
+        },
+        {
+          "caller": "handleCreate",
+          "callee": "setError",
+          "lineNumber": 97
+        },
+        {
+          "caller": "handleCreate",
+          "callee": "setLoading",
+          "lineNumber": 99
+        },
+        {
+          "caller": "RestaurantOnboarding",
+          "callee": "setRestaurantName",
+          "lineNumber": 131
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/RestaurantSuspensionBanner.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 17,
+      "nonEmptyLines": 15,
+      "functions": [
+        {
+          "name": "RestaurantSuspensionBanner",
+          "startLine": 7,
+          "endLine": 17,
+          "params": [
+            "{ reason }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RestaurantSuspensionBanner",
+          "line": 7,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/SettingsForm.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 322,
+      "nonEmptyLines": 302,
+      "functions": [
+        {
+          "name": "SettingsForm",
+          "startLine": 17,
+          "endLine": 322,
+          "params": [
+            "{\n  restaurant,\n  embedded,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SettingsForm",
+          "line": 17,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SettingsForm",
+          "callee": "useLanguage",
+          "lineNumber": 24
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "getMessages",
+          "lineNumber": 25
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "useState",
+          "lineNumber": 28
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "String",
+          "lineNumber": 33
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "String",
+          "lineNumber": 34
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "String",
+          "lineNumber": 35
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "normalizeOrderRadiusMeters",
+          "lineNumber": 35
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "readGeoOrderRestrictionEnabled",
+          "lineNumber": 36
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "useState",
+          "lineNumber": 41
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "useState",
+          "lineNumber": 42
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "useState",
+          "lineNumber": 43
+        },
+        {
+          "caller": "attempt",
+          "callee": "navigator.geolocation.getCurrentPosition",
+          "lineNumber": 48
+        },
+        {
+          "caller": "getCurrentPositionWithFallback",
+          "callee": "attempt",
+          "lineNumber": 52
+        },
+        {
+          "caller": "getCurrentPositionWithFallback",
+          "callee": "attempt",
+          "lineNumber": 58
+        },
+        {
+          "caller": "handleSave",
+          "callee": "e.preventDefault",
+          "lineNumber": 67
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 68
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setSuccess",
+          "lineNumber": 69
+        },
+        {
+          "caller": "handleSave",
+          "callee": "form.name.trim",
+          "lineNumber": 71
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 71
+        },
+        {
+          "caller": "handleSave",
+          "callee": "form.geo_latitude.trim",
+          "lineNumber": 72
+        },
+        {
+          "caller": "handleSave",
+          "callee": "form.geo_longitude.trim",
+          "lineNumber": 73
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 75
+        },
+        {
+          "caller": "handleSave",
+          "callee": "Number",
+          "lineNumber": 78
+        },
+        {
+          "caller": "handleSave",
+          "callee": "Number",
+          "lineNumber": 79
+        },
+        {
+          "caller": "handleSave",
+          "callee": "Number.isFinite",
+          "lineNumber": 80
+        },
+        {
+          "caller": "handleSave",
+          "callee": "Number.isFinite",
+          "lineNumber": 81
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 82
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 87
+        },
+        {
+          "caller": "handleSave",
+          "callee": "parseOrderRadiusInput",
+          "lineNumber": 91
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 93
+        },
+        {
+          "caller": "handleSave",
+          "callee": "t.orderRadiusInvalid\n          .replace('{min}', String(MIN_ORDER_RADIUS_METERS))\n          .replace",
+          "lineNumber": 94
+        },
+        {
+          "caller": "handleSave",
+          "callee": "t.orderRadiusInvalid\n          .replace",
+          "lineNumber": 94
+        },
+        {
+          "caller": "handleSave",
+          "callee": "String",
+          "lineNumber": 95
+        },
+        {
+          "caller": "handleSave",
+          "callee": "String",
+          "lineNumber": 96
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setSaving",
+          "lineNumber": 101
+        },
+        {
+          "caller": "handleSave",
+          "callee": "form.name.trim",
+          "lineNumber": 104
+        },
+        {
+          "caller": "handleSave",
+          "callee": "form.address.trim",
+          "lineNumber": 105
+        },
+        {
+          "caller": "handleSave",
+          "callee": "form.phone.trim",
+          "lineNumber": 106
+        },
+        {
+          "caller": "handleSave",
+          "callee": "form.geo_latitude.trim",
+          "lineNumber": 108
+        },
+        {
+          "caller": "handleSave",
+          "callee": "form.geo_longitude.trim",
+          "lineNumber": 109
+        },
+        {
+          "caller": "handleSave",
+          "callee": "String",
+          "lineNumber": 110
+        },
+        {
+          "caller": "handleSave",
+          "callee": "fetch",
+          "lineNumber": 113
+        },
+        {
+          "caller": "handleSave",
+          "callee": "JSON.stringify",
+          "lineNumber": 117
+        },
+        {
+          "caller": "handleSave",
+          "callee": "res.json().catch",
+          "lineNumber": 121
+        },
+        {
+          "caller": "handleSave",
+          "callee": "res.json",
+          "lineNumber": 121
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 122
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 123
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 124
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 126
+        },
+        {
+          "caller": "handleSave",
+          "callee": "t.orderRadiusInvalid\n              .replace('{min}', String(MIN_ORDER_RADIUS_METERS))\n              .replace",
+          "lineNumber": 127
+        },
+        {
+          "caller": "handleSave",
+          "callee": "t.orderRadiusInvalid\n              .replace",
+          "lineNumber": 127
+        },
+        {
+          "caller": "handleSave",
+          "callee": "String",
+          "lineNumber": 128
+        },
+        {
+          "caller": "handleSave",
+          "callee": "String",
+          "lineNumber": 129
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 131
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 132
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setSuccess",
+          "lineNumber": 136
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setTimeout",
+          "lineNumber": 137
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setSuccess",
+          "lineNumber": 137
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setError",
+          "lineNumber": 139
+        },
+        {
+          "caller": "handleSave",
+          "callee": "setSaving",
+          "lineNumber": 141
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "setForm",
+          "lineNumber": 160
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "setForm",
+          "lineNumber": 175
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "setForm",
+          "lineNumber": 181
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "setForm",
+          "lineNumber": 192
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "RESTAURANT_COUNTRY_OPTIONS.map",
+          "lineNumber": 199
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "setForm",
+          "lineNumber": 215
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "setForm",
+          "lineNumber": 236
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "setForm",
+          "lineNumber": 242
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "setError",
+          "lineNumber": 252
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "getCurrentPositionWithFallback",
+          "lineNumber": 256
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "setForm",
+          "lineNumber": 257
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "position.coords.latitude.toFixed",
+          "lineNumber": 259
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "position.coords.longitude.toFixed",
+          "lineNumber": 260
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "setError",
+          "lineNumber": 262
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "setError",
+          "lineNumber": 264
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "setForm",
+          "lineNumber": 280
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "String",
+          "lineNumber": 281
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "t.orderRadiusHint\n                  .replace('{min}', String(MIN_ORDER_RADIUS_METERS))\n                  .replace",
+          "lineNumber": 284
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "t.orderRadiusHint\n                  .replace",
+          "lineNumber": 284
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "String",
+          "lineNumber": 285
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "String",
+          "lineNumber": 286
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/dashboard-nav-link.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 15,
+      "nonEmptyLines": 13,
+      "functions": [
+        {
+          "name": "dashboardNavLinkClassName",
+          "startLine": 5,
+          "endLine": 12,
+          "params": [
+            "active"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "DASHBOARD_SIDEBAR_WIDTH",
+          "line": 2,
+          "isDefault": false
+        },
+        {
+          "name": "DASHBOARD_MAIN_OFFSET",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "dashboardNavLinkClassName",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "dashboardNavCheckoutBadgeClassName",
+          "line": 14,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "dashboardNavLinkClassName",
+          "callee": "[\n    'relative flex w-full items-center justify-center gap-3 px-4 py-3 rounded-xl text-[15px] leading-6 transition-all',\n    active\n      ? 'bg-brand-gold/15 text-brand-gold font-medium'\n      : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-border/50',\n  ].join",
+          "lineNumber": 6
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 4,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 23,
+      "nonEmptyLines": 20,
+      "functions": [
+        {
+          "name": "BuffetSettingsGuide",
+          "startLine": 7,
+          "endLine": 23,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "BuffetSettingsGuide",
+          "line": 7,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "BuffetSettingsGuide",
+          "callee": "useLanguage",
+          "lineNumber": 8
+        },
+        {
+          "caller": "BuffetSettingsGuide",
+          "callee": "getMessages",
+          "lineNumber": 9
+        },
+        {
+          "caller": "BuffetSettingsGuide",
+          "callee": "getMessages",
+          "lineNumber": 10
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 47,
+      "nonEmptyLines": 43,
+      "functions": [
+        {
+          "name": "tabClass",
+          "startLine": 9,
+          "endLine": 15,
+          "params": [
+            "active"
+          ]
+        },
+        {
+          "name": "SettingsTabs",
+          "startLine": 17,
+          "endLine": 47,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "SettingsTabs",
+          "line": 17,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SettingsTabs",
+          "callee": "usePathname",
+          "lineNumber": 18
+        },
+        {
+          "caller": "SettingsTabs",
+          "callee": "useLanguage",
+          "lineNumber": 19
+        },
+        {
+          "caller": "SettingsTabs",
+          "callee": "getMessages",
+          "lineNumber": 20
+        },
+        {
+          "caller": "SettingsTabs",
+          "callee": "SETTINGS_NAV_TABS.map",
+          "lineNumber": 28
+        },
+        {
+          "caller": "SettingsTabs",
+          "callee": "item.isActive",
+          "lineNumber": 29
+        },
+        {
+          "caller": "SettingsTabs",
+          "callee": "tabClass",
+          "lineNumber": 35
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 587,
+      "nonEmptyLines": 552,
+      "functions": [
+        {
+          "name": "KitchenDisplay",
+          "startLine": 62,
+          "endLine": 72,
+          "params": [
+            "props"
+          ]
+        },
+        {
+          "name": "KitchenDisplayInner",
+          "startLine": 74,
+          "endLine": 378,
+          "params": [
+            "{\n  restaurant,\n  initialOrders = [],\n  initialActiveTableIds = [],\n  isDemo = false,\n  handleSignOut,\n  exitLabel,\n  confirmBeforeSignOut,\n}"
+          ]
+        },
+        {
+          "name": "OpenTablePlaceholder",
+          "startLine": 380,
+          "endLine": 400,
+          "params": [
+            "{\n  table,\n  labels,\n}"
+          ]
+        },
+        {
+          "name": "OrderCard",
+          "startLine": 403,
+          "endLine": 587,
+          "params": [
+            "{\n  order,\n  onItemStatusChange,\n  labels,\n  locale,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "KitchenDisplay",
+          "line": 62,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useLanguage",
+          "lineNumber": 83
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "getMessages",
+          "lineNumber": 84
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useState",
+          "lineNumber": 87
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useState",
+          "lineNumber": 88
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useState",
+          "lineNumber": 89
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useState",
+          "lineNumber": 90
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useState",
+          "lineNumber": 91
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useState",
+          "lineNumber": 92
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useState",
+          "lineNumber": 93
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useRef",
+          "lineNumber": 94
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "initialOrders.map",
+          "lineNumber": 94
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "createClient",
+          "lineNumber": 95
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useMemo",
+          "lineNumber": 98
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "orders.filter",
+          "lineNumber": 99
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useMemo",
+          "lineNumber": 103
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "boardOrders.map",
+          "lineNumber": 104
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "activeTableIds.filter",
+          "lineNumber": 105
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "busy.has",
+          "lineNumber": 105
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useMemo",
+          "lineNumber": 108
+        },
+        {
+          "caller": "tableLabel",
+          "callee": "fallback?.trim",
+          "lineNumber": 110
+        },
+        {
+          "caller": "tableLabel",
+          "callee": "tableMetaById.get",
+          "lineNumber": 111
+        },
+        {
+          "caller": "tableLabel",
+          "callee": "tableId.slice",
+          "lineNumber": 112
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "boardOrders.forEach",
+          "lineNumber": 115
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "byTable.get",
+          "lineNumber": 116
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "list.push",
+          "lineNumber": 117
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "byTable.set",
+          "lineNumber": 118
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "byTable.forEach",
+          "lineNumber": 120
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "list.sort",
+          "lineNumber": 121
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "new Date(a.created_at).getTime",
+          "lineNumber": 122
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "new Date(b.created_at).getTime",
+          "lineNumber": 122
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "Array.from",
+          "lineNumber": 125
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "byTable.keys",
+          "lineNumber": 125
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "Array.from(tableIds).sort",
+          "lineNumber": 126
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "Array.from",
+          "lineNumber": 126
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "tableMetaById.get",
+          "lineNumber": 127
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "tableLabel",
+          "lineNumber": 127
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "tableMetaById.get",
+          "lineNumber": 128
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "tableLabel",
+          "lineNumber": 128
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "compareRestaurantTables",
+          "lineNumber": 129
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "byTable.get",
+          "lineNumber": 134
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "list.forEach",
+          "lineNumber": 136
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "cols.push",
+          "lineNumber": 136
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "activeTableIds.includes",
+          "lineNumber": 137
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "cols.push",
+          "lineNumber": 138
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "tableLabel",
+          "lineNumber": 141
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useCallback",
+          "lineNumber": 148
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "fetchKitchenBoardClient",
+          "lineNumber": 149
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "board.orders.forEach",
+          "lineNumber": 150
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "prevOrderIds.current.has",
+          "lineNumber": 151
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "playCheckoutRequestChime",
+          "lineNumber": 152
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "prevOrderIds.current.add",
+          "lineNumber": 153
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "setOrders",
+          "lineNumber": 156
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "setActiveTableIds",
+          "lineNumber": 157
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "setTableMetaById",
+          "lineNumber": 158
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "setVoidReasonError",
+          "lineNumber": 164
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "setPendingVoid",
+          "lineNumber": 165
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "setUpdateConflict",
+          "lineNumber": 169
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "order.items.map",
+          "lineNumber": 170
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "new Date().toISOString",
+          "lineNumber": 175
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "new Date().toISOString",
+          "lineNumber": 176
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "new Date().toISOString",
+          "lineNumber": 177
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "deriveOrderStatusFromItems",
+          "lineNumber": 182
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "supabase\n        .from('orders')\n        .update({ items: nextItems, status: nextOrderStatus })\n        .eq('id', order.id)\n        .eq",
+          "lineNumber": 183
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "supabase\n        .from('orders')\n        .update({ items: nextItems, status: nextOrderStatus })\n        .eq",
+          "lineNumber": 183
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "supabase\n        .from('orders')\n        .update",
+          "lineNumber": 183
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "supabase\n        .from",
+          "lineNumber": 183
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "new Date().toISOString",
+          "lineNumber": 189
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "setOrders",
+          "lineNumber": 197
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "prev.filter",
+          "lineNumber": 197
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "setOrders",
+          "lineNumber": 199
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "prev.map",
+          "lineNumber": 200
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "fetch",
+          "lineNumber": 207
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "encodeURIComponent",
+          "lineNumber": 208
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "JSON.stringify",
+          "lineNumber": 213
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "refreshKitchenBoard",
+          "lineNumber": 218
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "setUpdateConflict",
+          "lineNumber": 223
+        },
+        {
+          "caller": "updateItemStatus",
+          "callee": "refreshKitchenBoard",
+          "lineNumber": 224
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "setVoidingItem",
+          "lineNumber": 234
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "setVoidReasonError",
+          "lineNumber": 235
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "setUpdateConflict",
+          "lineNumber": 236
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "order.items.map",
+          "lineNumber": 238
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "new Date().toISOString",
+          "lineNumber": 243
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "patchStaffOrderItemsClient",
+          "lineNumber": 248
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "setPendingVoid",
+          "lineNumber": 256
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "refreshKitchenBoard",
+          "lineNumber": 257
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "voidItemReasonErrorMessage",
+          "lineNumber": 261
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "setVoidReasonError",
+          "lineNumber": 263
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "setUpdateConflict",
+          "lineNumber": 267
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "refreshKitchenBoard",
+          "lineNumber": 268
+        },
+        {
+          "caller": "performKitchenVoid",
+          "callee": "setVoidingItem",
+          "lineNumber": 274
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "useRestaurantRealtimeRefresh",
+          "lineNumber": 278
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "handleSignOut",
+          "lineNumber": 319
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "t.openTablesIdleNote.replace",
+          "lineNumber": 329
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "String",
+          "lineNumber": 329
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "kitchenColumns.map",
+          "lineNumber": 348
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "setPendingVoid",
+          "lineNumber": 367
+        },
+        {
+          "caller": "KitchenDisplayInner",
+          "callee": "setVoidReasonError",
+          "lineNumber": 368
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "useState",
+          "lineNumber": 425
+        },
+        {
+          "caller": "handleItemStatusChange",
+          "callee": "setUpdating",
+          "lineNumber": 428
+        },
+        {
+          "caller": "handleItemStatusChange",
+          "callee": "onItemStatusChange",
+          "lineNumber": 429
+        },
+        {
+          "caller": "handleItemStatusChange",
+          "callee": "setUpdating",
+          "lineNumber": 430
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "time.toLocaleString",
+          "lineNumber": 434
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "order.items.filter",
+          "lineNumber": 446
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "isBuffetBaseItem",
+          "lineNumber": 446
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "itemsEveryVoided",
+          "lineNumber": 449
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "kitchenLines.forEach",
+          "lineNumber": 451
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "batchOrder.includes",
+          "lineNumber": 453
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "batchOrder.push",
+          "lineNumber": 453
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "batchOrder.map",
+          "lineNumber": 491
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "order.items\n            .map((item, idx) => ({ item, idx }))\n            .filter",
+          "lineNumber": 492
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "order.items\n            .map",
+          "lineNumber": 492
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "isBuffetBaseItem",
+          "lineNumber": 496
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "new Date(batchItems[0].item.added_at as string).toLocaleString",
+          "lineNumber": 500
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "batchItems.map",
+          "lineNumber": 515
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "normalizeOrderItemStatus",
+          "lineNumber": 516
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "handleItemStatusChange",
+          "lineNumber": 550
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "handleItemStatusChange",
+          "lineNumber": 559
+        },
+        {
+          "caller": "OrderCard",
+          "callee": "handleItemStatusChange",
+          "lineNumber": 568
+        }
+      ],
+      "metrics": {
+        "importCount": 15,
+        "exportCount": 1,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/providers/LanguageProvider.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 64,
+      "nonEmptyLines": 55,
+      "functions": [
+        {
+          "name": "LanguageProvider",
+          "startLine": 23,
+          "endLine": 60,
+          "params": [
+            "{\n  children,\n  initialLang,\n}"
+          ]
+        },
+        {
+          "name": "useLanguage",
+          "startLine": 62,
+          "endLine": 64,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "LanguageProvider",
+          "line": 23,
+          "isDefault": false
+        },
+        {
+          "name": "useLanguage",
+          "line": 62,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "LanguageProvider",
+          "callee": "useState",
+          "lineNumber": 30
+        },
+        {
+          "caller": "LanguageProvider",
+          "callee": "useEffect",
+          "lineNumber": 32
+        },
+        {
+          "caller": "LanguageProvider",
+          "callee": "getClientLanguage",
+          "lineNumber": 33
+        },
+        {
+          "caller": "LanguageProvider",
+          "callee": "setLangState",
+          "lineNumber": 35
+        },
+        {
+          "caller": "LanguageProvider",
+          "callee": "setClientLanguage",
+          "lineNumber": 36
+        },
+        {
+          "caller": "LanguageProvider",
+          "callee": "useEffect",
+          "lineNumber": 40
+        },
+        {
+          "caller": "LanguageProvider",
+          "callee": "useMemo",
+          "lineNumber": 44
+        },
+        {
+          "caller": "LanguageProvider",
+          "callee": "setLangState",
+          "lineNumber": 48
+        },
+        {
+          "caller": "LanguageProvider",
+          "callee": "setClientLanguage",
+          "lineNumber": 49
+        },
+        {
+          "caller": "useLanguage",
+          "callee": "useContext",
+          "lineNumber": 63
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/providers/ThemeProvider.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 70,
+      "nonEmptyLines": 59,
+      "functions": [
+        {
+          "name": "applyTheme",
+          "startLine": 22,
+          "endLine": 24,
+          "params": [
+            "theme"
+          ]
+        },
+        {
+          "name": "ThemeProvider",
+          "startLine": 26,
+          "endLine": 66,
+          "params": [
+            "{ children }"
+          ]
+        },
+        {
+          "name": "useThemeMode",
+          "startLine": 68,
+          "endLine": 70,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ThemeProvider",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "useThemeMode",
+          "line": 68,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "applyTheme",
+          "callee": "document.documentElement.setAttribute",
+          "lineNumber": 23
+        },
+        {
+          "caller": "ThemeProvider",
+          "callee": "useState",
+          "lineNumber": 28
+        },
+        {
+          "caller": "ThemeProvider",
+          "callee": "useEffect",
+          "lineNumber": 30
+        },
+        {
+          "caller": "ThemeProvider",
+          "callee": "document.documentElement.getAttribute",
+          "lineNumber": 31
+        },
+        {
+          "caller": "ThemeProvider",
+          "callee": "localStorage.getItem",
+          "lineNumber": 35
+        },
+        {
+          "caller": "ThemeProvider",
+          "callee": "setThemeState",
+          "lineNumber": 43
+        },
+        {
+          "caller": "ThemeProvider",
+          "callee": "applyTheme",
+          "lineNumber": 44
+        },
+        {
+          "caller": "ThemeProvider",
+          "callee": "useMemo",
+          "lineNumber": 48
+        },
+        {
+          "caller": "ThemeProvider",
+          "callee": "setThemeState",
+          "lineNumber": 51
+        },
+        {
+          "caller": "ThemeProvider",
+          "callee": "localStorage.setItem",
+          "lineNumber": 52
+        },
+        {
+          "caller": "ThemeProvider",
+          "callee": "applyTheme",
+          "lineNumber": 53
+        },
+        {
+          "caller": "ThemeProvider",
+          "callee": "setThemeState",
+          "lineNumber": 58
+        },
+        {
+          "caller": "ThemeProvider",
+          "callee": "localStorage.setItem",
+          "lineNumber": 59
+        },
+        {
+          "caller": "ThemeProvider",
+          "callee": "applyTheme",
+          "lineNumber": 60
+        },
+        {
+          "caller": "useThemeMode",
+          "callee": "useContext",
+          "lineNumber": 69
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 92,
+      "nonEmptyLines": 82,
+      "functions": [
+        {
+          "name": "exitLabels",
+          "startLine": 26,
+          "endLine": 33,
+          "params": [
+            "lang",
+            "role"
+          ]
+        },
+        {
+          "name": "StaffAuthenticatedShell",
+          "startLine": 35,
+          "endLine": 92,
+          "params": [
+            "{\n  restaurant,\n  expectedRole,\n  isDemo = false,\n  children,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "StaffAuthenticatedShell",
+          "line": 35,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "exitLabels",
+          "callee": "getMessages",
+          "lineNumber": 28
+        },
+        {
+          "caller": "StaffAuthenticatedShell",
+          "callee": "useRouter",
+          "lineNumber": 41
+        },
+        {
+          "caller": "StaffAuthenticatedShell",
+          "callee": "useLanguage",
+          "lineNumber": 42
+        },
+        {
+          "caller": "StaffAuthenticatedShell",
+          "callee": "exitLabels",
+          "lineNumber": 43
+        },
+        {
+          "caller": "StaffAuthenticatedShell",
+          "callee": "useState",
+          "lineNumber": 44
+        },
+        {
+          "caller": "StaffAuthenticatedShell",
+          "callee": "useState",
+          "lineNumber": 45
+        },
+        {
+          "caller": "StaffAuthenticatedShell",
+          "callee": "useState",
+          "lineNumber": 46
+        },
+        {
+          "caller": "StaffAuthenticatedShell",
+          "callee": "useEffect",
+          "lineNumber": 48
+        },
+        {
+          "caller": "StaffAuthenticatedShell",
+          "callee": "resolveStaffSession(restaurant.slug, expectedRole).then",
+          "lineNumber": 51
+        },
+        {
+          "caller": "StaffAuthenticatedShell",
+          "callee": "resolveStaffSession",
+          "lineNumber": 51
+        },
+        {
+          "caller": "StaffAuthenticatedShell",
+          "callee": "setAsOwner",
+          "lineNumber": 54
+        },
+        {
+          "caller": "StaffAuthenticatedShell",
+          "callee": "setAuthenticated",
+          "lineNumber": 55
+        },
+        {
+          "caller": "StaffAuthenticatedShell",
+          "callee": "setCheckingSession",
+          "lineNumber": 56
+        },
+        {
+          "caller": "StaffAuthenticatedShell",
+          "callee": "router.replace",
+          "lineNumber": 60
+        },
+        {
+          "caller": "StaffAuthenticatedShell",
+          "callee": "router.replace",
+          "lineNumber": 63
+        },
+        {
+          "caller": "handleSignOut",
+          "callee": "router.push",
+          "lineNumber": 72
+        },
+        {
+          "caller": "handleSignOut",
+          "callee": "staffSignOut",
+          "lineNumber": 75
+        },
+        {
+          "caller": "handleSignOut",
+          "callee": "setAuthenticated",
+          "lineNumber": 76
+        },
+        {
+          "caller": "handleSignOut",
+          "callee": "router.replace",
+          "lineNumber": 77
+        },
+        {
+          "caller": "StaffAuthenticatedShell",
+          "callee": "children",
+          "lineNumber": 91
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/staff/StaffLoginForm.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 149,
+      "nonEmptyLines": 134,
+      "functions": [
+        {
+          "name": "StaffLoginForm",
+          "startLine": 21,
+          "endLine": 149,
+          "params": [
+            "{ mode, slug, restaurantName, expectedRole }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "StaffLoginForm",
+          "line": 21,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "StaffLoginForm",
+          "callee": "useLanguage",
+          "lineNumber": 22
+        },
+        {
+          "caller": "StaffLoginForm",
+          "callee": "getMessages",
+          "lineNumber": 23
+        },
+        {
+          "caller": "StaffLoginForm",
+          "callee": "useState",
+          "lineNumber": 24
+        },
+        {
+          "caller": "StaffLoginForm",
+          "callee": "useState",
+          "lineNumber": 25
+        },
+        {
+          "caller": "StaffLoginForm",
+          "callee": "useState",
+          "lineNumber": 26
+        },
+        {
+          "caller": "StaffLoginForm",
+          "callee": "useState",
+          "lineNumber": 27
+        },
+        {
+          "caller": "StaffLoginForm",
+          "callee": "useRef",
+          "lineNumber": 28
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "e.preventDefault",
+          "lineNumber": 31
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 34
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 35
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "composeStaffEmail",
+          "lineNumber": 37
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch",
+          "lineNumber": 40
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "JSON.stringify",
+          "lineNumber": 44
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "res.json().catch",
+          "lineNumber": 47
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "res.json",
+          "lineNumber": 47
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 57
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 58
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 65
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 67
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 69
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 71
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 77
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 78
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 84
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 85
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "window.location.assign",
+          "lineNumber": 91
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 95
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 96
+        },
+        {
+          "caller": "StaffLoginForm",
+          "callee": "setLogin",
+          "lineNumber": 120
+        },
+        {
+          "caller": "StaffLoginForm",
+          "callee": "setPassword",
+          "lineNumber": 129
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 57,
+      "nonEmptyLines": 52,
+      "functions": [
+        {
+          "name": "StaffRoleToolbar",
+          "startLine": 18,
+          "endLine": 57,
+          "params": [
+            "{\n  exitLabel,\n  onSignOut,\n  confirmSignOut = true,\n  className = 'mb-3',\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "StaffRoleToolbar",
+          "line": 18,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "StaffRoleToolbar",
+          "callee": "useSignOutConfirmState",
+          "lineNumber": 25
+        },
+        {
+          "caller": "handleClick",
+          "callee": "requestSignOut",
+          "lineNumber": 29
+        },
+        {
+          "caller": "handleClick",
+          "callee": "onSignOut",
+          "lineNumber": 32
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 145,
+      "nonEmptyLines": 133,
+      "functions": [
+        {
+          "name": "LanguageSwitcher",
+          "startLine": 18,
+          "endLine": 145,
+          "params": [
+            "{ compact = false, variant = 'inline' }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "LanguageSwitcher",
+          "line": 18,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "LanguageSwitcher",
+          "callee": "useLanguage",
+          "lineNumber": 19
+        },
+        {
+          "caller": "LanguageSwitcher",
+          "callee": "useState",
+          "lineNumber": 20
+        },
+        {
+          "caller": "LanguageSwitcher",
+          "callee": "useRef",
+          "lineNumber": 21
+        },
+        {
+          "caller": "LanguageSwitcher",
+          "callee": "OPTIONS.find",
+          "lineNumber": 23
+        },
+        {
+          "caller": "LanguageSwitcher",
+          "callee": "useEffect",
+          "lineNumber": 25
+        },
+        {
+          "caller": "handlePointerDown",
+          "callee": "rootRef.current?.contains",
+          "lineNumber": 29
+        },
+        {
+          "caller": "handlePointerDown",
+          "callee": "setOpen",
+          "lineNumber": 30
+        },
+        {
+          "caller": "LanguageSwitcher",
+          "callee": "document.addEventListener",
+          "lineNumber": 34
+        },
+        {
+          "caller": "LanguageSwitcher",
+          "callee": "document.removeEventListener",
+          "lineNumber": 35
+        },
+        {
+          "caller": "selectLang",
+          "callee": "setOpen",
+          "lineNumber": 40
+        },
+        {
+          "caller": "selectLang",
+          "callee": "setLang",
+          "lineNumber": 43
+        },
+        {
+          "caller": "selectLang",
+          "callee": "setOpen",
+          "lineNumber": 44
+        },
+        {
+          "caller": "LanguageSwitcher",
+          "callee": "setOpen",
+          "lineNumber": 52
+        },
+        {
+          "caller": "LanguageSwitcher",
+          "callee": "OPTIONS.map",
+          "lineNumber": 66
+        },
+        {
+          "caller": "LanguageSwitcher",
+          "callee": "selectLang",
+          "lineNumber": 72
+        },
+        {
+          "caller": "LanguageSwitcher",
+          "callee": "setOpen",
+          "lineNumber": 93
+        },
+        {
+          "caller": "LanguageSwitcher",
+          "callee": "OPTIONS.map",
+          "lineNumber": 106
+        },
+        {
+          "caller": "LanguageSwitcher",
+          "callee": "selectLang",
+          "lineNumber": 112
+        },
+        {
+          "caller": "LanguageSwitcher",
+          "callee": "OPTIONS.map",
+          "lineNumber": 130
+        },
+        {
+          "caller": "LanguageSwitcher",
+          "callee": "selectLang",
+          "lineNumber": 133
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/ui/ProductLogo.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 30,
+      "nonEmptyLines": 25,
+      "functions": [
+        {
+          "name": "ProductLogo",
+          "startLine": 16,
+          "endLine": 30,
+          "params": [
+            "{ size = 'lg', href, className = '' }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ProductLogo",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ProductLogo",
+          "callee": "`font-heading text-brand-gold tracking-wider ${SIZE_CLASS[size]} ${className}`.trim",
+          "lineNumber": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/ui/ThemeToggle.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 20,
+      "nonEmptyLines": 17,
+      "functions": [
+        {
+          "name": "ThemeToggle",
+          "startLine": 5,
+          "endLine": 20,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ThemeToggle",
+          "line": 5,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ThemeToggle",
+          "callee": "useThemeMode",
+          "lineNumber": 6
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 53,
+      "nonEmptyLines": 51,
+      "functions": [
+        {
+          "name": "WaiterTableDetailHeader",
+          "startLine": 17,
+          "endLine": 53,
+          "params": [
+            "{\n  boardHref,\n  backLabel,\n  heading,\n  updatedAtLabel = null,\n  embeddedInDashboard,\n  exitLabel,\n  onSignOut,\n  confirmSignOut = true,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "WaiterTableDetailHeader",
+          "line": 17,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    }
+  ]
+}

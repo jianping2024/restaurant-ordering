@@ -1,0 +1,280 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {
+      "path": "apps/web/src/components/dashboard/OrdersHistoryManager.tsx",
+      "language": "typescript",
+      "sizeLines": 353,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx",
+      "language": "typescript",
+      "sizeLines": 68,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx",
+      "language": "typescript",
+      "sizeLines": 214,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx",
+      "language": "typescript",
+      "sizeLines": 136,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx",
+      "language": "typescript",
+      "sizeLines": 322,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx",
+      "language": "typescript",
+      "sizeLines": 284,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx",
+      "language": "typescript",
+      "sizeLines": 93,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx",
+      "language": "typescript",
+      "sizeLines": 93,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/RestaurantOnboarding.tsx",
+      "language": "typescript",
+      "sizeLines": 146,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/RestaurantSuspensionBanner.tsx",
+      "language": "typescript",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/SettingsForm.tsx",
+      "language": "typescript",
+      "sizeLines": 322,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/dashboard-nav-link.ts",
+      "language": "typescript",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "language": "typescript",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "language": "typescript",
+      "sizeLines": 47,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "language": "typescript",
+      "sizeLines": 587,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/providers/LanguageProvider.tsx",
+      "language": "typescript",
+      "sizeLines": 64,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/providers/ThemeProvider.tsx",
+      "language": "typescript",
+      "sizeLines": 70,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "language": "typescript",
+      "sizeLines": 92,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/staff/StaffLoginForm.tsx",
+      "language": "typescript",
+      "sizeLines": 149,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "language": "typescript",
+      "sizeLines": 57,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "language": "typescript",
+      "sizeLines": 145,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/ui/ProductLogo.tsx",
+      "language": "typescript",
+      "sizeLines": 30,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/ui/ThemeToggle.tsx",
+      "language": "typescript",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "language": "typescript",
+      "sizeLines": 53,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "apps/web/src/components/dashboard/OrdersHistoryManager.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/order-list-display.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/print-agent-credential-expiry.ts"
+    ],
+    "apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/ConfirmModal.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/print-agent-heartbeat.ts"
+    ],
+    "apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/print-agent-download.ts"
+    ],
+    "apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/pairing-code-countdown.ts",
+      "apps/web/src/lib/print-agent-local.ts",
+      "apps/web/src/lib/print-agent-pairing-slots.ts"
+    ],
+    "apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/IntegerInput.tsx",
+      "apps/web/src/components/ui/TimeHmInput.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/print-agent-config.ts"
+    ],
+    "apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx": [
+      "apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/components/dashboard/ReceiptPrinterSelect.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/fetch-receipt-printers.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/print-receipt-printer-options.ts"
+    ],
+    "apps/web/src/components/dashboard/RestaurantOnboarding.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/Input.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/supabase/client.ts"
+    ],
+    "apps/web/src/components/dashboard/RestaurantSuspensionBanner.tsx": [],
+    "apps/web/src/components/dashboard/SettingsForm.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/Input.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/order-radius.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/dashboard/dashboard-nav-link.ts": [],
+    "apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx": [
+      "apps/web/src/components/dashboard/settings/SettingsPageHelp.tsx",
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/components/dashboard/settings/SettingsTabs.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/settings-nav.ts"
+    ],
+    "apps/web/src/components/kitchen/KitchenDisplay.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "apps/web/src/lib/checkout-notification-sound.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx",
+      "apps/web/src/lib/order-items.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-board-client.ts",
+      "apps/web/src/lib/supabase/client.ts",
+      "apps/web/src/lib/use-restaurant-realtime-refresh.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/providers/LanguageProvider.tsx": [
+      "apps/web/src/lib/i18n.ts"
+    ],
+    "apps/web/src/components/providers/ThemeProvider.tsx": [],
+    "apps/web/src/components/staff/StaffAuthenticatedShell.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/waiter/waiter-messages.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/staff-account.ts",
+      "apps/web/src/lib/staff-auth-client.ts"
+    ],
+    "apps/web/src/components/staff/StaffLoginForm.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/Input.tsx",
+      "apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/staff-account.ts"
+    ],
+    "apps/web/src/components/staff/StaffRoleToolbar.tsx": [
+      "apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "apps/web/src/lib/auth/sign-out-confirm.tsx"
+    ],
+    "apps/web/src/components/ui/LanguageSwitcher.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/lib/i18n.ts"
+    ],
+    "apps/web/src/components/ui/ProductLogo.tsx": [],
+    "apps/web/src/components/ui/ThemeToggle.tsx": [
+      "apps/web/src/components/providers/ThemeProvider.tsx"
+    ],
+    "apps/web/src/components/waiter/WaiterTableDetailHeader.tsx": [
+      "apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "apps/web/src/components/waiter/waiter-ui.ts"
+    ]
+  }
+}

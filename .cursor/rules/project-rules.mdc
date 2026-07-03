@@ -1,0 +1,40 @@
+---
+description: Documentation-driven change rules for Mesa project organization
+alwaysApply: true
+---
+
+Read before making changes:
+
+1. Root [`AGENTS.md`](../../AGENTS.md) — tech stack, safety, tenant isolation, commands
+2. [`AI_RULES.md`](../../AI_RULES.md) — change workflow and documentation map
+3. Relevant docs under `docs/product/`, `docs/design/`, `docs/technical/`, `docs/decisions/`
+4. [`docs/ai-schema.md`](../../docs/ai-schema.md) for database context (not full migrations scan)
+5. [`docs/optimization.md`](../../docs/optimization.md) when executing project cleanup phases
+
+## Mandatory workflow
+
+1. **Read** related docs and targeted code only — no whole-repo scans
+2. **Plan** — output impact scope and approach before editing non-trivial logic
+3. **Scope** — no out-of-scope features, no unrelated files, no silent rewrites, no temporary patches
+4. **Sync docs** — business rule changes must update `docs/product/` or `docs/technical/`
+5. **Verify** — report lint/build/test results after code changes (see `AGENTS.md`)
+
+## Documentation map
+
+| Need | Path |
+|------|------|
+| Feature boundaries | `docs/product/02-feature-map.md` |
+| User flows & rules | `docs/product/03-user-flows.md`, `04-business-rules.md` |
+| UI conventions | `docs/design/` |
+| Architecture & API | `docs/technical/` |
+| ADRs | `docs/decisions/` |
+
+## High-risk areas (require explicit user approval)
+
+Checkout/payment, bill splits, table session lifecycle, print jobs & RLS, migrations, order/kitchen void flows.
+
+Do not expose table UUIDs on receipts — use `display_name` only.
+
+## Optimization phases
+
+Execute one phase from `docs/optimization.md` at a time; stop for user confirmation before the next phase.

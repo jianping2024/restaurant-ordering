@@ -1,0 +1,2093 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/demo-data.ts",
+      "type": "file",
+      "name": "demo-data.ts",
+      "filePath": "apps/web/src/lib/demo-data.ts",
+      "summary": "为演示环境提供静态餐厅、桌台与订单数据，供 demo 页面在无真实数据库时渲染服务员/厨房视图。",
+      "tags": [
+        "utility",
+        "demo",
+        "seed-data",
+        "waiter-board"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/demo-page-metadata.ts",
+      "type": "file",
+      "name": "demo-page-metadata.ts",
+      "filePath": "apps/web/src/lib/demo-page-metadata.ts",
+      "summary": "生成演示子路由的 Next.js metadata 标题后缀，统一 demo 页面 SEO 文案。",
+      "tags": [
+        "utility",
+        "demo",
+        "metadata",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/restaurant-table-groups.test.ts",
+      "type": "file",
+      "name": "restaurant-table-groups.test.ts",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.test.ts",
+      "summary": "单元测试餐厅桌台分组工具：名称校验、排序、服务员看板分区与结账置顶逻辑。",
+      "tags": [
+        "test",
+        "table-groups",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "type": "file",
+      "name": "restaurant-table-groups.ts",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "summary": "桌台分组领域工具：校验/排序分组、构建服务员看板分区、结账待处理桌台排序与打印顺序。",
+      "tags": [
+        "utility",
+        "table-groups",
+        "waiter-board",
+        "sorting"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "file",
+      "name": "restaurant-tables.ts",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "summary": "餐厅桌台核心工具：display_name 规范化与校验、默认桌号生成、排序比较及与历史订单合并。",
+      "tags": [
+        "utility",
+        "data-model",
+        "validation",
+        "sorting"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-board-client.ts",
+      "type": "file",
+      "name": "staff-board-client.ts",
+      "filePath": "apps/web/src/lib/staff-board-client.ts",
+      "summary": "服务员/厨房看板的浏览器端 API 客户端，封装 fetch 并规范化桌台排序与详情数据。",
+      "tags": [
+        "api-handler",
+        "client",
+        "waiter-board",
+        "kitchen"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-board.ts",
+      "type": "file",
+      "name": "staff-board.ts",
+      "filePath": "apps/web/src/lib/staff-board.ts",
+      "summary": "服务员与厨房看板服务端数据加载：查询会话、订单、结账请求与桌台分组，组装看板初始状态。",
+      "tags": [
+        "service",
+        "waiter-board",
+        "kitchen",
+        "supabase"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-routes.test.ts",
+      "type": "file",
+      "name": "staff-routes.test.ts",
+      "filePath": "apps/web/src/lib/staff-routes.test.ts",
+      "summary": "测试员工路由辅助函数：角色路径、服务员桌台/菜单/账单链接及安全返回路径解析。",
+      "tags": [
+        "test",
+        "routing",
+        "staff-auth"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-routes.ts",
+      "type": "file",
+      "name": "staff-routes.ts",
+      "filePath": "apps/web/src/lib/staff-routes.ts",
+      "summary": "构建员工端（服务员/厨房）内部导航 URL，含 dashboard 与 slug 路由及菜单返回路径白名单校验。",
+      "tags": [
+        "utility",
+        "routing",
+        "staff-auth",
+        "navigation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/table-checkout-pending.test.ts",
+      "type": "file",
+      "name": "table-checkout-pending.test.ts",
+      "filePath": "apps/web/src/lib/table-checkout-pending.test.ts",
+      "summary": "测试结账请求待处理状态：从 bill_splits 行推导桌台 ID 集合与时间戳映射。",
+      "tags": [
+        "test",
+        "checkout",
+        "billing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "type": "file",
+      "name": "table-checkout-pending.ts",
+      "filePath": "apps/web/src/lib/table-checkout-pending.ts",
+      "summary": "结账请求待处理逻辑：识别 requested 状态桌台、计数待处理请求并供看板/仪表盘使用。",
+      "tags": [
+        "utility",
+        "checkout",
+        "billing",
+        "supabase"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/use-buffet-prices-realtime-refresh.ts",
+      "type": "file",
+      "name": "use-buffet-prices-realtime-refresh.ts",
+      "filePath": "apps/web/src/lib/use-buffet-prices-realtime-refresh.ts",
+      "summary": "React hook：订阅自助餐价格相关表的 Supabase Realtime 变更，防抖刷新桌台详情价格。",
+      "tags": [
+        "hook",
+        "realtime",
+        "buffet",
+        "supabase"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/demo-data.ts:demoTableByDisplayName",
+      "type": "function",
+      "name": "demoTableByDisplayName",
+      "filePath": "apps/web/src/lib/demo-data.ts",
+      "lineRange": [
+        20,
+        22
+      ],
+      "summary": "按 display_name 在演示桌台列表中查找对应桌台记录。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/demo-page-metadata.ts:demoPageMetadata",
+      "type": "function",
+      "name": "demoPageMetadata",
+      "filePath": "apps/web/src/lib/demo-page-metadata.ts",
+      "lineRange": [
+        4,
+        6
+      ],
+      "summary": "返回带演示后缀的页面 metadata 对象，供 demo 子路由复用。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:normalizeTableGroupName",
+      "type": "function",
+      "name": "normalizeTableGroupName",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        57,
+        59
+      ],
+      "summary": "修剪桌台分组名称首尾空白。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:isValidTableGroupName",
+      "type": "function",
+      "name": "isValidTableGroupName",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        61,
+        68
+      ],
+      "summary": "校验分组名长度、非空且不在保留名列表中。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:compareTableGroups",
+      "type": "function",
+      "name": "compareTableGroups",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        70,
+        76
+      ],
+      "summary": "按 sort_order 与 created_at 比较两个分组排序键。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTableGroups",
+      "type": "function",
+      "name": "sortTableGroups",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        78,
+        80
+      ],
+      "summary": "返回按 compareTableGroups 排序的分组副本。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:buildTableGroupNameByTableId",
+      "type": "function",
+      "name": "buildTableGroupNameByTableId",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        82,
+        93
+      ],
+      "summary": "由分组与成员关系构建 table_id 到分组名的映射。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:buildTableGroupIdByTableId",
+      "type": "function",
+      "name": "buildTableGroupIdByTableId",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        95,
+        103
+      ],
+      "summary": "由成员行构建 table_id 到 group_id 的映射。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTablesForGroupAssignPicker",
+      "type": "function",
+      "name": "sortTablesForGroupAssignPicker",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        106,
+        134
+      ],
+      "summary": "为分组指派 UI 排序桌台：当前编辑分组优先，其余按分组名与桌台名。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:groupTableIdsByGroupId",
+      "type": "function",
+      "name": "groupTableIdsByGroupId",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        136,
+        145
+      ],
+      "summary": "将成员行聚合为 group_id 到 table_id 列表的字典。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:isWaiterTableCheckoutPending",
+      "type": "function",
+      "name": "isWaiterTableCheckoutPending",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        147,
+        155
+      ],
+      "summary": "判断桌台是否处于结账请求待处理且仍有活跃会话。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:sortWaiterTableCards",
+      "type": "function",
+      "name": "sortWaiterTableCards",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        157,
+        190
+      ],
+      "summary": "服务员桌台卡片排序：结账置顶、占用优先，再按 display_name。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:buildWaiterBoardSections",
+      "type": "function",
+      "name": "buildWaiterBoardSections",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        192,
+        224
+      ],
+      "summary": "按桌台分组构建服务员看板分区，未分组桌台归入独立区块。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTablesForGroupPrint",
+      "type": "function",
+      "name": "sortTablesForGroupPrint",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        231,
+        246
+      ],
+      "summary": "按看板分区顺序展平桌台列表，供分组打印路由使用。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:normalizeTableDisplayName",
+      "type": "function",
+      "name": "normalizeTableDisplayName",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        29,
+        31
+      ],
+      "summary": "规范化桌台展示名称（trim）。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:isValidTableDisplayName",
+      "type": "function",
+      "name": "isValidTableDisplayName",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        33,
+        40
+      ],
+      "summary": "校验桌台 display_name 符合长度与字符模式规则。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:parseTableIdParam",
+      "type": "function",
+      "name": "parseTableIdParam",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        42,
+        46
+      ],
+      "summary": "解析路由中的 table_id 参数，验证 UUID 格式。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:formatDefaultTableDisplayName",
+      "type": "function",
+      "name": "formatDefaultTableDisplayName",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        48,
+        51
+      ],
+      "summary": "将序号格式化为默认桌台展示名（如 T01）。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:nextDefaultTableDisplayName",
+      "type": "function",
+      "name": "nextDefaultTableDisplayName",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        54,
+        63
+      ],
+      "summary": "基于已有桌台名推算下一个可用默认 display_name。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:nextDefaultTableDisplayNames",
+      "type": "function",
+      "name": "nextDefaultTableDisplayNames",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        66,
+        76
+      ],
+      "summary": "批量生成多个不冲突的默认桌台展示名。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:isValidTableAddCount",
+      "type": "function",
+      "name": "isValidTableAddCount",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        78,
+        84
+      ],
+      "summary": "校验批量新增桌台数量在上限内且为合法整数。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:compareRestaurantTables",
+      "type": "function",
+      "name": "compareRestaurantTables",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        86,
+        95
+      ],
+      "summary": "按 sort_order 与 display_name 比较两张桌台。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:sortRestaurantTables",
+      "type": "function",
+      "name": "sortRestaurantTables",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        97,
+        99
+      ],
+      "summary": "返回排序后的桌台行副本。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:tableIdsEqual",
+      "type": "function",
+      "name": "tableIdsEqual",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        101,
+        106
+      ],
+      "summary": "比较两个 table_id 字符串是否指向同一桌台（UUID 规范化）。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:mergeTablesWithOrderHistory",
+      "type": "function",
+      "name": "mergeTablesWithOrderHistory",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        109,
+        124
+      ],
+      "summary": "将历史订单中的桌台信息合并进当前桌台列表并排序。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:activeRestaurantTables",
+      "type": "function",
+      "name": "activeRestaurantTables",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        126,
+        128
+      ],
+      "summary": "过滤出未软删除的活跃桌台行。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterBoardClient",
+      "type": "function",
+      "name": "fetchWaiterBoardClient",
+      "filePath": "apps/web/src/lib/staff-board-client.ts",
+      "lineRange": [
+        35,
+        48
+      ],
+      "summary": "GET 服务员看板 API 并排序桌台与分组数据。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterTableDetailClient",
+      "type": "function",
+      "name": "fetchWaiterTableDetailClient",
+      "filePath": "apps/web/src/lib/staff-board-client.ts",
+      "lineRange": [
+        51,
+        59
+      ],
+      "summary": "GET 单桌详情 API 并规范化响应结构。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board-client.ts:postWaiterBuffetOpenClient",
+      "type": "function",
+      "name": "postWaiterBuffetOpenClient",
+      "filePath": "apps/web/src/lib/staff-board-client.ts",
+      "lineRange": [
+        78,
+        110
+      ],
+      "summary": "POST 开自助餐会话并返回更新后的桌台详情。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterTableActionTargetsClient",
+      "type": "function",
+      "name": "fetchWaiterTableActionTargetsClient",
+      "filePath": "apps/web/src/lib/staff-board-client.ts",
+      "lineRange": [
+        113,
+        127
+      ],
+      "summary": "GET 转台/并台操作可选目标桌台列表。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board-client.ts:fetchKitchenBoardClient",
+      "type": "function",
+      "name": "fetchKitchenBoardClient",
+      "filePath": "apps/web/src/lib/staff-board-client.ts",
+      "lineRange": [
+        130,
+        143
+      ],
+      "summary": "GET 厨房看板并按活跃桌台排序 table_id 列表。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board.ts:fetchCheckoutRequestedForTable",
+      "type": "function",
+      "name": "fetchCheckoutRequestedForTable",
+      "filePath": "apps/web/src/lib/staff-board.ts",
+      "lineRange": [
+        31,
+        49
+      ],
+      "summary": "查询单桌最新 requested 状态 bill_split 创建时间。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board.ts:loadTableOrdersForSession",
+      "type": "function",
+      "name": "loadTableOrdersForSession",
+      "filePath": "apps/web/src/lib/staff-board.ts",
+      "lineRange": [
+        51,
+        79
+      ],
+      "summary": "加载指定会话内及无会话的活跃订单行。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board.ts:fetchKitchenBoard",
+      "type": "function",
+      "name": "fetchKitchenBoard",
+      "filePath": "apps/web/src/lib/staff-board.ts",
+      "lineRange": [
+        81,
+        120
+      ],
+      "summary": "并行加载厨房 pending/cooking 订单、活跃会话与桌台元数据。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board.ts:fetchWaiterBoard",
+      "type": "function",
+      "name": "fetchWaiterBoard",
+      "filePath": "apps/web/src/lib/staff-board.ts",
+      "lineRange": [
+        122,
+        172
+      ],
+      "summary": "组装服务员看板：会话、订单、结账请求、桌台与分组。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableDetail",
+      "type": "function",
+      "name": "fetchWaiterTableDetail",
+      "filePath": "apps/web/src/lib/staff-board.ts",
+      "lineRange": [
+        174,
+        224
+      ],
+      "summary": "加载单桌详情含会话、结账请求与订单列表。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableActionTargets",
+      "type": "function",
+      "name": "fetchWaiterTableActionTargets",
+      "filePath": "apps/web/src/lib/staff-board.ts",
+      "lineRange": [
+        226,
+        256
+      ],
+      "summary": "为转台/并台操作筛选合法目标桌台与会话元数据。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-routes.ts:staffRolePath",
+      "type": "function",
+      "name": "staffRolePath",
+      "filePath": "apps/web/src/lib/staff-routes.ts",
+      "lineRange": [
+        9,
+        14
+      ],
+      "summary": "根据餐厅 slug 与员工角色生成基础路径前缀。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-routes.ts:waiterBoardHref",
+      "type": "function",
+      "name": "waiterBoardHref",
+      "filePath": "apps/web/src/lib/staff-routes.ts",
+      "lineRange": [
+        16,
+        20
+      ],
+      "summary": "构建服务员看板页面 URL，支持 dashboard 嵌入模式。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-routes.ts:waiterTableHref",
+      "type": "function",
+      "name": "waiterTableHref",
+      "filePath": "apps/web/src/lib/staff-routes.ts",
+      "lineRange": [
+        22,
+        31
+      ],
+      "summary": "构建服务员单桌详情页 URL 并编码 table_id。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-routes.ts:waiterMenuHref",
+      "type": "function",
+      "name": "waiterMenuHref",
+      "filePath": "apps/web/src/lib/staff-routes.ts",
+      "lineRange": [
+        34,
+        46
+      ],
+      "summary": "构建服务员代客点餐菜单页 URL，附带返回桌台链接参数。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-routes.ts:waiterBillHref",
+      "type": "function",
+      "name": "waiterBillHref",
+      "filePath": "apps/web/src/lib/staff-routes.ts",
+      "lineRange": [
+        49,
+        60
+      ],
+      "summary": "构建服务员账单页 URL，附带返回桌台链接参数。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-routes.ts:dashboardCheckoutTableHref",
+      "type": "function",
+      "name": "dashboardCheckoutTableHref",
+      "filePath": "apps/web/src/lib/staff-routes.ts",
+      "lineRange": [
+        63,
+        65
+      ],
+      "summary": "构建仪表盘结账处理页面对应桌台的 deep link。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-routes.ts:resolveWaiterMenuReturnHref",
+      "type": "function",
+      "name": "resolveWaiterMenuReturnHref",
+      "filePath": "apps/web/src/lib/staff-routes.ts",
+      "lineRange": [
+        72,
+        98
+      ],
+      "summary": "解析菜单页安全返回路径，白名单校验后回退看板链接。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-checkout-pending.ts:checkoutRequestedTableIdsFromRows",
+      "type": "function",
+      "name": "checkoutRequestedTableIdsFromRows",
+      "filePath": "apps/web/src/lib/table-checkout-pending.ts",
+      "lineRange": [
+        9,
+        19
+      ],
+      "summary": "从 bill_splits 行提取去重后的结账请求桌台 ID 集合。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-checkout-pending.ts:isTableCheckoutRequested",
+      "type": "function",
+      "name": "isTableCheckoutRequested",
+      "filePath": "apps/web/src/lib/table-checkout-pending.ts",
+      "lineRange": [
+        21,
+        26
+      ],
+      "summary": "判断给定桌台 ID 是否在结账请求集合中。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-checkout-pending.ts:checkoutRequestedAtByTableIdFromRows",
+      "type": "function",
+      "name": "checkoutRequestedAtByTableIdFromRows",
+      "filePath": "apps/web/src/lib/table-checkout-pending.ts",
+      "lineRange": [
+        28,
+        42
+      ],
+      "summary": "构建桌台 ID 到结账请求时间的映射。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-checkout-pending.ts:checkoutRequestedAtForTable",
+      "type": "function",
+      "name": "checkoutRequestedAtForTable",
+      "filePath": "apps/web/src/lib/table-checkout-pending.ts",
+      "lineRange": [
+        44,
+        53
+      ],
+      "summary": "查找单桌最近一次结账请求时间戳。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-checkout-pending.ts:countPendingCheckoutRequests",
+      "type": "function",
+      "name": "countPendingCheckoutRequests",
+      "filePath": "apps/web/src/lib/table-checkout-pending.ts",
+      "lineRange": [
+        56,
+        69
+      ],
+      "summary": "统计餐厅内 status=requested 的 bill_splits 数量。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-checkout-pending.ts:fetchCheckoutRequestedBoard",
+      "type": "function",
+      "name": "fetchCheckoutRequestedBoard",
+      "filePath": "apps/web/src/lib/table-checkout-pending.ts",
+      "lineRange": [
+        71,
+        87
+      ],
+      "summary": "加载看板所需的结账请求桌台 ID 与时间映射。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-checkout-pending.ts:fetchCheckoutRequestedTableIds",
+      "type": "function",
+      "name": "fetchCheckoutRequestedTableIds",
+      "filePath": "apps/web/src/lib/table-checkout-pending.ts",
+      "lineRange": [
+        89,
+        95
+      ],
+      "summary": "仅返回结账请求中的桌台 ID 列表。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/use-buffet-prices-realtime-refresh.ts:useBuffetPricesRealtimeRefresh",
+      "type": "function",
+      "name": "useBuffetPricesRealtimeRefresh",
+      "filePath": "apps/web/src/lib/use-buffet-prices-realtime-refresh.ts",
+      "lineRange": [
+        10,
+        89
+      ],
+      "summary": "订阅自助餐价格表变更并在页面可见时防抖调用 onRefresh。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/demo-data.ts",
+      "target": "function:apps/web/src/lib/demo-data.ts:demoTableByDisplayName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/demo-data.ts",
+      "target": "function:apps/web/src/lib/demo-data.ts:demoTableByDisplayName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/demo-page-metadata.ts",
+      "target": "function:apps/web/src/lib/demo-page-metadata.ts:demoPageMetadata",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/demo-page-metadata.ts",
+      "target": "function:apps/web/src/lib/demo-page-metadata.ts:demoPageMetadata",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:normalizeTableGroupName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:normalizeTableGroupName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:isValidTableGroupName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:isValidTableGroupName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:compareTableGroups",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:compareTableGroups",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTableGroups",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTableGroups",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:buildTableGroupNameByTableId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:buildTableGroupNameByTableId",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:buildTableGroupIdByTableId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:buildTableGroupIdByTableId",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTablesForGroupAssignPicker",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTablesForGroupAssignPicker",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:groupTableIdsByGroupId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:groupTableIdsByGroupId",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:isWaiterTableCheckoutPending",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:isWaiterTableCheckoutPending",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortWaiterTableCards",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortWaiterTableCards",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:buildWaiterBoardSections",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:buildWaiterBoardSections",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTablesForGroupPrint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTablesForGroupPrint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:normalizeTableDisplayName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:normalizeTableDisplayName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:isValidTableDisplayName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:isValidTableDisplayName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:parseTableIdParam",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:parseTableIdParam",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:formatDefaultTableDisplayName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:formatDefaultTableDisplayName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:nextDefaultTableDisplayName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:nextDefaultTableDisplayName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:nextDefaultTableDisplayNames",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:nextDefaultTableDisplayNames",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:isValidTableAddCount",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:isValidTableAddCount",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:compareRestaurantTables",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:compareRestaurantTables",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:sortRestaurantTables",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:sortRestaurantTables",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:tableIdsEqual",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:tableIdsEqual",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:mergeTablesWithOrderHistory",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:mergeTablesWithOrderHistory",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:activeRestaurantTables",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:activeRestaurantTables",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterBoardClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterBoardClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterTableDetailClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterTableDetailClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:postWaiterBuffetOpenClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:postWaiterBuffetOpenClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterTableActionTargetsClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterTableActionTargetsClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:fetchKitchenBoardClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:fetchKitchenBoardClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchCheckoutRequestedForTable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:loadTableOrdersForSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchKitchenBoard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchKitchenBoard",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchWaiterBoard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchWaiterBoard",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableDetail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableDetail",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableActionTargets",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableActionTargets",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:staffRolePath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:staffRolePath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterBoardHref",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterBoardHref",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterTableHref",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterTableHref",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterMenuHref",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterMenuHref",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterBillHref",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterBillHref",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:dashboardCheckoutTableHref",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:dashboardCheckoutTableHref",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:resolveWaiterMenuReturnHref",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:resolveWaiterMenuReturnHref",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:checkoutRequestedTableIdsFromRows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:checkoutRequestedTableIdsFromRows",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:isTableCheckoutRequested",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:isTableCheckoutRequested",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:checkoutRequestedAtByTableIdFromRows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:checkoutRequestedAtByTableIdFromRows",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:checkoutRequestedAtForTable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:checkoutRequestedAtForTable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:countPendingCheckoutRequests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:countPendingCheckoutRequests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:fetchCheckoutRequestedBoard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:fetchCheckoutRequestedBoard",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:fetchCheckoutRequestedTableIds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:fetchCheckoutRequestedTableIds",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/use-buffet-prices-realtime-refresh.ts",
+      "target": "function:apps/web/src/lib/use-buffet-prices-realtime-refresh.ts:useBuffetPricesRealtimeRefresh",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/use-buffet-prices-realtime-refresh.ts",
+      "target": "function:apps/web/src/lib/use-buffet-prices-realtime-refresh.ts:useBuffetPricesRealtimeRefresh",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/demo-data.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/demo-data.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.test.ts",
+      "target": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "file:apps/web/src/lib/waiter-board-session.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "file:apps/web/src/lib/waiter-table-occupancy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "file:apps/web/src/lib/staff-board.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "file:apps/web/src/lib/waiter-board-session.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "file:apps/web/src/lib/waiter-board-query.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "file:apps/web/src/lib/waiter-board-session.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "file:apps/web/src/lib/waiter-table-occupancy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.test.ts",
+      "target": "file:apps/web/src/lib/staff-routes.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-checkout-pending.test.ts",
+      "target": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "file:apps/web/src/lib/restaurant-table-groups.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "file:apps/web/src/lib/staff-routes.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "target": "file:apps/web/src/lib/table-checkout-pending.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTablesForGroupAssignPicker",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:buildTableGroupIdByTableId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTablesForGroupAssignPicker",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:compareRestaurantTables",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-table-groups.ts:isWaiterTableCheckoutPending",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:isTableCheckoutRequested",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-table-groups.ts:sortWaiterTableCards",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:isWaiterTableCheckoutPending",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-table-groups.ts:sortWaiterTableCards",
+      "target": "function:apps/web/src/lib/waiter-table-occupancy.ts:isWaiterTableCardOccupied",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-table-groups.ts:sortWaiterTableCards",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:compareRestaurantTables",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-table-groups.ts:buildWaiterBoardSections",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:groupTableIdsByGroupId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-table-groups.ts:buildWaiterBoardSections",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTableGroups",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTablesForGroupPrint",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:buildWaiterBoardSections",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/table-checkout-pending.ts:isTableCheckoutRequested",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:tableIdsEqual",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/table-checkout-pending.ts:checkoutRequestedAtForTable",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:tableIdsEqual",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/table-checkout-pending.ts:fetchCheckoutRequestedTableIds",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:fetchCheckoutRequestedBoard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-board.ts:fetchWaiterBoard",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:fetchCheckoutRequestedBoard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-board.ts:fetchWaiterBoard",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTableGroups",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableDetail",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchCheckoutRequestedForTable",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableDetail",
+      "target": "function:apps/web/src/lib/staff-board.ts:loadTableOrdersForSession",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableActionTargets",
+      "target": "function:apps/web/src/lib/waiter-table-occupancy.ts:activeWaiterTableIds",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableActionTargets",
+      "target": "function:apps/web/src/lib/waiter-table-occupancy.ts:filterWaiterTableActionTargets",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-board.ts:fetchKitchenBoard",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:compareRestaurantTables",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterBoardClient",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:sortRestaurantTables",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-board-client.ts:fetchKitchenBoardClient",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:sortRestaurantTables",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-routes.ts:waiterMenuHref",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterTableHref",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-routes.ts:waiterBillHref",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterTableHref",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-routes.ts:resolveWaiterMenuReturnHref",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterBoardHref",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-board.ts:fetchWaiterBoard",
+      "target": "function:apps/web/src/lib/waiter-board-query.ts:filterOrdersInActiveSessions",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-board.ts:fetchWaiterBoard",
+      "target": "function:apps/web/src/lib/waiter-board-query.ts:sessionMetaByTableIdFromSessions",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-board.ts:loadTableOrdersForSession",
+      "target": "function:apps/web/src/lib/waiter-board-query.ts:ACTIVE_ORDER_STATUSES",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

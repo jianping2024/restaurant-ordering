@@ -1,0 +1,246 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {
+      "path": "apps/web/src/lib/pt-nif.test.ts",
+      "language": "typescript",
+      "sizeLines": 56,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/pt-nif.ts",
+      "language": "typescript",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/rational-qty.test.ts",
+      "language": "typescript",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/rational-qty.ts",
+      "language": "typescript",
+      "sizeLines": 111,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/receipt-payer-label.ts",
+      "language": "typescript",
+      "sizeLines": 30,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/request-checkout-request.ts",
+      "language": "typescript",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/request-customer-context.ts",
+      "language": "typescript",
+      "sizeLines": 39,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/request-order-receipt-print.ts",
+      "language": "typescript",
+      "sizeLines": 97,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/resolve-append-cart-items.test.ts",
+      "language": "typescript",
+      "sizeLines": 189,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/resolve-append-cart-items.ts",
+      "language": "typescript",
+      "sizeLines": 236,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/split-person-label.test.ts",
+      "language": "typescript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/split-person-label.ts",
+      "language": "typescript",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "language": "typescript",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/station-ticket-enqueue.ts",
+      "language": "typescript",
+      "sizeLines": 383,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/table-guest-count.ts",
+      "language": "typescript",
+      "sizeLines": 67,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/table-session-open.test.ts",
+      "language": "typescript",
+      "sizeLines": 108,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/table-session-open.ts",
+      "language": "typescript",
+      "sizeLines": 69,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/use-bill-orders.ts",
+      "language": "typescript",
+      "sizeLines": 55,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/use-by-item-split-state.ts",
+      "language": "typescript",
+      "sizeLines": 91,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/waiter-board-permissions.test.ts",
+      "language": "typescript",
+      "sizeLines": 47,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/waiter-board-query.test.ts",
+      "language": "typescript",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/waiter-board-query.ts",
+      "language": "typescript",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/waiter-table-occupancy.test.ts",
+      "language": "typescript",
+      "sizeLines": 60,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/waiter-table-orders.test.ts",
+      "language": "typescript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/types/index.ts",
+      "language": "typescript",
+      "sizeLines": 351,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "apps/web/src/lib/pt-nif.test.ts": [
+      "apps/web/src/lib/pt-nif.ts"
+    ],
+    "apps/web/src/lib/pt-nif.ts": [],
+    "apps/web/src/lib/rational-qty.test.ts": [
+      "apps/web/src/lib/rational-qty.ts"
+    ],
+    "apps/web/src/lib/rational-qty.ts": [],
+    "apps/web/src/lib/receipt-payer-label.ts": [
+      "apps/web/src/lib/split-person-label.ts"
+    ],
+    "apps/web/src/lib/request-checkout-request.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/request-customer-context.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/request-order-receipt-print.ts": [
+      "apps/web/src/lib/order-receipt-enqueue.ts"
+    ],
+    "apps/web/src/lib/resolve-append-cart-items.test.ts": [
+      "apps/web/src/lib/resolve-append-cart-items.ts"
+    ],
+    "apps/web/src/lib/resolve-append-cart-items.ts": [
+      "apps/web/src/lib/cart-totals.ts",
+      "apps/web/src/lib/menu-print-label.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/split-person-label.test.ts": [
+      "apps/web/src/lib/split-person-label.ts"
+    ],
+    "apps/web/src/lib/split-person-label.ts": [
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/i18n/messages.ts"
+    ],
+    "apps/web/src/lib/station-ticket-auto-rate-limit.ts": [],
+    "apps/web/src/lib/station-ticket-enqueue.ts": [
+      "apps/web/src/lib/menu-print-label.ts",
+      "apps/web/src/lib/order-items.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/lib/print-station-resolve.ts",
+      "apps/web/src/lib/table-guest-count.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/table-guest-count.ts": [
+      "apps/web/src/lib/order-items.ts",
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/table-session-open.test.ts": [
+      "apps/web/src/lib/table-session-open.ts"
+    ],
+    "apps/web/src/lib/table-session-open.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/use-bill-orders.ts": [
+      "apps/web/src/lib/customer-bill-sync.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/use-by-item-split-state.ts": [
+      "apps/web/src/lib/bill-split-by-item-lines.ts",
+      "apps/web/src/lib/bill-split-by-item.ts",
+      "apps/web/src/lib/checkout-split-continuation.ts",
+      "apps/web/src/lib/consumer-name-roster.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/waiter-board-permissions.test.ts": [
+      "apps/web/src/lib/checkout-request-payload.ts",
+      "apps/web/src/lib/split-person-label.ts",
+      "apps/web/src/lib/waiter-board-permissions.ts"
+    ],
+    "apps/web/src/lib/waiter-board-query.test.ts": [
+      "apps/web/src/lib/waiter-board-query.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/waiter-board-query.ts": [
+      "apps/web/src/lib/waiter-board-session.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/waiter-table-occupancy.test.ts": [
+      "apps/web/src/lib/waiter-table-occupancy.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/waiter-table-orders.test.ts": [
+      "apps/web/src/lib/waiter-table-orders.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/types/index.ts": []
+  }
+}

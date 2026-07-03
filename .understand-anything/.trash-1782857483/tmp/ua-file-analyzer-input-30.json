@@ -1,0 +1,13 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {"path": "apps/print-agent/scripts/build-release.ps1", "language": "powershell", "sizeLines": 86, "fileCategory": "script"},
+    {"path": "apps/print-agent/scripts/verify-single-instance.sh", "language": "shell", "sizeLines": 23, "fileCategory": "script"},
+    {"path": "apps/print-agent/scripts/verify-tray-startup-order.sh", "language": "shell", "sizeLines": 40, "fileCategory": "script"}
+  ],
+  "batchImportData": {
+    "apps/print-agent/scripts/build-release.ps1": [],
+    "apps/print-agent/scripts/verify-single-instance.sh": [],
+    "apps/print-agent/scripts/verify-tray-startup-order.sh": []
+  }
+}

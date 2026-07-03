@@ -1,0 +1,2054 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/print-agent/escpos_cut_test.go",
+      "type": "file",
+      "name": "escpos_cut_test.go",
+      "filePath": "apps/print-agent/escpos_cut_test.go",
+      "summary": "Go 单元测试 escpos_cut_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_cut_test.go:marginLinesBeforeContent",
+      "type": "function",
+      "name": "marginLinesBeforeContent",
+      "filePath": "apps/print-agent/escpos_cut_test.go",
+      "lineRange": [
+        14,
+        24
+      ],
+      "summary": "函数 marginLinesBeforeContent，实现 escpos_cut_test 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_cut_test.go:TestCutSequenceUsesFeedThenCut",
+      "type": "function",
+      "name": "TestCutSequenceUsesFeedThenCut",
+      "filePath": "apps/print-agent/escpos_cut_test.go",
+      "lineRange": [
+        35,
+        50
+      ],
+      "summary": "导出的 React 组件或类 TestCutSequenceUsesFeedThenCut。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_cut_test.go:TestTicketTopMarginMinimal",
+      "type": "function",
+      "name": "TestTicketTopMarginMinimal",
+      "filePath": "apps/print-agent/escpos_cut_test.go",
+      "lineRange": [
+        52,
+        60
+      ],
+      "summary": "导出的 React 组件或类 TestTicketTopMarginMinimal。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_cut_test.go:TestTicketBottomMarginBeforeCut",
+      "type": "function",
+      "name": "TestTicketBottomMarginBeforeCut",
+      "filePath": "apps/print-agent/escpos_cut_test.go",
+      "lineRange": [
+        62,
+        78
+      ],
+      "summary": "导出的 React 组件或类 TestTicketBottomMarginBeforeCut。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_cut_test.go:TestCutDotsIncreaseWhenDoubleHeight",
+      "type": "function",
+      "name": "TestCutDotsIncreaseWhenDoubleHeight",
+      "filePath": "apps/print-agent/escpos_cut_test.go",
+      "lineRange": [
+        80,
+        95
+      ],
+      "summary": "导出的 React 组件或类 TestCutDotsIncreaseWhenDoubleHeight。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_cut_test.go:containsSubslice",
+      "type": "function",
+      "name": "containsSubslice",
+      "filePath": "apps/print-agent/escpos_cut_test.go",
+      "lineRange": [
+        97,
+        114
+      ],
+      "summary": "函数 containsSubslice，实现 escpos_cut_test 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/escpos_encoding_test.go",
+      "type": "file",
+      "name": "escpos_encoding_test.go",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "summary": "Go 单元测试 escpos_encoding_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeWindows1252Portuguese",
+      "type": "function",
+      "name": "TestEncodeWindows1252Portuguese",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "lineRange": [
+        8,
+        13
+      ],
+      "summary": "导出的 React 组件或类 TestEncodeWindows1252Portuguese。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeGBKChinese",
+      "type": "function",
+      "name": "TestEncodeGBKChinese",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "lineRange": [
+        15,
+        20
+      ],
+      "summary": "导出的 React 组件或类 TestEncodeGBKChinese。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding_test.go:TestPayloadNeedsGBK",
+      "type": "function",
+      "name": "TestPayloadNeedsGBK",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "lineRange": [
+        22,
+        29
+      ],
+      "summary": "导出的 React 组件或类 TestPayloadNeedsGBK。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding_test.go:TestReceiptTicketNeedsGBKPayer",
+      "type": "function",
+      "name": "TestReceiptTicketNeedsGBKPayer",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "lineRange": [
+        31,
+        41
+      ],
+      "summary": "导出的 React 组件或类 TestReceiptTicketNeedsGBKPayer。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding_test.go:TestReceiptTicketNeedsGBKIgnoresRestaurantName",
+      "type": "function",
+      "name": "TestReceiptTicketNeedsGBKIgnoresRestaurantName",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "lineRange": [
+        43,
+        50
+      ],
+      "summary": "导出的 React 组件或类 TestReceiptTicketNeedsGBKIgnoresRestaurantName。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding_test.go:TestConnectionTestNeedsGBK",
+      "type": "function",
+      "name": "TestConnectionTestNeedsGBK",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "lineRange": [
+        52,
+        68
+      ],
+      "summary": "导出的 React 组件或类 TestConnectionTestNeedsGBK。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding_test.go:TestFormatSplitPayerForReceipt",
+      "type": "function",
+      "name": "TestFormatSplitPayerForReceipt",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "lineRange": [
+        70,
+        80
+      ],
+      "summary": "导出的 React 组件或类 TestFormatSplitPayerForReceipt。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeWindows1252OmitsUnmappable",
+      "type": "function",
+      "name": "TestEncodeWindows1252OmitsUnmappable",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "lineRange": [
+        82,
+        87
+      ],
+      "summary": "导出的 React 组件或类 TestEncodeWindows1252OmitsUnmappable。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/escpos_encoding.go",
+      "type": "file",
+      "name": "escpos_encoding.go",
+      "filePath": "apps/print-agent/escpos_encoding.go",
+      "summary": "Go 模块 escpos_encoding.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding.go:formatSplitPayerForReceipt",
+      "type": "function",
+      "name": "formatSplitPayerForReceipt",
+      "filePath": "apps/print-agent/escpos_encoding.go",
+      "lineRange": [
+        15,
+        24
+      ],
+      "summary": "函数 formatSplitPayerForReceipt，实现 escpos_encoding 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding.go:payloadNeedsGBK",
+      "type": "function",
+      "name": "payloadNeedsGBK",
+      "filePath": "apps/print-agent/escpos_encoding.go",
+      "lineRange": [
+        35,
+        48
+      ],
+      "summary": "函数 payloadNeedsGBK，实现 escpos_encoding 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding.go:stationTicketNeedsGBK",
+      "type": "function",
+      "name": "stationTicketNeedsGBK",
+      "filePath": "apps/print-agent/escpos_encoding.go",
+      "lineRange": [
+        51,
+        61
+      ],
+      "summary": "函数 stationTicketNeedsGBK，实现 escpos_encoding 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding.go:receiptTicketNeedsGBK",
+      "type": "function",
+      "name": "receiptTicketNeedsGBK",
+      "filePath": "apps/print-agent/escpos_encoding.go",
+      "lineRange": [
+        83,
+        96
+      ],
+      "summary": "函数 receiptTicketNeedsGBK，实现 escpos_encoding 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding.go:labelsASCII",
+      "type": "function",
+      "name": "labelsASCII",
+      "filePath": "apps/print-agent/escpos_encoding.go",
+      "lineRange": [
+        107,
+        130
+      ],
+      "summary": "函数 labelsASCII，实现 escpos_encoding 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding.go:encodeWindows1252",
+      "type": "function",
+      "name": "encodeWindows1252",
+      "filePath": "apps/print-agent/escpos_encoding.go",
+      "lineRange": [
+        132,
+        152
+      ],
+      "summary": "函数 encodeWindows1252，实现 escpos_encoding 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding.go:encodeGBK",
+      "type": "function",
+      "name": "encodeGBK",
+      "filePath": "apps/print-agent/escpos_encoding.go",
+      "lineRange": [
+        154,
+        171
+      ],
+      "summary": "函数 encodeGBK，实现 escpos_encoding 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/escpos_receipt_test.go",
+      "type": "file",
+      "name": "escpos_receipt_test.go",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "summary": "Go 单元测试 escpos_receipt_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptEnglishLayout",
+      "type": "function",
+      "name": "TestBuildOrderReceiptEnglishLayout",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        10,
+        55
+      ],
+      "summary": "React 页面/布局组件 TestBuildOrderReceiptEnglishLayout。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptItemsHeaderFollowsMenuSeparator",
+      "type": "function",
+      "name": "TestReceiptItemsHeaderFollowsMenuSeparator",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        57,
+        85
+      ],
+      "summary": "导出的 React 组件或类 TestReceiptItemsHeaderFollowsMenuSeparator。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptBuffetShareQtyLabel",
+      "type": "function",
+      "name": "TestBuildOrderReceiptBuffetShareQtyLabel",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        87,
+        111
+      ],
+      "summary": "导出的 React 组件或类 TestBuildOrderReceiptBuffetShareQtyLabel。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptSplitPaymentShareQtyLabel",
+      "type": "function",
+      "name": "TestBuildOrderReceiptSplitPaymentShareQtyLabel",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        113,
+        139
+      ],
+      "summary": "导出的 React 组件或类 TestBuildOrderReceiptSplitPaymentShareQtyLabel。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptSplitPaymentGuestNumber",
+      "type": "function",
+      "name": "TestBuildOrderReceiptSplitPaymentGuestNumber",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        141,
+        165
+      ],
+      "summary": "导出的 React 组件或类 TestBuildOrderReceiptSplitPaymentGuestNumber。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestParseJobPayloadDisplayNameFromJSON",
+      "type": "function",
+      "name": "TestParseJobPayloadDisplayNameFromJSON",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        167,
+        176
+      ],
+      "summary": "导出的 React 组件或类 TestParseJobPayloadDisplayNameFromJSON。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestCheckoutBillOmitsPaymentLines",
+      "type": "function",
+      "name": "TestCheckoutBillOmitsPaymentLines",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        178,
+        200
+      ],
+      "summary": "导出的 React 组件或类 TestCheckoutBillOmitsPaymentLines。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestPreBillOmitsPaymentLines",
+      "type": "function",
+      "name": "TestPreBillOmitsPaymentLines",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        202,
+        217
+      ],
+      "summary": "导出的 React 组件或类 TestPreBillOmitsPaymentLines。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant",
+      "type": "function",
+      "name": "TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        219,
+        242
+      ],
+      "summary": "导出的 React 组件或类 TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestPreBillTitleEnglishLocale",
+      "type": "function",
+      "name": "TestPreBillTitleEnglishLocale",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        244,
+        257
+      ],
+      "summary": "导出的 React 组件或类 TestPreBillTitleEnglishLocale。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptItemNoteUsesUnderline",
+      "type": "function",
+      "name": "TestReceiptItemNoteUsesUnderline",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        259,
+        284
+      ],
+      "summary": "导出的 React 组件或类 TestReceiptItemNoteUsesUnderline。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/escpos_station_test.go",
+      "type": "file",
+      "name": "escpos_station_test.go",
+      "filePath": "apps/print-agent/escpos_station_test.go",
+      "summary": "Go 单元测试 escpos_station_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_station_test.go:TestBuildStationTicketEnglishLayout",
+      "type": "function",
+      "name": "TestBuildStationTicketEnglishLayout",
+      "filePath": "apps/print-agent/escpos_station_test.go",
+      "lineRange": [
+        10,
+        77
+      ],
+      "summary": "React 页面/布局组件 TestBuildStationTicketEnglishLayout。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_station_test.go:TestStationTicketItemNoteUsesUnderline",
+      "type": "function",
+      "name": "TestStationTicketItemNoteUsesUnderline",
+      "filePath": "apps/print-agent/escpos_station_test.go",
+      "lineRange": [
+        79,
+        100
+      ],
+      "summary": "导出的 React 组件或类 TestStationTicketItemNoteUsesUnderline。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_station_test.go:TestStationTicketNeedsGBKIgnoresRestaurantName",
+      "type": "function",
+      "name": "TestStationTicketNeedsGBKIgnoresRestaurantName",
+      "filePath": "apps/print-agent/escpos_station_test.go",
+      "lineRange": [
+        102,
+        109
+      ],
+      "summary": "导出的 React 组件或类 TestStationTicketNeedsGBKIgnoresRestaurantName。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/escpos_zh_encoding_test.go",
+      "type": "file",
+      "name": "escpos_zh_encoding_test.go",
+      "filePath": "apps/print-agent/escpos_zh_encoding_test.go",
+      "summary": "Go 单元测试 escpos_zh_encoding_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_zh_encoding_test.go:TestBuildConnectionTestZHUsesGBKByDefault",
+      "type": "function",
+      "name": "TestBuildConnectionTestZHUsesGBKByDefault",
+      "filePath": "apps/print-agent/escpos_zh_encoding_test.go",
+      "lineRange": [
+        11,
+        44
+      ],
+      "summary": "导出的 React 组件或类 TestBuildConnectionTestZHUsesGBKByDefault。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_zh_encoding_test.go:TestBuildConnectionTestZHUsesUTF8WhenConfigured",
+      "type": "function",
+      "name": "TestBuildConnectionTestZHUsesUTF8WhenConfigured",
+      "filePath": "apps/print-agent/escpos_zh_encoding_test.go",
+      "lineRange": [
+        46,
+        68
+      ],
+      "summary": "导出的 React 组件或类 TestBuildConnectionTestZHUsesUTF8WhenConfigured。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_zh_encoding_test.go:TestBuildStationTicketZHLocaleUsesGBK",
+      "type": "function",
+      "name": "TestBuildStationTicketZHLocaleUsesGBK",
+      "filePath": "apps/print-agent/escpos_zh_encoding_test.go",
+      "lineRange": [
+        70,
+        84
+      ],
+      "summary": "导出的 React 组件或类 TestBuildStationTicketZHLocaleUsesGBK。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_zh_encoding_test.go:TestNormalizePrintLocale",
+      "type": "function",
+      "name": "TestNormalizePrintLocale",
+      "filePath": "apps/print-agent/escpos_zh_encoding_test.go",
+      "lineRange": [
+        86,
+        93
+      ],
+      "summary": "导出的 React 组件或类 TestNormalizePrintLocale。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/escpos.go",
+      "type": "file",
+      "name": "escpos.go",
+      "filePath": "apps/print-agent/escpos.go",
+      "summary": "Go 模块 escpos.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:labelsFor",
+      "type": "function",
+      "name": "labelsFor",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        56,
+        128
+      ],
+      "summary": "函数 labelsFor，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:formatTableNoLabel",
+      "type": "function",
+      "name": "formatTableNoLabel",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        172,
+        183
+      ],
+      "summary": "函数 formatTableNoLabel，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:stationName",
+      "type": "function",
+      "name": "stationName",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        199,
+        214
+      ],
+      "summary": "函数 stationName，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:applyEncoding",
+      "type": "function",
+      "name": "applyEncoding",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        268,
+        277
+      ],
+      "summary": "函数 applyEncoding，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:size",
+      "type": "function",
+      "name": "size",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        335,
+        347
+      ],
+      "summary": "函数 size，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:text",
+      "type": "function",
+      "name": "text",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        349,
+        364
+      ],
+      "summary": "函数 text，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:writeResetPrintMode",
+      "type": "function",
+      "name": "writeResetPrintMode",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        370,
+        381
+      ],
+      "summary": "函数 writeResetPrintMode，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:finish",
+      "type": "function",
+      "name": "finish",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        384,
+        395
+      ],
+      "summary": "函数 finish，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:padField",
+      "type": "function",
+      "name": "padField",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        411,
+        421
+      ],
+      "summary": "函数 padField，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:writeTableContext",
+      "type": "function",
+      "name": "writeTableContext",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        489,
+        509
+      ],
+      "summary": "函数 writeTableContext，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:writeItemNoteLine",
+      "type": "function",
+      "name": "writeItemNoteLine",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        514,
+        526
+      ],
+      "summary": "函数 writeItemNoteLine，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:sortStationMenuLines",
+      "type": "function",
+      "name": "sortStationMenuLines",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        528,
+        538
+      ],
+      "summary": "函数 sortStationMenuLines，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:writeStationSlipHeader",
+      "type": "function",
+      "name": "writeStationSlipHeader",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        541,
+        551
+      ],
+      "summary": "函数 writeStationSlipHeader，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:writeStationMenuLines",
+      "type": "function",
+      "name": "writeStationMenuLines",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        554,
+        577
+      ],
+      "summary": "函数 writeStationMenuLines，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:writeStationSlipFooter",
+      "type": "function",
+      "name": "writeStationSlipFooter",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        579,
+        589
+      ],
+      "summary": "函数 writeStationSlipFooter，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:truncateRunes",
+      "type": "function",
+      "name": "truncateRunes",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        595,
+        604
+      ],
+      "summary": "函数 truncateRunes，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:receiptLineFieldsFrom",
+      "type": "function",
+      "name": "receiptLineFieldsFrom",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        626,
+        651
+      ],
+      "summary": "函数 receiptLineFieldsFrom，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:writeReceiptMenuLines",
+      "type": "function",
+      "name": "writeReceiptMenuLines",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        653,
+        669
+      ],
+      "summary": "函数 writeReceiptMenuLines，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:escposFromJob",
+      "type": "function",
+      "name": "escposFromJob",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        675,
+        701
+      ],
+      "summary": "函数 escposFromJob，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:buildStationTicket",
+      "type": "function",
+      "name": "buildStationTicket",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        704,
+        714
+      ],
+      "summary": "函数 buildStationTicket，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:buildOrderReceipt",
+      "type": "function",
+      "name": "buildOrderReceipt",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        717,
+        805
+      ],
+      "summary": "函数 buildOrderReceipt，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos.go:buildConnectionTest",
+      "type": "function",
+      "name": "buildConnectionTest",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        807,
+        828
+      ],
+      "summary": "函数 buildConnectionTest，实现 escpos 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:apps/print-agent/escpos.go:ticketLabels",
+      "type": "class",
+      "name": "ticketLabels",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        33,
+        54
+      ],
+      "summary": "类 ticketLabels，封装 escpos 中的状态与行为。",
+      "tags": [
+        "data-model",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:apps/print-agent/escpos.go:jobPayload",
+      "type": "class",
+      "name": "jobPayload",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        141,
+        162
+      ],
+      "summary": "类 jobPayload，封装 escpos 中的状态与行为。",
+      "tags": [
+        "data-model",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:apps/print-agent/escpos.go:escposWriter",
+      "type": "class",
+      "name": "escposWriter",
+      "filePath": "apps/print-agent/escpos.go",
+      "lineRange": [
+        223,
+        229
+      ],
+      "summary": "类 escposWriter，封装 escpos 中的状态与行为。",
+      "tags": [
+        "data-model",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/heartbeat_test.go",
+      "type": "file",
+      "name": "heartbeat_test.go",
+      "filePath": "apps/print-agent/heartbeat_test.go",
+      "summary": "Go 单元测试 heartbeat_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/heartbeat_test.go:TestMappedStationCount",
+      "type": "function",
+      "name": "TestMappedStationCount",
+      "filePath": "apps/print-agent/heartbeat_test.go",
+      "lineRange": [
+        5,
+        10
+      ],
+      "summary": "导出的 React 组件或类 TestMappedStationCount。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/heartbeat_test.go:TestHeartbeatSnapshotRecordPrint",
+      "type": "function",
+      "name": "TestHeartbeatSnapshotRecordPrint",
+      "filePath": "apps/print-agent/heartbeat_test.go",
+      "lineRange": [
+        12,
+        22
+      ],
+      "summary": "导出的 React 组件或类 TestHeartbeatSnapshotRecordPrint。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/heartbeat.go",
+      "type": "file",
+      "name": "heartbeat.go",
+      "filePath": "apps/print-agent/heartbeat.go",
+      "summary": "Go 模块 heartbeat.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/heartbeat.go:mappedStationCount",
+      "type": "function",
+      "name": "mappedStationCount",
+      "filePath": "apps/print-agent/heartbeat.go",
+      "lineRange": [
+        19,
+        30
+      ],
+      "summary": "函数 mappedStationCount，实现 heartbeat 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/heartbeat.go:postHeartbeat",
+      "type": "function",
+      "name": "postHeartbeat",
+      "filePath": "apps/print-agent/heartbeat.go",
+      "lineRange": [
+        41,
+        79
+      ],
+      "summary": "函数 postHeartbeat，实现 heartbeat 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/installer/mesa-print-agent.iss",
+      "type": "file",
+      "name": "mesa-print-agent.iss",
+      "filePath": "apps/print-agent/installer/mesa-print-agent.iss",
+      "summary": "源码文件 apps/print-agent/installer/mesa-print-agent.iss，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/job_max_age_test.go",
+      "type": "file",
+      "name": "job_max_age_test.go",
+      "filePath": "apps/print-agent/job_max_age_test.go",
+      "summary": "Go 单元测试 job_max_age_test.go，验证打印代理核心逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/job_max_age_test.go:TestJobPrintExpired",
+      "type": "function",
+      "name": "TestJobPrintExpired",
+      "filePath": "apps/print-agent/job_max_age_test.go",
+      "lineRange": [
+        8,
+        17
+      ],
+      "summary": "导出的 React 组件或类 TestJobPrintExpired。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/job_max_age.go",
+      "type": "file",
+      "name": "job_max_age.go",
+      "filePath": "apps/print-agent/job_max_age.go",
+      "summary": "Go 模块 job_max_age.go，实现 ESC/POS 打印与设备通信。",
+      "tags": [
+        "printing",
+        "service"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:marginLinesBeforeContent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:TestCutSequenceUsesFeedThenCut",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:TestCutSequenceUsesFeedThenCut",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:TestTicketTopMarginMinimal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:TestTicketTopMarginMinimal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:TestTicketBottomMarginBeforeCut",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:TestTicketBottomMarginBeforeCut",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:TestCutDotsIncreaseWhenDoubleHeight",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:TestCutDotsIncreaseWhenDoubleHeight",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:containsSubslice",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/escpos_cut_test.go:TestCutSequenceUsesFeedThenCut",
+      "target": "function:apps/print-agent/escpos_cut_test.go:containsSubslice",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/escpos_cut_test.go:TestCutSequenceUsesFeedThenCut",
+      "target": "function:apps/print-agent/escpos_cut_test.go:containsSubslice",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/escpos_cut_test.go:TestTicketTopMarginMinimal",
+      "target": "function:apps/print-agent/escpos_cut_test.go:marginLinesBeforeContent",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeWindows1252Portuguese",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeWindows1252Portuguese",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeGBKChinese",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeGBKChinese",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestPayloadNeedsGBK",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestPayloadNeedsGBK",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestReceiptTicketNeedsGBKPayer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestReceiptTicketNeedsGBKPayer",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestReceiptTicketNeedsGBKIgnoresRestaurantName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestReceiptTicketNeedsGBKIgnoresRestaurantName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestConnectionTestNeedsGBK",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestConnectionTestNeedsGBK",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestFormatSplitPayerForReceipt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestFormatSplitPayerForReceipt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeWindows1252OmitsUnmappable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeWindows1252OmitsUnmappable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding.go",
+      "target": "function:apps/print-agent/escpos_encoding.go:formatSplitPayerForReceipt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding.go",
+      "target": "function:apps/print-agent/escpos_encoding.go:payloadNeedsGBK",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding.go",
+      "target": "function:apps/print-agent/escpos_encoding.go:stationTicketNeedsGBK",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding.go",
+      "target": "function:apps/print-agent/escpos_encoding.go:receiptTicketNeedsGBK",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding.go",
+      "target": "function:apps/print-agent/escpos_encoding.go:labelsASCII",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding.go",
+      "target": "function:apps/print-agent/escpos_encoding.go:encodeWindows1252",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding.go",
+      "target": "function:apps/print-agent/escpos_encoding.go:encodeGBK",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/escpos_encoding.go:receiptTicketNeedsGBK",
+      "target": "function:apps/print-agent/escpos_encoding.go:formatSplitPayerForReceipt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptEnglishLayout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptEnglishLayout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptItemsHeaderFollowsMenuSeparator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptItemsHeaderFollowsMenuSeparator",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptBuffetShareQtyLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptBuffetShareQtyLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptSplitPaymentShareQtyLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptSplitPaymentShareQtyLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptSplitPaymentGuestNumber",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptSplitPaymentGuestNumber",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestParseJobPayloadDisplayNameFromJSON",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestParseJobPayloadDisplayNameFromJSON",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestCheckoutBillOmitsPaymentLines",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestCheckoutBillOmitsPaymentLines",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestPreBillOmitsPaymentLines",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestPreBillOmitsPaymentLines",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestPreBillTitleEnglishLocale",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestPreBillTitleEnglishLocale",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptItemNoteUsesUnderline",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptItemNoteUsesUnderline",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_station_test.go",
+      "target": "function:apps/print-agent/escpos_station_test.go:TestBuildStationTicketEnglishLayout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_station_test.go",
+      "target": "function:apps/print-agent/escpos_station_test.go:TestBuildStationTicketEnglishLayout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_station_test.go",
+      "target": "function:apps/print-agent/escpos_station_test.go:TestStationTicketItemNoteUsesUnderline",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_station_test.go",
+      "target": "function:apps/print-agent/escpos_station_test.go:TestStationTicketItemNoteUsesUnderline",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_station_test.go",
+      "target": "function:apps/print-agent/escpos_station_test.go:TestStationTicketNeedsGBKIgnoresRestaurantName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_station_test.go",
+      "target": "function:apps/print-agent/escpos_station_test.go:TestStationTicketNeedsGBKIgnoresRestaurantName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_zh_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_zh_encoding_test.go:TestBuildConnectionTestZHUsesGBKByDefault",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_zh_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_zh_encoding_test.go:TestBuildConnectionTestZHUsesGBKByDefault",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_zh_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_zh_encoding_test.go:TestBuildConnectionTestZHUsesUTF8WhenConfigured",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_zh_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_zh_encoding_test.go:TestBuildConnectionTestZHUsesUTF8WhenConfigured",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_zh_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_zh_encoding_test.go:TestBuildStationTicketZHLocaleUsesGBK",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_zh_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_zh_encoding_test.go:TestBuildStationTicketZHLocaleUsesGBK",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_zh_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_zh_encoding_test.go:TestNormalizePrintLocale",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos_zh_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_zh_encoding_test.go:TestNormalizePrintLocale",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:labelsFor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:formatTableNoLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:stationName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:applyEncoding",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:size",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:text",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:writeResetPrintMode",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:finish",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:padField",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:writeTableContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:writeItemNoteLine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:sortStationMenuLines",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:writeStationSlipHeader",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:writeStationMenuLines",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:writeStationSlipFooter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:truncateRunes",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:receiptLineFieldsFrom",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:writeReceiptMenuLines",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:escposFromJob",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:buildStationTicket",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:buildOrderReceipt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "function:apps/print-agent/escpos.go:buildConnectionTest",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "class:apps/print-agent/escpos.go:ticketLabels",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "class:apps/print-agent/escpos.go:jobPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/escpos.go",
+      "target": "class:apps/print-agent/escpos.go:escposWriter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/escpos.go:padField",
+      "target": "function:apps/print-agent/escpos.go:truncateRunes",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/escpos.go:writeItemNoteLine",
+      "target": "function:apps/print-agent/escpos.go:truncateRunes",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/escpos.go:writeStationMenuLines",
+      "target": "function:apps/print-agent/escpos.go:sortStationMenuLines",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/escpos.go:writeStationMenuLines",
+      "target": "function:apps/print-agent/escpos.go:truncateRunes",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/escpos.go:writeReceiptMenuLines",
+      "target": "function:apps/print-agent/escpos.go:receiptLineFieldsFrom",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/escpos.go:escposFromJob",
+      "target": "function:apps/print-agent/escpos.go:labelsFor",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/escpos.go:escposFromJob",
+      "target": "function:apps/print-agent/escpos.go:buildStationTicket",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/escpos.go:escposFromJob",
+      "target": "function:apps/print-agent/escpos.go:buildConnectionTest",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/escpos.go:escposFromJob",
+      "target": "function:apps/print-agent/escpos.go:buildOrderReceipt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/escpos.go:escposFromJob",
+      "target": "function:apps/print-agent/escpos.go:buildOrderReceipt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/escpos.go:escposFromJob",
+      "target": "function:apps/print-agent/escpos.go:buildStationTicket",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/escpos.go:buildStationTicket",
+      "target": "function:apps/print-agent/escpos.go:labelsFor",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/heartbeat_test.go",
+      "target": "function:apps/print-agent/heartbeat_test.go:TestMappedStationCount",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/heartbeat_test.go",
+      "target": "function:apps/print-agent/heartbeat_test.go:TestMappedStationCount",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/heartbeat_test.go",
+      "target": "function:apps/print-agent/heartbeat_test.go:TestHeartbeatSnapshotRecordPrint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/heartbeat_test.go",
+      "target": "function:apps/print-agent/heartbeat_test.go:TestHeartbeatSnapshotRecordPrint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/heartbeat.go",
+      "target": "function:apps/print-agent/heartbeat.go:mappedStationCount",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/heartbeat.go",
+      "target": "function:apps/print-agent/heartbeat.go:postHeartbeat",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/job_max_age_test.go",
+      "target": "function:apps/print-agent/job_max_age_test.go:TestJobPrintExpired",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/job_max_age_test.go",
+      "target": "function:apps/print-agent/job_max_age_test.go:TestJobPrintExpired",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

@@ -1,0 +1,2845 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 30,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/web/src/components/waiter/waiter-messages.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 251,
+      "nonEmptyLines": 251,
+      "exports": [
+        {
+          "name": "WAITER_TEXT",
+          "line": 1,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/waiter/waiter-table-detail-icons.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 72,
+      "nonEmptyLines": 64,
+      "functions": [
+        {
+          "name": "WaiterTableIcon",
+          "startLine": 3,
+          "endLine": 10,
+          "params": [
+            "{ className }"
+          ]
+        },
+        {
+          "name": "WaiterClockIcon",
+          "startLine": 12,
+          "endLine": 19,
+          "params": [
+            "{ className }"
+          ]
+        },
+        {
+          "name": "WaiterPlusIcon",
+          "startLine": 21,
+          "endLine": 27,
+          "params": [
+            "{ className }"
+          ]
+        },
+        {
+          "name": "WaiterTransferIcon",
+          "startLine": 29,
+          "endLine": 35,
+          "params": [
+            "{ className }"
+          ]
+        },
+        {
+          "name": "WaiterMergeIcon",
+          "startLine": 37,
+          "endLine": 45,
+          "params": [
+            "{ className }"
+          ]
+        },
+        {
+          "name": "WaiterBillIcon",
+          "startLine": 47,
+          "endLine": 54,
+          "params": [
+            "{ className }"
+          ]
+        },
+        {
+          "name": "WaiterPowerIcon",
+          "startLine": 56,
+          "endLine": 63,
+          "params": [
+            "{ className }"
+          ]
+        },
+        {
+          "name": "WaiterClocheIcon",
+          "startLine": 65,
+          "endLine": 72,
+          "params": [
+            "{ className }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "WaiterTableIcon",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterClockIcon",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterPlusIcon",
+          "line": 21,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterTransferIcon",
+          "line": 29,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterMergeIcon",
+          "line": 37,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterBillIcon",
+          "line": 47,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterPowerIcon",
+          "line": 56,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterClocheIcon",
+          "line": 65,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 8,
+        "functionCount": 8,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/waiter/waiter-table-detail-ui.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 21,
+      "nonEmptyLines": 19,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/waiter/waiter-table-detail-ui.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 128,
+      "nonEmptyLines": 115,
+      "functions": [
+        {
+          "name": "buffetStripSectionClass",
+          "startLine": 31,
+          "endLine": 40,
+          "params": [
+            "edge",
+            "extra"
+          ]
+        },
+        {
+          "name": "WaiterDetailCard",
+          "startLine": 42,
+          "endLine": 50,
+          "params": [
+            "{\n  children,\n  className = '',\n}"
+          ]
+        },
+        {
+          "name": "WaiterTablePrimaryButton",
+          "startLine": 58,
+          "endLine": 76,
+          "params": [
+            "{\n  variant = 'gold',\n  icon,\n  className = '',\n  children,\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "WaiterTablePrimaryLink",
+          "startLine": 84,
+          "endLine": 103,
+          "params": [
+            "{\n  icon,\n  className = '',\n  disabled = false,\n  children,\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "WaiterTableSecondaryButton",
+          "startLine": 109,
+          "endLine": 126,
+          "params": [
+            "{\n  icon,\n  className = '',\n  children,\n  ...props\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "WAITER_DETAIL_GUTTER_PX",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "waiterDetailLayout",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "buffetStripSectionClass",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterDetailCard",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterTablePrimaryButton",
+          "line": 58,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterTablePrimaryLink",
+          "line": 84,
+          "isDefault": false
+        },
+        {
+          "name": "WaiterTableSecondaryButton",
+          "line": 109,
+          "isDefault": false
+        },
+        {
+          "name": "buttonIcon",
+          "line": 128,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "buffetStripSectionClass",
+          "callee": "[base, edgeClass, extra].filter(Boolean).join",
+          "lineNumber": 39
+        },
+        {
+          "caller": "buffetStripSectionClass",
+          "callee": "[base, edgeClass, extra].filter",
+          "lineNumber": 39
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 8,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/waiter/waiter-ui.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 7,
+      "nonEmptyLines": 7,
+      "exports": [
+        {
+          "name": "waiterUi",
+          "line": 2,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/audit/reason-labels.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 29,
+      "nonEmptyLines": 26,
+      "functions": [
+        {
+          "name": "abnormalReasonOptions",
+          "startLine": 16,
+          "endLine": 29,
+          "params": [
+            "lang",
+            "group"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "abnormalReasonOptions",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "abnormalReasonOptions",
+          "callee": "getMessages",
+          "lineNumber": 17
+        },
+        {
+          "caller": "abnormalReasonOptions",
+          "callee": "REASON_CODES[group].map",
+          "lineNumber": 25
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/auth/sign-out-client.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 17,
+      "nonEmptyLines": 14,
+      "functions": [
+        {
+          "name": "signOutFromSupabase",
+          "startLine": 5,
+          "endLine": 8,
+          "params": []
+        },
+        {
+          "name": "dashboardSignOutAndRedirect",
+          "startLine": 10,
+          "endLine": 17,
+          "params": [
+            "router"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "signOutFromSupabase",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "dashboardSignOutAndRedirect",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "signOutFromSupabase",
+          "callee": "createClient",
+          "lineNumber": 6
+        },
+        {
+          "caller": "signOutFromSupabase",
+          "callee": "supabase.auth.signOut",
+          "lineNumber": 7
+        },
+        {
+          "caller": "dashboardSignOutAndRedirect",
+          "callee": "signOutFromSupabase",
+          "lineNumber": 14
+        },
+        {
+          "caller": "dashboardSignOutAndRedirect",
+          "callee": "router.push",
+          "lineNumber": 15
+        },
+        {
+          "caller": "dashboardSignOutAndRedirect",
+          "callee": "router.refresh",
+          "lineNumber": 16
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 64,
+      "nonEmptyLines": 56,
+      "functions": [
+        {
+          "name": "SignOutConfirmModal",
+          "startLine": 15,
+          "endLine": 37,
+          "params": [
+            "{\n  open,\n  onClose,\n  onConfirm,\n  confirming = false,\n}"
+          ]
+        },
+        {
+          "name": "useSignOutConfirmState",
+          "startLine": 39,
+          "endLine": 64,
+          "params": [
+            "onConfirm"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SignOutConfirmModal",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "useSignOutConfirmState",
+          "line": 39,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SignOutConfirmModal",
+          "callee": "useLanguage",
+          "lineNumber": 21
+        },
+        {
+          "caller": "SignOutConfirmModal",
+          "callee": "getMessages",
+          "lineNumber": 22
+        },
+        {
+          "caller": "useSignOutConfirmState",
+          "callee": "useState",
+          "lineNumber": 40
+        },
+        {
+          "caller": "useSignOutConfirmState",
+          "callee": "useState",
+          "lineNumber": 41
+        },
+        {
+          "caller": "closeModal",
+          "callee": "setOpen",
+          "lineNumber": 44
+        },
+        {
+          "caller": "confirmSignOut",
+          "callee": "setConfirming",
+          "lineNumber": 48
+        },
+        {
+          "caller": "confirmSignOut",
+          "callee": "onConfirm",
+          "lineNumber": 50
+        },
+        {
+          "caller": "confirmSignOut",
+          "callee": "setOpen",
+          "lineNumber": 51
+        },
+        {
+          "caller": "confirmSignOut",
+          "callee": "setConfirming",
+          "lineNumber": 53
+        },
+        {
+          "caller": "useSignOutConfirmState",
+          "callee": "setOpen",
+          "lineNumber": 58
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/buffet-pricing-admin.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 222,
+      "nonEmptyLines": 202,
+      "functions": [
+        {
+          "name": "hmToMinutes",
+          "startLine": 13,
+          "endLine": 18,
+          "params": [
+            "hm"
+          ]
+        },
+        {
+          "name": "getDayKindForDate",
+          "startLine": 21,
+          "endLine": 32,
+          "params": [
+            "dateIso",
+            "overrides"
+          ]
+        },
+        {
+          "name": "getDayKindForDateTime",
+          "startLine": 35,
+          "endLine": 52,
+          "params": [
+            "dateIso",
+            "timeHm",
+            "overrides",
+            "opts"
+          ]
+        },
+        {
+          "name": "dbTimeToHm",
+          "startLine": 55,
+          "endLine": 58,
+          "params": [
+            "db"
+          ]
+        },
+        {
+          "name": "hmToDbTime",
+          "startLine": 61,
+          "endLine": 65,
+          "params": [
+            "hm"
+          ]
+        },
+        {
+          "name": "ruleCoversDate",
+          "startLine": 67,
+          "endLine": 73,
+          "params": [
+            "rule",
+            "dateIso"
+          ]
+        },
+        {
+          "name": "hasActiveRuleForDayKind",
+          "startLine": 75,
+          "endLine": 91,
+          "params": [
+            "rules",
+            "opts"
+          ]
+        },
+        {
+          "name": "datesInRangeInclusive",
+          "startLine": 93,
+          "endLine": 108,
+          "params": [
+            "from",
+            "to"
+          ]
+        },
+        {
+          "name": "rangesOverlap",
+          "startLine": 110,
+          "endLine": 117,
+          "params": [
+            "aFrom",
+            "aTo",
+            "bFrom",
+            "bTo"
+          ]
+        },
+        {
+          "name": "findOverlappingRules",
+          "startLine": 119,
+          "endLine": 144,
+          "params": [
+            "rules",
+            "draft"
+          ]
+        },
+        {
+          "name": "getRuleStatus",
+          "startLine": 148,
+          "endLine": 156,
+          "params": [
+            "rule",
+            "todayIso"
+          ]
+        },
+        {
+          "name": "lisbonWallTimeToUtcIso",
+          "startLine": 159,
+          "endLine": 207,
+          "params": [
+            "date",
+            "time"
+          ]
+        },
+        {
+          "name": "todayIsoLocal",
+          "startLine": 209,
+          "endLine": 215,
+          "params": []
+        },
+        {
+          "name": "nowTimeHmLocal",
+          "startLine": 217,
+          "endLine": 220,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "getDayKindForDate",
+          "line": 21,
+          "isDefault": false
+        },
+        {
+          "name": "getDayKindForDateTime",
+          "line": 35,
+          "isDefault": false
+        },
+        {
+          "name": "dbTimeToHm",
+          "line": 55,
+          "isDefault": false
+        },
+        {
+          "name": "hmToDbTime",
+          "line": 61,
+          "isDefault": false
+        },
+        {
+          "name": "ruleCoversDate",
+          "line": 67,
+          "isDefault": false
+        },
+        {
+          "name": "hasActiveRuleForDayKind",
+          "line": 75,
+          "isDefault": false
+        },
+        {
+          "name": "datesInRangeInclusive",
+          "line": 93,
+          "isDefault": false
+        },
+        {
+          "name": "rangesOverlap",
+          "line": 110,
+          "isDefault": false
+        },
+        {
+          "name": "findOverlappingRules",
+          "line": 119,
+          "isDefault": false
+        },
+        {
+          "name": "getRuleStatus",
+          "line": 148,
+          "isDefault": false
+        },
+        {
+          "name": "lisbonWallTimeToUtcIso",
+          "line": 159,
+          "isDefault": false
+        },
+        {
+          "name": "todayIsoLocal",
+          "line": 209,
+          "isDefault": false
+        },
+        {
+          "name": "nowTimeHmLocal",
+          "line": 217,
+          "isDefault": false
+        },
+        {
+          "name": "CALENDAR_KINDS",
+          "line": 222,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "hmToMinutes",
+          "callee": "normalizeHmInput",
+          "lineNumber": 14
+        },
+        {
+          "caller": "hmToMinutes",
+          "callee": "hm.slice",
+          "lineNumber": 14
+        },
+        {
+          "caller": "hmToMinutes",
+          "callee": "normalized.split(':').map",
+          "lineNumber": 16
+        },
+        {
+          "caller": "hmToMinutes",
+          "callee": "normalized.split",
+          "lineNumber": 16
+        },
+        {
+          "caller": "hmToMinutes",
+          "callee": "parseInt",
+          "lineNumber": 16
+        },
+        {
+          "caller": "getDayKindForDate",
+          "callee": "dateIso.slice",
+          "lineNumber": 25
+        },
+        {
+          "caller": "getDayKindForDate",
+          "callee": "overrides.find",
+          "lineNumber": 26
+        },
+        {
+          "caller": "getDayKindForDate",
+          "callee": "r.on_date.slice",
+          "lineNumber": 26
+        },
+        {
+          "caller": "getDayKindForDate",
+          "callee": "new Date(`${d}T12:00:00`).getDay",
+          "lineNumber": 29
+        },
+        {
+          "caller": "getDayKindForDateTime",
+          "callee": "getDayKindForDate",
+          "lineNumber": 41
+        },
+        {
+          "caller": "getDayKindForDateTime",
+          "callee": "dateIso.slice",
+          "lineNumber": 45
+        },
+        {
+          "caller": "getDayKindForDateTime",
+          "callee": "new Date(`${d}T12:00:00`).getDay",
+          "lineNumber": 46
+        },
+        {
+          "caller": "getDayKindForDateTime",
+          "callee": "hmToMinutes",
+          "lineNumber": 47
+        },
+        {
+          "caller": "getDayKindForDateTime",
+          "callee": "hmToMinutes",
+          "lineNumber": 48
+        },
+        {
+          "caller": "dbTimeToHm",
+          "callee": "normalizeHmInput",
+          "lineNumber": 57
+        },
+        {
+          "caller": "dbTimeToHm",
+          "callee": "db.slice",
+          "lineNumber": 57
+        },
+        {
+          "caller": "dbTimeToHm",
+          "callee": "db.slice",
+          "lineNumber": 57
+        },
+        {
+          "caller": "hmToDbTime",
+          "callee": "normalizeHmInput",
+          "lineNumber": 62
+        },
+        {
+          "caller": "ruleCoversDate",
+          "callee": "dateIso.slice",
+          "lineNumber": 69
+        },
+        {
+          "caller": "ruleCoversDate",
+          "callee": "rule.valid_from?.slice",
+          "lineNumber": 70
+        },
+        {
+          "caller": "ruleCoversDate",
+          "callee": "rule.valid_to?.slice",
+          "lineNumber": 71
+        },
+        {
+          "caller": "hasActiveRuleForDayKind",
+          "callee": "rules.some",
+          "lineNumber": 84
+        },
+        {
+          "caller": "hasActiveRuleForDayKind",
+          "callee": "ruleCoversDate",
+          "lineNumber": 88
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "from.slice",
+          "lineNumber": 94
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "to.slice",
+          "lineNumber": 95
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "cur.getFullYear",
+          "lineNumber": 101
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "String(cur.getMonth() + 1).padStart",
+          "lineNumber": 102
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "String",
+          "lineNumber": 102
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "cur.getMonth",
+          "lineNumber": 102
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "String(cur.getDate()).padStart",
+          "lineNumber": 103
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "String",
+          "lineNumber": 103
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "cur.getDate",
+          "lineNumber": 103
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "out.push",
+          "lineNumber": 104
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "cur.setDate",
+          "lineNumber": 105
+        },
+        {
+          "caller": "datesInRangeInclusive",
+          "callee": "cur.getDate",
+          "lineNumber": 105
+        },
+        {
+          "caller": "findOverlappingRules",
+          "callee": "rules.filter",
+          "lineNumber": 130
+        },
+        {
+          "caller": "findOverlappingRules",
+          "callee": "rangesOverlap",
+          "lineNumber": 137
+        },
+        {
+          "caller": "findOverlappingRules",
+          "callee": "draft.valid_from.slice",
+          "lineNumber": 138
+        },
+        {
+          "caller": "findOverlappingRules",
+          "callee": "draft.valid_to.slice",
+          "lineNumber": 139
+        },
+        {
+          "caller": "findOverlappingRules",
+          "callee": "r.valid_from?.slice",
+          "lineNumber": 140
+        },
+        {
+          "caller": "findOverlappingRules",
+          "callee": "r.valid_to?.slice",
+          "lineNumber": 141
+        },
+        {
+          "caller": "getRuleStatus",
+          "callee": "todayIso.slice",
+          "lineNumber": 149
+        },
+        {
+          "caller": "getRuleStatus",
+          "callee": "rule.valid_from?.slice",
+          "lineNumber": 150
+        },
+        {
+          "caller": "getRuleStatus",
+          "callee": "rule.valid_to?.slice",
+          "lineNumber": 151
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "date.slice",
+          "lineNumber": 160
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "time.split(':').map",
+          "lineNumber": 161
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "time.split",
+          "lineNumber": 161
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "parseInt",
+          "lineNumber": 161
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "String(hh).padStart",
+          "lineNumber": 162
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "String",
+          "lineNumber": 162
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "String(mm).padStart",
+          "lineNumber": 162
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "String",
+          "lineNumber": 162
+        },
+        {
+          "caller": "read",
+          "callee": "fmt.formatToParts",
+          "lineNumber": 173
+        },
+        {
+          "caller": "get",
+          "callee": "parts.find",
+          "lineNumber": 174
+        },
+        {
+          "caller": "read",
+          "callee": "parseInt",
+          "lineNumber": 176
+        },
+        {
+          "caller": "read",
+          "callee": "get",
+          "lineNumber": 176
+        },
+        {
+          "caller": "read",
+          "callee": "parseInt",
+          "lineNumber": 177
+        },
+        {
+          "caller": "read",
+          "callee": "get",
+          "lineNumber": 177
+        },
+        {
+          "caller": "read",
+          "callee": "parseInt",
+          "lineNumber": 178
+        },
+        {
+          "caller": "read",
+          "callee": "get",
+          "lineNumber": 178
+        },
+        {
+          "caller": "read",
+          "callee": "parseInt",
+          "lineNumber": 179
+        },
+        {
+          "caller": "read",
+          "callee": "get",
+          "lineNumber": 179
+        },
+        {
+          "caller": "read",
+          "callee": "parseInt",
+          "lineNumber": 180
+        },
+        {
+          "caller": "read",
+          "callee": "get",
+          "lineNumber": 180
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "parseInt",
+          "lineNumber": 183
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "d.slice",
+          "lineNumber": 183
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "parseInt",
+          "lineNumber": 184
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "d.slice",
+          "lineNumber": 184
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "parseInt",
+          "lineNumber": 185
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "d.slice",
+          "lineNumber": 185
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "guess.getTime",
+          "lineNumber": 187
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "guess.getTime",
+          "lineNumber": 188
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "Math.floor",
+          "lineNumber": 190
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "read",
+          "lineNumber": 191
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "new Date(mid).toISOString",
+          "lineNumber": 202
+        },
+        {
+          "caller": "lisbonWallTimeToUtcIso",
+          "callee": "new Date(guess).toISOString",
+          "lineNumber": 206
+        },
+        {
+          "caller": "todayIsoLocal",
+          "callee": "t.getFullYear",
+          "lineNumber": 211
+        },
+        {
+          "caller": "todayIsoLocal",
+          "callee": "String(t.getMonth() + 1).padStart",
+          "lineNumber": 212
+        },
+        {
+          "caller": "todayIsoLocal",
+          "callee": "String",
+          "lineNumber": 212
+        },
+        {
+          "caller": "todayIsoLocal",
+          "callee": "t.getMonth",
+          "lineNumber": 212
+        },
+        {
+          "caller": "todayIsoLocal",
+          "callee": "String(t.getDate()).padStart",
+          "lineNumber": 213
+        },
+        {
+          "caller": "todayIsoLocal",
+          "callee": "String",
+          "lineNumber": 213
+        },
+        {
+          "caller": "todayIsoLocal",
+          "callee": "t.getDate",
+          "lineNumber": 213
+        },
+        {
+          "caller": "nowTimeHmLocal",
+          "callee": "String(t.getHours()).padStart",
+          "lineNumber": 219
+        },
+        {
+          "caller": "nowTimeHmLocal",
+          "callee": "String",
+          "lineNumber": 219
+        },
+        {
+          "caller": "nowTimeHmLocal",
+          "callee": "t.getHours",
+          "lineNumber": 219
+        },
+        {
+          "caller": "nowTimeHmLocal",
+          "callee": "String(t.getMinutes()).padStart",
+          "lineNumber": 219
+        },
+        {
+          "caller": "nowTimeHmLocal",
+          "callee": "String",
+          "lineNumber": 219
+        },
+        {
+          "caller": "nowTimeHmLocal",
+          "callee": "t.getMinutes",
+          "lineNumber": 219
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 14,
+        "functionCount": 14,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/i18n.server.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 11,
+      "nonEmptyLines": 10,
+      "functions": [
+        {
+          "name": "getServerLanguage",
+          "startLine": 8,
+          "endLine": 11,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "getServerLanguage",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getServerLanguage",
+          "callee": "cookies().get",
+          "lineNumber": 9
+        },
+        {
+          "caller": "getServerLanguage",
+          "callee": "cookies",
+          "lineNumber": 9
+        },
+        {
+          "caller": "getServerLanguage",
+          "callee": "isUILanguage",
+          "lineNumber": 10
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/i18n.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 64,
+      "nonEmptyLines": 57,
+      "functions": [
+        {
+          "name": "mockBrowserStorage",
+          "startLine": 7,
+          "endLine": 26,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "mockBrowserStorage",
+          "callee": "data.has",
+          "lineNumber": 10
+        },
+        {
+          "caller": "mockBrowserStorage",
+          "callee": "data.get",
+          "lineNumber": 10
+        },
+        {
+          "caller": "mockBrowserStorage",
+          "callee": "data.set",
+          "lineNumber": 12
+        },
+        {
+          "caller": "mockBrowserStorage",
+          "callee": "data.delete",
+          "lineNumber": 15
+        },
+        {
+          "caller": "mockBrowserStorage",
+          "callee": "data.clear",
+          "lineNumber": 17
+        },
+        {
+          "caller": "mockBrowserStorage",
+          "callee": "Object.defineProperty",
+          "lineNumber": 19
+        },
+        {
+          "caller": "mockBrowserStorage",
+          "callee": "Object.defineProperty",
+          "lineNumber": 20
+        },
+        {
+          "caller": "mockBrowserStorage",
+          "callee": "Object.defineProperty",
+          "lineNumber": 21
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/i18n.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 37,
+      "nonEmptyLines": 31,
+      "functions": [
+        {
+          "name": "isUILanguage",
+          "startLine": 16,
+          "endLine": 18,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "getClientLanguage",
+          "startLine": 20,
+          "endLine": 30,
+          "params": []
+        },
+        {
+          "name": "setClientLanguage",
+          "startLine": 32,
+          "endLine": 37,
+          "params": [
+            "lang"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "UI_LANG_COOKIE",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "DEFAULT_UI_LANG",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "SUPPORTED_UI_LANGS",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "HTML_LANG_BY_UI",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "isUILanguage",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "getClientLanguage",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "setClientLanguage",
+          "line": 32,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "isUILanguage",
+          "callee": "SUPPORTED_UI_LANGS.includes",
+          "lineNumber": 17
+        },
+        {
+          "caller": "getClientLanguage",
+          "callee": "localStorage.getItem",
+          "lineNumber": 22
+        },
+        {
+          "caller": "getClientLanguage",
+          "callee": "isUILanguage",
+          "lineNumber": 23
+        },
+        {
+          "caller": "getClientLanguage",
+          "callee": "localStorage.getItem",
+          "lineNumber": 24
+        },
+        {
+          "caller": "getClientLanguage",
+          "callee": "isUILanguage",
+          "lineNumber": 25
+        },
+        {
+          "caller": "getClientLanguage",
+          "callee": "setClientLanguage",
+          "lineNumber": 26
+        },
+        {
+          "caller": "setClientLanguage",
+          "callee": "localStorage.setItem",
+          "lineNumber": 34
+        },
+        {
+          "caller": "setClientLanguage",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 35
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 7,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/i18n/brand-tokens.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 23,
+      "nonEmptyLines": 21,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/i18n/brand-tokens.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 39,
+      "nonEmptyLines": 36,
+      "functions": [
+        {
+          "name": "getBrandTokens",
+          "startLine": 11,
+          "endLine": 18,
+          "params": [
+            "lang"
+          ]
+        },
+        {
+          "name": "applyBrandTokens",
+          "startLine": 20,
+          "endLine": 39,
+          "params": [
+            "value",
+            "tokens"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "getBrandTokens",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "applyBrandTokens",
+          "line": 20,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getBrandTokens",
+          "callee": "printAgentLabel",
+          "lineNumber": 14
+        },
+        {
+          "caller": "applyBrandTokens",
+          "callee": "Object.entries",
+          "lineNumber": 23
+        },
+        {
+          "caller": "applyBrandTokens",
+          "callee": "out.replaceAll",
+          "lineNumber": 24
+        },
+        {
+          "caller": "applyBrandTokens",
+          "callee": "Array.isArray",
+          "lineNumber": 28
+        },
+        {
+          "caller": "applyBrandTokens",
+          "callee": "value.map",
+          "lineNumber": 29
+        },
+        {
+          "caller": "applyBrandTokens",
+          "callee": "applyBrandTokens",
+          "lineNumber": 29
+        },
+        {
+          "caller": "applyBrandTokens",
+          "callee": "Object.entries",
+          "lineNumber": 33
+        },
+        {
+          "caller": "applyBrandTokens",
+          "callee": "applyBrandTokens",
+          "lineNumber": 34
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/i18n/messages.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 2930,
+      "nonEmptyLines": 2926,
+      "functions": [
+        {
+          "name": "getMessages",
+          "startLine": 2928,
+          "endLine": 2930,
+          "params": [
+            "lang"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "UI_LOCALE_BY_LANG",
+          "line": 4,
+          "isDefault": false
+        },
+        {
+          "name": "CATEGORY_LABELS",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "MESSAGES",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "getMessages",
+          "line": 2928,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getMessages",
+          "callee": "applyBrandTokens",
+          "lineNumber": 2929
+        },
+        {
+          "caller": "getMessages",
+          "callee": "getBrandTokens",
+          "lineNumber": 2929
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 4,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/number-input.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 55,
+      "nonEmptyLines": 47,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/number-input.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 137,
+      "nonEmptyLines": 117,
+      "functions": [
+        {
+          "name": "hmDigitsOnly",
+          "startLine": 4,
+          "endLine": 6,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "formatHmDigitsWhileTyping",
+          "startLine": 12,
+          "endLine": 27,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "normalizeHmFromDigits",
+          "startLine": 29,
+          "endLine": 51,
+          "params": [
+            "digits"
+          ]
+        },
+        {
+          "name": "normalizeHmInput",
+          "startLine": 54,
+          "endLine": 77,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "parseNonNegativeInt",
+          "startLine": 80,
+          "endLine": 95,
+          "params": [
+            "raw",
+            "opts"
+          ]
+        },
+        {
+          "name": "unifyDecimalSeparators",
+          "startLine": 98,
+          "endLine": 102,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "normalizeDecimalInput",
+          "startLine": 105,
+          "endLine": 120,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "parseDecimalInput",
+          "startLine": 122,
+          "endLine": 131,
+          "params": [
+            "raw",
+            "opts"
+          ]
+        },
+        {
+          "name": "formatDecimalInputValue",
+          "startLine": 134,
+          "endLine": 137,
+          "params": [
+            "n"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "formatHmDigitsWhileTyping",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "normalizeHmInput",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "parseNonNegativeInt",
+          "line": 80,
+          "isDefault": false
+        },
+        {
+          "name": "normalizeDecimalInput",
+          "line": 105,
+          "isDefault": false
+        },
+        {
+          "name": "parseDecimalInput",
+          "line": 122,
+          "isDefault": false
+        },
+        {
+          "name": "formatDecimalInputValue",
+          "line": 134,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "hmDigitsOnly",
+          "callee": "raw.replace(/\\D/g, '').slice",
+          "lineNumber": 5
+        },
+        {
+          "caller": "hmDigitsOnly",
+          "callee": "raw.replace",
+          "lineNumber": 5
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "hmDigitsOnly",
+          "lineNumber": 13
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "parseInt",
+          "lineNumber": 16
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "digits.slice",
+          "lineNumber": 16
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "digits.slice",
+          "lineNumber": 17
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "parseInt",
+          "lineNumber": 21
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "digits.slice",
+          "lineNumber": 21
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "digits.slice",
+          "lineNumber": 22
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "digits.slice",
+          "lineNumber": 26
+        },
+        {
+          "caller": "formatHmDigitsWhileTyping",
+          "callee": "digits.slice",
+          "lineNumber": 26
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "parseInt",
+          "lineNumber": 33
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "parseInt",
+          "lineNumber": 39
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "digits.padStart",
+          "lineNumber": 41
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "digits.padStart",
+          "lineNumber": 44
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "padded.slice",
+          "lineNumber": 45
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "padded.slice",
+          "lineNumber": 46
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "TIME_RE.test",
+          "lineNumber": 48
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "t.split",
+          "lineNumber": 49
+        },
+        {
+          "caller": "normalizeHmFromDigits",
+          "callee": "hh.padStart",
+          "lineNumber": 50
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "raw.trim",
+          "lineNumber": 55
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "s.match",
+          "lineNumber": 58
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "parseInt",
+          "lineNumber": 60
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "parseInt",
+          "lineNumber": 64
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "parseInt",
+          "lineNumber": 64
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "String(h).padStart",
+          "lineNumber": 66
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "String",
+          "lineNumber": 66
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "String(mm).padStart",
+          "lineNumber": 66
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "String",
+          "lineNumber": 66
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "/^\\d{1,4}$/.test",
+          "lineNumber": 69
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "normalizeHmFromDigits",
+          "lineNumber": 70
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "s.slice",
+          "lineNumber": 73
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "TIME_RE.test",
+          "lineNumber": 74
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "t.split",
+          "lineNumber": 75
+        },
+        {
+          "caller": "normalizeHmInput",
+          "callee": "h.padStart",
+          "lineNumber": 76
+        },
+        {
+          "caller": "parseNonNegativeInt",
+          "callee": "raw.trim().replace",
+          "lineNumber": 84
+        },
+        {
+          "caller": "parseNonNegativeInt",
+          "callee": "raw.trim",
+          "lineNumber": 84
+        },
+        {
+          "caller": "parseNonNegativeInt",
+          "callee": "parseInt",
+          "lineNumber": 88
+        },
+        {
+          "caller": "parseNonNegativeInt",
+          "callee": "Number.isFinite",
+          "lineNumber": 89
+        },
+        {
+          "caller": "parseNonNegativeInt",
+          "callee": "Math.max",
+          "lineNumber": 92
+        },
+        {
+          "caller": "parseNonNegativeInt",
+          "callee": "Math.min",
+          "lineNumber": 93
+        },
+        {
+          "caller": "unifyDecimalSeparators",
+          "callee": "raw\n    .replace(/[，。．]/g, '.')\n    .replace",
+          "lineNumber": 99
+        },
+        {
+          "caller": "unifyDecimalSeparators",
+          "callee": "raw\n    .replace",
+          "lineNumber": 99
+        },
+        {
+          "caller": "normalizeDecimalInput",
+          "callee": "unifyDecimalSeparators(raw).replace",
+          "lineNumber": 106
+        },
+        {
+          "caller": "normalizeDecimalInput",
+          "callee": "unifyDecimalSeparators",
+          "lineNumber": 106
+        },
+        {
+          "caller": "normalizeDecimalInput",
+          "callee": "cleaned.includes",
+          "lineNumber": 108
+        },
+        {
+          "caller": "normalizeDecimalInput",
+          "callee": "cleaned.split",
+          "lineNumber": 109
+        },
+        {
+          "caller": "normalizeDecimalInput",
+          "callee": "decimalParts.join('').slice",
+          "lineNumber": 110
+        },
+        {
+          "caller": "normalizeDecimalInput",
+          "callee": "decimalParts.join",
+          "lineNumber": 110
+        },
+        {
+          "caller": "normalizeDecimalInput",
+          "callee": "normalizedInt.replace",
+          "lineNumber": 114
+        },
+        {
+          "caller": "parseDecimalInput",
+          "callee": "normalizeDecimalInput",
+          "lineNumber": 123
+        },
+        {
+          "caller": "parseDecimalInput",
+          "callee": "parseFloat",
+          "lineNumber": 125
+        },
+        {
+          "caller": "parseDecimalInput",
+          "callee": "Number.isFinite",
+          "lineNumber": 126
+        },
+        {
+          "caller": "parseDecimalInput",
+          "callee": "Math.max",
+          "lineNumber": 128
+        },
+        {
+          "caller": "parseDecimalInput",
+          "callee": "Math.min",
+          "lineNumber": 129
+        },
+        {
+          "caller": "formatDecimalInputValue",
+          "callee": "Number.isFinite",
+          "lineNumber": 135
+        },
+        {
+          "caller": "formatDecimalInputValue",
+          "callee": "String",
+          "lineNumber": 136
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 6,
+        "functionCount": 9,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 59,
+      "nonEmptyLines": 55,
+      "functions": [
+        {
+          "name": "VoidItemReasonDialog",
+          "startLine": 23,
+          "endLine": 59,
+          "params": [
+            "{\n  open,\n  onClose,\n  lang,\n  item,\n  onConfirm,\n  confirming = false,\n  externalError = null,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "VoidItemReasonDialog",
+          "line": 23,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "VoidItemReasonDialog",
+          "callee": "useMemo",
+          "lineNumber": 32
+        },
+        {
+          "caller": "VoidItemReasonDialog",
+          "callee": "voidItemReasonDialogCopy",
+          "lineNumber": 32
+        },
+        {
+          "caller": "VoidItemReasonDialog",
+          "callee": "useMemo",
+          "lineNumber": 33
+        },
+        {
+          "caller": "VoidItemReasonDialog",
+          "callee": "voidItemReasonDialogTitle",
+          "lineNumber": 33
+        },
+        {
+          "caller": "VoidItemReasonDialog",
+          "callee": "voidItemWasServed",
+          "lineNumber": 34
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/order-item-void/void-item-reason-ui.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 39,
+      "nonEmptyLines": 35,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 68,
+      "nonEmptyLines": 62,
+      "functions": [
+        {
+          "name": "voidItemDisplayName",
+          "startLine": 21,
+          "endLine": 23,
+          "params": [
+            "item"
+          ]
+        },
+        {
+          "name": "voidItemWasServed",
+          "startLine": 25,
+          "endLine": 27,
+          "params": [
+            "item"
+          ]
+        },
+        {
+          "name": "voidItemReasonDialogTitle",
+          "startLine": 29,
+          "endLine": 41,
+          "params": [
+            "lang",
+            "item"
+          ]
+        },
+        {
+          "name": "voidItemReasonDialogCopy",
+          "startLine": 43,
+          "endLine": 58,
+          "params": [
+            "lang"
+          ]
+        },
+        {
+          "name": "voidItemReasonErrorMessage",
+          "startLine": 60,
+          "endLine": 68,
+          "params": [
+            "lang",
+            "code"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "voidItemDisplayName",
+          "line": 21,
+          "isDefault": false
+        },
+        {
+          "name": "voidItemWasServed",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "voidItemReasonDialogTitle",
+          "line": 29,
+          "isDefault": false
+        },
+        {
+          "name": "voidItemReasonDialogCopy",
+          "line": 43,
+          "isDefault": false
+        },
+        {
+          "name": "voidItemReasonErrorMessage",
+          "line": 60,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "voidItemDisplayName",
+          "callee": "formatOrderItemNameLabel",
+          "lineNumber": 22
+        },
+        {
+          "caller": "voidItemReasonDialogTitle",
+          "callee": "getMessages",
+          "lineNumber": 33
+        },
+        {
+          "caller": "voidItemReasonDialogTitle",
+          "callee": "orderHistory.voidItemReasonTitleWithItem.replace",
+          "lineNumber": 35
+        },
+        {
+          "caller": "voidItemReasonDialogTitle",
+          "callee": "voidItemDisplayName",
+          "lineNumber": 37
+        },
+        {
+          "caller": "voidItemReasonDialogCopy",
+          "callee": "getMessages",
+          "lineNumber": 44
+        },
+        {
+          "caller": "voidItemReasonDialogCopy",
+          "callee": "abnormalReasonOptions",
+          "lineNumber": 56
+        },
+        {
+          "caller": "voidItemReasonErrorMessage",
+          "callee": "voidItemReasonDialogCopy",
+          "lineNumber": 64
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 5,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/print-job-error-hints.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 90,
+      "nonEmptyLines": 87,
+      "functions": [
+        {
+          "name": "printJobErrorHint",
+          "startLine": 83,
+          "endLine": 90,
+          "params": [
+            "errorMessage",
+            "lang"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "printJobErrorHint",
+          "line": 83,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "printJobErrorHint",
+          "callee": "errorMessage?.trim",
+          "lineNumber": 84
+        },
+        {
+          "caller": "printJobErrorHint",
+          "callee": "errorMessage.trim",
+          "lineNumber": 85
+        },
+        {
+          "caller": "printJobErrorHint",
+          "callee": "row.match",
+          "lineNumber": 87
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/print-station-admin.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 19,
+      "nonEmptyLines": 17,
+      "functions": [
+        {
+          "name": "getPrintStationDisplayName",
+          "startLine": 4,
+          "endLine": 8,
+          "params": [
+            "station",
+            "lang"
+          ]
+        },
+        {
+          "name": "countPrintStationBindings",
+          "startLine": 10,
+          "endLine": 19,
+          "params": [
+            "stationId",
+            "categories",
+            "items"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "getPrintStationDisplayName",
+          "line": 4,
+          "isDefault": false
+        },
+        {
+          "name": "countPrintStationBindings",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getPrintStationDisplayName",
+          "callee": "station.name_en?.trim",
+          "lineNumber": 5
+        },
+        {
+          "caller": "getPrintStationDisplayName",
+          "callee": "station.name_zh?.trim",
+          "lineNumber": 6
+        },
+        {
+          "caller": "countPrintStationBindings",
+          "callee": "categories.filter",
+          "lineNumber": 16
+        },
+        {
+          "caller": "countPrintStationBindings",
+          "callee": "items.filter",
+          "lineNumber": 17
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/settings-nav.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 79,
+      "nonEmptyLines": 73,
+      "functions": [
+        {
+          "name": "getActiveSettingsNavItem",
+          "startLine": 73,
+          "endLine": 75,
+          "params": [
+            "pathname"
+          ]
+        },
+        {
+          "name": "isSettingsWideLayout",
+          "startLine": 77,
+          "endLine": 79,
+          "params": [
+            "pathname"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SETTINGS_NAV_TABS",
+          "line": 30,
+          "isDefault": false
+        },
+        {
+          "name": "getActiveSettingsNavItem",
+          "line": 73,
+          "isDefault": false
+        },
+        {
+          "name": "isSettingsWideLayout",
+          "line": 77,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getActiveSettingsNavItem",
+          "callee": "SETTINGS_NAV_TABS.find",
+          "lineNumber": 74
+        },
+        {
+          "caller": "getActiveSettingsNavItem",
+          "callee": "item.isActive",
+          "lineNumber": 74
+        },
+        {
+          "caller": "isSettingsWideLayout",
+          "callee": "pathname.startsWith",
+          "lineNumber": 78
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/staff-auth-client.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 64,
+      "nonEmptyLines": 55,
+      "functions": [
+        {
+          "name": "resolveStaffSession",
+          "startLine": 15,
+          "endLine": 60,
+          "params": [
+            "slug",
+            "expectedRole"
+          ]
+        },
+        {
+          "name": "staffSignOut",
+          "startLine": 62,
+          "endLine": 64,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "resolveStaffSession",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "staffSignOut",
+          "line": 62,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "resolveStaffSession",
+          "callee": "createClient",
+          "lineNumber": 19
+        },
+        {
+          "caller": "resolveStaffSession",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 22
+        },
+        {
+          "caller": "resolveStaffSession",
+          "callee": "supabase\n    .from('restaurants')\n    .select('id')\n    .eq('slug', slug)\n    .eq('owner_id', user.id)\n    .maybeSingle",
+          "lineNumber": 25
+        },
+        {
+          "caller": "resolveStaffSession",
+          "callee": "supabase\n    .from('restaurants')\n    .select('id')\n    .eq('slug', slug)\n    .eq",
+          "lineNumber": 25
+        },
+        {
+          "caller": "resolveStaffSession",
+          "callee": "supabase\n    .from('restaurants')\n    .select('id')\n    .eq",
+          "lineNumber": 25
+        },
+        {
+          "caller": "resolveStaffSession",
+          "callee": "supabase\n    .from('restaurants')\n    .select",
+          "lineNumber": 25
+        },
+        {
+          "caller": "resolveStaffSession",
+          "callee": "supabase\n    .from",
+          "lineNumber": 25
+        },
+        {
+          "caller": "resolveStaffSession",
+          "callee": "parseStaffUserMetadata",
+          "lineNumber": 35
+        },
+        {
+          "caller": "resolveStaffSession",
+          "callee": "supabase\n    .from('restaurant_staff_accounts')\n    .select('id, role, disabled_at')\n    .eq('user_id', user.id)\n    .maybeSingle",
+          "lineNumber": 46
+        },
+        {
+          "caller": "resolveStaffSession",
+          "callee": "supabase\n    .from('restaurant_staff_accounts')\n    .select('id, role, disabled_at')\n    .eq",
+          "lineNumber": 46
+        },
+        {
+          "caller": "resolveStaffSession",
+          "callee": "supabase\n    .from('restaurant_staff_accounts')\n    .select",
+          "lineNumber": 46
+        },
+        {
+          "caller": "resolveStaffSession",
+          "callee": "supabase\n    .from",
+          "lineNumber": 46
+        },
+        {
+          "caller": "staffSignOut",
+          "callee": "signOutFromSupabase",
+          "lineNumber": 63
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/supabase/client.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 9,
+      "nonEmptyLines": 8,
+      "functions": [
+        {
+          "name": "createClient",
+          "startLine": 4,
+          "endLine": 9,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "createClient",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "createClient",
+          "callee": "createBrowserClient",
+          "lineNumber": 5
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/tables-manager-tab-preference.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 41,
+      "nonEmptyLines": 33,
+      "functions": [
+        {
+          "name": "tablesManagerTabStorageKey",
+          "startLine": 7,
+          "endLine": 9,
+          "params": [
+            "restaurantId"
+          ]
+        },
+        {
+          "name": "isTablesManagerTab",
+          "startLine": 11,
+          "endLine": 13,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "parseTablesManagerTab",
+          "startLine": 15,
+          "endLine": 18,
+          "params": [
+            "tab"
+          ]
+        },
+        {
+          "name": "loadSavedTablesManagerTab",
+          "startLine": 20,
+          "endLine": 28,
+          "params": [
+            "restaurantId"
+          ]
+        },
+        {
+          "name": "saveTablesManagerTab",
+          "startLine": 30,
+          "endLine": 37,
+          "params": [
+            "restaurantId",
+            "tab"
+          ]
+        },
+        {
+          "name": "tablesManagerPath",
+          "startLine": 39,
+          "endLine": 41,
+          "params": [
+            "tab"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TABLES_MANAGER_DEFAULT_TAB",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "tablesManagerTabStorageKey",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "isTablesManagerTab",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "parseTablesManagerTab",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "loadSavedTablesManagerTab",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "saveTablesManagerTab",
+          "line": 30,
+          "isDefault": false
+        },
+        {
+          "name": "tablesManagerPath",
+          "line": 39,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "parseTablesManagerTab",
+          "callee": "isTablesManagerTab",
+          "lineNumber": 16
+        },
+        {
+          "caller": "loadSavedTablesManagerTab",
+          "callee": "localStorage.getItem",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loadSavedTablesManagerTab",
+          "callee": "tablesManagerTabStorageKey",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loadSavedTablesManagerTab",
+          "callee": "isTablesManagerTab",
+          "lineNumber": 24
+        },
+        {
+          "caller": "saveTablesManagerTab",
+          "callee": "localStorage.setItem",
+          "lineNumber": 33
+        },
+        {
+          "caller": "saveTablesManagerTab",
+          "callee": "tablesManagerTabStorageKey",
+          "lineNumber": 33
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 7,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/use-buffet-prices-realtime-refresh.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 89,
+      "nonEmptyLines": 78,
+      "functions": [
+        {
+          "name": "useBuffetPricesRealtimeRefresh",
+          "startLine": 10,
+          "endLine": 89,
+          "params": [
+            "supabase",
+            "restaurantId",
+            "enabled",
+            "onRefresh",
+            "debounceMs"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "useBuffetPricesRealtimeRefresh",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "useBuffetPricesRealtimeRefresh",
+          "callee": "useRef",
+          "lineNumber": 17
+        },
+        {
+          "caller": "useBuffetPricesRealtimeRefresh",
+          "callee": "useEffect",
+          "lineNumber": 20
+        },
+        {
+          "caller": "scheduleRefresh",
+          "callee": "clearTimeout",
+          "lineNumber": 28
+        },
+        {
+          "caller": "scheduleRefresh",
+          "callee": "setTimeout",
+          "lineNumber": 29
+        },
+        {
+          "caller": "scheduleRefresh",
+          "callee": "onRefreshRef.current",
+          "lineNumber": 31
+        },
+        {
+          "caller": "subscribe",
+          "callee": "onRefreshRef.current",
+          "lineNumber": 39
+        },
+        {
+          "caller": "subscribe",
+          "callee": "supabase\n        .channel(`buffet-prices-${restaurantId}`)\n        .on(\n          'postgres_changes',\n          { event: '*', schema: 'public', table: 'buffets', filter },\n          scheduleRefresh,\n        )\n        .on(\n          'postgres_changes',\n          { event: '*', schema: 'public', table: 'buffet_time_slots', filter },\n          scheduleRefresh,\n        )\n        .on(\n          'postgres_changes',\n          { event: '*', schema: 'public', table: 'buffet_price_rules', filter },\n          scheduleRefresh,\n        )\n        .on(\n          'postgres_changes',\n          { event: '*', schema: 'public', table: 'buffet_calendar_overrides', filter },\n          scheduleRefresh,\n        )\n        .subscribe",
+          "lineNumber": 40
+        },
+        {
+          "caller": "subscribe",
+          "callee": "supabase\n        .channel(`buffet-prices-${restaurantId}`)\n        .on(\n          'postgres_changes',\n          { event: '*', schema: 'public', table: 'buffets', filter },\n          scheduleRefresh,\n        )\n        .on(\n          'postgres_changes',\n          { event: '*', schema: 'public', table: 'buffet_time_slots', filter },\n          scheduleRefresh,\n        )\n        .on(\n          'postgres_changes',\n          { event: '*', schema: 'public', table: 'buffet_price_rules', filter },\n          scheduleRefresh,\n        )\n        .on",
+          "lineNumber": 40
+        },
+        {
+          "caller": "subscribe",
+          "callee": "supabase\n        .channel(`buffet-prices-${restaurantId}`)\n        .on(\n          'postgres_changes',\n          { event: '*', schema: 'public', table: 'buffets', filter },\n          scheduleRefresh,\n        )\n        .on(\n          'postgres_changes',\n          { event: '*', schema: 'public', table: 'buffet_time_slots', filter },\n          scheduleRefresh,\n        )\n        .on",
+          "lineNumber": 40
+        },
+        {
+          "caller": "subscribe",
+          "callee": "supabase\n        .channel(`buffet-prices-${restaurantId}`)\n        .on(\n          'postgres_changes',\n          { event: '*', schema: 'public', table: 'buffets', filter },\n          scheduleRefresh,\n        )\n        .on",
+          "lineNumber": 40
+        },
+        {
+          "caller": "subscribe",
+          "callee": "supabase\n        .channel(`buffet-prices-${restaurantId}`)\n        .on",
+          "lineNumber": 40
+        },
+        {
+          "caller": "subscribe",
+          "callee": "supabase\n        .channel",
+          "lineNumber": 40
+        },
+        {
+          "caller": "unsubscribe",
+          "callee": "clearTimeout",
+          "lineNumber": 67
+        },
+        {
+          "caller": "unsubscribe",
+          "callee": "supabase.removeChannel",
+          "lineNumber": 71
+        },
+        {
+          "caller": "onVisible",
+          "callee": "subscribe",
+          "lineNumber": 77
+        },
+        {
+          "caller": "onVisible",
+          "callee": "unsubscribe",
+          "lineNumber": 78
+        },
+        {
+          "caller": "useBuffetPricesRealtimeRefresh",
+          "callee": "subscribe",
+          "lineNumber": 81
+        },
+        {
+          "caller": "useBuffetPricesRealtimeRefresh",
+          "callee": "document.addEventListener",
+          "lineNumber": 82
+        },
+        {
+          "caller": "useBuffetPricesRealtimeRefresh",
+          "callee": "unsubscribe",
+          "lineNumber": 85
+        },
+        {
+          "caller": "useBuffetPricesRealtimeRefresh",
+          "callee": "document.removeEventListener",
+          "lineNumber": 86
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/waiter-decrement-order-item-client.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 42,
+      "nonEmptyLines": 39,
+      "functions": [
+        {
+          "name": "postWaiterDecrementOrderItemClient",
+          "startLine": 17,
+          "endLine": 42,
+          "params": [
+            "slug",
+            "orderId",
+            "body"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "postWaiterDecrementOrderItemClient",
+          "line": 17,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "postWaiterDecrementOrderItemClient",
+          "callee": "fetch",
+          "lineNumber": 22
+        },
+        {
+          "caller": "postWaiterDecrementOrderItemClient",
+          "callee": "encodeURIComponent",
+          "lineNumber": 23
+        },
+        {
+          "caller": "postWaiterDecrementOrderItemClient",
+          "callee": "encodeURIComponent",
+          "lineNumber": 23
+        },
+        {
+          "caller": "postWaiterDecrementOrderItemClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 28
+        },
+        {
+          "caller": "postWaiterDecrementOrderItemClient",
+          "callee": "res.json().catch",
+          "lineNumber": 31
+        },
+        {
+          "caller": "postWaiterDecrementOrderItemClient",
+          "callee": "res.json",
+          "lineNumber": 31
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/waiter-table-detail-actions.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 66,
+      "nonEmptyLines": 62,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/waiter-table-detail-actions.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 28,
+      "nonEmptyLines": 26,
+      "functions": [
+        {
+          "name": "resolveWaiterTableDetailActions",
+          "startLine": 13,
+          "endLine": 28,
+          "params": [
+            "input"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "resolveWaiterTableDetailActions",
+          "line": 13,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    }
+  ]
+}

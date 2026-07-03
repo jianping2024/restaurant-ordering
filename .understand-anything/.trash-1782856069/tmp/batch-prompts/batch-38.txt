@@ -1,0 +1,32 @@
+Analyze these files and produce GraphNode and GraphEdge objects.
+Project root: `/Users/chenjianping/Documents/restaurant-ordering`
+Project: `undefined` — undefined
+Languages: ["config","css","dockerfile","go","html","iss","javascript","json","markdown","mod","mts","powershell","python","shell","sql","sum","txt","typescript","unknown","yaml"]
+Batch: `38/38`
+Skill directory: `/Users/chenjianping/.cursor/plugins/cache/understand-anything/understand-anything/54754a6f97051d1d76c8758353d8ea41afe502a6/skills/understand`
+Output: `/Users/chenjianping/Documents/restaurant-ordering/.understand-anything/intermediate/batch-38.json`
+
+Pre-resolved import data:
+```json
+{"packages/shared/src/print-agent-support-snapshot.ts":[],"packages/shared/src/restaurant-features.test.ts":["packages/shared/src/restaurant-features.ts"],"packages/shared/src/restaurant-features.ts":[],"packages/shared/src/restaurant-suspension.ts":[],"packages/shared/src/staff-user-ban.ts":[],"packages/shared/tsconfig.json":[],"packages/ui/package.json":[],"packages/ui/src/index.ts":[],"packages/ui/src/PasswordInput.tsx":[],"packages/ui/tsconfig.json":[],"supabase/seed.sql":[]}
+```
+
+Cross-batch neighbors:
+```json
+{}
+```
+
+Files:
+1. `packages/shared/src/print-agent-support-snapshot.ts` (98 lines, language: `typescript`, fileCategory: `code`)
+2. `packages/shared/src/restaurant-features.test.ts` (46 lines, language: `typescript`, fileCategory: `code`)
+3. `packages/shared/src/restaurant-features.ts` (136 lines, language: `typescript`, fileCategory: `code`)
+4. `packages/shared/src/restaurant-suspension.ts` (3 lines, language: `typescript`, fileCategory: `code`)
+5. `packages/shared/src/staff-user-ban.ts` (15 lines, language: `typescript`, fileCategory: `code`)
+6. `packages/shared/tsconfig.json` (14 lines, language: `json`, fileCategory: `config`)
+7. `packages/ui/package.json` (19 lines, language: `json`, fileCategory: `config`)
+8. `packages/ui/src/index.ts` (1 lines, language: `typescript`, fileCategory: `code`)
+9. `packages/ui/src/PasswordInput.tsx` (160 lines, language: `typescript`, fileCategory: `code`)
+10. `packages/ui/tsconfig.json` (15 lines, language: `json`, fileCategory: `config`)
+11. `supabase/seed.sql` (81 lines, language: `sql`, fileCategory: `data`)
+
+> **Language directive**: Generate all textual content in **zh** (Chinese). Keep technical terms in English when no standard translation exists.

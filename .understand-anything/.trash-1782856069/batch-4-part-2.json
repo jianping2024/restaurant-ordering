@@ -1,0 +1,931 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/ops/src/components/ui/Button.tsx",
+      "type": "file",
+      "name": "Button.tsx",
+      "filePath": "apps/ops/src/components/ui/Button.tsx",
+      "summary": "Ops 通用按钮 UI 原语，支持多种 variant 与尺寸样式。",
+      "tags": [
+        "component",
+        "ui-primitive",
+        "design-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/components/ui/ConfirmModal.tsx",
+      "type": "file",
+      "name": "ConfirmModal.tsx",
+      "filePath": "apps/ops/src/components/ui/ConfirmModal.tsx",
+      "summary": "确认对话框组件，基于 Modal 与 Button 封装，用于危险操作二次确认。",
+      "tags": [
+        "component",
+        "ui-primitive",
+        "confirmation",
+        "modal"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/components/ui/ConfirmModal.tsx:ConfirmModal",
+      "type": "function",
+      "name": "ConfirmModal",
+      "filePath": "apps/ops/src/components/ui/ConfirmModal.tsx",
+      "lineRange": [
+        20,
+        57
+      ],
+      "summary": "渲染带确认/取消按钮的模态对话框，支持 danger 变体与加载状态。",
+      "tags": [
+        "component",
+        "confirmation",
+        "modal"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/components/ui/Modal.tsx",
+      "type": "file",
+      "name": "Modal.tsx",
+      "filePath": "apps/ops/src/components/ui/Modal.tsx",
+      "summary": "通用模态框 UI 组件，支持 ESC 关闭、背景遮罩与多种尺寸。",
+      "tags": [
+        "component",
+        "ui-primitive",
+        "modal",
+        "accessibility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/components/ui/Modal.tsx:Modal",
+      "type": "function",
+      "name": "Modal",
+      "filePath": "apps/ops/src/components/ui/Modal.tsx",
+      "lineRange": [
+        19,
+        63
+      ],
+      "summary": "实现可访问的模态对话框，监听 ESC 键与 body 滚动锁定。",
+      "tags": [
+        "component",
+        "modal",
+        "accessibility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/lib/ops-audit-log.test.ts",
+      "type": "file",
+      "name": "ops-audit-log.test.ts",
+      "filePath": "apps/ops/src/lib/ops-audit-log.test.ts",
+      "summary": "ops-audit-log 模块单元测试，覆盖审计日志富化与 CSV 导出逻辑。",
+      "tags": [
+        "test",
+        "audit-log",
+        "csv-export"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/ops/src/lib/ops-audit-log.ts",
+      "type": "file",
+      "name": "ops-audit-log.ts",
+      "filePath": "apps/ops/src/lib/ops-audit-log.ts",
+      "summary": "平台审计日志服务端工具，提供行富化（关联邮箱与餐厅名）及 CSV 导出功能。",
+      "tags": [
+        "service",
+        "audit-log",
+        "csv-export",
+        "data-enrichment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/ops/src/lib/ops-audit-log.ts:fetchRestaurantNamesMap",
+      "type": "function",
+      "name": "fetchRestaurantNamesMap",
+      "filePath": "apps/ops/src/lib/ops-audit-log.ts",
+      "lineRange": [
+        31,
+        47
+      ],
+      "summary": "批量查询餐厅 ID 对应的名称，返回 Map 供审计日志富化使用。",
+      "tags": [
+        "utility",
+        "data-fetching",
+        "restaurant"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/lib/ops-audit-log.ts:fetchAuditEnrichmentMaps",
+      "type": "function",
+      "name": "fetchAuditEnrichmentMaps",
+      "filePath": "apps/ops/src/lib/ops-audit-log.ts",
+      "lineRange": [
+        49,
+        63
+      ],
+      "summary": "并行获取审计行所需的 actor 邮箱与餐厅名称映射。",
+      "tags": [
+        "utility",
+        "data-enrichment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/lib/ops-audit-log.ts:enrichAuditLogRows",
+      "type": "function",
+      "name": "enrichAuditLogRows",
+      "filePath": "apps/ops/src/lib/ops-audit-log.ts",
+      "lineRange": [
+        65,
+        82
+      ],
+      "summary": "为审计日志行附加 actor 邮箱与餐厅名称字段。",
+      "tags": [
+        "utility",
+        "data-enrichment",
+        "audit-log"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/lib/ops-audit-log.ts:auditLogRowsToCsv",
+      "type": "function",
+      "name": "auditLogRowsToCsv",
+      "filePath": "apps/ops/src/lib/ops-audit-log.ts",
+      "lineRange": [
+        91,
+        116
+      ],
+      "summary": "将审计日志行序列化为 CSV 字符串，含表头与字段转义处理。",
+      "tags": [
+        "utility",
+        "csv-export",
+        "serialization"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/ops/src/lib/ops-audit-log.ts:enrichAuditLogRowsForCsv",
+      "type": "function",
+      "name": "enrichAuditLogRowsForCsv",
+      "filePath": "apps/ops/src/lib/ops-audit-log.ts",
+      "lineRange": [
+        118,
+        124
+      ],
+      "summary": "一站式富化审计行并生成 CSV 导出内容。",
+      "tags": [
+        "utility",
+        "csv-export",
+        "audit-log"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/lib/ops-print-summary.test.ts",
+      "type": "file",
+      "name": "ops-print-summary.test.ts",
+      "filePath": "apps/ops/src/lib/ops-print-summary.test.ts",
+      "summary": "ops-print-summary 模块单元测试，验证打印失败餐厅排行聚合逻辑。",
+      "tags": [
+        "test",
+        "printing",
+        "aggregation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/ops/src/lib/ops-print-summary.ts",
+      "type": "file",
+      "name": "ops-print-summary.ts",
+      "filePath": "apps/ops/src/lib/ops-print-summary.ts",
+      "summary": "打印失败统计工具，按时间窗口聚合失败任务并返回 Top N 餐厅列表。",
+      "tags": [
+        "service",
+        "printing",
+        "aggregation",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/ops/src/lib/ops-print-summary.ts:listTopPrintFailureRestaurants",
+      "type": "function",
+      "name": "listTopPrintFailureRestaurants",
+      "filePath": "apps/ops/src/lib/ops-print-summary.ts",
+      "lineRange": [
+        12,
+        56
+      ],
+      "summary": "查询指定时间窗口内打印失败次数最多的餐厅，返回 id、名称、slug 与失败计数。",
+      "tags": [
+        "utility",
+        "printing",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/ops/src/lib/ops-user-lookup.test.ts",
+      "type": "file",
+      "name": "ops-user-lookup.test.ts",
+      "filePath": "apps/ops/src/lib/ops-user-lookup.test.ts",
+      "summary": "ops-user-lookup 模块单元测试，验证批量用户邮箱查询逻辑。",
+      "tags": [
+        "test",
+        "user-lookup"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/lib/ops-user-lookup.ts",
+      "type": "file",
+      "name": "ops-user-lookup.ts",
+      "filePath": "apps/ops/src/lib/ops-user-lookup.ts",
+      "summary": "用户查询工具，通过 Supabase Admin API 批量获取用户 ID 对应的邮箱。",
+      "tags": [
+        "service",
+        "user-lookup",
+        "supabase"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/lib/ops-user-lookup.ts:fetchUserEmailsMap",
+      "type": "function",
+      "name": "fetchUserEmailsMap",
+      "filePath": "apps/ops/src/lib/ops-user-lookup.ts",
+      "lineRange": [
+        4,
+        20
+      ],
+      "summary": "并行调用 auth.admin.getUserById 获取用户邮箱，去重后返回 Map。",
+      "tags": [
+        "utility",
+        "user-lookup",
+        "supabase"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/lib/platform-audit.ts",
+      "type": "file",
+      "name": "platform-audit.ts",
+      "filePath": "apps/ops/src/lib/platform-audit.ts",
+      "summary": "平台审计写入与标签映射，定义审计动作常量并提供 writePlatformAudit 写入接口。",
+      "tags": [
+        "service",
+        "audit-log",
+        "platform"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/lib/platform-audit.ts:platformAuditActionLabel",
+      "type": "function",
+      "name": "platformAuditActionLabel",
+      "filePath": "apps/ops/src/lib/platform-audit.ts",
+      "lineRange": [
+        33,
+        35
+      ],
+      "summary": "将审计动作枚举值映射为中文显示标签。",
+      "tags": [
+        "utility",
+        "i18n",
+        "audit-log"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/lib/platform-audit.ts:writePlatformAudit",
+      "type": "function",
+      "name": "writePlatformAudit",
+      "filePath": "apps/ops/src/lib/platform-audit.ts",
+      "lineRange": [
+        37,
+        42
+      ],
+      "summary": "向 platform_admin_audit 表插入一条审计记录。",
+      "tags": [
+        "service",
+        "audit-log",
+        "database"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/lib/platform-auth.ts",
+      "type": "file",
+      "name": "platform-auth.ts",
+      "filePath": "apps/ops/src/lib/platform-auth.ts",
+      "summary": "平台管理员认证与授权工具，提供会话查询、角色校验及管理员计数功能。",
+      "tags": [
+        "service",
+        "authentication",
+        "authorization",
+        "platform"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/ops/src/lib/platform-auth.ts:getPlatformAdmin",
+      "type": "function",
+      "name": "getPlatformAdmin",
+      "filePath": "apps/ops/src/lib/platform-auth.ts",
+      "lineRange": [
+        17,
+        43
+      ],
+      "summary": "从 cookie 会话获取当前登录用户并查询 platform_admin_accounts 记录。",
+      "tags": [
+        "authentication",
+        "session",
+        "supabase"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/ops/src/lib/platform-auth.ts:requirePlatformAdmin",
+      "type": "function",
+      "name": "requirePlatformAdmin",
+      "filePath": "apps/ops/src/lib/platform-auth.ts",
+      "lineRange": [
+        51,
+        61
+      ],
+      "summary": "API 路由守卫，未认证时返回 401 JSON 响应，成功时返回 admin 与 admin client。",
+      "tags": [
+        "authorization",
+        "middleware",
+        "api-handler"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/lib/platform-auth.ts:requirePlatformAdminRole",
+      "type": "function",
+      "name": "requirePlatformAdminRole",
+      "filePath": "apps/ops/src/lib/platform-auth.ts",
+      "lineRange": [
+        63,
+        76
+      ],
+      "summary": "在 requirePlatformAdmin 基础上校验指定角色，不满足时返回 403。",
+      "tags": [
+        "authorization",
+        "role-guard",
+        "middleware"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/lib/platform-auth.ts:countPlatformAdmins",
+      "type": "function",
+      "name": "countPlatformAdmins",
+      "filePath": "apps/ops/src/lib/platform-auth.ts",
+      "lineRange": [
+        78,
+        85
+      ],
+      "summary": "统计未禁用的平台管理员账号总数。",
+      "tags": [
+        "utility",
+        "admin-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/lib/supabase-restaurant-join.ts",
+      "type": "file",
+      "name": "supabase-restaurant-join.ts",
+      "filePath": "apps/ops/src/lib/supabase-restaurant-join.ts",
+      "summary": "Supabase 关联查询辅助函数，从 join 结果中安全提取餐厅对象。",
+      "tags": [
+        "utility",
+        "supabase",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/lib/supabase/admin.ts",
+      "type": "file",
+      "name": "admin.ts",
+      "filePath": "apps/ops/src/lib/supabase/admin.ts",
+      "summary": "创建 Supabase service-role 管理员客户端，用于绕过 RLS 的服务端操作。",
+      "tags": [
+        "service",
+        "supabase",
+        "server-only",
+        "admin"
+      ],
+      "complexity": "simple",
+      "languageNotes": "使用 service role key，仅限服务端调用。"
+    },
+    {
+      "id": "function:apps/ops/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "function",
+      "name": "createAdminClient",
+      "filePath": "apps/ops/src/lib/supabase/admin.ts",
+      "lineRange": [
+        3,
+        12
+      ],
+      "summary": "实例化带 service role 凭证的 Supabase 客户端。",
+      "tags": [
+        "factory",
+        "supabase",
+        "server-only"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/lib/supabase/server.ts",
+      "type": "file",
+      "name": "server.ts",
+      "filePath": "apps/ops/src/lib/supabase/server.ts",
+      "summary": "创建基于 cookie 的 Supabase 服务端客户端，用于认证会话读写。",
+      "tags": [
+        "service",
+        "supabase",
+        "server-only",
+        "authentication"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/lib/supabase/server.ts:createClient",
+      "type": "function",
+      "name": "createClient",
+      "filePath": "apps/ops/src/lib/supabase/server.ts",
+      "lineRange": [
+        4,
+        27
+      ],
+      "summary": "通过 Next.js cookies 桥接创建 SSR Supabase 客户端，支持会话 cookie 同步。",
+      "tags": [
+        "factory",
+        "supabase",
+        "ssr"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/ops/src/lib/tenant-app-url.ts",
+      "type": "file",
+      "name": "tenant-app-url.ts",
+      "filePath": "apps/ops/src/lib/tenant-app-url.ts",
+      "summary": "解析租户产品 Web 应用基础 URL，供 Ops 控制台生成餐厅前台链接。",
+      "tags": [
+        "utility",
+        "configuration",
+        "url"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/ops/src/lib/tenant-app-url.ts:getTenantAppUrl",
+      "type": "function",
+      "name": "getTenantAppUrl",
+      "filePath": "apps/ops/src/lib/tenant-app-url.ts",
+      "lineRange": [
+        2,
+        6
+      ],
+      "summary": "从环境变量读取租户应用 URL，去除尾部斜杠并提供 localhost 默认值。",
+      "tags": [
+        "utility",
+        "configuration"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/ops/src/components/ui/ConfirmModal.tsx",
+      "target": "file:apps/ops/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/components/ui/ConfirmModal.tsx",
+      "target": "file:apps/ops/src/components/ui/Modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/components/ui/ConfirmModal.tsx",
+      "target": "function:apps/ops/src/components/ui/ConfirmModal.tsx:ConfirmModal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/components/ui/ConfirmModal.tsx",
+      "target": "function:apps/ops/src/components/ui/ConfirmModal.tsx:ConfirmModal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/ops/src/components/ui/ConfirmModal.tsx:ConfirmModal",
+      "target": "function:apps/ops/src/components/ui/Modal.tsx:Modal",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/ops/src/components/ui/Modal.tsx",
+      "target": "function:apps/ops/src/components/ui/Modal.tsx:Modal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/components/ui/Modal.tsx",
+      "target": "function:apps/ops/src/components/ui/Modal.tsx:Modal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-audit-log.test.ts",
+      "target": "file:apps/ops/src/lib/ops-audit-log.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-audit-log.ts",
+      "target": "file:apps/ops/src/lib/ops-user-lookup.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-audit-log.ts",
+      "target": "file:apps/ops/src/lib/platform-audit.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-audit-log.ts",
+      "target": "function:apps/ops/src/lib/ops-audit-log.ts:fetchRestaurantNamesMap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-audit-log.ts",
+      "target": "function:apps/ops/src/lib/ops-audit-log.ts:fetchAuditEnrichmentMaps",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-audit-log.ts",
+      "target": "function:apps/ops/src/lib/ops-audit-log.ts:enrichAuditLogRows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-audit-log.ts",
+      "target": "function:apps/ops/src/lib/ops-audit-log.ts:auditLogRowsToCsv",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-audit-log.ts",
+      "target": "function:apps/ops/src/lib/ops-audit-log.ts:enrichAuditLogRowsForCsv",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-audit-log.ts",
+      "target": "function:apps/ops/src/lib/ops-audit-log.ts:fetchRestaurantNamesMap",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-audit-log.ts",
+      "target": "function:apps/ops/src/lib/ops-audit-log.ts:enrichAuditLogRows",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-audit-log.ts",
+      "target": "function:apps/ops/src/lib/ops-audit-log.ts:auditLogRowsToCsv",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-audit-log.ts",
+      "target": "function:apps/ops/src/lib/ops-audit-log.ts:enrichAuditLogRowsForCsv",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/ops/src/lib/ops-audit-log.ts:fetchAuditEnrichmentMaps",
+      "target": "function:apps/ops/src/lib/ops-user-lookup.ts:fetchUserEmailsMap",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/ops/src/lib/ops-audit-log.ts:fetchAuditEnrichmentMaps",
+      "target": "function:apps/ops/src/lib/ops-audit-log.ts:fetchRestaurantNamesMap",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/ops/src/lib/ops-audit-log.ts:enrichAuditLogRows",
+      "target": "function:apps/ops/src/lib/ops-audit-log.ts:fetchAuditEnrichmentMaps",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/ops/src/lib/ops-audit-log.ts:auditLogRowsToCsv",
+      "target": "function:apps/ops/src/lib/platform-audit.ts:platformAuditActionLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/ops/src/lib/ops-audit-log.ts:enrichAuditLogRowsForCsv",
+      "target": "function:apps/ops/src/lib/ops-audit-log.ts:fetchAuditEnrichmentMaps",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/ops/src/lib/ops-audit-log.ts:enrichAuditLogRowsForCsv",
+      "target": "function:apps/ops/src/lib/ops-audit-log.ts:auditLogRowsToCsv",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-audit-log.ts",
+      "target": "file:apps/ops/src/lib/ops-audit-log.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-print-summary.test.ts",
+      "target": "file:apps/ops/src/lib/ops-print-summary.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-print-summary.ts",
+      "target": "function:apps/ops/src/lib/ops-print-summary.ts:listTopPrintFailureRestaurants",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-print-summary.ts",
+      "target": "function:apps/ops/src/lib/ops-print-summary.ts:listTopPrintFailureRestaurants",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-print-summary.ts",
+      "target": "file:apps/ops/src/lib/ops-print-summary.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-user-lookup.test.ts",
+      "target": "file:apps/ops/src/lib/ops-user-lookup.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-user-lookup.ts",
+      "target": "function:apps/ops/src/lib/ops-user-lookup.ts:fetchUserEmailsMap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-user-lookup.ts",
+      "target": "function:apps/ops/src/lib/ops-user-lookup.ts:fetchUserEmailsMap",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/lib/ops-user-lookup.ts",
+      "target": "file:apps/ops/src/lib/ops-user-lookup.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/ops/src/lib/platform-audit.ts",
+      "target": "function:apps/ops/src/lib/platform-audit.ts:platformAuditActionLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/lib/platform-audit.ts",
+      "target": "function:apps/ops/src/lib/platform-audit.ts:writePlatformAudit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/lib/platform-audit.ts",
+      "target": "function:apps/ops/src/lib/platform-audit.ts:platformAuditActionLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/lib/platform-audit.ts",
+      "target": "function:apps/ops/src/lib/platform-audit.ts:writePlatformAudit",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/lib/platform-auth.ts",
+      "target": "file:apps/ops/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/lib/platform-auth.ts",
+      "target": "file:apps/ops/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/ops/src/lib/platform-auth.ts",
+      "target": "function:apps/ops/src/lib/platform-auth.ts:getPlatformAdmin",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/lib/platform-auth.ts",
+      "target": "function:apps/ops/src/lib/platform-auth.ts:requirePlatformAdmin",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/lib/platform-auth.ts",
+      "target": "function:apps/ops/src/lib/platform-auth.ts:requirePlatformAdminRole",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/lib/platform-auth.ts",
+      "target": "function:apps/ops/src/lib/platform-auth.ts:countPlatformAdmins",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/lib/platform-auth.ts",
+      "target": "function:apps/ops/src/lib/platform-auth.ts:getPlatformAdmin",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/lib/platform-auth.ts",
+      "target": "function:apps/ops/src/lib/platform-auth.ts:requirePlatformAdmin",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/lib/platform-auth.ts",
+      "target": "function:apps/ops/src/lib/platform-auth.ts:requirePlatformAdminRole",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/lib/platform-auth.ts",
+      "target": "function:apps/ops/src/lib/platform-auth.ts:countPlatformAdmins",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/ops/src/lib/platform-auth.ts:getPlatformAdmin",
+      "target": "function:apps/ops/src/lib/supabase/server.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/ops/src/lib/platform-auth.ts:getPlatformAdmin",
+      "target": "function:apps/ops/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/ops/src/lib/platform-auth.ts:requirePlatformAdmin",
+      "target": "function:apps/ops/src/lib/platform-auth.ts:getPlatformAdmin",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/ops/src/lib/platform-auth.ts:requirePlatformAdmin",
+      "target": "function:apps/ops/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/ops/src/lib/platform-auth.ts:requirePlatformAdminRole",
+      "target": "function:apps/ops/src/lib/platform-auth.ts:requirePlatformAdmin",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/ops/src/lib/platform-auth.ts:countPlatformAdmins",
+      "target": "function:apps/ops/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/lib/supabase/admin.ts",
+      "target": "function:apps/ops/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/lib/supabase/admin.ts",
+      "target": "function:apps/ops/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/lib/supabase/server.ts",
+      "target": "function:apps/ops/src/lib/supabase/server.ts:createClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/lib/supabase/server.ts",
+      "target": "function:apps/ops/src/lib/supabase/server.ts:createClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/ops/src/lib/tenant-app-url.ts",
+      "target": "function:apps/ops/src/lib/tenant-app-url.ts:getTenantAppUrl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/ops/src/lib/tenant-app-url.ts",
+      "target": "function:apps/ops/src/lib/tenant-app-url.ts:getTenantAppUrl",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

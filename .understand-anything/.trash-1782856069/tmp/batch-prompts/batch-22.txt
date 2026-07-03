@@ -1,0 +1,25 @@
+Analyze these files and produce GraphNode and GraphEdge objects.
+Project root: `/Users/chenjianping/Documents/restaurant-ordering`
+Project: `undefined` — undefined
+Languages: ["config","css","dockerfile","go","html","iss","javascript","json","markdown","mod","mts","powershell","python","shell","sql","sum","txt","typescript","unknown","yaml"]
+Batch: `22/38`
+Skill directory: `/Users/chenjianping/.cursor/plugins/cache/understand-anything/understand-anything/54754a6f97051d1d76c8758353d8ea41afe502a6/skills/understand`
+Output: `/Users/chenjianping/Documents/restaurant-ordering/.understand-anything/intermediate/batch-22.json`
+
+Pre-resolved import data:
+```json
+{"packages/shared/src/country-code.test.ts":["packages/shared/src/country-code.ts"],"packages/shared/src/country-code.ts":[],"packages/shared/src/create-restaurant.ts":["packages/shared/src/country-code.ts","packages/shared/src/slug.ts"],"packages/shared/src/slug.ts":[]}
+```
+
+Cross-batch neighbors:
+```json
+{}
+```
+
+Files:
+1. `packages/shared/src/country-code.test.ts` (16 lines, language: `typescript`, fileCategory: `code`)
+2. `packages/shared/src/country-code.ts` (25 lines, language: `typescript`, fileCategory: `code`)
+3. `packages/shared/src/create-restaurant.ts` (125 lines, language: `typescript`, fileCategory: `code`)
+4. `packages/shared/src/slug.ts` (14 lines, language: `typescript`, fileCategory: `code`)
+
+> **Language directive**: Generate all textual content in **zh** (Chinese). Keep technical terms in English when no standard translation exists.

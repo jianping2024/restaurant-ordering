@@ -1,0 +1,13 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {"path": "apps/ops/package.json", "language": "json", "sizeLines": 30, "fileCategory": "config"},
+    {"path": "apps/ops/tsconfig.json", "language": "json", "sizeLines": 22, "fileCategory": "config"},
+    {"path": "apps/ops/vercel.json", "language": "json", "sizeLines": 7, "fileCategory": "config"}
+  ],
+  "batchImportData": {
+    "apps/ops/package.json": [],
+    "apps/ops/tsconfig.json": [],
+    "apps/ops/vercel.json": []
+  }
+}

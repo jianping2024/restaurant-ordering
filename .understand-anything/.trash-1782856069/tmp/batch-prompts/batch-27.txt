@@ -1,0 +1,28 @@
+Analyze these files and produce GraphNode and GraphEdge objects.
+Project root: `/Users/chenjianping/Documents/restaurant-ordering`
+Project: `undefined` — undefined
+Languages: ["config","css","dockerfile","go","html","iss","javascript","json","markdown","mod","mts","powershell","python","shell","sql","sum","txt","typescript","unknown","yaml"]
+Batch: `27/38`
+Skill directory: `/Users/chenjianping/.cursor/plugins/cache/understand-anything/understand-anything/54754a6f97051d1d76c8758353d8ea41afe502a6/skills/understand`
+Output: `/Users/chenjianping/Documents/restaurant-ordering/.understand-anything/intermediate/batch-27.json`
+
+Pre-resolved import data:
+```json
+{"apps/print-agent/README.md":[],"apps/print-agent/RELEASE_NOTES.md":[],"apps/print-agent/configure_ui.html":[],"apps/print-agent/go.mod":[],"apps/print-agent/go.sum":[],"apps/print-agent/pair_ui.html":[],"apps/print-agent/setup_ui.html":[]}
+```
+
+Cross-batch neighbors:
+```json
+{}
+```
+
+Files:
+1. `apps/print-agent/README.md` (159 lines, language: `markdown`, fileCategory: `docs`)
+2. `apps/print-agent/RELEASE_NOTES.md` (99 lines, language: `markdown`, fileCategory: `docs`)
+3. `apps/print-agent/configure_ui.html` (867 lines, language: `html`, fileCategory: `markup`)
+4. `apps/print-agent/go.mod` (21 lines, language: `mod`, fileCategory: `config`)
+5. `apps/print-agent/go.sum` (38 lines, language: `sum`, fileCategory: `config`)
+6. `apps/print-agent/pair_ui.html` (170 lines, language: `html`, fileCategory: `markup`)
+7. `apps/print-agent/setup_ui.html` (582 lines, language: `html`, fileCategory: `markup`)
+
+> **Language directive**: Generate all textual content in **zh** (Chinese). Keep technical terms in English when no standard translation exists.

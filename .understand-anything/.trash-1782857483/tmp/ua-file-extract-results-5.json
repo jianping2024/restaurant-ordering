@@ -1,0 +1,2929 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 30,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/web/src/app/api/dashboard/abnormal-operations/[id]/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 75,
+      "nonEmptyLines": 63,
+      "functions": [
+        {
+          "name": "PATCH",
+          "startLine": 13,
+          "endLine": 75,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "PATCH",
+          "line": 13,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "PATCH",
+          "callee": "params.id?.trim",
+          "lineNumber": 17
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 19
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loadOwnerAbnormalOperationsContext",
+          "lineNumber": 22
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 24
+        },
+        {
+          "caller": "PATCH",
+          "callee": "abnormalOperationsPatchRateLimitCheck",
+          "lineNumber": 27
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 29
+        },
+        {
+          "caller": "PATCH",
+          "callee": "String",
+          "lineNumber": 31
+        },
+        {
+          "caller": "PATCH",
+          "callee": "req.json",
+          "lineNumber": 37
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 39
+        },
+        {
+          "caller": "PATCH",
+          "callee": "body.status.trim",
+          "lineNumber": 42
+        },
+        {
+          "caller": "PATCH",
+          "callee": "STATUSES.has",
+          "lineNumber": 43
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 55
+        },
+        {
+          "caller": "PATCH",
+          "callee": "patchAbnormalOperationWithAudit",
+          "lineNumber": 58
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 71
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 74
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/dashboard/abnormal-operations/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 33,
+      "nonEmptyLines": 28,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 11,
+          "endLine": 33,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 11,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "loadOwnerAbnormalOperationsContext",
+          "lineNumber": 12
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 14
+        },
+        {
+          "caller": "GET",
+          "callee": "abnormalOperationsListRateLimitCheck",
+          "lineNumber": 17
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 19
+        },
+        {
+          "caller": "GET",
+          "callee": "String",
+          "lineNumber": 21
+        },
+        {
+          "caller": "GET",
+          "callee": "parseAbnormalOperationsListQuery",
+          "lineNumber": 25
+        },
+        {
+          "caller": "GET",
+          "callee": "listAbnormalOperations",
+          "lineNumber": 26
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 29
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 32
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/dashboard/close-table-session/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 80,
+      "nonEmptyLines": 72,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 9,
+          "endLine": 80,
+          "params": [
+            "req"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 9,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "loadCloseTableSessionActor",
+          "lineNumber": 10
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 12
+        },
+        {
+          "caller": "POST",
+          "callee": "req.json",
+          "lineNumber": 23
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 25
+        },
+        {
+          "caller": "POST",
+          "callee": "parseTableIdParam",
+          "lineNumber": 28
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 30
+        },
+        {
+          "caller": "POST",
+          "callee": "closeTableSessionManual",
+          "lineNumber": 37
+        },
+        {
+          "caller": "POST",
+          "callee": "parseCloseConfirmFromBody",
+          "lineNumber": 44
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 51
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 54
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 60
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 67
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 76
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 79
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/checkout/apply-discount/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 71,
+      "nonEmptyLines": 61,
+      "functions": [
+        {
+          "name": "POST",
+          "startLine": 7,
+          "endLine": 71,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "POST",
+          "line": 7,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "POST",
+          "callee": "params.slug?.trim",
+          "lineNumber": 11
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 13
+        },
+        {
+          "caller": "POST",
+          "callee": "req.json",
+          "lineNumber": 23
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 25
+        },
+        {
+          "caller": "POST",
+          "callee": "body.bill_split_id.trim",
+          "lineNumber": 28
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 30
+        },
+        {
+          "caller": "POST",
+          "callee": "Number.isFinite",
+          "lineNumber": 34
+        },
+        {
+          "caller": "POST",
+          "callee": "authorizeCheckoutConfirmPayment",
+          "lineNumber": 43
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 45
+        },
+        {
+          "caller": "POST",
+          "callee": "applyBillSplitDiscount",
+          "lineNumber": 48
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 59
+        },
+        {
+          "caller": "POST",
+          "callee": "NextResponse.json",
+          "lineNumber": 65
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/staff/kitchen/orders/[orderId]/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 113,
+      "nonEmptyLines": 98,
+      "functions": [
+        {
+          "name": "PATCH",
+          "startLine": 10,
+          "endLine": 113,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "PATCH",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 17
+        },
+        {
+          "caller": "PATCH",
+          "callee": "staffAuthFromRequest",
+          "lineNumber": 20
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 22
+        },
+        {
+          "caller": "PATCH",
+          "callee": "req.json",
+          "lineNumber": 32
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 34
+        },
+        {
+          "caller": "PATCH",
+          "callee": "Array.isArray",
+          "lineNumber": 37
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 38
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 45
+        },
+        {
+          "caller": "PATCH",
+          "callee": "createAdminClient",
+          "lineNumber": 55
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 57
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('orders')\n    .select('id, restaurant_id, updated_at, session_id, table_id, display_name, items, status')\n    .eq('id', orderId)\n    .maybeSingle",
+          "lineNumber": 60
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('orders')\n    .select('id, restaurant_id, updated_at, session_id, table_id, display_name, items, status')\n    .eq",
+          "lineNumber": 60
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('orders')\n    .select",
+          "lineNumber": 60
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from",
+          "lineNumber": 60
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 67
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 71
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loadStaffAuditActor",
+          "lineNumber": 74
+        },
+        {
+          "caller": "PATCH",
+          "callee": "patchOrderItemsWithVoidAudit",
+          "lineNumber": 80
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 104
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 107
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 109
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 112
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 112,
+      "nonEmptyLines": 97,
+      "functions": [
+        {
+          "name": "PATCH",
+          "startLine": 11,
+          "endLine": 112,
+          "params": [
+            "req",
+            "{ params }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "PATCH",
+          "line": 11,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 18
+        },
+        {
+          "caller": "PATCH",
+          "callee": "openTableAuthFromRequest",
+          "lineNumber": 21
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 23
+        },
+        {
+          "caller": "PATCH",
+          "callee": "req.json",
+          "lineNumber": 33
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 35
+        },
+        {
+          "caller": "PATCH",
+          "callee": "Array.isArray",
+          "lineNumber": 38
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 39
+        },
+        {
+          "caller": "PATCH",
+          "callee": "createAdminClient",
+          "lineNumber": 49
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 51
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('orders')\n    .select('id, restaurant_id, updated_at, session_id, table_id, display_name, items, status')\n    .eq('id', orderId)\n    .maybeSingle",
+          "lineNumber": 54
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('orders')\n    .select('id, restaurant_id, updated_at, session_id, table_id, display_name, items, status')\n    .eq",
+          "lineNumber": 54
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from('orders')\n    .select",
+          "lineNumber": 54
+        },
+        {
+          "caller": "PATCH",
+          "callee": "admin\n    .from",
+          "lineNumber": 54
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 61
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 65
+        },
+        {
+          "caller": "PATCH",
+          "callee": "sessionIdBlocksWaiterMutation",
+          "lineNumber": 69
+        },
+        {
+          "caller": "PATCH",
+          "callee": "sessionBillingResponse",
+          "lineNumber": 70
+        },
+        {
+          "caller": "PATCH",
+          "callee": "loadStaffAuditActor",
+          "lineNumber": 73
+        },
+        {
+          "caller": "PATCH",
+          "callee": "patchOrderItemsWithVoidAudit",
+          "lineNumber": 79
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 103
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 106
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 108
+        },
+        {
+          "caller": "PATCH",
+          "callee": "NextResponse.json",
+          "lineNumber": 111
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 627,
+      "nonEmptyLines": 589,
+      "functions": [
+        {
+          "name": "DEFAULT_FILTERS",
+          "startLine": 45,
+          "endLine": 51,
+          "params": [
+            "today"
+          ]
+        },
+        {
+          "name": "detectDatePreset",
+          "startLine": 53,
+          "endLine": 62,
+          "params": [
+            "startDate",
+            "endDate",
+            "today"
+          ]
+        },
+        {
+          "name": "typeLabel",
+          "startLine": 64,
+          "endLine": 71,
+          "params": [
+            "t",
+            "type"
+          ]
+        },
+        {
+          "name": "riskLabel",
+          "startLine": 73,
+          "endLine": 77,
+          "params": [
+            "t",
+            "risk"
+          ]
+        },
+        {
+          "name": "statusLabel",
+          "startLine": 79,
+          "endLine": 86,
+          "params": [
+            "t",
+            "status"
+          ]
+        },
+        {
+          "name": "riskBadgeClass",
+          "startLine": 93,
+          "endLine": 97,
+          "params": [
+            "risk"
+          ]
+        },
+        {
+          "name": "statusBadgeClass",
+          "startLine": 99,
+          "endLine": 103,
+          "params": [
+            "status"
+          ]
+        },
+        {
+          "name": "ReasonCell",
+          "startLine": 105,
+          "endLine": 112,
+          "params": [
+            "{ text }"
+          ]
+        },
+        {
+          "name": "AbnormalOperationsManager",
+          "startLine": 118,
+          "endLine": 627,
+          "params": [
+            "{ restaurantSlug }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "AbnormalOperationsManager",
+          "line": 118,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "detectDatePreset",
+          "callee": "addCalendarDays",
+          "lineNumber": 59
+        },
+        {
+          "caller": "detectDatePreset",
+          "callee": "addCalendarDays",
+          "lineNumber": 60
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "useLanguage",
+          "lineNumber": 119
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "getMessages",
+          "lineNumber": 120
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "useMemo",
+          "lineNumber": 122
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "calendarDateInTimezone",
+          "lineNumber": 122
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "useState",
+          "lineNumber": 124
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "useState",
+          "lineNumber": 132
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "useState",
+          "lineNumber": 133
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "useState",
+          "lineNumber": 134
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "useState",
+          "lineNumber": 135
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "useState",
+          "lineNumber": 136
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "useState",
+          "lineNumber": 137
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "useState",
+          "lineNumber": 138
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "useRef",
+          "lineNumber": 139
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "useEffect",
+          "lineNumber": 141
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "window.setTimeout",
+          "lineNumber": 142
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "setDebouncedFilters",
+          "lineNumber": 142
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "window.clearTimeout",
+          "lineNumber": 143
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "useEffect",
+          "lineNumber": 146
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "window.setTimeout",
+          "lineNumber": 148
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "setRefreshCooldownSec",
+          "lineNumber": 149
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "Math.max",
+          "lineNumber": 149
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "window.clearTimeout",
+          "lineNumber": 151
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "useCallback",
+          "lineNumber": 154
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "setLoading",
+          "lineNumber": 155
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "fetchAbnormalOperations",
+          "lineNumber": 156
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "setLoading",
+          "lineNumber": 165
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "showToast",
+          "lineNumber": 167
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "setData",
+          "lineNumber": 170
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "setSelected",
+          "lineNumber": 171
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "result.data.items.find",
+          "lineNumber": 173
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "useEffect",
+          "lineNumber": 177
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "load",
+          "lineNumber": 178
+        },
+        {
+          "caller": "handleRefresh",
+          "callee": "Date.now",
+          "lineNumber": 182
+        },
+        {
+          "caller": "handleRefresh",
+          "callee": "setRefreshCooldownSec",
+          "lineNumber": 185
+        },
+        {
+          "caller": "handleRefresh",
+          "callee": "Math.ceil",
+          "lineNumber": 185
+        },
+        {
+          "caller": "handleRefresh",
+          "callee": "setRefreshCooldownSec",
+          "lineNumber": 189
+        },
+        {
+          "caller": "handleRefresh",
+          "callee": "Math.ceil",
+          "lineNumber": 189
+        },
+        {
+          "caller": "handleRefresh",
+          "callee": "load",
+          "lineNumber": 190
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "detectDatePreset",
+          "lineNumber": 193
+        },
+        {
+          "caller": "applyDatePreset",
+          "callee": "addCalendarDays",
+          "lineNumber": 200
+        },
+        {
+          "caller": "applyDatePreset",
+          "callee": "addCalendarDays",
+          "lineNumber": 201
+        },
+        {
+          "caller": "applyDatePreset",
+          "callee": "setFilters",
+          "lineNumber": 202
+        },
+        {
+          "caller": "resetFilters",
+          "callee": "DEFAULT_FILTERS",
+          "lineNumber": 206
+        },
+        {
+          "caller": "resetFilters",
+          "callee": "setFilters",
+          "lineNumber": 207
+        },
+        {
+          "caller": "updateFilter",
+          "callee": "setFilters",
+          "lineNumber": 214
+        },
+        {
+          "caller": "openDetail",
+          "callee": "setSelected",
+          "lineNumber": 225
+        },
+        {
+          "caller": "openDetail",
+          "callee": "setOwnerNoteDraft",
+          "lineNumber": 226
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "useCallback",
+          "lineNumber": 229
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "setSelected",
+          "lineNumber": 230
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "setOwnerNoteDraft",
+          "lineNumber": 231
+        },
+        {
+          "caller": "applyPatch",
+          "callee": "setPatching",
+          "lineNumber": 240
+        },
+        {
+          "caller": "applyPatch",
+          "callee": "patchAbnormalOperationClient",
+          "lineNumber": 241
+        },
+        {
+          "caller": "applyPatch",
+          "callee": "setPatching",
+          "lineNumber": 242
+        },
+        {
+          "caller": "applyPatch",
+          "callee": "showToast",
+          "lineNumber": 244
+        },
+        {
+          "caller": "applyPatch",
+          "callee": "closeDetail",
+          "lineNumber": 247
+        },
+        {
+          "caller": "applyPatch",
+          "callee": "setData",
+          "lineNumber": 248
+        },
+        {
+          "caller": "applyPatch",
+          "callee": "mergePatchedAbnormalOperationRow",
+          "lineNumber": 250
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "Math.max",
+          "lineNumber": 261
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "Math.ceil",
+          "lineNumber": 261
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "t.refreshCooldown.replace",
+          "lineNumber": 277
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "String",
+          "lineNumber": 277
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "stats.amount_impact_sum.toFixed",
+          "lineNumber": 305
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "applyDatePreset",
+          "lineNumber": 323
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "presetBtnClass",
+          "lineNumber": 324
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "applyDatePreset",
+          "lineNumber": 330
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "presetBtnClass",
+          "lineNumber": 331
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "applyDatePreset",
+          "lineNumber": 337
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "presetBtnClass",
+          "lineNumber": 338
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "updateFilter",
+          "lineNumber": 350
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "updateFilter",
+          "lineNumber": 366
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "updateFilter",
+          "lineNumber": 382
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "data.items.map",
+          "lineNumber": 425
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "formatAbnormalOperationReasonText",
+          "lineNumber": 426
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "abnormalOperationTableHref",
+          "lineNumber": 427
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "new Date(row.created_at).toLocaleString",
+          "lineNumber": 435
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "typeLabel",
+          "lineNumber": 437
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "riskBadgeClass",
+          "lineNumber": 452
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "riskLabel",
+          "lineNumber": 454
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "statusBadgeClass",
+          "lineNumber": 459
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "statusLabel",
+          "lineNumber": 461
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "Number(row.amount_impact).toFixed",
+          "lineNumber": 465
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "Number",
+          "lineNumber": 465
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "openDetail",
+          "lineNumber": 480
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "t.pageInfo.replace('{page}', String(data.page)).replace",
+          "lineNumber": 506
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "t.pageInfo.replace",
+          "lineNumber": 506
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "String",
+          "lineNumber": 506
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "String",
+          "lineNumber": 506
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "setFilters",
+          "lineNumber": 513
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "setFilters",
+          "lineNumber": 521
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "typeLabel",
+          "lineNumber": 541
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "abnormalOperationTableHref",
+          "lineNumber": 548
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "Number(selected.amount_impact).toFixed",
+          "lineNumber": 566
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "Number",
+          "lineNumber": 566
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "formatAbnormalOperationReasonText",
+          "lineNumber": 572
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "abnormalOperationTableHref",
+          "lineNumber": 578
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "setOwnerNoteDraft",
+          "lineNumber": 589
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "applyPatch",
+          "lineNumber": 601
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "applyPatch",
+          "lineNumber": 605
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "applyPatch",
+          "lineNumber": 614
+        },
+        {
+          "caller": "AbnormalOperationsManager",
+          "callee": "ownerNoteDraft.trim",
+          "lineNumber": 615
+        }
+      ],
+      "metrics": {
+        "importCount": 11,
+        "exportCount": 1,
+        "functionCount": 9,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/abnormal-operations-rate-limit.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 26,
+      "nonEmptyLines": 22,
+      "functions": [
+        {
+          "name": "abnormalOperationsListRateLimitCheck",
+          "startLine": 10,
+          "endLine": 17,
+          "params": [
+            "ownerId",
+            "restaurantId"
+          ]
+        },
+        {
+          "name": "abnormalOperationsPatchRateLimitCheck",
+          "startLine": 19,
+          "endLine": 26,
+          "params": [
+            "ownerId",
+            "restaurantId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "abnormalOperationsListRateLimitCheck",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "abnormalOperationsPatchRateLimitCheck",
+          "line": 19,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "abnormalOperationsListRateLimitCheck",
+          "callee": "checkInMemoryRateLimit",
+          "lineNumber": 11
+        },
+        {
+          "caller": "abnormalOperationsPatchRateLimitCheck",
+          "callee": "checkInMemoryRateLimit",
+          "lineNumber": 20
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/abnormal-operations.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 146,
+      "nonEmptyLines": 131,
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/abnormal-operations.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 23,
+      "nonEmptyLines": 23,
+      "exports": [
+        {
+          "name": "addCalendarDays",
+          "line": 2,
+          "isDefault": false
+        },
+        {
+          "name": "calendarDateInTimezone",
+          "line": 2,
+          "isDefault": false
+        },
+        {
+          "name": "daysBetweenInclusive",
+          "line": 2,
+          "isDefault": false
+        },
+        {
+          "name": "lisbonDayStartUtcIso",
+          "line": 2,
+          "isDefault": false
+        },
+        {
+          "name": "compareAbnormalOperations",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "parseAbnormalOperationsDateRange",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "riskLevelForVoidedItem",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "riskLevelForDiscountRate",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "listAbnormalOperations",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "getAbnormalOperationById",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "canTransitionAbnormalStatus",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "patchAbnormalOperation",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "ParsedAbnormalDateRange",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "AbnormalOperationsListFilters",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "AbnormalOperationsStats",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "AbnormalOperationsListResult",
+          "line": 18,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 16,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/abnormal-operations/client-api.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 84,
+      "nonEmptyLines": 80,
+      "functions": [
+        {
+          "name": "toQuery",
+          "startLine": 21,
+          "endLine": 34,
+          "params": [
+            "params"
+          ]
+        },
+        {
+          "name": "fetchAbnormalOperations",
+          "startLine": 36,
+          "endLine": 56,
+          "params": [
+            "params"
+          ]
+        },
+        {
+          "name": "patchAbnormalOperationClient",
+          "startLine": 58,
+          "endLine": 84,
+          "params": [
+            "id",
+            "body"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "fetchAbnormalOperations",
+          "line": 36,
+          "isDefault": false
+        },
+        {
+          "name": "patchAbnormalOperationClient",
+          "line": 58,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "toQuery",
+          "callee": "search.set",
+          "lineNumber": 23
+        },
+        {
+          "caller": "toQuery",
+          "callee": "search.set",
+          "lineNumber": 24
+        },
+        {
+          "caller": "toQuery",
+          "callee": "search.set",
+          "lineNumber": 25
+        },
+        {
+          "caller": "toQuery",
+          "callee": "search.set",
+          "lineNumber": 26
+        },
+        {
+          "caller": "toQuery",
+          "callee": "search.set",
+          "lineNumber": 27
+        },
+        {
+          "caller": "toQuery",
+          "callee": "search.set",
+          "lineNumber": 28
+        },
+        {
+          "caller": "toQuery",
+          "callee": "search.set",
+          "lineNumber": 29
+        },
+        {
+          "caller": "toQuery",
+          "callee": "search.set",
+          "lineNumber": 30
+        },
+        {
+          "caller": "toQuery",
+          "callee": "String",
+          "lineNumber": 30
+        },
+        {
+          "caller": "toQuery",
+          "callee": "search.set",
+          "lineNumber": 31
+        },
+        {
+          "caller": "toQuery",
+          "callee": "String",
+          "lineNumber": 31
+        },
+        {
+          "caller": "toQuery",
+          "callee": "search.toString",
+          "lineNumber": 32
+        },
+        {
+          "caller": "fetchAbnormalOperations",
+          "callee": "fetch",
+          "lineNumber": 43
+        },
+        {
+          "caller": "fetchAbnormalOperations",
+          "callee": "toQuery",
+          "lineNumber": 43
+        },
+        {
+          "caller": "fetchAbnormalOperations",
+          "callee": "res.json().catch",
+          "lineNumber": 46
+        },
+        {
+          "caller": "fetchAbnormalOperations",
+          "callee": "res.json",
+          "lineNumber": 46
+        },
+        {
+          "caller": "patchAbnormalOperationClient",
+          "callee": "fetch",
+          "lineNumber": 66
+        },
+        {
+          "caller": "patchAbnormalOperationClient",
+          "callee": "encodeURIComponent",
+          "lineNumber": 66
+        },
+        {
+          "caller": "patchAbnormalOperationClient",
+          "callee": "JSON.stringify",
+          "lineNumber": 70
+        },
+        {
+          "caller": "patchAbnormalOperationClient",
+          "callee": "res.json().catch",
+          "lineNumber": 72
+        },
+        {
+          "caller": "patchAbnormalOperationClient",
+          "callee": "res.json",
+          "lineNumber": 72
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/abnormal-operations/list-patch-merge.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 85,
+      "nonEmptyLines": 77,
+      "functions": [
+        {
+          "name": "row",
+          "startLine": 7,
+          "endLine": 34,
+          "params": [
+            "partial"
+          ]
+        },
+        {
+          "name": "listData",
+          "startLine": 36,
+          "endLine": 49,
+          "params": [
+            "items"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "listData",
+          "callee": "items.filter",
+          "lineNumber": 44
+        },
+        {
+          "caller": "listData",
+          "callee": "items.reduce",
+          "lineNumber": 45
+        },
+        {
+          "caller": "listData",
+          "callee": "items.filter",
+          "lineNumber": 46
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/abnormal-operations/list-patch-merge.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 37,
+      "nonEmptyLines": 32,
+      "functions": [
+        {
+          "name": "mergePatchedAbnormalOperationRow",
+          "startLine": 8,
+          "endLine": 37,
+          "params": [
+            "data",
+            "previous",
+            "updated",
+            "statusFilter"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "mergePatchedAbnormalOperationRow",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "mergePatchedAbnormalOperationRow",
+          "callee": "data.items.filter",
+          "lineNumber": 18
+        },
+        {
+          "caller": "mergePatchedAbnormalOperationRow",
+          "callee": "data.items.map",
+          "lineNumber": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/abnormal-operations/load-owner-context.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 40,
+      "nonEmptyLines": 35,
+      "functions": [
+        {
+          "name": "loadOwnerAbnormalOperationsContext",
+          "startLine": 16,
+          "endLine": 40,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "loadOwnerAbnormalOperationsContext",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loadOwnerAbnormalOperationsContext",
+          "callee": "loadDashboardAccess",
+          "lineNumber": 17
+        },
+        {
+          "caller": "loadOwnerAbnormalOperationsContext",
+          "callee": "createAdminClient",
+          "lineNumber": 24
+        },
+        {
+          "caller": "loadOwnerAbnormalOperationsContext",
+          "callee": "loadOwnerDashboardAuditActor",
+          "lineNumber": 29
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/abnormal-operations/owner-query.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 267,
+      "nonEmptyLines": 236,
+      "functions": [
+        {
+          "name": "riskLevelForVoidedItem",
+          "startLine": 68,
+          "endLine": 74,
+          "params": [
+            "itemStatus"
+          ]
+        },
+        {
+          "name": "riskLevelForDiscountRate",
+          "startLine": 76,
+          "endLine": 81,
+          "params": [
+            "discountRate"
+          ]
+        },
+        {
+          "name": "parseAbnormalOperationsDateRange",
+          "startLine": 83,
+          "endLine": 111,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "compareAbnormalOperations",
+          "startLine": 113,
+          "endLine": 120,
+          "params": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "name": "computeStats",
+          "startLine": 122,
+          "endLine": 137,
+          "params": [
+            "rows"
+          ]
+        },
+        {
+          "name": "listAbnormalOperations",
+          "startLine": 139,
+          "endLine": 191,
+          "params": [
+            "admin",
+            "filters"
+          ]
+        },
+        {
+          "name": "getAbnormalOperationById",
+          "startLine": 193,
+          "endLine": 207,
+          "params": [
+            "admin",
+            "restaurantId",
+            "id"
+          ]
+        },
+        {
+          "name": "canTransitionAbnormalStatus",
+          "startLine": 209,
+          "endLine": 215,
+          "params": [
+            "from",
+            "to"
+          ]
+        },
+        {
+          "name": "patchAbnormalOperation",
+          "startLine": 217,
+          "endLine": 267,
+          "params": [
+            "admin",
+            "params"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "riskLevelForVoidedItem",
+          "line": 68,
+          "isDefault": false
+        },
+        {
+          "name": "riskLevelForDiscountRate",
+          "line": 76,
+          "isDefault": false
+        },
+        {
+          "name": "parseAbnormalOperationsDateRange",
+          "line": 83,
+          "isDefault": false
+        },
+        {
+          "name": "compareAbnormalOperations",
+          "line": 113,
+          "isDefault": false
+        },
+        {
+          "name": "listAbnormalOperations",
+          "line": 139,
+          "isDefault": false
+        },
+        {
+          "name": "getAbnormalOperationById",
+          "line": 193,
+          "isDefault": false
+        },
+        {
+          "name": "canTransitionAbnormalStatus",
+          "line": 209,
+          "isDefault": false
+        },
+        {
+          "name": "patchAbnormalOperation",
+          "line": 217,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "riskLevelForDiscountRate",
+          "callee": "Math.min",
+          "lineNumber": 77
+        },
+        {
+          "caller": "riskLevelForDiscountRate",
+          "callee": "Math.max",
+          "lineNumber": 77
+        },
+        {
+          "caller": "parseAbnormalOperationsDateRange",
+          "callee": "calendarDateInTimezone",
+          "lineNumber": 89
+        },
+        {
+          "caller": "parseAbnormalOperationsDateRange",
+          "callee": "input.startDate?.trim",
+          "lineNumber": 90
+        },
+        {
+          "caller": "parseAbnormalOperationsDateRange",
+          "callee": "input.endDate?.trim",
+          "lineNumber": 91
+        },
+        {
+          "caller": "parseAbnormalOperationsDateRange",
+          "callee": "DATE_RE.test",
+          "lineNumber": 93
+        },
+        {
+          "caller": "parseAbnormalOperationsDateRange",
+          "callee": "DATE_RE.test",
+          "lineNumber": 93
+        },
+        {
+          "caller": "parseAbnormalOperationsDateRange",
+          "callee": "daysBetweenInclusive",
+          "lineNumber": 99
+        },
+        {
+          "caller": "parseAbnormalOperationsDateRange",
+          "callee": "addCalendarDays",
+          "lineNumber": 103
+        },
+        {
+          "caller": "parseAbnormalOperationsDateRange",
+          "callee": "lisbonDayStartUtcIso",
+          "lineNumber": 108
+        },
+        {
+          "caller": "parseAbnormalOperationsDateRange",
+          "callee": "lisbonDayStartUtcIso",
+          "lineNumber": 109
+        },
+        {
+          "caller": "parseAbnormalOperationsDateRange",
+          "callee": "addCalendarDays",
+          "lineNumber": 109
+        },
+        {
+          "caller": "compareAbnormalOperations",
+          "callee": "b.created_at.localeCompare",
+          "lineNumber": 119
+        },
+        {
+          "caller": "computeStats",
+          "callee": "Number",
+          "lineNumber": 129
+        },
+        {
+          "caller": "listAbnormalOperations",
+          "callee": "parseAbnormalOperationsDateRange",
+          "lineNumber": 146
+        },
+        {
+          "caller": "listAbnormalOperations",
+          "callee": "Math.min",
+          "lineNumber": 155
+        },
+        {
+          "caller": "listAbnormalOperations",
+          "callee": "Math.max",
+          "lineNumber": 155
+        },
+        {
+          "caller": "listAbnormalOperations",
+          "callee": "Math.max",
+          "lineNumber": 156
+        },
+        {
+          "caller": "listAbnormalOperations",
+          "callee": "admin\n    .from('abnormal_operations')\n    .select('*')\n    .eq('restaurant_id', filters.restaurantId)\n    .gte('created_at', parsed.startUtc)\n    .lt",
+          "lineNumber": 158
+        },
+        {
+          "caller": "listAbnormalOperations",
+          "callee": "admin\n    .from('abnormal_operations')\n    .select('*')\n    .eq('restaurant_id', filters.restaurantId)\n    .gte",
+          "lineNumber": 158
+        },
+        {
+          "caller": "listAbnormalOperations",
+          "callee": "admin\n    .from('abnormal_operations')\n    .select('*')\n    .eq",
+          "lineNumber": 158
+        },
+        {
+          "caller": "listAbnormalOperations",
+          "callee": "admin\n    .from('abnormal_operations')\n    .select",
+          "lineNumber": 158
+        },
+        {
+          "caller": "listAbnormalOperations",
+          "callee": "admin\n    .from",
+          "lineNumber": 158
+        },
+        {
+          "caller": "listAbnormalOperations",
+          "callee": "query.eq",
+          "lineNumber": 165
+        },
+        {
+          "caller": "listAbnormalOperations",
+          "callee": "query.eq",
+          "lineNumber": 166
+        },
+        {
+          "caller": "listAbnormalOperations",
+          "callee": "query.eq",
+          "lineNumber": 167
+        },
+        {
+          "caller": "listAbnormalOperations",
+          "callee": "query.eq",
+          "lineNumber": 168
+        },
+        {
+          "caller": "listAbnormalOperations",
+          "callee": "query.eq",
+          "lineNumber": 169
+        },
+        {
+          "caller": "listAbnormalOperations",
+          "callee": "[...((data || []) as AbnormalOperationRow[])].sort",
+          "lineNumber": 176
+        },
+        {
+          "caller": "listAbnormalOperations",
+          "callee": "sorted.slice",
+          "lineNumber": 179
+        },
+        {
+          "caller": "listAbnormalOperations",
+          "callee": "computeStats",
+          "lineNumber": 185
+        },
+        {
+          "caller": "getAbnormalOperationById",
+          "callee": "admin\n    .from('abnormal_operations')\n    .select('*')\n    .eq('restaurant_id', restaurantId)\n    .eq('id', id)\n    .maybeSingle",
+          "lineNumber": 198
+        },
+        {
+          "caller": "getAbnormalOperationById",
+          "callee": "admin\n    .from('abnormal_operations')\n    .select('*')\n    .eq('restaurant_id', restaurantId)\n    .eq",
+          "lineNumber": 198
+        },
+        {
+          "caller": "getAbnormalOperationById",
+          "callee": "admin\n    .from('abnormal_operations')\n    .select('*')\n    .eq",
+          "lineNumber": 198
+        },
+        {
+          "caller": "getAbnormalOperationById",
+          "callee": "admin\n    .from('abnormal_operations')\n    .select",
+          "lineNumber": 198
+        },
+        {
+          "caller": "getAbnormalOperationById",
+          "callee": "admin\n    .from",
+          "lineNumber": 198
+        },
+        {
+          "caller": "canTransitionAbnormalStatus",
+          "callee": "STATUS_TRANSITIONS[from].includes",
+          "lineNumber": 214
+        },
+        {
+          "caller": "patchAbnormalOperation",
+          "callee": "getAbnormalOperationById",
+          "lineNumber": 230
+        },
+        {
+          "caller": "patchAbnormalOperation",
+          "callee": "canTransitionAbnormalStatus",
+          "lineNumber": 236
+        },
+        {
+          "caller": "patchAbnormalOperation",
+          "callee": "new Date().toISOString",
+          "lineNumber": 244
+        },
+        {
+          "caller": "patchAbnormalOperation",
+          "callee": "Object.keys",
+          "lineNumber": 250
+        },
+        {
+          "caller": "patchAbnormalOperation",
+          "callee": "admin\n    .from('abnormal_operations')\n    .update(patch)\n    .eq('restaurant_id', params.restaurantId)\n    .eq('id', params.id)\n    .select('*')\n    .maybeSingle",
+          "lineNumber": 254
+        },
+        {
+          "caller": "patchAbnormalOperation",
+          "callee": "admin\n    .from('abnormal_operations')\n    .update(patch)\n    .eq('restaurant_id', params.restaurantId)\n    .eq('id', params.id)\n    .select",
+          "lineNumber": 254
+        },
+        {
+          "caller": "patchAbnormalOperation",
+          "callee": "admin\n    .from('abnormal_operations')\n    .update(patch)\n    .eq('restaurant_id', params.restaurantId)\n    .eq",
+          "lineNumber": 254
+        },
+        {
+          "caller": "patchAbnormalOperation",
+          "callee": "admin\n    .from('abnormal_operations')\n    .update(patch)\n    .eq",
+          "lineNumber": 254
+        },
+        {
+          "caller": "patchAbnormalOperation",
+          "callee": "admin\n    .from('abnormal_operations')\n    .update",
+          "lineNumber": 254
+        },
+        {
+          "caller": "patchAbnormalOperation",
+          "callee": "admin\n    .from",
+          "lineNumber": 254
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 8,
+        "functionCount": 9,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/abnormal-operations/parse-list-query.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 35,
+      "nonEmptyLines": 33,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/abnormal-operations/parse-list-query.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 47,
+      "nonEmptyLines": 43,
+      "functions": [
+        {
+          "name": "parseAbnormalOperationsListQuery",
+          "startLine": 16,
+          "endLine": 47,
+          "params": [
+            "searchParams",
+            "restaurantId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "parseAbnormalOperationsListQuery",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "searchParams.get('type')?.trim",
+          "lineNumber": 20
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "searchParams.get",
+          "lineNumber": 20
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "searchParams.get('risk_level')?.trim",
+          "lineNumber": 21
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "searchParams.get",
+          "lineNumber": 21
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "searchParams.get('status')?.trim",
+          "lineNumber": 22
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "searchParams.get",
+          "lineNumber": 22
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "searchParams.get",
+          "lineNumber": 23
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "searchParams.get",
+          "lineNumber": 24
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "Number.parseInt",
+          "lineNumber": 26
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "Number.parseInt",
+          "lineNumber": 27
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "searchParams.get('start_date')?.trim",
+          "lineNumber": 31
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "searchParams.get",
+          "lineNumber": 31
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "searchParams.get('end_date')?.trim",
+          "lineNumber": 32
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "searchParams.get",
+          "lineNumber": 32
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "TYPES.has",
+          "lineNumber": 33
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "RISKS.has",
+          "lineNumber": 36
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "searchParams.get('operator_id')?.trim",
+          "lineNumber": 39
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "searchParams.get",
+          "lineNumber": 39
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "searchParams.get('table_id')?.trim",
+          "lineNumber": 40
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "searchParams.get",
+          "lineNumber": 40
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "STATUSES.has",
+          "lineNumber": 41
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "Number.isFinite",
+          "lineNumber": 44
+        },
+        {
+          "caller": "parseAbnormalOperationsListQuery",
+          "callee": "Number.isFinite",
+          "lineNumber": 45
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/abnormal-operations/patch-abnormal-operation.service.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 121,
+      "nonEmptyLines": 118,
+      "functions": [
+        {
+          "name": "mockAdmin",
+          "startLine": 32,
+          "endLine": 105,
+          "params": []
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/abnormal-operations/patch-abnormal-operation.service.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 83,
+      "nonEmptyLines": 73,
+      "functions": [
+        {
+          "name": "auditContext",
+          "startLine": 25,
+          "endLine": 37,
+          "params": [
+            "existing",
+            "next"
+          ]
+        },
+        {
+          "name": "patchAbnormalOperationWithAudit",
+          "startLine": 39,
+          "endLine": 83,
+          "params": [
+            "input"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "patchAbnormalOperationWithAudit",
+          "line": 39,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "patchAbnormalOperationWithAudit",
+          "callee": "getAbnormalOperationById",
+          "lineNumber": 42
+        },
+        {
+          "caller": "patchAbnormalOperationWithAudit",
+          "callee": "patchAbnormalOperation",
+          "lineNumber": 47
+        },
+        {
+          "caller": "patchAbnormalOperationWithAudit",
+          "callee": "auditContext",
+          "lineNumber": 64
+        },
+        {
+          "caller": "patchAbnormalOperationWithAudit",
+          "callee": "recordAudit",
+          "lineNumber": 74
+        },
+        {
+          "caller": "patchAbnormalOperationWithAudit",
+          "callee": "recordAudit",
+          "lineNumber": 76
+        },
+        {
+          "caller": "patchAbnormalOperationWithAudit",
+          "callee": "recordAudit",
+          "lineNumber": 78
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/abnormal-operations/reason-display.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 37,
+      "nonEmptyLines": 34,
+      "functions": [
+        {
+          "name": "abnormalOperationReasonLabel",
+          "startLine": 6,
+          "endLine": 19,
+          "params": [
+            "lang",
+            "type",
+            "reason"
+          ]
+        },
+        {
+          "name": "formatAbnormalOperationReasonText",
+          "startLine": 21,
+          "endLine": 28,
+          "params": [
+            "lang",
+            "row"
+          ]
+        },
+        {
+          "name": "abnormalOperationTableHref",
+          "startLine": 31,
+          "endLine": 37,
+          "params": [
+            "slug",
+            "row"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "abnormalOperationReasonLabel",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "formatAbnormalOperationReasonText",
+          "line": 21,
+          "isDefault": false
+        },
+        {
+          "name": "abnormalOperationTableHref",
+          "line": 31,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "abnormalOperationReasonLabel",
+          "callee": "getMessages",
+          "lineNumber": 11
+        },
+        {
+          "caller": "formatAbnormalOperationReasonText",
+          "callee": "abnormalOperationReasonLabel",
+          "lineNumber": 25
+        },
+        {
+          "caller": "formatAbnormalOperationReasonText",
+          "callee": "row.reason_detail?.trim",
+          "lineNumber": 26
+        },
+        {
+          "caller": "abnormalOperationTableHref",
+          "callee": "waiterTableHref",
+          "lineNumber": 36
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/abnormal-operations/types.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 29,
+      "nonEmptyLines": 28,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/audit/abnormal-operation.repository.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 55,
+      "nonEmptyLines": 51,
+      "functions": [
+        {
+          "name": "insertAbnormalOperationRow",
+          "startLine": 23,
+          "endLine": 55,
+          "params": [
+            "admin",
+            "input"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "insertAbnormalOperationRow",
+          "line": 23,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "insertAbnormalOperationRow",
+          "callee": "admin\n    .from('abnormal_operations')\n    .insert({\n      restaurant_id: input.restaurant_id,\n      type: input.type,\n      risk_level: input.risk_level,\n      order_id: input.order_id ?? null,\n      session_id: input.session_id ?? null,\n      table_id: input.table_id ?? null,\n      table_name: input.table_name ?? null,\n      operator_id: input.operator_id,\n      operator_name: input.operator_name,\n      operator_role: input.operator_role,\n      amount_impact: input.amount_impact,\n      reason: input.reason,\n      reason_detail: input.reason_detail ?? null,\n      before_data: input.before_data ?? {},\n      after_data: input.after_data ?? {},\n      source_action_id: input.source_action_id ?? null,\n    })\n    .select('id')\n    .maybeSingle",
+          "lineNumber": 27
+        },
+        {
+          "caller": "insertAbnormalOperationRow",
+          "callee": "admin\n    .from('abnormal_operations')\n    .insert({\n      restaurant_id: input.restaurant_id,\n      type: input.type,\n      risk_level: input.risk_level,\n      order_id: input.order_id ?? null,\n      session_id: input.session_id ?? null,\n      table_id: input.table_id ?? null,\n      table_name: input.table_name ?? null,\n      operator_id: input.operator_id,\n      operator_name: input.operator_name,\n      operator_role: input.operator_role,\n      amount_impact: input.amount_impact,\n      reason: input.reason,\n      reason_detail: input.reason_detail ?? null,\n      before_data: input.before_data ?? {},\n      after_data: input.after_data ?? {},\n      source_action_id: input.source_action_id ?? null,\n    })\n    .select",
+          "lineNumber": 27
+        },
+        {
+          "caller": "insertAbnormalOperationRow",
+          "callee": "admin\n    .from('abnormal_operations')\n    .insert",
+          "lineNumber": 27
+        },
+        {
+          "caller": "insertAbnormalOperationRow",
+          "callee": "admin\n    .from",
+          "lineNumber": 27
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/audit/audit.service.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 187,
+      "nonEmptyLines": 173,
+      "functions": [
+        {
+          "name": "mockAdmin",
+          "startLine": 7,
+          "endLine": 63,
+          "params": [
+            "insertResults"
+          ]
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/audit/audit.service.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 108,
+      "nonEmptyLines": 99,
+      "functions": [
+        {
+          "name": "recordAudit",
+          "startLine": 12,
+          "endLine": 108,
+          "params": [
+            "admin",
+            "eventKey",
+            "input"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "recordAudit",
+          "line": 12,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "recordAudit",
+          "callee": "getAuditEventDefinition",
+          "lineNumber": 18
+        },
+        {
+          "caller": "recordAudit",
+          "callee": "warnings.push",
+          "lineNumber": 20
+        },
+        {
+          "caller": "recordAudit",
+          "callee": "console.error",
+          "lineNumber": 21
+        },
+        {
+          "caller": "recordAudit",
+          "callee": "definition.build",
+          "lineNumber": 27
+        },
+        {
+          "caller": "recordAudit",
+          "callee": "warnings.push",
+          "lineNumber": 30
+        },
+        {
+          "caller": "recordAudit",
+          "callee": "console.error",
+          "lineNumber": 31
+        },
+        {
+          "caller": "recordAudit",
+          "callee": "warnings.push",
+          "lineNumber": 36
+        },
+        {
+          "caller": "recordAudit",
+          "callee": "console.error",
+          "lineNumber": 37
+        },
+        {
+          "caller": "recordAudit",
+          "callee": "auditOperatorRole",
+          "lineNumber": 41
+        },
+        {
+          "caller": "recordAudit",
+          "callee": "insertOperationLog",
+          "lineNumber": 42
+        },
+        {
+          "caller": "recordAudit",
+          "callee": "warnings.push",
+          "lineNumber": 60
+        },
+        {
+          "caller": "recordAudit",
+          "callee": "console.error",
+          "lineNumber": 61
+        },
+        {
+          "caller": "recordAudit",
+          "callee": "insertAbnormalOperationRow",
+          "lineNumber": 74
+        },
+        {
+          "caller": "recordAudit",
+          "callee": "warnings.push",
+          "lineNumber": 94
+        },
+        {
+          "caller": "recordAudit",
+          "callee": "console.error",
+          "lineNumber": 95
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/audit/builders/abnormal-owner-action.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 20,
+      "nonEmptyLines": 19,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/audit/builders/abnormal-owner-action.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 52,
+      "nonEmptyLines": 47,
+      "functions": [
+        {
+          "name": "buildPayload",
+          "startLine": 17,
+          "endLine": 31,
+          "params": [
+            "context"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "abnormalConfirmedDefinition",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "abnormalIgnoredDefinition",
+          "line": 40,
+          "isDefault": false
+        },
+        {
+          "name": "abnormalNoteAddedDefinition",
+          "line": 47,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 3,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/audit/builders/discount-applied.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 34,
+      "nonEmptyLines": 32,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/audit/builders/discount-applied.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 54,
+      "nonEmptyLines": 51,
+      "functions": [
+        {
+          "name": "computeDiscountAmounts",
+          "startLine": 48,
+          "endLine": 54,
+          "params": [
+            "originalTotal",
+            "discountRate"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "discountAppliedDefinition",
+          "line": 17,
+          "isDefault": false
+        },
+        {
+          "name": "computeDiscountAmounts",
+          "line": 48,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "build",
+          "callee": "auditMoney",
+          "lineNumber": 22
+        },
+        {
+          "caller": "build",
+          "callee": "auditMoney",
+          "lineNumber": 23
+        },
+        {
+          "caller": "build",
+          "callee": "auditMoney",
+          "lineNumber": 24
+        },
+        {
+          "caller": "build",
+          "callee": "Math.min",
+          "lineNumber": 25
+        },
+        {
+          "caller": "build",
+          "callee": "Math.max",
+          "lineNumber": 25
+        },
+        {
+          "caller": "build",
+          "callee": "riskLevelForDiscountRate",
+          "lineNumber": 33
+        },
+        {
+          "caller": "computeDiscountAmounts",
+          "callee": "Math.min",
+          "lineNumber": 49
+        },
+        {
+          "caller": "computeDiscountAmounts",
+          "callee": "Math.max",
+          "lineNumber": 49
+        },
+        {
+          "caller": "computeDiscountAmounts",
+          "callee": "auditMoney",
+          "lineNumber": 50
+        },
+        {
+          "caller": "computeDiscountAmounts",
+          "callee": "auditMoney",
+          "lineNumber": 51
+        },
+        {
+          "caller": "computeDiscountAmounts",
+          "callee": "auditMoney",
+          "lineNumber": 52
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/audit/builders/item-deleted.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 54,
+      "nonEmptyLines": 51,
+      "functions": [
+        {
+          "name": "itemLineAmount",
+          "startLine": 52,
+          "endLine": 54,
+          "params": [
+            "item"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "itemDeletedDefinition",
+          "line": 21,
+          "isDefault": false
+        },
+        {
+          "name": "itemLineAmount",
+          "line": 52,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "build",
+          "callee": "auditMoney",
+          "lineNumber": 26
+        },
+        {
+          "caller": "build",
+          "callee": "riskLevelForVoidedItem",
+          "lineNumber": 35
+        },
+        {
+          "caller": "itemLineAmount",
+          "callee": "auditMoney",
+          "lineNumber": 53
+        },
+        {
+          "caller": "itemLineAmount",
+          "callee": "lineTotal",
+          "lineNumber": 53
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "apps/web/src/lib/audit/builders/item-qty-decremented.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 48,
+      "nonEmptyLines": 46,
+      "exports": [
+        {
+          "name": "itemQtyDecrementedDefinition",
+          "line": 20,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "build",
+          "callee": "auditMoney",
+          "lineNumber": 25
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    }
+  ]
+}

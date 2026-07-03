@@ -1,0 +1,43 @@
+Analyze these files and produce GraphNode and GraphEdge objects.
+Project root: `/Users/chenjianping/Documents/restaurant-ordering`
+Project: `undefined` — undefined
+Languages: ["config","css","dockerfile","go","html","iss","javascript","json","markdown","mod","mts","powershell","python","shell","sql","sum","txt","typescript","unknown","yaml"]
+Batch: `25/38`
+Skill directory: `/Users/chenjianping/.cursor/plugins/cache/understand-anything/understand-anything/54754a6f97051d1d76c8758353d8ea41afe502a6/skills/understand`
+Output: `/Users/chenjianping/Documents/restaurant-ordering/.understand-anything/intermediate/batch-25.json`
+
+Pre-resolved import data:
+```json
+{"supabase/migrations/20240101000000_initial_schema.sql":[],"supabase/migrations/20260529120000_restaurant_feature_flags.sql":[],"supabase/migrations/20260623120000_checkout_request_and_session_close_rpc.sql":[],"supabase/migrations/20260623150000_bill_splits_customer_nif.sql":[],"supabase/migrations/20260624120000_platform_admin.sql":[],"supabase/migrations/20260625120000_restaurant_suspension.sql":[],"supabase/migrations/20260626120000_restaurants_country_code.sql":[],"supabase/migrations/20260627115000_frontdesk_menu_management.sql":[],"supabase/migrations/20260627120000_print_agent_support_tokens.sql":[],"supabase/migrations/20260628120000_restaurant_table_groups.sql":[],"supabase/migrations/20260629120000_staff_frontdesk_role.sql":[],"supabase/migrations/20260629130000_resume_ordering_preserve_partial_split.sql":[],"supabase/migrations/20260630120000_table_sessions_opened_by_user_id.sql":[],"supabase/migrations/20260701120000_abnormal_operations.sql":[],"supabase/migrations/20260702120000_operation_logs_and_manual_close.sql":[],"supabase/migrations/20260703120000_table_sessions_closed_at_analytics.sql":[],"supabase/migrations/20260704120000_menu_items_vat_rate.sql":[],"supabase/migrations/20260705120000_menu_items_sort_order_unique.sql":[],"supabase/migrations/20260706120000_bill_split_checkout_discount.sql":[],"supabase/migrations/20260708120000_drop_confirm_bill_split_payment_legacy_overload.sql":[],"supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql":[],"supabase/migrations/20260710120000_resume_ordering_preserve_by_item_split.sql":[]}
+```
+
+Cross-batch neighbors:
+```json
+{}
+```
+
+Files:
+1. `supabase/migrations/20240101000000_initial_schema.sql` (2716 lines, language: `sql`, fileCategory: `data`)
+2. `supabase/migrations/20260529120000_restaurant_feature_flags.sql` (6 lines, language: `sql`, fileCategory: `data`)
+3. `supabase/migrations/20260623120000_checkout_request_and_session_close_rpc.sql` (547 lines, language: `sql`, fileCategory: `data`)
+4. `supabase/migrations/20260623150000_bill_splits_customer_nif.sql` (177 lines, language: `sql`, fileCategory: `data`)
+5. `supabase/migrations/20260624120000_platform_admin.sql` (33 lines, language: `sql`, fileCategory: `data`)
+6. `supabase/migrations/20260625120000_restaurant_suspension.sql` (9 lines, language: `sql`, fileCategory: `data`)
+7. `supabase/migrations/20260626120000_restaurants_country_code.sql` (18 lines, language: `sql`, fileCategory: `data`)
+8. `supabase/migrations/20260627115000_frontdesk_menu_management.sql` (65 lines, language: `sql`, fileCategory: `data`)
+9. `supabase/migrations/20260627120000_print_agent_support_tokens.sql` (16 lines, language: `sql`, fileCategory: `data`)
+10. `supabase/migrations/20260628120000_restaurant_table_groups.sql` (184 lines, language: `sql`, fileCategory: `data`)
+11. `supabase/migrations/20260629120000_staff_frontdesk_role.sql` (20 lines, language: `sql`, fileCategory: `data`)
+12. `supabase/migrations/20260629130000_resume_ordering_preserve_partial_split.sql` (118 lines, language: `sql`, fileCategory: `data`)
+13. `supabase/migrations/20260630120000_table_sessions_opened_by_user_id.sql` (5 lines, language: `sql`, fileCategory: `data`)
+14. `supabase/migrations/20260701120000_abnormal_operations.sql` (76 lines, language: `sql`, fileCategory: `data`)
+15. `supabase/migrations/20260702120000_operation_logs_and_manual_close.sql` (234 lines, language: `sql`, fileCategory: `data`)
+16. `supabase/migrations/20260703120000_table_sessions_closed_at_analytics.sql` (4 lines, language: `sql`, fileCategory: `data`)
+17. `supabase/migrations/20260704120000_menu_items_vat_rate.sql` (9 lines, language: `sql`, fileCategory: `data`)
+18. `supabase/migrations/20260705120000_menu_items_sort_order_unique.sql` (25 lines, language: `sql`, fileCategory: `data`)
+19. `supabase/migrations/20260706120000_bill_split_checkout_discount.sql` (220 lines, language: `sql`, fileCategory: `data`)
+20. `supabase/migrations/20260708120000_drop_confirm_bill_split_payment_legacy_overload.sql` (6 lines, language: `sql`, fileCategory: `data`)
+21. `supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql` (433 lines, language: `sql`, fileCategory: `data`)
+22. `supabase/migrations/20260710120000_resume_ordering_preserve_by_item_split.sql` (121 lines, language: `sql`, fileCategory: `data`)
+
+> **Language directive**: Generate all textual content in **zh** (Chinese). Keep technical terms in English when no standard translation exists.

@@ -1,0 +1,1716 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/print-agent/schedule_test.go",
+      "type": "file",
+      "name": "schedule_test.go",
+      "filePath": "apps/print-agent/schedule_test.go",
+      "summary": "打印代理营业时段调度逻辑的单元测试，覆盖工作日午餐窗口与轮询预热阶段判定。",
+      "tags": [
+        "test",
+        "print-agent",
+        "schedule",
+        "go"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/schedule.go",
+      "type": "file",
+      "name": "schedule.go",
+      "filePath": "apps/print-agent/schedule.go",
+      "summary": "定义打印代理按星期与时区配置的营业时段窗口，并提供当前是否营业及下次开门时间计算。",
+      "tags": [
+        "service",
+        "schedule",
+        "print-agent",
+        "go"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "使用 Go 结构体方法封装时区解析与多时段窗口匹配。"
+    },
+    {
+      "id": "file:apps/print-agent/scripts/gen-tray-status-icons.py",
+      "type": "file",
+      "name": "gen-tray-status-icons.py",
+      "filePath": "apps/print-agent/scripts/gen-tray-status-icons.py",
+      "summary": "构建脚本：生成托盘状态指示用的 ICO 图标资源（BGRA 像素与 ICO 文件写入）。",
+      "tags": [
+        "utility",
+        "build-script",
+        "tray",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/setup_browser_other.go",
+      "type": "file",
+      "name": "setup_browser_other.go",
+      "filePath": "apps/print-agent/setup_browser_other.go",
+      "summary": "非 Windows 平台的 openBrowser 实现，通过 xdg-open 或 open 启动默认浏览器。",
+      "tags": [
+        "utility",
+        "setup",
+        "cross-platform",
+        "go"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Go build tag 非 Windows 时的浏览器打开桩实现。"
+    },
+    {
+      "id": "file:apps/print-agent/setup_browser_windows.go",
+      "type": "file",
+      "name": "setup_browser_windows.go",
+      "filePath": "apps/print-agent/setup_browser_windows.go",
+      "summary": "Windows 平台通过 ShellExecuteW 打开配置向导 URL 的浏览器启动实现。",
+      "tags": [
+        "utility",
+        "setup",
+        "windows",
+        "go"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/setup_wizard.go",
+      "type": "file",
+      "name": "setup_wizard.go",
+      "filePath": "apps/print-agent/setup_wizard.go",
+      "summary": "首次安装配置向导 HTTP 服务入口，监听本地地址并注册打印机向导路由。",
+      "tags": [
+        "service",
+        "setup",
+        "http",
+        "go"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/single_instance_common_test.go",
+      "type": "file",
+      "name": "single_instance_common_test.go",
+      "filePath": "apps/print-agent/single_instance_common_test.go",
+      "summary": "验证主代理进程命令行参数识别逻辑的单元测试。",
+      "tags": [
+        "test",
+        "single-instance",
+        "print-agent",
+        "go"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/single_instance_common.go",
+      "type": "file",
+      "name": "single_instance_common.go",
+      "filePath": "apps/print-agent/single_instance_common.go",
+      "summary": "单实例守护的跨平台公共逻辑：判断是否为 main 调用并触发平台专属互斥锁获取。",
+      "tags": [
+        "service",
+        "single-instance",
+        "print-agent",
+        "go"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/single_instance_stub.go",
+      "type": "file",
+      "name": "single_instance_stub.go",
+      "filePath": "apps/print-agent/single_instance_stub.go",
+      "summary": "非 Windows 平台的单实例桩实现，acquire/exit 为空操作。",
+      "tags": [
+        "utility",
+        "single-instance",
+        "stub",
+        "go"
+      ],
+      "complexity": "simple",
+      "languageNotes": "!windows build tag 下的空实现。"
+    },
+    {
+      "id": "file:apps/print-agent/single_instance_windows.go",
+      "type": "file",
+      "name": "single_instance_windows.go",
+      "filePath": "apps/print-agent/single_instance_windows.go",
+      "summary": "Windows 命名互斥量实现，确保同一机器仅运行一个打印代理主进程。",
+      "tags": [
+        "service",
+        "single-instance",
+        "windows",
+        "go"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/sink_tcp.go",
+      "type": "file",
+      "name": "sink_tcp.go",
+      "filePath": "apps/print-agent/sink_tcp.go",
+      "summary": "通过 TCP 将 ESC/POS 原始字节流发送到局域网热敏打印机的 sink 实现。",
+      "tags": [
+        "service",
+        "printing",
+        "tcp",
+        "go"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/sink_winspool_stub.go",
+      "type": "file",
+      "name": "sink_winspool_stub.go",
+      "filePath": "apps/print-agent/sink_winspool_stub.go",
+      "summary": "非 Windows 平台的 WinSpool 打印桩，返回不支持错误。",
+      "tags": [
+        "utility",
+        "printing",
+        "stub",
+        "go"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/sink_winspool_windows.go",
+      "type": "file",
+      "name": "sink_winspool_windows.go",
+      "filePath": "apps/print-agent/sink_winspool_windows.go",
+      "summary": "Windows WinSpool API 封装：打开打印机、提交 RAW 作业并校验作业完成状态。",
+      "tags": [
+        "service",
+        "printing",
+        "windows",
+        "go"
+      ],
+      "complexity": "complex",
+      "languageNotes": "通过 syscall 调用 winspool.drv 完成 RAW 文档打印与作业状态轮询。"
+    },
+    {
+      "id": "file:apps/print-agent/sink.go",
+      "type": "file",
+      "name": "sink.go",
+      "filePath": "apps/print-agent/sink.go",
+      "summary": "打印目标路由分发：按 target 类型选择 TCP 或 WinSpool 输出通道。",
+      "tags": [
+        "service",
+        "printing",
+        "routing",
+        "go"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/spawn_kill_windows.go",
+      "type": "file",
+      "name": "spawn_kill_windows.go",
+      "filePath": "apps/print-agent/spawn_kill_windows.go",
+      "summary": "Windows 进程终止工具：按 PID 调用 TerminateProcess 并关闭进程句柄。",
+      "tags": [
+        "utility",
+        "process",
+        "windows",
+        "go"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/spawn_stub.go",
+      "type": "file",
+      "name": "spawn_stub.go",
+      "filePath": "apps/print-agent/spawn_stub.go",
+      "summary": "非 Windows 平台的子进程派生桩，spawn 与 messageBox 均返回错误。",
+      "tags": [
+        "utility",
+        "process",
+        "stub",
+        "go"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/spawn_tracking_windows.go",
+      "type": "file",
+      "name": "spawn_tracking_windows.go",
+      "filePath": "apps/print-agent/spawn_tracking_windows.go",
+      "summary": "跟踪已派生的隐藏子进程，在代理退出时批量终止子进程。",
+      "tags": [
+        "service",
+        "process",
+        "windows",
+        "go"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/spawn_windows.go",
+      "type": "file",
+      "name": "spawn_windows.go",
+      "filePath": "apps/print-agent/spawn_windows.go",
+      "summary": "Windows 隐藏窗口子进程启动，用于代理自重启与子命令派生。",
+      "tags": [
+        "service",
+        "process",
+        "windows",
+        "go"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/text_encoding_test.go",
+      "type": "file",
+      "name": "text_encoding_test.go",
+      "filePath": "apps/print-agent/text_encoding_test.go",
+      "summary": "纸张文本编码解析的单元测试，覆盖 auto/GBK 等配置场景。",
+      "tags": [
+        "test",
+        "encoding",
+        "print-agent",
+        "go"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/text_encoding.go",
+      "type": "file",
+      "name": "text_encoding.go",
+      "filePath": "apps/print-agent/text_encoding.go",
+      "summary": "规范化并解析打印纸张文本编码（UTF-8/GBK 等），从配置加载编码偏好。",
+      "tags": [
+        "utility",
+        "encoding",
+        "i18n",
+        "go"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/tray_actions_windows.go",
+      "type": "file",
+      "name": "tray_actions_windows.go",
+      "filePath": "apps/print-agent/tray_actions_windows.go",
+      "summary": "系统托盘菜单动作：打开日志、关于对话框、多语言子菜单与菜单标签本地化。",
+      "tags": [
+        "event-handler",
+        "tray",
+        "windows",
+        "go"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/tray_configure_windows.go",
+      "type": "file",
+      "name": "tray_configure_windows.go",
+      "filePath": "apps/print-agent/tray_configure_windows.go",
+      "summary": "从托盘启动本地配置向导 HTTP 会话并记录向导 URL。",
+      "tags": [
+        "service",
+        "tray",
+        "setup",
+        "go"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/tray_icon.go",
+      "type": "file",
+      "name": "tray_icon.go",
+      "filePath": "apps/print-agent/tray_icon.go",
+      "summary": "按连接/健康状态级别返回对应嵌入式托盘 ICO 图标字节。",
+      "tags": [
+        "utility",
+        "tray",
+        "ui",
+        "go"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/tray_local_http_stub.go",
+      "type": "file",
+      "name": "tray_local_http_stub.go",
+      "filePath": "apps/print-agent/tray_local_http_stub.go",
+      "summary": "非 Windows 平台托盘本地 HTTP 服务桩，配置会话直接委托 runConfigureWizard。",
+      "tags": [
+        "utility",
+        "tray",
+        "stub",
+        "go"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/tray_local_http_windows.go",
+      "type": "file",
+      "name": "tray_local_http_windows.go",
+      "filePath": "apps/print-agent/tray_local_http_windows.go",
+      "summary": "Windows 托盘本地 HTTP 服务器：挂载配置向导路由、CORS 与配置会话生命周期管理。",
+      "tags": [
+        "service",
+        "tray",
+        "http",
+        "go"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/schedule_test.go:TestSchedulePirataWeekdayLunch",
+      "type": "function",
+      "name": "TestSchedulePirataWeekdayLunch",
+      "filePath": "apps/print-agent/schedule_test.go",
+      "lineRange": [
+        8,
+        38
+      ],
+      "summary": "测试工作日午餐时段内 activeAt 返回 true、非营业时段返回 false。",
+      "tags": [
+        "test",
+        "schedule"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/schedule_test.go:TestPollPhaseWarm",
+      "type": "function",
+      "name": "TestPollPhaseWarm",
+      "filePath": "apps/print-agent/schedule_test.go",
+      "lineRange": [
+        40,
+        52
+      ],
+      "summary": "验证轮询预热阶段与营业窗口边界的交互行为。",
+      "tags": [
+        "test",
+        "schedule"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/schedule.go:location",
+      "type": "function",
+      "name": "location",
+      "filePath": "apps/print-agent/schedule.go",
+      "lineRange": [
+        40,
+        50
+      ],
+      "summary": "解析配置时区字符串为 *time.Location，空值回退 UTC。",
+      "tags": [
+        "utility",
+        "timezone"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/schedule.go:windowsFor",
+      "type": "function",
+      "name": "windowsFor",
+      "filePath": "apps/print-agent/schedule.go",
+      "lineRange": [
+        52,
+        90
+      ],
+      "summary": "按星期几返回当日所有营业时段窗口列表。",
+      "tags": [
+        "service",
+        "schedule"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/schedule.go:parseClock",
+      "type": "function",
+      "name": "parseClock",
+      "filePath": "apps/print-agent/schedule.go",
+      "lineRange": [
+        92,
+        117
+      ],
+      "summary": "将 HH:MM 时钟字符串解析为当日 time.Time。",
+      "tags": [
+        "utility",
+        "parsing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/schedule.go:activeAt",
+      "type": "function",
+      "name": "activeAt",
+      "filePath": "apps/print-agent/schedule.go",
+      "lineRange": [
+        119,
+        134
+      ],
+      "summary": "判断给定时刻是否落在任一营业窗口内。",
+      "tags": [
+        "service",
+        "schedule"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/schedule.go:windowContains",
+      "type": "function",
+      "name": "windowContains",
+      "filePath": "apps/print-agent/schedule.go",
+      "lineRange": [
+        136,
+        151
+      ],
+      "summary": "检查时刻是否处于单个 timeWindow 的起止范围内。",
+      "tags": [
+        "utility",
+        "schedule"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/schedule.go:nextOpen",
+      "type": "function",
+      "name": "nextOpen",
+      "filePath": "apps/print-agent/schedule.go",
+      "lineRange": [
+        154,
+        179
+      ],
+      "summary": "计算自给定时刻起下一次营业开始时间。",
+      "tags": [
+        "service",
+        "schedule"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:apps/print-agent/schedule.go:scheduleConfig",
+      "type": "class",
+      "name": "scheduleConfig",
+      "filePath": "apps/print-agent/schedule.go",
+      "lineRange": [
+        19,
+        29
+      ],
+      "summary": "营业时段配置根结构，含时区与周一至周日各日窗口定义。",
+      "tags": [
+        "data-model",
+        "schedule"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/scripts/gen-tray-status-icons.py:bgra_pixels",
+      "type": "function",
+      "name": "bgra_pixels",
+      "filePath": "apps/print-agent/scripts/gen-tray-status-icons.py",
+      "lineRange": [
+        10,
+        20
+      ],
+      "summary": "根据 RGBA 颜色生成 BGRA 像素字节序列。",
+      "tags": [
+        "utility",
+        "image"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/scripts/gen-tray-status-icons.py:write_ico",
+      "type": "function",
+      "name": "write_ico",
+      "filePath": "apps/print-agent/scripts/gen-tray-status-icons.py",
+      "lineRange": [
+        23,
+        43
+      ],
+      "summary": "将多尺寸 BGRA 图像写入 ICO 文件格式。",
+      "tags": [
+        "utility",
+        "image"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/scripts/gen-tray-status-icons.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "apps/print-agent/scripts/gen-tray-status-icons.py",
+      "lineRange": [
+        46,
+        55
+      ],
+      "summary": "脚本入口：生成各状态级别托盘图标文件。",
+      "tags": [
+        "entry-point",
+        "build-script"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/setup_browser_other.go:openBrowser",
+      "type": "function",
+      "name": "openBrowser",
+      "filePath": "apps/print-agent/setup_browser_other.go",
+      "lineRange": [
+        11,
+        23
+      ],
+      "summary": "在 Linux/macOS 上调用系统命令打开 URL。",
+      "tags": [
+        "utility",
+        "browser"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/setup_browser_windows.go:openBrowser",
+      "type": "function",
+      "name": "openBrowser",
+      "filePath": "apps/print-agent/setup_browser_windows.go",
+      "lineRange": [
+        11,
+        31
+      ],
+      "summary": "在 Windows 上通过 shell32 ShellExecuteW 打开 URL。",
+      "tags": [
+        "utility",
+        "browser"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/setup_wizard.go:runSetupWizard",
+      "type": "function",
+      "name": "runSetupWizard",
+      "filePath": "apps/print-agent/setup_wizard.go",
+      "lineRange": [
+        14,
+        52
+      ],
+      "summary": "启动本地 HTTP 配置向导并阻塞直到向导完成。",
+      "tags": [
+        "service",
+        "setup"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/single_instance_common_test.go:TestIsMainAgentInvocation",
+      "type": "function",
+      "name": "TestIsMainAgentInvocation",
+      "filePath": "apps/print-agent/single_instance_common_test.go",
+      "lineRange": [
+        5,
+        23
+      ],
+      "summary": "表驱动测试 isMainAgentInvocation 对各类命令行参数的判定。",
+      "tags": [
+        "test",
+        "single-instance"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/single_instance_common.go:isMainAgentInvocation",
+      "type": "function",
+      "name": "isMainAgentInvocation",
+      "filePath": "apps/print-agent/single_instance_common.go",
+      "lineRange": [
+        6,
+        20
+      ],
+      "summary": "根据 os.Args 判断当前是否为无子命令的主代理进程。",
+      "tags": [
+        "utility",
+        "single-instance"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/single_instance_windows.go:acquireAgentSingleInstance",
+      "type": "function",
+      "name": "acquireAgentSingleInstance",
+      "filePath": "apps/print-agent/single_instance_windows.go",
+      "lineRange": [
+        20,
+        55
+      ],
+      "summary": "创建或检测 Windows 命名互斥量，已存在则退出。",
+      "tags": [
+        "service",
+        "single-instance"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/sink_tcp.go:tcpPrint",
+      "type": "function",
+      "name": "tcpPrint",
+      "filePath": "apps/print-agent/sink_tcp.go",
+      "lineRange": [
+        9,
+        20
+      ],
+      "summary": "拨号 TCP 目标地址并写入超时保护的原始打印字节。",
+      "tags": [
+        "service",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/sink_winspool_windows.go:winspoolOpenPrinter",
+      "type": "function",
+      "name": "winspoolOpenPrinter",
+      "filePath": "apps/print-agent/sink_winspool_windows.go",
+      "lineRange": [
+        39,
+        54
+      ],
+      "summary": "调用 OpenPrinterW 获取打印机句柄。",
+      "tags": [
+        "service",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/sink_winspool_windows.go:winspoolJobStatus",
+      "type": "function",
+      "name": "winspoolJobStatus",
+      "filePath": "apps/print-agent/sink_winspool_windows.go",
+      "lineRange": [
+        56,
+        82
+      ],
+      "summary": "通过 GetJobW 查询打印作业状态字段。",
+      "tags": [
+        "service",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/sink_winspool_windows.go:winspoolVerifyJobOutcome",
+      "type": "function",
+      "name": "winspoolVerifyJobOutcome",
+      "filePath": "apps/print-agent/sink_winspool_windows.go",
+      "lineRange": [
+        84,
+        108
+      ],
+      "summary": "轮询作业状态直至完成或失败并返回错误详情。",
+      "tags": [
+        "service",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/sink_winspool_windows.go:winspoolPrint",
+      "type": "function",
+      "name": "winspoolPrint",
+      "filePath": "apps/print-agent/sink_winspool_windows.go",
+      "lineRange": [
+        125,
+        150
+      ],
+      "summary": "打开打印机、提交 RAW 文档并校验作业结果。",
+      "tags": [
+        "service",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/sink_winspool_windows.go:winspoolPrintRawDoc",
+      "type": "function",
+      "name": "winspoolPrintRawDoc",
+      "filePath": "apps/print-agent/sink_winspool_windows.go",
+      "lineRange": [
+        152,
+        197
+      ],
+      "summary": "使用 StartDocPrinter/WritePrinter/EndDocPrinter 发送 RAW 数据。",
+      "tags": [
+        "service",
+        "printing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/print-agent/sink.go:printToTarget",
+      "type": "function",
+      "name": "printToTarget",
+      "filePath": "apps/print-agent/sink.go",
+      "lineRange": [
+        5,
+        14
+      ],
+      "summary": "按 PrintTarget 类型分发到 tcpPrint 或 winspoolPrint。",
+      "tags": [
+        "service",
+        "routing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/spawn_kill_windows.go:killWindowsPID",
+      "type": "function",
+      "name": "killWindowsPID",
+      "filePath": "apps/print-agent/spawn_kill_windows.go",
+      "lineRange": [
+        11,
+        30
+      ],
+      "summary": "打开目标进程并调用 TerminateProcess 强制结束。",
+      "tags": [
+        "utility",
+        "process"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/spawn_tracking_windows.go:registerSpawnedProcess",
+      "type": "function",
+      "name": "registerSpawnedProcess",
+      "filePath": "apps/print-agent/spawn_tracking_windows.go",
+      "lineRange": [
+        16,
+        34
+      ],
+      "summary": "将 cmd 加入跟踪列表并在 Wait 后自动移除。",
+      "tags": [
+        "service",
+        "process"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/spawn_tracking_windows.go:terminateSpawnedChildren",
+      "type": "function",
+      "name": "terminateSpawnedChildren",
+      "filePath": "apps/print-agent/spawn_tracking_windows.go",
+      "lineRange": [
+        37,
+        51
+      ],
+      "summary": "遍历并终止所有已注册子进程。",
+      "tags": [
+        "service",
+        "process"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/spawn_windows.go:startHiddenAgentProcess",
+      "type": "function",
+      "name": "startHiddenAgentProcess",
+      "filePath": "apps/print-agent/spawn_windows.go",
+      "lineRange": [
+        12,
+        26
+      ],
+      "summary": "以隐藏窗口标志启动当前可执行文件的子进程。",
+      "tags": [
+        "service",
+        "process"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/text_encoding_test.go:TestResolvePaperEncodingAutoGBK",
+      "type": "function",
+      "name": "TestResolvePaperEncodingAutoGBK",
+      "filePath": "apps/print-agent/text_encoding_test.go",
+      "lineRange": [
+        5,
+        13
+      ],
+      "summary": "验证 auto 编码在中文环境下解析为 GBK。",
+      "tags": [
+        "test",
+        "encoding"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/text_encoding_test.go:TestResolvePaperEncodingGBK",
+      "type": "function",
+      "name": "TestResolvePaperEncodingGBK",
+      "filePath": "apps/print-agent/text_encoding_test.go",
+      "lineRange": [
+        15,
+        20
+      ],
+      "summary": "验证显式 GBK 配置被正确解析。",
+      "tags": [
+        "test",
+        "encoding"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/text_encoding.go:normalizeTextEncoding",
+      "type": "function",
+      "name": "normalizeTextEncoding",
+      "filePath": "apps/print-agent/text_encoding.go",
+      "lineRange": [
+        13,
+        24
+      ],
+      "summary": "将编码名称小写化并映射到支持的编码常量。",
+      "tags": [
+        "utility",
+        "encoding"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/text_encoding.go:resolvePaperEncoding",
+      "type": "function",
+      "name": "resolvePaperEncoding",
+      "filePath": "apps/print-agent/text_encoding.go",
+      "lineRange": [
+        26,
+        45
+      ],
+      "summary": "根据配置与 payload 提示解析最终纸张编码。",
+      "tags": [
+        "service",
+        "encoding"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/text_encoding.go:loadPaperEncodingForPayload",
+      "type": "function",
+      "name": "loadPaperEncodingForPayload",
+      "filePath": "apps/print-agent/text_encoding.go",
+      "lineRange": [
+        47,
+        56
+      ],
+      "summary": "从磁盘配置加载并解析给定 payload 的编码。",
+      "tags": [
+        "service",
+        "encoding"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/tray_actions_windows.go:openAgentLog",
+      "type": "function",
+      "name": "openAgentLog",
+      "filePath": "apps/print-agent/tray_actions_windows.go",
+      "lineRange": [
+        17,
+        30
+      ],
+      "summary": "确保日志文件存在并用系统默认程序打开。",
+      "tags": [
+        "event-handler",
+        "tray"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/tray_actions_windows.go:trayAboutText",
+      "type": "function",
+      "name": "trayAboutText",
+      "filePath": "apps/print-agent/tray_actions_windows.go",
+      "lineRange": [
+        54,
+        72
+      ],
+      "summary": "组装托盘关于对话框的多行版本与路径信息。",
+      "tags": [
+        "utility",
+        "tray"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/tray_actions_windows.go:applyTrayUILocaleSubmenu",
+      "type": "function",
+      "name": "applyTrayUILocaleSubmenu",
+      "filePath": "apps/print-agent/tray_actions_windows.go",
+      "lineRange": [
+        74,
+        83
+      ],
+      "summary": "按当前 UI 语言更新托盘语言子菜单勾选状态。",
+      "tags": [
+        "event-handler",
+        "i18n"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/tray_actions_windows.go:applyTrayMenuLabels",
+      "type": "function",
+      "name": "applyTrayMenuLabels",
+      "filePath": "apps/print-agent/tray_actions_windows.go",
+      "lineRange": [
+        85,
+        104
+      ],
+      "summary": "将所有托盘菜单项标签替换为本地化字符串。",
+      "tags": [
+        "event-handler",
+        "i18n"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/tray_configure_windows.go:startTrayConfigureWizard",
+      "type": "function",
+      "name": "startTrayConfigureWizard",
+      "filePath": "apps/print-agent/tray_configure_windows.go",
+      "lineRange": [
+        11,
+        32
+      ],
+      "summary": "加载配置、启动本地 HTTP 并广播配置向导 URL。",
+      "tags": [
+        "service",
+        "setup"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/tray_icon.go:trayIconForLevel",
+      "type": "function",
+      "name": "trayIconForLevel",
+      "filePath": "apps/print-agent/tray_icon.go",
+      "lineRange": [
+        17,
+        33
+      ],
+      "summary": "按健康级别索引返回预嵌入 ICO 字节切片。",
+      "tags": [
+        "utility",
+        "tray"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/tray_local_http_windows.go:isTrayConfigurePath",
+      "type": "function",
+      "name": "isTrayConfigurePath",
+      "filePath": "apps/print-agent/tray_local_http_windows.go",
+      "lineRange": [
+        25,
+        35
+      ],
+      "summary": "判断请求路径是否属于配置向导或静态资源。",
+      "tags": [
+        "utility",
+        "routing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/tray_local_http_windows.go:mountConfigureRoutes",
+      "type": "function",
+      "name": "mountConfigureRoutes",
+      "filePath": "apps/print-agent/tray_local_http_windows.go",
+      "lineRange": [
+        43,
+        52
+      ],
+      "summary": "重载配置并注册配置向导 HTTP 路由到 mux。",
+      "tags": [
+        "service",
+        "http"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/tray_local_http_windows.go:startTrayLocalHTTP",
+      "type": "function",
+      "name": "startTrayLocalHTTP",
+      "filePath": "apps/print-agent/tray_local_http_windows.go",
+      "lineRange": [
+        54,
+        87
+      ],
+      "summary": "在随机本地端口启动托盘配置 HTTP 服务器。",
+      "tags": [
+        "service",
+        "http"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/tray_local_http_windows.go:shutdownTrayLocalHTTP",
+      "type": "function",
+      "name": "shutdownTrayLocalHTTP",
+      "filePath": "apps/print-agent/tray_local_http_windows.go",
+      "lineRange": [
+        89,
+        100
+      ],
+      "summary": "优雅关闭托盘本地 HTTP 服务。",
+      "tags": [
+        "service",
+        "http"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/tray_local_http_windows.go:setTrayLocalCORS",
+      "type": "function",
+      "name": "setTrayLocalCORS",
+      "filePath": "apps/print-agent/tray_local_http_windows.go",
+      "lineRange": [
+        102,
+        113
+      ],
+      "summary": "为配置向导响应设置 CORS 头。",
+      "tags": [
+        "middleware",
+        "http"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/tray_local_http_windows.go:serveHTTP",
+      "type": "function",
+      "name": "serveHTTP",
+      "filePath": "apps/print-agent/tray_local_http_windows.go",
+      "lineRange": [
+        115,
+        147
+      ],
+      "summary": "HTTP 入口：CORS 预检、路径路由到配置 mux 或静态资源。",
+      "tags": [
+        "api-handler",
+        "http"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/tray_local_http_windows.go:runConfigureSession",
+      "type": "function",
+      "name": "runConfigureSession",
+      "filePath": "apps/print-agent/tray_local_http_windows.go",
+      "lineRange": [
+        150,
+        165
+      ],
+      "summary": "运行一次完整配置会话并在结束后清理 HTTP 服务。",
+      "tags": [
+        "service",
+        "setup"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:apps/print-agent/tray_local_http_windows.go:trayLocalHTTP",
+      "type": "class",
+      "name": "trayLocalHTTP",
+      "filePath": "apps/print-agent/tray_local_http_windows.go",
+      "lineRange": [
+        15,
+        21
+      ],
+      "summary": "托盘本地 HTTP 服务运行时状态，持有 server、地址与配置 mux。",
+      "tags": [
+        "data-model",
+        "http"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/print-agent/schedule_test.go",
+      "target": "function:apps/print-agent/schedule_test.go:TestSchedulePirataWeekdayLunch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/schedule_test.go",
+      "target": "function:apps/print-agent/schedule_test.go:TestSchedulePirataWeekdayLunch",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/schedule_test.go",
+      "target": "function:apps/print-agent/schedule_test.go:TestPollPhaseWarm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/schedule_test.go",
+      "target": "function:apps/print-agent/schedule_test.go:TestPollPhaseWarm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/schedule.go",
+      "target": "function:apps/print-agent/schedule.go:location",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/schedule.go",
+      "target": "function:apps/print-agent/schedule.go:windowsFor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/schedule.go",
+      "target": "function:apps/print-agent/schedule.go:parseClock",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/schedule.go",
+      "target": "function:apps/print-agent/schedule.go:activeAt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/schedule.go",
+      "target": "function:apps/print-agent/schedule.go:windowContains",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/schedule.go",
+      "target": "function:apps/print-agent/schedule.go:nextOpen",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/schedule.go",
+      "target": "class:apps/print-agent/schedule.go:scheduleConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/scripts/gen-tray-status-icons.py",
+      "target": "function:apps/print-agent/scripts/gen-tray-status-icons.py:bgra_pixels",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/scripts/gen-tray-status-icons.py",
+      "target": "function:apps/print-agent/scripts/gen-tray-status-icons.py:bgra_pixels",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/scripts/gen-tray-status-icons.py",
+      "target": "function:apps/print-agent/scripts/gen-tray-status-icons.py:write_ico",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/scripts/gen-tray-status-icons.py",
+      "target": "function:apps/print-agent/scripts/gen-tray-status-icons.py:write_ico",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/scripts/gen-tray-status-icons.py",
+      "target": "function:apps/print-agent/scripts/gen-tray-status-icons.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/scripts/gen-tray-status-icons.py",
+      "target": "function:apps/print-agent/scripts/gen-tray-status-icons.py:main",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/setup_browser_other.go",
+      "target": "function:apps/print-agent/setup_browser_other.go:openBrowser",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/setup_browser_windows.go",
+      "target": "function:apps/print-agent/setup_browser_windows.go:openBrowser",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/setup_wizard.go",
+      "target": "function:apps/print-agent/setup_wizard.go:runSetupWizard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/single_instance_common_test.go",
+      "target": "function:apps/print-agent/single_instance_common_test.go:TestIsMainAgentInvocation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/single_instance_common_test.go",
+      "target": "function:apps/print-agent/single_instance_common_test.go:TestIsMainAgentInvocation",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/single_instance_common.go",
+      "target": "function:apps/print-agent/single_instance_common.go:isMainAgentInvocation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/single_instance_windows.go",
+      "target": "function:apps/print-agent/single_instance_windows.go:acquireAgentSingleInstance",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/sink_tcp.go",
+      "target": "function:apps/print-agent/sink_tcp.go:tcpPrint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/sink_winspool_windows.go",
+      "target": "function:apps/print-agent/sink_winspool_windows.go:winspoolOpenPrinter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/sink_winspool_windows.go",
+      "target": "function:apps/print-agent/sink_winspool_windows.go:winspoolJobStatus",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/sink_winspool_windows.go",
+      "target": "function:apps/print-agent/sink_winspool_windows.go:winspoolVerifyJobOutcome",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/sink_winspool_windows.go",
+      "target": "function:apps/print-agent/sink_winspool_windows.go:winspoolPrint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/sink_winspool_windows.go",
+      "target": "function:apps/print-agent/sink_winspool_windows.go:winspoolPrintRawDoc",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/sink.go",
+      "target": "function:apps/print-agent/sink.go:printToTarget",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/spawn_kill_windows.go",
+      "target": "function:apps/print-agent/spawn_kill_windows.go:killWindowsPID",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/spawn_tracking_windows.go",
+      "target": "function:apps/print-agent/spawn_tracking_windows.go:registerSpawnedProcess",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/spawn_tracking_windows.go",
+      "target": "function:apps/print-agent/spawn_tracking_windows.go:terminateSpawnedChildren",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/spawn_windows.go",
+      "target": "function:apps/print-agent/spawn_windows.go:startHiddenAgentProcess",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/text_encoding_test.go",
+      "target": "function:apps/print-agent/text_encoding_test.go:TestResolvePaperEncodingAutoGBK",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/text_encoding_test.go",
+      "target": "function:apps/print-agent/text_encoding_test.go:TestResolvePaperEncodingAutoGBK",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/text_encoding_test.go",
+      "target": "function:apps/print-agent/text_encoding_test.go:TestResolvePaperEncodingGBK",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/text_encoding_test.go",
+      "target": "function:apps/print-agent/text_encoding_test.go:TestResolvePaperEncodingGBK",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/text_encoding.go",
+      "target": "function:apps/print-agent/text_encoding.go:normalizeTextEncoding",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/text_encoding.go",
+      "target": "function:apps/print-agent/text_encoding.go:resolvePaperEncoding",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/text_encoding.go",
+      "target": "function:apps/print-agent/text_encoding.go:loadPaperEncodingForPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_actions_windows.go",
+      "target": "function:apps/print-agent/tray_actions_windows.go:openAgentLog",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_actions_windows.go",
+      "target": "function:apps/print-agent/tray_actions_windows.go:trayAboutText",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_actions_windows.go",
+      "target": "function:apps/print-agent/tray_actions_windows.go:applyTrayUILocaleSubmenu",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_actions_windows.go",
+      "target": "function:apps/print-agent/tray_actions_windows.go:applyTrayMenuLabels",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_configure_windows.go",
+      "target": "function:apps/print-agent/tray_configure_windows.go:startTrayConfigureWizard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_icon.go",
+      "target": "function:apps/print-agent/tray_icon.go:trayIconForLevel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_local_http_windows.go",
+      "target": "function:apps/print-agent/tray_local_http_windows.go:isTrayConfigurePath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_local_http_windows.go",
+      "target": "function:apps/print-agent/tray_local_http_windows.go:mountConfigureRoutes",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_local_http_windows.go",
+      "target": "function:apps/print-agent/tray_local_http_windows.go:startTrayLocalHTTP",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_local_http_windows.go",
+      "target": "function:apps/print-agent/tray_local_http_windows.go:shutdownTrayLocalHTTP",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_local_http_windows.go",
+      "target": "function:apps/print-agent/tray_local_http_windows.go:setTrayLocalCORS",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_local_http_windows.go",
+      "target": "function:apps/print-agent/tray_local_http_windows.go:serveHTTP",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_local_http_windows.go",
+      "target": "function:apps/print-agent/tray_local_http_windows.go:runConfigureSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/print-agent/tray_local_http_windows.go",
+      "target": "class:apps/print-agent/tray_local_http_windows.go:trayLocalHTTP",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:apps/print-agent/schedule.go:activeAt",
+      "target": "function:apps/print-agent/schedule.go:windowContains",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/schedule.go:windowContains",
+      "target": "function:apps/print-agent/schedule.go:parseClock",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/schedule_test.go:TestSchedulePirataWeekdayLunch",
+      "target": "function:apps/print-agent/schedule.go:activeAt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/scripts/gen-tray-status-icons.py:write_ico",
+      "target": "function:apps/print-agent/scripts/gen-tray-status-icons.py:bgra_pixels",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/scripts/gen-tray-status-icons.py:main",
+      "target": "function:apps/print-agent/scripts/gen-tray-status-icons.py:write_ico",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/single_instance_common_test.go:TestIsMainAgentInvocation",
+      "target": "function:apps/print-agent/single_instance_common.go:isMainAgentInvocation",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/sink_winspool_windows.go:winspoolVerifyJobOutcome",
+      "target": "function:apps/print-agent/sink_winspool_windows.go:winspoolJobStatus",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/sink_winspool_windows.go:winspoolPrint",
+      "target": "function:apps/print-agent/sink_winspool_windows.go:winspoolOpenPrinter",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/sink_winspool_windows.go:winspoolPrint",
+      "target": "function:apps/print-agent/sink_winspool_windows.go:winspoolPrintRawDoc",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/sink_winspool_windows.go:winspoolPrintRawDoc",
+      "target": "function:apps/print-agent/sink_winspool_windows.go:winspoolVerifyJobOutcome",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/sink.go:printToTarget",
+      "target": "function:apps/print-agent/sink_tcp.go:tcpPrint",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/sink.go:printToTarget",
+      "target": "function:apps/print-agent/sink_winspool_windows.go:winspoolPrint",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/spawn_windows.go:startHiddenAgentProcess",
+      "target": "function:apps/print-agent/spawn_tracking_windows.go:registerSpawnedProcess",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/spawn_tracking_windows.go:terminateSpawnedChildren",
+      "target": "function:apps/print-agent/spawn_kill_windows.go:killWindowsPID",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/text_encoding.go:resolvePaperEncoding",
+      "target": "function:apps/print-agent/text_encoding.go:normalizeTextEncoding",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/text_encoding_test.go:TestResolvePaperEncodingAutoGBK",
+      "target": "function:apps/print-agent/text_encoding.go:resolvePaperEncoding",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/text_encoding_test.go:TestResolvePaperEncodingGBK",
+      "target": "function:apps/print-agent/text_encoding.go:resolvePaperEncoding",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/tray_local_http_windows.go:serveHTTP",
+      "target": "function:apps/print-agent/tray_local_http_windows.go:setTrayLocalCORS",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/tray_local_http_windows.go:serveHTTP",
+      "target": "function:apps/print-agent/tray_local_http_windows.go:isTrayConfigurePath",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/print-agent/tray_configure_windows.go:startTrayConfigureWizard",
+      "target": "function:apps/print-agent/tray_local_http_windows.go:runConfigureSession",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/schedule.go",
+      "target": "file:apps/print-agent/schedule_test.go",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/single_instance_common.go",
+      "target": "file:apps/print-agent/single_instance_common_test.go",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/text_encoding.go",
+      "target": "file:apps/print-agent/text_encoding_test.go",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/setup_browser_other.go",
+      "target": "file:apps/print-agent/setup_browser_windows.go",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/single_instance_stub.go",
+      "target": "file:apps/print-agent/single_instance_windows.go",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/sink_winspool_stub.go",
+      "target": "file:apps/print-agent/sink_winspool_windows.go",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/spawn_stub.go",
+      "target": "file:apps/print-agent/spawn_windows.go",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/tray_local_http_stub.go",
+      "target": "file:apps/print-agent/tray_local_http_windows.go",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

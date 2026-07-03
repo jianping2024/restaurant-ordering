@@ -1,0 +1,947 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/app/dashboard/waiter/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/waiter/page.tsx",
+      "summary": "Dashboard 服务员看板入口，加载初始看板数据供前台运营使用。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "dashboard",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/waiter/page.tsx:DashboardWaiterPage",
+      "type": "function",
+      "name": "DashboardWaiterPage",
+      "filePath": "apps/web/src/app/dashboard/waiter/page.tsx",
+      "lineRange": [
+        6,
+        33
+      ],
+      "summary": "Dashboard 服务员看板服务端页面，重定向未授权用户。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/demo/kitchen/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/demo/kitchen/page.tsx",
+      "summary": "厨房演示页，使用静态 DEMO_ORDERS 渲染 KitchenDisplay。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "kitchen"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/demo/kitchen/page.tsx:DemoKitchenPage",
+      "type": "function",
+      "name": "DemoKitchenPage",
+      "filePath": "apps/web/src/app/demo/kitchen/page.tsx",
+      "lineRange": [
+        7,
+        15
+      ],
+      "summary": "演示厨房页面组件，过滤并展示演示订单。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/demo/waiter/[tableId]/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/demo/waiter/[tableId]/page.tsx",
+      "summary": "服务员演示单桌页，基于 DEMO_TABLES 渲染 WaiterTableDetail。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/demo/waiter/[tableId]/page.tsx:DemoWaiterTablePage",
+      "type": "function",
+      "name": "DemoWaiterTablePage",
+      "filePath": "apps/web/src/app/demo/waiter/[tableId]/page.tsx",
+      "lineRange": [
+        13,
+        35
+      ],
+      "summary": "演示服务员单桌页，从 DEMO_TABLES 查找桌台。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/demo/waiter/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/demo/waiter/page.tsx",
+      "summary": "服务员演示看板页，使用演示数据渲染 WaiterDisplay。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/demo/waiter/page.tsx:DemoWaiterPage",
+      "type": "function",
+      "name": "DemoWaiterPage",
+      "filePath": "apps/web/src/app/demo/waiter/page.tsx",
+      "lineRange": [
+        7,
+        16
+      ],
+      "summary": "演示服务员看板页，渲染 WaiterDisplay。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx",
+      "type": "file",
+      "name": "WaiterAuthenticatedShell.tsx",
+      "filePath": "apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx",
+      "summary": "服务员端认证外壳组件，复用 StaffAuthenticatedShell 并注入服务员角色上下文。",
+      "tags": [
+        "component",
+        "react",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx:WaiterAuthenticatedShell",
+      "type": "function",
+      "name": "WaiterAuthenticatedShell",
+      "filePath": "apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx",
+      "lineRange": [
+        15,
+        21
+      ],
+      "summary": "服务员认证布局外壳，包装 StaffAuthenticatedShell。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "type": "file",
+      "name": "WaiterDisplay.tsx",
+      "filePath": "apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "summary": "服务员看板主界面，展示桌台卡片、分区 KPI、搜索过滤与实时订单刷新。",
+      "tags": [
+        "component",
+        "react",
+        "waiter"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterDisplay.tsx:WaiterTableCard",
+      "type": "function",
+      "name": "WaiterTableCard",
+      "filePath": "apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "lineRange": [
+        84,
+        178
+      ],
+      "summary": "单张桌台卡片 UI，展示状态、副标题与结账待处理标记。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterDisplay.tsx:BoardKpiCard",
+      "type": "function",
+      "name": "BoardKpiCard",
+      "filePath": "apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "lineRange": [
+        180,
+        214
+      ],
+      "summary": "看板 KPI 统计卡片，显示分区桌台数量与状态汇总。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterDisplay.tsx:WaiterBoardSectionBlock",
+      "type": "function",
+      "name": "WaiterBoardSectionBlock",
+      "filePath": "apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "lineRange": [
+        216,
+        263
+      ],
+      "summary": "看板分区区块，按桌台分组渲染卡片网格。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterDisplay.tsx:WaiterBoardInner",
+      "type": "function",
+      "name": "WaiterBoardInner",
+      "filePath": "apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "lineRange": [
+        265,
+        693
+      ],
+      "summary": "看板核心逻辑组件，处理搜索、过滤、刷新与分区布局。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterDisplay.tsx:WaiterDisplay",
+      "type": "function",
+      "name": "WaiterDisplay",
+      "filePath": "apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "lineRange": [
+        695,
+        719
+      ],
+      "summary": "服务员看板导出入口，组合 WaiterBoardInner 与认证外壳。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "type": "file",
+      "name": "WaiterTableDetail.tsx",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "summary": "服务员单桌详情页，支持开台、点餐、减菜、结账与自助餐操作。",
+      "tags": [
+        "component",
+        "react",
+        "waiter"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterTableDetail.tsx:WaiterTableDetailInner",
+      "type": "function",
+      "name": "WaiterTableDetailInner",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "lineRange": [
+        74,
+        972
+      ],
+      "summary": "单桌详情核心 UI，集成点餐、减菜、自助餐与结账流程。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/WaiterTableDetail.tsx:WaiterTableDetail",
+      "type": "function",
+      "name": "WaiterTableDetail",
+      "filePath": "apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "lineRange": [
+        974,
+        998
+      ],
+      "summary": "服务员单桌详情导出入口，包装 WaiterTableDetailInner。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/waiter/useWaiterOrders.ts",
+      "type": "file",
+      "name": "useWaiterOrders.ts",
+      "filePath": "apps/web/src/components/waiter/useWaiterOrders.ts",
+      "summary": "React hook，拉取并实时刷新服务员看板订单与桌台分组数据。",
+      "tags": [
+        "component",
+        "react",
+        "waiter"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/waiter/useWaiterOrders.ts:useWaiterOrders",
+      "type": "function",
+      "name": "useWaiterOrders",
+      "filePath": "apps/web/src/components/waiter/useWaiterOrders.ts",
+      "lineRange": [
+        18,
+        87
+      ],
+      "summary": "Hook：获取看板订单、桌台分组并订阅实时更新。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/waiter/page.tsx:DashboardWaiterPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/waiter/page.tsx:DashboardWaiterPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/page.tsx",
+      "target": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/page.tsx",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/waiter/page.tsx",
+      "target": "file:apps/web/src/lib/staff-board.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/demo/kitchen/page.tsx",
+      "target": "function:apps/web/src/app/demo/kitchen/page.tsx:DemoKitchenPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/demo/kitchen/page.tsx",
+      "target": "function:apps/web/src/app/demo/kitchen/page.tsx:DemoKitchenPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/demo/kitchen/page.tsx",
+      "target": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/demo/kitchen/page.tsx",
+      "target": "file:apps/web/src/lib/demo-data.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/demo/kitchen/page.tsx",
+      "target": "file:apps/web/src/lib/demo-page-metadata.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/demo/waiter/[tableId]/page.tsx",
+      "target": "function:apps/web/src/app/demo/waiter/[tableId]/page.tsx:DemoWaiterTablePage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/demo/waiter/[tableId]/page.tsx",
+      "target": "function:apps/web/src/app/demo/waiter/[tableId]/page.tsx:DemoWaiterTablePage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/demo/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/demo/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/lib/demo-data.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/demo/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/lib/demo-page-metadata.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/demo/waiter/[tableId]/page.tsx",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/demo/waiter/page.tsx",
+      "target": "function:apps/web/src/app/demo/waiter/page.tsx:DemoWaiterPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/demo/waiter/page.tsx",
+      "target": "function:apps/web/src/app/demo/waiter/page.tsx:DemoWaiterPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/demo/waiter/page.tsx",
+      "target": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/demo/waiter/page.tsx",
+      "target": "file:apps/web/src/lib/demo-data.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/demo/waiter/page.tsx",
+      "target": "file:apps/web/src/lib/demo-page-metadata.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx:WaiterAuthenticatedShell",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx:WaiterAuthenticatedShell",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx",
+      "target": "file:apps/web/src/components/staff/StaffAuthenticatedShell.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterDisplay.tsx:WaiterTableCard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterDisplay.tsx:BoardKpiCard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterDisplay.tsx:WaiterBoardSectionBlock",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterDisplay.tsx:WaiterBoardInner",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterDisplay.tsx:WaiterDisplay",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterDisplay.tsx:WaiterDisplay",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "file:apps/web/src/components/ui/Toast.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "file:apps/web/src/components/waiter/useWaiterOrders.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "file:apps/web/src/components/waiter/waiter-messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "file:apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "file:apps/web/src/lib/staff-routes.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "file:apps/web/src/lib/waiter-board-permissions.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "file:apps/web/src/lib/waiter-board-section-preference.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "file:apps/web/src/lib/waiter-board-session.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "file:apps/web/src/lib/waiter-table-orders.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetail.tsx:WaiterTableDetailInner",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetail.tsx:WaiterTableDetail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "function:apps/web/src/components/waiter/WaiterTableDetail.tsx:WaiterTableDetail",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/components/ui/ConfirmModal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/components/ui/Modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/components/ui/Toast.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/components/waiter/waiter-messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/components/waiter/waiter-ui.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/buffet-open-table.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/buffet-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/cart-totals.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/staff-board-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/staff-board.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/staff-routes.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/use-buffet-prices-realtime-refresh.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/waiter-board-session.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/waiter-decrement-order-item-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/waiter-table-detail-actions.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/waiter-table-occupancy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/lib/waiter-table-orders.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterOrders.ts",
+      "target": "function:apps/web/src/components/waiter/useWaiterOrders.ts:useWaiterOrders",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterOrders.ts",
+      "target": "function:apps/web/src/components/waiter/useWaiterOrders.ts:useWaiterOrders",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterOrders.ts",
+      "target": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterOrders.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterOrders.ts",
+      "target": "file:apps/web/src/lib/staff-board-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterOrders.ts",
+      "target": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterOrders.ts",
+      "target": "file:apps/web/src/lib/use-restaurant-realtime-refresh.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterOrders.ts",
+      "target": "file:apps/web/src/lib/waiter-board-session.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/waiter/useWaiterOrders.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

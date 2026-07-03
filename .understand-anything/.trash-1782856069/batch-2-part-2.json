@@ -1,0 +1,1501 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/dashboard-menu.ts",
+      "type": "file",
+      "name": "dashboard-menu.ts",
+      "filePath": "apps/web/src/lib/dashboard-menu.ts",
+      "summary": "仪表盘菜单页数据加载器，按权限拉取分类、菜品与打印站点列表供 SSR 渲染。",
+      "tags": [
+        "service",
+        "dashboard",
+        "menu",
+        "data-loader"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-menu.ts:loadDashboardMenu",
+      "type": "function",
+      "name": "loadDashboardMenu",
+      "filePath": "apps/web/src/lib/dashboard-menu.ts",
+      "lineRange": [
+        13,
+        57
+      ],
+      "summary": "SSR 加载菜单页所需的分类、菜品与打印站点数据。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/dashboard-table-groups-client.ts",
+      "type": "file",
+      "name": "dashboard-table-groups-client.ts",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-client.ts",
+      "summary": "桌台分组管理的前端 API 客户端，处理分组 CRUD、排序与错误消息映射。",
+      "tags": [
+        "service",
+        "dashboard",
+        "tables",
+        "client"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-client.ts:request",
+      "type": "function",
+      "name": "request",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-client.ts",
+      "lineRange": [
+        9,
+        23
+      ],
+      "summary": "封装 fetch 请求并处理 JSON 响应与错误。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-client.ts:createTableGroupClient",
+      "type": "function",
+      "name": "createTableGroupClient",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-client.ts",
+      "lineRange": [
+        30,
+        40
+      ],
+      "summary": "客户端创建桌台分组。",
+      "tags": [
+        "service",
+        "client"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-client.ts:updateTableGroupClient",
+      "type": "function",
+      "name": "updateTableGroupClient",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-client.ts",
+      "lineRange": [
+        42,
+        53
+      ],
+      "summary": "客户端更新桌台分组。",
+      "tags": [
+        "service",
+        "client"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-client.ts:moveTableGroupOrderClient",
+      "type": "function",
+      "name": "moveTableGroupOrderClient",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-client.ts",
+      "lineRange": [
+        55,
+        61
+      ],
+      "summary": "客户端移动桌台分组排序。",
+      "tags": [
+        "service",
+        "client"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-client.ts:deleteTableGroupClient",
+      "type": "function",
+      "name": "deleteTableGroupClient",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-client.ts",
+      "lineRange": [
+        63,
+        69
+      ],
+      "summary": "客户端删除桌台分组。",
+      "tags": [
+        "service",
+        "client"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-client.ts:mapTableGroupApiError",
+      "type": "function",
+      "name": "mapTableGroupApiError",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-client.ts",
+      "lineRange": [
+        71,
+        86
+      ],
+      "summary": "将桌台分组 API 错误映射为用户消息。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/menu-admin.ts",
+      "type": "file",
+      "name": "menu-admin.ts",
+      "filePath": "apps/web/src/lib/menu-admin.ts",
+      "summary": "菜单管理 UI 辅助函数：分类标签、搜索过滤、子树收集与打印小票编码预览。",
+      "tags": [
+        "utility",
+        "menu",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-admin.ts:getMenuCategoryLabel",
+      "type": "function",
+      "name": "getMenuCategoryLabel",
+      "filePath": "apps/web/src/lib/menu-admin.ts",
+      "lineRange": [
+        7,
+        11
+      ],
+      "summary": "获取分类在当前语言下的显示标签。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-admin.ts:getMenuItemDisplayName",
+      "type": "function",
+      "name": "getMenuItemDisplayName",
+      "filePath": "apps/web/src/lib/menu-admin.ts",
+      "lineRange": [
+        13,
+        17
+      ],
+      "summary": "获取菜品在当前语言下的显示名称。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-admin.ts:categoryTicketCodePreview",
+      "type": "function",
+      "name": "categoryTicketCodePreview",
+      "filePath": "apps/web/src/lib/menu-admin.ts",
+      "lineRange": [
+        20,
+        31
+      ],
+      "summary": "预览分类在厨房小票上的编码路径。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-admin.ts:collectCategorySubtreeIds",
+      "type": "function",
+      "name": "collectCategorySubtreeIds",
+      "filePath": "apps/web/src/lib/menu-admin.ts",
+      "lineRange": [
+        34,
+        49
+      ],
+      "summary": "收集分类及其所有后代 ID。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-admin.ts:categoryHasDescendants",
+      "type": "function",
+      "name": "categoryHasDescendants",
+      "filePath": "apps/web/src/lib/menu-admin.ts",
+      "lineRange": [
+        51,
+        56
+      ],
+      "summary": "判断分类是否有子分类。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-admin.ts:sortCategoryIdsLeavesFirst",
+      "type": "function",
+      "name": "sortCategoryIdsLeavesFirst",
+      "filePath": "apps/web/src/lib/menu-admin.ts",
+      "lineRange": [
+        59,
+        70
+      ],
+      "summary": "将分类 ID 按叶子优先顺序排序。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-admin.ts:itemMatchesSearch",
+      "type": "function",
+      "name": "itemMatchesSearch",
+      "filePath": "apps/web/src/lib/menu-admin.ts",
+      "lineRange": [
+        72,
+        86
+      ],
+      "summary": "判断菜品是否匹配搜索关键词。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/menu-code-uniqueness.ts",
+      "type": "file",
+      "name": "menu-code-uniqueness.ts",
+      "filePath": "apps/web/src/lib/menu-code-uniqueness.ts",
+      "summary": "菜单分类与菜品编码唯一性校验，检测同级重复并识别 Postgres 唯一约束冲突。",
+      "tags": [
+        "validation",
+        "menu",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-code-uniqueness.ts:menuCodeKey",
+      "type": "function",
+      "name": "menuCodeKey",
+      "filePath": "apps/web/src/lib/menu-code-uniqueness.ts",
+      "lineRange": [
+        5,
+        8
+      ],
+      "summary": "生成分类/菜品编码的唯一性比较键。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-code-uniqueness.ts:siblingCategoryHasDuplicateCode",
+      "type": "function",
+      "name": "siblingCategoryHasDuplicateCode",
+      "filePath": "apps/web/src/lib/menu-code-uniqueness.ts",
+      "lineRange": [
+        10,
+        23
+      ],
+      "summary": "检测同级分类编码是否重复。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-code-uniqueness.ts:menuItemHasDuplicateCode",
+      "type": "function",
+      "name": "menuItemHasDuplicateCode",
+      "filePath": "apps/web/src/lib/menu-code-uniqueness.ts",
+      "lineRange": [
+        25,
+        36
+      ],
+      "summary": "检测菜品编码是否在餐厅内重复。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-code-uniqueness.ts:isPostgresUniqueViolation",
+      "type": "function",
+      "name": "isPostgresUniqueViolation",
+      "filePath": "apps/web/src/lib/menu-code-uniqueness.ts",
+      "lineRange": [
+        38,
+        40
+      ],
+      "summary": "判断错误是否为 Postgres 唯一约束冲突。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/menu-image.ts",
+      "type": "file",
+      "name": "menu-image.ts",
+      "filePath": "apps/web/src/lib/menu-image.ts",
+      "summary": "菜品图片上传工具：MIME 校验、压缩、Storage 路径生成与删除。",
+      "tags": [
+        "utility",
+        "menu",
+        "storage",
+        "image"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-image.ts:extensionForImageMime",
+      "type": "function",
+      "name": "extensionForImageMime",
+      "filePath": "apps/web/src/lib/menu-image.ts",
+      "lineRange": [
+        20,
+        33
+      ],
+      "summary": "根据 MIME 类型返回图片文件扩展名。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-image.ts:menuImageObjectPath",
+      "type": "function",
+      "name": "menuImageObjectPath",
+      "filePath": "apps/web/src/lib/menu-image.ts",
+      "lineRange": [
+        35,
+        37
+      ],
+      "summary": "生成菜品图片在 Storage 中的对象路径。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-image.ts:validateMenuImageFile",
+      "type": "function",
+      "name": "validateMenuImageFile",
+      "filePath": "apps/web/src/lib/menu-image.ts",
+      "lineRange": [
+        40,
+        47
+      ],
+      "summary": "校验上传图片的文件大小与类型。",
+      "tags": [
+        "validation",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-image.ts:compressMenuImageForUpload",
+      "type": "function",
+      "name": "compressMenuImageForUpload",
+      "filePath": "apps/web/src/lib/menu-image.ts",
+      "lineRange": [
+        54,
+        74
+      ],
+      "summary": "压缩图片至允许大小后返回 Blob。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-image.ts:pathFromMenuImagePublicUrl",
+      "type": "function",
+      "name": "pathFromMenuImagePublicUrl",
+      "filePath": "apps/web/src/lib/menu-image.ts",
+      "lineRange": [
+        76,
+        79
+      ],
+      "summary": "从公开 URL 提取 Storage 对象路径。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-image.ts:removeMenuImageFromStorage",
+      "type": "function",
+      "name": "removeMenuImageFromStorage",
+      "filePath": "apps/web/src/lib/menu-image.ts",
+      "lineRange": [
+        81,
+        89
+      ],
+      "summary": "从 Storage 删除菜品图片对象。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/menu-item-order.test.ts",
+      "type": "file",
+      "name": "menu-item-order.test.ts",
+      "filePath": "apps/web/src/lib/menu-item-order.test.ts",
+      "summary": "菜品排序作用域与显示比较逻辑的单元测试。",
+      "tags": [
+        "test",
+        "menu",
+        "sort-order"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-item-order.test.ts:item",
+      "type": "function",
+      "name": "item",
+      "filePath": "apps/web/src/lib/menu-item-order.test.ts",
+      "lineRange": [
+        9,
+        22
+      ],
+      "summary": "item 函数",
+      "tags": [
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/menu-item-order.ts",
+      "type": "file",
+      "name": "menu-item-order.ts",
+      "filePath": "apps/web/src/lib/menu-item-order.ts",
+      "summary": "菜品排序作用域与可见项重排判断，结合 sort_order 实现分类内排序。",
+      "tags": [
+        "utility",
+        "menu",
+        "sort-order"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-item-order.ts:menuItemSortScope",
+      "type": "function",
+      "name": "menuItemSortScope",
+      "filePath": "apps/web/src/lib/menu-item-order.ts",
+      "lineRange": [
+        5,
+        7
+      ],
+      "summary": "计算菜品排序的作用域键（分类 ID）。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-item-order.ts:canReorderVisibleMenuItems",
+      "type": "function",
+      "name": "canReorderVisibleMenuItems",
+      "filePath": "apps/web/src/lib/menu-item-order.ts",
+      "lineRange": [
+        10,
+        14
+      ],
+      "summary": "判断当前可见菜品列表是否可重排。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-item-order.ts:compareMenuItemsForDisplay",
+      "type": "function",
+      "name": "compareMenuItemsForDisplay",
+      "filePath": "apps/web/src/lib/menu-item-order.ts",
+      "lineRange": [
+        16,
+        18
+      ],
+      "summary": "比较两个菜品的显示排序顺序。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-item-order.ts:menuItemSiblingsInScope",
+      "type": "function",
+      "name": "menuItemSiblingsInScope",
+      "filePath": "apps/web/src/lib/menu-item-order.ts",
+      "lineRange": [
+        20,
+        28
+      ],
+      "summary": "获取同作用域内的兄弟菜品列表。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/menu-manager-tab-preference.test.ts",
+      "type": "file",
+      "name": "menu-manager-tab-preference.test.ts",
+      "filePath": "apps/web/src/lib/menu-manager-tab-preference.test.ts",
+      "summary": "菜单管理器 Tab 偏好 localStorage 读写行为的单元测试。",
+      "tags": [
+        "test",
+        "menu",
+        "preference"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/menu-manager-tab-preference.ts",
+      "type": "file",
+      "name": "menu-manager-tab-preference.ts",
+      "filePath": "apps/web/src/lib/menu-manager-tab-preference.ts",
+      "summary": "菜单管理器 Tab 偏好持久化，通过 localStorage 与 URL 查询参数同步当前标签页。",
+      "tags": [
+        "utility",
+        "menu",
+        "preference"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-manager-tab-preference.ts:menuManagerTabStorageKey",
+      "type": "function",
+      "name": "menuManagerTabStorageKey",
+      "filePath": "apps/web/src/lib/menu-manager-tab-preference.ts",
+      "lineRange": [
+        7,
+        9
+      ],
+      "summary": "生成菜单管理器 Tab 的 localStorage 键名。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-manager-tab-preference.ts:isMenuManagerTab",
+      "type": "function",
+      "name": "isMenuManagerTab",
+      "filePath": "apps/web/src/lib/menu-manager-tab-preference.ts",
+      "lineRange": [
+        11,
+        13
+      ],
+      "summary": "判断字符串是否为有效的菜单管理器 Tab。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-manager-tab-preference.ts:loadSavedMenuManagerTab",
+      "type": "function",
+      "name": "loadSavedMenuManagerTab",
+      "filePath": "apps/web/src/lib/menu-manager-tab-preference.ts",
+      "lineRange": [
+        15,
+        23
+      ],
+      "summary": "从 localStorage 读取保存的 Tab 偏好。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-manager-tab-preference.ts:saveMenuManagerTab",
+      "type": "function",
+      "name": "saveMenuManagerTab",
+      "filePath": "apps/web/src/lib/menu-manager-tab-preference.ts",
+      "lineRange": [
+        25,
+        32
+      ],
+      "summary": "将当前 Tab 保存至 localStorage。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-manager-tab-preference.ts:menuManagerTabQuery",
+      "type": "function",
+      "name": "menuManagerTabQuery",
+      "filePath": "apps/web/src/lib/menu-manager-tab-preference.ts",
+      "lineRange": [
+        34,
+        36
+      ],
+      "summary": "生成 Tab 对应的 URL 查询参数字符串。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-manager-tab-preference.ts:menuManagerPath",
+      "type": "function",
+      "name": "menuManagerPath",
+      "filePath": "apps/web/src/lib/menu-manager-tab-preference.ts",
+      "lineRange": [
+        38,
+        40
+      ],
+      "summary": "生成带 Tab 查询参数的菜单管理路径。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/menu-print-label.test.ts",
+      "type": "file",
+      "name": "menu-print-label.test.ts",
+      "filePath": "apps/web/src/lib/menu-print-label.test.ts",
+      "summary": "菜单打印标签格式化函数的单元测试，覆盖编码路径与小票行标签。",
+      "tags": [
+        "test",
+        "menu",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/menu-print-label.ts",
+      "type": "file",
+      "name": "menu-print-label.ts",
+      "filePath": "apps/web/src/lib/menu-print-label.ts",
+      "summary": "菜单打印标签格式化：菜品编码规范化、分类路径、小票行标签与厨房票头。",
+      "tags": [
+        "utility",
+        "menu",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-print-label.ts:normalizeMenuItemCode",
+      "type": "function",
+      "name": "normalizeMenuItemCode",
+      "filePath": "apps/web/src/lib/menu-print-label.ts",
+      "lineRange": [
+        24,
+        28
+      ],
+      "summary": "规范化菜品编码（去空格、大写等）。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-print-label.ts:categoryCodePathFromLeaf",
+      "type": "function",
+      "name": "categoryCodePathFromLeaf",
+      "filePath": "apps/web/src/lib/menu-print-label.ts",
+      "lineRange": [
+        31,
+        51
+      ],
+      "summary": "从叶子分类向上构建编码路径。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-print-label.ts:formatMenuPrintDisplayName",
+      "type": "function",
+      "name": "formatMenuPrintDisplayName",
+      "filePath": "apps/web/src/lib/menu-print-label.ts",
+      "lineRange": [
+        54,
+        67
+      ],
+      "summary": "格式化菜品在打印输出中的显示名。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-print-label.ts:orderItemBaseName",
+      "type": "function",
+      "name": "orderItemBaseName",
+      "filePath": "apps/web/src/lib/menu-print-label.ts",
+      "lineRange": [
+        69,
+        73
+      ],
+      "summary": "提取订单项的基础名称（不含备注）。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-print-label.ts:orderItemReceiptLineLabel",
+      "type": "function",
+      "name": "orderItemReceiptLineLabel",
+      "filePath": "apps/web/src/lib/menu-print-label.ts",
+      "lineRange": [
+        76,
+        82
+      ],
+      "summary": "生成订单项在小票行上的完整标签。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-print-label.ts:topLevelCategoryId",
+      "type": "function",
+      "name": "topLevelCategoryId",
+      "filePath": "apps/web/src/lib/menu-print-label.ts",
+      "lineRange": [
+        85,
+        102
+      ],
+      "summary": "查找菜品所属顶级分类 ID。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-print-label.ts:formatTopCategoryTicketHeader",
+      "type": "function",
+      "name": "formatTopCategoryTicketHeader",
+      "filePath": "apps/web/src/lib/menu-print-label.ts",
+      "lineRange": [
+        105,
+        138
+      ],
+      "summary": "格式化厨房票顶部类目标题行。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/dashboard-menu.ts",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-menu.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-menu.ts",
+      "target": "function:apps/web/src/lib/dashboard-menu.ts:loadDashboardMenu",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-menu.ts",
+      "target": "function:apps/web/src/lib/dashboard-menu.ts:loadDashboardMenu",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-client.ts",
+      "target": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-client.ts:request",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-client.ts:createTableGroupClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-client.ts:createTableGroupClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-client.ts:updateTableGroupClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-client.ts:updateTableGroupClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-client.ts:moveTableGroupOrderClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-client.ts:moveTableGroupOrderClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-client.ts:deleteTableGroupClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-client.ts:deleteTableGroupClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-client.ts:mapTableGroupApiError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-client.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-client.ts:mapTableGroupApiError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-admin.ts",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-admin.ts",
+      "target": "file:apps/web/src/lib/menu-print-label.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-admin.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-admin.ts",
+      "target": "function:apps/web/src/lib/menu-admin.ts:getMenuCategoryLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-admin.ts",
+      "target": "function:apps/web/src/lib/menu-admin.ts:getMenuCategoryLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-admin.ts",
+      "target": "function:apps/web/src/lib/menu-admin.ts:getMenuItemDisplayName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-admin.ts",
+      "target": "function:apps/web/src/lib/menu-admin.ts:getMenuItemDisplayName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-admin.ts",
+      "target": "function:apps/web/src/lib/menu-admin.ts:categoryTicketCodePreview",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-admin.ts",
+      "target": "function:apps/web/src/lib/menu-admin.ts:categoryTicketCodePreview",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-admin.ts",
+      "target": "function:apps/web/src/lib/menu-admin.ts:collectCategorySubtreeIds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-admin.ts",
+      "target": "function:apps/web/src/lib/menu-admin.ts:collectCategorySubtreeIds",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-admin.ts",
+      "target": "function:apps/web/src/lib/menu-admin.ts:categoryHasDescendants",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-admin.ts",
+      "target": "function:apps/web/src/lib/menu-admin.ts:categoryHasDescendants",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-admin.ts",
+      "target": "function:apps/web/src/lib/menu-admin.ts:sortCategoryIdsLeavesFirst",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-admin.ts",
+      "target": "function:apps/web/src/lib/menu-admin.ts:sortCategoryIdsLeavesFirst",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-admin.ts",
+      "target": "function:apps/web/src/lib/menu-admin.ts:itemMatchesSearch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-admin.ts",
+      "target": "function:apps/web/src/lib/menu-admin.ts:itemMatchesSearch",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-code-uniqueness.ts",
+      "target": "file:apps/web/src/lib/menu-print-label.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-code-uniqueness.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-code-uniqueness.ts",
+      "target": "function:apps/web/src/lib/menu-code-uniqueness.ts:menuCodeKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-code-uniqueness.ts",
+      "target": "function:apps/web/src/lib/menu-code-uniqueness.ts:menuCodeKey",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-code-uniqueness.ts",
+      "target": "function:apps/web/src/lib/menu-code-uniqueness.ts:siblingCategoryHasDuplicateCode",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-code-uniqueness.ts",
+      "target": "function:apps/web/src/lib/menu-code-uniqueness.ts:siblingCategoryHasDuplicateCode",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-code-uniqueness.ts",
+      "target": "function:apps/web/src/lib/menu-code-uniqueness.ts:menuItemHasDuplicateCode",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-code-uniqueness.ts",
+      "target": "function:apps/web/src/lib/menu-code-uniqueness.ts:menuItemHasDuplicateCode",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-code-uniqueness.ts",
+      "target": "function:apps/web/src/lib/menu-code-uniqueness.ts:isPostgresUniqueViolation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-code-uniqueness.ts",
+      "target": "function:apps/web/src/lib/menu-code-uniqueness.ts:isPostgresUniqueViolation",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-image.ts",
+      "target": "function:apps/web/src/lib/menu-image.ts:extensionForImageMime",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-image.ts",
+      "target": "function:apps/web/src/lib/menu-image.ts:extensionForImageMime",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-image.ts",
+      "target": "function:apps/web/src/lib/menu-image.ts:menuImageObjectPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-image.ts",
+      "target": "function:apps/web/src/lib/menu-image.ts:menuImageObjectPath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-image.ts",
+      "target": "function:apps/web/src/lib/menu-image.ts:validateMenuImageFile",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-image.ts",
+      "target": "function:apps/web/src/lib/menu-image.ts:validateMenuImageFile",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-image.ts",
+      "target": "function:apps/web/src/lib/menu-image.ts:compressMenuImageForUpload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-image.ts",
+      "target": "function:apps/web/src/lib/menu-image.ts:compressMenuImageForUpload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-image.ts",
+      "target": "function:apps/web/src/lib/menu-image.ts:pathFromMenuImagePublicUrl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-image.ts",
+      "target": "function:apps/web/src/lib/menu-image.ts:pathFromMenuImagePublicUrl",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-image.ts",
+      "target": "function:apps/web/src/lib/menu-image.ts:removeMenuImageFromStorage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-image.ts",
+      "target": "function:apps/web/src/lib/menu-image.ts:removeMenuImageFromStorage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-order.test.ts",
+      "target": "file:apps/web/src/lib/menu-item-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-order.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-order.test.ts",
+      "target": "function:apps/web/src/lib/menu-item-order.test.ts:item",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-order.ts",
+      "target": "file:apps/web/src/lib/sort-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-order.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-order.ts",
+      "target": "function:apps/web/src/lib/menu-item-order.ts:menuItemSortScope",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-order.ts",
+      "target": "function:apps/web/src/lib/menu-item-order.ts:menuItemSortScope",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-order.ts",
+      "target": "function:apps/web/src/lib/menu-item-order.ts:canReorderVisibleMenuItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-order.ts",
+      "target": "function:apps/web/src/lib/menu-item-order.ts:canReorderVisibleMenuItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-order.ts",
+      "target": "function:apps/web/src/lib/menu-item-order.ts:compareMenuItemsForDisplay",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-order.ts",
+      "target": "function:apps/web/src/lib/menu-item-order.ts:compareMenuItemsForDisplay",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-order.ts",
+      "target": "function:apps/web/src/lib/menu-item-order.ts:menuItemSiblingsInScope",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-order.ts",
+      "target": "function:apps/web/src/lib/menu-item-order.ts:menuItemSiblingsInScope",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-manager-tab-preference.test.ts",
+      "target": "file:apps/web/src/lib/menu-manager-tab-preference.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/menu-manager-tab-preference.ts:menuManagerTabStorageKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/menu-manager-tab-preference.ts:menuManagerTabStorageKey",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/menu-manager-tab-preference.ts:isMenuManagerTab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/menu-manager-tab-preference.ts:isMenuManagerTab",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/menu-manager-tab-preference.ts:loadSavedMenuManagerTab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/menu-manager-tab-preference.ts:loadSavedMenuManagerTab",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/menu-manager-tab-preference.ts:saveMenuManagerTab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/menu-manager-tab-preference.ts:saveMenuManagerTab",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/menu-manager-tab-preference.ts:menuManagerTabQuery",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/menu-manager-tab-preference.ts:menuManagerTabQuery",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/menu-manager-tab-preference.ts:menuManagerPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-manager-tab-preference.ts",
+      "target": "function:apps/web/src/lib/menu-manager-tab-preference.ts:menuManagerPath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.test.ts",
+      "target": "file:apps/web/src/lib/menu-print-label.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.ts",
+      "target": "function:apps/web/src/lib/menu-print-label.ts:normalizeMenuItemCode",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.ts",
+      "target": "function:apps/web/src/lib/menu-print-label.ts:normalizeMenuItemCode",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.ts",
+      "target": "function:apps/web/src/lib/menu-print-label.ts:categoryCodePathFromLeaf",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.ts",
+      "target": "function:apps/web/src/lib/menu-print-label.ts:categoryCodePathFromLeaf",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.ts",
+      "target": "function:apps/web/src/lib/menu-print-label.ts:formatMenuPrintDisplayName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.ts",
+      "target": "function:apps/web/src/lib/menu-print-label.ts:formatMenuPrintDisplayName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.ts",
+      "target": "function:apps/web/src/lib/menu-print-label.ts:orderItemBaseName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.ts",
+      "target": "function:apps/web/src/lib/menu-print-label.ts:orderItemBaseName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.ts",
+      "target": "function:apps/web/src/lib/menu-print-label.ts:orderItemReceiptLineLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.ts",
+      "target": "function:apps/web/src/lib/menu-print-label.ts:orderItemReceiptLineLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.ts",
+      "target": "function:apps/web/src/lib/menu-print-label.ts:topLevelCategoryId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.ts",
+      "target": "function:apps/web/src/lib/menu-print-label.ts:topLevelCategoryId",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.ts",
+      "target": "function:apps/web/src/lib/menu-print-label.ts:formatTopCategoryTicketHeader",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.ts",
+      "target": "function:apps/web/src/lib/menu-print-label.ts:formatTopCategoryTicketHeader",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-order.ts",
+      "target": "file:apps/web/src/lib/menu-item-order.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-manager-tab-preference.ts",
+      "target": "file:apps/web/src/lib/menu-manager-tab-preference.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-print-label.ts",
+      "target": "file:apps/web/src/lib/menu-print-label.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:apps/web/src/lib/menu-item-order.ts:compareMenuItemsForDisplay",
+      "target": "function:apps/web/src/lib/sort-order.ts:compareSortOrderThenCreatedAt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

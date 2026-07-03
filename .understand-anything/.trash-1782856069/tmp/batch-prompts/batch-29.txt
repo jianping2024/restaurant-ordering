@@ -1,0 +1,24 @@
+Analyze these files and produce GraphNode and GraphEdge objects.
+Project root: `/Users/chenjianping/Documents/restaurant-ordering`
+Project: `undefined` — undefined
+Languages: ["config","css","dockerfile","go","html","iss","javascript","json","markdown","mod","mts","powershell","python","shell","sql","sum","txt","typescript","unknown","yaml"]
+Batch: `29/38`
+Skill directory: `/Users/chenjianping/.cursor/plugins/cache/understand-anything/understand-anything/54754a6f97051d1d76c8758353d8ea41afe502a6/skills/understand`
+Output: `/Users/chenjianping/Documents/restaurant-ordering/.understand-anything/intermediate/batch-29.json`
+
+Pre-resolved import data:
+```json
+{"apps/print-agent/installer/WINDOWS-README.txt":[],"apps/print-agent/installer/wizard-after.txt":[],"apps/print-agent/installer/wizard-before.txt":[]}
+```
+
+Cross-batch neighbors:
+```json
+{}
+```
+
+Files:
+1. `apps/print-agent/installer/WINDOWS-README.txt` (61 lines, language: `txt`, fileCategory: `docs`)
+2. `apps/print-agent/installer/wizard-after.txt` (16 lines, language: `txt`, fileCategory: `docs`)
+3. `apps/print-agent/installer/wizard-before.txt` (20 lines, language: `txt`, fileCategory: `docs`)
+
+> **Language directive**: Generate all textual content in **zh** (Chinese). Keep technical terms in English when no standard translation exists.

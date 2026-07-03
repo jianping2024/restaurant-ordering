@@ -1,0 +1,1364 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/pt-nif.test.ts",
+      "type": "file",
+      "name": "pt-nif.test.ts",
+      "filePath": "apps/web/src/lib/pt-nif.test.ts",
+      "summary": "服务端/客户端共享工具库 pt-nif.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/pt-nif.ts",
+      "type": "file",
+      "name": "pt-nif.ts",
+      "filePath": "apps/web/src/lib/pt-nif.ts",
+      "summary": "服务端/客户端共享工具库 pt-nif.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/pt-nif.ts:normalizePortugueseNif",
+      "type": "function",
+      "name": "normalizePortugueseNif",
+      "filePath": "apps/web/src/lib/pt-nif.ts",
+      "lineRange": [
+        2,
+        4
+      ],
+      "summary": "解析/规范化工具函数 normalizePortugueseNif。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/pt-nif.ts:formatPortugueseNif",
+      "type": "function",
+      "name": "formatPortugueseNif",
+      "filePath": "apps/web/src/lib/pt-nif.ts",
+      "lineRange": [
+        7,
+        12
+      ],
+      "summary": "函数 formatPortugueseNif，实现 pt-nif 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/pt-nif.ts:validatePortugueseNif",
+      "type": "function",
+      "name": "validatePortugueseNif",
+      "filePath": "apps/web/src/lib/pt-nif.ts",
+      "lineRange": [
+        15,
+        28
+      ],
+      "summary": "函数 validatePortugueseNif，实现 pt-nif 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/pt-nif.ts:parsePortugueseNif",
+      "type": "function",
+      "name": "parsePortugueseNif",
+      "filePath": "apps/web/src/lib/pt-nif.ts",
+      "lineRange": [
+        31,
+        36
+      ],
+      "summary": "解析/规范化工具函数 parsePortugueseNif。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/rational-qty.test.ts",
+      "type": "file",
+      "name": "rational-qty.test.ts",
+      "filePath": "apps/web/src/lib/rational-qty.test.ts",
+      "summary": "服务端/客户端共享工具库 rational-qty.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/rational-qty.ts",
+      "type": "file",
+      "name": "rational-qty.ts",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "summary": "服务端/客户端共享工具库 rational-qty.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:gcd",
+      "type": "function",
+      "name": "gcd",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        3,
+        12
+      ],
+      "summary": "函数 gcd，实现 rational-qty 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:normalizeRational",
+      "type": "function",
+      "name": "normalizeRational",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        14,
+        23
+      ],
+      "summary": "解析/规范化工具函数 normalizeRational。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:rationalFromInt",
+      "type": "function",
+      "name": "rationalFromInt",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        25,
+        28
+      ],
+      "summary": "函数 rationalFromInt，实现 rational-qty 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:rationalFromNumber",
+      "type": "function",
+      "name": "rationalFromNumber",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        30,
+        34
+      ],
+      "summary": "函数 rationalFromNumber，实现 rational-qty 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:parseQtyInput",
+      "type": "function",
+      "name": "parseQtyInput",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        37,
+        71
+      ],
+      "summary": "解析/规范化工具函数 parseQtyInput。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:addRationals",
+      "type": "function",
+      "name": "addRationals",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        73,
+        75
+      ],
+      "summary": "函数 addRationals，实现 rational-qty 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:sumRationals",
+      "type": "function",
+      "name": "sumRationals",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        77,
+        79
+      ],
+      "summary": "函数 sumRationals，实现 rational-qty 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:rationalsEqual",
+      "type": "function",
+      "name": "rationalsEqual",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        81,
+        85
+      ],
+      "summary": "函数 rationalsEqual，实现 rational-qty 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:rationalToNumber",
+      "type": "function",
+      "name": "rationalToNumber",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        87,
+        90
+      ],
+      "summary": "函数 rationalToNumber，实现 rational-qty 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:formatRational",
+      "type": "function",
+      "name": "formatRational",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        92,
+        103
+      ],
+      "summary": "函数 formatRational，实现 rational-qty 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/rational-qty.ts:compareRationalSumToTarget",
+      "type": "function",
+      "name": "compareRationalSumToTarget",
+      "filePath": "apps/web/src/lib/rational-qty.ts",
+      "lineRange": [
+        105,
+        111
+      ],
+      "summary": "函数 compareRationalSumToTarget，实现 rational-qty 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/receipt-payer-label.ts",
+      "type": "file",
+      "name": "receipt-payer-label.ts",
+      "filePath": "apps/web/src/lib/receipt-payer-label.ts",
+      "summary": "服务端/客户端共享工具库 receipt-payer-label.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/receipt-payer-label.ts:receiptPayerNameForPrint",
+      "type": "function",
+      "name": "receiptPayerNameForPrint",
+      "filePath": "apps/web/src/lib/receipt-payer-label.ts",
+      "lineRange": [
+        14,
+        30
+      ],
+      "summary": "函数 receiptPayerNameForPrint，实现 receipt-payer-label 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/request-checkout-request.ts",
+      "type": "file",
+      "name": "request-checkout-request.ts",
+      "filePath": "apps/web/src/lib/request-checkout-request.ts",
+      "summary": "服务端/客户端共享工具库 request-checkout-request.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/request-checkout-request.ts:requestCheckoutRequest",
+      "type": "function",
+      "name": "requestCheckoutRequest",
+      "filePath": "apps/web/src/lib/request-checkout-request.ts",
+      "lineRange": [
+        3,
+        44
+      ],
+      "summary": "函数 requestCheckoutRequest，实现 request-checkout-request 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/request-customer-context.ts",
+      "type": "file",
+      "name": "request-customer-context.ts",
+      "filePath": "apps/web/src/lib/request-customer-context.ts",
+      "summary": "服务端/客户端共享工具库 request-customer-context.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/request-customer-context.ts:requestCustomerSessionContext",
+      "type": "function",
+      "name": "requestCustomerSessionContext",
+      "filePath": "apps/web/src/lib/request-customer-context.ts",
+      "lineRange": [
+        29,
+        33
+      ],
+      "summary": "函数 requestCustomerSessionContext，实现 request-customer-context 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/request-customer-context.ts:requestCustomerBillContext",
+      "type": "function",
+      "name": "requestCustomerBillContext",
+      "filePath": "apps/web/src/lib/request-customer-context.ts",
+      "lineRange": [
+        35,
+        39
+      ],
+      "summary": "函数 requestCustomerBillContext，实现 request-customer-context 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/request-order-receipt-print.ts",
+      "type": "file",
+      "name": "request-order-receipt-print.ts",
+      "filePath": "apps/web/src/lib/request-order-receipt-print.ts",
+      "summary": "服务端/客户端共享工具库 request-order-receipt-print.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/request-order-receipt-print.ts:requestOrderReceiptPrint",
+      "type": "function",
+      "name": "requestOrderReceiptPrint",
+      "filePath": "apps/web/src/lib/request-order-receipt-print.ts",
+      "lineRange": [
+        32,
+        92
+      ],
+      "summary": "函数 requestOrderReceiptPrint，实现 request-order-receipt-print 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/request-order-receipt-print.ts:requestOrderReceiptPrintQuiet",
+      "type": "function",
+      "name": "requestOrderReceiptPrintQuiet",
+      "filePath": "apps/web/src/lib/request-order-receipt-print.ts",
+      "lineRange": [
+        95,
+        97
+      ],
+      "summary": "函数 requestOrderReceiptPrintQuiet，实现 request-order-receipt-print 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/resolve-append-cart-items.test.ts",
+      "type": "file",
+      "name": "resolve-append-cart-items.test.ts",
+      "filePath": "apps/web/src/lib/resolve-append-cart-items.test.ts",
+      "summary": "服务端/客户端共享工具库 resolve-append-cart-items.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/resolve-append-cart-items.test.ts:mockAdminForAppend",
+      "type": "function",
+      "name": "mockAdminForAppend",
+      "filePath": "apps/web/src/lib/resolve-append-cart-items.test.ts",
+      "lineRange": [
+        14,
+        40
+      ],
+      "summary": "函数 mockAdminForAppend，实现 resolve-append-cart-items.test 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "type": "file",
+      "name": "resolve-append-cart-items.ts",
+      "filePath": "apps/web/src/lib/resolve-append-cart-items.ts",
+      "summary": "服务端/客户端共享工具库 resolve-append-cart-items.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/resolve-append-cart-items.ts:generateAppendBatchId",
+      "type": "function",
+      "name": "generateAppendBatchId",
+      "filePath": "apps/web/src/lib/resolve-append-cart-items.ts",
+      "lineRange": [
+        53,
+        55
+      ],
+      "summary": "函数 generateAppendBatchId，实现 resolve-append-cart-items 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/resolve-append-cart-items.ts:parseAppendCartRawItems",
+      "type": "function",
+      "name": "parseAppendCartRawItems",
+      "filePath": "apps/web/src/lib/resolve-append-cart-items.ts",
+      "lineRange": [
+        103,
+        151
+      ],
+      "summary": "解析/规范化工具函数 parseAppendCartRawItems。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/resolve-append-cart-items.ts:menuRowToOrderItem",
+      "type": "function",
+      "name": "menuRowToOrderItem",
+      "filePath": "apps/web/src/lib/resolve-append-cart-items.ts",
+      "lineRange": [
+        153,
+        177
+      ],
+      "summary": "函数 menuRowToOrderItem，实现 resolve-append-cart-items 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/resolve-append-cart-items.ts:resolveAppendCartItems",
+      "type": "function",
+      "name": "resolveAppendCartItems",
+      "filePath": "apps/web/src/lib/resolve-append-cart-items.ts",
+      "lineRange": [
+        182,
+        236
+      ],
+      "summary": "函数 resolveAppendCartItems，实现 resolve-append-cart-items 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/split-person-label.test.ts",
+      "type": "file",
+      "name": "split-person-label.test.ts",
+      "filePath": "apps/web/src/lib/split-person-label.test.ts",
+      "summary": "服务端/客户端共享工具库 split-person-label.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/split-person-label.ts",
+      "type": "file",
+      "name": "split-person-label.ts",
+      "filePath": "apps/web/src/lib/split-person-label.ts",
+      "summary": "服务端/客户端共享工具库 split-person-label.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/split-person-label.ts:isWholeTablePayerName",
+      "type": "function",
+      "name": "isWholeTablePayerName",
+      "filePath": "apps/web/src/lib/split-person-label.ts",
+      "lineRange": [
+        10,
+        13
+      ],
+      "summary": "函数 isWholeTablePayerName，实现 split-person-label 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/split-person-label.ts:uiLangFromPrintLocale",
+      "type": "function",
+      "name": "uiLangFromPrintLocale",
+      "filePath": "apps/web/src/lib/split-person-label.ts",
+      "lineRange": [
+        15,
+        20
+      ],
+      "summary": "函数 uiLangFromPrintLocale，实现 split-person-label 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/split-person-label.ts:wholeTableLabelForLang",
+      "type": "function",
+      "name": "wholeTableLabelForLang",
+      "filePath": "apps/web/src/lib/split-person-label.ts",
+      "lineRange": [
+        22,
+        24
+      ],
+      "summary": "函数 wholeTableLabelForLang，实现 split-person-label 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/split-person-label.ts:localizeSplitPersonName",
+      "type": "function",
+      "name": "localizeSplitPersonName",
+      "filePath": "apps/web/src/lib/split-person-label.ts",
+      "lineRange": [
+        27,
+        36
+      ],
+      "summary": "函数 localizeSplitPersonName，实现 split-person-label 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "type": "file",
+      "name": "station-ticket-auto-rate-limit.ts",
+      "filePath": "apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "summary": "服务端/客户端共享工具库 station-ticket-auto-rate-limit.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/station-ticket-auto-rate-limit.ts:touch",
+      "type": "function",
+      "name": "touch",
+      "filePath": "apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "lineRange": [
+        11,
+        23
+      ],
+      "summary": "函数 touch，实现 station-ticket-auto-rate-limit 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/station-ticket-auto-rate-limit.ts:autoEnqueueRateLimitCheck",
+      "type": "function",
+      "name": "autoEnqueueRateLimitCheck",
+      "filePath": "apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "lineRange": [
+        26,
+        40
+      ],
+      "summary": "函数 autoEnqueueRateLimitCheck，实现 station-ticket-auto-rate-limit 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/pt-nif.test.ts",
+      "target": "file:apps/web/src/lib/pt-nif.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/pt-nif.ts",
+      "target": "function:apps/web/src/lib/pt-nif.ts:normalizePortugueseNif",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/pt-nif.ts",
+      "target": "function:apps/web/src/lib/pt-nif.ts:normalizePortugueseNif",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/pt-nif.ts",
+      "target": "function:apps/web/src/lib/pt-nif.ts:formatPortugueseNif",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/pt-nif.ts",
+      "target": "function:apps/web/src/lib/pt-nif.ts:formatPortugueseNif",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/pt-nif.ts",
+      "target": "function:apps/web/src/lib/pt-nif.ts:validatePortugueseNif",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/pt-nif.ts",
+      "target": "function:apps/web/src/lib/pt-nif.ts:validatePortugueseNif",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/pt-nif.ts",
+      "target": "function:apps/web/src/lib/pt-nif.ts:parsePortugueseNif",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/pt-nif.ts",
+      "target": "function:apps/web/src/lib/pt-nif.ts:parsePortugueseNif",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/pt-nif.ts:formatPortugueseNif",
+      "target": "function:apps/web/src/lib/pt-nif.ts:normalizePortugueseNif",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/pt-nif.ts:validatePortugueseNif",
+      "target": "function:apps/web/src/lib/pt-nif.ts:normalizePortugueseNif",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/pt-nif.ts:parsePortugueseNif",
+      "target": "function:apps/web/src/lib/pt-nif.ts:normalizePortugueseNif",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/pt-nif.ts:parsePortugueseNif",
+      "target": "function:apps/web/src/lib/pt-nif.ts:validatePortugueseNif",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.test.ts",
+      "target": "file:apps/web/src/lib/rational-qty.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:gcd",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:normalizeRational",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:normalizeRational",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalFromInt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalFromInt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalFromNumber",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalFromNumber",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:parseQtyInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:parseQtyInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:addRationals",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:addRationals",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:sumRationals",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:sumRationals",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalsEqual",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalsEqual",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalToNumber",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalToNumber",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:formatRational",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:formatRational",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:compareRationalSumToTarget",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/rational-qty.ts",
+      "target": "function:apps/web/src/lib/rational-qty.ts:compareRationalSumToTarget",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:normalizeRational",
+      "target": "function:apps/web/src/lib/rational-qty.ts:gcd",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:rationalFromInt",
+      "target": "function:apps/web/src/lib/rational-qty.ts:normalizeRational",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:rationalFromNumber",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalFromInt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:rationalFromNumber",
+      "target": "function:apps/web/src/lib/rational-qty.ts:normalizeRational",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:parseQtyInput",
+      "target": "function:apps/web/src/lib/rational-qty.ts:normalizeRational",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:parseQtyInput",
+      "target": "function:apps/web/src/lib/rational-qty.ts:normalizeRational",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:parseQtyInput",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalFromInt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:parseQtyInput",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalFromNumber",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:addRationals",
+      "target": "function:apps/web/src/lib/rational-qty.ts:normalizeRational",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:sumRationals",
+      "target": "function:apps/web/src/lib/rational-qty.ts:addRationals",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:rationalsEqual",
+      "target": "function:apps/web/src/lib/rational-qty.ts:normalizeRational",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:rationalsEqual",
+      "target": "function:apps/web/src/lib/rational-qty.ts:normalizeRational",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:rationalToNumber",
+      "target": "function:apps/web/src/lib/rational-qty.ts:normalizeRational",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:formatRational",
+      "target": "function:apps/web/src/lib/rational-qty.ts:normalizeRational",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:compareRationalSumToTarget",
+      "target": "function:apps/web/src/lib/rational-qty.ts:rationalFromNumber",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:compareRationalSumToTarget",
+      "target": "function:apps/web/src/lib/rational-qty.ts:sumRationals",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/rational-qty.ts:compareRationalSumToTarget",
+      "target": "function:apps/web/src/lib/rational-qty.ts:normalizeRational",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/receipt-payer-label.ts",
+      "target": "function:apps/web/src/lib/receipt-payer-label.ts:receiptPayerNameForPrint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/receipt-payer-label.ts",
+      "target": "function:apps/web/src/lib/receipt-payer-label.ts:receiptPayerNameForPrint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/receipt-payer-label.ts",
+      "target": "file:apps/web/src/lib/split-person-label.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/request-checkout-request.ts",
+      "target": "function:apps/web/src/lib/request-checkout-request.ts:requestCheckoutRequest",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/request-checkout-request.ts",
+      "target": "function:apps/web/src/lib/request-checkout-request.ts:requestCheckoutRequest",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/request-checkout-request.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/request-customer-context.ts",
+      "target": "function:apps/web/src/lib/request-customer-context.ts:requestCustomerSessionContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/request-customer-context.ts",
+      "target": "function:apps/web/src/lib/request-customer-context.ts:requestCustomerSessionContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/request-customer-context.ts",
+      "target": "function:apps/web/src/lib/request-customer-context.ts:requestCustomerBillContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/request-customer-context.ts",
+      "target": "function:apps/web/src/lib/request-customer-context.ts:requestCustomerBillContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/request-customer-context.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/request-order-receipt-print.ts",
+      "target": "function:apps/web/src/lib/request-order-receipt-print.ts:requestOrderReceiptPrint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/request-order-receipt-print.ts",
+      "target": "function:apps/web/src/lib/request-order-receipt-print.ts:requestOrderReceiptPrint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/request-order-receipt-print.ts",
+      "target": "function:apps/web/src/lib/request-order-receipt-print.ts:requestOrderReceiptPrintQuiet",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/request-order-receipt-print.ts",
+      "target": "function:apps/web/src/lib/request-order-receipt-print.ts:requestOrderReceiptPrintQuiet",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/request-order-receipt-print.ts",
+      "target": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/request-order-receipt-print.ts:requestOrderReceiptPrintQuiet",
+      "target": "function:apps/web/src/lib/request-order-receipt-print.ts:requestOrderReceiptPrint",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.test.ts",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.test.ts:mockAdminForAppend",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.test.ts",
+      "target": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:generateAppendBatchId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:generateAppendBatchId",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:parseAppendCartRawItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:parseAppendCartRawItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:menuRowToOrderItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:resolveAppendCartItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:resolveAppendCartItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "file:apps/web/src/lib/cart-totals.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "file:apps/web/src/lib/menu-print-label.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/resolve-append-cart-items.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/resolve-append-cart-items.ts:resolveAppendCartItems",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:parseAppendCartRawItems",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/resolve-append-cart-items.ts:resolveAppendCartItems",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:generateAppendBatchId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/resolve-append-cart-items.ts:resolveAppendCartItems",
+      "target": "function:apps/web/src/lib/resolve-append-cart-items.ts:menuRowToOrderItem",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.test.ts",
+      "target": "file:apps/web/src/lib/split-person-label.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "function:apps/web/src/lib/split-person-label.ts:isWholeTablePayerName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "function:apps/web/src/lib/split-person-label.ts:isWholeTablePayerName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "function:apps/web/src/lib/split-person-label.ts:uiLangFromPrintLocale",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "function:apps/web/src/lib/split-person-label.ts:uiLangFromPrintLocale",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "function:apps/web/src/lib/split-person-label.ts:wholeTableLabelForLang",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "function:apps/web/src/lib/split-person-label.ts:wholeTableLabelForLang",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "function:apps/web/src/lib/split-person-label.ts:localizeSplitPersonName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "function:apps/web/src/lib/split-person-label.ts:localizeSplitPersonName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/split-person-label.ts",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/split-person-label.ts:localizeSplitPersonName",
+      "target": "function:apps/web/src/lib/split-person-label.ts:isWholeTablePayerName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/split-person-label.ts:localizeSplitPersonName",
+      "target": "function:apps/web/src/lib/split-person-label.ts:wholeTableLabelForLang",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "target": "function:apps/web/src/lib/station-ticket-auto-rate-limit.ts:touch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "target": "function:apps/web/src/lib/station-ticket-auto-rate-limit.ts:autoEnqueueRateLimitCheck",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/station-ticket-auto-rate-limit.ts",
+      "target": "function:apps/web/src/lib/station-ticket-auto-rate-limit.ts:autoEnqueueRateLimitCheck",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/station-ticket-auto-rate-limit.ts:autoEnqueueRateLimitCheck",
+      "target": "function:apps/web/src/lib/station-ticket-auto-rate-limit.ts:touch",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/station-ticket-auto-rate-limit.ts:autoEnqueueRateLimitCheck",
+      "target": "function:apps/web/src/lib/station-ticket-auto-rate-limit.ts:touch",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

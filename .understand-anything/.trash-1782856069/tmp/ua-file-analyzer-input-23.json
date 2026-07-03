@@ -1,0 +1,42 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {
+      "path": "packages/shared/src/hmac-jwt.ts",
+      "language": "typescript",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/print-agent-jwt.test.ts",
+      "language": "typescript",
+      "sizeLines": 51,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/print-agent-jwt.ts",
+      "language": "typescript",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/print-agent-support-jwt.ts",
+      "language": "typescript",
+      "sizeLines": 47,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "packages/shared/src/hmac-jwt.ts": [],
+    "packages/shared/src/print-agent-jwt.test.ts": [
+      "packages/shared/src/print-agent-jwt.ts",
+      "packages/shared/src/print-agent-support-jwt.ts"
+    ],
+    "packages/shared/src/print-agent-jwt.ts": [
+      "packages/shared/src/hmac-jwt.ts"
+    ],
+    "packages/shared/src/print-agent-support-jwt.ts": [
+      "packages/shared/src/hmac-jwt.ts"
+    ]
+  }
+}

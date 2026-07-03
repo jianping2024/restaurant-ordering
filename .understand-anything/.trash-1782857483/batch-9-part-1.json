@@ -1,0 +1,1090 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "summary": "厨房看板 API 路由，校验员工身份后拉取厨房订单看板数据。",
+      "tags": [
+        "api-handler",
+        "kitchen",
+        "staff-auth"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "lineRange": [
+        8,
+        36
+      ],
+      "summary": "GET 处理器：员工鉴权后调用 fetchKitchenBoard 返回厨房看板 JSON。",
+      "tags": [
+        "api-handler",
+        "kitchen"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "summary": "服务员看板 API 路由，经开台权限校验后返回餐桌与服务状态。",
+      "tags": [
+        "api-handler",
+        "waiter",
+        "staff-auth"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "lineRange": [
+        8,
+        31
+      ],
+      "summary": "GET 处理器：开台权限校验后拉取服务员看板数据。",
+      "tags": [
+        "api-handler",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts",
+      "summary": "服务员减菜 API，校验会话与账单状态后调用减项服务并记录审计。",
+      "tags": [
+        "api-handler",
+        "order-void",
+        "audit"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts",
+      "lineRange": [
+        11,
+        112
+      ],
+      "summary": "POST 减菜：校验订单与会话后调用 decrementOrderItemWithAudit。",
+      "tags": [
+        "api-handler",
+        "order-void"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts",
+      "summary": "服务员关闭桌台会话的 API 占位路由，目前仅做员工身份校验。",
+      "tags": [
+        "api-handler",
+        "table-session",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts",
+      "lineRange": [
+        7,
+        22
+      ],
+      "summary": "POST 关闭会话端点，当前仅返回鉴权结果占位响应。",
+      "tags": [
+        "api-handler",
+        "table-session"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts",
+      "summary": "服务员桌台操作 API，支持并台/换台等 RPC 调用并校验会话状态。",
+      "tags": [
+        "api-handler",
+        "table-action",
+        "waiter"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts",
+      "lineRange": [
+        9,
+        73
+      ],
+      "summary": "POST 桌台操作：解析桌台 ID 后调用 merge/transfer RPC。",
+      "tags": [
+        "api-handler",
+        "table-action"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/abnormal-operations/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/abnormal-operations/page.tsx",
+      "summary": "店主后台异常操作记录页面，校验 dashboard 访问权限后渲染管理组件。",
+      "tags": [
+        "component",
+        "dashboard",
+        "abnormal-ops"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/abnormal-operations/page.tsx:AbnormalOperationsPage",
+      "type": "function",
+      "name": "AbnormalOperationsPage",
+      "filePath": "apps/web/src/app/dashboard/abnormal-operations/page.tsx",
+      "lineRange": [
+        5,
+        15
+      ],
+      "summary": "服务端页面组件，加载 dashboard 权限并渲染异常操作管理器。",
+      "tags": [
+        "component",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/checkout/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/checkout/page.tsx",
+      "summary": "结账请求列表页面，加载待处理 bill_splits 并交给客户端组件展示。",
+      "tags": [
+        "component",
+        "dashboard",
+        "checkout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/checkout/page.tsx:CheckoutRequestsPage",
+      "type": "function",
+      "name": "CheckoutRequestsPage",
+      "filePath": "apps/web/src/app/dashboard/checkout/page.tsx",
+      "lineRange": [
+        7,
+        39
+      ],
+      "summary": "加载待结账 split 列表并传递给 CheckoutRequestsPageClient。",
+      "tags": [
+        "component",
+        "checkout"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/settings/buffet/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/settings/buffet/page.tsx",
+      "summary": "自助餐设置页面，服务端加载餐厅自助餐配置并渲染设置管理器。",
+      "tags": [
+        "component",
+        "dashboard",
+        "settings"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/settings/buffet/page.tsx:SettingsBuffetPage",
+      "type": "function",
+      "name": "SettingsBuffetPage",
+      "filePath": "apps/web/src/app/dashboard/settings/buffet/page.tsx",
+      "lineRange": [
+        4,
+        22
+      ],
+      "summary": "服务端加载自助餐配置并渲染 BuffetSettingsManager。",
+      "tags": [
+        "component",
+        "settings"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/settings/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/settings/page.tsx",
+      "summary": "餐厅基础设置页面，加载店主餐厅信息并渲染 SettingsForm。",
+      "tags": [
+        "component",
+        "dashboard",
+        "settings"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/settings/page.tsx:SettingsPage",
+      "type": "function",
+      "name": "SettingsPage",
+      "filePath": "apps/web/src/app/dashboard/settings/page.tsx",
+      "lineRange": [
+        4,
+        15
+      ],
+      "summary": "加载餐厅基础信息并渲染 SettingsForm。",
+      "tags": [
+        "component",
+        "settings"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/settings/staff/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/settings/staff/page.tsx",
+      "summary": "员工账号管理页面，校验登录后加载餐厅员工列表。",
+      "tags": [
+        "component",
+        "dashboard",
+        "staff"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/settings/staff/page.tsx:SettingsStaffPage",
+      "type": "function",
+      "name": "SettingsStaffPage",
+      "filePath": "apps/web/src/app/dashboard/settings/staff/page.tsx",
+      "lineRange": [
+        6,
+        30
+      ],
+      "summary": "校验店主身份后加载员工账号列表页面。",
+      "tags": [
+        "component",
+        "staff"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/audit/load-owner-dashboard-actor.ts",
+      "type": "file",
+      "name": "load-owner-dashboard-actor.ts",
+      "filePath": "apps/web/src/lib/audit/load-owner-dashboard-actor.ts",
+      "summary": "从 Supabase 会话解析店主身份，构造审计日志操作者对象。",
+      "tags": [
+        "audit",
+        "utility",
+        "owner"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/audit/load-owner-dashboard-actor.ts:loadOwnerDashboardAuditActor",
+      "type": "function",
+      "name": "loadOwnerDashboardAuditActor",
+      "filePath": "apps/web/src/lib/audit/load-owner-dashboard-actor.ts",
+      "lineRange": [
+        5,
+        19
+      ],
+      "summary": "解析当前 Supabase 用户并返回 ownerAuditActor。",
+      "tags": [
+        "audit",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/auth/login-rate-limit.ts",
+      "type": "file",
+      "name": "login-rate-limit.ts",
+      "filePath": "apps/web/src/lib/auth/login-rate-limit.ts",
+      "summary": "登录接口内存级速率限制，按邮箱与 IP 双维度计数失败与重试。",
+      "tags": [
+        "security",
+        "rate-limit",
+        "auth"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/auth/login-rate-limit.ts:authLoginRateLimitCheck",
+      "type": "function",
+      "name": "authLoginRateLimitCheck",
+      "filePath": "apps/web/src/lib/auth/login-rate-limit.ts",
+      "lineRange": [
+        51,
+        58
+      ],
+      "summary": "检查邮箱/IP 是否触发登录速率限制。",
+      "tags": [
+        "rate-limit",
+        "auth"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/auth/login-rate-limit.ts:authLoginRecordFailure",
+      "type": "function",
+      "name": "authLoginRecordFailure",
+      "filePath": "apps/web/src/lib/auth/login-rate-limit.ts",
+      "lineRange": [
+        61,
+        76
+      ],
+      "summary": "记录一次登录失败并递增计数桶。",
+      "tags": [
+        "rate-limit",
+        "auth"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/auth/login-rate-limit.ts:authLoginRecordSuccess",
+      "type": "function",
+      "name": "authLoginRecordSuccess",
+      "filePath": "apps/web/src/lib/auth/login-rate-limit.ts",
+      "lineRange": [
+        78,
+        83
+      ],
+      "summary": "登录成功后清除对应计数桶。",
+      "tags": [
+        "rate-limit",
+        "auth"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/auth/post-login-redirect.ts",
+      "type": "file",
+      "name": "post-login-redirect.ts",
+      "filePath": "apps/web/src/lib/auth/post-login-redirect.ts",
+      "summary": "登录后重定向解析，区分店主与员工角色并检查餐厅停用状态。",
+      "tags": [
+        "auth",
+        "routing",
+        "staff"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/auth/post-login-redirect.ts:resolvePostLoginRedirect",
+      "type": "function",
+      "name": "resolvePostLoginRedirect",
+      "filePath": "apps/web/src/lib/auth/post-login-redirect.ts",
+      "lineRange": [
+        14,
+        105
+      ],
+      "summary": "根据用户角色与餐厅状态返回登录后跳转路径。",
+      "tags": [
+        "auth",
+        "routing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/auto-close-active-sessions.ts",
+      "type": "file",
+      "name": "auto-close-active-sessions.ts",
+      "filePath": "apps/web/src/lib/auto-close-active-sessions.ts",
+      "summary": "夜间自动关台逻辑，按悉尼时区判断时刻并批量关闭开放账单会话。",
+      "tags": [
+        "table-session",
+        "cron",
+        "billing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/auto-close-active-sessions.ts:isNightlyAutoCloseDue",
+      "type": "function",
+      "name": "isNightlyAutoCloseDue",
+      "filePath": "apps/web/src/lib/auto-close-active-sessions.ts",
+      "lineRange": [
+        9,
+        12
+      ],
+      "summary": "判断当前悉尼时区是否到达夜间自动关台时刻。",
+      "tags": [
+        "cron",
+        "table-session"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/auto-close-active-sessions.ts:closeAllOpenBillingSessions",
+      "type": "function",
+      "name": "closeAllOpenBillingSessions",
+      "filePath": "apps/web/src/lib/auto-close-active-sessions.ts",
+      "lineRange": [
+        19,
+        34
+      ],
+      "summary": "遍历开放账单会话并逐一调用关台清理。",
+      "tags": [
+        "table-session",
+        "cleanup"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "target": "file:apps/web/src/lib/staff-board.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "target": "file:apps/web/src/lib/staff-board.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts",
+      "target": "file:apps/web/src/lib/audit/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts",
+      "target": "file:apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts",
+      "target": "file:apps/web/src/lib/waiter-session-guard.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/sessions/close/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts",
+      "target": "file:apps/web/src/lib/waiter-session-guard.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/abnormal-operations/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/abnormal-operations/page.tsx",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/abnormal-operations/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/abnormal-operations/page.tsx:AbnormalOperationsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/abnormal-operations/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/abnormal-operations/page.tsx:AbnormalOperationsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/checkout/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/CheckoutRequestsPageClient.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/checkout/page.tsx",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/checkout/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/checkout/page.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/checkout/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/checkout/page.tsx:CheckoutRequestsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/checkout/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/checkout/page.tsx:CheckoutRequestsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/buffet/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/buffet/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/buffet/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/settings/buffet/page.tsx:SettingsBuffetPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/buffet/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/settings/buffet/page.tsx:SettingsBuffetPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/SettingsForm.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/settings/page.tsx:SettingsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/settings/page.tsx:SettingsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/staff/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/StaffAccountsManager.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/staff/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/staff/page.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/staff/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/settings/staff/page.tsx:SettingsStaffPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/staff/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/settings/staff/page.tsx:SettingsStaffPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/load-owner-dashboard-actor.ts",
+      "target": "file:apps/web/src/lib/audit/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/load-owner-dashboard-actor.ts",
+      "target": "file:apps/web/src/lib/audit/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/load-owner-dashboard-actor.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/load-owner-dashboard-actor.ts",
+      "target": "function:apps/web/src/lib/audit/load-owner-dashboard-actor.ts:loadOwnerDashboardAuditActor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/audit/load-owner-dashboard-actor.ts",
+      "target": "function:apps/web/src/lib/audit/load-owner-dashboard-actor.ts:loadOwnerDashboardAuditActor",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/login-rate-limit.ts",
+      "target": "function:apps/web/src/lib/auth/login-rate-limit.ts:authLoginRateLimitCheck",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/login-rate-limit.ts",
+      "target": "function:apps/web/src/lib/auth/login-rate-limit.ts:authLoginRateLimitCheck",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/login-rate-limit.ts",
+      "target": "function:apps/web/src/lib/auth/login-rate-limit.ts:authLoginRecordFailure",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/login-rate-limit.ts",
+      "target": "function:apps/web/src/lib/auth/login-rate-limit.ts:authLoginRecordFailure",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/login-rate-limit.ts",
+      "target": "function:apps/web/src/lib/auth/login-rate-limit.ts:authLoginRecordSuccess",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/login-rate-limit.ts",
+      "target": "function:apps/web/src/lib/auth/login-rate-limit.ts:authLoginRecordSuccess",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/post-login-redirect.ts",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/post-login-redirect.ts",
+      "target": "file:apps/web/src/lib/staff-routes.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/post-login-redirect.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/post-login-redirect.ts",
+      "target": "function:apps/web/src/lib/auth/post-login-redirect.ts:resolvePostLoginRedirect",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/auth/post-login-redirect.ts",
+      "target": "function:apps/web/src/lib/auth/post-login-redirect.ts:resolvePostLoginRedirect",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auto-close-active-sessions.ts",
+      "target": "file:apps/web/src/lib/close-active-table-session-with-cleanup.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/auto-close-active-sessions.ts",
+      "target": "file:apps/web/src/lib/zoned-time.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/auto-close-active-sessions.ts",
+      "target": "function:apps/web/src/lib/auto-close-active-sessions.ts:isNightlyAutoCloseDue",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/auto-close-active-sessions.ts",
+      "target": "function:apps/web/src/lib/auto-close-active-sessions.ts:isNightlyAutoCloseDue",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auto-close-active-sessions.ts",
+      "target": "function:apps/web/src/lib/auto-close-active-sessions.ts:closeAllOpenBillingSessions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/auto-close-active-sessions.ts",
+      "target": "function:apps/web/src/lib/auto-close-active-sessions.ts:closeAllOpenBillingSessions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts:GET",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequest",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/staff/kitchen/board/route.ts:GET",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchKitchenBoard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts:GET",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:openTableAuthFromRequest",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/board/route.ts:GET",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchWaiterBoard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts:POST",
+      "target": "function:apps/web/src/lib/order-item-void/decrement-order-item.service.ts:decrementOrderItemWithAudit",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts:POST",
+      "target": "function:apps/web/src/lib/waiter-session-guard.ts:sessionIdBlocksWaiterMutation",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts:POST",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:parseTableIdParam",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts:POST",
+      "target": "function:apps/web/src/lib/waiter-session-guard.ts:tableSessionBlocksWaiterMutation",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/dashboard/abnormal-operations/page.tsx:AbnormalOperationsPage",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:loadDashboardAccess",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/dashboard/checkout/page.tsx:CheckoutRequestsPage",
+      "target": "function:apps/web/src/lib/dashboard-access.ts:loadDashboardAccess",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/audit/load-owner-dashboard-actor.ts:loadOwnerDashboardAuditActor",
+      "target": "function:apps/web/src/lib/audit/index.ts:ownerAuditActor",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/auth/post-login-redirect.ts:resolvePostLoginRedirect",
+      "target": "function:apps/web/src/lib/staff-routes.ts:staffRolePath",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/auto-close-active-sessions.ts:closeAllOpenBillingSessions",
+      "target": "function:apps/web/src/lib/close-active-table-session-with-cleanup.ts:closeActiveTableSessionWithOperationalCleanup",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/abnormal-operations/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/AbnormalOperationsManager.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/checkout/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/CheckoutRequestsPageClient.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/buffet/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/BuffetSettingsManager.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/SettingsForm.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/staff/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/StaffAccountsManager.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

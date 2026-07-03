@@ -1,0 +1,41 @@
+# dependencies
+node_modules/
+
+# build output
+.next/
+dist/
+build/
+out/
+.turbo/
+.vercel/
+.cache/
+coverage/
+
+# generated / temporary
+.sync-tmp/
+.understand-anything/
+tsconfig.tsbuildinfo
+*.log
+
+# assets, not useful for code graph
+public/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.svg
+*.ico
+*.pdf
+*.zip
+
+# env / secrets
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# lock files
+package-lock.json
+pnpm-lock.yaml
+yarn.lock

@@ -1,0 +1,1726 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/app/[slug]/kitchen/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/[slug]/kitchen/page.tsx",
+      "summary": "Next.js 页面入口 [slug]/kitchen，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "kitchen"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/[slug]/kitchen/page.tsx:KitchenPage",
+      "type": "function",
+      "name": "KitchenPage",
+      "filePath": "apps/web/src/app/[slug]/kitchen/page.tsx",
+      "lineRange": [
+        9,
+        22
+      ],
+      "summary": "React 页面/布局组件 KitchenPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/[slug]/staff/login/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/[slug]/staff/login/page.tsx",
+      "summary": "Next.js 页面入口 staff/login，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/[slug]/staff/login/page.tsx:StoreStaffLoginPage",
+      "type": "function",
+      "name": "StoreStaffLoginPage",
+      "filePath": "apps/web/src/app/[slug]/staff/login/page.tsx",
+      "lineRange": [
+        5,
+        28
+      ],
+      "summary": "React 页面/布局组件 StoreStaffLoginPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/admin/create-restaurant/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/admin/create-restaurant/route.ts",
+      "summary": "Next.js API 路由 admin/create-restaurant，处理 HTTP 请求与租户隔离校验。",
+      "tags": [
+        "api-handler",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/admin/create-restaurant/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/admin/create-restaurant/route.ts",
+      "lineRange": [
+        6,
+        22
+      ],
+      "summary": "处理 HTTP POST 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts",
+      "summary": "Next.js API 路由 downloads/print-agent/[artifact]，处理 HTTP 请求与租户隔离校验。",
+      "tags": [
+        "api-handler",
+        "nextjs",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts",
+      "lineRange": [
+        9,
+        24
+      ],
+      "summary": "处理 HTTP GET 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/print-agent/devices/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/devices/route.ts",
+      "summary": "Next.js API 路由 print-agent/devices，处理 HTTP 请求与租户隔离校验。",
+      "tags": [
+        "api-handler",
+        "nextjs",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/devices/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/print-agent/devices/route.ts",
+      "lineRange": [
+        8,
+        29
+      ],
+      "summary": "处理 HTTP GET 请求的 API 处理器。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/auth/admin/register/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/auth/admin/register/page.tsx",
+      "summary": "Next.js 页面入口 admin/register，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/auth/admin/register/page.tsx:AdminRegisterPage",
+      "type": "function",
+      "name": "AdminRegisterPage",
+      "filePath": "apps/web/src/app/auth/admin/register/page.tsx",
+      "lineRange": [
+        7,
+        31
+      ],
+      "summary": "React 页面/布局组件 AdminRegisterPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/auth/login/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/auth/login/page.tsx",
+      "summary": "Next.js 页面入口 auth/login，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/auth/login/page.tsx:LoginPage",
+      "type": "function",
+      "name": "LoginPage",
+      "filePath": "apps/web/src/app/auth/login/page.tsx",
+      "lineRange": [
+        20,
+        133
+      ],
+      "summary": "React 页面/布局组件 LoginPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/auth/register/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/auth/register/page.tsx",
+      "summary": "Next.js 页面入口 auth/register，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/auth/register/page.tsx:RegisterClosedPage",
+      "type": "function",
+      "name": "RegisterClosedPage",
+      "filePath": "apps/web/src/app/auth/register/page.tsx",
+      "lineRange": [
+        9,
+        33
+      ],
+      "summary": "React 页面/布局组件 RegisterClosedPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/auth/staff/change-password/page.tsx",
+      "summary": "Next.js 页面入口 staff/change-password，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/auth/staff/change-password/page.tsx:StaffChangePasswordPage",
+      "type": "function",
+      "name": "StaffChangePasswordPage",
+      "filePath": "apps/web/src/app/auth/staff/change-password/page.tsx",
+      "lineRange": [
+        15,
+        157
+      ],
+      "summary": "React 页面/布局组件 StaffChangePasswordPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/auth/staff/login/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/auth/staff/login/page.tsx",
+      "summary": "Next.js 页面入口 staff/login，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/auth/staff/login/page.tsx:GlobalStaffLoginPage",
+      "type": "function",
+      "name": "GlobalStaffLoginPage",
+      "filePath": "apps/web/src/app/auth/staff/login/page.tsx",
+      "lineRange": [
+        5,
+        7
+      ],
+      "summary": "React 页面/布局组件 GlobalStaffLoginPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/layout.tsx",
+      "type": "file",
+      "name": "layout.tsx",
+      "filePath": "apps/web/src/app/dashboard/layout.tsx",
+      "summary": "Next.js 布局组件，包裹子路由并提供共享 Provider 与样式。",
+      "tags": [
+        "utility",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/layout.tsx:DashboardLayout",
+      "type": "function",
+      "name": "DashboardLayout",
+      "filePath": "apps/web/src/app/dashboard/layout.tsx",
+      "lineRange": [
+        12,
+        61
+      ],
+      "summary": "React 页面/布局组件 DashboardLayout。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/orders/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/orders/page.tsx",
+      "summary": "Next.js 页面入口 dashboard/orders，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/orders/page.tsx:OrdersPage",
+      "type": "function",
+      "name": "OrdersPage",
+      "filePath": "apps/web/src/app/dashboard/orders/page.tsx",
+      "lineRange": [
+        6,
+        34
+      ],
+      "summary": "React 页面/布局组件 OrdersPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/settings/features/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/settings/features/page.tsx",
+      "summary": "Next.js 页面入口 settings/features，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/settings/features/page.tsx:SettingsFeaturesPage",
+      "type": "function",
+      "name": "SettingsFeaturesPage",
+      "filePath": "apps/web/src/app/dashboard/settings/features/page.tsx",
+      "lineRange": [
+        9,
+        31
+      ],
+      "summary": "React 页面/布局组件 SettingsFeaturesPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/settings/layout.tsx",
+      "type": "file",
+      "name": "layout.tsx",
+      "filePath": "apps/web/src/app/dashboard/settings/layout.tsx",
+      "summary": "Next.js 布局组件，包裹子路由并提供共享 Provider 与样式。",
+      "tags": [
+        "utility",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/settings/layout.tsx:SettingsLayout",
+      "type": "function",
+      "name": "SettingsLayout",
+      "filePath": "apps/web/src/app/dashboard/settings/layout.tsx",
+      "lineRange": [
+        3,
+        5
+      ],
+      "summary": "React 页面/布局组件 SettingsLayout。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "summary": "Next.js 页面入口 settings/print-assistant，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs",
+        "dashboard",
+        "printing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/dashboard/settings/print-assistant/page.tsx:PrintAssistantSettingsPage",
+      "type": "function",
+      "name": "PrintAssistantSettingsPage",
+      "filePath": "apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "lineRange": [
+        27,
+        94
+      ],
+      "summary": "React 页面/布局组件 PrintAssistantSettingsPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "apps/web/src/app/page.tsx",
+      "summary": "Next.js 页面入口 src/app，服务端加载数据并渲染主组件。",
+      "tags": [
+        "entry-point",
+        "component",
+        "nextjs"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/page.tsx:LandingPage",
+      "type": "function",
+      "name": "LandingPage",
+      "filePath": "apps/web/src/app/page.tsx",
+      "lineRange": [
+        11,
+        106
+      ],
+      "summary": "React 页面/布局组件 LandingPage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/customer/RestaurantMaintenancePage.tsx",
+      "type": "file",
+      "name": "RestaurantMaintenancePage.tsx",
+      "filePath": "apps/web/src/components/customer/RestaurantMaintenancePage.tsx",
+      "summary": "源码文件 apps/web/src/components/customer/RestaurantMaintenancePage.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/customer/RestaurantMaintenancePage.tsx:RestaurantMaintenancePage",
+      "type": "function",
+      "name": "RestaurantMaintenancePage",
+      "filePath": "apps/web/src/components/customer/RestaurantMaintenancePage.tsx",
+      "lineRange": [
+        11,
+        24
+      ],
+      "summary": "React 页面/布局组件 RestaurantMaintenancePage。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/DashboardAccessError.tsx",
+      "type": "file",
+      "name": "DashboardAccessError.tsx",
+      "filePath": "apps/web/src/components/dashboard/DashboardAccessError.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/DashboardAccessError.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/DashboardAccessError.tsx:DashboardAccessError",
+      "type": "function",
+      "name": "DashboardAccessError",
+      "filePath": "apps/web/src/components/dashboard/DashboardAccessError.tsx",
+      "lineRange": [
+        18,
+        60
+      ],
+      "summary": "导出的 React 组件或类 DashboardAccessError。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "type": "file",
+      "name": "DashboardNav.tsx",
+      "filePath": "apps/web/src/components/dashboard/DashboardNav.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/DashboardNav.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/DashboardNav.tsx:isNavItemActive",
+      "type": "function",
+      "name": "isNavItemActive",
+      "filePath": "apps/web/src/components/dashboard/DashboardNav.tsx",
+      "lineRange": [
+        23,
+        34
+      ],
+      "summary": "函数 isNavItemActive，实现 DashboardNav 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/DashboardNav.tsx:DashboardNav",
+      "type": "function",
+      "name": "DashboardNav",
+      "filePath": "apps/web/src/components/dashboard/DashboardNav.tsx",
+      "lineRange": [
+        36,
+        134
+      ],
+      "summary": "导出的 React 组件或类 DashboardNav。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/DashboardNavFooter.tsx",
+      "type": "file",
+      "name": "DashboardNavFooter.tsx",
+      "filePath": "apps/web/src/components/dashboard/DashboardNavFooter.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/DashboardNavFooter.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/DashboardNavFooter.tsx:DashboardNavFooter",
+      "type": "function",
+      "name": "DashboardNavFooter",
+      "filePath": "apps/web/src/components/dashboard/DashboardNavFooter.tsx",
+      "lineRange": [
+        11,
+        31
+      ],
+      "summary": "导出的 React 组件或类 DashboardNavFooter。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/DashboardNavItem.tsx",
+      "type": "file",
+      "name": "DashboardNavItem.tsx",
+      "filePath": "apps/web/src/components/dashboard/DashboardNavItem.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/DashboardNavItem.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/DashboardNavItem.tsx:DashboardNavItem",
+      "type": "function",
+      "name": "DashboardNavItem",
+      "filePath": "apps/web/src/components/dashboard/DashboardNavItem.tsx",
+      "lineRange": [
+        14,
+        55
+      ],
+      "summary": "导出的 React 组件或类 DashboardNavItem。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/DashboardSettingsShell.tsx",
+      "type": "file",
+      "name": "DashboardSettingsShell.tsx",
+      "filePath": "apps/web/src/components/dashboard/DashboardSettingsShell.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/DashboardSettingsShell.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/DashboardSettingsShell.tsx:DashboardSettingsShell",
+      "type": "function",
+      "name": "DashboardSettingsShell",
+      "filePath": "apps/web/src/components/dashboard/DashboardSettingsShell.tsx",
+      "lineRange": [
+        13,
+        55
+      ],
+      "summary": "导出的 React 组件或类 DashboardSettingsShell。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/DashboardSidebarHeader.tsx",
+      "type": "file",
+      "name": "DashboardSidebarHeader.tsx",
+      "filePath": "apps/web/src/components/dashboard/DashboardSidebarHeader.tsx",
+      "summary": "源码文件 apps/web/src/components/dashboard/DashboardSidebarHeader.tsx，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/DashboardSidebarHeader.tsx:DashboardSidebarHeader",
+      "type": "function",
+      "name": "DashboardSidebarHeader",
+      "filePath": "apps/web/src/components/dashboard/DashboardSidebarHeader.tsx",
+      "lineRange": [
+        10,
+        48
+      ],
+      "summary": "导出的 React 组件或类 DashboardSidebarHeader。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/dashboard/FeatureFlagsManager.tsx",
+      "type": "file",
+      "name": "FeatureFlagsManager.tsx",
+      "filePath": "apps/web/src/components/dashboard/FeatureFlagsManager.tsx",
+      "summary": "仪表盘 FeatureFlags.tsx 管理器，提供 CRUD、排序与表单校验的客户端界面。",
+      "tags": [
+        "component",
+        "react",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/dashboard/FeatureFlagsManager.tsx:FeatureFlagsManager",
+      "type": "function",
+      "name": "FeatureFlagsManager",
+      "filePath": "apps/web/src/components/dashboard/FeatureFlagsManager.tsx",
+      "lineRange": [
+        21,
+        152
+      ],
+      "summary": "导出的 React 组件或类 FeatureFlagsManager。",
+      "tags": [
+        "component",
+        "react"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/app/[slug]/kitchen/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/kitchen/page.tsx:KitchenPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/kitchen/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/kitchen/page.tsx:KitchenPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/kitchen/page.tsx",
+      "target": "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/kitchen/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/staff/login/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/staff/login/page.tsx:StoreStaffLoginPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/staff/login/page.tsx",
+      "target": "function:apps/web/src/app/[slug]/staff/login/page.tsx:StoreStaffLoginPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/staff/login/page.tsx",
+      "target": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/[slug]/staff/login/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/admin/create-restaurant/route.ts",
+      "target": "function:apps/web/src/app/api/admin/create-restaurant/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/admin/create-restaurant/route.ts",
+      "target": "function:apps/web/src/app/api/admin/create-restaurant/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/admin/create-restaurant/route.ts",
+      "target": "file:apps/web/src/lib/ops-app-url.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts",
+      "target": "function:apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts",
+      "target": "function:apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/downloads/print-agent/[artifact]/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-download.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/devices/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/devices/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/devices/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/devices/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/devices/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/devices/route.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/admin/register/page.tsx",
+      "target": "function:apps/web/src/app/auth/admin/register/page.tsx:AdminRegisterPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/auth/admin/register/page.tsx",
+      "target": "function:apps/web/src/app/auth/admin/register/page.tsx:AdminRegisterPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/auth/admin/register/page.tsx",
+      "target": "file:apps/web/src/components/ui/ProductLogo.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/admin/register/page.tsx",
+      "target": "file:apps/web/src/lib/ops-app-url.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/login/page.tsx",
+      "target": "function:apps/web/src/app/auth/login/page.tsx:LoginPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/auth/login/page.tsx",
+      "target": "function:apps/web/src/app/auth/login/page.tsx:LoginPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/auth/login/page.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/login/page.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/login/page.tsx",
+      "target": "file:apps/web/src/components/ui/Input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/login/page.tsx",
+      "target": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/login/page.tsx",
+      "target": "file:apps/web/src/components/ui/ProductLogo.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/login/page.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/register/page.tsx",
+      "target": "function:apps/web/src/app/auth/register/page.tsx:RegisterClosedPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/auth/register/page.tsx",
+      "target": "function:apps/web/src/app/auth/register/page.tsx:RegisterClosedPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/auth/register/page.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/register/page.tsx",
+      "target": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/register/page.tsx",
+      "target": "file:apps/web/src/components/ui/ProductLogo.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/register/page.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "function:apps/web/src/app/auth/staff/change-password/page.tsx:StaffChangePasswordPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "function:apps/web/src/app/auth/staff/change-password/page.tsx:StaffChangePasswordPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "file:apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "file:apps/web/src/lib/staff-auth-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "file:apps/web/src/lib/staff-routes.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/change-password/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/login/page.tsx",
+      "target": "function:apps/web/src/app/auth/staff/login/page.tsx:GlobalStaffLoginPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/login/page.tsx",
+      "target": "function:apps/web/src/app/auth/staff/login/page.tsx:GlobalStaffLoginPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/auth/staff/login/page.tsx",
+      "target": "file:apps/web/src/components/staff/StaffLoginForm.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "function:apps/web/src/app/dashboard/layout.tsx:DashboardLayout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "function:apps/web/src/app/dashboard/layout.tsx:DashboardLayout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "file:apps/web/src/components/dashboard/dashboard-nav-link.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "file:apps/web/src/components/dashboard/DashboardAccessError.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "file:apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "file:apps/web/src/components/dashboard/RestaurantOnboarding.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "file:apps/web/src/components/dashboard/RestaurantSuspensionBanner.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/layout.tsx",
+      "target": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/orders/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/orders/page.tsx:OrdersPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/orders/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/orders/page.tsx:OrdersPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/orders/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/OrdersHistoryManager.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/orders/page.tsx",
+      "target": "file:apps/web/src/lib/dashboard-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/orders/page.tsx",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/features/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/settings/features/page.tsx:SettingsFeaturesPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/features/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/settings/features/page.tsx:SettingsFeaturesPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/features/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/FeatureFlagsManager.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/features/page.tsx",
+      "target": "file:apps/web/src/lib/restaurant-features.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/features/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/layout.tsx",
+      "target": "function:apps/web/src/app/dashboard/settings/layout.tsx:SettingsLayout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/layout.tsx",
+      "target": "function:apps/web/src/app/dashboard/settings/layout.tsx:SettingsLayout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/layout.tsx",
+      "target": "file:apps/web/src/components/dashboard/DashboardSettingsShell.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/settings/print-assistant/page.tsx:PrintAssistantSettingsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "target": "function:apps/web/src/app/dashboard/settings/print-assistant/page.tsx:PrintAssistantSettingsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/PrintAgentCredentialExpiryAlert.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/PrintAgentDevicesPanel.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/PrintAgentDownloadPanel.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/PrintAgentPairingPanel.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/PrintAgentSchedulePanel.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "target": "file:apps/web/src/components/dashboard/ReceiptBillPrinterPanel.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "target": "file:apps/web/src/lib/print-agent-config.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "target": "file:apps/web/src/lib/print-agent-devices-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "target": "file:apps/web/src/lib/print-agent-download.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "target": "file:apps/web/src/lib/site-origin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/dashboard/settings/print-assistant/page.tsx",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/page.tsx",
+      "target": "function:apps/web/src/app/page.tsx:LandingPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/app/page.tsx",
+      "target": "function:apps/web/src/app/page.tsx:LandingPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/page.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/page.tsx",
+      "target": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/page.tsx",
+      "target": "file:apps/web/src/components/ui/ProductLogo.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/page.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/customer/RestaurantMaintenancePage.tsx",
+      "target": "function:apps/web/src/components/customer/RestaurantMaintenancePage.tsx:RestaurantMaintenancePage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/customer/RestaurantMaintenancePage.tsx",
+      "target": "function:apps/web/src/components/customer/RestaurantMaintenancePage.tsx:RestaurantMaintenancePage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/customer/RestaurantMaintenancePage.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/customer/RestaurantMaintenancePage.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardAccessError.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardAccessError.tsx:DashboardAccessError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardAccessError.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardAccessError.tsx:DashboardAccessError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardAccessError.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardAccessError.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardAccessError.tsx",
+      "target": "file:apps/web/src/lib/auth/sign-out-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardAccessError.tsx",
+      "target": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardAccessError.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardNav.tsx:isNavItemActive",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardNav.tsx:DashboardNav",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardNav.tsx:DashboardNav",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "target": "file:apps/web/src/components/dashboard/dashboard-nav-link.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "target": "file:apps/web/src/components/dashboard/DashboardNavFooter.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "target": "file:apps/web/src/components/dashboard/DashboardNavItem.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "target": "file:apps/web/src/components/dashboard/DashboardSidebarHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "target": "file:apps/web/src/components/ui/ProductLogo.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "target": "file:apps/web/src/lib/auth/sign-out-client.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "target": "file:apps/web/src/lib/auth/sign-out-confirm.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "target": "file:apps/web/src/lib/dashboard-feature-registry.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "target": "file:apps/web/src/lib/restaurant-features.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNav.tsx",
+      "target": "file:apps/web/src/lib/use-checkout-request-count.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/components/dashboard/DashboardNav.tsx:DashboardNav",
+      "target": "function:apps/web/src/components/dashboard/DashboardNav.tsx:isNavItemActive",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNavFooter.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardNavFooter.tsx:DashboardNavFooter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNavFooter.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardNavFooter.tsx:DashboardNavFooter",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNavFooter.tsx",
+      "target": "file:apps/web/src/components/ui/LanguageSwitcher.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNavFooter.tsx",
+      "target": "file:apps/web/src/components/ui/ThemeToggle.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNavItem.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardNavItem.tsx:DashboardNavItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNavItem.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardNavItem.tsx:DashboardNavItem",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardNavItem.tsx",
+      "target": "file:apps/web/src/components/dashboard/dashboard-nav-link.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardSettingsShell.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardSettingsShell.tsx:DashboardSettingsShell",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardSettingsShell.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardSettingsShell.tsx:DashboardSettingsShell",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardSettingsShell.tsx",
+      "target": "file:apps/web/src/components/dashboard/settings/BuffetSettingsGuide.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardSettingsShell.tsx",
+      "target": "file:apps/web/src/components/dashboard/settings/SettingsTabs.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardSettingsShell.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardSettingsShell.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardSettingsShell.tsx",
+      "target": "file:apps/web/src/lib/settings-nav.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardSidebarHeader.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardSidebarHeader.tsx:DashboardSidebarHeader",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardSidebarHeader.tsx",
+      "target": "function:apps/web/src/components/dashboard/DashboardSidebarHeader.tsx:DashboardSidebarHeader",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/DashboardSidebarHeader.tsx",
+      "target": "file:apps/web/src/components/ui/ProductLogo.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/FeatureFlagsManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/FeatureFlagsManager.tsx:FeatureFlagsManager",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/FeatureFlagsManager.tsx",
+      "target": "function:apps/web/src/components/dashboard/FeatureFlagsManager.tsx:FeatureFlagsManager",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/FeatureFlagsManager.tsx",
+      "target": "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/FeatureFlagsManager.tsx",
+      "target": "file:apps/web/src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/FeatureFlagsManager.tsx",
+      "target": "file:apps/web/src/components/ui/IntegerInput.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/FeatureFlagsManager.tsx",
+      "target": "file:apps/web/src/lib/i18n/messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/dashboard/FeatureFlagsManager.tsx",
+      "target": "file:apps/web/src/lib/restaurant-features.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

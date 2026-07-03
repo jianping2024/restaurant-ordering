@@ -1,0 +1,1302 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/run-nightly-auto-close.ts",
+      "type": "file",
+      "name": "run-nightly-auto-close.ts",
+      "filePath": "apps/web/src/lib/run-nightly-auto-close.ts",
+      "summary": "服务端/客户端共享工具库 run-nightly-auto-close.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/run-nightly-auto-close.ts:executeNightlyAutoClose",
+      "type": "function",
+      "name": "executeNightlyAutoClose",
+      "filePath": "apps/web/src/lib/run-nightly-auto-close.ts",
+      "lineRange": [
+        8,
+        13
+      ],
+      "summary": "函数 executeNightlyAutoClose，实现 run-nightly-auto-close 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-account.ts",
+      "type": "file",
+      "name": "staff-account.ts",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "summary": "服务端/客户端共享工具库 staff-account.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:isStaffRole",
+      "type": "function",
+      "name": "isStaffRole",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        5,
+        7
+      ],
+      "summary": "函数 isStaffRole，实现 staff-account 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:normalizeLoginName",
+      "type": "function",
+      "name": "normalizeLoginName",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        28,
+        30
+      ],
+      "summary": "解析/规范化工具函数 normalizeLoginName。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:sanitizeStaffLoginInput",
+      "type": "function",
+      "name": "sanitizeStaffLoginInput",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        33,
+        36
+      ],
+      "summary": "函数 sanitizeStaffLoginInput，实现 staff-account 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:validateLoginName",
+      "type": "function",
+      "name": "validateLoginName",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        38,
+        44
+      ],
+      "summary": "函数 validateLoginName，实现 staff-account 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:hashAlphanumeric",
+      "type": "function",
+      "name": "hashAlphanumeric",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        46,
+        55
+      ],
+      "summary": "函数 hashAlphanumeric，实现 staff-account 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:suggestLoginNameFromDisplay",
+      "type": "function",
+      "name": "suggestLoginNameFromDisplay",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        62,
+        122
+      ],
+      "summary": "函数 suggestLoginNameFromDisplay，实现 staff-account 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:buildStaffEmail",
+      "type": "function",
+      "name": "buildStaffEmail",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        125,
+        128
+      ],
+      "summary": "函数 buildStaffEmail，实现 staff-account 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:composeStaffEmail",
+      "type": "function",
+      "name": "composeStaffEmail",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        131,
+        137
+      ],
+      "summary": "函数 composeStaffEmail，实现 staff-account 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:staffPasswordValid",
+      "type": "function",
+      "name": "staffPasswordValid",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        139,
+        141
+      ],
+      "summary": "函数 staffPasswordValid，实现 staff-account 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-account.ts:parseStaffUserMetadata",
+      "type": "function",
+      "name": "parseStaffUserMetadata",
+      "filePath": "apps/web/src/lib/staff-account.ts",
+      "lineRange": [
+        152,
+        168
+      ],
+      "summary": "解析/规范化工具函数 parseStaffUserMetadata。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "file",
+      "name": "staff-api-auth.ts",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "summary": "服务端/客户端共享工具库 staff-api-auth.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthErrorStatus",
+      "type": "function",
+      "name": "staffAuthErrorStatus",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        21,
+        25
+      ],
+      "summary": "函数 staffAuthErrorStatus，实现 staff-api-auth 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:loadRestaurantBySlug",
+      "type": "function",
+      "name": "loadRestaurantBySlug",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        27,
+        52
+      ],
+      "summary": "数据加载函数 loadRestaurantBySlug，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequest",
+      "type": "function",
+      "name": "staffAuthFromRequest",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        55,
+        117
+      ],
+      "summary": "函数 staffAuthFromRequest，实现 staff-api-auth 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthForPage",
+      "type": "function",
+      "name": "staffAuthForPage",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        120,
+        125
+      ],
+      "summary": "React 页面/布局组件 staffAuthForPage。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:openTableAuthFromRequest",
+      "type": "function",
+      "name": "openTableAuthFromRequest",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        128,
+        133
+      ],
+      "summary": "函数 openTableAuthFromRequest，实现 staff-api-auth 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequestWithRoles",
+      "type": "function",
+      "name": "staffAuthFromRequestWithRoles",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        136,
+        146
+      ],
+      "summary": "函数 staffAuthFromRequestWithRoles，实现 staff-api-auth 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "type": "file",
+      "name": "staff-dashboard-api.ts",
+      "filePath": "apps/web/src/lib/staff-dashboard-api.ts",
+      "summary": "服务端/客户端共享工具库 staff-dashboard-api.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-dashboard-api.ts:loadOwnerRestaurantWithSlug",
+      "type": "function",
+      "name": "loadOwnerRestaurantWithSlug",
+      "filePath": "apps/web/src/lib/staff-dashboard-api.ts",
+      "lineRange": [
+        12,
+        34
+      ],
+      "summary": "数据加载函数 loadOwnerRestaurantWithSlug，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-dashboard-api.ts:mapStaffRow",
+      "type": "function",
+      "name": "mapStaffRow",
+      "filePath": "apps/web/src/lib/staff-dashboard-api.ts",
+      "lineRange": [
+        36,
+        49
+      ],
+      "summary": "函数 mapStaffRow，实现 staff-dashboard-api 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-dashboard-api.ts:staffMetadataPayload",
+      "type": "function",
+      "name": "staffMetadataPayload",
+      "filePath": "apps/web/src/lib/staff-dashboard-api.ts",
+      "lineRange": [
+        51,
+        66
+      ],
+      "summary": "函数 staffMetadataPayload，实现 staff-dashboard-api 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-dashboard-api.ts:validateStaffCreateBody",
+      "type": "function",
+      "name": "validateStaffCreateBody",
+      "filePath": "apps/web/src/lib/staff-dashboard-api.ts",
+      "lineRange": [
+        68,
+        88
+      ],
+      "summary": "函数 validateStaffCreateBody，实现 staff-dashboard-api 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "file",
+      "name": "admin.ts",
+      "filePath": "apps/web/src/lib/supabase/admin.ts",
+      "summary": "服务端/客户端共享工具库 admin.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "function",
+      "name": "createAdminClient",
+      "filePath": "apps/web/src/lib/supabase/admin.ts",
+      "lineRange": [
+        4,
+        13
+      ],
+      "summary": "CRUD 操作函数 createAdminClient。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/supabase/middleware.ts",
+      "type": "file",
+      "name": "middleware.ts",
+      "filePath": "apps/web/src/lib/supabase/middleware.ts",
+      "summary": "服务端/客户端共享工具库 middleware.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/supabase/middleware.ts:updateSession",
+      "type": "function",
+      "name": "updateSession",
+      "filePath": "apps/web/src/lib/supabase/middleware.ts",
+      "lineRange": [
+        14,
+        87
+      ],
+      "summary": "CRUD 操作函数 updateSession。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "file",
+      "name": "server.ts",
+      "filePath": "apps/web/src/lib/supabase/server.ts",
+      "summary": "服务端/客户端共享工具库 server.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "function",
+      "name": "createClient",
+      "filePath": "apps/web/src/lib/supabase/server.ts",
+      "lineRange": [
+        5,
+        28
+      ],
+      "summary": "CRUD 操作函数 createClient。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "type": "file",
+      "name": "load-close-table-actor.ts",
+      "filePath": "apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "summary": "服务端/客户端共享工具库 load-close-table-actor.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/table-session/load-close-table-actor.ts:loadCloseTableSessionActor",
+      "type": "function",
+      "name": "loadCloseTableSessionActor",
+      "filePath": "apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "lineRange": [
+        22,
+        84
+      ],
+      "summary": "数据加载函数 loadCloseTableSessionActor，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/verify-cron-secret.ts",
+      "type": "file",
+      "name": "verify-cron-secret.ts",
+      "filePath": "apps/web/src/lib/verify-cron-secret.ts",
+      "summary": "服务端/客户端共享工具库 verify-cron-secret.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/verify-cron-secret.ts:verifyCronSecret",
+      "type": "function",
+      "name": "verifyCronSecret",
+      "filePath": "apps/web/src/lib/verify-cron-secret.ts",
+      "lineRange": [
+        2,
+        7
+      ],
+      "summary": "函数 verifyCronSecret，实现 verify-cron-secret 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-session-guard.ts",
+      "type": "file",
+      "name": "waiter-session-guard.ts",
+      "filePath": "apps/web/src/lib/waiter-session-guard.ts",
+      "summary": "服务端/客户端共享工具库 waiter-session-guard.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "waiter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-session-guard.ts:tableSessionBlocksWaiterMutation",
+      "type": "function",
+      "name": "tableSessionBlocksWaiterMutation",
+      "filePath": "apps/web/src/lib/waiter-session-guard.ts",
+      "lineRange": [
+        5,
+        21
+      ],
+      "summary": "函数 tableSessionBlocksWaiterMutation，实现 waiter-session-guard 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-session-guard.ts:sessionIdBlocksWaiterMutation",
+      "type": "function",
+      "name": "sessionIdBlocksWaiterMutation",
+      "filePath": "apps/web/src/lib/waiter-session-guard.ts",
+      "lineRange": [
+        24,
+        35
+      ],
+      "summary": "函数 sessionIdBlocksWaiterMutation，实现 waiter-session-guard 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-session-guard.ts:sessionBillingResponse",
+      "type": "function",
+      "name": "sessionBillingResponse",
+      "filePath": "apps/web/src/lib/waiter-session-guard.ts",
+      "lineRange": [
+        37,
+        39
+      ],
+      "summary": "函数 sessionBillingResponse，实现 waiter-session-guard 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/zoned-time.ts",
+      "type": "file",
+      "name": "zoned-time.ts",
+      "filePath": "apps/web/src/lib/zoned-time.ts",
+      "summary": "服务端/客户端共享工具库 zoned-time.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/zoned-time.ts:getZonedCalendarParts",
+      "type": "function",
+      "name": "getZonedCalendarParts",
+      "filePath": "apps/web/src/lib/zoned-time.ts",
+      "lineRange": [
+        2,
+        28
+      ],
+      "summary": "函数 getZonedCalendarParts，实现 zoned-time 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/middleware.ts",
+      "type": "file",
+      "name": "middleware.ts",
+      "filePath": "apps/web/src/middleware.ts",
+      "summary": "源码文件 apps/web/src/middleware.ts，参与餐厅点餐系统业务实现。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/middleware.ts:middleware",
+      "type": "function",
+      "name": "middleware",
+      "filePath": "apps/web/src/middleware.ts",
+      "lineRange": [
+        4,
+        6
+      ],
+      "summary": "函数 middleware，实现 middleware 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/run-nightly-auto-close.ts",
+      "target": "function:apps/web/src/lib/run-nightly-auto-close.ts:executeNightlyAutoClose",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/run-nightly-auto-close.ts",
+      "target": "function:apps/web/src/lib/run-nightly-auto-close.ts:executeNightlyAutoClose",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/run-nightly-auto-close.ts",
+      "target": "file:apps/web/src/lib/auto-close-active-sessions.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/run-nightly-auto-close.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/run-nightly-auto-close.ts",
+      "target": "file:apps/web/src/lib/zoned-time.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:isStaffRole",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:isStaffRole",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:normalizeLoginName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:normalizeLoginName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:sanitizeStaffLoginInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:sanitizeStaffLoginInput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:validateLoginName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:validateLoginName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:hashAlphanumeric",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:suggestLoginNameFromDisplay",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:suggestLoginNameFromDisplay",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:buildStaffEmail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:buildStaffEmail",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:composeStaffEmail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:composeStaffEmail",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:staffPasswordValid",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:staffPasswordValid",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:parseStaffUserMetadata",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-account.ts",
+      "target": "function:apps/web/src/lib/staff-account.ts:parseStaffUserMetadata",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-account.ts:sanitizeStaffLoginInput",
+      "target": "function:apps/web/src/lib/staff-account.ts:normalizeLoginName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-account.ts:validateLoginName",
+      "target": "function:apps/web/src/lib/staff-account.ts:normalizeLoginName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-account.ts:suggestLoginNameFromDisplay",
+      "target": "function:apps/web/src/lib/staff-account.ts:hashAlphanumeric",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-account.ts:suggestLoginNameFromDisplay",
+      "target": "function:apps/web/src/lib/staff-account.ts:hashAlphanumeric",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-account.ts:suggestLoginNameFromDisplay",
+      "target": "function:apps/web/src/lib/staff-account.ts:hashAlphanumeric",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-account.ts:suggestLoginNameFromDisplay",
+      "target": "function:apps/web/src/lib/staff-account.ts:validateLoginName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-account.ts:suggestLoginNameFromDisplay",
+      "target": "function:apps/web/src/lib/staff-account.ts:hashAlphanumeric",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-account.ts:suggestLoginNameFromDisplay",
+      "target": "function:apps/web/src/lib/staff-account.ts:validateLoginName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-account.ts:suggestLoginNameFromDisplay",
+      "target": "function:apps/web/src/lib/staff-account.ts:hashAlphanumeric",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-account.ts:suggestLoginNameFromDisplay",
+      "target": "function:apps/web/src/lib/staff-account.ts:validateLoginName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-account.ts:suggestLoginNameFromDisplay",
+      "target": "function:apps/web/src/lib/staff-account.ts:hashAlphanumeric",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-account.ts:suggestLoginNameFromDisplay",
+      "target": "function:apps/web/src/lib/staff-account.ts:validateLoginName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-account.ts:buildStaffEmail",
+      "target": "function:apps/web/src/lib/staff-account.ts:normalizeLoginName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-account.ts:composeStaffEmail",
+      "target": "function:apps/web/src/lib/staff-account.ts:buildStaffEmail",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-account.ts:parseStaffUserMetadata",
+      "target": "function:apps/web/src/lib/staff-account.ts:isStaffRole",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthErrorStatus",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthErrorStatus",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:loadRestaurantBySlug",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:loadRestaurantBySlug",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequest",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequest",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthForPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthForPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:openTableAuthFromRequest",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:openTableAuthFromRequest",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequestWithRoles",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequestWithRoles",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "file:apps/web/src/lib/db-migration-error.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthForPage",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequest",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-api-auth.ts:openTableAuthFromRequest",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequestWithRoles",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequestWithRoles",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequest",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:loadOwnerRestaurantWithSlug",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:loadOwnerRestaurantWithSlug",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:mapStaffRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:mapStaffRow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:staffMetadataPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:staffMetadataPayload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:validateStaffCreateBody",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "function:apps/web/src/lib/staff-dashboard-api.ts:validateStaffCreateBody",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "file:apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "file:apps/web/src/lib/staff-account.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-dashboard-api.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/admin.ts",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/admin.ts",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/middleware.ts",
+      "target": "function:apps/web/src/lib/supabase/middleware.ts:updateSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/middleware.ts",
+      "target": "function:apps/web/src/lib/supabase/middleware.ts:updateSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/middleware.ts",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/server.ts",
+      "target": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/supabase/server.ts",
+      "target": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "target": "function:apps/web/src/lib/table-session/load-close-table-actor.ts:loadCloseTableSessionActor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "target": "function:apps/web/src/lib/table-session/load-close-table-actor.ts:loadCloseTableSessionActor",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "target": "file:apps/web/src/lib/audit/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "target": "file:apps/web/src/lib/audit/load-owner-dashboard-actor.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "target": "file:apps/web/src/lib/audit/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "target": "file:apps/web/src/lib/dashboard-access.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/table-session/load-close-table-actor.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/verify-cron-secret.ts",
+      "target": "function:apps/web/src/lib/verify-cron-secret.ts:verifyCronSecret",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/verify-cron-secret.ts",
+      "target": "function:apps/web/src/lib/verify-cron-secret.ts:verifyCronSecret",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-session-guard.ts",
+      "target": "function:apps/web/src/lib/waiter-session-guard.ts:tableSessionBlocksWaiterMutation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-session-guard.ts",
+      "target": "function:apps/web/src/lib/waiter-session-guard.ts:tableSessionBlocksWaiterMutation",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-session-guard.ts",
+      "target": "function:apps/web/src/lib/waiter-session-guard.ts:sessionIdBlocksWaiterMutation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-session-guard.ts",
+      "target": "function:apps/web/src/lib/waiter-session-guard.ts:sessionIdBlocksWaiterMutation",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-session-guard.ts",
+      "target": "function:apps/web/src/lib/waiter-session-guard.ts:sessionBillingResponse",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-session-guard.ts",
+      "target": "function:apps/web/src/lib/waiter-session-guard.ts:sessionBillingResponse",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/zoned-time.ts",
+      "target": "function:apps/web/src/lib/zoned-time.ts:getZonedCalendarParts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/zoned-time.ts",
+      "target": "function:apps/web/src/lib/zoned-time.ts:getZonedCalendarParts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/middleware.ts",
+      "target": "function:apps/web/src/middleware.ts:middleware",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/middleware.ts",
+      "target": "function:apps/web/src/middleware.ts:middleware",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/middleware.ts",
+      "target": "file:apps/web/src/lib/supabase/middleware.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "nodes": [
+    {
+      "id": "document:apps/print-agent/installer/WINDOWS-README.txt",
+      "type": "document",
+      "name": "WINDOWS-README.txt",
+      "filePath": "apps/print-agent/installer/WINDOWS-README.txt",
+      "summary": "项目说明文档，介绍系统架构、安装部署与使用指南。",
+      "tags": [
+        "documentation",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:apps/print-agent/installer/wizard-after.txt",
+      "type": "document",
+      "name": "wizard-after.txt",
+      "filePath": "apps/print-agent/installer/wizard-after.txt",
+      "summary": "项目文档 wizard-after.txt，记录相关设计与实现说明。",
+      "tags": [
+        "documentation",
+        "printing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:apps/print-agent/installer/wizard-before.txt",
+      "type": "document",
+      "name": "wizard-before.txt",
+      "filePath": "apps/print-agent/installer/wizard-before.txt",
+      "summary": "项目文档 wizard-before.txt，记录相关设计与实现说明。",
+      "tags": [
+        "documentation",
+        "printing"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:apps/print-agent/installer/WINDOWS-README.txt",
+      "target": "file:apps/web/src/app/layout.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

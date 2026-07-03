@@ -1,0 +1,20 @@
+# Scoped analysis: apps/, packages/, supabase/ only
+/*
+!apps/
+!packages/
+!supabase/
+
+# Standard exclusions (also apply under scoped dirs)
+node_modules/
+.next/
+dist/
+build/
+out/
+.turbo/
+.vercel/
+.cache/
+coverage/
+*.log
+*.tsbuildinfo
+supabase/.branches/
+supabase/.temp/

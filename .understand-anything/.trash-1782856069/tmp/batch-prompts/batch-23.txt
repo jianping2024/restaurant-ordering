@@ -1,0 +1,25 @@
+Analyze these files and produce GraphNode and GraphEdge objects.
+Project root: `/Users/chenjianping/Documents/restaurant-ordering`
+Project: `undefined` — undefined
+Languages: ["config","css","dockerfile","go","html","iss","javascript","json","markdown","mod","mts","powershell","python","shell","sql","sum","txt","typescript","unknown","yaml"]
+Batch: `23/38`
+Skill directory: `/Users/chenjianping/.cursor/plugins/cache/understand-anything/understand-anything/54754a6f97051d1d76c8758353d8ea41afe502a6/skills/understand`
+Output: `/Users/chenjianping/Documents/restaurant-ordering/.understand-anything/intermediate/batch-23.json`
+
+Pre-resolved import data:
+```json
+{"packages/shared/src/hmac-jwt.ts":[],"packages/shared/src/print-agent-jwt.test.ts":["packages/shared/src/print-agent-jwt.ts","packages/shared/src/print-agent-support-jwt.ts"],"packages/shared/src/print-agent-jwt.ts":["packages/shared/src/hmac-jwt.ts"],"packages/shared/src/print-agent-support-jwt.ts":["packages/shared/src/hmac-jwt.ts"]}
+```
+
+Cross-batch neighbors:
+```json
+{}
+```
+
+Files:
+1. `packages/shared/src/hmac-jwt.ts` (40 lines, language: `typescript`, fileCategory: `code`)
+2. `packages/shared/src/print-agent-jwt.test.ts` (51 lines, language: `typescript`, fileCategory: `code`)
+3. `packages/shared/src/print-agent-jwt.ts` (36 lines, language: `typescript`, fileCategory: `code`)
+4. `packages/shared/src/print-agent-support-jwt.ts` (47 lines, language: `typescript`, fileCategory: `code`)
+
+> **Language directive**: Generate all textual content in **zh** (Chinese). Keep technical terms in English when no standard translation exists.

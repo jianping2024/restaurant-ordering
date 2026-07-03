@@ -1,0 +1,325 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {
+      "path": "apps/web/src/app/[slug]/waiter/[tableId]/page.tsx",
+      "language": "typescript",
+      "sizeLines": 75,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/[slug]/waiter/page.tsx",
+      "language": "typescript",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/dashboard/buffet/route.ts",
+      "language": "typescript",
+      "sizeLines": 205,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/dashboard/table-groups/route.ts",
+      "language": "typescript",
+      "sizeLines": 94,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/dashboard/tables/route.ts",
+      "language": "typescript",
+      "sizeLines": 187,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts",
+      "language": "typescript",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts",
+      "language": "typescript",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/dashboard/waiter/[tableId]/page.tsx",
+      "language": "typescript",
+      "sizeLines": 70,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/dashboard/waiter/page.tsx",
+      "language": "typescript",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/demo/kitchen/page.tsx",
+      "language": "typescript",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/demo/waiter/[tableId]/page.tsx",
+      "language": "typescript",
+      "sizeLines": 35,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/demo/waiter/page.tsx",
+      "language": "typescript",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx",
+      "language": "typescript",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "language": "typescript",
+      "sizeLines": 719,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "language": "typescript",
+      "sizeLines": 998,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/waiter/useWaiterOrders.ts",
+      "language": "typescript",
+      "sizeLines": 87,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "language": "typescript",
+      "sizeLines": 120,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/waiter/waiter-messages.ts",
+      "language": "typescript",
+      "sizeLines": 251,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-api-shared.ts",
+      "language": "typescript",
+      "sizeLines": 52,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-buffet-client.ts",
+      "language": "typescript",
+      "sizeLines": 160,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-buffet-server.ts",
+      "language": "typescript",
+      "sizeLines": 365,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "language": "typescript",
+      "sizeLines": 290,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-table-groups.test.ts",
+      "language": "typescript",
+      "sizeLines": 14,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/dashboard-tables.ts",
+      "language": "typescript",
+      "sizeLines": 67,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "apps/web/src/app/[slug]/waiter/[tableId]/page.tsx": [
+      "apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "apps/web/src/lib/menu-item-code.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/staff-routes.ts",
+      "apps/web/src/lib/supabase/server.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/[slug]/waiter/page.tsx": [
+      "apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/api/dashboard/buffet/route.ts": [
+      "apps/web/src/lib/dashboard-api-shared.ts",
+      "apps/web/src/lib/dashboard-buffet-server.ts"
+    ],
+    "apps/web/src/app/api/dashboard/table-groups/route.ts": [
+      "apps/web/src/lib/dashboard-api-shared.ts",
+      "apps/web/src/lib/dashboard-table-groups-server.ts"
+    ],
+    "apps/web/src/app/api/dashboard/tables/route.ts": [
+      "apps/web/src/lib/dashboard-tables.ts",
+      "apps/web/src/lib/restaurant-tables.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets/route.ts": [
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/staff/waiter/tables/[tableId]/route.ts": [
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/dashboard/waiter/[tableId]/page.tsx": [
+      "apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/menu-item-code.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/staff-routes.ts",
+      "apps/web/src/lib/supabase/server.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/dashboard/waiter/page.tsx": [
+      "apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/staff-board.ts"
+    ],
+    "apps/web/src/app/demo/kitchen/page.tsx": [
+      "apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "apps/web/src/lib/demo-data.ts",
+      "apps/web/src/lib/demo-page-metadata.ts"
+    ],
+    "apps/web/src/app/demo/waiter/[tableId]/page.tsx": [
+      "apps/web/src/components/waiter/WaiterTableDetail.tsx",
+      "apps/web/src/lib/demo-data.ts",
+      "apps/web/src/lib/demo-page-metadata.ts",
+      "apps/web/src/lib/restaurant-tables.ts"
+    ],
+    "apps/web/src/app/demo/waiter/page.tsx": [
+      "apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "apps/web/src/lib/demo-data.ts",
+      "apps/web/src/lib/demo-page-metadata.ts"
+    ],
+    "apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx": [
+      "apps/web/src/components/staff/StaffAuthenticatedShell.tsx"
+    ],
+    "apps/web/src/components/waiter/WaiterDisplay.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/staff/StaffRoleToolbar.tsx",
+      "apps/web/src/components/ui/Toast.tsx",
+      "apps/web/src/components/waiter/useWaiterOrders.ts",
+      "apps/web/src/components/waiter/waiter-messages.ts",
+      "apps/web/src/components/waiter/waiter-table-card.ts",
+      "apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/restaurant-table-groups.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-routes.ts",
+      "apps/web/src/lib/table-checkout-pending.ts",
+      "apps/web/src/lib/waiter-board-permissions.ts",
+      "apps/web/src/lib/waiter-board-section-preference.ts",
+      "apps/web/src/lib/waiter-board-session.ts",
+      "apps/web/src/lib/waiter-table-orders.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/waiter/WaiterTableDetail.tsx": [
+      "apps/web/src/components/providers/LanguageProvider.tsx",
+      "apps/web/src/components/ui/Button.tsx",
+      "apps/web/src/components/ui/ConfirmModal.tsx",
+      "apps/web/src/components/ui/Modal.tsx",
+      "apps/web/src/components/ui/Toast.tsx",
+      "apps/web/src/components/waiter/useWaiterTableDetail.ts",
+      "apps/web/src/components/waiter/waiter-messages.ts",
+      "apps/web/src/components/waiter/waiter-table-card.ts",
+      "apps/web/src/components/waiter/waiter-ui.ts",
+      "apps/web/src/components/waiter/WaiterAuthenticatedShell.tsx",
+      "apps/web/src/components/waiter/WaiterTableDetailHeader.tsx",
+      "apps/web/src/components/waiter/WaiterTableDetailLayout.tsx",
+      "apps/web/src/lib/buffet-open-table.ts",
+      "apps/web/src/lib/buffet-order.ts",
+      "apps/web/src/lib/cart-totals.ts",
+      "apps/web/src/lib/i18n/messages.ts",
+      "apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "apps/web/src/lib/order-item-void/void-item-reason-ui.ts",
+      "apps/web/src/lib/order-item-void/VoidItemReasonDialog.tsx",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-board-client.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/staff-routes.ts",
+      "apps/web/src/lib/use-buffet-prices-realtime-refresh.ts",
+      "apps/web/src/lib/waiter-board-session.ts",
+      "apps/web/src/lib/waiter-decrement-order-item-client.ts",
+      "apps/web/src/lib/waiter-table-detail-actions.ts",
+      "apps/web/src/lib/waiter-table-occupancy.ts",
+      "apps/web/src/lib/waiter-table-orders.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/waiter/useWaiterOrders.ts": [
+      "apps/web/src/lib/restaurant-table-groups.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-board-client.ts",
+      "apps/web/src/lib/supabase/client.ts",
+      "apps/web/src/lib/use-restaurant-realtime-refresh.ts",
+      "apps/web/src/lib/waiter-board-session.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/waiter/useWaiterTableDetail.ts": [
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/staff-board-client.ts",
+      "apps/web/src/lib/staff-board.ts",
+      "apps/web/src/lib/supabase/client.ts",
+      "apps/web/src/lib/use-restaurant-realtime-refresh.ts",
+      "apps/web/src/lib/waiter-board-session.ts",
+      "apps/web/src/lib/waiter-table-orders.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/components/waiter/waiter-messages.ts": [],
+    "apps/web/src/lib/dashboard-api-shared.ts": [
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/staff-dashboard-api.ts"
+    ],
+    "apps/web/src/lib/dashboard-buffet-client.ts": [
+      "apps/web/src/lib/dashboard-buffet-server.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/dashboard-buffet-server.ts": [
+      "apps/web/src/lib/dashboard-api-shared.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/dashboard-table-groups-server.ts": [
+      "apps/web/src/lib/dashboard-api-shared.ts",
+      "apps/web/src/lib/restaurant-table-groups.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/sort-order.ts"
+    ],
+    "apps/web/src/lib/dashboard-table-groups.test.ts": [
+      "apps/web/src/lib/restaurant-table-groups.ts"
+    ],
+    "apps/web/src/lib/dashboard-tables.ts": [
+      "apps/web/src/lib/dashboard-access.ts",
+      "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "apps/web/src/lib/restaurant-table-groups.ts",
+      "apps/web/src/lib/restaurant-tables.ts"
+    ]
+  }
+}

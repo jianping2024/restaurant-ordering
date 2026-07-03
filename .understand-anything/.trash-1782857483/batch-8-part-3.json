@@ -1,0 +1,1017 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/app/api/print-agent/receipt-printers/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/receipt-printers/route.ts",
+      "summary": "查询或同步小票打印机配置，支持员工/店主鉴权与结账场景打印机快照。",
+      "tags": [
+        "api-handler",
+        "print-agent",
+        "receipt-printer",
+        "checkout"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/receipt-printers/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/print-agent/receipt-printers/route.ts",
+      "lineRange": [
+        13,
+        76
+      ],
+      "summary": "处理 GET 请求的主路由处理器，查询资源并返回 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/print-agent/routing/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/routing/route.ts",
+      "summary": "打印代理上传或同步站点到物理打印机的路由映射快照。",
+      "tags": [
+        "api-handler",
+        "print-agent",
+        "routing",
+        "configuration"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/routing/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/print-agent/routing/route.ts",
+      "lineRange": [
+        12,
+        69
+      ],
+      "summary": "处理 POST 请求的主路由处理器，编排鉴权、校验与 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/print-agent/runtime-config/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/runtime-config/route.ts",
+      "summary": "打印代理拉取运行时云配置，含下载地址、默认站点及连接参数。",
+      "tags": [
+        "api-handler",
+        "print-agent",
+        "configuration",
+        "runtime"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/runtime-config/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/print-agent/runtime-config/route.ts",
+      "lineRange": [
+        10,
+        44
+      ],
+      "summary": "处理 GET 请求的主路由处理器，查询资源并返回 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/app/api/print-agent/settings/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/settings/route.ts",
+      "summary": "店主读取或更新打印代理全局设置（GET/PUT），校验云配置合法性。",
+      "tags": [
+        "api-handler",
+        "print-agent",
+        "configuration",
+        "dashboard"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/settings/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/print-agent/settings/route.ts",
+      "lineRange": [
+        14,
+        47
+      ],
+      "summary": "处理 GET 请求的主路由处理器，查询资源并返回 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/settings/route.ts:PUT",
+      "type": "function",
+      "name": "PUT",
+      "filePath": "apps/web/src/app/api/print-agent/settings/route.ts",
+      "lineRange": [
+        49,
+        104
+      ],
+      "summary": "处理 PUT 请求，全量或结构化更新配置并持久化。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/print-agent/support-snapshot/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/print-agent/support-snapshot/route.ts",
+      "summary": "打印代理导出诊断支持快照，汇总设备、路由与近期任务状态供排障。",
+      "tags": [
+        "api-handler",
+        "print-agent",
+        "support",
+        "diagnostics"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/print-agent/support-snapshot/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/print-agent/support-snapshot/route.ts",
+      "lineRange": [
+        14,
+        65
+      ],
+      "summary": "处理 GET 请求的主路由处理器，查询资源并返回 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurant/features/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurant/features/route.ts",
+      "summary": "餐厅功能开关的读取与更新，含打印代理启用状态及迁移错误友好提示。",
+      "tags": [
+        "api-handler",
+        "restaurant",
+        "feature-flags",
+        "configuration"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurant/features/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "apps/web/src/app/api/restaurant/features/route.ts",
+      "lineRange": [
+        16,
+        46
+      ],
+      "summary": "处理 GET 请求的主路由处理器，查询资源并返回 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurant/features/route.ts:PATCH",
+      "type": "function",
+      "name": "PATCH",
+      "filePath": "apps/web/src/app/api/restaurant/features/route.ts",
+      "lineRange": [
+        48,
+        124
+      ],
+      "summary": "处理 PATCH 请求，部分更新资源字段并返回结果。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurant/settings/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurant/settings/route.ts",
+      "summary": "更新餐厅运营设置（如点餐地理半径），需店主鉴权并通过 Admin 客户端持久化。",
+      "tags": [
+        "api-handler",
+        "restaurant",
+        "settings",
+        "configuration"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurant/settings/route.ts:PATCH",
+      "type": "function",
+      "name": "PATCH",
+      "filePath": "apps/web/src/app/api/restaurant/settings/route.ts",
+      "lineRange": [
+        10,
+        119
+      ],
+      "summary": "处理 PATCH 请求，部分更新资源字段并返回结果。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts",
+      "summary": "确认分账结账支付，调用 RPC 完成账单拆分扣款并触发小票打印准备。",
+      "tags": [
+        "api-handler",
+        "checkout",
+        "payment",
+        "billing"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts",
+      "lineRange": [
+        8,
+        86
+      ],
+      "summary": "处理 POST 请求的主路由处理器，编排鉴权、校验与 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts",
+      "summary": "结账前/分账小票打印入队 API，支持顾客预结单与员工授权两种鉴权路径。",
+      "tags": [
+        "api-handler",
+        "checkout",
+        "receipt",
+        "print-jobs"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Next.js App Router route handler，导出 HTTP 方法函数与 runtime 配置。"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts:authorizeCustomerPreBill",
+      "type": "function",
+      "name": "authorizeCustomerPreBill",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts",
+      "lineRange": [
+        21,
+        63
+      ],
+      "summary": "校验顾客预结单打印权限，解析会话与分账上下文后授权入队。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts:POST",
+      "type": "function",
+      "name": "POST",
+      "filePath": "apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts",
+      "lineRange": [
+        65,
+        228
+      ],
+      "summary": "处理 POST 请求的主路由处理器，编排鉴权、校验与 JSON 响应。",
+      "tags": [
+        "api-handler",
+        "route-handler",
+        "exported"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/app/api/print-agent/receipt-printers/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/receipt-printers/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/receipt-printers/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/receipt-printers/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/receipt-printers/route.ts",
+      "target": "file:apps/web/src/lib/print-receipt-printer-options.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/receipt-printers/route.ts",
+      "target": "file:apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/receipt-printers/route.ts",
+      "target": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/receipt-printers/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/receipt-printers/route.ts",
+      "target": "file:apps/web/src/lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/receipt-printers/route.ts:GET",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/receipt-printers/route.ts:GET",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequestWithRoles",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/receipt-printers/route.ts:GET",
+      "target": "function:apps/web/src/lib/supabase/server.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/receipt-printers/route.ts:GET",
+      "target": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:loadRestaurantReceiptPrinterSnapshot",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/routing/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/routing/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/routing/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/routing/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/routing/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/routing/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-routing.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/routing/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/routing/route.ts:POST",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/routing/route.ts:POST",
+      "target": "function:apps/web/src/lib/print-agent-auth.ts:verifyActiveAgentBearer",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/routing/route.ts:POST",
+      "target": "function:apps/web/src/lib/print-agent-routing.ts:saveDeviceRoutingSnapshot",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/runtime-config/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/runtime-config/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/runtime-config/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/runtime-config/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/runtime-config/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/runtime-config/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-config.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/runtime-config/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-download.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/runtime-config/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/runtime-config/route.ts:GET",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/runtime-config/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-agent-auth.ts:verifyActiveAgentBearer",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/runtime-config/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:normalizePrintAgentCloudConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/runtime-config/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:defaultPrintAgentCloudConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/settings/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/settings/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/settings/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/settings/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/settings/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/settings/route.ts:PUT",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/settings/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/settings/route.ts:PUT",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/settings/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-config.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/settings/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/settings/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/settings/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-agent-dashboard-auth.ts:getOwnerRestaurantId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/settings/route.ts:GET",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/settings/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:normalizePrintAgentCloudConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/settings/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:defaultPrintAgentCloudConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/settings/route.ts:PUT",
+      "target": "function:apps/web/src/lib/print-agent-dashboard-auth.ts:getOwnerRestaurantId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/settings/route.ts:PUT",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/settings/route.ts:PUT",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:normalizePrintAgentCloudConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/settings/route.ts:PUT",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:validatePrintAgentCloudConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/support-snapshot/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/support-snapshot/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/support-snapshot/route.ts",
+      "target": "function:apps/web/src/app/api/print-agent/support-snapshot/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/support-snapshot/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/print-agent/support-snapshot/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/support-snapshot/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-agent-auth.ts:getBearerToken",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/print-agent/support-snapshot/route.ts:GET",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurant/features/route.ts",
+      "target": "function:apps/web/src/app/api/restaurant/features/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurant/features/route.ts",
+      "target": "function:apps/web/src/app/api/restaurant/features/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurant/features/route.ts",
+      "target": "function:apps/web/src/app/api/restaurant/features/route.ts:PATCH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurant/features/route.ts",
+      "target": "function:apps/web/src/app/api/restaurant/features/route.ts:PATCH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurant/features/route.ts",
+      "target": "file:apps/web/src/lib/db-migration-error.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurant/features/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-config.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurant/features/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurant/features/route.ts",
+      "target": "file:apps/web/src/lib/restaurant-features.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurant/features/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurant/features/route.ts:GET",
+      "target": "function:apps/web/src/lib/print-agent-dashboard-auth.ts:getOwnerRestaurantId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurant/features/route.ts:GET",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurant/features/route.ts:GET",
+      "target": "function:apps/web/src/lib/db-migration-error.ts:isDbMigrationRequiredError",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurant/features/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/print-agent-dashboard-auth.ts:getOwnerRestaurantId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurant/features/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurant/features/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/db-migration-error.ts:isDbMigrationRequiredError",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurant/features/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/print-agent-config.ts:normalizePrintAgentCloudConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurant/settings/route.ts",
+      "target": "function:apps/web/src/app/api/restaurant/settings/route.ts:PATCH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurant/settings/route.ts",
+      "target": "function:apps/web/src/app/api/restaurant/settings/route.ts:PATCH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurant/settings/route.ts",
+      "target": "file:apps/web/src/lib/db-migration-error.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurant/settings/route.ts",
+      "target": "file:apps/web/src/lib/order-radius.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurant/settings/route.ts",
+      "target": "file:apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurant/settings/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurant/settings/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/print-agent-dashboard-auth.ts:getOwnerRestaurantId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurant/settings/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurant/settings/route.ts:PATCH",
+      "target": "function:apps/web/src/lib/db-migration-error.ts:isDbMigrationRequiredError",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts",
+      "target": "file:apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts",
+      "target": "file:apps/web/src/lib/checkout-confirm-payment.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts",
+      "target": "file:apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts:POST",
+      "target": "function:apps/web/src/lib/checkout-confirm-payment-auth.ts:authorizeCheckoutConfirmPayment",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts:POST",
+      "target": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:resolveReceiptPrinterId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts:POST",
+      "target": "function:apps/web/src/lib/checkout-confirm-payment.ts:confirmBillSplitPayment",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts:authorizeCustomerPreBill",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts:POST",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts",
+      "target": "function:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts:POST",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts",
+      "target": "file:apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts",
+      "target": "file:apps/web/src/lib/checkout-split-math.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts",
+      "target": "file:apps/web/src/lib/order-receipt-enqueue.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts",
+      "target": "file:apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts",
+      "target": "file:apps/web/src/lib/supabase/admin.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts:authorizeCustomerPreBill",
+      "target": "function:apps/web/src/lib/supabase/admin.ts:createAdminClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts:POST",
+      "target": "function:apps/web/src/lib/checkout-confirm-payment-auth.ts:authorizeCheckoutConfirmPayment",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts:POST",
+      "target": "function:apps/web/src/lib/restaurant-receipt-printers-server.ts:resolveReceiptPrinterId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts:POST",
+      "target": "function:apps/web/src/lib/order-receipt-enqueue.ts:enqueueReceiptPrint",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

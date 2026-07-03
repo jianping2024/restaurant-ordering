@@ -1,0 +1,1341 @@
+{
+  "nodes": [
+    {
+      "id": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "type": "file",
+      "name": "20240101000000_initial_schema.sql",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "Supabase 初始数据库 schema：餐厅核心业务表（订单、菜单、桌台、打印、自助餐、分账等）、RLS 策略、触发器与 RPC 函数。",
+      "tags": [
+        "database",
+        "migration",
+        "schema-definition",
+        "rls",
+        "initial"
+      ],
+      "complexity": "complex",
+      "languageNotes": "PostgreSQL plpgsql 触发器、RLS 与 SECURITY DEFINER RPC 混合定义。"
+    },
+    {
+      "id": "file:supabase/migrations/20260529120000_restaurant_feature_flags.sql",
+      "type": "file",
+      "name": "20260529120000_restaurant_feature_flags.sql",
+      "filePath": "supabase/migrations/20260529120000_restaurant_feature_flags.sql",
+      "summary": "为 restaurants 表新增 feature_flags JSONB 列，用于租户级功能开关。",
+      "tags": [
+        "database",
+        "migration",
+        "feature-flags"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:supabase/migrations/20260623120000_checkout_request_and_session_close_rpc.sql",
+      "type": "file",
+      "name": "20260623120000_checkout_request_and_session_close_rpc.sql",
+      "filePath": "supabase/migrations/20260623120000_checkout_request_and_session_close_rpc.sql",
+      "summary": "结账请求原子 upsert 与运营关台 RPC：bill_splits 每 session 唯一活跃索引、confirm_bill_split_payment 与 close_table_session 逻辑。",
+      "tags": [
+        "database",
+        "migration",
+        "checkout",
+        "rpc"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:supabase/migrations/20260623150000_bill_splits_customer_nif.sql",
+      "type": "file",
+      "name": "20260623150000_bill_splits_customer_nif.sql",
+      "filePath": "supabase/migrations/20260623150000_bill_splits_customer_nif.sql",
+      "summary": "bill_splits 表新增 customer_nif 列，支持葡萄牙客人结账时填写 NIF。",
+      "tags": [
+        "database",
+        "migration",
+        "billing",
+        "compliance"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:supabase/migrations/20260624120000_platform_admin.sql",
+      "type": "file",
+      "name": "20260624120000_platform_admin.sql",
+      "filePath": "supabase/migrations/20260624120000_platform_admin.sql",
+      "summary": "Mesa 平台运维：platform_admin_accounts 与 platform_admin_audit_log 表及 RLS。",
+      "tags": [
+        "database",
+        "migration",
+        "platform-admin",
+        "audit"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:supabase/migrations/20260625120000_restaurant_suspension.sql",
+      "type": "file",
+      "name": "20260625120000_restaurant_suspension.sql",
+      "filePath": "supabase/migrations/20260625120000_restaurant_suspension.sql",
+      "summary": "restaurants 表新增 suspended_at、suspension_reason，支持平台暂停/恢复租户。",
+      "tags": [
+        "database",
+        "migration",
+        "platform-admin",
+        "suspension"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:supabase/migrations/20260626120000_restaurants_country_code.sql",
+      "type": "file",
+      "name": "20260626120000_restaurants_country_code.sql",
+      "filePath": "supabase/migrations/20260626120000_restaurants_country_code.sql",
+      "summary": "restaurants 表新增 ISO 3166-1 alpha-2 country_code 列及约束。",
+      "tags": [
+        "database",
+        "migration",
+        "compliance",
+        "localization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:supabase/migrations/20260627115000_frontdesk_menu_management.sql",
+      "type": "file",
+      "name": "20260627115000_frontdesk_menu_management.sql",
+      "filePath": "supabase/migrations/20260627115000_frontdesk_menu_management.sql",
+      "summary": "frontdesk 角色 RLS 策略：允许管理菜单分类、菜品、打印站与菜单图片。",
+      "tags": [
+        "database",
+        "migration",
+        "rls",
+        "frontdesk",
+        "menu"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:supabase/migrations/20260627120000_print_agent_support_tokens.sql",
+      "type": "file",
+      "name": "20260627120000_print_agent_support_tokens.sql",
+      "filePath": "supabase/migrations/20260627120000_print_agent_support_tokens.sql",
+      "summary": "print_agent_support_tokens 表：一次性运维只读排障 token，不暴露 agent JWT。",
+      "tags": [
+        "database",
+        "migration",
+        "print-agent",
+        "security"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:supabase/migrations/20260628120000_restaurant_table_groups.sql",
+      "type": "file",
+      "name": "20260628120000_restaurant_table_groups.sql",
+      "filePath": "supabase/migrations/20260628120000_restaurant_table_groups.sql",
+      "summary": "restaurant_table_groups 与 members 表、同餐厅校验触发器及 replace_table_group_members RPC。",
+      "tags": [
+        "database",
+        "migration",
+        "table-groups",
+        "rls"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:supabase/migrations/20260629120000_staff_frontdesk_role.sql",
+      "type": "file",
+      "name": "20260629120000_staff_frontdesk_role.sql",
+      "filePath": "supabase/migrations/20260629120000_staff_frontdesk_role.sql",
+      "summary": "restaurant_staff_accounts 角色约束扩展，加入 frontdesk 员工角色。",
+      "tags": [
+        "database",
+        "migration",
+        "staff",
+        "frontdesk"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:supabase/migrations/20260629130000_resume_ordering_preserve_partial_split.sql",
+      "type": "file",
+      "name": "20260629130000_resume_ordering_preserve_partial_split.sql",
+      "filePath": "supabase/migrations/20260629130000_resume_ordering_preserve_partial_split.sql",
+      "summary": "重写 resume_table_session_ordering：部分结账后恢复点餐时保留已确认 bill_splits 快照。",
+      "tags": [
+        "database",
+        "migration",
+        "checkout",
+        "rpc"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:supabase/migrations/20260630120000_table_sessions_opened_by_user_id.sql",
+      "type": "file",
+      "name": "20260630120000_table_sessions_opened_by_user_id.sql",
+      "filePath": "supabase/migrations/20260630120000_table_sessions_opened_by_user_id.sql",
+      "summary": "table_sessions 新增 opened_by_user_id，记录开台服务员 auth 用户。",
+      "tags": [
+        "database",
+        "migration",
+        "table-sessions",
+        "audit"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:supabase/migrations/20260701120000_abnormal_operations.sql",
+      "type": "file",
+      "name": "20260701120000_abnormal_operations.sql",
+      "filePath": "supabase/migrations/20260701120000_abnormal_operations.sql",
+      "summary": "abnormal_operations 表：折扣、退菜、未付关台等异常操作审计，owner RLS。",
+      "tags": [
+        "database",
+        "migration",
+        "audit",
+        "operations"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:supabase/migrations/20260702120000_operation_logs_and_manual_close.sql",
+      "type": "file",
+      "name": "20260702120000_operation_logs_and_manual_close.sql",
+      "filePath": "supabase/migrations/20260702120000_operation_logs_and_manual_close.sql",
+      "summary": "operation_logs 表、compute_session_payment_gap 与 close_table_session_manual RPC，支持人工关台审计。",
+      "tags": [
+        "database",
+        "migration",
+        "audit",
+        "manual-close",
+        "rpc"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:supabase/migrations/20260703120000_table_sessions_closed_at_analytics.sql",
+      "type": "file",
+      "name": "20260703120000_table_sessions_closed_at_analytics.sql",
+      "filePath": "supabase/migrations/20260703120000_table_sessions_closed_at_analytics.sql",
+      "summary": "table_sessions 新增 (restaurant_id, closed_at) 部分索引，支持关台时间范围分析。",
+      "tags": [
+        "database",
+        "migration",
+        "analytics",
+        "index"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:supabase/migrations/20260704120000_menu_items_vat_rate.sql",
+      "type": "file",
+      "name": "20260704120000_menu_items_vat_rate.sql",
+      "filePath": "supabase/migrations/20260704120000_menu_items_vat_rate.sql",
+      "summary": "menu_items 新增 vat_rate 列，支持按菜品 IVA 税率计费。",
+      "tags": [
+        "database",
+        "migration",
+        "billing",
+        "vat"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:supabase/migrations/20260705120000_menu_items_sort_order_unique.sql",
+      "type": "file",
+      "name": "20260705120000_menu_items_sort_order_unique.sql",
+      "filePath": "supabase/migrations/20260705120000_menu_items_sort_order_unique.sql",
+      "summary": "menu_items sort_order 重编号并加唯一索引，保证分类内排序交换稳定。",
+      "tags": [
+        "database",
+        "migration",
+        "menu",
+        "index"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:supabase/migrations/20260706120000_bill_split_checkout_discount.sql",
+      "type": "file",
+      "name": "20260706120000_bill_split_checkout_discount.sql",
+      "filePath": "supabase/migrations/20260706120000_bill_split_checkout_discount.sql",
+      "summary": "bill_splits 持久化 discount_rate/discount_reason，confirm_bill_split_payment 从行读取折扣。",
+      "tags": [
+        "database",
+        "migration",
+        "billing",
+        "discount"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:supabase/migrations/20260708120000_drop_confirm_bill_split_payment_legacy_overload.sql",
+      "type": "file",
+      "name": "20260708120000_drop_confirm_bill_split_payment_legacy_overload.sql",
+      "filePath": "supabase/migrations/20260708120000_drop_confirm_bill_split_payment_legacy_overload.sql",
+      "summary": "删除 confirm_bill_split_payment 旧 4 参数重载，消除 RPC 调用歧义。",
+      "tags": [
+        "database",
+        "migration",
+        "rpc",
+        "cleanup"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql",
+      "type": "file",
+      "name": "20260709120000_session_collected_payments_resume_ordering.sql",
+      "filePath": "supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql",
+      "summary": "session_collected_payments 账本表，重写 resume/confirm payment 写入已收款项。",
+      "tags": [
+        "database",
+        "migration",
+        "payments",
+        "checkout"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:supabase/migrations/20260710120000_resume_ordering_preserve_by_item_split.sql",
+      "type": "file",
+      "name": "20260710120000_resume_ordering_preserve_by_item_split.sql",
+      "filePath": "supabase/migrations/20260710120000_resume_ordering_preserve_by_item_split.sql",
+      "summary": "resume_table_session_ordering 再次更新：按 item 分账无论是否部分付款均保留。",
+      "tags": [
+        "database",
+        "migration",
+        "checkout",
+        "rpc"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20260701120000_abnormal_operations.sql:abnormal_operations",
+      "type": "table",
+      "name": "abnormal_operations",
+      "filePath": "supabase/migrations/20260701120000_abnormal_operations.sql",
+      "summary": "异常操作记录（折扣、退菜、未付关台）。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:bill_splits",
+      "type": "table",
+      "name": "bill_splits",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "分账/结账快照，含 NIF、折扣率与客户支付状态。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:buffet_calendar_overrides",
+      "type": "table",
+      "name": "buffet_calendar_overrides",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "自助餐日历例外定价。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:buffet_price_rules",
+      "type": "table",
+      "name": "buffet_price_rules",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "自助餐价格规则。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:buffet_time_slots",
+      "type": "table",
+      "name": "buffet_time_slots",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "自助餐时段与定价窗口。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:buffets",
+      "type": "table",
+      "name": "buffets",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "自助餐定义。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:dish_feedback",
+      "type": "table",
+      "name": "dish_feedback",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "菜品反馈投票。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:feedback_sessions",
+      "type": "table",
+      "name": "feedback_sessions",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "反馈会话聚合。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:menu_categories",
+      "type": "table",
+      "name": "menu_categories",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "菜单分类，支持打印站路由与 frontdesk 管理 RLS。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:menu_items",
+      "type": "table",
+      "name": "menu_items",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "菜品条目，含价格、排序、VAT 税率与打印站。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20260702120000_operation_logs_and_manual_close.sql:operation_logs",
+      "type": "table",
+      "name": "operation_logs",
+      "filePath": "supabase/migrations/20260702120000_operation_logs_and_manual_close.sql",
+      "summary": "通用运营审计日志，含人工关台快照。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:orders",
+      "type": "table",
+      "name": "orders",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "订单主表，关联 session、桌台与餐厅，含 items JSON 与状态。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20260624120000_platform_admin.sql:platform_admin_accounts",
+      "type": "table",
+      "name": "platform_admin_accounts",
+      "filePath": "supabase/migrations/20260624120000_platform_admin.sql",
+      "summary": "Mesa 平台管理员账号，关联 auth.users。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20260624120000_platform_admin.sql:platform_admin_audit_log",
+      "type": "table",
+      "name": "platform_admin_audit_log",
+      "filePath": "supabase/migrations/20260624120000_platform_admin.sql",
+      "summary": "平台运维操作审计日志。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:print_agent_devices",
+      "type": "table",
+      "name": "print_agent_devices",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "已配对 print-agent 设备记录。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:print_agent_pairings",
+      "type": "table",
+      "name": "print_agent_pairings",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "print-agent 配对码与认领状态。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20260627120000_print_agent_support_tokens.sql:print_agent_support_tokens",
+      "type": "table",
+      "name": "print_agent_support_tokens",
+      "filePath": "supabase/migrations/20260627120000_print_agent_support_tokens.sql",
+      "summary": "运维一次性只读排障 token，关联 device。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:print_jobs",
+      "type": "table",
+      "name": "print_jobs",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "打印任务队列，供 print-agent 拉取。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:print_stations",
+      "type": "table",
+      "name": "print_stations",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "打印站配置，路由厨房/前台小票。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:restaurant_staff_accounts",
+      "type": "table",
+      "name": "restaurant_staff_accounts",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "餐厅员工账号与角色（kitchen/waiter/frontdesk 等）。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20260628120000_restaurant_table_groups.sql:restaurant_table_group_members",
+      "type": "table",
+      "name": "restaurant_table_group_members",
+      "filePath": "supabase/migrations/20260628120000_restaurant_table_groups.sql",
+      "summary": "桌台分组成员关系。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20260628120000_restaurant_table_groups.sql:restaurant_table_groups",
+      "type": "table",
+      "name": "restaurant_table_groups",
+      "filePath": "supabase/migrations/20260628120000_restaurant_table_groups.sql",
+      "summary": "桌台分组，用于 dashboard/waiter 布局。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:restaurant_tables",
+      "type": "table",
+      "name": "restaurant_tables",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "餐厅桌台定义，display_name 为客人可见标签，table_id 为稳定 UUID。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:restaurants",
+      "type": "table",
+      "name": "restaurants",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "餐厅租户主表，含名称、设置与后续扩展列（feature_flags、country_code、暂停状态等）。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql:session_collected_payments",
+      "type": "table",
+      "name": "session_collected_payments",
+      "filePath": "supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql",
+      "summary": "session 级已收款项账本，支持恢复点餐与对账。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:supabase/migrations/20240101000000_initial_schema.sql:table_sessions",
+      "type": "table",
+      "name": "table_sessions",
+      "filePath": "supabase/migrations/20240101000000_initial_schema.sql",
+      "summary": "桌台开台会话，跟踪状态、合并/转移及关台时间与开台人。",
+      "tags": [
+        "database",
+        "schema",
+        "postgres"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:restaurant_tables",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:restaurant_tables",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:bill_splits",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:bill_splits",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:buffet_calendar_overrides",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:buffet_calendar_overrides",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:buffet_price_rules",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:buffet_price_rules",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:buffet_time_slots",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:buffet_time_slots",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:buffets",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:buffets",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:dish_feedback",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:dish_feedback",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:feedback_sessions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:feedback_sessions",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:menu_categories",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:menu_categories",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:menu_items",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:menu_items",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:orders",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:orders",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:print_agent_devices",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:print_agent_devices",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:print_agent_pairings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:print_agent_pairings",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:print_jobs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:print_jobs",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:print_stations",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:print_stations",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:restaurant_staff_accounts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:restaurant_staff_accounts",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:restaurants",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:restaurants",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:table_sessions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:table_sessions",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260529120000_restaurant_feature_flags.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:restaurants",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260623120000_checkout_request_and_session_close_rpc.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:bill_splits",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260623120000_checkout_request_and_session_close_rpc.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:table_sessions",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260623150000_bill_splits_customer_nif.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:bill_splits",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260624120000_platform_admin.sql",
+      "target": "table:supabase/migrations/20260624120000_platform_admin.sql:platform_admin_accounts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20260624120000_platform_admin.sql",
+      "target": "table:supabase/migrations/20260624120000_platform_admin.sql:platform_admin_accounts",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260624120000_platform_admin.sql",
+      "target": "table:supabase/migrations/20260624120000_platform_admin.sql:platform_admin_audit_log",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20260624120000_platform_admin.sql",
+      "target": "table:supabase/migrations/20260624120000_platform_admin.sql:platform_admin_audit_log",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260625120000_restaurant_suspension.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:restaurants",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260626120000_restaurants_country_code.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:restaurants",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260627115000_frontdesk_menu_management.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:menu_categories",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260627115000_frontdesk_menu_management.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:menu_items",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260627115000_frontdesk_menu_management.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:print_stations",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260627120000_print_agent_support_tokens.sql",
+      "target": "table:supabase/migrations/20260627120000_print_agent_support_tokens.sql:print_agent_support_tokens",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20260627120000_print_agent_support_tokens.sql",
+      "target": "table:supabase/migrations/20260627120000_print_agent_support_tokens.sql:print_agent_support_tokens",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260628120000_restaurant_table_groups.sql",
+      "target": "table:supabase/migrations/20260628120000_restaurant_table_groups.sql:restaurant_table_groups",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20260628120000_restaurant_table_groups.sql",
+      "target": "table:supabase/migrations/20260628120000_restaurant_table_groups.sql:restaurant_table_groups",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260628120000_restaurant_table_groups.sql",
+      "target": "table:supabase/migrations/20260628120000_restaurant_table_groups.sql:restaurant_table_group_members",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20260628120000_restaurant_table_groups.sql",
+      "target": "table:supabase/migrations/20260628120000_restaurant_table_groups.sql:restaurant_table_group_members",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260629120000_staff_frontdesk_role.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:restaurant_staff_accounts",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260629130000_resume_ordering_preserve_partial_split.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:bill_splits",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260629130000_resume_ordering_preserve_partial_split.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:table_sessions",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260630120000_table_sessions_opened_by_user_id.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:table_sessions",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260701120000_abnormal_operations.sql",
+      "target": "table:supabase/migrations/20260701120000_abnormal_operations.sql:abnormal_operations",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20260701120000_abnormal_operations.sql",
+      "target": "table:supabase/migrations/20260701120000_abnormal_operations.sql:abnormal_operations",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260702120000_operation_logs_and_manual_close.sql",
+      "target": "table:supabase/migrations/20260702120000_operation_logs_and_manual_close.sql:operation_logs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20260702120000_operation_logs_and_manual_close.sql",
+      "target": "table:supabase/migrations/20260702120000_operation_logs_and_manual_close.sql:operation_logs",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260702120000_operation_logs_and_manual_close.sql",
+      "target": "table:supabase/migrations/20260701120000_abnormal_operations.sql:abnormal_operations",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260702120000_operation_logs_and_manual_close.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:table_sessions",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260702120000_operation_logs_and_manual_close.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:bill_splits",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260703120000_table_sessions_closed_at_analytics.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:table_sessions",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260704120000_menu_items_vat_rate.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:menu_items",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260705120000_menu_items_sort_order_unique.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:menu_items",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260706120000_bill_split_checkout_discount.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:bill_splits",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260708120000_drop_confirm_bill_split_payment_legacy_overload.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:bill_splits",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql",
+      "target": "table:supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql:session_collected_payments",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql",
+      "target": "table:supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql:session_collected_payments",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:bill_splits",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:table_sessions",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260710120000_resume_ordering_preserve_by_item_split.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:bill_splits",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20260710120000_resume_ordering_preserve_by_item_split.sql",
+      "target": "table:supabase/migrations/20240101000000_initial_schema.sql:table_sessions",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:supabase/migrations/20240101000000_initial_schema.sql",
+      "target": "file:supabase/migrations/20260529120000_restaurant_feature_flags.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260529120000_restaurant_feature_flags.sql",
+      "target": "file:supabase/migrations/20260623120000_checkout_request_and_session_close_rpc.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260623120000_checkout_request_and_session_close_rpc.sql",
+      "target": "file:supabase/migrations/20260623150000_bill_splits_customer_nif.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260623150000_bill_splits_customer_nif.sql",
+      "target": "file:supabase/migrations/20260624120000_platform_admin.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260624120000_platform_admin.sql",
+      "target": "file:supabase/migrations/20260625120000_restaurant_suspension.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260625120000_restaurant_suspension.sql",
+      "target": "file:supabase/migrations/20260626120000_restaurants_country_code.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260626120000_restaurants_country_code.sql",
+      "target": "file:supabase/migrations/20260627115000_frontdesk_menu_management.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260627115000_frontdesk_menu_management.sql",
+      "target": "file:supabase/migrations/20260627120000_print_agent_support_tokens.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260627120000_print_agent_support_tokens.sql",
+      "target": "file:supabase/migrations/20260628120000_restaurant_table_groups.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260628120000_restaurant_table_groups.sql",
+      "target": "file:supabase/migrations/20260629120000_staff_frontdesk_role.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260629120000_staff_frontdesk_role.sql",
+      "target": "file:supabase/migrations/20260629130000_resume_ordering_preserve_partial_split.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260629130000_resume_ordering_preserve_partial_split.sql",
+      "target": "file:supabase/migrations/20260630120000_table_sessions_opened_by_user_id.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260630120000_table_sessions_opened_by_user_id.sql",
+      "target": "file:supabase/migrations/20260701120000_abnormal_operations.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260701120000_abnormal_operations.sql",
+      "target": "file:supabase/migrations/20260702120000_operation_logs_and_manual_close.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260702120000_operation_logs_and_manual_close.sql",
+      "target": "file:supabase/migrations/20260703120000_table_sessions_closed_at_analytics.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260703120000_table_sessions_closed_at_analytics.sql",
+      "target": "file:supabase/migrations/20260704120000_menu_items_vat_rate.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260704120000_menu_items_vat_rate.sql",
+      "target": "file:supabase/migrations/20260705120000_menu_items_sort_order_unique.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260705120000_menu_items_sort_order_unique.sql",
+      "target": "file:supabase/migrations/20260706120000_bill_split_checkout_discount.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260706120000_bill_split_checkout_discount.sql",
+      "target": "file:supabase/migrations/20260708120000_drop_confirm_bill_split_payment_legacy_overload.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260708120000_drop_confirm_bill_split_payment_legacy_overload.sql",
+      "target": "file:supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql",
+      "target": "file:supabase/migrations/20260710120000_resume_ordering_preserve_by_item_split.sql",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

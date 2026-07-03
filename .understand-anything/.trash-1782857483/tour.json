@@ -1,0 +1,119 @@
+[
+  {
+    "order": 1,
+    "title": "租户应用根布局",
+    "description": "MesaGo 租户产品（apps/web）的全局入口是 Next.js App Router 根布局。它包裹所有子路由，挂载 LanguageProvider 与 ThemeProvider，让扫码点餐、前台操作与老板仪表盘共享同一套国际化与明暗主题能力。理解这一层，就掌握了整个 Web 应用的「外壳」如何统一渲染与注入上下文。",
+    "nodeIds": [
+      "file:apps/web/src/app/layout.tsx",
+      "file:apps/web/src/components/providers/LanguageProvider.tsx",
+      "file:apps/web/src/components/providers/ThemeProvider.tsx",
+      "file:apps/web/src/lib/i18n.ts"
+    ],
+    "languageLesson": "Next.js App Router 的 layout.tsx 是嵌套布局：根布局只渲染一次，子路由切换时 Provider 状态可跨页面保留，适合全局主题与语言偏好。"
+  },
+  {
+    "order": 2,
+    "title": "中间件与会话",
+    "description": "每个 HTTP 请求首先经过 middleware.ts，再委托 supabase/middleware 刷新 Supabase 会话 cookie。这是多租户 SaaS 的认证边界：在页面渲染前确保登录态有效，并为后续 dashboard、staff API 提供统一的安全前提。",
+    "nodeIds": [
+      "file:apps/web/src/middleware.ts",
+      "file:apps/web/src/lib/supabase/middleware.ts"
+    ],
+    "languageLesson": "Next.js middleware 在 Edge/Node 上先于路由执行；将会话逻辑集中于此，可避免在每个 Server Component 重复读取 cookie。"
+  },
+  {
+    "order": 3,
+    "title": "领域类型词汇表",
+    "description": "types/index.ts 是全仓库引用最多的模块（fan-in 最高），定义订单、桌台、菜单、结账等核心 TypeScript 类型。这些接口是 UI、API 与数据库之间的契约——后续所有业务模块都使用同一套领域词汇，减少前后端理解偏差。",
+    "nodeIds": [
+      "file:apps/web/src/types/index.ts"
+    ]
+  },
+  {
+    "order": 4,
+    "title": "跨应用共享库",
+    "description": "packages/shared 通过 index.ts 聚合品牌标识、餐厅功能开关、打印助手 JWT、地理下单限制等跨 web 与 ops 的纯函数模块。Monorepo 中把无 UI 依赖的逻辑下沉到 @mesa/shared，可避免租户产品与平台运维控制台之间的重复实现。",
+    "nodeIds": [
+      "file:packages/shared/src/index.ts",
+      "config:apps/web/package.json"
+    ]
+  },
+  {
+    "order": 5,
+    "title": "Supabase 数据访问",
+    "description": "服务端 supabase/server.ts 用 cookie 创建租户级 Supabase 客户端；admin.ts 则在需要绕过 RLS 的运维场景使用 service role。二者构成数据层双通道：普通请求遵守行级安全，特权操作仅在受控路径启用，保障多租户隔离。",
+    "nodeIds": [
+      "file:apps/web/src/lib/supabase/server.ts",
+      "file:apps/web/src/lib/supabase/admin.ts"
+    ]
+  },
+  {
+    "order": 6,
+    "title": "顾客扫码点餐",
+    "description": "顾客通过 /[slug]/menu 进入扫码菜单页，guest-table-ordering.ts 封装桌台会话校验、购物车追加与下单门禁等业务规则。这是 MesaGo 面向食客的核心体验链路：从 QR 码到订单入库，都围绕餐厅 slug 与桌台 display_name 展开。",
+    "nodeIds": [
+      "file:apps/web/src/app/[slug]/menu/page.tsx",
+      "file:apps/web/src/lib/guest-table-ordering.ts"
+    ]
+  },
+  {
+    "order": 7,
+    "title": "前台与厨房界面",
+    "description": "WaiterDisplay 与 KitchenDisplay 分别服务服务员桌台操作与厨房出餐看板。它们消费 staff-board 等 lib 模块拉取实时订单状态，是堂食运营的中枢界面——连接顾客下单（第 6 步）与后厨履约。",
+    "nodeIds": [
+      "file:apps/web/src/components/waiter/WaiterDisplay.tsx",
+      "file:apps/web/src/components/kitchen/KitchenDisplay.tsx",
+      "file:apps/web/src/lib/staff-board.ts"
+    ]
+  },
+  {
+    "order": 8,
+    "title": "结账与分账结算",
+    "description": "顾客在 /[slug]/bill 查看账单；checkout-settlement.ts 实现分账、折扣与支付确认等复杂结算逻辑。这是涉及金额的高风险域：代码层必须与数据库 RPC 和 RLS 策略保持一致，确保每笔结账可追溯、可审计。",
+    "nodeIds": [
+      "file:apps/web/src/app/[slug]/bill/page.tsx",
+      "file:apps/web/src/lib/checkout-settlement.ts"
+    ],
+    "languageLesson": "结账域通常采用「UI 展示 + lib 纯函数计算 + 数据库 RPC 原子提交」三层分离，避免客户端与服务端金额不一致。"
+  },
+  {
+    "order": 9,
+    "title": "老板仪表盘",
+    "description": "dashboard/layout.tsx 在服务端加载店主访问权限与餐厅状态横幅；dashboard-access.ts 校验当前用户是否拥有该餐厅的 owner 角色。老板在此管理菜单、桌台、打印与异常操作——是 SaaS 租户自助运营的控制台入口。",
+    "nodeIds": [
+      "file:apps/web/src/app/dashboard/layout.tsx",
+      "file:apps/web/src/lib/dashboard-access.ts"
+    ]
+  },
+  {
+    "order": 10,
+    "title": "数据库核心表",
+    "description": "Supabase 迁移定义多租户根基：restaurants 表承载租户边界，table_sessions 追踪开台生命周期，orders 记录菜品下单。这三张表的外键关系驱动第 6–8 步的全部业务流；RLS 策略确保每个 restaurant_id 只能被对应租户访问。",
+    "nodeIds": [
+      "table:supabase/migrations/20240101000000_initial_schema.sql:restaurants",
+      "table:supabase/migrations/20240101000000_initial_schema.sql:table_sessions",
+      "table:supabase/migrations/20240101000000_initial_schema.sql:orders"
+    ],
+    "languageLesson": "PostgreSQL RLS（Row Level Security）在表级强制 tenant_id/restaurant_id 过滤；应用层 Supabase 客户端即使 SQL 写错，策略仍可作为第二道防线。"
+  },
+  {
+    "order": 11,
+    "title": "本地打印代理",
+    "description": "Go 编写的 print-agent 通过 main.go 轮询云端打印任务，经 LAN/USB 驱动 ESC/POS 打印机。README 说明配对与部署流程；dev/docker-compose.yml 提供 receipt/kitchen/bar 三台假打印机，便于本地联调。打印链路连接 Web .enqueue 与餐厅实体小票输出。",
+    "nodeIds": [
+      "file:apps/print-agent/main.go",
+      "document:apps/print-agent/README.md",
+      "service:apps/print-agent/dev/docker-compose.yml"
+    ],
+    "languageLesson": "Go 打印代理采用轮询 + JWT 认证模式：门店 Windows 主机运行 agent，无需把打印机暴露到公网，符合 POS 场景的安全要求。"
+  },
+  {
+    "order": 12,
+    "title": "平台运维控制台",
+    "description": "独立的 apps/ops 应用供 Mesa 平台管理员使用：layout.tsx 定义运维壳层，restaurants/page.tsx 列出全部租户餐厅并支持暂停、套餐变更等跨租户操作。它与租户 web 共享 @mesa/shared 与 Supabase，但路由与权限模型完全隔离，体现「平台层 vs 租户层」的双应用架构。",
+    "nodeIds": [
+      "file:apps/ops/src/app/layout.tsx",
+      "file:apps/ops/src/app/ops/(console)/restaurants/page.tsx"
+    ]
+  }
+]

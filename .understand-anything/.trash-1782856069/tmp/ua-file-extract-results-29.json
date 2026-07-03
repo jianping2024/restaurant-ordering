@@ -1,0 +1,31 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 3,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "apps/print-agent/installer/WINDOWS-README.txt",
+      "language": "txt",
+      "fileCategory": "docs",
+      "totalLines": 61,
+      "nonEmptyLines": 48,
+      "metrics": {}
+    },
+    {
+      "path": "apps/print-agent/installer/wizard-after.txt",
+      "language": "txt",
+      "fileCategory": "docs",
+      "totalLines": 16,
+      "nonEmptyLines": 12,
+      "metrics": {}
+    },
+    {
+      "path": "apps/print-agent/installer/wizard-before.txt",
+      "language": "txt",
+      "fileCategory": "docs",
+      "totalLines": 20,
+      "nonEmptyLines": 16,
+      "metrics": {}
+    }
+  ]
+}

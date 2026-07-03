@@ -1,0 +1,350 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 4,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "packages/shared/src/hmac-jwt.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 40,
+      "nonEmptyLines": 36,
+      "functions": [
+        {
+          "name": "b64urlJson",
+          "startLine": 3,
+          "endLine": 5,
+          "params": [
+            "obj"
+          ]
+        },
+        {
+          "name": "safeEqualStrings",
+          "startLine": 7,
+          "endLine": 12,
+          "params": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "name": "signHmacJwt",
+          "startLine": 14,
+          "endLine": 23,
+          "params": [
+            "payload",
+            "secret"
+          ]
+        },
+        {
+          "name": "verifyHmacJwt",
+          "startLine": 25,
+          "endLine": 40,
+          "params": [
+            "token",
+            "secret"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "b64urlJson",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "safeEqualStrings",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "signHmacJwt",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "verifyHmacJwt",
+          "line": 25,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "b64urlJson",
+          "callee": "Buffer.from(JSON.stringify(obj), 'utf8').toString",
+          "lineNumber": 4
+        },
+        {
+          "caller": "b64urlJson",
+          "callee": "Buffer.from",
+          "lineNumber": 4
+        },
+        {
+          "caller": "b64urlJson",
+          "callee": "JSON.stringify",
+          "lineNumber": 4
+        },
+        {
+          "caller": "safeEqualStrings",
+          "callee": "Buffer.from",
+          "lineNumber": 8
+        },
+        {
+          "caller": "safeEqualStrings",
+          "callee": "Buffer.from",
+          "lineNumber": 9
+        },
+        {
+          "caller": "safeEqualStrings",
+          "callee": "timingSafeEqual",
+          "lineNumber": 11
+        },
+        {
+          "caller": "signHmacJwt",
+          "callee": "b64urlJson",
+          "lineNumber": 18
+        },
+        {
+          "caller": "signHmacJwt",
+          "callee": "b64urlJson",
+          "lineNumber": 19
+        },
+        {
+          "caller": "signHmacJwt",
+          "callee": "createHmac('sha256', secret).update(data).digest",
+          "lineNumber": 21
+        },
+        {
+          "caller": "signHmacJwt",
+          "callee": "createHmac('sha256', secret).update",
+          "lineNumber": 21
+        },
+        {
+          "caller": "signHmacJwt",
+          "callee": "createHmac",
+          "lineNumber": 21
+        },
+        {
+          "caller": "verifyHmacJwt",
+          "callee": "token.split",
+          "lineNumber": 29
+        },
+        {
+          "caller": "verifyHmacJwt",
+          "callee": "createHmac('sha256', secret).update(data).digest",
+          "lineNumber": 33
+        },
+        {
+          "caller": "verifyHmacJwt",
+          "callee": "createHmac('sha256', secret).update",
+          "lineNumber": 33
+        },
+        {
+          "caller": "verifyHmacJwt",
+          "callee": "createHmac",
+          "lineNumber": 33
+        },
+        {
+          "caller": "verifyHmacJwt",
+          "callee": "safeEqualStrings",
+          "lineNumber": 34
+        },
+        {
+          "caller": "verifyHmacJwt",
+          "callee": "JSON.parse",
+          "lineNumber": 36
+        },
+        {
+          "caller": "verifyHmacJwt",
+          "callee": "Buffer.from(p, 'base64url').toString",
+          "lineNumber": 36
+        },
+        {
+          "caller": "verifyHmacJwt",
+          "callee": "Buffer.from",
+          "lineNumber": 36
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/print-agent-jwt.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 51,
+      "nonEmptyLines": 45,
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/print-agent-jwt.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 36,
+      "nonEmptyLines": 33,
+      "functions": [
+        {
+          "name": "signPrintAgentJwt",
+          "startLine": 11,
+          "endLine": 27,
+          "params": [
+            "claims",
+            "secret",
+            "expiresInSec"
+          ]
+        },
+        {
+          "name": "verifyPrintAgentJwt",
+          "startLine": 29,
+          "endLine": 36,
+          "params": [
+            "token",
+            "secret"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "signPrintAgentJwt",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "verifyPrintAgentJwt",
+          "line": 29,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "signPrintAgentJwt",
+          "callee": "Math.floor",
+          "lineNumber": 16
+        },
+        {
+          "caller": "signPrintAgentJwt",
+          "callee": "Date.now",
+          "lineNumber": 16
+        },
+        {
+          "caller": "signPrintAgentJwt",
+          "callee": "signHmacJwt",
+          "lineNumber": 17
+        },
+        {
+          "caller": "verifyPrintAgentJwt",
+          "callee": "verifyHmacJwt",
+          "lineNumber": 30
+        },
+        {
+          "caller": "verifyPrintAgentJwt",
+          "callee": "Math.floor",
+          "lineNumber": 33
+        },
+        {
+          "caller": "verifyPrintAgentJwt",
+          "callee": "Date.now",
+          "lineNumber": 33
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "packages/shared/src/print-agent-support-jwt.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 47,
+      "nonEmptyLines": 43,
+      "functions": [
+        {
+          "name": "signPrintAgentSupportJwt",
+          "startLine": 15,
+          "endLine": 33,
+          "params": [
+            "claims",
+            "secret",
+            "expiresInSec"
+          ]
+        },
+        {
+          "name": "verifyPrintAgentSupportJwt",
+          "startLine": 35,
+          "endLine": 47,
+          "params": [
+            "token",
+            "secret"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "PRINT_AGENT_SUPPORT_TOKEN_TTL_SEC",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "signPrintAgentSupportJwt",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "verifyPrintAgentSupportJwt",
+          "line": 35,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "signPrintAgentSupportJwt",
+          "callee": "Math.floor",
+          "lineNumber": 20
+        },
+        {
+          "caller": "signPrintAgentSupportJwt",
+          "callee": "Date.now",
+          "lineNumber": 20
+        },
+        {
+          "caller": "signPrintAgentSupportJwt",
+          "callee": "signHmacJwt",
+          "lineNumber": 21
+        },
+        {
+          "caller": "verifyPrintAgentSupportJwt",
+          "callee": "verifyHmacJwt",
+          "lineNumber": 39
+        },
+        {
+          "caller": "verifyPrintAgentSupportJwt",
+          "callee": "Math.floor",
+          "lineNumber": 44
+        },
+        {
+          "caller": "verifyPrintAgentSupportJwt",
+          "callee": "Date.now",
+          "lineNumber": 44
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 3,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    }
+  ]
+}

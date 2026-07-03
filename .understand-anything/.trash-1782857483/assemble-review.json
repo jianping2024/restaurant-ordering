@@ -1,0 +1,22 @@
+{
+  "fixedSectionOk": true,
+  "nodesRecovered": 22,
+  "edgesRestored": 68,
+  "crossBatchEdgesAdded": 38,
+  "typesRemapped": 0,
+  "complexityRemapped": 0,
+  "notes": [
+    "合并脚本已规范化节点 ID 与复杂度；未发现无 id 节点、未知类型或悬空边。",
+    "恢复 22 个被其他批次引用但缺失的 file 节点（多为 UI 组件与工具库）。",
+    "从批次边数据恢复 68 条边；从 importMap 补充 38 条 imports 边。",
+    "WINDOWS-README.txt 以 document 类型存在，批次中 file: 引用已规范为 document: 边。",
+    "仍有 74 个扫描文件无任何图节点（主要为 apps/ops API 路由与部分 web dashboard 页面，上游批次未分析）。",
+    "25 个配置文件/文档以服务或 config/document 类型表示，无独立 file 节点属预期行为。"
+  ],
+  "stats": {
+    "nodes": 1942,
+    "edges": 4432,
+    "fileNodes": 660,
+    "scanFilesWithoutAnyNode": 74
+  }
+}

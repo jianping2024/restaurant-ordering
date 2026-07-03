@@ -1,0 +1,322 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {
+      "path": "apps/web/src/app/api/auth/login/route.ts",
+      "language": "typescript",
+      "sizeLines": 80,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/auth/staff/login/route.ts",
+      "language": "typescript",
+      "sizeLines": 108,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/cron/nightly-close-sessions/route.ts",
+      "language": "typescript",
+      "sizeLines": 42,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/dashboard/staff/[id]/reset-password/route.ts",
+      "language": "typescript",
+      "sizeLines": 67,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/dashboard/staff/[id]/route.ts",
+      "language": "typescript",
+      "sizeLines": 124,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/dashboard/staff/route.ts",
+      "language": "typescript",
+      "sizeLines": 121,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts",
+      "language": "typescript",
+      "sizeLines": 88,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/claim/route.ts",
+      "language": "typescript",
+      "sizeLines": 167,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/devices/[id]/revoke/route.ts",
+      "language": "typescript",
+      "sizeLines": 34,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/heartbeat/route.ts",
+      "language": "typescript",
+      "sizeLines": 84,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/jobs/[id]/route.ts",
+      "language": "typescript",
+      "sizeLines": 138,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/pairing/route.ts",
+      "language": "typescript",
+      "sizeLines": 137,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/pairings/[id]/revoke/route.ts",
+      "language": "typescript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/pairings/route.ts",
+      "language": "typescript",
+      "sizeLines": 47,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/pending-jobs/route.ts",
+      "language": "typescript",
+      "sizeLines": 72,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/print-jobs/[id]/retry/route.ts",
+      "language": "typescript",
+      "sizeLines": 61,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/print-jobs/recent/route.ts",
+      "language": "typescript",
+      "sizeLines": 84,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/print-stations/route.ts",
+      "language": "typescript",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/receipt-printers/route.ts",
+      "language": "typescript",
+      "sizeLines": 76,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/routing/route.ts",
+      "language": "typescript",
+      "sizeLines": 69,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/runtime-config/route.ts",
+      "language": "typescript",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/settings/route.ts",
+      "language": "typescript",
+      "sizeLines": 104,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/print-agent/support-snapshot/route.ts",
+      "language": "typescript",
+      "sizeLines": 65,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/restaurant/features/route.ts",
+      "language": "typescript",
+      "sizeLines": 124,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/restaurant/settings/route.ts",
+      "language": "typescript",
+      "sizeLines": 119,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts",
+      "language": "typescript",
+      "sizeLines": 86,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts",
+      "language": "typescript",
+      "sizeLines": 228,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "apps/web/src/app/api/auth/login/route.ts": [
+      "apps/web/src/lib/auth/login-rate-limit.ts",
+      "apps/web/src/lib/auth/post-login-redirect.ts",
+      "apps/web/src/lib/request-client-ip.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/api/auth/staff/login/route.ts": [
+      "apps/web/src/lib/auth/login-rate-limit.ts",
+      "apps/web/src/lib/auth/post-login-redirect.ts",
+      "apps/web/src/lib/request-client-ip.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/api/cron/nightly-close-sessions/route.ts": [
+      "apps/web/src/lib/auto-close-active-sessions.ts",
+      "apps/web/src/lib/expire-stale-print-jobs.ts",
+      "apps/web/src/lib/run-nightly-auto-close.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/verify-cron-secret.ts"
+    ],
+    "apps/web/src/app/api/dashboard/staff/[id]/reset-password/route.ts": [
+      "apps/web/src/lib/staff-account.ts",
+      "apps/web/src/lib/staff-dashboard-api.ts"
+    ],
+    "apps/web/src/app/api/dashboard/staff/[id]/route.ts": [
+      "apps/web/src/lib/db-migration-error.ts",
+      "apps/web/src/lib/staff-dashboard-api.ts"
+    ],
+    "apps/web/src/app/api/dashboard/staff/route.ts": [
+      "apps/web/src/lib/db-migration-error.ts",
+      "apps/web/src/lib/staff-account.ts",
+      "apps/web/src/lib/staff-dashboard-api.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/api/print-agent/bill-receipt-printer/route.ts": [
+      "apps/web/src/lib/print-agent-config.ts",
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/claim/route.ts": [
+      "apps/web/src/lib/print-agent-auth.ts",
+      "apps/web/src/lib/print-agent-claim-rate-limit.ts",
+      "apps/web/src/lib/print-agent-constants.ts",
+      "apps/web/src/lib/print-agent-jwt.ts",
+      "apps/web/src/lib/request-client-ip.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/devices/[id]/revoke/route.ts": [
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/heartbeat/route.ts": [
+      "apps/web/src/lib/print-agent-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/jobs/[id]/route.ts": [
+      "apps/web/src/lib/print-agent-auth.ts",
+      "apps/web/src/lib/print-agent-routing.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/api/print-agent/pairing/route.ts": [
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/print-agent-pairing-code.ts",
+      "apps/web/src/lib/print-agent-pairing-slots.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/api/print-agent/pairings/[id]/revoke/route.ts": [
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/pairings/route.ts": [
+      "apps/web/src/lib/print-agent-pairing-code.ts",
+      "apps/web/src/lib/print-agent-pairing-slots.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/api/print-agent/pending-jobs/route.ts": [
+      "apps/web/src/lib/expire-stale-print-jobs.ts",
+      "apps/web/src/lib/print-agent-auth.ts",
+      "apps/web/src/lib/print-agent-routing.ts",
+      "apps/web/src/lib/print-job-max-age.ts",
+      "apps/web/src/lib/print-jobs-scope.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/print-jobs/[id]/retry/route.ts": [
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/print-jobs/recent/route.ts": [
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/print-jobs-scope.ts",
+      "apps/web/src/lib/supabase/server.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/app/api/print-agent/print-stations/route.ts": [
+      "apps/web/src/lib/print-agent-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/receipt-printers/route.ts": [
+      "apps/web/src/lib/print-receipt-printer-options.ts",
+      "apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "apps/web/src/lib/staff-api-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts",
+      "apps/web/src/lib/supabase/server.ts"
+    ],
+    "apps/web/src/app/api/print-agent/routing/route.ts": [
+      "apps/web/src/lib/print-agent-auth.ts",
+      "apps/web/src/lib/print-agent-routing.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/runtime-config/route.ts": [
+      "apps/web/src/lib/print-agent-auth.ts",
+      "apps/web/src/lib/print-agent-config.ts",
+      "apps/web/src/lib/print-agent-download.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/settings/route.ts": [
+      "apps/web/src/lib/print-agent-config.ts",
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/print-agent/support-snapshot/route.ts": [
+      "apps/web/src/lib/print-agent-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/restaurant/features/route.ts": [
+      "apps/web/src/lib/db-migration-error.ts",
+      "apps/web/src/lib/print-agent-config.ts",
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/restaurant-features.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/restaurant/settings/route.ts": [
+      "apps/web/src/lib/db-migration-error.ts",
+      "apps/web/src/lib/order-radius.ts",
+      "apps/web/src/lib/print-agent-dashboard-auth.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/checkout/confirm-payment/route.ts": [
+      "apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "apps/web/src/lib/checkout-confirm-payment.ts",
+      "apps/web/src/lib/restaurant-receipt-printers-server.ts"
+    ],
+    "apps/web/src/app/api/restaurants/[slug]/order-receipt/print/route.ts": [
+      "apps/web/src/lib/checkout-confirm-payment-auth.ts",
+      "apps/web/src/lib/checkout-split-math.ts",
+      "apps/web/src/lib/order-receipt-enqueue.ts",
+      "apps/web/src/lib/restaurant-receipt-printers-server.ts",
+      "apps/web/src/lib/restaurant-tables.ts",
+      "apps/web/src/lib/supabase/admin.ts"
+    ]
+  }
+}

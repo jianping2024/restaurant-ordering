@@ -1,0 +1,1371 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/print-agent/credential_expiry.go",
+      "type": "file",
+      "name": "credential_expiry.go",
+      "filePath": "apps/print-agent/credential_expiry.go",
+      "summary": "解析 JWT valid_until 并计算凭证剩余天数，生成状态行与关于页提示文案。",
+      "tags": [
+        "utility",
+        "auth",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/credential_expiry.go:parseValidUntil",
+      "type": "function",
+      "name": "parseValidUntil",
+      "filePath": "apps/print-agent/credential_expiry.go",
+      "lineRange": [
+        11,
+        22
+      ],
+      "summary": "解析凭证 valid_until ISO 时间字符串。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/credential_expiry.go:credentialDaysRemaining",
+      "type": "function",
+      "name": "credentialDaysRemaining",
+      "filePath": "apps/print-agent/credential_expiry.go",
+      "lineRange": [
+        31,
+        44
+      ],
+      "summary": "计算凭证距离到期的剩余整天数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/credential_expiry.go:credentialAboutLine",
+      "type": "function",
+      "name": "credentialAboutLine",
+      "filePath": "apps/print-agent/credential_expiry.go",
+      "lineRange": [
+        54,
+        68
+      ],
+      "summary": "生成关于页凭证到期提示行。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/credential_expiry.go:credentialStatusSuffix",
+      "type": "function",
+      "name": "credentialStatusSuffix",
+      "filePath": "apps/print-agent/credential_expiry.go",
+      "lineRange": [
+        70,
+        79
+      ],
+      "summary": "生成托盘/状态栏凭证到期后缀文案。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:apps/print-agent/dev/fake-printer/go.mod",
+      "type": "config",
+      "name": "go.mod",
+      "filePath": "apps/print-agent/dev/fake-printer/go.mod",
+      "summary": "fake-printer 开发工具的 Go module 声明，用于本地模拟 ESC/POS 9100 端口打印机。",
+      "tags": [
+        "configuration",
+        "development"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/dev/fake-printer/main.go",
+      "type": "file",
+      "name": "main.go",
+      "filePath": "apps/print-agent/dev/fake-printer/main.go",
+      "summary": "开发用 TCP 9100 假打印机：接收 ESC/POS 字节流并解码打印到日志，便于本地联调。",
+      "tags": [
+        "entry-point",
+        "development",
+        "escpos"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/dev/fake-printer/main.go:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "apps/print-agent/dev/fake-printer/main.go",
+      "lineRange": [
+        15,
+        34
+      ],
+      "summary": "fake-printer 入口：监听 TCP 9100 并接受连接。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/dev/fake-printer/main.go:handleConn",
+      "type": "function",
+      "name": "handleConn",
+      "filePath": "apps/print-agent/dev/fake-printer/main.go",
+      "lineRange": [
+        43,
+        55
+      ],
+      "summary": "处理单次打印机连接并读取 ESC/POS 数据。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/dev/fake-printer/main.go:decodeEscPos",
+      "type": "function",
+      "name": "decodeEscPos",
+      "filePath": "apps/print-agent/dev/fake-printer/main.go",
+      "lineRange": [
+        58,
+        125
+      ],
+      "summary": "将 ESC/POS 控制序列解码为人类可读日志输出。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/print-agent/discover.go",
+      "type": "file",
+      "name": "discover.go",
+      "filePath": "apps/print-agent/discover.go",
+      "summary": "扫描本地子网 TCP 9100 端口以发现局域网 ESC/POS 打印机，供配置向导展示。",
+      "tags": [
+        "service",
+        "network",
+        "discovery"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/discover.go:localScanSubnets",
+      "type": "function",
+      "name": "localScanSubnets",
+      "filePath": "apps/print-agent/discover.go",
+      "lineRange": [
+        20,
+        59
+      ],
+      "summary": "枚举本机网卡所在 /24 子网供扫描。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/discover.go:hostsInSubnet",
+      "type": "function",
+      "name": "hostsInSubnet",
+      "filePath": "apps/print-agent/discover.go",
+      "lineRange": [
+        61,
+        85
+      ],
+      "summary": "生成子网内候选主机 IP 列表。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/discover.go:discoverPrinters9100",
+      "type": "function",
+      "name": "discoverPrinters9100",
+      "filePath": "apps/print-agent/discover.go",
+      "lineRange": [
+        97,
+        145
+      ],
+      "summary": "并发探测子网主机 9100 端口并收集响应。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/print-agent/discover.go:runDiscover",
+      "type": "function",
+      "name": "runDiscover",
+      "filePath": "apps/print-agent/discover.go",
+      "lineRange": [
+        147,
+        195
+      ],
+      "summary": "执行完整发现流程并返回 discoveredPrinter 列表。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/print-agent/escpos_cut_test.go",
+      "type": "file",
+      "name": "escpos_cut_test.go",
+      "filePath": "apps/print-agent/escpos_cut_test.go",
+      "summary": "验证切纸序列、票面上/下边距及双倍高度对切纸点位置的影响。",
+      "tags": [
+        "test",
+        "escpos"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_cut_test.go:marginLinesBeforeContent",
+      "type": "function",
+      "name": "marginLinesBeforeContent",
+      "filePath": "apps/print-agent/escpos_cut_test.go",
+      "lineRange": [
+        14,
+        24
+      ],
+      "summary": "计算切纸序列前的空白行数。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_cut_test.go:TestCutSequenceUsesFeedThenCut",
+      "type": "function",
+      "name": "TestCutSequenceUsesFeedThenCut",
+      "filePath": "apps/print-agent/escpos_cut_test.go",
+      "lineRange": [
+        35,
+        50
+      ],
+      "summary": "TestCutSequenceUsesFeedThenCut 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_cut_test.go:TestTicketTopMarginMinimal",
+      "type": "function",
+      "name": "TestTicketTopMarginMinimal",
+      "filePath": "apps/print-agent/escpos_cut_test.go",
+      "lineRange": [
+        52,
+        60
+      ],
+      "summary": "TestTicketTopMarginMinimal 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_cut_test.go:TestTicketBottomMarginBeforeCut",
+      "type": "function",
+      "name": "TestTicketBottomMarginBeforeCut",
+      "filePath": "apps/print-agent/escpos_cut_test.go",
+      "lineRange": [
+        62,
+        78
+      ],
+      "summary": "TestTicketBottomMarginBeforeCut 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_cut_test.go:TestCutDotsIncreaseWhenDoubleHeight",
+      "type": "function",
+      "name": "TestCutDotsIncreaseWhenDoubleHeight",
+      "filePath": "apps/print-agent/escpos_cut_test.go",
+      "lineRange": [
+        80,
+        95
+      ],
+      "summary": "TestCutDotsIncreaseWhenDoubleHeight 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_cut_test.go:containsSubslice",
+      "type": "function",
+      "name": "containsSubslice",
+      "filePath": "apps/print-agent/escpos_cut_test.go",
+      "lineRange": [
+        97,
+        114
+      ],
+      "summary": "检测字节切片中是否包含子序列。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/escpos_encoding_test.go",
+      "type": "file",
+      "name": "escpos_encoding_test.go",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "summary": "测试 Windows-1252/GBK 编码、中文检测及分账付款人格式化行为。",
+      "tags": [
+        "test",
+        "encoding"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeWindows1252Portuguese",
+      "type": "function",
+      "name": "TestEncodeWindows1252Portuguese",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "lineRange": [
+        8,
+        13
+      ],
+      "summary": "TestEncodeWindows1252Portuguese 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeGBKChinese",
+      "type": "function",
+      "name": "TestEncodeGBKChinese",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "lineRange": [
+        15,
+        20
+      ],
+      "summary": "TestEncodeGBKChinese 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding_test.go:TestPayloadNeedsGBK",
+      "type": "function",
+      "name": "TestPayloadNeedsGBK",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "lineRange": [
+        22,
+        29
+      ],
+      "summary": "TestPayloadNeedsGBK 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding_test.go:TestReceiptTicketNeedsGBKPayer",
+      "type": "function",
+      "name": "TestReceiptTicketNeedsGBKPayer",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "lineRange": [
+        31,
+        41
+      ],
+      "summary": "TestReceiptTicketNeedsGBKPayer 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding_test.go:TestReceiptTicketNeedsGBKIgnoresRestaurantName",
+      "type": "function",
+      "name": "TestReceiptTicketNeedsGBKIgnoresRestaurantName",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "lineRange": [
+        43,
+        50
+      ],
+      "summary": "TestReceiptTicketNeedsGBKIgnoresRestaurantName 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding_test.go:TestConnectionTestNeedsGBK",
+      "type": "function",
+      "name": "TestConnectionTestNeedsGBK",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "lineRange": [
+        52,
+        68
+      ],
+      "summary": "TestConnectionTestNeedsGBK 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding_test.go:TestFormatSplitPayerForReceipt",
+      "type": "function",
+      "name": "TestFormatSplitPayerForReceipt",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "lineRange": [
+        70,
+        80
+      ],
+      "summary": "TestFormatSplitPayerForReceipt 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeWindows1252OmitsUnmappable",
+      "type": "function",
+      "name": "TestEncodeWindows1252OmitsUnmappable",
+      "filePath": "apps/print-agent/escpos_encoding_test.go",
+      "lineRange": [
+        82,
+        87
+      ],
+      "summary": "TestEncodeWindows1252OmitsUnmappable 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/print-agent/escpos_encoding.go",
+      "type": "file",
+      "name": "escpos_encoding.go",
+      "filePath": "apps/print-agent/escpos_encoding.go",
+      "summary": "按 locale 选择 Latin/GBK 编码，检测中文内容并格式化分账付款人标签。",
+      "tags": [
+        "utility",
+        "encoding",
+        "i18n"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding.go:formatSplitPayerForReceipt",
+      "type": "function",
+      "name": "formatSplitPayerForReceipt",
+      "filePath": "apps/print-agent/escpos_encoding.go",
+      "lineRange": [
+        15,
+        24
+      ],
+      "summary": "格式化分账付款人显示标签。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding.go:payloadNeedsGBK",
+      "type": "function",
+      "name": "payloadNeedsGBK",
+      "filePath": "apps/print-agent/escpos_encoding.go",
+      "lineRange": [
+        35,
+        48
+      ],
+      "summary": "判断 print job payload 是否需要 GBK 编码。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding.go:stationTicketNeedsGBK",
+      "type": "function",
+      "name": "stationTicketNeedsGBK",
+      "filePath": "apps/print-agent/escpos_encoding.go",
+      "lineRange": [
+        51,
+        61
+      ],
+      "summary": "判断档口票内容是否需要 GBK。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding.go:receiptTicketNeedsGBK",
+      "type": "function",
+      "name": "receiptTicketNeedsGBK",
+      "filePath": "apps/print-agent/escpos_encoding.go",
+      "lineRange": [
+        83,
+        96
+      ],
+      "summary": "判断小票内容是否需要 GBK。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding.go:labelsASCII",
+      "type": "function",
+      "name": "labelsASCII",
+      "filePath": "apps/print-agent/escpos_encoding.go",
+      "lineRange": [
+        107,
+        130
+      ],
+      "summary": "返回 ASCII 档口票固定标签。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding.go:encodeWindows1252",
+      "type": "function",
+      "name": "encodeWindows1252",
+      "filePath": "apps/print-agent/escpos_encoding.go",
+      "lineRange": [
+        132,
+        152
+      ],
+      "summary": "将字符串编码为 Windows-1252 字节。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_encoding.go:encodeGBK",
+      "type": "function",
+      "name": "encodeGBK",
+      "filePath": "apps/print-agent/escpos_encoding.go",
+      "lineRange": [
+        154,
+        171
+      ],
+      "summary": "将含中文的字符串编码为 GBK 字节。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/escpos_receipt_test.go",
+      "type": "file",
+      "name": "escpos_receipt_test.go",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "summary": "覆盖订单小票、预结单、结账单布局、分账标签及多语言菜单分隔符的回归测试。",
+      "tags": [
+        "test",
+        "escpos",
+        "receipt"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptEnglishLayout",
+      "type": "function",
+      "name": "TestBuildOrderReceiptEnglishLayout",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        10,
+        55
+      ],
+      "summary": "TestBuildOrderReceiptEnglishLayout 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptItemsHeaderFollowsMenuSeparator",
+      "type": "function",
+      "name": "TestReceiptItemsHeaderFollowsMenuSeparator",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        57,
+        85
+      ],
+      "summary": "TestReceiptItemsHeaderFollowsMenuSeparator 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptBuffetShareQtyLabel",
+      "type": "function",
+      "name": "TestBuildOrderReceiptBuffetShareQtyLabel",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        87,
+        111
+      ],
+      "summary": "TestBuildOrderReceiptBuffetShareQtyLabel 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptSplitPaymentShareQtyLabel",
+      "type": "function",
+      "name": "TestBuildOrderReceiptSplitPaymentShareQtyLabel",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        113,
+        139
+      ],
+      "summary": "TestBuildOrderReceiptSplitPaymentShareQtyLabel 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptSplitPaymentGuestNumber",
+      "type": "function",
+      "name": "TestBuildOrderReceiptSplitPaymentGuestNumber",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        141,
+        165
+      ],
+      "summary": "TestBuildOrderReceiptSplitPaymentGuestNumber 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestParseJobPayloadDisplayNameFromJSON",
+      "type": "function",
+      "name": "TestParseJobPayloadDisplayNameFromJSON",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        167,
+        176
+      ],
+      "summary": "TestParseJobPayloadDisplayNameFromJSON 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestCheckoutBillOmitsPaymentLines",
+      "type": "function",
+      "name": "TestCheckoutBillOmitsPaymentLines",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        178,
+        200
+      ],
+      "summary": "TestCheckoutBillOmitsPaymentLines 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestPreBillOmitsPaymentLines",
+      "type": "function",
+      "name": "TestPreBillOmitsPaymentLines",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        202,
+        217
+      ],
+      "summary": "TestPreBillOmitsPaymentLines 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant",
+      "type": "function",
+      "name": "TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        219,
+        242
+      ],
+      "summary": "TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestPreBillTitleEnglishLocale",
+      "type": "function",
+      "name": "TestPreBillTitleEnglishLocale",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        244,
+        257
+      ],
+      "summary": "TestPreBillTitleEnglishLocale 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptItemNoteUsesUnderline",
+      "type": "function",
+      "name": "TestReceiptItemNoteUsesUnderline",
+      "filePath": "apps/print-agent/escpos_receipt_test.go",
+      "lineRange": [
+        259,
+        284
+      ],
+      "summary": "TestReceiptItemNoteUsesUnderline 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/print-agent/escpos_station_test.go",
+      "type": "file",
+      "name": "escpos_station_test.go",
+      "filePath": "apps/print-agent/escpos_station_test.go",
+      "summary": "验证厨房/档口 station ticket 英文布局、备注下划线及 GBK 判定规则。",
+      "tags": [
+        "test",
+        "escpos",
+        "kitchen"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_station_test.go:TestBuildStationTicketEnglishLayout",
+      "type": "function",
+      "name": "TestBuildStationTicketEnglishLayout",
+      "filePath": "apps/print-agent/escpos_station_test.go",
+      "lineRange": [
+        10,
+        77
+      ],
+      "summary": "TestBuildStationTicketEnglishLayout 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_station_test.go:TestStationTicketItemNoteUsesUnderline",
+      "type": "function",
+      "name": "TestStationTicketItemNoteUsesUnderline",
+      "filePath": "apps/print-agent/escpos_station_test.go",
+      "lineRange": [
+        79,
+        100
+      ],
+      "summary": "TestStationTicketItemNoteUsesUnderline 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/print-agent/escpos_station_test.go:TestStationTicketNeedsGBKIgnoresRestaurantName",
+      "type": "function",
+      "name": "TestStationTicketNeedsGBKIgnoresRestaurantName",
+      "filePath": "apps/print-agent/escpos_station_test.go",
+      "lineRange": [
+        102,
+        109
+      ],
+      "summary": "TestStationTicketNeedsGBKIgnoresRestaurantName 函数。",
+      "tags": [
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:apps/print-agent/discover.go:discoveredPrinter",
+      "type": "class",
+      "name": "discoveredPrinter",
+      "filePath": "apps/print-agent/discover.go",
+      "lineRange": [
+        14,
+        18
+      ],
+      "summary": "局域网发现的打印机记录：IP、端口与探测延迟。",
+      "tags": [
+        "data-model"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/print-agent/credential_expiry.go",
+      "target": "function:apps/print-agent/credential_expiry.go:parseValidUntil",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/credential_expiry.go",
+      "target": "function:apps/print-agent/credential_expiry.go:credentialDaysRemaining",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/credential_expiry.go",
+      "target": "function:apps/print-agent/credential_expiry.go:credentialAboutLine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/credential_expiry.go",
+      "target": "function:apps/print-agent/credential_expiry.go:credentialStatusSuffix",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/dev/fake-printer/main.go",
+      "target": "function:apps/print-agent/dev/fake-printer/main.go:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/dev/fake-printer/main.go",
+      "target": "function:apps/print-agent/dev/fake-printer/main.go:handleConn",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/dev/fake-printer/main.go",
+      "target": "function:apps/print-agent/dev/fake-printer/main.go:decodeEscPos",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/discover.go",
+      "target": "function:apps/print-agent/discover.go:localScanSubnets",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/discover.go",
+      "target": "function:apps/print-agent/discover.go:hostsInSubnet",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/discover.go",
+      "target": "function:apps/print-agent/discover.go:discoverPrinters9100",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/discover.go",
+      "target": "function:apps/print-agent/discover.go:runDiscover",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:marginLinesBeforeContent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:TestCutSequenceUsesFeedThenCut",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:TestCutSequenceUsesFeedThenCut",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:TestTicketTopMarginMinimal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:TestTicketTopMarginMinimal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:TestTicketBottomMarginBeforeCut",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:TestTicketBottomMarginBeforeCut",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:TestCutDotsIncreaseWhenDoubleHeight",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:TestCutDotsIncreaseWhenDoubleHeight",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_cut_test.go",
+      "target": "function:apps/print-agent/escpos_cut_test.go:containsSubslice",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeWindows1252Portuguese",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeWindows1252Portuguese",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeGBKChinese",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeGBKChinese",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestPayloadNeedsGBK",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestPayloadNeedsGBK",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestReceiptTicketNeedsGBKPayer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestReceiptTicketNeedsGBKPayer",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestReceiptTicketNeedsGBKIgnoresRestaurantName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestReceiptTicketNeedsGBKIgnoresRestaurantName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestConnectionTestNeedsGBK",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestConnectionTestNeedsGBK",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestFormatSplitPayerForReceipt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestFormatSplitPayerForReceipt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeWindows1252OmitsUnmappable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding_test.go",
+      "target": "function:apps/print-agent/escpos_encoding_test.go:TestEncodeWindows1252OmitsUnmappable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding.go",
+      "target": "function:apps/print-agent/escpos_encoding.go:formatSplitPayerForReceipt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding.go",
+      "target": "function:apps/print-agent/escpos_encoding.go:payloadNeedsGBK",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding.go",
+      "target": "function:apps/print-agent/escpos_encoding.go:stationTicketNeedsGBK",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding.go",
+      "target": "function:apps/print-agent/escpos_encoding.go:receiptTicketNeedsGBK",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding.go",
+      "target": "function:apps/print-agent/escpos_encoding.go:labelsASCII",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding.go",
+      "target": "function:apps/print-agent/escpos_encoding.go:encodeWindows1252",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding.go",
+      "target": "function:apps/print-agent/escpos_encoding.go:encodeGBK",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptEnglishLayout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptEnglishLayout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptItemsHeaderFollowsMenuSeparator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptItemsHeaderFollowsMenuSeparator",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptBuffetShareQtyLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptBuffetShareQtyLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptSplitPaymentShareQtyLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptSplitPaymentShareQtyLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptSplitPaymentGuestNumber",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestBuildOrderReceiptSplitPaymentGuestNumber",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestParseJobPayloadDisplayNameFromJSON",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestParseJobPayloadDisplayNameFromJSON",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestCheckoutBillOmitsPaymentLines",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestCheckoutBillOmitsPaymentLines",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestPreBillOmitsPaymentLines",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestPreBillOmitsPaymentLines",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptPortugueseMenuUsesLatinDespiteChineseRestaurant",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestPreBillTitleEnglishLocale",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestPreBillTitleEnglishLocale",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptItemNoteUsesUnderline",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_receipt_test.go",
+      "target": "function:apps/print-agent/escpos_receipt_test.go:TestReceiptItemNoteUsesUnderline",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_station_test.go",
+      "target": "function:apps/print-agent/escpos_station_test.go:TestBuildStationTicketEnglishLayout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_station_test.go",
+      "target": "function:apps/print-agent/escpos_station_test.go:TestBuildStationTicketEnglishLayout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_station_test.go",
+      "target": "function:apps/print-agent/escpos_station_test.go:TestStationTicketItemNoteUsesUnderline",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_station_test.go",
+      "target": "function:apps/print-agent/escpos_station_test.go:TestStationTicketItemNoteUsesUnderline",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/escpos_station_test.go",
+      "target": "function:apps/print-agent/escpos_station_test.go:TestStationTicketNeedsGBKIgnoresRestaurantName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/print-agent/escpos_station_test.go",
+      "target": "function:apps/print-agent/escpos_station_test.go:TestStationTicketNeedsGBKIgnoresRestaurantName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/print-agent/credential_expiry.go",
+      "target": "file:apps/print-agent/credential_expiry_test.go",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/escpos_encoding.go",
+      "target": "file:apps/print-agent/escpos_encoding_test.go",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:apps/print-agent/credential_expiry.go:credentialAboutLine",
+      "target": "function:apps/print-agent/credential_expiry.go:credentialDaysRemaining",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "config:apps/print-agent/dev/fake-printer/go.mod",
+      "target": "file:apps/print-agent/dev/fake-printer/main.go",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:apps/print-agent/discover.go",
+      "target": "file:apps/print-agent/configure_wizard.go",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/print-agent/discover.go",
+      "target": "class:apps/print-agent/discover.go:discoveredPrinter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    }
+  ]
+}

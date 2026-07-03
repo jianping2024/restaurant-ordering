@@ -1,0 +1,295 @@
+{
+  "projectRoot": "/Users/chenjianping/Documents/restaurant-ordering",
+  "batchFiles": [
+    {
+      "path": "apps/web/src/lib/audit/builders/unpaid-table-closed.ts",
+      "language": "typescript",
+      "sizeLines": 45,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/audit/index.ts",
+      "language": "typescript",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/audit/money.ts",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/audit/operation-log.repository.ts",
+      "language": "typescript",
+      "sizeLines": 48,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/audit/reasons.ts",
+      "language": "typescript",
+      "sizeLines": 62,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/audit/registry.ts",
+      "language": "typescript",
+      "sizeLines": 26,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/audit/resolve-actor.ts",
+      "language": "typescript",
+      "sizeLines": 49,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/audit/types.ts",
+      "language": "typescript",
+      "sizeLines": 55,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/audit/validate-abnormal-reason.test.ts",
+      "language": "typescript",
+      "sizeLines": 34,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/audit/validate-abnormal-reason.ts",
+      "language": "typescript",
+      "sizeLines": 34,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/checkout-discount/apply-bill-split-discount.test.ts",
+      "language": "typescript",
+      "sizeLines": 135,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts",
+      "language": "typescript",
+      "sizeLines": 138,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/checkout-discount/record-discount-audit.ts",
+      "language": "typescript",
+      "sizeLines": 68,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/checkout-discount/validate-discount-reason.test.ts",
+      "language": "typescript",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/checkout-discount/validate-discount-reason.ts",
+      "language": "typescript",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/close-table-session-ui.test.ts",
+      "language": "typescript",
+      "sizeLines": 68,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/close-table-session-ui.ts",
+      "language": "typescript",
+      "sizeLines": 56,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/in-memory-rate-limit.ts",
+      "language": "typescript",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts",
+      "language": "typescript",
+      "sizeLines": 13,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/order-item-void/decrement-order-item.service.test.ts",
+      "language": "typescript",
+      "sizeLines": 173,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "language": "typescript",
+      "sizeLines": 161,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/order-item-void/detect-newly-voided.test.ts",
+      "language": "typescript",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "language": "typescript",
+      "sizeLines": 32,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/order-item-void/patch-order-items.service.ts",
+      "language": "typescript",
+      "sizeLines": 114,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/order-item-void/validate-void-reason.test.ts",
+      "language": "typescript",
+      "sizeLines": 54,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/order-item-void/validate-void-reason.ts",
+      "language": "typescript",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/table-session/close-table-session.repository.ts",
+      "language": "typescript",
+      "sizeLines": 109,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/table-session/close-table-session.service.test.ts",
+      "language": "typescript",
+      "sizeLines": 43,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/table-session/close-table-session.service.ts",
+      "language": "typescript",
+      "sizeLines": 121,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "apps/web/src/lib/audit/builders/unpaid-table-closed.ts": [
+      "apps/web/src/lib/audit/money.ts",
+      "apps/web/src/lib/audit/types.ts"
+    ],
+    "apps/web/src/lib/audit/index.ts": [],
+    "apps/web/src/lib/audit/money.ts": [],
+    "apps/web/src/lib/audit/operation-log.repository.ts": [],
+    "apps/web/src/lib/audit/reasons.ts": [],
+    "apps/web/src/lib/audit/registry.ts": [
+      "apps/web/src/lib/audit/builders/abnormal-owner-action.ts",
+      "apps/web/src/lib/audit/builders/discount-applied.ts",
+      "apps/web/src/lib/audit/builders/item-deleted.ts",
+      "apps/web/src/lib/audit/builders/item-qty-decremented.ts",
+      "apps/web/src/lib/audit/builders/unpaid-table-closed.ts",
+      "apps/web/src/lib/audit/types.ts"
+    ],
+    "apps/web/src/lib/audit/resolve-actor.ts": [
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/lib/staff-account.ts"
+    ],
+    "apps/web/src/lib/audit/types.ts": [
+      "apps/web/src/lib/abnormal-operations/types.ts"
+    ],
+    "apps/web/src/lib/audit/validate-abnormal-reason.test.ts": [
+      "apps/web/src/lib/audit/validate-abnormal-reason.ts"
+    ],
+    "apps/web/src/lib/audit/validate-abnormal-reason.ts": [
+      "apps/web/src/lib/audit/reasons.ts"
+    ],
+    "apps/web/src/lib/checkout-discount/apply-bill-split-discount.test.ts": [
+      "apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts"
+    ],
+    "apps/web/src/lib/checkout-discount/apply-bill-split-discount.ts": [
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/lib/checkout-discount/record-discount-audit.ts",
+      "apps/web/src/lib/checkout-discount/validate-discount-reason.ts",
+      "apps/web/src/lib/checkout-split-math.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/checkout-discount/record-discount-audit.ts": [
+      "apps/web/src/lib/audit/builders/discount-applied.ts",
+      "apps/web/src/lib/audit/index.ts",
+      "apps/web/src/lib/audit/types.ts"
+    ],
+    "apps/web/src/lib/checkout-discount/validate-discount-reason.test.ts": [
+      "apps/web/src/lib/checkout-discount/validate-discount-reason.ts"
+    ],
+    "apps/web/src/lib/checkout-discount/validate-discount-reason.ts": [
+      "apps/web/src/lib/audit/validate-abnormal-reason.ts"
+    ],
+    "apps/web/src/lib/close-table-session-ui.test.ts": [
+      "apps/web/src/lib/close-table-session-ui.ts"
+    ],
+    "apps/web/src/lib/close-table-session-ui.ts": [],
+    "apps/web/src/lib/in-memory-rate-limit.ts": [],
+    "apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts": [
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/decrement-order-item.service.test.ts": [
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/lib/order-item-void/decrement-order-item.service.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/decrement-order-item.service.ts": [
+      "apps/web/src/lib/audit/builders/item-deleted.ts",
+      "apps/web/src/lib/audit/builders/item-qty-decremented.ts",
+      "apps/web/src/lib/audit/index.ts",
+      "apps/web/src/lib/audit/money.ts",
+      "apps/web/src/lib/audit/reasons.ts",
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts",
+      "apps/web/src/lib/order-item-void/decrement-order-item.ts",
+      "apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "apps/web/src/lib/order-item-void/validate-void-reason.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/detect-newly-voided.test.ts": [
+      "apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/detect-newly-voided.ts": [
+      "apps/web/src/lib/order-status.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/patch-order-items.service.ts": [
+      "apps/web/src/lib/audit/builders/item-deleted.ts",
+      "apps/web/src/lib/audit/index.ts",
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/lib/order-item-void/apply-void-reason-to-items.ts",
+      "apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "apps/web/src/lib/order-item-void/persist-order-items-update.ts",
+      "apps/web/src/lib/order-item-void/validate-void-reason.ts",
+      "apps/web/src/types/index.ts"
+    ],
+    "apps/web/src/lib/order-item-void/validate-void-reason.test.ts": [
+      "apps/web/src/lib/order-item-void/detect-newly-voided.ts",
+      "apps/web/src/lib/order-item-void/validate-void-reason.ts"
+    ],
+    "apps/web/src/lib/order-item-void/validate-void-reason.ts": [
+      "apps/web/src/lib/audit/validate-abnormal-reason.ts",
+      "apps/web/src/lib/order-item-void/detect-newly-voided.ts"
+    ],
+    "apps/web/src/lib/table-session/close-table-session.repository.ts": [],
+    "apps/web/src/lib/table-session/close-table-session.service.test.ts": [
+      "apps/web/src/lib/table-session/close-table-session.service.ts"
+    ],
+    "apps/web/src/lib/table-session/close-table-session.service.ts": [
+      "apps/web/src/lib/audit/builders/unpaid-table-closed.ts",
+      "apps/web/src/lib/audit/index.ts",
+      "apps/web/src/lib/audit/money.ts",
+      "apps/web/src/lib/audit/types.ts",
+      "apps/web/src/lib/audit/validate-abnormal-reason.ts",
+      "apps/web/src/lib/table-session/close-table-session.repository.ts"
+    ]
+  }
+}

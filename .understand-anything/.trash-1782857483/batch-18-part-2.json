@@ -1,0 +1,1014 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/use-restaurant-realtime-refresh.ts",
+      "type": "file",
+      "name": "use-restaurant-realtime-refresh.ts",
+      "filePath": "apps/web/src/lib/use-restaurant-realtime-refresh.ts",
+      "summary": "React hook：订阅订单/会话/分账表的 Realtime 变更，在页面可见时防抖触发看板刷新。",
+      "tags": [
+        "hook",
+        "realtime",
+        "supabase",
+        "event-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-board-permissions.ts",
+      "type": "file",
+      "name": "waiter-board-permissions.ts",
+      "filePath": "apps/web/src/lib/waiter-board-permissions.ts",
+      "summary": "服务员看板 UI 权限：判断桌台卡片是否可点击及格式化结账置顶分区标题。",
+      "tags": [
+        "utility",
+        "waiter-board",
+        "permissions",
+        "ui"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-board-section-preference.test.ts",
+      "type": "file",
+      "name": "waiter-board-section-preference.test.ts",
+      "filePath": "apps/web/src/lib/waiter-board-section-preference.test.ts",
+      "summary": "测试服务员看板分区折叠偏好的 localStorage 读写与容错解析。",
+      "tags": [
+        "test",
+        "local-storage",
+        "waiter-board"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-board-section-preference.ts",
+      "type": "file",
+      "name": "waiter-board-section-preference.ts",
+      "filePath": "apps/web/src/lib/waiter-board-section-preference.ts",
+      "summary": "持久化服务员看板各分区折叠状态到 localStorage，按餐厅 ID 隔离存储键。",
+      "tags": [
+        "utility",
+        "local-storage",
+        "waiter-board",
+        "preferences"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-board-session.test.ts",
+      "type": "file",
+      "name": "waiter-board-session.test.ts",
+      "filePath": "apps/web/src/lib/waiter-board-session.test.ts",
+      "summary": "测试服务员看板会话状态分类、搜索过滤、时长格式与统计汇总逻辑。",
+      "tags": [
+        "test",
+        "waiter-board",
+        "session",
+        "filtering"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-board-session.ts",
+      "type": "file",
+      "name": "waiter-board-session.ts",
+      "filePath": "apps/web/src/lib/waiter-board-session.ts",
+      "summary": "服务员看板会话层：桌台状态分类（空闲/占用/结账中）、搜索过滤、卡片副标题与看板统计。",
+      "tags": [
+        "utility",
+        "waiter-board",
+        "session",
+        "i18n"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-decrement-order-item-client.ts",
+      "type": "file",
+      "name": "waiter-decrement-order-item-client.ts",
+      "filePath": "apps/web/src/lib/waiter-decrement-order-item-client.ts",
+      "summary": "浏览器端 POST 请求，调用服务员减菜 API 并返回结构化成功/错误结果。",
+      "tags": [
+        "api-handler",
+        "client",
+        "waiter",
+        "orders"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-table-detail-actions.test.ts",
+      "type": "file",
+      "name": "waiter-table-detail-actions.test.ts",
+      "filePath": "apps/web/src/lib/waiter-table-detail-actions.test.ts",
+      "summary": "测试桌台详情页可用操作按钮解析：开台、转台、并台、结账等按会话与权限组合。",
+      "tags": [
+        "test",
+        "waiter",
+        "actions"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-table-detail-actions.ts",
+      "type": "file",
+      "name": "waiter-table-detail-actions.ts",
+      "filePath": "apps/web/src/lib/waiter-table-detail-actions.ts",
+      "summary": "根据桌台会话、占用与结账状态解析服务员桌台详情页应展示的操作按钮集合。",
+      "tags": [
+        "utility",
+        "waiter",
+        "actions",
+        "ui"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-table-occupancy.ts",
+      "type": "file",
+      "name": "waiter-table-occupancy.ts",
+      "filePath": "apps/web/src/lib/waiter-table-occupancy.ts",
+      "summary": "判断桌台是否占用、汇总活跃桌台 ID，并过滤转台/并台操作的目标桌台列表。",
+      "tags": [
+        "utility",
+        "waiter-board",
+        "occupancy",
+        "transfer-merge"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/waiter-table-orders.ts",
+      "type": "file",
+      "name": "waiter-table-orders.ts",
+      "filePath": "apps/web/src/lib/waiter-table-orders.ts",
+      "summary": "按活跃会话过滤桌台订单，将会话元数据映射为当前桌台可见订单子集。",
+      "tags": [
+        "utility",
+        "orders",
+        "session",
+        "filtering"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/use-restaurant-realtime-refresh.ts:useRestaurantRealtimeRefresh",
+      "type": "function",
+      "name": "useRestaurantRealtimeRefresh",
+      "filePath": "apps/web/src/lib/use-restaurant-realtime-refresh.ts",
+      "lineRange": [
+        11,
+        100
+      ],
+      "summary": "订阅订单/会话/分账变更，页面可见时防抖刷新看板数据。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-board-permissions.ts:isWaiterBoardTableCardClickable",
+      "type": "function",
+      "name": "isWaiterBoardTableCardClickable",
+      "filePath": "apps/web/src/lib/waiter-board-permissions.ts",
+      "lineRange": [
+        4,
+        10
+      ],
+      "summary": "判断嵌入 dashboard 时桌台卡片是否允许点击进入详情。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-board-permissions.ts:formatCheckoutPinnedSectionTitle",
+      "type": "function",
+      "name": "formatCheckoutPinnedSectionTitle",
+      "filePath": "apps/web/src/lib/waiter-board-permissions.ts",
+      "lineRange": [
+        12,
+        14
+      ],
+      "summary": "将结账置顶分区标题中的占位符替换为实际数量。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-board-section-preference.ts:waiterBoardCollapsedStorageKey",
+      "type": "function",
+      "name": "waiterBoardCollapsedStorageKey",
+      "filePath": "apps/web/src/lib/waiter-board-section-preference.ts",
+      "lineRange": [
+        3,
+        5
+      ],
+      "summary": "生成餐厅维度的看板分区折叠状态 localStorage 键。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-board-section-preference.ts:loadWaiterBoardCollapsedSectionIds",
+      "type": "function",
+      "name": "loadWaiterBoardCollapsedSectionIds",
+      "filePath": "apps/web/src/lib/waiter-board-section-preference.ts",
+      "lineRange": [
+        7,
+        18
+      ],
+      "summary": "从 localStorage 读取已折叠分区 ID 列表并容错解析。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-board-section-preference.ts:saveWaiterBoardCollapsedSectionIds",
+      "type": "function",
+      "name": "saveWaiterBoardCollapsedSectionIds",
+      "filePath": "apps/web/src/lib/waiter-board-section-preference.ts",
+      "lineRange": [
+        20,
+        33
+      ],
+      "summary": "将折叠分区 ID 集合序列化写入 localStorage。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-board-session.ts:classifyWaiterTableBoardState",
+      "type": "function",
+      "name": "classifyWaiterTableBoardState",
+      "filePath": "apps/web/src/lib/waiter-board-session.ts",
+      "lineRange": [
+        15,
+        26
+      ],
+      "summary": "将桌台分类为 checkout_pending、occupied 或 vacant 看板状态。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-board-session.ts:filterWaiterBoardTableIds",
+      "type": "function",
+      "name": "filterWaiterBoardTableIds",
+      "filePath": "apps/web/src/lib/waiter-board-session.ts",
+      "lineRange": [
+        28,
+        40
+      ],
+      "summary": "按看板筛选器（全部/占用/空闲/结账）过滤桌台 ID 列表。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-board-session.ts:tableMatchesWaiterBoardSearch",
+      "type": "function",
+      "name": "tableMatchesWaiterBoardSearch",
+      "filePath": "apps/web/src/lib/waiter-board-session.ts",
+      "lineRange": [
+        43,
+        47
+      ],
+      "summary": "判断桌台 display_name 是否匹配搜索关键词（大小写不敏感）。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-board-session.ts:filterWaiterBoardTableIdsBySearch",
+      "type": "function",
+      "name": "filterWaiterBoardTableIdsBySearch",
+      "filePath": "apps/web/src/lib/waiter-board-session.ts",
+      "lineRange": [
+        49,
+        60
+      ],
+      "summary": "结合 display_name 映射对桌台 ID 做搜索过滤。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-board-session.ts:activeSessionIdByTableIdFromMeta",
+      "type": "function",
+      "name": "activeSessionIdByTableIdFromMeta",
+      "filePath": "apps/web/src/lib/waiter-board-session.ts",
+      "lineRange": [
+        89,
+        97
+      ],
+      "summary": "从会话元数据映射提取各桌台活跃 session_id。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-board-session.ts:demoSessionMetaFromOrders",
+      "type": "function",
+      "name": "demoSessionMetaFromOrders",
+      "filePath": "apps/web/src/lib/waiter-board-session.ts",
+      "lineRange": [
+        100,
+        114
+      ],
+      "summary": "演示模式下由订单行推导伪会话元数据。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-board-session.ts:formatSessionDurationHm",
+      "type": "function",
+      "name": "formatSessionDurationHm",
+      "filePath": "apps/web/src/lib/waiter-board-session.ts",
+      "lineRange": [
+        117,
+        134
+      ],
+      "summary": "将会话开台时长格式化为本地化小时/分钟文案。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-board-session.ts:buildWaiterTableCardSubtitle",
+      "type": "function",
+      "name": "buildWaiterTableCardSubtitle",
+      "filePath": "apps/web/src/lib/waiter-board-session.ts",
+      "lineRange": [
+        136,
+        172
+      ],
+      "summary": "组合客人数、时长与会话金额生成桌台卡片副标题。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-board-session.ts:computeWaiterBoardStats",
+      "type": "function",
+      "name": "computeWaiterBoardStats",
+      "filePath": "apps/web/src/lib/waiter-board-session.ts",
+      "lineRange": [
+        174,
+        200
+      ],
+      "summary": "汇总看板桌台总数、占用数与结账待处理数。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-decrement-order-item-client.ts:postWaiterDecrementOrderItemClient",
+      "type": "function",
+      "name": "postWaiterDecrementOrderItemClient",
+      "filePath": "apps/web/src/lib/waiter-decrement-order-item-client.ts",
+      "lineRange": [
+        17,
+        42
+      ],
+      "summary": "调用服务员减菜 API 并解析 JSON 响应或错误信息。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-table-detail-actions.ts:resolveWaiterTableDetailActions",
+      "type": "function",
+      "name": "resolveWaiterTableDetailActions",
+      "filePath": "apps/web/src/lib/waiter-table-detail-actions.ts",
+      "lineRange": [
+        13,
+        28
+      ],
+      "summary": "根据会话与占用状态决定桌台详情页展示哪些操作按钮。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-table-occupancy.ts:isWaiterTableCardOccupied",
+      "type": "function",
+      "name": "isWaiterTableCardOccupied",
+      "filePath": "apps/web/src/lib/waiter-table-occupancy.ts",
+      "lineRange": [
+        16,
+        18
+      ],
+      "summary": "根据桌台卡片数据判断该桌是否视为占用中。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-table-occupancy.ts:activeWaiterTableIds",
+      "type": "function",
+      "name": "activeWaiterTableIds",
+      "filePath": "apps/web/src/lib/waiter-table-occupancy.ts",
+      "lineRange": [
+        21,
+        36
+      ],
+      "summary": "遍历桌台与会话元数据，收集有活跃订单或会话的桌台 ID。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-table-occupancy.ts:filterWaiterTableActionTargets",
+      "type": "function",
+      "name": "filterWaiterTableActionTargets",
+      "filePath": "apps/web/src/lib/waiter-table-occupancy.ts",
+      "lineRange": [
+        38,
+        57
+      ],
+      "summary": "按转台/并台规则过滤合法目标桌台（排除源桌与占用冲突）。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-table-orders.ts:sessionIdForActiveTable",
+      "type": "function",
+      "name": "sessionIdForActiveTable",
+      "filePath": "apps/web/src/lib/waiter-table-orders.ts",
+      "lineRange": [
+        4,
+        14
+      ],
+      "summary": "从活跃会话映射中解析指定桌台的 session_id。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/waiter-table-orders.ts:ordersForWaiterTableView",
+      "type": "function",
+      "name": "ordersForWaiterTableView",
+      "filePath": "apps/web/src/lib/waiter-table-orders.ts",
+      "lineRange": [
+        19,
+        29
+      ],
+      "summary": "过滤出服务员桌台视图应展示的订单（按会话或桌台 ID）。",
+      "tags": [
+        "utility",
+        "exported"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/use-restaurant-realtime-refresh.ts",
+      "target": "function:apps/web/src/lib/use-restaurant-realtime-refresh.ts:useRestaurantRealtimeRefresh",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/use-restaurant-realtime-refresh.ts",
+      "target": "function:apps/web/src/lib/use-restaurant-realtime-refresh.ts:useRestaurantRealtimeRefresh",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-permissions.ts",
+      "target": "function:apps/web/src/lib/waiter-board-permissions.ts:isWaiterBoardTableCardClickable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-permissions.ts",
+      "target": "function:apps/web/src/lib/waiter-board-permissions.ts:isWaiterBoardTableCardClickable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-permissions.ts",
+      "target": "function:apps/web/src/lib/waiter-board-permissions.ts:formatCheckoutPinnedSectionTitle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-permissions.ts",
+      "target": "function:apps/web/src/lib/waiter-board-permissions.ts:formatCheckoutPinnedSectionTitle",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-section-preference.ts",
+      "target": "function:apps/web/src/lib/waiter-board-section-preference.ts:waiterBoardCollapsedStorageKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-section-preference.ts",
+      "target": "function:apps/web/src/lib/waiter-board-section-preference.ts:waiterBoardCollapsedStorageKey",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-section-preference.ts",
+      "target": "function:apps/web/src/lib/waiter-board-section-preference.ts:loadWaiterBoardCollapsedSectionIds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-section-preference.ts",
+      "target": "function:apps/web/src/lib/waiter-board-section-preference.ts:loadWaiterBoardCollapsedSectionIds",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-section-preference.ts",
+      "target": "function:apps/web/src/lib/waiter-board-section-preference.ts:saveWaiterBoardCollapsedSectionIds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-section-preference.ts",
+      "target": "function:apps/web/src/lib/waiter-board-section-preference.ts:saveWaiterBoardCollapsedSectionIds",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:classifyWaiterTableBoardState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:classifyWaiterTableBoardState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:filterWaiterBoardTableIds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:filterWaiterBoardTableIds",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:tableMatchesWaiterBoardSearch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:tableMatchesWaiterBoardSearch",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:filterWaiterBoardTableIdsBySearch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:filterWaiterBoardTableIdsBySearch",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:activeSessionIdByTableIdFromMeta",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:activeSessionIdByTableIdFromMeta",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:demoSessionMetaFromOrders",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:demoSessionMetaFromOrders",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:formatSessionDurationHm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:formatSessionDurationHm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:buildWaiterTableCardSubtitle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:buildWaiterTableCardSubtitle",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:computeWaiterBoardStats",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:computeWaiterBoardStats",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-decrement-order-item-client.ts",
+      "target": "function:apps/web/src/lib/waiter-decrement-order-item-client.ts:postWaiterDecrementOrderItemClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-decrement-order-item-client.ts",
+      "target": "function:apps/web/src/lib/waiter-decrement-order-item-client.ts:postWaiterDecrementOrderItemClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-detail-actions.ts",
+      "target": "function:apps/web/src/lib/waiter-table-detail-actions.ts:resolveWaiterTableDetailActions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-detail-actions.ts",
+      "target": "function:apps/web/src/lib/waiter-table-detail-actions.ts:resolveWaiterTableDetailActions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-occupancy.ts",
+      "target": "function:apps/web/src/lib/waiter-table-occupancy.ts:isWaiterTableCardOccupied",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-occupancy.ts",
+      "target": "function:apps/web/src/lib/waiter-table-occupancy.ts:isWaiterTableCardOccupied",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-occupancy.ts",
+      "target": "function:apps/web/src/lib/waiter-table-occupancy.ts:activeWaiterTableIds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-occupancy.ts",
+      "target": "function:apps/web/src/lib/waiter-table-occupancy.ts:activeWaiterTableIds",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-occupancy.ts",
+      "target": "function:apps/web/src/lib/waiter-table-occupancy.ts:filterWaiterTableActionTargets",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-occupancy.ts",
+      "target": "function:apps/web/src/lib/waiter-table-occupancy.ts:filterWaiterTableActionTargets",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-orders.ts",
+      "target": "function:apps/web/src/lib/waiter-table-orders.ts:sessionIdForActiveTable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-orders.ts",
+      "target": "function:apps/web/src/lib/waiter-table-orders.ts:sessionIdForActiveTable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-orders.ts",
+      "target": "function:apps/web/src/lib/waiter-table-orders.ts:ordersForWaiterTableView",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-orders.ts",
+      "target": "function:apps/web/src/lib/waiter-table-orders.ts:ordersForWaiterTableView",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-permissions.ts",
+      "target": "file:apps/web/src/lib/waiter-board-session.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-section-preference.test.ts",
+      "target": "file:apps/web/src/lib/waiter-board-section-preference.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.test.ts",
+      "target": "file:apps/web/src/lib/waiter-board-session.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-detail-actions.test.ts",
+      "target": "file:apps/web/src/lib/waiter-table-detail-actions.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-occupancy.ts",
+      "target": "file:apps/web/src/components/waiter/waiter-table-card.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-occupancy.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-occupancy.ts",
+      "target": "file:apps/web/src/lib/waiter-board-session.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-occupancy.ts",
+      "target": "file:apps/web/src/lib/waiter-table-orders.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-occupancy.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-orders.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-orders.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-section-preference.ts",
+      "target": "file:apps/web/src/lib/waiter-board-section-preference.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-board-session.ts",
+      "target": "file:apps/web/src/lib/waiter-board-session.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/waiter-table-detail-actions.ts",
+      "target": "file:apps/web/src/lib/waiter-table-detail-actions.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:apps/web/src/lib/waiter-board-session.ts:classifyWaiterTableBoardState",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:isTableCheckoutRequested",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/waiter-board-session.ts:filterWaiterBoardTableIds",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:classifyWaiterTableBoardState",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/waiter-board-session.ts:buildWaiterTableCardSubtitle",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:formatSessionDurationHm",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/waiter-board-session.ts:computeWaiterBoardStats",
+      "target": "function:apps/web/src/lib/table-checkout-pending.ts:isTableCheckoutRequested",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/waiter-table-occupancy.ts:activeWaiterTableIds",
+      "target": "function:apps/web/src/lib/waiter-board-session.ts:activeSessionIdByTableIdFromMeta",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/waiter-table-occupancy.ts:activeWaiterTableIds",
+      "target": "function:apps/web/src/lib/waiter-table-orders.ts:ordersForWaiterTableView",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/waiter-table-occupancy.ts:filterWaiterTableActionTargets",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:tableIdsEqual",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/waiter-table-orders.ts:ordersForWaiterTableView",
+      "target": "function:apps/web/src/lib/waiter-table-orders.ts:sessionIdForActiveTable",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/waiter-table-orders.ts:sessionIdForActiveTable",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:tableIdsEqual",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/waiter-table-occupancy.ts:activeWaiterTableIds",
+      "target": "function:apps/web/src/components/waiter/waiter-table-card.ts:buildWaiterTableCard",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/waiter-board-session.ts:formatSessionDurationHm",
+      "target": "function:apps/web/src/lib/i18n.ts:getClientLanguage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

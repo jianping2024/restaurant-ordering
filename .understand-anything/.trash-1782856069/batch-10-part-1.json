@@ -1,0 +1,2255 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "type": "file",
+      "name": "dashboard-table-groups-server.ts",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "summary": "服务端/客户端共享工具库 dashboard-table-groups-server.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "dashboard"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-server.ts:loadRestaurantTableGroups",
+      "type": "function",
+      "name": "loadRestaurantTableGroups",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "lineRange": [
+        20,
+        49
+      ],
+      "summary": "数据加载函数 loadRestaurantTableGroups，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-server.ts:validateTableIds",
+      "type": "function",
+      "name": "validateTableIds",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "lineRange": [
+        51,
+        70
+      ],
+      "summary": "函数 validateTableIds，实现 dashboard-table-groups-server 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-server.ts:replaceTableGroupMembersAdmin",
+      "type": "function",
+      "name": "replaceTableGroupMembersAdmin",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "lineRange": [
+        72,
+        112
+      ],
+      "summary": "函数 replaceTableGroupMembersAdmin，实现 dashboard-table-groups-server 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-server.ts:parseGroupFields",
+      "type": "function",
+      "name": "parseGroupFields",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "lineRange": [
+        114,
+        131
+      ],
+      "summary": "解析/规范化工具函数 parseGroupFields。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-server.ts:createTableGroup",
+      "type": "function",
+      "name": "createTableGroup",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "lineRange": [
+        133,
+        179
+      ],
+      "summary": "CRUD 操作函数 createTableGroup。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-server.ts:updateTableGroup",
+      "type": "function",
+      "name": "updateTableGroup",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "lineRange": [
+        181,
+        224
+      ],
+      "summary": "CRUD 操作函数 updateTableGroup。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-server.ts:moveTableGroupOrder",
+      "type": "function",
+      "name": "moveTableGroupOrder",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "lineRange": [
+        226,
+        268
+      ],
+      "summary": "函数 moveTableGroupOrder，实现 dashboard-table-groups-server 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-table-groups-server.ts:deleteTableGroup",
+      "type": "function",
+      "name": "deleteTableGroup",
+      "filePath": "apps/web/src/lib/dashboard-table-groups-server.ts",
+      "lineRange": [
+        270,
+        290
+      ],
+      "summary": "CRUD 操作函数 deleteTableGroup。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/dashboard-table-groups.test.ts",
+      "type": "file",
+      "name": "dashboard-table-groups.test.ts",
+      "filePath": "apps/web/src/lib/dashboard-table-groups.test.ts",
+      "summary": "服务端/客户端共享工具库 dashboard-table-groups.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/dashboard-tables.ts",
+      "type": "file",
+      "name": "dashboard-tables.ts",
+      "filePath": "apps/web/src/lib/dashboard-tables.ts",
+      "summary": "服务端/客户端共享工具库 dashboard-tables.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-tables.ts:loadFrontdeskDashboardTables",
+      "type": "function",
+      "name": "loadFrontdeskDashboardTables",
+      "filePath": "apps/web/src/lib/dashboard-tables.ts",
+      "lineRange": [
+        21,
+        67
+      ],
+      "summary": "数据加载函数 loadFrontdeskDashboardTables，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/demo-data.ts",
+      "type": "file",
+      "name": "demo-data.ts",
+      "filePath": "apps/web/src/lib/demo-data.ts",
+      "summary": "服务端/客户端共享工具库 demo-data.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/demo-data.ts:demoTableByDisplayName",
+      "type": "function",
+      "name": "demoTableByDisplayName",
+      "filePath": "apps/web/src/lib/demo-data.ts",
+      "lineRange": [
+        20,
+        22
+      ],
+      "summary": "函数 demoTableByDisplayName，实现 demo-data 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/demo-page-metadata.ts",
+      "type": "file",
+      "name": "demo-page-metadata.ts",
+      "filePath": "apps/web/src/lib/demo-page-metadata.ts",
+      "summary": "服务端/客户端共享工具库 demo-page-metadata.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/demo-page-metadata.ts:demoPageMetadata",
+      "type": "function",
+      "name": "demoPageMetadata",
+      "filePath": "apps/web/src/lib/demo-page-metadata.ts",
+      "lineRange": [
+        4,
+        6
+      ],
+      "summary": "函数 demoPageMetadata，实现 demo-page-metadata 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/menu-item-code.ts",
+      "type": "file",
+      "name": "menu-item-code.ts",
+      "filePath": "apps/web/src/lib/menu-item-code.ts",
+      "summary": "服务端/客户端共享工具库 menu-item-code.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service",
+        "menu"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-item-code.ts:resolveMenuItemCode",
+      "type": "function",
+      "name": "resolveMenuItemCode",
+      "filePath": "apps/web/src/lib/menu-item-code.ts",
+      "lineRange": [
+        3,
+        10
+      ],
+      "summary": "函数 resolveMenuItemCode，实现 menu-item-code 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-item-code.ts:menuItemCodeLookupFromRows",
+      "type": "function",
+      "name": "menuItemCodeLookupFromRows",
+      "filePath": "apps/web/src/lib/menu-item-code.ts",
+      "lineRange": [
+        12,
+        21
+      ],
+      "summary": "函数 menuItemCodeLookupFromRows，实现 menu-item-code 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-item-code.ts:distinctMenuItemIdsFromOrders",
+      "type": "function",
+      "name": "distinctMenuItemIdsFromOrders",
+      "filePath": "apps/web/src/lib/menu-item-code.ts",
+      "lineRange": [
+        24,
+        36
+      ],
+      "summary": "函数 distinctMenuItemIdsFromOrders，实现 menu-item-code 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "type": "file",
+      "name": "patch-staff-order-items-client.ts",
+      "filePath": "apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "summary": "服务端/客户端共享工具库 patch-staff-order-items-client.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts:patchStaffOrderItemsClient",
+      "type": "function",
+      "name": "patchStaffOrderItemsClient",
+      "filePath": "apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "lineRange": [
+        18,
+        38
+      ],
+      "summary": "函数 patchStaffOrderItemsClient，实现 patch-staff-order-items-client 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/restaurant-table-groups.test.ts",
+      "type": "file",
+      "name": "restaurant-table-groups.test.ts",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.test.ts",
+      "summary": "服务端/客户端共享工具库 restaurant-table-groups.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "type": "file",
+      "name": "restaurant-table-groups.ts",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "summary": "服务端/客户端共享工具库 restaurant-table-groups.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:normalizeTableGroupName",
+      "type": "function",
+      "name": "normalizeTableGroupName",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        57,
+        59
+      ],
+      "summary": "解析/规范化工具函数 normalizeTableGroupName。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:isValidTableGroupName",
+      "type": "function",
+      "name": "isValidTableGroupName",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        61,
+        68
+      ],
+      "summary": "函数 isValidTableGroupName，实现 restaurant-table-groups 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:compareTableGroups",
+      "type": "function",
+      "name": "compareTableGroups",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        70,
+        76
+      ],
+      "summary": "函数 compareTableGroups，实现 restaurant-table-groups 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTableGroups",
+      "type": "function",
+      "name": "sortTableGroups",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        78,
+        80
+      ],
+      "summary": "函数 sortTableGroups，实现 restaurant-table-groups 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:buildTableGroupNameByTableId",
+      "type": "function",
+      "name": "buildTableGroupNameByTableId",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        82,
+        93
+      ],
+      "summary": "函数 buildTableGroupNameByTableId，实现 restaurant-table-groups 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:buildTableGroupIdByTableId",
+      "type": "function",
+      "name": "buildTableGroupIdByTableId",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        95,
+        103
+      ],
+      "summary": "函数 buildTableGroupIdByTableId，实现 restaurant-table-groups 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTablesForGroupAssignPicker",
+      "type": "function",
+      "name": "sortTablesForGroupAssignPicker",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        106,
+        134
+      ],
+      "summary": "函数 sortTablesForGroupAssignPicker，实现 restaurant-table-groups 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:groupTableIdsByGroupId",
+      "type": "function",
+      "name": "groupTableIdsByGroupId",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        136,
+        145
+      ],
+      "summary": "函数 groupTableIdsByGroupId，实现 restaurant-table-groups 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:isWaiterTableCheckoutPending",
+      "type": "function",
+      "name": "isWaiterTableCheckoutPending",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        147,
+        155
+      ],
+      "summary": "函数 isWaiterTableCheckoutPending，实现 restaurant-table-groups 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:sortWaiterTableCards",
+      "type": "function",
+      "name": "sortWaiterTableCards",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        157,
+        190
+      ],
+      "summary": "函数 sortWaiterTableCards，实现 restaurant-table-groups 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:buildWaiterBoardSections",
+      "type": "function",
+      "name": "buildWaiterBoardSections",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        192,
+        224
+      ],
+      "summary": "函数 buildWaiterBoardSections，实现 restaurant-table-groups 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTablesForGroupPrint",
+      "type": "function",
+      "name": "sortTablesForGroupPrint",
+      "filePath": "apps/web/src/lib/restaurant-table-groups.ts",
+      "lineRange": [
+        231,
+        246
+      ],
+      "summary": "函数 sortTablesForGroupPrint，实现 restaurant-table-groups 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "file",
+      "name": "restaurant-tables.ts",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "summary": "服务端/客户端共享工具库 restaurant-tables.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:normalizeTableDisplayName",
+      "type": "function",
+      "name": "normalizeTableDisplayName",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        29,
+        31
+      ],
+      "summary": "解析/规范化工具函数 normalizeTableDisplayName。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:isValidTableDisplayName",
+      "type": "function",
+      "name": "isValidTableDisplayName",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        33,
+        40
+      ],
+      "summary": "函数 isValidTableDisplayName，实现 restaurant-tables 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:parseTableIdParam",
+      "type": "function",
+      "name": "parseTableIdParam",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        42,
+        46
+      ],
+      "summary": "解析/规范化工具函数 parseTableIdParam。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:formatDefaultTableDisplayName",
+      "type": "function",
+      "name": "formatDefaultTableDisplayName",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        48,
+        51
+      ],
+      "summary": "函数 formatDefaultTableDisplayName，实现 restaurant-tables 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:nextDefaultTableDisplayName",
+      "type": "function",
+      "name": "nextDefaultTableDisplayName",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        54,
+        63
+      ],
+      "summary": "函数 nextDefaultTableDisplayName，实现 restaurant-tables 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:nextDefaultTableDisplayNames",
+      "type": "function",
+      "name": "nextDefaultTableDisplayNames",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        66,
+        76
+      ],
+      "summary": "函数 nextDefaultTableDisplayNames，实现 restaurant-tables 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:isValidTableAddCount",
+      "type": "function",
+      "name": "isValidTableAddCount",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        78,
+        84
+      ],
+      "summary": "函数 isValidTableAddCount，实现 restaurant-tables 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:compareRestaurantTables",
+      "type": "function",
+      "name": "compareRestaurantTables",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        86,
+        95
+      ],
+      "summary": "函数 compareRestaurantTables，实现 restaurant-tables 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:sortRestaurantTables",
+      "type": "function",
+      "name": "sortRestaurantTables",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        97,
+        99
+      ],
+      "summary": "函数 sortRestaurantTables，实现 restaurant-tables 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:tableIdsEqual",
+      "type": "function",
+      "name": "tableIdsEqual",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        101,
+        106
+      ],
+      "summary": "函数 tableIdsEqual，实现 restaurant-tables 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:mergeTablesWithOrderHistory",
+      "type": "function",
+      "name": "mergeTablesWithOrderHistory",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        109,
+        124
+      ],
+      "summary": "函数 mergeTablesWithOrderHistory，实现 restaurant-tables 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/restaurant-tables.ts:activeRestaurantTables",
+      "type": "function",
+      "name": "activeRestaurantTables",
+      "filePath": "apps/web/src/lib/restaurant-tables.ts",
+      "lineRange": [
+        126,
+        128
+      ],
+      "summary": "函数 activeRestaurantTables，实现 restaurant-tables 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-api-auth.ts",
+      "type": "file",
+      "name": "staff-api-auth.ts",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "summary": "服务端/客户端共享工具库 staff-api-auth.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthErrorStatus",
+      "type": "function",
+      "name": "staffAuthErrorStatus",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        21,
+        25
+      ],
+      "summary": "函数 staffAuthErrorStatus，实现 staff-api-auth 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:loadRestaurantBySlug",
+      "type": "function",
+      "name": "loadRestaurantBySlug",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        27,
+        52
+      ],
+      "summary": "数据加载函数 loadRestaurantBySlug，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequest",
+      "type": "function",
+      "name": "staffAuthFromRequest",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        55,
+        117
+      ],
+      "summary": "函数 staffAuthFromRequest，实现 staff-api-auth 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthForPage",
+      "type": "function",
+      "name": "staffAuthForPage",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        120,
+        125
+      ],
+      "summary": "React 页面/布局组件 staffAuthForPage。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:openTableAuthFromRequest",
+      "type": "function",
+      "name": "openTableAuthFromRequest",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        128,
+        133
+      ],
+      "summary": "函数 openTableAuthFromRequest，实现 staff-api-auth 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequestWithRoles",
+      "type": "function",
+      "name": "staffAuthFromRequestWithRoles",
+      "filePath": "apps/web/src/lib/staff-api-auth.ts",
+      "lineRange": [
+        136,
+        146
+      ],
+      "summary": "函数 staffAuthFromRequestWithRoles，实现 staff-api-auth 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-board-client.ts",
+      "type": "file",
+      "name": "staff-board-client.ts",
+      "filePath": "apps/web/src/lib/staff-board-client.ts",
+      "summary": "服务端/客户端共享工具库 staff-board-client.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterBoardClient",
+      "type": "function",
+      "name": "fetchWaiterBoardClient",
+      "filePath": "apps/web/src/lib/staff-board-client.ts",
+      "lineRange": [
+        35,
+        48
+      ],
+      "summary": "数据加载函数 fetchWaiterBoardClient，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterTableDetailClient",
+      "type": "function",
+      "name": "fetchWaiterTableDetailClient",
+      "filePath": "apps/web/src/lib/staff-board-client.ts",
+      "lineRange": [
+        51,
+        59
+      ],
+      "summary": "数据加载函数 fetchWaiterTableDetailClient，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board-client.ts:postWaiterBuffetOpenClient",
+      "type": "function",
+      "name": "postWaiterBuffetOpenClient",
+      "filePath": "apps/web/src/lib/staff-board-client.ts",
+      "lineRange": [
+        78,
+        110
+      ],
+      "summary": "函数 postWaiterBuffetOpenClient，实现 staff-board-client 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterTableActionTargetsClient",
+      "type": "function",
+      "name": "fetchWaiterTableActionTargetsClient",
+      "filePath": "apps/web/src/lib/staff-board-client.ts",
+      "lineRange": [
+        113,
+        127
+      ],
+      "summary": "数据加载函数 fetchWaiterTableActionTargetsClient，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board-client.ts:fetchKitchenBoardClient",
+      "type": "function",
+      "name": "fetchKitchenBoardClient",
+      "filePath": "apps/web/src/lib/staff-board-client.ts",
+      "lineRange": [
+        130,
+        143
+      ],
+      "summary": "数据加载函数 fetchKitchenBoardClient，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-board.ts",
+      "type": "file",
+      "name": "staff-board.ts",
+      "filePath": "apps/web/src/lib/staff-board.ts",
+      "summary": "服务端/客户端共享工具库 staff-board.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board.ts:fetchCheckoutRequestedForTable",
+      "type": "function",
+      "name": "fetchCheckoutRequestedForTable",
+      "filePath": "apps/web/src/lib/staff-board.ts",
+      "lineRange": [
+        31,
+        49
+      ],
+      "summary": "数据加载函数 fetchCheckoutRequestedForTable，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board.ts:loadTableOrdersForSession",
+      "type": "function",
+      "name": "loadTableOrdersForSession",
+      "filePath": "apps/web/src/lib/staff-board.ts",
+      "lineRange": [
+        51,
+        79
+      ],
+      "summary": "数据加载函数 loadTableOrdersForSession，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board.ts:fetchKitchenBoard",
+      "type": "function",
+      "name": "fetchKitchenBoard",
+      "filePath": "apps/web/src/lib/staff-board.ts",
+      "lineRange": [
+        81,
+        120
+      ],
+      "summary": "数据加载函数 fetchKitchenBoard，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board.ts:fetchWaiterBoard",
+      "type": "function",
+      "name": "fetchWaiterBoard",
+      "filePath": "apps/web/src/lib/staff-board.ts",
+      "lineRange": [
+        122,
+        172
+      ],
+      "summary": "数据加载函数 fetchWaiterBoard，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableDetail",
+      "type": "function",
+      "name": "fetchWaiterTableDetail",
+      "filePath": "apps/web/src/lib/staff-board.ts",
+      "lineRange": [
+        174,
+        224
+      ],
+      "summary": "数据加载函数 fetchWaiterTableDetail，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableActionTargets",
+      "type": "function",
+      "name": "fetchWaiterTableActionTargets",
+      "filePath": "apps/web/src/lib/staff-board.ts",
+      "lineRange": [
+        226,
+        256
+      ],
+      "summary": "数据加载函数 fetchWaiterTableActionTargets，从 API 或数据库获取上下文。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-routes.test.ts",
+      "type": "file",
+      "name": "staff-routes.test.ts",
+      "filePath": "apps/web/src/lib/staff-routes.test.ts",
+      "summary": "服务端/客户端共享工具库 staff-routes.test.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "test",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/staff-routes.ts",
+      "type": "file",
+      "name": "staff-routes.ts",
+      "filePath": "apps/web/src/lib/staff-routes.ts",
+      "summary": "服务端/客户端共享工具库 staff-routes.ts，封装业务逻辑与数据访问。",
+      "tags": [
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-routes.ts:staffRolePath",
+      "type": "function",
+      "name": "staffRolePath",
+      "filePath": "apps/web/src/lib/staff-routes.ts",
+      "lineRange": [
+        9,
+        14
+      ],
+      "summary": "函数 staffRolePath，实现 staff-routes 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-routes.ts:waiterBoardHref",
+      "type": "function",
+      "name": "waiterBoardHref",
+      "filePath": "apps/web/src/lib/staff-routes.ts",
+      "lineRange": [
+        16,
+        20
+      ],
+      "summary": "函数 waiterBoardHref，实现 staff-routes 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-routes.ts:waiterTableHref",
+      "type": "function",
+      "name": "waiterTableHref",
+      "filePath": "apps/web/src/lib/staff-routes.ts",
+      "lineRange": [
+        22,
+        31
+      ],
+      "summary": "函数 waiterTableHref，实现 staff-routes 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-routes.ts:waiterMenuHref",
+      "type": "function",
+      "name": "waiterMenuHref",
+      "filePath": "apps/web/src/lib/staff-routes.ts",
+      "lineRange": [
+        34,
+        46
+      ],
+      "summary": "函数 waiterMenuHref，实现 staff-routes 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-routes.ts:waiterBillHref",
+      "type": "function",
+      "name": "waiterBillHref",
+      "filePath": "apps/web/src/lib/staff-routes.ts",
+      "lineRange": [
+        49,
+        60
+      ],
+      "summary": "函数 waiterBillHref，实现 staff-routes 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-routes.ts:dashboardCheckoutTableHref",
+      "type": "function",
+      "name": "dashboardCheckoutTableHref",
+      "filePath": "apps/web/src/lib/staff-routes.ts",
+      "lineRange": [
+        63,
+        65
+      ],
+      "summary": "函数 dashboardCheckoutTableHref，实现 staff-routes 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/staff-routes.ts:resolveWaiterMenuReturnHref",
+      "type": "function",
+      "name": "resolveWaiterMenuReturnHref",
+      "filePath": "apps/web/src/lib/staff-routes.ts",
+      "lineRange": [
+        72,
+        98
+      ],
+      "summary": "函数 resolveWaiterMenuReturnHref，实现 staff-routes 中的局部业务逻辑。",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:loadRestaurantTableGroups",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:loadRestaurantTableGroups",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:validateTableIds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:replaceTableGroupMembersAdmin",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:parseGroupFields",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:createTableGroup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:createTableGroup",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:updateTableGroup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:updateTableGroup",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:moveTableGroupOrder",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:moveTableGroupOrder",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:deleteTableGroup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-table-groups-server.ts",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:deleteTableGroup",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:replaceTableGroupMembersAdmin",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:validateTableIds",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:createTableGroup",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:parseGroupFields",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:createTableGroup",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:loadRestaurantTableGroups",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:createTableGroup",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:replaceTableGroupMembersAdmin",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:createTableGroup",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:loadRestaurantTableGroups",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:updateTableGroup",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:parseGroupFields",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:updateTableGroup",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:loadRestaurantTableGroups",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:updateTableGroup",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:replaceTableGroupMembersAdmin",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:updateTableGroup",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:loadRestaurantTableGroups",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:moveTableGroupOrder",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:loadRestaurantTableGroups",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:moveTableGroupOrder",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:loadRestaurantTableGroups",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-table-groups-server.ts:deleteTableGroup",
+      "target": "function:apps/web/src/lib/dashboard-table-groups-server.ts:loadRestaurantTableGroups",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-tables.ts",
+      "target": "function:apps/web/src/lib/dashboard-tables.ts:loadFrontdeskDashboardTables",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-tables.ts",
+      "target": "function:apps/web/src/lib/dashboard-tables.ts:loadFrontdeskDashboardTables",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/demo-data.ts",
+      "target": "function:apps/web/src/lib/demo-data.ts:demoTableByDisplayName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/demo-data.ts",
+      "target": "function:apps/web/src/lib/demo-data.ts:demoTableByDisplayName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/demo-page-metadata.ts",
+      "target": "function:apps/web/src/lib/demo-page-metadata.ts:demoPageMetadata",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/demo-page-metadata.ts",
+      "target": "function:apps/web/src/lib/demo-page-metadata.ts:demoPageMetadata",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-code.ts",
+      "target": "function:apps/web/src/lib/menu-item-code.ts:resolveMenuItemCode",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-code.ts",
+      "target": "function:apps/web/src/lib/menu-item-code.ts:resolveMenuItemCode",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-code.ts",
+      "target": "function:apps/web/src/lib/menu-item-code.ts:menuItemCodeLookupFromRows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-code.ts",
+      "target": "function:apps/web/src/lib/menu-item-code.ts:menuItemCodeLookupFromRows",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-code.ts",
+      "target": "function:apps/web/src/lib/menu-item-code.ts:distinctMenuItemIdsFromOrders",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-code.ts",
+      "target": "function:apps/web/src/lib/menu-item-code.ts:distinctMenuItemIdsFromOrders",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "target": "function:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts:patchStaffOrderItemsClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts",
+      "target": "function:apps/web/src/lib/order-item-void/patch-staff-order-items-client.ts:patchStaffOrderItemsClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:normalizeTableGroupName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:normalizeTableGroupName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:isValidTableGroupName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:isValidTableGroupName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:compareTableGroups",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:compareTableGroups",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTableGroups",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTableGroups",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:buildTableGroupNameByTableId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:buildTableGroupNameByTableId",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:buildTableGroupIdByTableId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:buildTableGroupIdByTableId",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTablesForGroupAssignPicker",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTablesForGroupAssignPicker",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:groupTableIdsByGroupId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:groupTableIdsByGroupId",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:isWaiterTableCheckoutPending",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:isWaiterTableCheckoutPending",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortWaiterTableCards",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortWaiterTableCards",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:buildWaiterBoardSections",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:buildWaiterBoardSections",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTablesForGroupPrint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-table-groups.ts",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTablesForGroupPrint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-table-groups.ts:isValidTableGroupName",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:normalizeTableGroupName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTablesForGroupAssignPicker",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:buildTableGroupIdByTableId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-table-groups.ts:sortWaiterTableCards",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:isWaiterTableCheckoutPending",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-table-groups.ts:sortWaiterTableCards",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:isWaiterTableCheckoutPending",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-table-groups.ts:buildWaiterBoardSections",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:groupTableIdsByGroupId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-table-groups.ts:buildWaiterBoardSections",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTableGroups",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-table-groups.ts:sortTablesForGroupPrint",
+      "target": "function:apps/web/src/lib/restaurant-table-groups.ts:buildWaiterBoardSections",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:normalizeTableDisplayName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:normalizeTableDisplayName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:isValidTableDisplayName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:isValidTableDisplayName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:parseTableIdParam",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:parseTableIdParam",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:formatDefaultTableDisplayName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:formatDefaultTableDisplayName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:nextDefaultTableDisplayName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:nextDefaultTableDisplayName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:nextDefaultTableDisplayNames",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:nextDefaultTableDisplayNames",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:isValidTableAddCount",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:isValidTableAddCount",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:compareRestaurantTables",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:compareRestaurantTables",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:sortRestaurantTables",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:sortRestaurantTables",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:tableIdsEqual",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:tableIdsEqual",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:mergeTablesWithOrderHistory",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:mergeTablesWithOrderHistory",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:activeRestaurantTables",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/restaurant-tables.ts",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:activeRestaurantTables",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-tables.ts:isValidTableDisplayName",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:normalizeTableDisplayName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-tables.ts:nextDefaultTableDisplayName",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:normalizeTableDisplayName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-tables.ts:nextDefaultTableDisplayName",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:formatDefaultTableDisplayName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-tables.ts:nextDefaultTableDisplayName",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:formatDefaultTableDisplayName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-tables.ts:nextDefaultTableDisplayNames",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:nextDefaultTableDisplayName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-tables.ts:tableIdsEqual",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:parseTableIdParam",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-tables.ts:tableIdsEqual",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:parseTableIdParam",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-tables.ts:mergeTablesWithOrderHistory",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:parseTableIdParam",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/restaurant-tables.ts:mergeTablesWithOrderHistory",
+      "target": "function:apps/web/src/lib/restaurant-tables.ts:sortRestaurantTables",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthErrorStatus",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthErrorStatus",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:loadRestaurantBySlug",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:loadRestaurantBySlug",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequest",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequest",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthForPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthForPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:openTableAuthFromRequest",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:openTableAuthFromRequest",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequestWithRoles",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-api-auth.ts",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequestWithRoles",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthForPage",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequest",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-api-auth.ts:openTableAuthFromRequest",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequestWithRoles",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequestWithRoles",
+      "target": "function:apps/web/src/lib/staff-api-auth.ts:staffAuthFromRequest",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterBoardClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterBoardClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterTableDetailClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterTableDetailClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:postWaiterBuffetOpenClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:postWaiterBuffetOpenClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterTableActionTargetsClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:fetchWaiterTableActionTargetsClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:fetchKitchenBoardClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board-client.ts",
+      "target": "function:apps/web/src/lib/staff-board-client.ts:fetchKitchenBoardClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchCheckoutRequestedForTable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:loadTableOrdersForSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchKitchenBoard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchKitchenBoard",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchWaiterBoard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchWaiterBoard",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableDetail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableDetail",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableActionTargets",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-board.ts",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableActionTargets",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableDetail",
+      "target": "function:apps/web/src/lib/staff-board.ts:fetchCheckoutRequestedForTable",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-board.ts:fetchWaiterTableDetail",
+      "target": "function:apps/web/src/lib/staff-board.ts:loadTableOrdersForSession",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:staffRolePath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:staffRolePath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterBoardHref",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterBoardHref",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterTableHref",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterTableHref",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterMenuHref",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterMenuHref",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterBillHref",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterBillHref",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:dashboardCheckoutTableHref",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:dashboardCheckoutTableHref",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:resolveWaiterMenuReturnHref",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/staff-routes.ts",
+      "target": "function:apps/web/src/lib/staff-routes.ts:resolveWaiterMenuReturnHref",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-routes.ts:waiterMenuHref",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterTableHref",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-routes.ts:waiterBillHref",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterTableHref",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-routes.ts:resolveWaiterMenuReturnHref",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterBoardHref",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-routes.ts:resolveWaiterMenuReturnHref",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterBoardHref",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-routes.ts:resolveWaiterMenuReturnHref",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterBoardHref",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/staff-routes.ts:resolveWaiterMenuReturnHref",
+      "target": "function:apps/web/src/lib/staff-routes.ts:waiterBoardHref",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

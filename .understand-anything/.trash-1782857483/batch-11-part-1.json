@@ -1,0 +1,1554 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/lib/customer-geo-order.ts",
+      "type": "file",
+      "name": "customer-geo-order.ts",
+      "filePath": "apps/web/src/lib/customer-geo-order.ts",
+      "summary": "解析顾客浏览器定位并校验是否在餐厅可点餐地理围栏内，供追加点单 API 使用。",
+      "tags": [
+        "utility",
+        "validation",
+        "geo-fence",
+        "customer"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/customer-geo-order.ts:getBrowserLocation",
+      "type": "function",
+      "name": "getBrowserLocation",
+      "filePath": "apps/web/src/lib/customer-geo-order.ts",
+      "lineRange": [
+        22,
+        45
+      ],
+      "summary": "通过浏览器 Geolocation API 获取当前坐标，含超时与重试处理。",
+      "tags": [
+        "utility",
+        "validation",
+        "geo-fence",
+        "customer"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/customer-geo-order.ts:resolveCustomerGeoForOrder",
+      "type": "function",
+      "name": "resolveCustomerGeoForOrder",
+      "filePath": "apps/web/src/lib/customer-geo-order.ts",
+      "lineRange": [
+        55,
+        93
+      ],
+      "summary": "综合餐厅坐标、点餐半径与顾客定位，返回地理校验结果。",
+      "tags": [
+        "utility",
+        "validation",
+        "geo-fence",
+        "customer"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/customer-menu-order-gate.test.ts",
+      "type": "file",
+      "name": "customer-menu-order-gate.test.ts",
+      "filePath": "apps/web/src/lib/customer-menu-order-gate.test.ts",
+      "summary": "单元测试：验证顾客菜单下单门禁在不同会话与自助餐场景下的行为。",
+      "tags": [
+        "test",
+        "customer",
+        "menu",
+        "gate"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/customer-menu-order-gate.ts",
+      "type": "file",
+      "name": "customer-menu-order-gate.ts",
+      "filePath": "apps/web/src/lib/customer-menu-order-gate.ts",
+      "summary": "根据会话上下文判断顾客是否可下单，并生成本地化操作提示。",
+      "tags": [
+        "utility",
+        "validation",
+        "customer",
+        "menu"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/customer-menu-order-gate.ts:guestOrderGateFromSessionContext",
+      "type": "function",
+      "name": "guestOrderGateFromSessionContext",
+      "filePath": "apps/web/src/lib/customer-menu-order-gate.ts",
+      "lineRange": [
+        11,
+        20
+      ],
+      "summary": "从服务端会话上下文推导下单门禁状态与原因码。",
+      "tags": [
+        "utility",
+        "validation",
+        "customer",
+        "menu"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/customer-menu-order-gate.ts:guestOrderingActionHint",
+      "type": "function",
+      "name": "guestOrderingActionHint",
+      "filePath": "apps/web/src/lib/customer-menu-order-gate.ts",
+      "lineRange": [
+        22,
+        29
+      ],
+      "summary": "根据门禁状态返回菜单页本地化操作提示文案。",
+      "tags": [
+        "utility",
+        "validation",
+        "customer",
+        "menu"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/customer-menu-order-gate.ts:guestOrderGateFromCachedState",
+      "type": "function",
+      "name": "guestOrderGateFromCachedState",
+      "filePath": "apps/web/src/lib/customer-menu-order-gate.ts",
+      "lineRange": [
+        35,
+        47
+      ],
+      "summary": "从客户端缓存的会话/订单状态推导下单门禁（离线友好）。",
+      "tags": [
+        "utility",
+        "validation",
+        "customer",
+        "menu"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/customer-orders-display.ts",
+      "type": "file",
+      "name": "customer-orders-display.ts",
+      "filePath": "apps/web/src/lib/customer-orders-display.ts",
+      "summary": "过滤顾客端可见订单，移除已作废行项，避免账单页展示无效菜品。",
+      "tags": [
+        "utility",
+        "serialization",
+        "customer"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/customer-orders-display.ts:filterOrdersForCustomerDisplay",
+      "type": "function",
+      "name": "filterOrdersForCustomerDisplay",
+      "filePath": "apps/web/src/lib/customer-orders-display.ts",
+      "lineRange": [
+        5,
+        14
+      ],
+      "summary": "映射订单列表，过滤 voided 行项后返回顾客可见副本。",
+      "tags": [
+        "utility",
+        "serialization",
+        "customer"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/customer-session-context.ts",
+      "type": "file",
+      "name": "customer-session-context.ts",
+      "filePath": "apps/web/src/lib/customer-session-context.ts",
+      "summary": "服务端加载顾客餐厅门禁、桌台会话、历史订单与现有分账记录的统一入口。",
+      "tags": [
+        "service",
+        "data-model",
+        "customer",
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/customer-session-context.ts:loadCustomerRestaurantGate",
+      "type": "function",
+      "name": "loadCustomerRestaurantGate",
+      "filePath": "apps/web/src/lib/customer-session-context.ts",
+      "lineRange": [
+        32,
+        68
+      ],
+      "summary": "按 slug 加载餐厅并检查暂停/维护状态，用于页面门禁。",
+      "tags": [
+        "service",
+        "data-model",
+        "customer",
+        "api-handler"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/customer-session-context.ts:loadCustomerRestaurantForApi",
+      "type": "function",
+      "name": "loadCustomerRestaurantForApi",
+      "filePath": "apps/web/src/lib/customer-session-context.ts",
+      "lineRange": [
+        71,
+        86
+      ],
+      "summary": "API 路由使用的餐厅加载封装，复用 gate 逻辑。",
+      "tags": [
+        "service",
+        "data-model",
+        "customer",
+        "api-handler"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/customer-session-context.ts:resolveCustomerTableContext",
+      "type": "function",
+      "name": "resolveCustomerTableContext",
+      "filePath": "apps/web/src/lib/customer-session-context.ts",
+      "lineRange": [
+        88,
+        131
+      ],
+      "summary": "解析请求桌台 ID、加载桌台列表与活跃会话。",
+      "tags": [
+        "service",
+        "data-model",
+        "customer",
+        "api-handler"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/customer-session-context.ts:loadCustomerSessionOrders",
+      "type": "function",
+      "name": "loadCustomerSessionOrders",
+      "filePath": "apps/web/src/lib/customer-session-context.ts",
+      "lineRange": [
+        133,
+        150
+      ],
+      "summary": "加载指定会话的订单列表并应用顾客展示过滤。",
+      "tags": [
+        "service",
+        "data-model",
+        "customer",
+        "api-handler"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/customer-session-context.ts:loadCustomerExistingSplit",
+      "type": "function",
+      "name": "loadCustomerExistingSplit",
+      "filePath": "apps/web/src/lib/customer-session-context.ts",
+      "lineRange": [
+        152,
+        166
+      ],
+      "summary": "查询会话下进行中的分账记录（requested/confirmed/pending）。",
+      "tags": [
+        "service",
+        "data-model",
+        "customer",
+        "api-handler"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/dashboard-overview.test.ts",
+      "type": "file",
+      "name": "dashboard-overview.test.ts",
+      "filePath": "apps/web/src/lib/dashboard-overview.test.ts",
+      "summary": "单元测试：覆盖仪表盘 KPI、畅销菜排行与反馈洞察的聚合逻辑。",
+      "tags": [
+        "test",
+        "dashboard",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-overview.test.ts:order",
+      "type": "function",
+      "name": "order",
+      "filePath": "apps/web/src/lib/dashboard-overview.test.ts",
+      "lineRange": [
+        12,
+        24
+      ],
+      "summary": "单元测试：覆盖仪表盘 KPI、畅销菜排行与反馈洞察的聚合逻辑。",
+      "tags": [
+        "test",
+        "dashboard",
+        "analytics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/dashboard-overview.ts",
+      "type": "file",
+      "name": "dashboard-overview.ts",
+      "filePath": "apps/web/src/lib/dashboard-overview.ts",
+      "summary": "聚合店主仪表盘今日 KPI、畅销菜品、顾客反馈洞察与待处理事项计数。",
+      "tags": [
+        "service",
+        "analytics",
+        "dashboard",
+        "data-model"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-overview.ts:summarizeTopSellingItems",
+      "type": "function",
+      "name": "summarizeTopSellingItems",
+      "filePath": "apps/web/src/lib/dashboard-overview.ts",
+      "lineRange": [
+        31,
+        36
+      ],
+      "summary": "聚合店主仪表盘今日 KPI、畅销菜品、顾客反馈洞察与待处理事项计数。",
+      "tags": [
+        "service",
+        "analytics",
+        "dashboard",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-overview.ts:buildTopSellingRows",
+      "type": "function",
+      "name": "buildTopSellingRows",
+      "filePath": "apps/web/src/lib/dashboard-overview.ts",
+      "lineRange": [
+        38,
+        51
+      ],
+      "summary": "聚合店主仪表盘今日 KPI、畅销菜品、顾客反馈洞察与待处理事项计数。",
+      "tags": [
+        "service",
+        "analytics",
+        "dashboard",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-overview.ts:menuItemAggDisplayName",
+      "type": "function",
+      "name": "menuItemAggDisplayName",
+      "filePath": "apps/web/src/lib/dashboard-overview.ts",
+      "lineRange": [
+        135,
+        143
+      ],
+      "summary": "聚合店主仪表盘今日 KPI、畅销菜品、顾客反馈洞察与待处理事项计数。",
+      "tags": [
+        "service",
+        "analytics",
+        "dashboard",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-overview.ts:dishNameFromRow",
+      "type": "function",
+      "name": "dishNameFromRow",
+      "filePath": "apps/web/src/lib/dashboard-overview.ts",
+      "lineRange": [
+        145,
+        154
+      ],
+      "summary": "聚合店主仪表盘今日 KPI、畅销菜品、顾客反馈洞察与待处理事项计数。",
+      "tags": [
+        "service",
+        "analytics",
+        "dashboard",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-overview.ts:computeTodayKpis",
+      "type": "function",
+      "name": "computeTodayKpis",
+      "filePath": "apps/web/src/lib/dashboard-overview.ts",
+      "lineRange": [
+        156,
+        161
+      ],
+      "summary": "聚合店主仪表盘今日 KPI、畅销菜品、顾客反馈洞察与待处理事项计数。",
+      "tags": [
+        "service",
+        "analytics",
+        "dashboard",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-overview.ts:buildTodayTopSellingItems",
+      "type": "function",
+      "name": "buildTodayTopSellingItems",
+      "filePath": "apps/web/src/lib/dashboard-overview.ts",
+      "lineRange": [
+        163,
+        173
+      ],
+      "summary": "聚合店主仪表盘今日 KPI、畅销菜品、顾客反馈洞察与待处理事项计数。",
+      "tags": [
+        "service",
+        "analytics",
+        "dashboard",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-overview.ts:buildFeedbackInsights",
+      "type": "function",
+      "name": "buildFeedbackInsights",
+      "filePath": "apps/web/src/lib/dashboard-overview.ts",
+      "lineRange": [
+        175,
+        237
+      ],
+      "summary": "从反馈会话与菜品评价聚合问题菜品与好评排行。",
+      "tags": [
+        "service",
+        "analytics",
+        "dashboard",
+        "data-model"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-overview.ts:pendingActionsTotal",
+      "type": "function",
+      "name": "pendingActionsTotal",
+      "filePath": "apps/web/src/lib/dashboard-overview.ts",
+      "lineRange": [
+        239,
+        246
+      ],
+      "summary": "聚合店主仪表盘今日 KPI、畅销菜品、顾客反馈洞察与待处理事项计数。",
+      "tags": [
+        "service",
+        "analytics",
+        "dashboard",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/dashboard-overview.ts:loadDashboardOverviewData",
+      "type": "function",
+      "name": "loadDashboardOverviewData",
+      "filePath": "apps/web/src/lib/dashboard-overview.ts",
+      "lineRange": [
+        248,
+        331
+      ],
+      "summary": "并行查询订单、结账请求、异常操作与反馈，组装仪表盘数据。",
+      "tags": [
+        "service",
+        "analytics",
+        "dashboard",
+        "data-model"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/geo-distance.ts",
+      "type": "file",
+      "name": "geo-distance.ts",
+      "filePath": "apps/web/src/lib/geo-distance.ts",
+      "summary": "使用 Haversine 公式计算两经纬度坐标间的球面距离（米）。",
+      "tags": [
+        "utility",
+        "geo-fence",
+        "math"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/geo-distance.ts:distanceMeters",
+      "type": "function",
+      "name": "distanceMeters",
+      "filePath": "apps/web/src/lib/geo-distance.ts",
+      "lineRange": [
+        2,
+        12
+      ],
+      "summary": "计算两经纬度点之间的 Haversine 距离。",
+      "tags": [
+        "utility",
+        "geo-fence",
+        "math"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/guest-table-ordering.test.ts",
+      "type": "file",
+      "name": "guest-table-ordering.test.ts",
+      "filePath": "apps/web/src/lib/guest-table-ordering.test.ts",
+      "summary": "单元测试：验证散客桌台点餐在不同会话与订单状态下的启用规则。",
+      "tags": [
+        "test",
+        "customer",
+        "ordering"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/guest-table-ordering.ts",
+      "type": "file",
+      "name": "guest-table-ordering.ts",
+      "filePath": "apps/web/src/lib/guest-table-ordering.ts",
+      "summary": "判断当前桌台会话是否允许散客（无服务员开台）点餐。",
+      "tags": [
+        "utility",
+        "validation",
+        "customer"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/guest-table-ordering.ts:guestOrderingEnabled",
+      "type": "function",
+      "name": "guestOrderingEnabled",
+      "filePath": "apps/web/src/lib/guest-table-ordering.ts",
+      "lineRange": [
+        5,
+        11
+      ],
+      "summary": "根据 feature flag 与会话订单判断散客点餐是否启用。",
+      "tags": [
+        "utility",
+        "validation",
+        "customer"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/i18n/menu-page-messages.ts",
+      "type": "file",
+      "name": "menu-page-messages.ts",
+      "filePath": "apps/web/src/lib/i18n/menu-page-messages.ts",
+      "summary": "菜单页顾客提示文案的多语言常量表（中/英/葡）。",
+      "tags": [
+        "type-definition",
+        "i18n",
+        "menu"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/menu-item-code.ts",
+      "type": "file",
+      "name": "menu-item-code.ts",
+      "filePath": "apps/web/src/lib/menu-item-code.ts",
+      "summary": "从菜单行或订单行解析菜品编码，并构建查找表。",
+      "tags": [
+        "utility",
+        "menu",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-item-code.ts:resolveMenuItemCode",
+      "type": "function",
+      "name": "resolveMenuItemCode",
+      "filePath": "apps/web/src/lib/menu-item-code.ts",
+      "lineRange": [
+        3,
+        10
+      ],
+      "summary": "从订单行或查找表解析菜品编码字符串。",
+      "tags": [
+        "utility",
+        "menu",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-item-code.ts:menuItemCodeLookupFromRows",
+      "type": "function",
+      "name": "menuItemCodeLookupFromRows",
+      "filePath": "apps/web/src/lib/menu-item-code.ts",
+      "lineRange": [
+        12,
+        21
+      ],
+      "summary": "从菜单行或订单行解析菜品编码，并构建查找表。",
+      "tags": [
+        "utility",
+        "menu",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu-item-code.ts:distinctMenuItemIdsFromOrders",
+      "type": "function",
+      "name": "distinctMenuItemIdsFromOrders",
+      "filePath": "apps/web/src/lib/menu-item-code.ts",
+      "lineRange": [
+        24,
+        36
+      ],
+      "summary": "从菜单行或订单行解析菜品编码，并构建查找表。",
+      "tags": [
+        "utility",
+        "menu",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/menu.ts",
+      "type": "file",
+      "name": "menu.ts",
+      "filePath": "apps/web/src/lib/menu.ts",
+      "summary": "菜单分类路径规范化、树形构建与多语言分类标签查找。",
+      "tags": [
+        "utility",
+        "menu",
+        "data-model"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu.ts:normalizeCategoryPath",
+      "type": "function",
+      "name": "normalizeCategoryPath",
+      "filePath": "apps/web/src/lib/menu.ts",
+      "lineRange": [
+        6,
+        12
+      ],
+      "summary": "菜单分类路径规范化、树形构建与多语言分类标签查找。",
+      "tags": [
+        "utility",
+        "menu",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu.ts:splitCategoryPath",
+      "type": "function",
+      "name": "splitCategoryPath",
+      "filePath": "apps/web/src/lib/menu.ts",
+      "lineRange": [
+        14,
+        17
+      ],
+      "summary": "菜单分类路径规范化、树形构建与多语言分类标签查找。",
+      "tags": [
+        "utility",
+        "menu",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu.ts:buildMenuCategoryTree",
+      "type": "function",
+      "name": "buildMenuCategoryTree",
+      "filePath": "apps/web/src/lib/menu.ts",
+      "lineRange": [
+        24,
+        52
+      ],
+      "summary": "将扁平分类列表构建为嵌套树形结构。",
+      "tags": [
+        "utility",
+        "menu",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu.ts:getLocalizedCategoryPath",
+      "type": "function",
+      "name": "getLocalizedCategoryPath",
+      "filePath": "apps/web/src/lib/menu.ts",
+      "lineRange": [
+        54,
+        58
+      ],
+      "summary": "菜单分类路径规范化、树形构建与多语言分类标签查找。",
+      "tags": [
+        "utility",
+        "menu",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/menu.ts:buildLocalizedCategoryLookup",
+      "type": "function",
+      "name": "buildLocalizedCategoryLookup",
+      "filePath": "apps/web/src/lib/menu.ts",
+      "lineRange": [
+        60,
+        69
+      ],
+      "summary": "菜单分类路径规范化、树形构建与多语言分类标签查找。",
+      "tags": [
+        "utility",
+        "menu",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/note-presets.ts",
+      "type": "file",
+      "name": "note-presets.ts",
+      "filePath": "apps/web/src/lib/note-presets.ts",
+      "summary": "订单备注预设选项定义及按语言获取显示标签。",
+      "tags": [
+        "utility",
+        "i18n",
+        "menu"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/note-presets.ts:getLabelByPresetKey",
+      "type": "function",
+      "name": "getLabelByPresetKey",
+      "filePath": "apps/web/src/lib/note-presets.ts",
+      "lineRange": [
+        56,
+        58
+      ],
+      "summary": "订单备注预设选项定义及按语言获取显示标签。",
+      "tags": [
+        "utility",
+        "i18n",
+        "menu"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/lib/customer-geo-order.ts",
+      "target": "function:apps/web/src/lib/customer-geo-order.ts:getBrowserLocation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-geo-order.ts",
+      "target": "function:apps/web/src/lib/customer-geo-order.ts:resolveCustomerGeoForOrder",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-geo-order.ts",
+      "target": "function:apps/web/src/lib/customer-geo-order.ts:resolveCustomerGeoForOrder",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-geo-order.ts",
+      "target": "file:apps/web/src/lib/geo-distance.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-geo-order.ts",
+      "target": "file:apps/web/src/lib/order-radius.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/customer-geo-order.ts:resolveCustomerGeoForOrder",
+      "target": "function:apps/web/src/lib/customer-geo-order.ts:getBrowserLocation",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-menu-order-gate.test.ts",
+      "target": "file:apps/web/src/lib/buffet-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-menu-order-gate.test.ts",
+      "target": "file:apps/web/src/lib/customer-menu-order-gate.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-menu-order-gate.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-menu-order-gate.ts",
+      "target": "function:apps/web/src/lib/customer-menu-order-gate.ts:guestOrderGateFromSessionContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-menu-order-gate.ts",
+      "target": "function:apps/web/src/lib/customer-menu-order-gate.ts:guestOrderGateFromSessionContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-menu-order-gate.ts",
+      "target": "function:apps/web/src/lib/customer-menu-order-gate.ts:guestOrderingActionHint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-menu-order-gate.ts",
+      "target": "function:apps/web/src/lib/customer-menu-order-gate.ts:guestOrderingActionHint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-menu-order-gate.ts",
+      "target": "function:apps/web/src/lib/customer-menu-order-gate.ts:guestOrderGateFromCachedState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-menu-order-gate.ts",
+      "target": "function:apps/web/src/lib/customer-menu-order-gate.ts:guestOrderGateFromCachedState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-menu-order-gate.ts",
+      "target": "file:apps/web/src/lib/guest-table-ordering.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-menu-order-gate.ts",
+      "target": "file:apps/web/src/lib/i18n/menu-page-messages.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-menu-order-gate.ts",
+      "target": "file:apps/web/src/lib/request-customer-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-menu-order-gate.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-orders-display.ts",
+      "target": "function:apps/web/src/lib/customer-orders-display.ts:filterOrdersForCustomerDisplay",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-orders-display.ts",
+      "target": "function:apps/web/src/lib/customer-orders-display.ts:filterOrdersForCustomerDisplay",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-orders-display.ts",
+      "target": "file:apps/web/src/lib/order-status.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-orders-display.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-session-context.ts",
+      "target": "function:apps/web/src/lib/customer-session-context.ts:loadCustomerRestaurantGate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-session-context.ts",
+      "target": "function:apps/web/src/lib/customer-session-context.ts:loadCustomerRestaurantGate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-session-context.ts",
+      "target": "function:apps/web/src/lib/customer-session-context.ts:loadCustomerRestaurantForApi",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-session-context.ts",
+      "target": "function:apps/web/src/lib/customer-session-context.ts:loadCustomerRestaurantForApi",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-session-context.ts",
+      "target": "function:apps/web/src/lib/customer-session-context.ts:resolveCustomerTableContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-session-context.ts",
+      "target": "function:apps/web/src/lib/customer-session-context.ts:resolveCustomerTableContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-session-context.ts",
+      "target": "function:apps/web/src/lib/customer-session-context.ts:loadCustomerSessionOrders",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-session-context.ts",
+      "target": "function:apps/web/src/lib/customer-session-context.ts:loadCustomerSessionOrders",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-session-context.ts",
+      "target": "function:apps/web/src/lib/customer-session-context.ts:loadCustomerExistingSplit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-session-context.ts",
+      "target": "function:apps/web/src/lib/customer-session-context.ts:loadCustomerExistingSplit",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-session-context.ts",
+      "target": "file:apps/web/src/lib/customer-orders-display.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-session-context.ts",
+      "target": "file:apps/web/src/lib/restaurant-tables.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-session-context.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/customer-session-context.ts:loadCustomerRestaurantForApi",
+      "target": "function:apps/web/src/lib/customer-session-context.ts:loadCustomerRestaurantGate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.test.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.test.ts:order",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.test.ts",
+      "target": "file:apps/web/src/lib/dashboard-overview.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:summarizeTopSellingItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:summarizeTopSellingItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:buildTopSellingRows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:buildTopSellingRows",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:menuItemAggDisplayName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:menuItemAggDisplayName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:dishNameFromRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:computeTodayKpis",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:computeTodayKpis",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:buildTodayTopSellingItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:buildTodayTopSellingItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:buildFeedbackInsights",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:buildFeedbackInsights",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:pendingActionsTotal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:pendingActionsTotal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:loadDashboardOverviewData",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:loadDashboardOverviewData",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "file:apps/web/src/lib/analytics/aggregate-items.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "file:apps/web/src/lib/i18n.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "file:apps/web/src/lib/print-job-max-age.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "file:apps/web/src/lib/table-checkout-pending.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-overview.ts:buildTopSellingRows",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:summarizeTopSellingItems",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-overview.ts:buildTodayTopSellingItems",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:menuItemAggDisplayName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-overview.ts:buildFeedbackInsights",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:dishNameFromRow",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-overview.ts:buildFeedbackInsights",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:dishNameFromRow",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/dashboard-overview.ts:loadDashboardOverviewData",
+      "target": "function:apps/web/src/lib/dashboard-overview.ts:computeTodayKpis",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/geo-distance.ts",
+      "target": "function:apps/web/src/lib/geo-distance.ts:distanceMeters",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/geo-distance.ts",
+      "target": "function:apps/web/src/lib/geo-distance.ts:distanceMeters",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/guest-table-ordering.test.ts",
+      "target": "file:apps/web/src/lib/buffet-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/guest-table-ordering.test.ts",
+      "target": "file:apps/web/src/lib/guest-table-ordering.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/guest-table-ordering.test.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/guest-table-ordering.ts",
+      "target": "function:apps/web/src/lib/guest-table-ordering.ts:guestOrderingEnabled",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/guest-table-ordering.ts",
+      "target": "function:apps/web/src/lib/guest-table-ordering.ts:guestOrderingEnabled",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/guest-table-ordering.ts",
+      "target": "file:apps/web/src/lib/buffet-order.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/guest-table-ordering.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/i18n/menu-page-messages.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-code.ts",
+      "target": "function:apps/web/src/lib/menu-item-code.ts:resolveMenuItemCode",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-code.ts",
+      "target": "function:apps/web/src/lib/menu-item-code.ts:resolveMenuItemCode",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-code.ts",
+      "target": "function:apps/web/src/lib/menu-item-code.ts:menuItemCodeLookupFromRows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-code.ts",
+      "target": "function:apps/web/src/lib/menu-item-code.ts:menuItemCodeLookupFromRows",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-code.ts",
+      "target": "function:apps/web/src/lib/menu-item-code.ts:distinctMenuItemIdsFromOrders",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-code.ts",
+      "target": "function:apps/web/src/lib/menu-item-code.ts:distinctMenuItemIdsFromOrders",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu-item-code.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/menu.ts",
+      "target": "function:apps/web/src/lib/menu.ts:normalizeCategoryPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu.ts",
+      "target": "function:apps/web/src/lib/menu.ts:normalizeCategoryPath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu.ts",
+      "target": "function:apps/web/src/lib/menu.ts:splitCategoryPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu.ts",
+      "target": "function:apps/web/src/lib/menu.ts:splitCategoryPath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu.ts",
+      "target": "function:apps/web/src/lib/menu.ts:buildMenuCategoryTree",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu.ts",
+      "target": "function:apps/web/src/lib/menu.ts:buildMenuCategoryTree",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu.ts",
+      "target": "function:apps/web/src/lib/menu.ts:getLocalizedCategoryPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu.ts",
+      "target": "function:apps/web/src/lib/menu.ts:getLocalizedCategoryPath",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu.ts",
+      "target": "function:apps/web/src/lib/menu.ts:buildLocalizedCategoryLookup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/menu.ts",
+      "target": "function:apps/web/src/lib/menu.ts:buildLocalizedCategoryLookup",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/menu.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/menu.ts:splitCategoryPath",
+      "target": "function:apps/web/src/lib/menu.ts:normalizeCategoryPath",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/menu.ts:buildMenuCategoryTree",
+      "target": "function:apps/web/src/lib/menu.ts:splitCategoryPath",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/menu.ts:getLocalizedCategoryPath",
+      "target": "function:apps/web/src/lib/menu.ts:normalizeCategoryPath",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/menu.ts:getLocalizedCategoryPath",
+      "target": "function:apps/web/src/lib/menu.ts:normalizeCategoryPath",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/menu.ts:getLocalizedCategoryPath",
+      "target": "function:apps/web/src/lib/menu.ts:normalizeCategoryPath",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/menu.ts:buildLocalizedCategoryLookup",
+      "target": "function:apps/web/src/lib/menu.ts:normalizeCategoryPath",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/menu.ts:buildLocalizedCategoryLookup",
+      "target": "function:apps/web/src/lib/menu.ts:getLocalizedCategoryPath",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/note-presets.ts",
+      "target": "function:apps/web/src/lib/note-presets.ts:getLabelByPresetKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/web/src/lib/note-presets.ts",
+      "target": "function:apps/web/src/lib/note-presets.ts:getLabelByPresetKey",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/note-presets.ts",
+      "target": "file:apps/web/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/web/src/lib/customer-geo-order.ts:resolveCustomerGeoForOrder",
+      "target": "function:apps/web/src/lib/geo-distance.ts:distanceMeters",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/customer-geo-order.ts:resolveCustomerGeoForOrder",
+      "target": "function:apps/web/src/lib/order-radius.ts:normalizeOrderRadiusMeters",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/customer-menu-order-gate.ts:guestOrderGateFromSessionContext",
+      "target": "function:apps/web/src/lib/guest-table-ordering.ts:guestOrderingEnabled",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/customer-menu-order-gate.ts:guestOrderGateFromCachedState",
+      "target": "function:apps/web/src/lib/guest-table-ordering.ts:guestOrderingEnabled",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/customer-orders-display.ts:filterOrdersForCustomerDisplay",
+      "target": "function:apps/web/src/lib/order-status.ts:normalizeOrderItemStatus",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/lib/customer-session-context.ts:loadCustomerSessionOrders",
+      "target": "function:apps/web/src/lib/customer-orders-display.ts:filterOrdersForCustomerDisplay",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/customer-menu-order-gate.ts",
+      "target": "file:apps/web/src/lib/customer-menu-order-gate.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/dashboard-overview.ts",
+      "target": "file:apps/web/src/lib/dashboard-overview.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/web/src/lib/guest-table-ordering.ts",
+      "target": "file:apps/web/src/lib/guest-table-ordering.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

@@ -1,12 +1,11 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import type { UILanguage } from '@/lib/i18n';
-import { useByItemLineExpanded } from '@/lib/use-by-item-line-expanded';
 import { ByItemDishAllocator, type ByItemDishAllocatorLabels } from '@/components/menu/ByItemDishAllocator';
 
 interface Props {
@@ -36,7 +35,14 @@ export function ByItemSplitSection({
   onRememberConsumerName,
   progress,
 }: Props) {
-  const { isLineExpanded, toggleLineExpanded } = useByItemLineExpanded();
+  const [expandedOverrides, setExpandedOverrides] = useState<Record<string, boolean>>({});
+  const isLineExpanded = (key: string) => expandedOverrides[key] ?? true;
+  const toggleLineExpanded = (key: string) => {
+    setExpandedOverrides((prev) => ({
+      ...prev,
+      [key]: !(prev[key] ?? true),
+    }));
+  };
 
   const lineQtyLabel = (item: BillSplitOrderLine) =>
     formatOrderItemQuantityLabel(item, {

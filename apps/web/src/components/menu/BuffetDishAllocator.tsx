@@ -14,7 +14,11 @@ import {
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { availableConsumerNamesForRow } from '@/lib/consumer-name-roster';
 import { ByItemConsumerRowRemoveButton } from '@/components/menu/ByItemConsumerRowRemoveButton';
-import { ByItemDishAllocatorHeader } from '@/components/menu/ByItemDishAllocatorHeader';
+import {
+  ByItemDishAllocatorHeader,
+  type ByItemDishAllocatorHeaderLabels,
+} from '@/components/menu/ByItemDishAllocatorHeader';
+import { ByItemDishAllocatorShell } from '@/components/menu/ByItemDishAllocatorShell';
 import { ConsumerNameCombobox } from '@/components/menu/ConsumerNameCombobox';
 
 export type BuffetDishAllocatorLabels = ByItemLineStatusLabels & {
@@ -30,7 +34,7 @@ interface Props {
   spec: Extract<ByItemLineSpec, { mode: 'buffet' }>;
   rows: ByItemConsumerRow[];
   consumerRoster: string[];
-  labels: BuffetDishAllocatorLabels & { expandDetails: string; collapseDetails: string };
+  labels: BuffetDishAllocatorLabels & ByItemDishAllocatorHeaderLabels;
   readOnly?: boolean;
   expanded: boolean;
   onToggleExpand: () => void;
@@ -99,91 +103,85 @@ export function BuffetDishAllocator({
   };
 
   return (
-    <div
-      className={`bg-brand-card border rounded-xl p-3.5 ${
-        statusSummary.tone === 'alert'
-          ? 'border-red-500/40 ring-1 ring-red-500/20'
-          : 'border-brand-border'
-      }${readOnly ? ' opacity-60 pointer-events-none' : ''}`}
+    <ByItemDishAllocatorShell
+      statusTone={statusSummary.tone}
+      readOnly={readOnly}
+      expanded={expanded}
+      header={(
+        <ByItemDishAllocatorHeader
+          title={title}
+          statusSummary={statusSummary}
+          lineTotal={spec.lineTotal}
+          expanded={expanded}
+          labels={labels}
+          onToggleExpand={onToggleExpand}
+        />
+      )}
     >
-      <ByItemDishAllocatorHeader
-        title={title}
-        statusSummary={statusSummary}
-        lineTotal={spec.lineTotal}
-        expanded={expanded}
-        expandLabel={labels.expandDetails}
-        collapseLabel={labels.collapseDetails}
-        onToggleExpand={onToggleExpand}
-      />
-
-      {expanded ? (
-        <>
-          <div className="space-y-2">
-            {rows.map((row) => {
-              const over = isRowBuffetOverAllocated(row, rows, spec);
-              const fieldClass = over ? INPUT_ALERT : INPUT_OK;
-              return (
-                <div key={row.id} className="flex items-start gap-2">
-                  <ConsumerNameCombobox
-                    value={row.name}
-                    options={availableConsumerNamesForRow({
-                      roster: consumerRoster,
-                      dishRows: rows,
-                      rowId: row.id,
+      <div className="space-y-2">
+        {rows.map((row) => {
+          const over = isRowBuffetOverAllocated(row, rows, spec);
+          const fieldClass = over ? INPUT_ALERT : INPUT_OK;
+          return (
+            <div key={row.id} className="flex items-start gap-2">
+              <ConsumerNameCombobox
+                value={row.name}
+                options={availableConsumerNamesForRow({
+                  roster: consumerRoster,
+                  dishRows: rows,
+                  rowId: row.id,
+                })}
+                placeholder={labels.namePlaceholder}
+                onChange={(name) => updateRow(row.id, { name })}
+                onCommit={(name, fromList) => onRememberConsumerName(name, fromList)}
+              />
+              <div className="flex shrink-0 items-center gap-1">
+                <label className="flex items-center gap-1 text-[11px] text-brand-text-muted">
+                  <span className="whitespace-nowrap">{labels.buffetAdultQtyLabel}</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={row.adultQty ?? ''}
+                    onChange={(e) => updateRow(row.id, {
+                      adultQty: sanitizeQtyDigits(e.target.value),
                     })}
-                    placeholder={labels.namePlaceholder}
-                    onChange={(name) => updateRow(row.id, { name })}
-                    onCommit={(name, fromList) => onRememberConsumerName(name, fromList)}
+                    aria-label={labels.buffetAdultQtyLabel}
+                    className={fieldClass}
                   />
-                  <div className="flex shrink-0 items-center gap-1">
-                    <label className="flex items-center gap-1 text-[11px] text-brand-text-muted">
-                      <span className="whitespace-nowrap">{labels.buffetAdultQtyLabel}</span>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={row.adultQty ?? ''}
-                        onChange={(e) => updateRow(row.id, {
-                          adultQty: sanitizeQtyDigits(e.target.value),
-                        })}
-                        aria-label={labels.buffetAdultQtyLabel}
-                        className={fieldClass}
-                      />
-                    </label>
-                    <label className="flex items-center gap-1 text-[11px] text-brand-text-muted">
-                      <span className="whitespace-nowrap">{labels.buffetChildQtyLabel}</span>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={row.childQty ?? ''}
-                        onChange={(e) => updateRow(row.id, {
-                          childQty: sanitizeQtyDigits(e.target.value),
-                        })}
-                        aria-label={labels.buffetChildQtyLabel}
-                        className={fieldClass}
-                      />
-                    </label>
-                  </div>
-                  <ByItemConsumerRowRemoveButton
-                    rowCount={rows.length}
-                    ariaLabel={labels.remove}
-                    onRemove={() => removeRow(row.id)}
+                </label>
+                <label className="flex items-center gap-1 text-[11px] text-brand-text-muted">
+                  <span className="whitespace-nowrap">{labels.buffetChildQtyLabel}</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={row.childQty ?? ''}
+                    onChange={(e) => updateRow(row.id, {
+                      childQty: sanitizeQtyDigits(e.target.value),
+                    })}
+                    aria-label={labels.buffetChildQtyLabel}
+                    className={fieldClass}
                   />
-                </div>
-              );
-            })}
-          </div>
+                </label>
+              </div>
+              <ByItemConsumerRowRemoveButton
+                rowCount={rows.length}
+                ariaLabel={labels.remove}
+                onRemove={() => removeRow(row.id)}
+              />
+            </div>
+          );
+        })}
+      </div>
 
-          <button
-            type="button"
-            onClick={addRow}
-            className="mt-3 w-full text-brand-text-muted text-[13px] py-2 border border-dashed border-brand-border rounded-lg hover:border-brand-gold/50 hover:text-brand-gold transition-colors"
-          >
-            + {labels.addConsumer}
-          </button>
-        </>
-      ) : null}
-    </div>
+      <button
+        type="button"
+        onClick={addRow}
+        className="mt-3 w-full text-brand-text-muted text-[13px] py-2 border border-dashed border-brand-border rounded-lg hover:border-brand-gold/50 hover:text-brand-gold transition-colors"
+      >
+        + {labels.addConsumer}
+      </button>
+    </ByItemDishAllocatorShell>
   );
 }

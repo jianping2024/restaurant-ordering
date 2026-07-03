@@ -47,7 +47,7 @@
 ### 规则
 
 - 少全页跳转：购物车用 **抽屉**；结账手机用 **列表↔详情** 而非新路由
-- 服务员点餐提交后 **自动回桌台**（`WAITER_RETURN_REDIRECT_MS`）
+- 服务员点餐提交后 **立即自动回桌台**（无 success toast；见 `menu-order-submit-outcome.ts`）
 - Dashboard 手机：**汉堡菜单** 一次展开导航，避免每页重复顶栏按钮
 
 ### 避免

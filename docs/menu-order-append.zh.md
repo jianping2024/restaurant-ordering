@@ -164,13 +164,12 @@ RSC menu/page.tsx
 ① 门禁   同顾客
 ② 定位   跳过 geo
 ③ 请求   POST append { ..., waiter_flow: true }
-④ 入队   await autoEnqueueStationTicketsAfterSubmit(waiterFlow: true)
-⑤ 刷新   await loadSessionAndOrders
-⑥ 反馈   见下节「提交后反馈」
-⑦ 跳转   1200ms 后 router.push(returnToWaiterHref)
+④ 入队   void autoEnqueueStationTicketsAfterSubmit（不阻塞）
+⑤ 反馈   清购物车，无 success toast
+⑥ 跳转   append 成功后立即 router.push(returnToWaiterHref)；确认以桌台详情订单列表为准
 ```
 
-**Demo**：不发真实 append；清空购物车。服务员 demo 走 `finishSuccessfulSubmit`（toast + 跳回看板）；顾客 demo 展示专用 demo toast 文案，不发 `orderSuccess`。
+**Demo**：不发真实 append；清空购物车。服务员 demo 走 `completeStaffAssistedOrderSubmit`（无 toast、立即跳回看板）；顾客 demo 展示专用 demo Banner，不发 `orderSuccess`。
 
 ### 提交后反馈（锁定）
 
@@ -178,10 +177,10 @@ RSC menu/page.tsx
 
 | 反馈 | 行为 |
 |------|------|
-| 成功 Toast | `showToast(t.orderSuccess, 'success')`；右下角，约 3s 自动消失；与错误/信息 toast 同一组件 |
+| 成功 Toast | **仅顾客流**：`showToast(t.orderSuccess, 'success')`；右下角，约 3s |
 | 购物车 | 清空并关闭抽屉 |
-| 已下单列表 | `loadSessionAndOrders` 刷新；响应 `batch_id` 对应行标 **NEW** 约 15s（`latestBatchId`） |
-| 服务员代点 | 同上 Toast；约 1.2s 后跳回 `returnToWaiterHref`；跳转前菜单仍可操作 |
+| 已下单列表 | **仅顾客流**：`refreshSessionContext` 后更新；`batch_id` 对应行 **NEW** 约 15s |
+| 服务员代点 | **无** success toast；append 成功后 **立即** 跳回 `returnToWaiterHref` |
 
 **禁止**：全屏 modal / 模糊遮罩阻断点菜；成功态不得占用 3s 不可交互时间。
 
@@ -228,6 +227,7 @@ RSC menu/page.tsx
 | 活跃 session | `lib/table-session-open.ts` → `findActiveTableSession` |
 | 入队 token | `lib/order-enqueue-token.ts` |
 | 提交后入队（客户端） | `lib/auto-enqueue-station-tickets.ts` |
+| 提交后反馈（顾客 vs 代点） | `lib/menu-order-submit-outcome.ts` |
 | 入队 API | `app/api/restaurants/[slug]/station-tickets/auto/route.ts` |
 | 档口分组入队 | `lib/station-ticket-enqueue.ts` |
 | 会话上下文（SSR + 操作时 refresh） | `lib/customer-session-context.ts` → `loadCustomerSessionContext`、`lib/use-customer-session-context.ts`、`lib/customer-menu-order-gate.ts` |

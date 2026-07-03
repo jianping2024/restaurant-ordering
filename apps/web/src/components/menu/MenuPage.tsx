@@ -20,6 +20,10 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
 import { showToast } from '@/components/ui/Toast';
 import { autoEnqueueStationTicketsAfterSubmit } from '@/lib/auto-enqueue-station-tickets';
+import {
+  completeGuestOrderSubmit,
+  completeStaffAssistedOrderSubmit,
+} from '@/lib/menu-order-submit-outcome';
 import { resolveCustomerGeoForOrder } from '@/lib/customer-geo-order';
 import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
 import {
@@ -56,8 +60,6 @@ interface Props {
   isDemo?: boolean;
   staffAssisted?: StaffAssistedFlow | null;
 }
-
-const WAITER_RETURN_REDIRECT_MS = 1200;
 
 export function MenuPage({
   restaurant,
@@ -234,21 +236,31 @@ export function MenuPage({
     ? waiterBillHref(restaurant.slug, tableId, { embeddedInDashboard: true })
     : `/${restaurant.slug}/bill?table_id=${encodeURIComponent(tableId)}`;
 
-  const finishSuccessfulSubmit = useCallback(
-    (batchId?: string) => {
-      if (batchId) {
-        setLatestBatchId(batchId);
-        setTimeout(() => setLatestBatchId(null), 15000);
-      }
-      setCart([]);
-      setCartOpen(false);
-      showToast(t.orderSuccess, 'success');
-      if (staffAssisted?.redirectAfterSubmit) {
-        setTimeout(() => router.push(staffAssisted.returnHref), WAITER_RETURN_REDIRECT_MS);
-      }
+  const clearSubmitCart = useCallback(() => {
+    setCart([]);
+    setCartOpen(false);
+  }, []);
+
+  const completeGuestSubmit = useCallback(
+    (batchId: string) => {
+      completeGuestOrderSubmit({
+        batchId,
+        orderSuccessMessage: t.orderSuccess,
+        clearCart: clearSubmitCart,
+        setLatestBatchId,
+      });
     },
-    [staffAssisted, router, t.orderSuccess],
+    [clearSubmitCart, t.orderSuccess],
   );
+
+  const completeStaffAssistedSubmit = useCallback(() => {
+    if (!staffAssisted) return;
+    completeStaffAssistedOrderSubmit({
+      returnHref: staffAssisted.returnHref,
+      clearCart: clearSubmitCart,
+      navigate: (href) => router.push(href),
+    });
+  }, [clearSubmitCart, router, staffAssisted]);
 
   // 提交订单
   const submitOrder = async () => {
@@ -261,7 +273,7 @@ export function MenuPage({
 
     if (isDemo) {
       if (staffAssisted) {
-        finishSuccessfulSubmit();
+        completeStaffAssistedSubmit();
         return;
       }
       setCart([]);
@@ -355,14 +367,14 @@ export function MenuPage({
 
       if (staffAssisted) {
         void enqueuePromise;
+        completeStaffAssistedSubmit();
       } else {
         await enqueuePromise;
         if (sessionId) {
           await refreshSessionContext();
         }
+        completeGuestSubmit(appendData.batch_id);
       }
-
-      finishSuccessfulSubmit(appendData.batch_id);
     } catch (error) {
       if (process.env.NODE_ENV !== 'production') {
         // Keep dev diagnostics without exposing raw errors to guests.

@@ -5,7 +5,7 @@ import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Realtime refresh when buffet pricing config changes (owner dashboard).
- * Same visibility rules as useRestaurantRealtimeRefresh — no work while tab hidden.
+ * Initial price load is the caller's mount effect; this hook handles live updates only.
  */
 export function useBuffetPricesRealtimeRefresh(
   supabase: SupabaseClient,
@@ -36,7 +36,6 @@ export function useBuffetPricesRealtimeRefresh(
 
     const subscribe = () => {
       if (channel) return;
-      onRefreshRef.current();
       channel = supabase
         .channel(`buffet-prices-${restaurantId}`)
         .on(

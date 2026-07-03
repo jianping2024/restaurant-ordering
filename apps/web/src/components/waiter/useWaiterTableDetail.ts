@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Order } from '@/types';
 import { fetchWaiterTableDetailClient } from '@/lib/staff-board-client';
@@ -14,43 +14,29 @@ import {
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import type { WaiterTableDetailData } from '@/lib/staff-board';
 
-type InitialDetail = {
-  table?: RestaurantTableRow | null;
-  orders?: Order[];
-  sessionMeta?: WaiterTableSessionMeta | null;
-  checkoutRequested?: boolean;
-  checkoutRequestedAt?: string | null;
-};
-
 /**
  * Table detail client state.
  *
- * Production orders come from `fetchWaiterTableDetail` already scoped to the active
- * session (or legacy null-session rows). Do not re-filter with `ordersForWaiterTableView`
- * here — that helper is for the multi-table board payload only.
+ * Production data: one staff API load on mount, then Realtime debounced reloads.
+ * Mutations (buffet open, decrement) apply API snapshots via applyDetail.
  */
 export function useWaiterTableDetail(
   restaurant: { id: string; slug: string },
   tableId: string,
-  initial: InitialDetail | null,
   enabled: boolean,
   isDemo: boolean,
   demoTables: RestaurantTableRow[] = [],
   demoOrders: Order[] = [],
 ) {
-  const [table, setTable] = useState<RestaurantTableRow | null>(initial?.table ?? null);
-  const [orderRows, setOrderRows] = useState<Order[]>(
-    isDemo ? demoOrders : (initial?.orders ?? []),
-  );
-  const [sessionMeta, setSessionMeta] = useState<WaiterTableSessionMeta | null>(
-    initial?.sessionMeta ?? null,
-  );
-  const [checkoutRequested, setCheckoutRequested] = useState(!!initial?.checkoutRequested);
-  const [checkoutRequestedAt, setCheckoutRequestedAt] = useState<string | null>(
-    initial?.checkoutRequestedAt ?? null,
-  );
-  const [detailLoaded, setDetailLoaded] = useState(!!initial?.table || isDemo);
+  const [table, setTable] = useState<RestaurantTableRow | null>(null);
+  const [orderRows, setOrderRows] = useState<Order[]>(isDemo ? demoOrders : []);
+  const [sessionMeta, setSessionMeta] = useState<WaiterTableSessionMeta | null>(null);
+  const [checkoutRequested, setCheckoutRequested] = useState(false);
+  const [checkoutRequestedAt, setCheckoutRequestedAt] = useState<string | null>(null);
+  const [detailLoaded, setDetailLoaded] = useState(isDemo);
   const supabase = useMemo(() => createClient(), []);
+  const reloadSeqRef = useRef(0);
+  const refreshInFlightRef = useRef<Promise<WaiterTableDetailData | null> | null>(null);
 
   const demoSessionMetaByTableId = useMemo(
     () => (isDemo ? demoSessionMetaFromOrders(demoOrders) : {}),
@@ -80,16 +66,35 @@ export function useWaiterTableDetail(
 
   const refresh = useCallback(async () => {
     if (!enabled) return null;
-    const detail = await fetchWaiterTableDetailClient(restaurant.slug, tableId);
-    return applyDetail(detail);
+    if (refreshInFlightRef.current) return refreshInFlightRef.current;
+
+    const seq = ++reloadSeqRef.current;
+    const running = (async () => {
+      try {
+        const detail = await fetchWaiterTableDetailClient(restaurant.slug, tableId);
+        if (seq !== reloadSeqRef.current) return null;
+        return applyDetail(detail);
+      } finally {
+        refreshInFlightRef.current = null;
+      }
+    })();
+    refreshInFlightRef.current = running;
+    return running;
   }, [applyDetail, enabled, restaurant.slug, tableId]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    void refresh();
+  }, [enabled, refresh]);
 
   useRestaurantRealtimeRefresh(
     supabase,
     restaurant.id,
     `waiter-table-${restaurant.id}-${tableId}`,
     enabled,
-    refresh,
+    () => {
+      void refresh();
+    },
     1200,
   );
 

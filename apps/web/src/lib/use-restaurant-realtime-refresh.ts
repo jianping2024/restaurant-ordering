@@ -4,9 +4,8 @@ import { useEffect, useRef } from 'react';
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 
 /**
- * Supabase Realtime (WebSocket): refresh when orders / sessions / bills change.
- * Also refreshes once when the channel subscribes (mount or tab visible again).
- * Unsubscribes while the tab is hidden or on unmount — no background polling.
+ * Supabase Realtime (WebSocket): debounced refresh when orders / sessions / bills change.
+ * Entry reload is the caller's job (mount refresh or SSR seed). Unsubscribes while hidden.
  */
 export function useRestaurantRealtimeRefresh(
   supabase: SupabaseClient,
@@ -36,8 +35,6 @@ export function useRestaurantRealtimeRefresh(
 
     const subscribe = () => {
       if (channel) return;
-      // Always reconcile client state on subscribe (mount / tab visible). SSR seed is for first paint only.
-      onRefreshRef.current();
       channel = supabase
         .channel(channelKey)
         .on(

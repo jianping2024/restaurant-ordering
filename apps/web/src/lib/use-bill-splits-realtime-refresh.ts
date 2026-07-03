@@ -4,8 +4,8 @@ import { useEffect, useRef } from 'react';
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 
 /**
- * Supabase Realtime on bill_splits only — notifies when checkout queue may have changed.
- * Callers should reconcile via staff API, not a browser Supabase query.
+ * Supabase Realtime on bill_splits only — debounced reload when checkout queue may have changed.
+ * Callers reconcile via staff API on mount; this hook handles live updates only.
  */
 export function useBillSplitsRealtimeRefresh(
   supabase: SupabaseClient,
@@ -35,7 +35,6 @@ export function useBillSplitsRealtimeRefresh(
 
     const subscribe = () => {
       if (channel) return;
-      onRefreshRef.current();
       channel = supabase
         .channel(channelKey)
         .on(

@@ -49,7 +49,6 @@ export function CheckoutRequestsProvider({
 }: Props) {
   const [requests, setRequests] = useState<BillSplit[]>([]);
   const reloadSeqRef = useRef(0);
-  const skipSubscribeReloadRef = useRef(false);
   const supabase = useMemo(() => createClient(), []);
 
   const reload = useCallback(async () => {
@@ -65,7 +64,6 @@ export function CheckoutRequestsProvider({
   }, [enabled, restaurantSlug]);
 
   const hydrateFromServer = useCallback((serverRequests: BillSplit[]) => {
-    skipSubscribeReloadRef.current = true;
     setRequests(serverRequests);
   }, []);
 
@@ -73,20 +71,14 @@ export function CheckoutRequestsProvider({
     setRequests(updater);
   }, []);
 
-  const reconcileOnSubscribe = useCallback(() => {
-    if (skipSubscribeReloadRef.current) {
-      skipSubscribeReloadRef.current = false;
-      return;
-    }
-    void reload();
-  }, [reload]);
-
   useBillSplitsRealtimeRefresh(
     supabase,
     restaurantId,
     `checkout-queue-${restaurantId}`,
     enabled,
-    reconcileOnSubscribe,
+    () => {
+      void reload();
+    },
   );
 
   const value = useMemo(

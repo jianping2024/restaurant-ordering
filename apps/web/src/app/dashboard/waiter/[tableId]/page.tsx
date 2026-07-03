@@ -1,22 +1,12 @@
 import { notFound, redirect } from 'next/navigation';
 import { WaiterTableDetail } from '@/components/waiter/WaiterTableDetail';
 import { loadDashboardAccess } from '@/lib/dashboard-access';
-import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
-import { loadWaiterTableInitial } from '@/lib/staff-board';
-import { dashboardCheckoutTableHref } from '@/lib/staff-routes';
 import { createClient } from '@/lib/supabase/server';
 import type { Buffet } from '@/types';
 
 interface Props {
   params: Promise<{ tableId: string }>;
-}
-
-function isFrontdeskCheckoutPendingTable(
-  detail: Awaited<ReturnType<typeof loadWaiterTableInitial>> | null,
-): boolean {
-  if (!detail) return false;
-  return detail.checkoutRequested || detail.sessionMeta?.status === 'billing';
 }
 
 export default async function DashboardWaiterTablePage({ params }: Props) {
@@ -32,39 +22,18 @@ export default async function DashboardWaiterTablePage({ params }: Props) {
   const { restaurant } = access;
   const supabase = await createClient();
 
-  const [{ data: buffetRows }, detail] = await Promise.all([
-    supabase
-      .from('buffets')
-      .select('*')
-      .eq('restaurant_id', restaurant.id)
-      .order('name'),
-    loadWaiterTableInitial(restaurant.id, tableId).catch(() => null),
-  ]);
-
-  if (isFrontdeskCheckoutPendingTable(detail)) {
-    redirect(dashboardCheckoutTableHref(tableId));
-  }
-
-  const menuItemIds = distinctMenuItemIdsFromOrders(detail?.orders ?? []);
-  let itemCodeByMenuId: Record<string, string> = {};
-  if (menuItemIds.length > 0) {
-    const { data: menuRows } = await supabase
-      .from('menu_items')
-      .select('id, item_code')
-      .eq('restaurant_id', restaurant.id)
-      .in('id', menuItemIds);
-    itemCodeByMenuId = menuItemCodeLookupFromRows(menuRows ?? []);
-  }
+  const { data: buffetRows } = await supabase
+    .from('buffets')
+    .select('*')
+    .eq('restaurant_id', restaurant.id)
+    .order('name');
 
   return (
     <WaiterTableDetail
       restaurant={{ id: restaurant.id, name: restaurant.name, slug: restaurant.slug }}
       initialBuffets={(buffetRows || []) as Buffet[]}
       tableId={tableId}
-      displayName={detail?.table?.display_name ?? ''}
-      itemCodeByMenuId={itemCodeByMenuId}
       embeddedInDashboard
-      initialTableDetail={detail ?? undefined}
     />
   );
 }

@@ -38,10 +38,16 @@ import { Button } from '@/components/ui/Button';
 import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
 import { postWaiterDecrementOrderItemClient } from '@/lib/waiter-decrement-order-item-client';
 import { fetchWaiterTableActionTargetsClient, postWaiterBuffetOpenClient } from '@/lib/staff-board-client';
+import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
-import { waiterBoardHref, waiterTableHref, waiterMenuHref, waiterBillHref } from '@/lib/staff-routes';
+import {
+  dashboardCheckoutTableHref,
+  waiterBoardHref,
+  waiterTableHref,
+  waiterMenuHref,
+  waiterBillHref,
+} from '@/lib/staff-routes';
 import type { WaiterTableDetailData } from '@/lib/staff-board';
-import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import {
   WaiterCheckoutPendingBanner,
   WaiterTableBuffetPanel,
@@ -56,18 +62,11 @@ interface Props {
   tables?: RestaurantTableRow[];
   /** Demo only — full demo order set. */
   initialOrders?: Order[];
-  initialTableDetail?: {
-    table?: RestaurantTableRow | null;
-    orders?: Order[];
-    sessionMeta?: WaiterTableSessionMeta | null;
-    checkoutRequested?: boolean;
-    checkoutRequestedAt?: string | null;
-  };
   initialBuffets?: Buffet[];
   tableId: string;
+  /** Demo only — table label before detail state resolves. */
   displayName?: string;
   isDemo?: boolean;
-  itemCodeByMenuId?: Record<string, string>;
   embeddedInDashboard?: boolean;
 }
 
@@ -75,12 +74,10 @@ function WaiterTableDetailInner({
   restaurant,
   tables: demoTablesProp = [],
   initialOrders = [],
-  initialTableDetail,
   initialBuffets = [],
   tableId,
   displayName = '',
   isDemo = false,
-  itemCodeByMenuId = {},
   embeddedInDashboard = false,
   handleSignOut,
   exitLabel,
@@ -90,7 +87,6 @@ function WaiterTableDetailInner({
   const { lang } = useLanguage();
   const locale = UI_LOCALE_BY_LANG[lang];
   const t = WAITER_TEXT[lang];
-  const initialDetail = initialTableDetail?.table ? initialTableDetail : null;
   const {
     table: selectedTable,
     orders,
@@ -106,12 +102,36 @@ function WaiterTableDetailInner({
   } = useWaiterTableDetail(
     restaurant,
     tableId,
-    initialDetail,
     !isDemo,
     isDemo,
     demoTablesProp,
     initialOrders,
   );
+
+  const [itemCodeByMenuId, setItemCodeByMenuId] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (isDemo) return;
+    const menuItemIds = distinctMenuItemIdsFromOrders(orders);
+    if (menuItemIds.length === 0) {
+      setItemCodeByMenuId({});
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const { data: menuRows } = await supabase
+        .from('menu_items')
+        .select('id, item_code')
+        .eq('restaurant_id', restaurant.id)
+        .in('id', menuItemIds);
+      if (!cancelled) {
+        setItemCodeByMenuId(menuItemCodeLookupFromRows(menuRows ?? []));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isDemo, orders, restaurant.id, supabase]);
 
   const [operationType, setOperationType] = useState<'transfer' | 'merge' | null>(null);
   const [sourceTable, setSourceTable] = useState<string | null>(null);
@@ -324,6 +344,27 @@ function WaiterTableDetailInner({
     () => ({ isDemo, embeddedInDashboard }),
     [isDemo, embeddedInDashboard],
   );
+
+  useEffect(() => {
+    if (isDemo || !detailLoaded) return;
+    if (!isCheckoutPending && sessionMeta?.status !== 'billing') return;
+    if (embeddedInDashboard) {
+      router.replace(dashboardCheckoutTableHref(tableId));
+      return;
+    }
+    router.replace(waiterBoardHref(restaurant.slug, routeOptions));
+  }, [
+    detailLoaded,
+    embeddedInDashboard,
+    isCheckoutPending,
+    isDemo,
+    restaurant.slug,
+    routeOptions,
+    router,
+    sessionMeta?.status,
+    tableId,
+  ]);
+
   const pageShellClass = embeddedInDashboard ? '' : 'min-h-screen bg-brand-bg p-4';
   const boardHref = waiterBoardHref(restaurant.slug, routeOptions);
   const menuHref = waiterMenuHref(restaurant.slug, tableId, routeOptions);

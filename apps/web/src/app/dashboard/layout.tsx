@@ -7,6 +7,7 @@ import { RestaurantOnboarding } from '@/components/dashboard/RestaurantOnboardin
 import { RestaurantSuspensionBanner } from '@/components/dashboard/RestaurantSuspensionBanner';
 import { loadDashboardAccess } from '@/lib/dashboard-access';
 import { PrintAgentCredentialExpiryAlert } from '@/components/dashboard/PrintAgentCredentialExpiryAlert';
+import { CheckoutRequestsProvider } from '@/components/dashboard/CheckoutRequestsProvider';
 import { loadPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-server';
 
 export default async function DashboardLayout({
@@ -45,17 +46,23 @@ export default async function DashboardLayout({
     isRestaurantSuspended(access.restaurant.suspended_at);
 
   return (
-    <div className="min-h-screen bg-brand-bg flex">
-      <DashboardNav restaurant={access.restaurant} accessMode={access.mode} />
-      <main className={`flex-1 min-w-0 overflow-x-hidden ${DASHBOARD_MAIN_OFFSET} p-4 pt-20 sm:p-6 sm:pt-20 lg:p-8 lg:pt-8 min-h-screen`}>
-        {showSuspensionBanner ? (
-          <RestaurantSuspensionBanner reason={access.restaurant.suspension_reason} />
-        ) : null}
-        {expiringDevices.length > 0 ? (
-          <PrintAgentCredentialExpiryAlert devices={expiringDevices} variant="bar" />
-        ) : null}
-        {children}
-      </main>
-    </div>
+    <CheckoutRequestsProvider
+      restaurantId={access.restaurant.id}
+      restaurantSlug={access.restaurant.slug}
+      enabled={access.mode !== 'owner'}
+    >
+      <div className="min-h-screen bg-brand-bg flex">
+        <DashboardNav restaurant={access.restaurant} accessMode={access.mode} />
+        <main className={`flex-1 min-w-0 overflow-x-hidden ${DASHBOARD_MAIN_OFFSET} p-4 pt-20 sm:p-6 sm:pt-20 lg:p-8 lg:pt-8 min-h-screen`}>
+          {showSuspensionBanner ? (
+            <RestaurantSuspensionBanner reason={access.restaurant.suspension_reason} />
+          ) : null}
+          {expiringDevices.length > 0 ? (
+            <PrintAgentCredentialExpiryAlert devices={expiringDevices} variant="bar" />
+          ) : null}
+          {children}
+        </main>
+      </div>
+    </CheckoutRequestsProvider>
   );
 }

@@ -1,6 +1,8 @@
 'use client';
 
+import { useLayoutEffect } from 'react';
 import type { BillSplit } from '@/types';
+import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { CheckoutRequestsManager } from '@/components/dashboard/CheckoutRequestsManager';
 
 interface Props {
@@ -18,9 +20,14 @@ export function CheckoutRequestsPageClient({
   canCloseTable,
   initialTableId,
 }: Props) {
+  const { hydrateFromServer } = useCheckoutRequests();
+
+  useLayoutEffect(() => {
+    hydrateFromServer(checkoutRequests);
+  }, [checkoutRequests, hydrateFromServer]);
+
   return (
     <CheckoutRequestsManager
-      initialRequests={checkoutRequests}
       restaurantId={restaurantId}
       restaurantSlug={restaurantSlug}
       canCloseTable={canCloseTable}

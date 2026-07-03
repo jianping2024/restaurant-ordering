@@ -14,7 +14,7 @@ import type { DashboardAccessMode, DashboardNavRestaurant } from '@/lib/dashboar
 import { navItemsForRole } from '@/lib/dashboard-feature-registry';
 import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 import { DASHBOARD_SIDEBAR_WIDTH } from '@/components/dashboard/dashboard-nav-link';
-import { useCheckoutRequestCount } from '@/lib/use-checkout-request-count';
+import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 
 const ownerNavItems = navItemsForRole('owner');
 const frontdeskNavItems = navItemsForRole('frontdesk');
@@ -53,11 +53,7 @@ export function DashboardNav({
         : ownerNavItems;
   const showKitchenShortcut = accessMode === 'frontdesk' && kitchenShortcutEnabled;
   const [mobileOpen, setMobileOpen] = useState(false);
-  const checkoutRequestCount = useCheckoutRequestCount(
-    restaurant.id,
-    restaurant.slug,
-    accessMode !== 'owner',
-  );
+  const { pendingCount: checkoutRequestCount } = useCheckoutRequests();
 
   const { requestSignOut, modalOpen, modalConfirming, closeModal, confirmSignOut: runSignOut } =
     useSignOutConfirmState(() => dashboardSignOutAndRedirect(router));

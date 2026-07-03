@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
-import {
-  countCheckoutRequestsQueue,
-  fetchCheckoutRequestsQueue,
-} from '@/lib/checkout-requests-queue';
+import { fetchCheckoutRequestsQueue } from '@/lib/checkout-requests-queue';
 
 export const runtime = 'nodejs';
 
@@ -21,14 +18,7 @@ export async function GET(
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
-  const countOnly = new URL(req.url).searchParams.get('count_only') === '1';
-
   try {
-    if (countOnly) {
-      const count = await countCheckoutRequestsQueue(auth.admin, auth.restaurantId);
-      return NextResponse.json({ count });
-    }
-
     const requests = await fetchCheckoutRequestsQueue(auth.admin, auth.restaurantId);
     return NextResponse.json({ requests });
   } catch {

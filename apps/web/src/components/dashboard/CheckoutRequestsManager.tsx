@@ -11,7 +11,6 @@ import {
   checkoutBillPrintKey,
   checkoutPersonKey,
   checkoutResumeOrderingKey,
-  mergeBillSplitsFromRefresh,
 } from '@/lib/checkout-request-state';
 import {
   discountedSplitRows,
@@ -42,7 +41,6 @@ import {
   type CheckoutDisplayLine,
 } from '@/lib/checkout-session-lines';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
-import { invalidateCheckoutRequestCount } from '@/lib/checkout-request-count-sync';
 import {
   loadCheckoutSoundEnabled,
   saveCheckoutSoundEnabled,
@@ -57,14 +55,10 @@ import {
   groupCollectedPaymentsBySession,
   hasCheckoutCollections,
 } from '@/lib/checkout-settlement';
-import { requestCheckoutRequestsQueue } from '@/lib/request-checkout-requests-queue';
-import { useBillSplitsRealtimeRefresh } from '@/lib/use-bill-splits-realtime-refresh';
+import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 
 interface Props {
-  initialRequests: BillSplit[];
-  /** From server after loadDashboardAccess — Realtime filter + staff API scope. */
   restaurantId: string;
-  /** Staff checkout requests API + print actions. */
   restaurantSlug: string;
   /** Owner or frontdesk may force-close unpaid tables from checkout. */
   canCloseTable?: boolean;
@@ -73,13 +67,12 @@ interface Props {
 }
 
 export function CheckoutRequestsManager({
-  initialRequests,
   restaurantId,
   restaurantSlug,
   canCloseTable = false,
   initialTableId,
 }: Props) {
-  const [requests, setRequests] = useState<BillSplit[]>(initialRequests);
+  const { requests, updateRequests, reload } = useCheckoutRequests();
   const [processingKeys, setProcessingKeys] = useState<Set<string>>(() => new Set());
   const billDiscount = useCheckoutBillDiscount();
   const { lang } = useLanguage();
@@ -98,7 +91,6 @@ export function CheckoutRequestsManager({
   const { cooldownSecondsLeft, isOnCooldown, startCooldown } = useCheckoutBillPrintCooldown();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const prevRequestCountRef = useRef<number | null>(null);
-  const refreshSeqRef = useRef(0);
   const deepLinkConsumedRef = useRef(false);
 
   useEffect(() => {
@@ -122,26 +114,6 @@ export function CheckoutRequestsManager({
       playCheckoutRequestChime();
     }
   }, [requests.length, soundEnabled]);
-
-  const refreshCheckoutRequests = useCallback(async () => {
-    const seq = ++refreshSeqRef.current;
-    try {
-      const incoming = await requestCheckoutRequestsQueue(restaurantSlug);
-      if (seq !== refreshSeqRef.current) return;
-      setRequests((prev) => mergeBillSplitsFromRefresh(prev, incoming));
-      invalidateCheckoutRequestCount();
-    } catch {
-      if (seq !== refreshSeqRef.current) return;
-    }
-  }, [restaurantSlug]);
-
-  useBillSplitsRealtimeRefresh(
-    supabase,
-    restaurantId,
-    `checkout-requests-${restaurantId}`,
-    true,
-    refreshCheckoutRequests,
-  );
 
   useEffect(() => {
     if (selectedRequestId && !requests.some((r) => r.id === selectedRequestId)) {
@@ -248,12 +220,12 @@ export function CheckoutRequestsManager({
         discount_reason_detail: string | null;
       },
     ) => {
-      setRequests((prev) =>
+      updateRequests((prev) =>
         prev.map((r) => (r.id === requestId ? { ...r, ...discount } : r)),
       );
       billDiscount.finishSetup(requestId);
     },
-    [billDiscount],
+    [billDiscount, updateRequests],
   );
 
   const persistDiscount = useCallback(
@@ -365,12 +337,11 @@ export function CheckoutRequestsManager({
         });
       }
 
-      setRequests((prev) =>
+      updateRequests((prev) =>
         outcome.all_paid
           ? prev.filter((r) => r.id !== request.id)
           : prev.map((r) => (r.id === request.id ? { ...r, result: outcome.result } : r)),
       );
-      invalidateCheckoutRequestCount();
     } catch {
       showToast('操作失败，请重试', 'error');
     } finally {
@@ -409,7 +380,7 @@ export function CheckoutRequestsManager({
       }
 
       setSelectedRequestId(null);
-      void refreshCheckoutRequests();
+      void reload();
       showToast(t.resumeOrderingSuccess, 'success');
     } catch {
       showToast(t.resumeOrderingFailed, 'error');
@@ -650,7 +621,7 @@ export function CheckoutRequestsManager({
                 onResumeOrderingClick={() => setResumeConfirmOpen(true)}
                 onCloseTable={() => {
                   setSelectedRequestId(null);
-                  void refreshCheckoutRequests();
+                  void reload();
                 }}
               />
             ) : (

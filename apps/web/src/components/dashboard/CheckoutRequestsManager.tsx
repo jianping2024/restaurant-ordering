@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { RealtimeChannel } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
@@ -58,13 +57,15 @@ import {
   groupCollectedPaymentsBySession,
   hasCheckoutCollections,
 } from '@/lib/checkout-settlement';
+import { requestCheckoutRequestsQueue } from '@/lib/request-checkout-requests-queue';
+import { useBillSplitsRealtimeRefresh } from '@/lib/use-bill-splits-realtime-refresh';
 
 interface Props {
   initialRequests: BillSplit[];
-  /** From server after loadDashboardAccess — used for Realtime filter (RLS enforces access). */
+  /** From server after loadDashboardAccess — Realtime filter + staff API scope. */
   restaurantId: string;
-  /** When set, fully paid checkout enqueues a thermal order_receipt print job. */
-  restaurantSlug?: string;
+  /** Staff checkout requests API + print actions. */
+  restaurantSlug: string;
   /** Owner or frontdesk may force-close unpaid tables from checkout. */
   canCloseTable?: boolean;
   /** Deep link from owner waiter board: auto-open this table's checkout request. */
@@ -124,60 +125,23 @@ export function CheckoutRequestsManager({
 
   const refreshCheckoutRequests = useCallback(async () => {
     const seq = ++refreshSeqRef.current;
-    const { data } = await supabase
-      .from('bill_splits')
-      .select('*')
-      .eq('restaurant_id', restaurantId)
-      .eq('status', 'requested')
-      .not('session_id', 'is', null)
-      .order('created_at', { ascending: true })
-      .limit(100);
-    if (seq !== refreshSeqRef.current) return;
-    const incoming = (data || []) as BillSplit[];
-    setRequests((prev) => mergeBillSplitsFromRefresh(prev, incoming));
-  }, [supabase, restaurantId]);
+    try {
+      const incoming = await requestCheckoutRequestsQueue(restaurantSlug);
+      if (seq !== refreshSeqRef.current) return;
+      setRequests((prev) => mergeBillSplitsFromRefresh(prev, incoming));
+      invalidateCheckoutRequestCount();
+    } catch {
+      if (seq !== refreshSeqRef.current) return;
+    }
+  }, [restaurantSlug]);
 
-  useEffect(() => {
-    let channel: RealtimeChannel | null = null;
-
-    const subscribe = () => {
-      if (channel) return;
-      void refreshCheckoutRequests();
-      channel = supabase
-        .channel(`checkout-requests-${restaurantId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'bill_splits',
-            filter: `restaurant_id=eq.${restaurantId}`,
-          },
-          () => void refreshCheckoutRequests(),
-        )
-        .subscribe();
-    };
-
-    const unsubscribe = () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-        channel = null;
-      }
-    };
-
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') subscribe();
-      else unsubscribe();
-    };
-
-    if (document.visibilityState === 'visible') subscribe();
-    document.addEventListener('visibilitychange', onVisible);
-
-    return () => {
-      unsubscribe();
-      document.removeEventListener('visibilitychange', onVisible);
-    };
-  }, [supabase, restaurantId, refreshCheckoutRequests]);
+  useBillSplitsRealtimeRefresh(
+    supabase,
+    restaurantId,
+    `checkout-requests-${restaurantId}`,
+    true,
+    refreshCheckoutRequests,
+  );
 
   useEffect(() => {
     if (selectedRequestId && !requests.some((r) => r.id === selectedRequestId)) {
@@ -446,7 +410,6 @@ export function CheckoutRequestsManager({
 
       setSelectedRequestId(null);
       void refreshCheckoutRequests();
-      invalidateCheckoutRequestCount();
       showToast(t.resumeOrderingSuccess, 'success');
     } catch {
       showToast(t.resumeOrderingFailed, 'error');
@@ -688,7 +651,6 @@ export function CheckoutRequestsManager({
                 onCloseTable={() => {
                   setSelectedRequestId(null);
                   void refreshCheckoutRequests();
-                  invalidateCheckoutRequestCount();
                 }}
               />
             ) : (

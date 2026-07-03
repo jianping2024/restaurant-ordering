@@ -55,6 +55,7 @@ export function DashboardNav({
   const [mobileOpen, setMobileOpen] = useState(false);
   const checkoutRequestCount = useCheckoutRequestCount(
     restaurant.id,
+    restaurant.slug,
     accessMode !== 'owner',
   );
 

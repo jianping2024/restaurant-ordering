@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { countCheckoutRequestsQueue } from '@/lib/checkout-requests-queue';
 import { tableIdsEqual } from '@/lib/restaurant-tables';
 
 export type CheckoutRequestedRow = {
@@ -57,15 +58,11 @@ export async function countPendingCheckoutRequests(
   client: SupabaseClient,
   restaurantId: string,
 ): Promise<number> {
-  const { count, error } = await client
-    .from('bill_splits')
-    .select('id', { count: 'exact', head: true })
-    .eq('restaurant_id', restaurantId)
-    .eq('status', 'requested')
-    .not('session_id', 'is', null);
-
-  if (error) return 0;
-  return count ?? 0;
+  try {
+    return await countCheckoutRequestsQueue(client, restaurantId);
+  } catch {
+    return 0;
+  }
 }
 
 export async function fetchCheckoutRequestedBoard(

@@ -12,6 +12,10 @@ import {
 } from '@/lib/checkout-split-continuation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { deriveBillView, isBillOrdersComplete } from '@/lib/customer-bill-sync';
+import {
+  billSplitDisplayResults,
+  initialPersistedSplitResult,
+} from '@/lib/customer-bill-split-display';
 import { detectCheckoutResumedFromBillContext } from '@/lib/customer-bill-checkout-resume';
 import { requestCustomerBillContext } from '@/lib/request-customer-context';
 import type { CustomerBillResponse } from '@/lib/request-customer-context';
@@ -132,12 +136,13 @@ export function BillPage({
       { name: guestName(2), amount: 0 },
     ];
   });
-  const [submitted, setSubmitted] = useState(
-    shouldShowCheckoutSubmitted(existingSplit, sessionStatus),
-  );
+  const checkoutSubmittedInitially = shouldShowCheckoutSubmitted(existingSplit, sessionStatus);
+  const [submitted, setSubmitted] = useState(checkoutSubmittedInitially);
   const [submitting, setSubmitting] = useState(false);
   const [checkoutStatusRefreshing, setCheckoutStatusRefreshing] = useState(false);
-  const [persistedResult, setPersistedResult] = useState<SplitResult[] | null>((existingSplit?.result as SplitResult[] | null) || null);
+  const [persistedResult, setPersistedResult] = useState<SplitResult[] | null>(() =>
+    initialPersistedSplitResult(existingSplit?.result as SplitResult[] | null, checkoutSubmittedInitially),
+  );
   const [feedbackDraft, setFeedbackDraft] = useState<Record<string, { vote?: DishFeedbackVote; reasons: FeedbackReasonKey[] }>>({});
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(initialFeedbackSubmitted);
@@ -167,6 +172,7 @@ export function BillPage({
       const resumed = detectCheckoutResumedFromBillContext(ctx);
       if (resumed.kind === 'continuation') {
         setSubmitted(false);
+        setPersistedResult(null);
         setContinuationSplit(resumed.split);
         setCollectedLedgerActive(resumed.hasCollectedPayments);
         setCollectedPersonNames(resumed.collectedPersonNames);
@@ -334,7 +340,11 @@ export function BillPage({
     [splitDraftInput],
   );
 
-  const results = persistedResult || computedResults;
+  const results = billSplitDisplayResults({
+    checkoutSubmitted: submitted,
+    persistedResult,
+    draftResults: computedResults,
+  });
 
   const byItemAllocatorLabels = useMemo(
     () => ({

@@ -1,29 +1,10 @@
 'use client';
 
-import type { Order } from '@/types';
-import type {
-  RestaurantTableGroup,
-  RestaurantTableGroupMember,
-} from '@/lib/restaurant-table-groups';
 import { compareRestaurantTables, sortRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
-import type { WaiterTableDetailData } from '@/lib/staff-board';
+import type { WaiterBoardData, WaiterTableDetailData } from '@/lib/staff-board';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
-
-type WaiterBoardResponse = {
-  orders?: Order[];
-  sessionMetaByTableId?: Record<string, WaiterTableSessionMeta>;
-  checkoutRequestedTableIds?: string[];
-  checkoutRequestedAtByTableId?: Record<string, string>;
-  tables?: RestaurantTableRow[];
-  groups?: RestaurantTableGroup[];
-  members?: RestaurantTableGroupMember[];
-};
-
-type KitchenBoardResponse = {
-  orders?: Order[];
-  activeTableIds?: string[];
-  tables?: RestaurantTableRow[];
-};
+import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
+import type { Order } from '@/types';
 
 async function fetchStaffBoard<T>(url: string): Promise<T> {
   const res = await fetch(url, { credentials: 'include' });
@@ -31,21 +12,27 @@ async function fetchStaffBoard<T>(url: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-/** Waiter board via authenticated staff API. */
-export async function fetchWaiterBoardClient(slug: string) {
-  const board = await fetchStaffBoard<WaiterBoardResponse>(
-    `/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/board`,
-  );
+function normalizeWaiterBoard(board: WaiterBoardData): WaiterBoardData {
   return {
-    orders: board.orders || [],
     sessionMetaByTableId: board.sessionMetaByTableId ?? {},
     checkoutRequestedTableIds: board.checkoutRequestedTableIds || [],
     checkoutRequestedAtByTableId: board.checkoutRequestedAtByTableId ?? {},
     tables: sortRestaurantTables(board.tables || []),
     groups: board.groups || [],
     members: board.members || [],
+    tableSummaries: board.tableSummaries || [],
   };
 }
+
+/** Waiter board via authenticated staff API. */
+export async function fetchWaiterBoardClient(slug: string): Promise<WaiterBoardData> {
+  const board = await fetchStaffBoard<WaiterBoardData>(
+    `/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/board`,
+  );
+  return normalizeWaiterBoard(board);
+}
+
+export type { WaiterBoardTableSummary, WaiterTableSessionMeta };
 
 /** Single-table waiter detail via authenticated staff API. */
 export async function fetchWaiterTableDetailClient(
@@ -125,6 +112,12 @@ export async function fetchWaiterTableActionTargetsClient(
   const data = (await res.json()) as { tables?: RestaurantTableRow[] };
   return sortRestaurantTables(data.tables || []);
 }
+
+type KitchenBoardResponse = {
+  orders?: Order[];
+  activeTableIds?: string[];
+  tables?: RestaurantTableRow[];
+};
 
 /** Kitchen active board via authenticated staff API. */
 export async function fetchKitchenBoardClient(slug: string) {

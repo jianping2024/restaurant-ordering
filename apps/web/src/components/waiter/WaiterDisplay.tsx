@@ -8,12 +8,9 @@ import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
 import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticatedShell';
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
-import { buildWaiterTableCard, type WaiterTableCardData } from '@/components/waiter/waiter-table-card';
-import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import { showToast } from '@/components/ui/Toast';
 import { getMessages } from '@/lib/i18n/messages';
 import {
-  activeSessionIdByTableIdFromMeta,
   buildWaiterTableCardSubtitle,
   classifyWaiterTableBoardState,
   computeWaiterBoardStats,
@@ -32,11 +29,15 @@ import {
 import {
   buildWaiterBoardSections,
   isWaiterTableCheckoutPending,
-  sortWaiterTableCards,
   type RestaurantTableGroup,
   type RestaurantTableGroupMember,
   type WaiterBoardSection,
 } from '@/lib/restaurant-table-groups';
+import {
+  sortWaiterBoardTableSummaries,
+  type WaiterBoardTableSummary,
+  waiterBoardSummariesByTableId,
+} from '@/lib/waiter-board-snapshot';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import { waiterTableHref, dashboardCheckoutTableHref } from '@/lib/staff-routes';
 import {
@@ -51,6 +52,9 @@ import {
 interface Props {
   restaurant: { id: string; name: string; slug: string };
   tables?: RestaurantTableRow[];
+  /** Production SSR seed — board read model only. */
+  initialTableSummaries?: WaiterBoardTableSummary[];
+  /** Demo only — builds board summaries client-side. */
   initialOrders?: Order[];
   initialCheckoutRequestedTableIds?: string[];
   initialSessionMetaByTableId?: Record<string, WaiterTableSessionMeta>;
@@ -93,7 +97,7 @@ function WaiterTableCard({
   frontdeskCheckoutLink = false,
   clickable = true,
 }: {
-  card: WaiterTableCardData;
+  card: WaiterBoardTableSummary;
   href: string;
   checkoutRequestedTableIds: string[];
   checkoutRequestedAtByTableId: Record<string, string>;
@@ -265,6 +269,7 @@ function WaiterBoardSectionBlock({
 function WaiterBoardInner({
   restaurant,
   tables: tablesProp = [],
+  initialTableSummaries = [],
   initialOrders = [],
   initialCheckoutRequestedTableIds = [],
   initialSessionMetaByTableId = {},
@@ -281,7 +286,7 @@ function WaiterBoardInner({
   const t = WAITER_TEXT[lang];
   const tableGroupsI18n = getMessages(lang).tableGroups;
   const {
-    orders,
+    tableSummaries,
     checkoutRequestedTableIds,
     sessionMetaByTableId,
     checkoutRequestedAtByTableId,
@@ -290,7 +295,7 @@ function WaiterBoardInner({
     members,
   } = useWaiterOrders(
     restaurant,
-    initialOrders,
+    initialTableSummaries,
     initialCheckoutRequestedTableIds,
     tablesProp,
     !isDemo,
@@ -298,15 +303,12 @@ function WaiterBoardInner({
     initialCheckoutRequestedAtByTableId,
     initialGroups,
     initialMembers,
+    isDemo ? initialOrders : [],
   );
 
   const effectiveSessionMetaByTableId = useMemo(
-    () => (isDemo ? demoSessionMetaFromOrders(orders) : sessionMetaByTableId),
-    [isDemo, orders, sessionMetaByTableId],
-  );
-  const activeSessionByTableId = useMemo(
-    () => activeSessionIdByTableIdFromMeta(effectiveSessionMetaByTableId),
-    [effectiveSessionMetaByTableId],
+    () => (isDemo ? demoSessionMetaFromOrders(initialOrders) : sessionMetaByTableId),
+    [isDemo, initialOrders, sessionMetaByTableId],
   );
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [boardFilter, setBoardFilter] = useState<WaiterBoardFilter>('all');
@@ -346,14 +348,10 @@ function WaiterBoardInner({
     }
   }, [checkoutRequestedTableIds, tables, t.checkoutToast]);
 
-  const cardByTableId = useMemo(() => {
-    const map = new Map<string, WaiterTableCardData>();
-    for (const table of tables) {
-      const view = ordersForWaiterTableView(table.id, orders, activeSessionByTableId);
-      map.set(table.id, buildWaiterTableCard(table.id, table.display_name, view));
-    }
-    return map;
-  }, [tables, orders, activeSessionByTableId]);
+  const summaryByTableId = useMemo(
+    () => waiterBoardSummariesByTableId(tableSummaries),
+    [tableSummaries],
+  );
 
   const checkoutPinnedCards = useMemo(() => {
     const pendingTables = tables.filter((table) =>
@@ -364,15 +362,15 @@ function WaiterBoardInner({
       ),
     );
     const cards = pendingTables
-      .map((table) => cardByTableId.get(table.id))
-      .filter((card): card is WaiterTableCardData => !!card);
-    return sortWaiterTableCards(
+      .map((table) => summaryByTableId.get(table.id))
+      .filter((card): card is WaiterBoardTableSummary => !!card);
+    return sortWaiterBoardTableSummaries(
       cards,
       tables,
       checkoutRequestedTableIds,
       effectiveSessionMetaByTableId,
     );
-  }, [tables, cardByTableId, checkoutRequestedTableIds, effectiveSessionMetaByTableId]);
+  }, [tables, summaryByTableId, checkoutRequestedTableIds, effectiveSessionMetaByTableId]);
 
   const checkoutPinnedTableIds = useMemo(
     () => new Set(checkoutPinnedCards.map((card) => card.tableId)),
@@ -440,7 +438,7 @@ function WaiterBoardInner({
     return t.filterIdle;
   };
 
-  const renderTableCard = (card: WaiterTableCardData, pinned = false) => (
+  const renderTableCard = (card: WaiterBoardTableSummary, pinned = false) => (
     <WaiterTableCard
       key={pinned ? `pinned-${card.tableId}` : card.tableId}
       card={card}
@@ -459,9 +457,9 @@ function WaiterBoardInner({
   const renderSectionCards = (tableIds: string[]) => {
     const visibleIds = visibleBoardTableIds(tableIds);
     const cards = visibleIds
-      .map((id) => cardByTableId.get(id))
-      .filter((card): card is WaiterTableCardData => !!card);
-    const sorted = sortWaiterTableCards(
+      .map((id) => summaryByTableId.get(id))
+      .filter((card): card is WaiterBoardTableSummary => !!card);
+    const sorted = sortWaiterBoardTableSummaries(
       cards,
       tables,
       checkoutRequestedTableIds,

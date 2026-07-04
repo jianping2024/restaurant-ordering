@@ -29,7 +29,7 @@ export default async function WaiterPage({ params }: Props) {
     <WaiterDisplay
       restaurant={restaurant}
       tables={board?.tables}
-      initialOrders={board?.orders}
+      initialTableSummaries={board?.tableSummaries}
       initialCheckoutRequestedTableIds={board?.checkoutRequestedTableIds}
       initialSessionMetaByTableId={board?.sessionMetaByTableId}
       initialCheckoutRequestedAtByTableId={board?.checkoutRequestedAtByTableId}

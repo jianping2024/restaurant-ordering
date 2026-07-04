@@ -19,6 +19,20 @@ import {
   activeWaiterTableIds,
   filterWaiterTableActionTargets,
 } from '@/lib/waiter-table-occupancy';
+import {
+  buildWaiterBoardTableSummaries,
+  type WaiterBoardTableSummary,
+} from '@/lib/waiter-board-snapshot';
+
+export type WaiterBoardData = {
+  sessionMetaByTableId: Record<string, WaiterTableSessionMeta>;
+  checkoutRequestedTableIds: string[];
+  checkoutRequestedAtByTableId: Record<string, string>;
+  tables: RestaurantTableRow[];
+  groups: RestaurantTableGroup[];
+  members: RestaurantTableGroupMember[];
+  tableSummaries: WaiterBoardTableSummary[];
+};
 
 export type WaiterTableDetailData = {
   table: RestaurantTableRow | null;
@@ -160,14 +174,15 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
 
   const orders = filterOrdersInActiveSessions((rows || []) as Order[], sessions || []);
   const sessionMetaByTableId = sessionMetaByTableIdFromSessions(sessions || []);
+  const tables = (tableRows || []) as RestaurantTableRow[];
   return {
-    orders,
     sessionMetaByTableId,
     checkoutRequestedTableIds: checkoutRequested.tableIds,
     checkoutRequestedAtByTableId: checkoutRequested.atByTableId,
-    tables: (tableRows || []) as RestaurantTableRow[],
+    tables,
     groups: sortTableGroups((groupRows || []) as RestaurantTableGroup[]),
     members: (memberRows || []) as RestaurantTableGroupMember[],
+    tableSummaries: buildWaiterBoardTableSummaries(tables, orders, sessionMetaByTableId),
   };
 }
 

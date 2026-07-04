@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Order } from '@/types';
 import { fetchWaiterBoardClient } from '@/lib/staff-board-client';
+import type { WaiterBoardData } from '@/lib/staff-board';
 import {
   useRestaurantRealtimeRefresh,
   useRestaurantStaffEntryReconcile,
@@ -14,13 +15,39 @@ import type {
 } from '@/lib/restaurant-table-groups';
 import {
   activeSessionIdByTableIdFromMeta,
+  demoSessionMetaFromOrders,
   type WaiterTableSessionMeta,
 } from '@/lib/waiter-board-session';
+import {
+  buildWaiterBoardTableSummaries,
+  type WaiterBoardTableSummary,
+} from '@/lib/waiter-board-snapshot';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
+
+function applyWaiterBoardData(
+  board: WaiterBoardData,
+  setters: {
+    setTableSummaries: (rows: WaiterBoardTableSummary[]) => void;
+    setSessionMetaByTableId: (meta: Record<string, WaiterTableSessionMeta>) => void;
+    setCheckoutRequestedTableIds: (ids: string[]) => void;
+    setCheckoutRequestedAtByTableId: (map: Record<string, string>) => void;
+    setTables: (rows: RestaurantTableRow[]) => void;
+    setGroups: (rows: RestaurantTableGroup[]) => void;
+    setMembers: (rows: RestaurantTableGroupMember[]) => void;
+  },
+) {
+  setters.setTableSummaries(board.tableSummaries);
+  setters.setSessionMetaByTableId(board.sessionMetaByTableId);
+  setters.setCheckoutRequestedTableIds(board.checkoutRequestedTableIds);
+  setters.setCheckoutRequestedAtByTableId(board.checkoutRequestedAtByTableId);
+  setters.setTables(board.tables);
+  setters.setGroups(board.groups);
+  setters.setMembers(board.members);
+}
 
 export function useWaiterOrders(
   restaurant: { id: string; slug: string },
-  initialOrders: Order[],
+  initialTableSummaries: WaiterBoardTableSummary[],
   initialCheckoutRequestedTableIds: string[],
   initialTables: RestaurantTableRow[],
   enabled: boolean,
@@ -28,9 +55,9 @@ export function useWaiterOrders(
   initialCheckoutRequestedAtByTableId: Record<string, string> = {},
   initialGroups: RestaurantTableGroup[] = [],
   initialMembers: RestaurantTableGroupMember[] = [],
+  demoOrders: Order[] = [],
 ) {
-  const hasInitialBoard = initialTables.length > 0;
-  const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const [tableSummaries, setTableSummaries] = useState(initialTableSummaries);
   const [checkoutRequestedTableIds, setCheckoutRequestedTableIds] = useState<string[]>(
     initialCheckoutRequestedTableIds,
   );
@@ -43,25 +70,48 @@ export function useWaiterOrders(
   const [tables, setTables] = useState<RestaurantTableRow[]>(initialTables);
   const [groups, setGroups] = useState<RestaurantTableGroup[]>(initialGroups);
   const [members, setMembers] = useState<RestaurantTableGroupMember[]>(initialMembers);
-  const [boardLoaded, setBoardLoaded] = useState(hasInitialBoard);
   const supabase = useMemo(() => createClient(), []);
+  const refreshInFlightRef = useRef<Promise<WaiterBoardData | null> | null>(null);
+  const reloadSeqRef = useRef(0);
+
   const activeSessionByTableId = useMemo(
     () => activeSessionIdByTableIdFromMeta(sessionMetaByTableId),
     [sessionMetaByTableId],
   );
 
+  const demoTableSummaries = useMemo(() => {
+    if (!demoOrders.length || !initialTables.length) return initialTableSummaries;
+    const meta = demoSessionMetaFromOrders(demoOrders);
+    return buildWaiterBoardTableSummaries(initialTables, demoOrders, meta);
+  }, [demoOrders, initialTableSummaries, initialTables]);
+
+  const effectiveTableSummaries = demoOrders.length ? demoTableSummaries : tableSummaries;
+
   const refresh = useCallback(async () => {
     if (!enabled) return null;
-    const board = await fetchWaiterBoardClient(restaurant.slug);
-    setOrders(board.orders);
-    setSessionMetaByTableId(board.sessionMetaByTableId);
-    setCheckoutRequestedTableIds(board.checkoutRequestedTableIds);
-    setCheckoutRequestedAtByTableId(board.checkoutRequestedAtByTableId);
-    setTables(board.tables);
-    setGroups(board.groups);
-    setMembers(board.members);
-    setBoardLoaded(true);
-    return board;
+    if (refreshInFlightRef.current) return refreshInFlightRef.current;
+
+    const seq = ++reloadSeqRef.current;
+    const running = (async () => {
+      try {
+        const board = await fetchWaiterBoardClient(restaurant.slug);
+        if (seq !== reloadSeqRef.current) return null;
+        applyWaiterBoardData(board, {
+          setTableSummaries,
+          setSessionMetaByTableId,
+          setCheckoutRequestedTableIds,
+          setCheckoutRequestedAtByTableId,
+          setTables,
+          setGroups,
+          setMembers,
+        });
+        return board;
+      } finally {
+        refreshInFlightRef.current = null;
+      }
+    })();
+    refreshInFlightRef.current = running;
+    return running;
   }, [enabled, restaurant.slug]);
 
   useRestaurantStaffEntryReconcile(enabled, refresh);
@@ -71,13 +121,14 @@ export function useWaiterOrders(
     restaurant.id,
     `waiter-${restaurant.id}`,
     enabled,
-    refresh,
+    () => {
+      void refresh();
+    },
     1200,
   );
 
   return {
-    orders,
-    setOrders,
+    tableSummaries: effectiveTableSummaries,
     checkoutRequestedTableIds,
     activeSessionByTableId,
     sessionMetaByTableId,
@@ -85,7 +136,6 @@ export function useWaiterOrders(
     tables,
     groups,
     members,
-    boardLoaded,
     refresh,
     supabase,
   };

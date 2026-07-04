@@ -22,7 +22,7 @@ export default async function DashboardWaiterPage() {
       restaurant={{ id: restaurant.id, name: restaurant.name, slug: restaurant.slug }}
       embeddedInDashboard
       tables={board?.tables}
-      initialOrders={board?.orders}
+      initialTableSummaries={board?.tableSummaries}
       initialCheckoutRequestedTableIds={board?.checkoutRequestedTableIds}
       initialSessionMetaByTableId={board?.sessionMetaByTableId}
       initialCheckoutRequestedAtByTableId={board?.checkoutRequestedAtByTableId}

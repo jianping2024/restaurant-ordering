@@ -4,8 +4,7 @@ import {
   sortRestaurantTables,
   type RestaurantTableRow,
 } from '@/lib/restaurant-tables';
-import { isTableCheckoutRequested } from '@/lib/table-checkout-pending';
-import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
+import { isWaiterTableInCheckout, type WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 
 export const TABLE_GROUP_NAME_MAX_LEN = 32;
 export const TABLE_GROUP_REMARKS_MAX_LEN = 200;
@@ -144,16 +143,6 @@ export function groupTableIdsByGroupId(
   return out;
 }
 
-export function isWaiterTableCheckoutPending(
-  tableId: string,
-  checkoutRequestedTableIds: readonly string[],
-  session: WaiterTableSessionMeta | undefined,
-): boolean {
-  return (
-    isTableCheckoutRequested(tableId, checkoutRequestedTableIds) || session?.status === 'billing'
-  );
-}
-
 export function sortWaiterTableCards<T extends WaiterTableCardSortInput>(
   cards: T[],
   tables: RestaurantTableRow[],
@@ -162,17 +151,17 @@ export function sortWaiterTableCards<T extends WaiterTableCardSortInput>(
 ): T[] {
   const tableById = new Map(tables.map((t) => [t.id, t]));
   return [...cards].sort((a, b) => {
-    const aCheckout = isWaiterTableCheckoutPending(
+    const aCheckout = isWaiterTableInCheckout(
       a.tableId,
+      sessionMetaByTableId,
       checkoutRequestedTableIds,
-      sessionMetaByTableId[a.tableId],
     )
       ? 1
       : 0;
-    const bCheckout = isWaiterTableCheckoutPending(
+    const bCheckout = isWaiterTableInCheckout(
       b.tableId,
+      sessionMetaByTableId,
       checkoutRequestedTableIds,
-      sessionMetaByTableId[b.tableId],
     )
       ? 1
       : 0;

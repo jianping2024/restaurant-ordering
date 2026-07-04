@@ -12,16 +12,47 @@ export type WaiterBoardFilter = 'all' | 'checkout' | 'dining' | 'idle';
 
 export type WaiterTableBoardState = 'checkout' | 'dining' | 'idle';
 
-export function classifyWaiterTableBoardState(
+/** Inputs shared by board KPI, filters, and table cards (docs/product/04-business-rules.md §1). */
+export type WaiterBoardStateContext = {
+  sessionMetaByTableId: Record<string, WaiterTableSessionMeta>;
+  checkoutRequestedTableIds: readonly string[];
+  occupiedByTableId: ReadonlyMap<string, boolean>;
+};
+
+export function buildWaiterBoardStateContext(
+  sessionMetaByTableId: Record<string, WaiterTableSessionMeta>,
+  checkoutRequestedTableIds: readonly string[],
+  tableSummaries: readonly { tableId: string; occupied: boolean }[],
+): WaiterBoardStateContext {
+  return {
+    sessionMetaByTableId,
+    checkoutRequestedTableIds,
+    occupiedByTableId: new Map(tableSummaries.map((row) => [row.tableId, row.occupied])),
+  };
+}
+
+/** Waiter board 「待结账」: requested split or billing session. */
+export function isWaiterBoardCheckoutPending(
   tableId: string,
   sessionMetaByTableId: Record<string, WaiterTableSessionMeta>,
   checkoutRequestedTableIds: readonly string[],
-): WaiterTableBoardState {
+): boolean {
   const session = sessionMetaByTableId[tableId];
-  const isCheckoutPending =
-    isTableCheckoutRequested(tableId, checkoutRequestedTableIds) || session?.status === 'billing';
-  if (isCheckoutPending) return 'checkout';
-  if (session) return 'dining';
+  return (
+    isTableCheckoutRequested(tableId, checkoutRequestedTableIds) || session?.status === 'billing'
+  );
+}
+
+export function classifyWaiterTableBoardState(
+  tableId: string,
+  ctx: WaiterBoardStateContext,
+): WaiterTableBoardState {
+  if (isWaiterBoardCheckoutPending(tableId, ctx.sessionMetaByTableId, ctx.checkoutRequestedTableIds)) {
+    return 'checkout';
+  }
+  if (ctx.sessionMetaByTableId[tableId] && (ctx.occupiedByTableId.get(tableId) ?? false)) {
+    return 'dining';
+  }
   return 'idle';
 }
 
@@ -31,24 +62,16 @@ export function isWaiterTableInCheckout(
   sessionMetaByTableId: Record<string, WaiterTableSessionMeta>,
   checkoutRequestedTableIds: readonly string[],
 ): boolean {
-  return (
-    classifyWaiterTableBoardState(tableId, sessionMetaByTableId, checkoutRequestedTableIds) ===
-    'checkout'
-  );
+  return isWaiterBoardCheckoutPending(tableId, sessionMetaByTableId, checkoutRequestedTableIds);
 }
 
 export function filterWaiterBoardTableIds(
   tableIds: readonly string[],
   filter: WaiterBoardFilter,
-  sessionMetaByTableId: Record<string, WaiterTableSessionMeta>,
-  checkoutRequestedTableIds: readonly string[],
+  ctx: WaiterBoardStateContext,
 ): string[] {
   if (filter === 'all') return [...tableIds];
-  return tableIds.filter(
-    (tableId) =>
-      classifyWaiterTableBoardState(tableId, sessionMetaByTableId, checkoutRequestedTableIds) ===
-      filter,
-  );
+  return tableIds.filter((tableId) => classifyWaiterTableBoardState(tableId, ctx) === filter);
 }
 
 /** Case-insensitive substring match on table display name (same pattern as menu dish search). */
@@ -185,21 +208,16 @@ export function buildWaiterTableCardSubtitle(input: {
 
 export function computeWaiterBoardStats(
   tableIds: readonly string[],
-  sessionMetaByTableId: Record<string, WaiterTableSessionMeta>,
-  checkoutRequestedTableIds: readonly string[],
+  ctx: WaiterBoardStateContext,
 ): WaiterBoardStats {
   let idle = 0;
   let open = 0;
   let checkoutPending = 0;
 
   for (const tableId of tableIds) {
-    const session = sessionMetaByTableId[tableId];
-    const isCheckoutPending =
-      isTableCheckoutRequested(tableId, checkoutRequestedTableIds) ||
-      session?.status === 'billing';
-
-    if (isCheckoutPending) checkoutPending += 1;
-    else if (session) open += 1;
+    const state = classifyWaiterTableBoardState(tableId, ctx);
+    if (state === 'checkout') checkoutPending += 1;
+    else if (state === 'dining') open += 1;
     else idle += 1;
   }
 

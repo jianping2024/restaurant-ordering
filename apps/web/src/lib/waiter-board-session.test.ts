@@ -2,13 +2,31 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   activeSessionIdByTableIdFromMeta,
+  buildWaiterBoardStateContext,
   classifyWaiterTableBoardState,
   computeWaiterBoardStats,
   filterWaiterBoardTableIds,
   filterWaiterBoardTableIdsBySearch,
   formatSessionDurationHm,
   tableMatchesWaiterBoardSearch,
+  type WaiterBoardStateContext,
+  type WaiterTableSessionMeta,
 } from './waiter-board-session';
+
+function boardCtx(
+  sessionMetaByTableId: Record<string, WaiterTableSessionMeta>,
+  checkoutRequestedTableIds: string[] = [],
+  occupied: Record<string, boolean> = {},
+): WaiterBoardStateContext {
+  return buildWaiterBoardStateContext(
+    sessionMetaByTableId,
+    checkoutRequestedTableIds,
+    Object.entries(occupied).map(([tableId, occupiedFlag]) => ({
+      tableId,
+      occupied: occupiedFlag,
+    })),
+  );
+}
 
 describe('formatSessionDurationHm', () => {
   it('formats hours and minutes in zh', () => {
@@ -46,19 +64,22 @@ describe('computeWaiterBoardStats', () => {
   const t2 = '550e8400-e29b-41d4-a716-446655440002';
   const t3 = '550e8400-e29b-41d4-a716-446655440003';
   const t4 = '550e8400-e29b-41d4-a716-446655440004';
+  const t5 = '550e8400-e29b-41d4-a716-446655440005';
 
-  it('counts idle, open, and checkout tables', () => {
-    const stats = computeWaiterBoardStats(
-      [t1, t2, t3, t4],
+  it('counts idle, dining, and checkout tables via classifier', () => {
+    const ctx = boardCtx(
       {
         [t2]: { sessionId: 's2', openedAt: '2026-01-01T10:00:00.000Z', status: 'open' },
         [t3]: { sessionId: 's3', openedAt: '2026-01-01T10:00:00.000Z', status: 'billing' },
+        [t5]: { sessionId: 's5', openedAt: '2026-01-01T10:00:00.000Z', status: 'open' },
       },
       [t4],
+      { [t2]: true, [t5]: false },
     );
+    const stats = computeWaiterBoardStats([t1, t2, t3, t4, t5], ctx);
     assert.deepEqual(stats, {
-      total: 4,
-      idle: 1,
+      total: 5,
+      idle: 2,
       open: 1,
       checkoutPending: 2,
     });
@@ -73,15 +94,19 @@ describe('classifyWaiterTableBoardState', () => {
   };
 
   it('returns checkout when checkout requested', () => {
-    assert.equal(classifyWaiterTableBoardState(t1, meta, [t1]), 'checkout');
+    assert.equal(classifyWaiterTableBoardState(t1, boardCtx(meta, [t1])), 'checkout');
   });
 
-  it('returns dining for open session without checkout', () => {
-    assert.equal(classifyWaiterTableBoardState(t2, meta, []), 'dining');
+  it('returns dining for occupied open session without checkout', () => {
+    assert.equal(classifyWaiterTableBoardState(t2, boardCtx(meta, [], { [t2]: true })), 'dining');
+  });
+
+  it('returns idle for unoccupied open session', () => {
+    assert.equal(classifyWaiterTableBoardState(t2, boardCtx(meta, [], { [t2]: false })), 'idle');
   });
 
   it('returns idle when no session', () => {
-    assert.equal(classifyWaiterTableBoardState(t1, meta, []), 'idle');
+    assert.equal(classifyWaiterTableBoardState(t1, boardCtx(meta, [])), 'idle');
   });
 });
 
@@ -103,12 +128,13 @@ describe('filterWaiterBoardTableIds', () => {
       status: 'billing' as const,
     },
   };
+  const ctx = boardCtx(meta, [], { [ids[1]]: true });
 
   it('filters by board state', () => {
-    assert.deepEqual(filterWaiterBoardTableIds(ids, 'all', meta, []), ids);
-    assert.deepEqual(filterWaiterBoardTableIds(ids, 'dining', meta, []), [ids[1]]);
-    assert.deepEqual(filterWaiterBoardTableIds(ids, 'checkout', meta, []), [ids[2]]);
-    assert.deepEqual(filterWaiterBoardTableIds(ids, 'idle', meta, []), [ids[0]]);
+    assert.deepEqual(filterWaiterBoardTableIds(ids, 'all', ctx), ids);
+    assert.deepEqual(filterWaiterBoardTableIds(ids, 'dining', ctx), [ids[1]]);
+    assert.deepEqual(filterWaiterBoardTableIds(ids, 'checkout', ctx), [ids[2]]);
+    assert.deepEqual(filterWaiterBoardTableIds(ids, 'idle', ctx), [ids[0]]);
   });
 });
 

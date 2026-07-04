@@ -11,14 +11,17 @@ import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { showToast } from '@/components/ui/Toast';
 import { getMessages } from '@/lib/i18n/messages';
 import {
+  buildWaiterBoardStateContext,
   buildWaiterTableCardSubtitle,
   classifyWaiterTableBoardState,
   computeWaiterBoardStats,
   demoSessionMetaFromOrders,
   filterWaiterBoardTableIds,
   filterWaiterBoardTableIdsBySearch,
+  isWaiterTableInCheckout,
   tableMatchesWaiterBoardSearch,
   type WaiterBoardFilter,
+  type WaiterBoardStateContext,
   type WaiterTableBoardState,
   type WaiterTableSessionMeta,
 } from '@/lib/waiter-board-session';
@@ -28,7 +31,6 @@ import {
 } from '@/lib/table-checkout-pending';
 import {
   buildWaiterBoardSections,
-  isWaiterTableCheckoutPending,
   type RestaurantTableGroup,
   type RestaurantTableGroupMember,
   type WaiterBoardSection,
@@ -91,6 +93,7 @@ function WaiterTableCard({
   checkoutRequestedTableIds,
   checkoutRequestedAtByTableId,
   sessionMetaByTableId,
+  boardStateContext,
   nowMs,
   lang,
   pinned = false,
@@ -102,6 +105,7 @@ function WaiterTableCard({
   checkoutRequestedTableIds: string[];
   checkoutRequestedAtByTableId: Record<string, string>;
   sessionMetaByTableId: Record<string, import('@/lib/waiter-board-session').WaiterTableSessionMeta>;
+  boardStateContext: WaiterBoardStateContext;
   nowMs: number;
   lang: 'zh' | 'en' | 'pt';
   pinned?: boolean;
@@ -111,11 +115,7 @@ function WaiterTableCard({
   const t = WAITER_TEXT[lang];
   const session = sessionMetaByTableId[card.tableId];
   const hasCheckoutRequest = isTableCheckoutRequested(card.tableId, checkoutRequestedTableIds);
-  const boardState = classifyWaiterTableBoardState(
-    card.tableId,
-    sessionMetaByTableId,
-    checkoutRequestedTableIds,
-  );
+  const boardState = classifyWaiterTableBoardState(card.tableId, boardStateContext);
   const statusLabel =
     boardState === 'checkout'
       ? t.checkoutPendingShort
@@ -353,13 +353,19 @@ function WaiterBoardInner({
     [tableSummaries],
   );
 
+  const boardStateContext = useMemo(
+    () =>
+      buildWaiterBoardStateContext(
+        effectiveSessionMetaByTableId,
+        checkoutRequestedTableIds,
+        tableSummaries,
+      ),
+    [effectiveSessionMetaByTableId, checkoutRequestedTableIds, tableSummaries],
+  );
+
   const checkoutPinnedCards = useMemo(() => {
     const pendingTables = tables.filter((table) =>
-      isWaiterTableCheckoutPending(
-        table.id,
-        checkoutRequestedTableIds,
-        effectiveSessionMetaByTableId[table.id],
-      ),
+      isWaiterTableInCheckout(table.id, effectiveSessionMetaByTableId, checkoutRequestedTableIds),
     );
     const cards = pendingTables
       .map((table) => summaryByTableId.get(table.id))
@@ -390,22 +396,13 @@ function WaiterBoardInner({
   const tableSearchTrimmed = tableSearch.trim();
 
   const boardStats = useMemo(
-    () =>
-      computeWaiterBoardStats(
-        tables.map((table) => table.id),
-        effectiveSessionMetaByTableId,
-        checkoutRequestedTableIds,
-      ),
-    [tables, effectiveSessionMetaByTableId, checkoutRequestedTableIds],
+    () => computeWaiterBoardStats(tables.map((table) => table.id), boardStateContext),
+    [tables, boardStateContext],
   );
 
   const tableHref = (tableId: string) => {
     if (embeddedInDashboard) {
-      const boardState = classifyWaiterTableBoardState(
-        tableId,
-        effectiveSessionMetaByTableId,
-        checkoutRequestedTableIds,
-      );
+      const boardState = classifyWaiterTableBoardState(tableId, boardStateContext);
       if (boardState === 'checkout') {
         return dashboardCheckoutTableHref(tableId);
       }
@@ -415,20 +412,12 @@ function WaiterBoardInner({
 
   const isFrontdeskCheckoutLink = (tableId: string) =>
     embeddedInDashboard &&
-    classifyWaiterTableBoardState(
-      tableId,
-      effectiveSessionMetaByTableId,
-      checkoutRequestedTableIds,
-    ) === 'checkout';
+    classifyWaiterTableBoardState(tableId, boardStateContext) === 'checkout';
 
   const isTableCardClickable = (tableId: string) =>
     isWaiterBoardTableCardClickable(
       embeddedInDashboard,
-      classifyWaiterTableBoardState(
-        tableId,
-        effectiveSessionMetaByTableId,
-        checkoutRequestedTableIds,
-      ),
+      classifyWaiterTableBoardState(tableId, boardStateContext),
     );
 
   const filterLabel = (filter: WaiterBoardFilter) => {
@@ -446,6 +435,7 @@ function WaiterBoardInner({
       checkoutRequestedTableIds={checkoutRequestedTableIds}
       checkoutRequestedAtByTableId={checkoutRequestedAtByTableId}
       sessionMetaByTableId={effectiveSessionMetaByTableId}
+      boardStateContext={boardStateContext}
       nowMs={nowMs}
       lang={lang}
       pinned={pinned}
@@ -485,8 +475,7 @@ function WaiterBoardInner({
       const byStatus = filterWaiterBoardTableIds(
         tableIds,
         boardFilter === 'all' ? 'all' : boardFilter,
-        effectiveSessionMetaByTableId,
-        checkoutRequestedTableIds,
+        boardStateContext,
       );
       const withoutPinned =
         boardFilter === 'all'
@@ -500,8 +489,7 @@ function WaiterBoardInner({
     },
     [
       boardFilter,
-      effectiveSessionMetaByTableId,
-      checkoutRequestedTableIds,
+      boardStateContext,
       checkoutPinnedTableIds,
       displayNameByTableId,
       tableSearchTrimmed,

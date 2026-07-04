@@ -10,7 +10,10 @@ import {
 import {
   applyBuffetOpenOptimisticToOrders,
   applyBuffetOpenToSession,
+  applyBuffetOpenWritePlanToOrders,
+  mapToBuffetSessionOrders,
   pickLatestTableOrder,
+  planBuffetOpenWrites,
   type BuffetSessionOrder,
 } from '@/lib/buffet-open-table';
 
@@ -393,5 +396,62 @@ describe('applyBuffetOpenOptimisticToOrders', () => {
     assert.deepEqual(next[0].items.filter((i) => i.kind !== 'buffet_base'), [menuItem]);
     assert.equal(next[0].status, 'cooking');
     assert.equal(aggregateBuffetForOrders(next)?.adults, 3);
+  });
+});
+
+describe('applyBuffetOpenWritePlanToOrders', () => {
+  it('matches optimistic helper for carrier update', () => {
+    const menuItem = {
+      id: 'menu-1',
+      name: 'Soup',
+      name_pt: 'Sopa',
+      qty: 1,
+      price: 10,
+      emoji: '🍲',
+      item_status: 'cooking' as const,
+    };
+    const prevBuffet = buffetLine(2, 0, '2026-01-01T10:00:00.000Z', 40);
+    const existing: Order = {
+      id: 'order-1',
+      restaurant_id: 'r1',
+      session_id: 's1',
+      table_id: TABLE_1,
+      display_name: 'A1',
+      status: 'cooking',
+      items: [menuItem, prevBuffet],
+      total_amount: 50,
+      created_at: '2026-01-01T10:00:00.000Z',
+      updated_at: '2026-01-01T10:00:00.000Z',
+    };
+    const line = buffetLine(3, 0, '2026-01-01T11:00:00.000Z', 60);
+    const params = {
+      tableId: TABLE_1,
+      displayName: 'A1',
+      line,
+      restaurantId: 'r1',
+      sessionId: 's1',
+    };
+    const plan = planBuffetOpenWrites(mapToBuffetSessionOrders([existing]), params);
+    const viaPlan = applyBuffetOpenWritePlanToOrders([existing], plan);
+    const viaOptimistic = applyBuffetOpenOptimisticToOrders([existing], params);
+    assert.deepEqual(viaPlan, viaOptimistic);
+  });
+
+  it('inserts carrier order when opening an idle table (开台)', () => {
+    const line = buffetLine(2, 1, '2026-01-01T11:00:00.000Z', 50);
+    const params = {
+      tableId: TABLE_1,
+      displayName: 'A1',
+      line,
+      restaurantId: 'r1',
+      sessionId: 's-new',
+    };
+    const plan = planBuffetOpenWrites([], params);
+    assert.equal(plan.carrier.mode, 'insert');
+    const next = applyBuffetOpenWritePlanToOrders([], plan, { insertedOrderId: 'order-new' });
+    assert.equal(next.length, 1);
+    assert.equal(next[0].id, 'order-new');
+    assert.equal(aggregateBuffetForOrders(next)?.adults, 2);
+    assert.equal(aggregateBuffetForOrders(next)?.children, 1);
   });
 });

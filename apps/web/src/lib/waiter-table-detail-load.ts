@@ -9,6 +9,10 @@ import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import { ACTIVE_ORDER_STATUSES } from '@/lib/waiter-board-query';
 import { defaultActiveBuffet } from '@/lib/waiter-table-detail-view';
 import {
+  sessionMetaFromRow,
+  type WaiterTableSessionRow,
+} from '@/lib/waiter-table-session-meta';
+import {
   snapshotToPageModel,
   type WaiterTableDetailSnapshot,
 } from '@/lib/waiter-table-detail-snapshot';
@@ -16,28 +20,12 @@ import type { WaiterTableDetailData, WaiterTablePageModel } from '@/lib/waiter-t
 
 export type { WaiterTableDetailSnapshot } from '@/lib/waiter-table-detail-snapshot';
 export { snapshotToDetailData, snapshotToPageModel } from '@/lib/waiter-table-detail-snapshot';
-
-type SessionRow = {
-  id: string;
-  table_id: string;
-  opened_at: string;
-  status: string;
-};
-
-function sessionMetaFromRow(sessionRow: SessionRow | null): WaiterTableSessionMeta | null {
-  if (
-    !sessionRow?.id ||
-    !sessionRow.opened_at ||
-    (sessionRow.status !== 'open' && sessionRow.status !== 'billing')
-  ) {
-    return null;
-  }
-  return {
-    sessionId: sessionRow.id,
-    openedAt: sessionRow.opened_at,
-    status: sessionRow.status as 'open' | 'billing',
-  };
-}
+export type { WaiterTableSessionRow } from '@/lib/waiter-table-session-meta';
+export {
+  sessionMetaFromEnsuredSession,
+  sessionMetaFromRow,
+  tableSessionRefFromRow,
+} from '@/lib/waiter-table-session-meta';
 
 function isCheckoutPending(
   sessionMeta: WaiterTableSessionMeta,
@@ -71,13 +59,14 @@ async function loadTableOrdersForSession(
   restaurantId: string,
   sessionId: string,
 ): Promise<Order[]> {
-  const { data } = await admin
+  const { data, error } = await admin
     .from('orders')
     .select('*')
     .eq('restaurant_id', restaurantId)
     .eq('session_id', sessionId)
     .in('status', [...ACTIVE_ORDER_STATUSES])
     .order('updated_at', { ascending: false });
+  if (error) throw new Error(error.message);
   return (data || []) as Order[];
 }
 
@@ -85,7 +74,7 @@ async function loadTableAndSession(
   admin: SupabaseClient,
   restaurantId: string,
   tableId: string,
-): Promise<{ table: RestaurantTableRow | null; sessionRow: SessionRow | null }> {
+): Promise<{ table: RestaurantTableRow | null; sessionRow: WaiterTableSessionRow | null }> {
   const [{ data: tableRow }, { data: sessionRow }] = await Promise.all([
     admin
       .from('restaurant_tables')
@@ -107,7 +96,7 @@ async function loadTableAndSession(
 
   return {
     table: tableRow ? (tableRow as RestaurantTableRow) : null,
-    sessionRow: (sessionRow as SessionRow | null) ?? null,
+    sessionRow: (sessionRow as WaiterTableSessionRow | null) ?? null,
   };
 }
 
@@ -121,18 +110,54 @@ async function loadActiveBuffets(admin: SupabaseClient, restaurantId: string): P
 }
 
 /** Default active buffet only; skip when checkout pending (buffet panel hidden). */
-async function resolveOpenTableBuffetPrices(
+export async function resolveOpenTableBuffetPrices(
   admin: SupabaseClient,
   restaurantId: string,
   buffets: Buffet[],
   skip: boolean,
+  resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null> = {},
 ): Promise<Record<string, ResolvedBuffetPriceRow | null>> {
   if (skip) return {};
   const buffet = defaultActiveBuffet(buffets);
   if (!buffet) return {};
+  if (Object.prototype.hasOwnProperty.call(resolvedByBuffetId, buffet.id)) {
+    return { [buffet.id]: resolvedByBuffetId[buffet.id] };
+  }
   const resolved = await resolveBuffetPricesServer(admin, restaurantId, buffet.id);
   return { [buffet.id]: resolved };
 }
+
+export function buildActiveWaiterTableSnapshot(input: {
+  table: RestaurantTableRow;
+  buffets: Buffet[];
+  sessionMeta: WaiterTableSessionMeta;
+  orders: Order[];
+  checkoutRequested: boolean;
+  checkoutRequestedAt: string | null;
+  buffetPricesByBuffetId: Record<string, ResolvedBuffetPriceRow | null>;
+}): Extract<WaiterTableDetailSnapshot, { kind: 'active' }> {
+  return { kind: 'active', ...input };
+}
+
+export function buildActiveWaiterTablePageModel(input: {
+  table: RestaurantTableRow;
+  buffets: Buffet[];
+  sessionMeta: WaiterTableSessionMeta;
+  orders: Order[];
+  checkoutRequested: boolean;
+  checkoutRequestedAt: string | null;
+  buffetPricesByBuffetId: Record<string, ResolvedBuffetPriceRow | null>;
+}): WaiterTablePageModel {
+  return snapshotToPageModel(buildActiveWaiterTableSnapshot(input));
+}
+
+export {
+  fetchCheckoutRequestedForTable,
+  isCheckoutPending,
+  loadActiveBuffets,
+  loadTableAndSession,
+  loadTableOrdersForSession,
+};
 
 /** Single server loader: idle (no session) vs active (open/billing session). */
 export async function loadWaiterTableDetailSnapshot(
@@ -167,8 +192,7 @@ export async function loadWaiterTableDetailSnapshot(
     resolveOpenTableBuffetPrices(admin, restaurantId, buffets, checkoutPending),
   ]);
 
-  return {
-    kind: 'active',
+  return buildActiveWaiterTableSnapshot({
     table,
     buffets,
     sessionMeta,
@@ -176,7 +200,7 @@ export async function loadWaiterTableDetailSnapshot(
     checkoutRequested: checkout.requested,
     checkoutRequestedAt: checkout.at,
     buffetPricesByBuffetId,
-  };
+  });
 }
 
 export async function loadWaiterTablePageModel(

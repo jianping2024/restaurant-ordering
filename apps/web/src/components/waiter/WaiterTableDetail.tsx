@@ -38,7 +38,12 @@ import { waiterUi } from '@/components/waiter/waiter-ui';
 import { Button } from '@/components/ui/Button';
 import { postWaiterDecrementOrderItemClient } from '@/lib/waiter-decrement-order-item-client';
 import { applyOrderUpdateToWaiterDetail } from '@/lib/waiter-table-detail-apply-order';
-import { fetchWaiterTableActionTargetsClient, fetchWaiterTablePageModelClient, postWaiterBuffetOpenClient } from '@/lib/staff-board-client';
+import {
+  fetchWaiterTableActionTargetsClient,
+  fetchWaiterTablePageModelClient,
+  postWaiterBuffetOpenClient,
+} from '@/lib/staff-board-client';
+import { publishWaiterTablePageModel } from '@/lib/waiter-staff-mutation-sync';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import {
@@ -613,6 +618,7 @@ function WaiterTableDetailInner({
         child_count: buffetChildren,
       });
       applyModel(nextModel);
+      publishWaiterTablePageModel(nextModel);
       showToast(t.actionSuccess, 'success');
     } catch (err) {
       const apiErr = err as Error & { status?: number; code?: string };

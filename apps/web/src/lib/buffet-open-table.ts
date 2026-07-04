@@ -15,8 +15,14 @@ export type BuffetSessionOrder = {
   status: Order['status'];
 };
 
+export type ApplyBuffetOpenSuccess = {
+  ok: true;
+  plan: BuffetOpenWritePlan;
+  insertedOrderId?: string;
+};
+
 export type ApplyBuffetOpenResult =
-  | { ok: true }
+  | ApplyBuffetOpenSuccess
   | { ok: false; code: 'conflict' | 'void_failed' | 'update_failed' | 'insert_failed'; message?: string };
 
 /** Placeholder session id for optimistic open-table UI before the server responds. */
@@ -172,13 +178,19 @@ function patchOrderRow(order: Order, patch: Partial<Order>): Order {
   return { ...order, ...patch };
 }
 
-/** In-memory buffet open for instant waiter UI; reconciled when the API returns. */
-export function applyBuffetOpenOptimisticToOrders(
+type ApplyWritePlanOptions = {
+  now?: string;
+  insertedOrderId?: string;
+  optimisticTableId?: string;
+};
+
+/** Apply a buffet write plan in memory — shared by optimistic UI and buffet API response assembly. */
+export function applyBuffetOpenWritePlanToOrders(
   orders: Order[],
-  params: BuffetOpenParams,
+  plan: BuffetOpenWritePlan,
+  options: ApplyWritePlanOptions = {},
 ): Order[] {
-  const plan = planBuffetOpenWrites(mapToBuffetSessionOrders(orders), params);
-  const now = new Date().toISOString();
+  const now = options.now ?? new Date().toISOString();
   const next: Order[] = [...orders];
 
   for (const voidWrite of plan.voidOtherOrders) {
@@ -206,8 +218,13 @@ export function applyBuffetOpenOptimisticToOrders(
   }
 
   const insert = plan.carrier;
-  const optimisticOrder: Order = {
-    id: `optimistic-order-${params.tableId}`,
+  const orderId =
+    options.insertedOrderId
+    ?? (options.optimisticTableId
+      ? `optimistic-order-${options.optimisticTableId}`
+      : `optimistic-order-${insert.table_id}`);
+  const insertedOrder: Order = {
+    id: orderId,
     restaurant_id: insert.restaurant_id,
     session_id: insert.session_id,
     table_id: insert.table_id,
@@ -218,7 +235,16 @@ export function applyBuffetOpenOptimisticToOrders(
     created_at: now,
     updated_at: now,
   };
-  return [optimisticOrder, ...next];
+  return [insertedOrder, ...next];
+}
+
+/** In-memory buffet open for instant waiter UI; reconciled when the API returns. */
+export function applyBuffetOpenOptimisticToOrders(
+  orders: Order[],
+  params: BuffetOpenParams,
+): Order[] {
+  const plan = planBuffetOpenWrites(mapToBuffetSessionOrders(orders), params);
+  return applyBuffetOpenWritePlanToOrders(orders, plan, { optimisticTableId: params.tableId });
 }
 
 /**
@@ -231,14 +257,18 @@ export async function applyBuffetOpenToSession(
 ): Promise<ApplyBuffetOpenResult> {
   const plan = planBuffetOpenWrites(params.sessionOrders, params);
 
-  for (const voidWrite of plan.voidOtherOrders) {
-    const { error } = await admin
-      .from('orders')
-      .update({ items: voidWrite.items, total_amount: voidWrite.total_amount })
-      .eq('id', voidWrite.orderId);
-
-    if (error) {
-      return { ok: false, code: 'void_failed', message: error.message };
+  if (plan.voidOtherOrders.length > 0) {
+    const voidResults = await Promise.all(
+      plan.voidOtherOrders.map((voidWrite) =>
+        admin
+          .from('orders')
+          .update({ items: voidWrite.items, total_amount: voidWrite.total_amount })
+          .eq('id', voidWrite.orderId),
+      ),
+    );
+    const voidError = voidResults.find((result) => result.error)?.error;
+    if (voidError) {
+      return { ok: false, code: 'void_failed', message: voidError.message };
     }
   }
 
@@ -262,22 +292,26 @@ export async function applyBuffetOpenToSession(
     if (!data) {
       return { ok: false, code: 'conflict' };
     }
-    return { ok: true };
+    return { ok: true, plan };
   }
 
   const insert = plan.carrier;
-  const { error: insErr } = await admin.from('orders').insert({
-    restaurant_id: insert.restaurant_id,
-    session_id: insert.session_id,
-    table_id: insert.table_id,
-    display_name: insert.display_name,
-    status: insert.status,
-    items: insert.items,
-    total_amount: insert.total_amount,
-  });
+  const { data: inserted, error: insErr } = await admin
+    .from('orders')
+    .insert({
+      restaurant_id: insert.restaurant_id,
+      session_id: insert.session_id,
+      table_id: insert.table_id,
+      display_name: insert.display_name,
+      status: insert.status,
+      items: insert.items,
+      total_amount: insert.total_amount,
+    })
+    .select('id')
+    .single();
 
-  if (insErr) {
-    return { ok: false, code: 'insert_failed', message: insErr.message };
+  if (insErr || !inserted) {
+    return { ok: false, code: 'insert_failed', message: insErr?.message };
   }
-  return { ok: true };
+  return { ok: true, plan, insertedOrderId: inserted.id as string };
 }

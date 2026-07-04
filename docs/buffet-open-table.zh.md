@@ -35,14 +35,14 @@
 ③ 写   resolve_buffet_prices → buildBuffetBaseLine
          → planBuffetOpenWrites → applyBuffetOpenToSession（DB）
 
-④ 返   fetchWaiterTableDetail（仅此一处）
-         → { ok: true, detail, unchanged?: true }
+④ 返   由 pipeline 上下文组装 PageModel（`buildActiveWaiterTablePageModel`）
+         → { ok: true, model, unchanged?: true }
 ```
 
 **禁止**
 
 - 在 ② 为 true 时调用 `resolve_buffet_prices` 或 `applyBuffetOpenToSession`
-- 在多个分支各自 `fetchWaiterTableDetail`
+- 在 ④ 再次全量 `loadWaiterTablePageModel`（重复读 table/session/orders/价格）
 - 对同一批 session orders 多次 `mapToBuffetSessionOrders`
 
 ---
@@ -59,7 +59,7 @@
 **已开台** = session 内存在 active `buffet_base`（与 `aggregateBuffetForOrders` 一致）。布局重构（如 `WaiterTableBuffetPanel`）须通过 **`buffetActionLabel` prop** 传入文案，**不得**在 `WaiterTableDetailLayout` 内写死「确认开台」或「保存人数」。
 
 1. 点击主按钮前：`isBuffetGuestCountsUnchanged(tableOrders, …)` → 未变则 toast，**不发请求**。
-2. 有变化：`applyBuffetOpenOptimisticToOrders` 乐观更新 → `postWaiterBuffetOpenClient` → `applyDetail(detail)` 与服务端对齐；**不再**单独 `refresh()` 桌台详情。
+2. 有变化：`applyBuffetOpenOptimisticToOrders` 乐观更新 → `postWaiterBuffetOpenClient` → `applyModel` + `publishWaiterTablePageModel`；返回看板/再进详情由 publish + entry reconcile 保持新鲜。
 3. 失败：回滚乐观状态；409 冲突时 `refresh()`。
 
 判定函数与服务器共用：`isBuffetGuestCountsUnchanged`（`apps/web/src/lib/buffet-order.ts`）。
@@ -76,7 +76,11 @@
 | 写计划（纯函数） | `planBuffetOpenWrites` |
 | DB 持久化 | `applyBuffetOpenToSession` |
 | 乐观 UI | `applyBuffetOpenOptimisticToOrders` |
-| API 路由 | `staff/waiter/buffet/route.ts` |
+| 写后内存投影 | `applyBuffetOpenWritePlanToOrders` |
+| 响应组装 | `buildActiveWaiterTablePageModel` |
+| 服务端单管道（开台 + 保存人数） | `runBuffetWaiterOpenPipeline` |
+| 跨页 mutation 新鲜度 | `publishWaiterTablePageModel` / `mergePublishedModelsIntoWaiterBoard` |
+| API 路由 | `staff/waiter/buffet/route.ts`（鉴权 + 调管道） |
 | Session 创建 | `openTableSessionIfAbsent`（并行读已有 session 后按需 insert） |
 | 加菜门禁 | `guestOrderingEnabled` + [`menu-order-append.zh.md`](menu-order-append.zh.md) |
 

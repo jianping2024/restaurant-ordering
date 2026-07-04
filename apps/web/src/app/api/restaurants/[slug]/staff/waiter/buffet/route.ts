@@ -1,12 +1,9 @@
 import { NextResponse } from 'next/server';
 import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
-import { buildBuffetBaseLine, isBuffetGuestCountsUnchanged, normalizeBuffetGuestCounts } from '@/lib/buffet-order';
-import { applyBuffetOpenToSession, mapToBuffetSessionOrders } from '@/lib/buffet-open-table';
-import { fetchWaiterTablePageModel } from '@/lib/staff-board';
+import { normalizeBuffetGuestCounts } from '@/lib/buffet-order';
+import { runBuffetWaiterOpenPipeline } from '@/lib/buffet-waiter-pipeline';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
-import { findActiveTableSession, openTableSessionIfAbsent } from '@/lib/table-session-open';
-import { resolveBuffetPricesServer } from '@/lib/resolve-buffet-prices-server';
 
 export const runtime = 'nodejs';
 
@@ -54,110 +51,25 @@ export async function POST(
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
-  const [{ data: tableRow }, { data: buffet, error: buffetErr }, existingSession] = await Promise.all([
-    admin
-      .from('restaurant_tables')
-      .select('id, display_name')
-      .eq('restaurant_id', ctx.restaurant_id)
-      .eq('id', tableId)
-      .is('deleted_at', null)
-      .maybeSingle(),
-    admin
-      .from('buffets')
-      .select('id, name')
-      .eq('id', buffetId)
-      .eq('restaurant_id', ctx.restaurant_id)
-      .eq('is_active', true)
-      .maybeSingle(),
-    findActiveTableSession(admin, ctx.restaurant_id, tableId),
-  ]);
+  const result = await runBuffetWaiterOpenPipeline(admin, {
+    restaurantId: ctx.restaurant_id,
+    userId: ctx.user_id,
+    tableId,
+    buffetId,
+    adultCount,
+    childCount,
+  });
 
-  if (!tableRow) {
-    return NextResponse.json({ error: 'table_not_available' }, { status: 400 });
-  }
-
-  if (buffetErr || !buffet) {
-    return NextResponse.json({ error: 'buffet_not_found' }, { status: 404 });
-  }
-
-  const displayName = tableRow.display_name as string;
-
-  const ensured = await openTableSessionIfAbsent(
-    admin,
-    {
-      restaurant_id: ctx.restaurant_id,
-      table_id: tableId,
-      opened_by_user_id: ctx.user_id,
-    },
-    existingSession,
-  );
-  if (!ensured.session) {
+  if (!result.ok) {
     return NextResponse.json(
-      { error: 'session_create_failed', message: ensured.error },
-      { status: 500 },
+      { error: result.error, code: result.code, message: result.message },
+      { status: result.status },
     );
   }
 
-  const session = ensured.session;
-  if (session.status === 'billing') {
-    return NextResponse.json({ error: 'session_billing' }, { status: 409 });
-  }
-
-  const sessionId = session.id as string;
-
-  const { data: sessionOrderRows, error: sessionOrdersErr } = await admin
-    .from('orders')
-    .select('id, items, updated_at, table_id, created_at, status')
-    .eq('session_id', sessionId)
-    .in('status', ['pending', 'cooking', 'done']);
-
-  if (sessionOrdersErr) {
-    return NextResponse.json(
-      { error: 'orders_lookup_failed', message: sessionOrdersErr.message },
-      { status: 500 },
-    );
-  }
-
-  const sessionOrders = mapToBuffetSessionOrders(sessionOrderRows || []);
-  const unchanged = isBuffetGuestCountsUnchanged(sessionOrders, buffetId, adultCount, childCount);
-
-  if (!unchanged) {
-    const resolved = await resolveBuffetPricesServer(admin, ctx.restaurant_id, buffetId);
-    if (!resolved) {
-      return NextResponse.json({ error: 'price_resolve_failed' }, { status: 500 });
-    }
-
-    const line = buildBuffetBaseLine({
-      buffet,
-      adultCount,
-      childCount,
-      resolved,
-    });
-
-    if (!line) {
-      return NextResponse.json({ error: 'no_price_rule' }, { status: 400 });
-    }
-
-    const applied = await applyBuffetOpenToSession(admin, {
-      restaurantId: ctx.restaurant_id,
-      sessionId,
-      tableId,
-      displayName,
-      line,
-      sessionOrders,
-    });
-
-    if (!applied.ok) {
-      if (applied.code === 'conflict') {
-        return NextResponse.json({ error: 'conflict' }, { status: 409 });
-      }
-      return NextResponse.json(
-        { error: applied.code, message: applied.message },
-        { status: 500 },
-      );
-    }
-  }
-
-  const model = await fetchWaiterTablePageModel(admin, ctx.restaurant_id, tableId);
-  return NextResponse.json({ ok: true, model, ...(unchanged ? { unchanged: true } : {}) });
+  return NextResponse.json({
+    ok: true,
+    model: result.model,
+    ...(result.unchanged ? { unchanged: true } : {}),
+  });
 }

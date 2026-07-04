@@ -23,6 +23,31 @@ import {
   type WaiterBoardTableSummary,
 } from '@/lib/waiter-board-snapshot';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
+import {
+  bootstrapWaiterBoardData,
+  clearAllPublishedWaiterTablePageModels,
+  mergePublishedModelsIntoWaiterBoard,
+} from '@/lib/waiter-staff-mutation-sync';
+
+function buildInitialWaiterBoardState(input: {
+  initialTableSummaries: WaiterBoardTableSummary[];
+  initialCheckoutRequestedTableIds: string[];
+  initialSessionMetaByTableId: Record<string, WaiterTableSessionMeta>;
+  initialCheckoutRequestedAtByTableId: Record<string, string>;
+  initialTables: RestaurantTableRow[];
+  initialGroups: RestaurantTableGroup[];
+  initialMembers: RestaurantTableGroupMember[];
+}) {
+  return bootstrapWaiterBoardData({
+    tableSummaries: input.initialTableSummaries,
+    checkoutRequestedTableIds: input.initialCheckoutRequestedTableIds,
+    sessionMetaByTableId: input.initialSessionMetaByTableId,
+    checkoutRequestedAtByTableId: input.initialCheckoutRequestedAtByTableId,
+    tables: input.initialTables,
+    groups: input.initialGroups,
+    members: input.initialMembers,
+  });
+}
 
 function applyWaiterBoardData(
   board: WaiterBoardData,
@@ -57,19 +82,28 @@ export function useWaiterOrders(
   initialMembers: RestaurantTableGroupMember[] = [],
   demoOrders: Order[] = [],
 ) {
-  const [tableSummaries, setTableSummaries] = useState(initialTableSummaries);
-  const [checkoutRequestedTableIds, setCheckoutRequestedTableIds] = useState<string[]>(
+  const initialBoard = buildInitialWaiterBoardState({
+    initialTableSummaries,
     initialCheckoutRequestedTableIds,
+    initialSessionMetaByTableId,
+    initialCheckoutRequestedAtByTableId,
+    initialTables,
+    initialGroups,
+    initialMembers,
+  });
+  const [tableSummaries, setTableSummaries] = useState(initialBoard.tableSummaries);
+  const [checkoutRequestedTableIds, setCheckoutRequestedTableIds] = useState<string[]>(
+    initialBoard.checkoutRequestedTableIds,
   );
   const [sessionMetaByTableId, setSessionMetaByTableId] = useState<
     Record<string, WaiterTableSessionMeta>
-  >(initialSessionMetaByTableId);
+  >(initialBoard.sessionMetaByTableId);
   const [checkoutRequestedAtByTableId, setCheckoutRequestedAtByTableId] = useState<
     Record<string, string>
-  >(initialCheckoutRequestedAtByTableId);
-  const [tables, setTables] = useState<RestaurantTableRow[]>(initialTables);
-  const [groups, setGroups] = useState<RestaurantTableGroup[]>(initialGroups);
-  const [members, setMembers] = useState<RestaurantTableGroupMember[]>(initialMembers);
+  >(initialBoard.checkoutRequestedAtByTableId);
+  const [tables, setTables] = useState<RestaurantTableRow[]>(initialBoard.tables);
+  const [groups, setGroups] = useState<RestaurantTableGroup[]>(initialBoard.groups);
+  const [members, setMembers] = useState<RestaurantTableGroupMember[]>(initialBoard.members);
   const supabase = useMemo(() => createClient(), []);
   const refreshInFlightRef = useRef<Promise<WaiterBoardData | null> | null>(null);
   const reloadSeqRef = useRef(0);
@@ -94,8 +128,11 @@ export function useWaiterOrders(
     const seq = ++reloadSeqRef.current;
     const running = (async () => {
       try {
-        const board = await fetchWaiterBoardClient(restaurant.slug);
+        const board = mergePublishedModelsIntoWaiterBoard(
+          await fetchWaiterBoardClient(restaurant.slug),
+        );
         if (seq !== reloadSeqRef.current) return null;
+        clearAllPublishedWaiterTablePageModels();
         applyWaiterBoardData(board, {
           setTableSummaries,
           setSessionMetaByTableId,

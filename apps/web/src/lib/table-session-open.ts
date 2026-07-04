@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SessionStatus } from '@/types';
 
-export type TableSessionRef = { id: string; status: SessionStatus };
+export type TableSessionRef = { id: string; status: SessionStatus; opened_at: string };
 
 type OpenSessionParams = {
   restaurant_id: string;
@@ -16,7 +16,7 @@ export async function findActiveTableSession(
 ): Promise<TableSessionRef | null> {
   const { data, error } = await admin
     .from('table_sessions')
-    .select('id, status')
+    .select('id, status, opened_at')
     .eq('restaurant_id', restaurantId)
     .eq('table_id', tableId)
     .in('status', ['open', 'billing'])
@@ -40,7 +40,7 @@ async function insertOpenTableSession(
       status: 'open',
       opened_by_user_id: params.opened_by_user_id,
     })
-    .select('id, status')
+    .select('id, status, opened_at')
     .single();
 
   if (error || !data) {

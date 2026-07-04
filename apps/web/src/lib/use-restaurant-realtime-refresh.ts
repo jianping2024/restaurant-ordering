@@ -5,10 +5,11 @@ import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Staff board/detail freshness contract (production):
- * 1. SSR page seed — on mount / tableId change only; skip entry reconcile when initialModel is set
- * 2. Client reconcile on entry only without SSR seed (`useRestaurantStaffEntryReconcile`)
- * 3. Staff menu submit return — Staff API reconcile, then strip query (no SSR re-sync on same table)
- * 4. Realtime while mounted (`useRestaurantRealtimeRefresh`)
+ * 1. SSR page seed — first paint only
+ * 2. Published staff mutation cache — bridges navigation until Staff API reconcile
+ * 3. Client entry reconcile — Staff API on mount (`useRestaurantStaffEntryReconcile`)
+ * 4. Staff menu submit return — dedicated reconcile, then strip query
+ * 5. Realtime while mounted (`useRestaurantRealtimeRefresh`)
  */
 export function useRestaurantStaffEntryReconcile(
   enabled: boolean,

@@ -19,6 +19,17 @@ import {
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import { normalizeWaiterTablePageModel } from '@/lib/waiter-table-detail-normalize';
+import {
+  clearPublishedWaiterTablePageModel,
+  peekPublishedWaiterTablePageModel,
+} from '@/lib/waiter-staff-mutation-sync';
+
+function resolveTableDetailBootModel(
+  tableId: string,
+  initialModel?: WaiterTablePageModel | null,
+): WaiterTablePageModel | null {
+  return peekPublishedWaiterTablePageModel(tableId) ?? initialModel ?? null;
+}
 
 function detailFromModel(model: WaiterTablePageModel | null | undefined) {
   if (!model) {
@@ -43,10 +54,10 @@ function detailFromModel(model: WaiterTablePageModel | null | undefined) {
  * Table detail client state — single WaiterTablePageModel source.
  *
  * Freshness layers:
- * 1. SSR seed — apply initialModel on mount / tableId change only (not on RSC prop refresh)
- * 2. Entry reconcile — Staff API when no SSR seed
- * 3. menu_submit return — Staff API reconcile, then strip query (client state wins over stale SSR)
- * 4. Realtime + mutations — applyModel via Staff API
+ * 1. SSR seed — first paint; published mutation cache wins on navigation entry
+ * 2. Entry reconcile — Staff API on mount (authoritative over stale SSR/Router cache)
+ * 3. menu_submit return — Staff API reconcile, then strip query
+ * 4. Realtime while mounted — debounced refresh
  */
 export function useWaiterTableDetail(
   restaurant: { id: string; slug: string },
@@ -57,14 +68,15 @@ export function useWaiterTableDetail(
   demoOrders: Order[] = [],
   initialModel?: WaiterTablePageModel | null,
 ) {
-  const boot = detailFromModel(initialModel ?? null);
-  const [model, setModel] = useState<WaiterTablePageModel | null>(initialModel ?? null);
+  const bootModel = resolveTableDetailBootModel(tableId, initialModel);
+  const boot = detailFromModel(bootModel);
+  const [model, setModel] = useState<WaiterTablePageModel | null>(bootModel);
   const [table, setTable] = useState(boot.table);
   const [orderRows, setOrderRows] = useState<Order[]>(isDemo ? demoOrders : boot.orderRows);
   const [sessionMeta, setSessionMeta] = useState(boot.sessionMeta);
   const [checkoutRequested, setCheckoutRequested] = useState(boot.checkoutRequested);
   const [checkoutRequestedAt, setCheckoutRequestedAt] = useState(boot.checkoutRequestedAt);
-  const [detailLoaded, setDetailLoaded] = useState(isDemo || !!initialModel?.detail.table);
+  const [detailLoaded, setDetailLoaded] = useState(isDemo || !!bootModel?.detail.table);
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const pathname = usePathname();
@@ -112,6 +124,7 @@ export function useWaiterTableDetail(
       try {
         const nextModel = await fetchWaiterTablePageModelClient(restaurant.slug, tableId);
         if (seq !== reloadSeqRef.current) return null;
+        clearPublishedWaiterTablePageModel(tableId);
         return applyModel(nextModel);
       } finally {
         refreshInFlightRef.current = null;
@@ -130,17 +143,13 @@ export function useWaiterTableDetail(
     }
   }, [tableId]);
 
-  // SSR seed per table entry — omit initialModel from deps so router.replace cannot clobber post-mutation client state.
+  // SSR seed per table entry — published mutation wins; omit initialModel from deps.
   useEffect(() => {
-    if (!initialModel?.detail.table) return;
-    applyModel(initialModel);
+    const seed = resolveTableDetailBootModel(tableId, initialModel);
+    if (!seed?.detail.table) return;
+    applyModel(seed);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- seed on tableId/mount only
   }, [applyModel, tableId]);
-
-  useEffect(() => {
-    if (!enabled || isDemo || initialModel) return;
-    void refresh();
-  }, [enabled, initialModel, isDemo, refresh, tableId]);
 
   const staffMenuSubmitReturn = isStaffAssistedMenuSubmitReturn(searchParams);
 
@@ -169,7 +178,7 @@ export function useWaiterTableDetail(
   }, [enabled, isDemo, pathname, refresh, router, staffMenuSubmitReturn, tableId]);
 
   useRestaurantStaffEntryReconcile(
-    enabled && !staffMenuSubmitReturn && !initialModel,
+    enabled && !isDemo && !staffMenuSubmitReturn,
     refresh,
     tableId,
   );

@@ -3,14 +3,20 @@ import type { BillSplit, Order, TableSession } from '@/types';
 
 export type CustomerSessionResponse = CustomerSessionContext;
 
+export type CustomerBillCollectedPayment = {
+  id: string;
+  person_name: string;
+  amount: number;
+  created_at: string;
+};
+
 export type CustomerBillResponse = {
   table_id: string;
   display_name: string;
   active_session: TableSession | null;
   orders: Order[];
   existing_split: BillSplit | null;
-  has_collected_payments: boolean;
-  collected_person_names: string[];
+  collected_payments: CustomerBillCollectedPayment[];
 };
 
 async function fetchJson<T>(url: string): Promise<T | null> {

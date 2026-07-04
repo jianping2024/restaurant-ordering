@@ -71,6 +71,8 @@
 | 已有收款 | **禁用** | 仅**已付客人**菜品行只读；其余可编辑 |
 | 首次结账、从未呼叫结账 | 与现网一致 | 可选模式、可编辑 |
 
+**提交成功页（`submitted=true`）**：分单结果展示须与服务员台一致，由 `result.amount`（应付）与 `session_collected_payments`（已收）推导，**不得**仅依赖 `result.paid` 显示「已收款」。部分已收客人（续结后仍有待付差额）显示「部分已收」、待付金额及应付/已收明细；仅当 ledger 覆盖义务时显示「已收款」。
+
 `isPausedCheckoutSplit`（`open` + `confirmed`）仅用于控制**是否仍展示「已呼叫结账」成功页**，**不**单独触发锁定。
 
 ## 5. 与其它分单模式
@@ -127,6 +129,7 @@
 - `apps/web/src/components/dashboard/CheckoutRequestsManager.tsx` — 结账详情、恢复点单入口
 - `apps/web/src/components/menu/MenuPage.tsx` — 加菜前 session 刷新
 - `apps/web/src/components/menu/BillPage.tsx` — 顾客分单、成功页手动刷新
+- `apps/web/src/lib/customer-bill-split-display.ts` — 成功页分单展示（ledger + result）
 - `apps/web/src/lib/customer-bill-checkout-resume.ts` — 成功页刷新结果判定
 - `apps/web/src/lib/checkout-split-continuation.ts` — 锁定判定、`paidSplitPersonNames`、`lockedByItemLineKeys`
 - `apps/web/src/lib/checkout-session-payments.ts` — 已收台账、待收行过滤、恢复拦截、确认文案分支

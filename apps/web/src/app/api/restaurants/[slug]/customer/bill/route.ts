@@ -3,7 +3,6 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import {
   parseSessionCollectedPayments,
   SESSION_COLLECTED_PAYMENT_SELECT,
-  uniqueCollectedPersonNames,
 } from '@/lib/checkout-session-payments';
 import {
   loadCustomerExistingSplit,
@@ -49,8 +48,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
       active_session: null,
       orders: [],
       existing_split: null,
-      has_collected_payments: false,
-      collected_person_names: [],
+      collected_payments: [],
     });
   }
 
@@ -77,7 +75,6 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     active_session: ctx.activeSession,
     orders,
     existing_split: existingSplit,
-    has_collected_payments: collectedPayments.length > 0,
-    collected_person_names: uniqueCollectedPersonNames(collectedPayments),
+    collected_payments: collectedPayments,
   });
 }

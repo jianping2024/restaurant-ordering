@@ -3,7 +3,6 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import {
   parseSessionCollectedPayments,
   SESSION_COLLECTED_PAYMENT_SELECT,
-  uniqueCollectedPersonNames,
 } from '@/lib/checkout-session-payments';
 import { RestaurantMaintenancePage } from '@/components/customer/RestaurantMaintenancePage';
 import { BillPage } from '@/components/menu/BillPage';
@@ -91,8 +90,7 @@ export default async function BillRoute({ params, searchParams }: Props) {
 
   let initialFeedbackSubmitted = false;
   let initialFeedbackSkipped = false;
-  let hasCollectedPayments = false;
-  let collectedPersonNames: string[] = [];
+  let initialCollectedPayments: ReturnType<typeof parseSessionCollectedPayments> = [];
   if (tableContext.activeSession.id) {
     const sessionId = tableContext.activeSession.id;
     const [{ data: feedbackSession }, collectedRowsResult] = await Promise.all([
@@ -107,11 +105,9 @@ export default async function BillRoute({ params, searchParams }: Props) {
         .eq('restaurant_id', restaurant.id)
         .eq('session_id', sessionId),
     ]);
-    const collectedPayments = parseSessionCollectedPayments(collectedRowsResult.data);
+    initialCollectedPayments = parseSessionCollectedPayments(collectedRowsResult.data);
     initialFeedbackSubmitted = !!feedbackSession?.completed_at;
     initialFeedbackSkipped = !!feedbackSession?.skipped_at;
-    hasCollectedPayments = collectedPayments.length > 0;
-    collectedPersonNames = uniqueCollectedPersonNames(collectedPayments);
   }
 
   return (
@@ -123,8 +119,7 @@ export default async function BillRoute({ params, searchParams }: Props) {
       sessionId={tableContext.activeSession.id}
       sessionStatus={tableContext.activeSession.status}
       existingSplit={existingSplit}
-      hasCollectedPayments={hasCollectedPayments}
-      collectedPersonNames={collectedPersonNames}
+      initialCollectedPayments={initialCollectedPayments}
       staffAssisted={staffAssisted}
       initialFeedbackSubmitted={initialFeedbackSubmitted}
       initialFeedbackSkipped={initialFeedbackSkipped}

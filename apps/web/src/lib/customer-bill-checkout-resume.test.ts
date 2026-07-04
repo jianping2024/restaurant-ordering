@@ -6,8 +6,7 @@ describe('detectCheckoutResumedFromBillContext', () => {
   const base = {
     table_id: 't1',
     display_name: 'A1',
-    has_collected_payments: false,
-    collected_person_names: [],
+    collected_payments: [],
   };
 
   it('detects continuation split after resume', () => {
@@ -18,8 +17,26 @@ describe('detectCheckoutResumedFromBillContext', () => {
         active_session: { status: 'open' } as never,
         existing_split: split,
       }),
-      { kind: 'continuation', split, hasCollectedPayments: false, collectedPersonNames: [] },
+      { kind: 'continuation', split, collectedPayments: [] },
     );
+  });
+
+  it('passes ledger rows on continuation', () => {
+    const split = { id: 'bs1', status: 'confirmed', split_mode: 'by_item' } as never;
+    const collected_payments = [
+      { id: 'p1', person_name: 'Ana', amount: 19.95, created_at: '2026-01-01T00:00:00.000Z' },
+    ];
+    const result = detectCheckoutResumedFromBillContext({
+      ...base,
+      collected_payments,
+      active_session: { status: 'open' } as never,
+      existing_split: split,
+    });
+    assert.equal(result.kind, 'continuation');
+    if (result.kind === 'continuation') {
+      assert.equal(result.collectedPayments.length, 1);
+      assert.equal(result.collectedPayments[0]?.amount, 19.95);
+    }
   });
 
   it('detects fresh open session without split', () => {

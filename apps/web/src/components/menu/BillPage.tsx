@@ -14,9 +14,13 @@ import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { deriveBillView, isBillOrdersComplete } from '@/lib/customer-bill-sync';
 import {
   billSplitDisplayResults,
+  buildCustomerSplitDisplayRows,
   initialPersistedSplitResult,
 } from '@/lib/customer-bill-split-display';
-import { detectCheckoutResumedFromBillContext } from '@/lib/customer-bill-checkout-resume';
+import {
+  collectedPaymentsFromBillContext,
+  detectCheckoutResumedFromBillContext,
+} from '@/lib/customer-bill-checkout-resume';
 import { requestCustomerBillContext } from '@/lib/request-customer-context';
 import type { CustomerBillResponse } from '@/lib/request-customer-context';
 import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
@@ -48,8 +52,7 @@ interface Props {
   sessionId: string | null;
   sessionStatus: SessionStatus;
   existingSplit: BillSplit | null;
-  hasCollectedPayments?: boolean;
-  collectedPersonNames?: string[];
+  initialCollectedPayments?: SessionCollectedPayment[];
   staffAssisted?: StaffAssistedFlow | null;
   initialFeedbackSubmitted?: boolean;
   initialFeedbackSkipped?: boolean;
@@ -77,8 +80,7 @@ export function BillPage({
   sessionId,
   sessionStatus,
   existingSplit,
-  hasCollectedPayments = false,
-  collectedPersonNames: initialCollectedPersonNames = [],
+  initialCollectedPayments = [],
   staffAssisted = null,
   initialFeedbackSubmitted = false,
   initialFeedbackSkipped = false,
@@ -106,8 +108,8 @@ export function BillPage({
     return existingSplit.split_mode;
   })();
   const [continuationSplit, setContinuationSplit] = useState<BillSplit | null>(existingSplit);
-  const [collectedLedgerActive, setCollectedLedgerActive] = useState(hasCollectedPayments);
-  const [collectedPersonNames, setCollectedPersonNames] = useState(initialCollectedPersonNames);
+  const [collectedPayments, setCollectedPayments] = useState(initialCollectedPayments);
+  const collectedLedgerActive = collectedPayments.length > 0;
   const [splitMode, setSplitMode] = useState<SplitMode | null>(initialSplitMode);
   const [personCount, setPersonCount] = useState(() => {
     if (existingSplit?.split_mode === 'even' && existingSplit.persons?.length) {
@@ -174,8 +176,7 @@ export function BillPage({
         setSubmitted(false);
         setPersistedResult(null);
         setContinuationSplit(resumed.split);
-        setCollectedLedgerActive(resumed.hasCollectedPayments);
-        setCollectedPersonNames(resumed.collectedPersonNames);
+        setCollectedPayments(resumed.collectedPayments);
         if (resumed.split.split_mode) {
           setSplitMode(resumed.split.split_mode);
         }
@@ -186,8 +187,7 @@ export function BillPage({
         setSubmitted(false);
         setSplitMode(null);
         setContinuationSplit(null);
-        setCollectedLedgerActive(false);
-        setCollectedPersonNames([]);
+        setCollectedPayments([]);
         setPersistedResult(null);
         await syncOrders();
         return true;
@@ -205,6 +205,7 @@ export function BillPage({
         showToast(t.actionFailed, 'error');
         return;
       }
+      setCollectedPayments(collectedPaymentsFromBillContext(ctx));
       const changed = await applyCheckoutResumedState(ctx);
       showToast(changed ? t.checkoutResumed : t.checkoutStillPending, changed ? 'success' : 'info');
     } finally {
@@ -286,18 +287,7 @@ export function BillPage({
     () => isCheckoutSplitLocked(continuationSplit, collectedLedgerActive),
     [continuationSplit, collectedLedgerActive],
   );
-  const collectedPaymentsForLock = useMemo(
-    () =>
-      collectedPersonNames.map(
-        (personName, index): SessionCollectedPayment => ({
-          id: `ledger-${index}`,
-          person_name: personName,
-          amount: 0,
-          created_at: '',
-        }),
-      ),
-    [collectedPersonNames],
-  );
+  const collectedPaymentsForLock = collectedPayments;
   const lockedLineKeys = useMemo(
     () =>
       splitLocked
@@ -345,6 +335,11 @@ export function BillPage({
     persistedResult,
     draftResults: computedResults,
   });
+
+  const splitDisplayRows = useMemo(
+    () => (submitted ? buildCustomerSplitDisplayRows(results, collectedPayments) : []),
+    [submitted, results, collectedPayments],
+  );
 
   const byItemAllocatorLabels = useMemo(
     () => ({
@@ -672,20 +667,41 @@ export function BillPage({
           <p className="text-brand-gold font-heading text-2xl mt-6">
             {t.totalLabel} €{total.toFixed(2)}
           </p>
-          {results.length > 0 && (
+          {splitDisplayRows.length > 0 && (
             <div className="mt-6 bg-brand-card border border-brand-border rounded-xl overflow-hidden text-left">
               <p className="px-4 py-2 text-[13px] text-brand-text-muted border-b border-brand-border">{t.splitResult}</p>
-              {results.map((r, i) => (
-                <div key={i} className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-brand-text text-sm">{localizeSplitPersonName(r.name, lang)}</span>
-                    {r.paid && (
-                      <span className="text-[11px] px-2 py-0.5 rounded-full mesa-badge-success">
-                        {lang === 'zh' ? '已收款' : lang === 'en' ? 'Paid' : 'Pago'}
-                      </span>
-                    )}
+              {splitDisplayRows.map((row, i) => (
+                <div key={i} className="px-4 py-3 border-b border-brand-border last:border-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-brand-text text-sm">{localizeSplitPersonName(row.name, lang)}</span>
+                        {row.settlementStatus === 'settled' ? (
+                          <span className="text-[11px] px-2 py-0.5 rounded-full mesa-badge-success">
+                            {t.splitPaid}
+                          </span>
+                        ) : null}
+                        {row.settlementStatus === 'partial' ? (
+                          <span className="text-[11px] px-2 py-0.5 rounded-full border border-brand-gold/40 text-brand-gold">
+                            {t.splitPartialPaid}
+                          </span>
+                        ) : null}
+                      </div>
+                      {row.settlementStatus === 'partial' ? (
+                        <p className="mt-1 text-[12px] text-brand-text-muted">
+                          {t.splitAmountBreakdown
+                            .replace('{obligation}', row.obligationAmount.toFixed(2))
+                            .replace('{collected}', row.collectedAmount.toFixed(2))}
+                        </p>
+                      ) : null}
+                    </div>
+                    <span className="text-brand-gold font-medium shrink-0">
+                      €{(row.settlementStatus === 'partial'
+                        ? row.outstandingAmount
+                        : row.obligationAmount
+                      ).toFixed(2)}
+                    </span>
                   </div>
-                  <span className="text-brand-gold font-medium">€{r.amount.toFixed(2)}</span>
                 </div>
               ))}
             </div>

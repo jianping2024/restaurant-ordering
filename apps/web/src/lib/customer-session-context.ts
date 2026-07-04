@@ -93,47 +93,71 @@ export async function loadCustomerRestaurantForApi(
   return { ok: true, restaurant: gate.restaurant };
 }
 
+const CUSTOMER_TABLE_SELECT =
+  'id, restaurant_id, display_name, sort_order, deleted_at, created_at';
+
+export type CustomerTableIdRequest =
+  | { kind: 'by_id'; tableId: string }
+  | { kind: 'default' }
+  | { kind: 'invalid' };
+
+/** How to resolve table_id from menu/bill query params (testable, no I/O). */
+export function resolveCustomerTableIdRequest(
+  tableIdParam?: string | null,
+): CustomerTableIdRequest {
+  const rawTableId = tableIdParam?.trim() || '';
+  const parsedTableId = rawTableId ? parseTableIdParam(rawTableId) : null;
+  if (rawTableId && !parsedTableId) return { kind: 'invalid' };
+  if (parsedTableId) return { kind: 'by_id', tableId: parsedTableId };
+  return { kind: 'default' };
+}
+
+async function loadCustomerTableRow(
+  admin: AdminClient,
+  restaurantId: string,
+  request: CustomerTableIdRequest,
+): Promise<RestaurantTableRow | null> {
+  if (request.kind === 'invalid') return null;
+
+  let query = admin
+    .from('restaurant_tables')
+    .select(CUSTOMER_TABLE_SELECT)
+    .eq('restaurant_id', restaurantId)
+    .is('deleted_at', null);
+
+  if (request.kind === 'by_id') {
+    query = query.eq('id', request.tableId);
+  } else {
+    query = query.order('sort_order').limit(1);
+  }
+
+  const { data } = await query.maybeSingle();
+  return data ? (data as RestaurantTableRow) : null;
+}
+
 export async function resolveCustomerTableContext(params: {
   admin: AdminClient;
   restaurantId: string;
   tableIdParam?: string | null;
 }): Promise<CustomerResolvedTableContext | null> {
   const { admin, restaurantId, tableIdParam } = params;
-
-  const { data: activeTables } = await admin
-    .from('restaurant_tables')
-    .select('id, restaurant_id, display_name, sort_order, deleted_at, created_at')
-    .eq('restaurant_id', restaurantId)
-    .is('deleted_at', null)
-    .order('sort_order');
-
-  const tables = (activeTables || []) as RestaurantTableRow[];
-  const defaultTableId = tables[0]?.id;
-  const rawTableId = tableIdParam?.trim() || '';
-  const parsedTableId = rawTableId ? parseTableIdParam(rawTableId) : null;
-  if (rawTableId && !parsedTableId) return null;
-  const requestedTableId = parsedTableId ?? defaultTableId;
-  if (!requestedTableId) return null;
-
-  const requestedTable = tables.find((t) => t.id === requestedTableId);
+  const tableRequest = resolveCustomerTableIdRequest(tableIdParam);
+  const requestedTable = await loadCustomerTableRow(admin, restaurantId, tableRequest);
   if (!requestedTable) return null;
-
-  const tableId = requestedTableId;
-  const displayName = requestedTable.display_name;
 
   const { data: activeSession } = await admin
     .from('table_sessions')
     .select('*')
     .eq('restaurant_id', restaurantId)
-    .eq('table_id', requestedTableId)
+    .eq('table_id', requestedTable.id)
     .in('status', ['open', 'billing'])
     .order('opened_at', { ascending: false })
     .limit(1)
     .maybeSingle();
 
   return {
-    tableId,
-    displayName,
+    tableId: requestedTable.id,
+    displayName: requestedTable.display_name,
     activeSession: (activeSession as TableSession | null) || null,
   };
 }

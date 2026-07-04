@@ -31,28 +31,30 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
   }
   const restaurant = gate.restaurant;
 
-  const sessionContext = await loadCustomerSessionContext({
-    admin,
-    restaurantId: restaurant.id,
-    tableIdParam,
-  });
+  const [sessionContext, supabase] = await Promise.all([
+    loadCustomerSessionContext({
+      admin,
+      restaurantId: restaurant.id,
+      tableIdParam,
+    }),
+    createClient(),
+  ]);
   if (!sessionContext) notFound();
 
-  const supabase = await createClient();
-
-  const { data: menuItems } = await supabase
-    .from('menu_items')
-    .select('*')
-    .eq('restaurant_id', restaurant.id)
-    .order('category_id')
-    .order('sort_order');
-
-  const { data: menuCategories } = await supabase
-    .from('menu_categories')
-    .select('*')
-    .eq('restaurant_id', restaurant.id)
-    .eq('active', true)
-    .order('sort_order');
+  const [{ data: menuItems }, { data: menuCategories }] = await Promise.all([
+    supabase
+      .from('menu_items')
+      .select('*')
+      .eq('restaurant_id', restaurant.id)
+      .order('category_id')
+      .order('sort_order'),
+    supabase
+      .from('menu_categories')
+      .select('*')
+      .eq('restaurant_id', restaurant.id)
+      .eq('active', true)
+      .order('sort_order'),
+  ]);
 
   const staffAssisted = resolveStaffAssistedFlow(
     from,

@@ -45,11 +45,11 @@ export function useCustomerSessionContext(
     return applyContext(data);
   }, [applyContext, params.slug, params.tableId]);
 
-  // Client navigations may reuse a stale RSC payload; reconcile without clearing SSR data.
+  // Entry reconcile only when SSR did not seed session (aligns with waiter table initialModel).
   useEffect(() => {
-    if (params.isDemo) return;
+    if (params.isDemo || initialContext != null) return;
     void refresh();
-  }, [params.isDemo, refresh]);
+  }, [initialContext, params.isDemo, refresh]);
 
   return {
     activeSession,

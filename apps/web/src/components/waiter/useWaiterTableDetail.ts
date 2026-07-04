@@ -42,8 +42,11 @@ function detailFromModel(model: WaiterTablePageModel | null | undefined) {
 /**
  * Table detail client state — single WaiterTablePageModel source.
  *
- * Freshness: SSR initialModel → skip entry reconcile; ?from=menu_submit → reconcile;
- * Realtime + mutations → applyModel via staff API.
+ * Freshness layers:
+ * 1. SSR seed — apply initialModel on mount / tableId change only (not on RSC prop refresh)
+ * 2. Entry reconcile — Staff API when no SSR seed
+ * 3. menu_submit return — Staff API reconcile, then strip query (client state wins over stale SSR)
+ * 4. Realtime + mutations — applyModel via Staff API
  */
 export function useWaiterTableDetail(
   restaurant: { id: string; slug: string },
@@ -119,16 +122,20 @@ export function useWaiterTableDetail(
   }, [applyModel, enabled, restaurant.slug, tableId]);
 
   useEffect(() => {
-    if (prevTableIdRef.current === tableId) return;
-    prevTableIdRef.current = tableId;
-    reloadSeqRef.current += 1;
-    refreshInFlightRef.current = null;
-    setDetailLoaded(false);
+    if (prevTableIdRef.current !== tableId) {
+      prevTableIdRef.current = tableId;
+      reloadSeqRef.current += 1;
+      refreshInFlightRef.current = null;
+      setDetailLoaded(false);
+    }
   }, [tableId]);
 
+  // SSR seed per table entry — omit initialModel from deps so router.replace cannot clobber post-mutation client state.
   useEffect(() => {
-    if (initialModel) applyModel(initialModel);
-  }, [applyModel, initialModel]);
+    if (!initialModel?.detail.table) return;
+    applyModel(initialModel);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- seed on tableId/mount only
+  }, [applyModel, tableId]);
 
   useEffect(() => {
     if (!enabled || isDemo || initialModel) return;

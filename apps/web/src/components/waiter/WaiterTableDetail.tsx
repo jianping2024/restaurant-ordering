@@ -29,6 +29,7 @@ import { computeOrderTotalsFromItems } from '@/lib/order-item-void/persist-order
 import { voidItemReasonErrorMessage } from '@/lib/order-item-void/void-item-reason-ui';
 import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticatedShell';
 import { useWaiterTableDetail } from '@/components/waiter/useWaiterTableDetail';
+import { useStaffAssistedMenuEntryPrefetch } from '@/components/waiter/useStaffAssistedMenuEntryPrefetch';
 import { useWaiterTableBuffetForm } from '@/components/waiter/useWaiterTableBuffetForm';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
@@ -303,6 +304,11 @@ function WaiterTableDetailInner({
   const boardHref = waiterBoardHref(restaurant.slug, routeOptions);
   const menuHref = waiterMenuHref(restaurant.slug, tableId, routeOptions);
   const billHref = waiterBillHref(restaurant.slug, tableId, routeOptions);
+
+  useStaffAssistedMenuEntryPrefetch(
+    menuHref,
+    isWaiterTableCardOccupied(selectedCard) && !isCheckoutPending && !isDemo,
+  );
 
   const openAction = (type: 'transfer' | 'merge', sourceId: string) => {
     if (tableIdsEqual(sourceId, tableId) && isCheckoutPending) {

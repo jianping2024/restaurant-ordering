@@ -14,7 +14,7 @@ describe('staff-assisted-return-sync', () => {
     assert.equal(isStaffAssistedMenuSubmitReturn(new URLSearchParams('from=waiter')), false);
   });
 
-  it('reconcileStaffAssistedMenuSubmitReturn refreshes SSR then client detail', async () => {
+  it('reconcileStaffAssistedMenuSubmitReturn always reconciles via Staff API', async () => {
     const router = {
       refresh: mock.fn(),
       replace: mock.fn(),
@@ -27,7 +27,7 @@ describe('staff-assisted-return-sync', () => {
       refreshDetail,
     });
 
-    assert.equal(router.refresh.mock.calls.length, 1);
+    assert.equal(router.refresh.mock.calls.length, 0);
     assert.equal(refreshDetail.mock.calls.length, 1);
     assert.deepEqual(router.replace.mock.calls[0]?.arguments, ['/dashboard/waiter/table-1']);
   });

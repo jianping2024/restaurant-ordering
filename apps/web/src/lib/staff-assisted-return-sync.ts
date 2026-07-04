@@ -13,15 +13,14 @@ export function isStaffAssistedMenuSubmitReturn(
 }
 
 /**
- * Freshness contract on table detail: SSR refresh (current route) + one staff API reconcile.
- * Caller strips the query param after reconcile completes.
+ * Post-mutation freshness on table detail after staff-assisted menu submit.
+ * Append just wrote orders; SSR/prefetch may be stale — one Staff API reconcile, then strip query.
  */
 export async function reconcileStaffAssistedMenuSubmitReturn(params: {
   router: TableDetailRouter;
   pathname: string;
   refreshDetail: () => Promise<unknown>;
 }): Promise<void> {
-  params.router.refresh();
   await params.refreshDetail();
   params.router.replace(params.pathname);
 }

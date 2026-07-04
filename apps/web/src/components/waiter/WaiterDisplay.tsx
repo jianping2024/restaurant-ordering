@@ -67,7 +67,18 @@ interface Props {
   embeddedInDashboard?: boolean;
 }
 
-const BOARD_FILTERS: WaiterBoardFilter[] = ['all', 'checkout', 'dining', 'idle'];
+const BOARD_KPI_ITEMS: {
+  filter: WaiterBoardFilter;
+  tone: 'amber' | 'emerald' | 'neutral';
+  countKey: keyof ReturnType<typeof computeWaiterBoardStats>;
+  labelKey: 'filterAll' | 'filterCheckout' | 'filterDining' | 'filterIdle';
+  hintKey?: 'kpiCheckoutHint';
+}[] = [
+  { filter: 'all', tone: 'neutral', countKey: 'total', labelKey: 'filterAll' },
+  { filter: 'checkout', tone: 'amber', countKey: 'checkoutPending', labelKey: 'filterCheckout', hintKey: 'kpiCheckoutHint' },
+  { filter: 'dining', tone: 'emerald', countKey: 'open', labelKey: 'filterDining' },
+  { filter: 'idle', tone: 'neutral', countKey: 'idle', labelKey: 'filterIdle' },
+];
 
 const STATUS_STYLES: Record<
   WaiterTableBoardState,
@@ -207,6 +218,7 @@ function BoardKpiCard({
   return (
     <button
       type="button"
+      aria-pressed={active}
       onClick={onClick}
       className={`rounded-xl border px-4 py-3 text-left min-w-[6.5rem] flex-1 transition-all hover:shadow-sm ${toneClass} ${activeClass}`}
     >
@@ -420,13 +432,6 @@ function WaiterBoardInner({
       classifyWaiterTableBoardState(tableId, boardStateContext),
     );
 
-  const filterLabel = (filter: WaiterBoardFilter) => {
-    if (filter === 'all') return t.filterAll;
-    if (filter === 'checkout') return t.filterCheckout;
-    if (filter === 'dining') return t.filterDining;
-    return t.filterIdle;
-  };
-
   const renderTableCard = (card: WaiterBoardTableSummary, pinned = false) => (
     <WaiterTableCard
       key={pinned ? `pinned-${card.tableId}` : card.tableId}
@@ -560,54 +565,21 @@ function WaiterBoardInner({
           <p className="text-brand-text-muted text-sm mt-1">{t.boardTitle}</p>
         ) : null}
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          <BoardKpiCard
-            active={boardFilter === 'checkout'}
-            count={boardStats.checkoutPending}
-            label={t.filterCheckout}
-            hint={t.kpiCheckoutHint}
-            tone="amber"
-            onClick={() => setBoardFilter('checkout')}
-          />
-          <BoardKpiCard
-            active={boardFilter === 'dining'}
-            count={boardStats.open}
-            label={t.filterDining}
-            tone="emerald"
-            onClick={() => setBoardFilter('dining')}
-          />
-          <BoardKpiCard
-            active={boardFilter === 'idle'}
-            count={boardStats.idle}
-            label={t.filterIdle}
-            tone="neutral"
-            onClick={() => setBoardFilter('idle')}
-          />
+        <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label={t.boardTitle}>
+          {BOARD_KPI_ITEMS.map((item) => (
+            <BoardKpiCard
+              key={item.filter}
+              active={boardFilter === item.filter}
+              count={boardStats[item.countKey]}
+              label={t[item.labelKey]}
+              hint={item.hintKey ? t[item.hintKey] : undefined}
+              tone={item.tone}
+              onClick={() => setBoardFilter(item.filter)}
+            />
+          ))}
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-1.5" role="tablist" aria-label={t.boardTitle}>
-          {BOARD_FILTERS.map((filter) => {
-            const active = boardFilter === filter;
-            return (
-              <button
-                key={filter}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => setBoardFilter(filter)}
-                className={`text-[12px] rounded-full px-3 py-1 border transition-colors ${
-                  active
-                    ? 'border-brand-gold/50 bg-brand-gold/15 text-brand-text font-medium'
-                    : 'border-brand-border bg-brand-card text-brand-text-muted hover:text-brand-text'
-                }`}
-              >
-                {filterLabel(filter)}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="mt-2 relative">
+        <div className="mt-3 relative">
           <input
             type="text"
             role="searchbox"

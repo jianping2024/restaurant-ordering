@@ -37,6 +37,7 @@ import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import { Button } from '@/components/ui/Button';
 import { postWaiterDecrementOrderItemClient } from '@/lib/waiter-decrement-order-item-client';
+import { applyOrderUpdateToWaiterDetail } from '@/lib/waiter-table-detail-apply-order';
 import { fetchWaiterTableActionTargetsClient, fetchWaiterTablePageModelClient, postWaiterBuffetOpenClient } from '@/lib/staff-board-client';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
@@ -650,12 +651,16 @@ function WaiterTableDetailInner({
     setDecrementingKey(key);
     try {
       if (!isDemo) {
-        const { outcome } = await postWaiterDecrementOrderItemClient(restaurant.slug, orderId, {
-          item_index: itemIdx,
-          updated_at: order.updated_at,
-          ...(voidReason ? { void_reason: voidReason, void_reason_detail: voidReasonDetail } : {}),
-        });
-        await refresh();
+        const { outcome, order: updatedOrder } = await postWaiterDecrementOrderItemClient(
+          restaurant.slug,
+          orderId,
+          {
+            item_index: itemIdx,
+            updated_at: order.updated_at,
+            ...(voidReason ? { void_reason: voidReason, void_reason_detail: voidReasonDetail } : {}),
+          },
+        );
+        applyDetail(applyOrderUpdateToWaiterDetail(currentTableDetail(), updatedOrder));
         if (outcome === 'voided') {
           showToast(t.voidedLabel, 'success');
         }

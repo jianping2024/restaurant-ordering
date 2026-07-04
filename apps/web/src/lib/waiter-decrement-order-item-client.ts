@@ -1,8 +1,10 @@
 'use client';
 
+import type { Order } from '@/types';
+
 type DecrementOrderItemResponse = {
   ok?: boolean;
-  order?: unknown;
+  order?: Order;
   outcome?: 'decremented' | 'voided';
   error?: string;
 };
@@ -18,7 +20,7 @@ export async function postWaiterDecrementOrderItemClient(
   slug: string,
   orderId: string,
   body: DecrementOrderItemClientBody,
-): Promise<{ outcome: 'decremented' | 'voided' }> {
+): Promise<{ outcome: 'decremented' | 'voided'; order: Order }> {
   const res = await fetch(
     `/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/orders/${encodeURIComponent(orderId)}/decrement-item`,
     {
@@ -38,5 +40,8 @@ export async function postWaiterDecrementOrderItemClient(
     err.code = data.error;
     throw err;
   }
-  return { outcome: data.outcome ?? 'decremented' };
+  if (!data.order) {
+    throw new Error('decrement_item_missing_order');
+  }
+  return { outcome: data.outcome ?? 'decremented', order: data.order };
 }

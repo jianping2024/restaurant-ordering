@@ -12,6 +12,14 @@ export function outstandingAmount(obligation: number, priorCollected: number): n
   return Math.max(0, Math.round(delta * 100) / 100);
 }
 
+/** Whether this split row still has a positive ledger balance (ignores stale paid flag). */
+export function isSplitRowCollectible(
+  row: SplitResult,
+  collectedByPerson: Map<string, number>,
+): boolean {
+  return outstandingAmount(row.amount, collectedByPerson.get(row.name.trim()) ?? 0) > 0;
+}
+
 /** Split rows with a positive balance after session ledger; preserves person_index for RPC. */
 export function collectibleSplitRowsWithIndex(
   rows: SplitResult[],
@@ -19,10 +27,7 @@ export function collectibleSplitRowsWithIndex(
 ): SplitRowWithIndex[] {
   return rows
     .map((row, index) => ({ row, index }))
-    .filter(
-      ({ row }) =>
-        outstandingAmount(row.amount, collectedByPerson.get(row.name.trim()) ?? 0) > 0,
-    );
+    .filter(({ row }) => isSplitRowCollectible(row, collectedByPerson));
 }
 
 export type SessionCollectedPayment = {

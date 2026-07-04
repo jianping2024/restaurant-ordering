@@ -5,6 +5,7 @@ import {
   collectibleSplitRowsWithIndex,
   collectedPersonNames,
   parseSessionCollectedPayments,
+  isSplitRowCollectible,
   reconcileSplitResultPaid,
   resumeCheckoutBlockReason,
   resumeOrderingConfirmVariant,
@@ -74,6 +75,28 @@ describe('suggestedCollectionAmount', () => {
       { id: '1', person_name: 'John', amount: 40, created_at: '' },
     ]);
     assert.equal(suggestedCollectionAmount('John', 30, map), 0);
+  });
+});
+
+describe('isSplitRowCollectible', () => {
+  it('ignores stale paid flag when ledger still owes', () => {
+    const map = sumCollectedByPersonName([
+      { id: '1', person_name: 'Ana', amount: 19.95, created_at: '' },
+    ]);
+    assert.equal(
+      isSplitRowCollectible({ name: 'Ana', amount: 27.45, paid: true }, map),
+      true,
+    );
+  });
+
+  it('returns false when ledger covers obligation', () => {
+    const map = sumCollectedByPersonName([
+      { id: '1', person_name: 'Ana', amount: 27.45, created_at: '' },
+    ]);
+    assert.equal(
+      isSplitRowCollectible({ name: 'Ana', amount: 27.45, paid: false }, map),
+      false,
+    );
   });
 });
 

@@ -24,6 +24,7 @@ import {
   resumeCheckoutBlockReason,
   resumeOrderingConfirmVariant,
   collectibleSplitRowsWithIndex,
+  isSplitRowCollectible,
   suggestedCollectionAmount,
   sumCollectedByPersonName,
 } from '@/lib/checkout-session-payments';
@@ -297,16 +298,20 @@ export function CheckoutRequestsManager({
   const submitConfirmPersonPaid = async (request: BillSplit, rowIndex: number) => {
     const discountedRows = getDiscountedSplitResult(request);
     const row = discountedRows[rowIndex];
-    if (!row || row.paid) return;
-    if (!restaurantSlug) {
-      showToast('操作失败，请重试', 'error');
-      return;
-    }
+    if (!row) return;
 
     const collectedByPerson = sumCollectedByPersonName(
       getCollectedForSession(request.session_id),
     );
     const collectedAmount = suggestedCollectionAmount(row.name, row.amount, collectedByPerson);
+    if (!isSplitRowCollectible(row, collectedByPerson)) {
+      showToast(t.paid, 'error');
+      return;
+    }
+    if (!restaurantSlug) {
+      showToast('操作失败，请重试', 'error');
+      return;
+    }
 
     const personKey = checkoutPersonKey(request.id, rowIndex);
     setProcessingKeys((prev) => new Set(prev).add(personKey));

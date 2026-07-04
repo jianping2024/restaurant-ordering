@@ -43,7 +43,7 @@ import {
   fetchWaiterTablePageModelClient,
   postWaiterBuffetOpenClient,
 } from '@/lib/staff-board-client';
-import { publishWaiterTablePageModel } from '@/lib/waiter-staff-mutation-sync';
+import { commitAuthoritativeWaiterTablePageModel } from '@/lib/waiter-staff-mutation-sync';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import {
@@ -617,8 +617,8 @@ function WaiterTableDetailInner({
         adult_count: buffetAdults,
         child_count: buffetChildren,
       });
-      applyModel(nextModel);
-      publishWaiterTablePageModel(nextModel);
+      const normalized = applyModel(nextModel);
+      commitAuthoritativeWaiterTablePageModel(normalized);
       showToast(t.actionSuccess, 'success');
     } catch (err) {
       const apiErr = err as Error & { status?: number; code?: string };

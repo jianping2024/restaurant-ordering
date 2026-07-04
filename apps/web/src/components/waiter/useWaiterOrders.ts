@@ -25,8 +25,8 @@ import {
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import {
   bootstrapWaiterBoardData,
-  clearAllPublishedWaiterTablePageModels,
-  mergePublishedModelsIntoWaiterBoard,
+  clearConfirmedPublishedWaiterTablePageModels,
+  reconcileWaiterBoardWithPublished,
 } from '@/lib/waiter-staff-mutation-sync';
 
 function buildInitialWaiterBoardState(input: {
@@ -128,11 +128,11 @@ export function useWaiterOrders(
     const seq = ++reloadSeqRef.current;
     const running = (async () => {
       try {
-        const board = mergePublishedModelsIntoWaiterBoard(
+        const { board, confirmedTableIds } = reconcileWaiterBoardWithPublished(
           await fetchWaiterBoardClient(restaurant.slug),
         );
         if (seq !== reloadSeqRef.current) return null;
-        clearAllPublishedWaiterTablePageModels();
+        clearConfirmedPublishedWaiterTablePageModels(confirmedTableIds);
         applyWaiterBoardData(board, {
           setTableSummaries,
           setSessionMetaByTableId,

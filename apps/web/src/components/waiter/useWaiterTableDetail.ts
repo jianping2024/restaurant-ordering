@@ -20,7 +20,7 @@ import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import { normalizeWaiterTablePageModel } from '@/lib/waiter-table-detail-normalize';
 import {
-  clearPublishedWaiterTablePageModel,
+  commitAuthoritativeWaiterTablePageModel,
   peekPublishedWaiterTablePageModel,
 } from '@/lib/waiter-staff-mutation-sync';
 
@@ -124,8 +124,9 @@ export function useWaiterTableDetail(
       try {
         const nextModel = await fetchWaiterTablePageModelClient(restaurant.slug, tableId);
         if (seq !== reloadSeqRef.current) return null;
-        clearPublishedWaiterTablePageModel(tableId);
-        return applyModel(nextModel);
+        const normalized = applyModel(nextModel);
+        commitAuthoritativeWaiterTablePageModel(normalized);
+        return normalized;
       } finally {
         refreshInFlightRef.current = null;
       }

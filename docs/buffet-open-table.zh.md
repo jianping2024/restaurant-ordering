@@ -59,7 +59,7 @@
 **已开台** = session 内存在 active `buffet_base`（与 `aggregateBuffetForOrders` 一致）。布局重构（如 `WaiterTableBuffetPanel`）须通过 **`buffetActionLabel` prop** 传入文案，**不得**在 `WaiterTableDetailLayout` 内写死「确认开台」或「保存人数」。
 
 1. 点击主按钮前：`isBuffetGuestCountsUnchanged(tableOrders, …)` → 未变则 toast，**不发请求**。
-2. 有变化：`applyBuffetOpenOptimisticToOrders` 乐观更新 → `postWaiterBuffetOpenClient` → `applyModel` + `publishWaiterTablePageModel`；返回看板/再进详情由 publish + entry reconcile 保持新鲜。
+2. 有变化：`applyBuffetOpenOptimisticToOrders` 乐观更新 → `postWaiterBuffetOpenClient` → `applyModel` + `commitAuthoritativeWaiterTablePageModel`；详情 reconcile 会再次 commit；看板 `reconcileWaiterBoardWithPublished` 在 API 确认 session 后才按桌 clear。
 3. 失败：回滚乐观状态；409 冲突时 `refresh()`。
 
 判定函数与服务器共用：`isBuffetGuestCountsUnchanged`（`apps/web/src/lib/buffet-order.ts`）。
@@ -79,7 +79,7 @@
 | 写后内存投影 | `applyBuffetOpenWritePlanToOrders` |
 | 响应组装 | `buildActiveWaiterTablePageModel` |
 | 服务端单管道（开台 + 保存人数） | `runBuffetWaiterOpenPipeline` |
-| 跨页 mutation 新鲜度 | `publishWaiterTablePageModel` / `mergePublishedModelsIntoWaiterBoard` |
+| 跨页新鲜度 | `commitAuthoritativeWaiterTablePageModel` / `reconcileWaiterBoardWithPublished` |
 | API 路由 | `staff/waiter/buffet/route.ts`（鉴权 + 调管道） |
 | Session 创建 | `openTableSessionIfAbsent`（并行读已有 session 后按需 insert） |
 | 加菜门禁 | `guestOrderingEnabled` + [`menu-order-append.zh.md`](menu-order-append.zh.md) |

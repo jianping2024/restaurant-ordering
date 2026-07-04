@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react';
 import {
+  appendByItemConsumerRow,
   byItemLineStatusSummary,
-  createByItemConsumerRow,
   getByItemLineStatusFromRows,
   removeByItemConsumerRow,
   getQtyPartsRowHint,
@@ -116,7 +116,7 @@ function MenuByItemDishAllocator({
   };
 
   const addRow = () => {
-    onChange([...rows, createByItemConsumerRow()]);
+    onChange(appendByItemConsumerRow(rows, spec));
   };
 
   const removeRow = (rowId: string) => {

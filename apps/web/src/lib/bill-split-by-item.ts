@@ -136,6 +136,66 @@ export function createByItemConsumerRow(opts?: { buffet?: boolean }): ByItemCons
   };
 }
 
+/** Map a rational share to the qty input fields used by ByItemConsumerRow. */
+export function rationalToRowQtyFields(
+  qty: Rational,
+): Pick<ByItemConsumerRow, 'qtyWhole' | 'qtyNum' | 'qtyDen'> {
+  const { num, den } = normalizeRational(qty);
+  if (den === 1) {
+    return { qtyWhole: String(num), qtyNum: '', qtyDen: '' };
+  }
+  const sign = num < 0 ? -1 : 1;
+  const absNum = Math.abs(num);
+  const whole = Math.floor(absNum / den);
+  const rem = absNum % den;
+  const signPrefix = sign < 0 ? '-' : '';
+  if (whole > 0 && rem > 0) {
+    return {
+      qtyWhole: `${signPrefix}${whole}`,
+      qtyNum: String(rem),
+      qtyDen: String(den),
+    };
+  }
+  return { qtyWhole: '', qtyNum: `${signPrefix}${absNum}`, qtyDen: String(den) };
+}
+
+/**
+ * Append a payer row, prefilling the line remainder after named prior allocations.
+ * Used when the guest finishes one payer and adds the next consumer on the same dish.
+ */
+export function appendByItemConsumerRow(
+  rows: ByItemConsumerRow[],
+  spec: ByItemLineSpec,
+): ByItemConsumerRow[] {
+  const base = createByItemConsumerRow({ buffet: spec.mode === 'buffet' });
+
+  if (spec.mode === 'buffet') {
+    const assigned = parseBuffetConsumerRows(rows);
+    const adultsAssigned = assigned.reduce((sum, row) => sum + row.adults, 0);
+    const childrenAssigned = assigned.reduce((sum, row) => sum + row.children, 0);
+    const adultsRemaining = spec.adults - adultsAssigned;
+    const childrenRemaining = spec.children - childrenAssigned;
+    if (adultsRemaining <= 0 && childrenRemaining <= 0) {
+      return [...rows, base];
+    }
+    return [...rows, {
+      ...base,
+      adultQty: adultsRemaining > 0 ? String(adultsRemaining) : '',
+      childQty: childrenRemaining > 0 ? String(childrenRemaining) : '',
+    }];
+  }
+
+  const allocated = allocatedSum(parseConsumerRows(rows));
+  const remainder = qtyDiff(lineQtyRational(spec.lineQty), allocated);
+  if (remainder.num <= 0) {
+    return [...rows, base];
+  }
+  return [...rows, {
+    ...base,
+    ...rationalToRowQtyFields(remainder),
+  }];
+}
+
 /** Drop one payer row; always keep at least one empty row for the dish line. */
 export function removeByItemConsumerRow(
   rows: ByItemConsumerRow[],

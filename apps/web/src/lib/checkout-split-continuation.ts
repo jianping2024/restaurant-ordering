@@ -1,11 +1,12 @@
 import {
   buildByItemAllocationsFromPersons,
   createByItemConsumerRow,
+  rationalToRowQtyFields,
   type ByItemConsumerRow,
   type ByItemLineAllocation,
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
-import { normalizeRational, rationalsEqual, type Rational } from '@/lib/rational-qty';
+import { rationalsEqual, type Rational } from '@/lib/rational-qty';
 import type { BillSplit, SplitMode, SplitPerson } from '@/types';
 import type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
 
@@ -80,26 +81,6 @@ export function lockedByItemLineKeys(
     }
   }
   return keys;
-}
-
-function rationalToRowQtyFields(qty: Rational): Pick<ByItemConsumerRow, 'qtyWhole' | 'qtyNum' | 'qtyDen'> {
-  const { num, den } = normalizeRational(qty);
-  if (den === 1) {
-    return { qtyWhole: String(num), qtyNum: '', qtyDen: '' };
-  }
-  const sign = num < 0 ? -1 : 1;
-  const absNum = Math.abs(num);
-  const whole = Math.floor(absNum / den);
-  const rem = absNum % den;
-  const signPrefix = sign < 0 ? '-' : '';
-  if (whole > 0 && rem > 0) {
-    return {
-      qtyWhole: `${signPrefix}${whole}`,
-      qtyNum: String(rem),
-      qtyDen: String(den),
-    };
-  }
-  return { qtyWhole: '', qtyNum: `${signPrefix}${absNum}`, qtyDen: String(den) };
 }
 
 function buffetRowsFromShares(

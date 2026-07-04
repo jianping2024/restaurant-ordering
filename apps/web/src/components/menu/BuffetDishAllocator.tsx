@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react';
 import {
+  appendByItemConsumerRow,
   byItemLineStatusSummary,
-  createByItemConsumerRow,
   getBuffetLineStatusFromRows,
   removeByItemConsumerRow,
   resolveBuffetRowCounts,
@@ -95,7 +95,7 @@ export function BuffetDishAllocator({
   };
 
   const addRow = () => {
-    onChange([...rows, createByItemConsumerRow({ buffet: true })]);
+    onChange(appendByItemConsumerRow(rows, spec));
   };
 
   const removeRow = (rowId: string) => {

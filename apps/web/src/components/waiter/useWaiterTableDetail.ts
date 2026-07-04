@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { Order } from '@/types';
 import { fetchWaiterTableDetailClient } from '@/lib/staff-board-client';
-import { useRestaurantRealtimeRefresh } from '@/lib/use-restaurant-realtime-refresh';
+import { useRestaurantRealtimeRefresh, useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-realtime-refresh';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import {
   isStaffAssistedMenuSubmitReturn,
@@ -144,11 +144,7 @@ export function useWaiterTableDetail(
     };
   }, [enabled, isDemo, pathname, refresh, router, staffMenuSubmitReturn, tableId]);
 
-  // Default entry: reconcile stale client navigations without clearing SSR first paint.
-  useEffect(() => {
-    if (!enabled || staffMenuSubmitReturn) return;
-    void refresh();
-  }, [enabled, refresh, staffMenuSubmitReturn, tableId]);
+  useRestaurantStaffEntryReconcile(enabled && !staffMenuSubmitReturn, refresh, tableId);
 
   useRestaurantRealtimeRefresh(
     supabase,

@@ -4,8 +4,26 @@ import { useEffect, useRef } from 'react';
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 
 /**
+ * Staff board/detail freshness contract (production):
+ * 1. SSR seeds first paint
+ * 2. Client reconcile on route entry (this hook)
+ * 3. Realtime while the view stays mounted (`useRestaurantRealtimeRefresh`)
+ */
+export function useRestaurantStaffEntryReconcile(
+  enabled: boolean,
+  refresh: () => void | Promise<unknown>,
+  entryKey?: string | number,
+) {
+  useEffect(() => {
+    if (!enabled) return;
+    void refresh();
+  }, [enabled, refresh, entryKey]);
+}
+
+/**
  * Supabase Realtime (WebSocket): debounced refresh when orders / sessions / bills change.
- * Entry reload is the caller's job (mount refresh or SSR seed). Unsubscribes while hidden.
+ * Entry reload is the caller's job — use `useRestaurantStaffEntryReconcile` on mount/navigation.
+ * Unsubscribes while hidden.
  */
 export function useRestaurantRealtimeRefresh(
   supabase: SupabaseClient,

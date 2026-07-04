@@ -4,7 +4,10 @@ import { useCallback, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Order } from '@/types';
 import { fetchWaiterBoardClient } from '@/lib/staff-board-client';
-import { useRestaurantRealtimeRefresh } from '@/lib/use-restaurant-realtime-refresh';
+import {
+  useRestaurantRealtimeRefresh,
+  useRestaurantStaffEntryReconcile,
+} from '@/lib/use-restaurant-realtime-refresh';
 import type {
   RestaurantTableGroup,
   RestaurantTableGroupMember,
@@ -60,6 +63,8 @@ export function useWaiterOrders(
     setBoardLoaded(true);
     return board;
   }, [enabled, restaurant.slug]);
+
+  useRestaurantStaffEntryReconcile(enabled, refresh);
 
   useRestaurantRealtimeRefresh(
     supabase,

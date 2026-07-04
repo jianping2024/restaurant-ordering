@@ -4,18 +4,24 @@ import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import type { UILanguage } from '@/lib/i18n';
 
-const OPTIONS: { id: UILanguage; label: string; menuLabel: string }[] = [
-  { id: 'zh', label: '中', menuLabel: '中文' },
-  { id: 'en', label: 'EN', menuLabel: 'EN' },
-  { id: 'pt', label: 'PT', menuLabel: 'PT' },
+const OPTIONS: { id: UILanguage; label: string; menuLabel: string; flag: string }[] = [
+  { id: 'pt', label: 'PT', menuLabel: 'PT', flag: '🇵🇹' },
+  { id: 'en', label: 'EN', menuLabel: 'EN', flag: '🇬🇧' },
+  { id: 'zh', label: '中', menuLabel: '中文', flag: '🇨🇳' },
 ];
 
 interface LanguageSwitcherProps {
   compact?: boolean;
   variant?: 'inline' | 'menu' | 'icon';
+  /** Match customer menu header pills (flag + code). */
+  showFlags?: boolean;
 }
 
-export function LanguageSwitcher({ compact = false, variant = 'inline' }: LanguageSwitcherProps) {
+export function LanguageSwitcher({
+  compact = false,
+  variant = 'inline',
+  showFlags = false,
+}: LanguageSwitcherProps) {
   const { lang, setLang } = useLanguage();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -125,19 +131,22 @@ export function LanguageSwitcher({ compact = false, variant = 'inline' }: Langua
     );
   }
 
+  const pillTextClass = showFlags ? 'text-[13px]' : 'text-xs';
+
   return (
     <div className={`flex items-center gap-1 bg-brand-card border border-brand-border rounded-full p-1 ${compact ? '' : 'w-fit'}`}>
       {OPTIONS.map((option) => (
         <button
           key={option.id}
+          type="button"
           onClick={() => selectLang(option.id)}
-          className={`px-2.5 py-1 rounded-full text-xs transition-all ${
+          className={`px-2.5 py-1 rounded-full ${pillTextClass} transition-all ${
             lang === option.id
               ? 'bg-brand-gold text-brand-on-gold font-semibold'
               : 'text-brand-text-muted hover:text-brand-text'
           }`}
         >
-          {option.label}
+          {showFlags ? `${option.flag} ${option.label}` : option.label}
         </button>
       ))}
     </div>

@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { validateSplitDraft } from '@/lib/bill-split-draft';
 import {
@@ -17,12 +16,6 @@ import {
   buildCustomerSplitDisplayRows,
   initialPersistedSplitResult,
 } from '@/lib/customer-bill-split-display';
-import {
-  collectedPaymentsFromBillContext,
-  detectCheckoutResumedFromBillContext,
-} from '@/lib/customer-bill-checkout-resume';
-import { requestCustomerBillContext } from '@/lib/request-customer-context';
-import type { CustomerBillResponse } from '@/lib/request-customer-context';
 import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
 import { getMessages } from '@/lib/i18n/messages';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
@@ -43,6 +36,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { showToast } from '@/components/ui/Toast';
 import { ByItemSplitSection } from '@/components/menu/ByItemSplitSection';
+import { BillCheckoutSubmittedScreen } from '@/components/menu/BillCheckoutSubmittedScreen';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -108,7 +102,7 @@ export function BillPage({
     return existingSplit.split_mode;
   })();
   const [continuationSplit, setContinuationSplit] = useState<BillSplit | null>(existingSplit);
-  const [collectedPayments, setCollectedPayments] = useState(initialCollectedPayments);
+  const collectedPayments = initialCollectedPayments;
   const collectedLedgerActive = collectedPayments.length > 0;
   const [splitMode, setSplitMode] = useState<SplitMode | null>(initialSplitMode);
   const [personCount, setPersonCount] = useState(() => {
@@ -141,7 +135,6 @@ export function BillPage({
   const checkoutSubmittedInitially = shouldShowCheckoutSubmitted(existingSplit, sessionStatus);
   const [submitted, setSubmitted] = useState(checkoutSubmittedInitially);
   const [submitting, setSubmitting] = useState(false);
-  const [checkoutStatusRefreshing, setCheckoutStatusRefreshing] = useState(false);
   const [persistedResult, setPersistedResult] = useState<SplitResult[] | null>(() =>
     initialPersistedSplitResult(existingSplit?.result as SplitResult[] | null, checkoutSubmittedInitially),
   );
@@ -168,50 +161,6 @@ export function BillPage({
     if (!checkoutRedirectHref || !submitted) return;
     router.replace(checkoutRedirectHref);
   }, [checkoutRedirectHref, submitted, router]);
-
-  const applyCheckoutResumedState = useCallback(
-    async (ctx: CustomerBillResponse) => {
-      const resumed = detectCheckoutResumedFromBillContext(ctx);
-      if (resumed.kind === 'continuation') {
-        setSubmitted(false);
-        setPersistedResult(null);
-        setContinuationSplit(resumed.split);
-        setCollectedPayments(resumed.collectedPayments);
-        if (resumed.split.split_mode) {
-          setSplitMode(resumed.split.split_mode);
-        }
-        await syncOrders();
-        return true;
-      }
-      if (resumed.kind === 'fresh') {
-        setSubmitted(false);
-        setSplitMode(null);
-        setContinuationSplit(null);
-        setCollectedPayments([]);
-        setPersistedResult(null);
-        await syncOrders();
-        return true;
-      }
-      return false;
-    },
-    [syncOrders],
-  );
-
-  const refreshCheckoutStatus = async () => {
-    setCheckoutStatusRefreshing(true);
-    try {
-      const ctx = await requestCustomerBillContext(restaurant.slug, tableId);
-      if (!ctx) {
-        showToast(t.actionFailed, 'error');
-        return;
-      }
-      setCollectedPayments(collectedPaymentsFromBillContext(ctx));
-      const changed = await applyCheckoutResumedState(ctx);
-      showToast(changed ? t.checkoutResumed : t.checkoutStillPending, changed ? 'success' : 'info');
-    } finally {
-      setCheckoutStatusRefreshing(false);
-    }
-  };
 
   const [editingSplitNameIndex, setEditingSplitNameIndex] = useState<number | null>(null);
   const [editingSplitNameValue, setEditingSplitNameValue] = useState('');
@@ -659,160 +608,47 @@ export function BillPage({
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-brand-bg max-w-mobile mx-auto flex items-center justify-center p-4">
-        <div className="text-center w-full max-w-sm">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="font-heading text-3xl text-brand-gold mb-2">{t.checkoutSubmittedTitle}</h2>
-          <p className="text-brand-text-muted text-sm">{t.checkoutSubmittedHint}</p>
-          <p className="text-brand-gold font-heading text-2xl mt-6">
-            {t.totalLabel} €{total.toFixed(2)}
-          </p>
-          {splitDisplayRows.length > 0 && (
-            <div className="mt-6 bg-brand-card border border-brand-border rounded-xl overflow-hidden text-left">
-              <p className="px-4 py-2 text-[13px] text-brand-text-muted border-b border-brand-border">{t.splitResult}</p>
-              {splitDisplayRows.map((row, i) => (
-                <div key={i} className="px-4 py-3 border-b border-brand-border last:border-0">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-brand-text text-sm">{localizeSplitPersonName(row.name, lang)}</span>
-                        {row.settlementStatus === 'settled' ? (
-                          <span className="text-[11px] px-2 py-0.5 rounded-full mesa-badge-success">
-                            {t.splitPaid}
-                          </span>
-                        ) : null}
-                        {row.settlementStatus === 'partial' ? (
-                          <span className="text-[11px] px-2 py-0.5 rounded-full border border-brand-gold/40 text-brand-gold">
-                            {t.splitPartialPaid}
-                          </span>
-                        ) : null}
-                      </div>
-                      {row.settlementStatus === 'partial' ? (
-                        <p className="mt-1 text-[12px] text-brand-text-muted">
-                          {t.splitAmountBreakdown
-                            .replace('{obligation}', row.obligationAmount.toFixed(2))
-                            .replace('{collected}', row.collectedAmount.toFixed(2))}
-                        </p>
-                      ) : null}
-                    </div>
-                    <span className="text-brand-gold font-medium shrink-0">
-                      €{(row.settlementStatus === 'partial'
-                        ? row.outstandingAmount
-                        : row.obligationAmount
-                      ).toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          <div className="mt-6 flex flex-col items-center gap-3">
-            <button
-              type="button"
-              onClick={() => void refreshCheckoutStatus()}
-              disabled={checkoutStatusRefreshing}
-              className="inline-flex items-center justify-center rounded-xl border border-brand-gold/40 px-4 py-2 text-sm text-brand-gold hover:bg-brand-gold/10 transition-colors disabled:opacity-50"
-            >
-              {checkoutStatusRefreshing ? t.refreshStatusRefreshing : t.refreshStatus}
-            </button>
-            <Link
-              href={backHref}
-              className="inline-flex items-center justify-center rounded-xl border border-brand-border px-4 py-2 text-sm text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
-            >
-              ← {backLabel}
-            </Link>
-          </div>
-          {!staffAssisted?.skipFeedback && !feedbackSkipped && (
-            <div className="mt-6 bg-brand-card border border-brand-border rounded-xl p-4 text-left">
-              <h3 className="text-brand-text font-medium">{t.feedbackTitle}</h3>
-              <p className="text-brand-text-muted text-[13px] mt-1">{t.feedbackHint}</p>
-              {reviewableItems.length === 0 ? (
-                <p className="mt-3 text-[13px] text-brand-text-muted">{t.noFeedbackItems}</p>
-              ) : (
-                <div className="mt-3 space-y-3">
-                  {reviewableItems.map((item) => {
-                    const draft = feedbackDraft[item.menu_item_id];
-                    const reasons = draft?.reasons || [];
-                    return (
-                      <div key={item.menu_item_id} className="rounded-lg border border-brand-border p-3">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm text-brand-text">{item.emoji} {item.name} × {item.qty}</p>
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setVote(item.menu_item_id, 'up')}
-                              className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
-                                draft?.vote === 'up'
-                                  ? 'mesa-badge-success'
-                                  : 'border-brand-border text-brand-text-muted hover:text-brand-text'
-                              }`}
-                            >
-                              👍 {t.thumbsUp}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setVote(item.menu_item_id, 'down')}
-                              className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
-                                draft?.vote === 'down'
-                                  ? 'mesa-badge-danger'
-                                  : 'border-brand-border text-brand-text-muted hover:text-brand-text'
-                              }`}
-                            >
-                              👎 {t.thumbsDown}
-                            </button>
-                          </div>
-                        </div>
-                        {draft?.vote === 'down' && (
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {FEEDBACK_REASON_KEYS.map((reason) => (
-                              <button
-                                key={reason}
-                                type="button"
-                                onClick={() => toggleReason(item.menu_item_id, reason)}
-                                className={`text-[13px] px-2 py-0.5 rounded-full border ${
-                                  reasons.includes(reason)
-                                    ? 'mesa-badge-warning'
-                                    : 'border-brand-border text-brand-text-muted hover:text-brand-text'
-                                }`}
-                              >
-                                {feedbackReasonLabels[reason]}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {feedbackSubmitted && (
-                <p className="mt-3 text-[13px] text-brand-text">{t.feedbackThanks}</p>
-              )}
-
-              {!feedbackHydrating && !feedbackSubmitted && reviewableItems.length > 0 && (
-                <div className="mt-4 flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => void handleSkipFeedback()}
-                    loading={feedbackSubmitting}
-                    disabled={feedbackSubmitting}
-                  >
-                    {t.feedbackSkip}
-                  </Button>
-                  <Button
-                    onClick={() => void handleSubmitFeedback()}
-                    loading={feedbackSubmitting}
-                    disabled={feedbackSubmitting || selectedFeedbackCount === 0}
-                  >
-                    {t.feedbackSubmit}
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+      <BillCheckoutSubmittedScreen
+        restaurantName={restaurant.name}
+        displayName={displayName}
+        tableLabel={t.table}
+        lang={lang}
+        copy={{
+          checkoutSubmittedHint: t.checkoutSubmittedHint,
+          totalLabel: t.totalLabel,
+          splitResult: t.splitResult,
+          splitPaid: t.splitPaid,
+          splitPartialPaid: t.splitPartialPaid,
+          splitAmountBreakdown: t.splitAmountBreakdown,
+          refreshPage: t.refreshPage,
+          feedbackTitle: t.feedbackTitle,
+          feedbackHint: t.feedbackHint,
+          feedbackSkip: t.feedbackSkip,
+          feedbackSubmit: t.feedbackSubmit,
+          feedbackThanks: t.feedbackThanks,
+          thumbsUp: t.thumbsUp,
+          thumbsDown: t.thumbsDown,
+          noFeedbackItems: t.noFeedbackItems,
+        }}
+        total={total}
+        splitRows={splitDisplayRows}
+        backHref={backHref}
+        backLabel={backLabel}
+        onRefreshPage={() => window.location.reload()}
+        showFeedback={!staffAssisted?.skipFeedback && !feedbackSkipped}
+        reviewableItems={reviewableItems}
+        feedbackDraft={feedbackDraft}
+        feedbackReasonLabels={feedbackReasonLabels}
+        feedbackReasonKeys={FEEDBACK_REASON_KEYS}
+        feedbackHydrating={feedbackHydrating}
+        feedbackSubmitted={feedbackSubmitted}
+        feedbackSubmitting={feedbackSubmitting}
+        selectedFeedbackCount={selectedFeedbackCount}
+        onVote={setVote}
+        onToggleReason={toggleReason}
+        onSkipFeedback={() => void handleSkipFeedback()}
+        onSubmitFeedback={() => void handleSubmitFeedback()}
+      />
     );
   }
 

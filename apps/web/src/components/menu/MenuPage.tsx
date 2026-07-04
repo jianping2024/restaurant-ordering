@@ -3,13 +3,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type {
-  AppendCartLineInput,
-  MenuItem,
-  Language,
-  CartItem,
-  MenuCategory,
-} from '@/types';
+import type { MenuItem, Language, CartItem, MenuCategory } from '@/types';
 import { MenuItemCard } from './MenuItemCard';
 import { CartDrawer } from './CartDrawer';
 import { CATEGORY_LABELS, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
@@ -19,12 +13,20 @@ import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
 import { showToast } from '@/components/ui/Toast';
-import { autoEnqueueStationTicketsAfterSubmit } from '@/lib/auto-enqueue-station-tickets';
 import {
   completeGuestOrderSubmit,
   completeStaffAssistedOrderSubmit,
 } from '@/lib/menu-order-submit-outcome';
-import { resolveCustomerGeoForOrder } from '@/lib/customer-geo-order';
+import { scheduleMenuOrderPostSubmitEffects } from '@/lib/menu-order-post-submit';
+import {
+  appendFailureNeedsSessionRefresh,
+  executeMenuOrderSubmit,
+  type MenuOrderSubmitFailure,
+} from '@/lib/menu-order-submit';
+import {
+  resolveCustomerGeoForOrder,
+  warmCustomerGeoForOrder,
+} from '@/lib/customer-geo-order';
 import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
 import {
   guestOrderGateFromCachedState,
@@ -267,16 +269,52 @@ export function MenuPage({
     router.prefetch(staffAssisted.returnHref);
   }, [router, staffAssisted]);
 
+  useEffect(() => {
+    if (isDemo || staffAssisted) return;
+    warmCustomerGeoForOrder({ restaurant, isWaiterFlow: false });
+  }, [isDemo, restaurant, staffAssisted]);
+
+  const showSubmitFailure = useCallback(
+    async (failure: MenuOrderSubmitFailure) => {
+      if (failure.kind === 'gate') {
+        showToast(guestOrderingActionHint(lang, failure.sessionStatus), 'info');
+        return;
+      }
+      if (failure.kind === 'geo') {
+        if (failure.reason === 'too_far') showToast(t.locationTooFar, 'error');
+        else if (failure.reason === 'permission_denied') showToast(t.locationPermissionDenied, 'error');
+        else if (failure.reason === 'not_supported') showToast(t.locationNotSupported, 'error');
+        else showToast(t.locationCheckFailed, 'error');
+        return;
+      }
+      if (failure.kind === 'append') {
+        if (appendFailureNeedsSessionRefresh(failure.code)) {
+          await refreshSessionContext();
+          showToast(t.billDisabledHint, 'info');
+          return;
+        }
+        if (failure.code === 'location_too_far') showToast(t.locationTooFar, 'error');
+        else if (failure.code === 'location_required') showToast(t.locationPermissionDenied, 'error');
+        else if (failure.code === 'buffet_required') showToast(t.buffetRequired, 'info');
+        else if (failure.code === 'rate_limited') showToast(t.printEnqueueRateLimited, 'error');
+        else showToast(t.submitFailed, 'error');
+        return;
+      }
+      showToast(t.submitFailed, 'error');
+    },
+    [lang, refreshSessionContext, t],
+  );
+
   // 提交订单
   const submitOrder = async () => {
     if (cart.length === 0) return;
-    const gate = await ensureGuestCanPlaceOrder();
-    if (!gate.canPlace) {
-      showToast(guestOrderingActionHint(lang, gate.sessionStatus), 'info');
-      return;
-    }
 
     if (isDemo) {
+      const gate = await ensureGuestCanPlaceOrder();
+      if (!gate.canPlace) {
+        showToast(guestOrderingActionHint(lang, gate.sessionStatus), 'info');
+        return;
+      }
       if (staffAssisted) {
         completeStaffAssistedSubmit();
         return;
@@ -291,98 +329,45 @@ export function MenuPage({
     setSubmitting(true);
 
     try {
-      let latitude: number | undefined;
-      let longitude: number | undefined;
-
-      const geoResult = await resolveCustomerGeoForOrder({
-        restaurant,
-        isWaiterFlow: !!staffAssisted,
-        isLocalDevHost,
-      });
-
-      if (!geoResult.ok) {
-        if (geoResult.reason === 'too_far') showToast(t.locationTooFar, 'error');
-        else if (geoResult.reason === 'permission_denied') showToast(t.locationPermissionDenied, 'error');
-        else if (geoResult.reason === 'not_supported') showToast(t.locationNotSupported, 'error');
-        else showToast(t.locationCheckFailed, 'error');
-        return;
-      }
-
-      if (geoResult.latitude != null && geoResult.longitude != null) {
-        latitude = geoResult.latitude;
-        longitude = geoResult.longitude;
-      }
-
-      const items: AppendCartLineInput[] = cart.map((c) => ({
-        menu_item_id: c.menuItemId,
-        qty: coerceCartQty(c.qty),
-        ...(c.note?.trim() ? { note: c.note.trim() } : {}),
-      }));
-
-      const appendRes = await fetch(`/api/restaurants/${restaurant.slug}/orders/append`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          table_id: tableId,
-          items,
-          latitude,
-          longitude,
-          waiter_flow: !!staffAssisted,
-        }),
-      });
-
-      const appendData = (await appendRes.json().catch(() => ({}))) as {
-        error?: string;
-        order_id?: string;
-        batch_id?: string;
-        enqueue_token?: string;
-        session_id?: string;
-      };
-
-      if (!appendRes.ok) {
-        const code = appendData.error || '';
-        if (code === 'location_too_far') showToast(t.locationTooFar, 'error');
-        else if (code === 'location_required') showToast(t.locationPermissionDenied, 'error');
-        else if (code === 'session_billing') {
-          await refreshSessionContext();
-          showToast(t.billDisabledHint, 'info');
-        }
-        else if (code === 'buffet_required') showToast(t.buffetRequired, 'info');
-        else if (code === 'rate_limited') showToast(t.printEnqueueRateLimited, 'error');
-        else showToast(t.submitFailed, 'error');
-        return;
-      }
-
-      const savedOrderId = appendData.order_id;
-      const sessionId = appendData.session_id;
-      if (!savedOrderId || !appendData.enqueue_token || !appendData.batch_id) {
-        showToast(t.submitFailed, 'error');
-        return;
-      }
-
-      const enqueuePromise = autoEnqueueStationTicketsAfterSubmit({
+      const waiterFlow = !!staffAssisted;
+      const result = await executeMenuOrderSubmit({
+        flow: waiterFlow ? 'staff_assisted' : 'guest',
+        cart,
         slug: restaurant.slug,
-        orderId: savedOrderId,
-        batchId: appendData.batch_id,
-        enqueueToken: appendData.enqueue_token,
-        waiterFlow: !!staffAssisted,
-        lang,
+        tableId,
+        waiterFlow,
+        ensureGate: ensureGuestCanPlaceOrder,
+        resolveGeo: () =>
+          resolveCustomerGeoForOrder({
+            restaurant,
+            isWaiterFlow: waiterFlow,
+            isLocalDevHost,
+          }),
       });
 
-      if (staffAssisted) {
-        void enqueuePromise;
+      if ('kind' in result) {
+        await showSubmitFailure(result);
+        return;
+      }
+
+      scheduleMenuOrderPostSubmitEffects({
+        slug: restaurant.slug,
+        orderId: result.orderId,
+        batchId: result.batchId,
+        enqueueToken: result.enqueueToken,
+        waiterFlow,
+        lang,
+        sessionId: result.sessionId,
+        refreshSession: refreshSessionContext,
+      });
+
+      if (waiterFlow) {
         completeStaffAssistedSubmit();
       } else {
-        await enqueuePromise;
-        if (sessionId) {
-          await refreshSessionContext();
-        }
-        completeGuestSubmit(appendData.batch_id);
+        completeGuestSubmit(result.batchId);
       }
     } catch (error) {
       if (process.env.NODE_ENV !== 'production') {
-        // Keep dev diagnostics without exposing raw errors to guests.
         console.error('[MenuPage.submitOrder] failed:', error);
       }
       showToast(t.submitFailed, 'error');

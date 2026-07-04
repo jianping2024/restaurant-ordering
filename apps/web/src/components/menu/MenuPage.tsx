@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type {
@@ -261,6 +261,11 @@ export function MenuPage({
       navigate: (href) => router.push(href),
     });
   }, [clearSubmitCart, router, staffAssisted]);
+
+  useEffect(() => {
+    if (!staffAssisted) return;
+    router.prefetch(staffAssisted.returnHref);
+  }, [router, staffAssisted]);
 
   // 提交订单
   const submitOrder = async () => {

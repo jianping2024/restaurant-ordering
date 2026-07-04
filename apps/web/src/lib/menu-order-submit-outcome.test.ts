@@ -4,6 +4,7 @@ import {
   NEW_BATCH_HIGHLIGHT_MS,
   completeStaffAssistedOrderSubmit,
   markLatestSubmittedBatch,
+  staffReturnHrefAfterMenuSubmit,
 } from './menu-order-submit-outcome';
 
 describe('menu-order-submit-outcome', () => {
@@ -24,6 +25,17 @@ describe('menu-order-submit-outcome', () => {
     mock.timers.reset();
   });
 
+  it('staffReturnHrefAfterMenuSubmit appends from=menu_submit', () => {
+    assert.equal(
+      staffReturnHrefAfterMenuSubmit('/dashboard/waiter/abc'),
+      '/dashboard/waiter/abc?from=menu_submit',
+    );
+    assert.equal(
+      staffReturnHrefAfterMenuSubmit('/cafe/waiter/abc?tab=orders'),
+      '/cafe/waiter/abc?tab=orders&from=menu_submit',
+    );
+  });
+
   it('completeStaffAssistedOrderSubmit clears cart and navigates immediately', () => {
     const clearCart = mock.fn();
     const navigate = mock.fn();
@@ -35,6 +47,8 @@ describe('menu-order-submit-outcome', () => {
     });
 
     assert.equal(clearCart.mock.calls.length, 1);
-    assert.deepEqual(navigate.mock.calls[0]?.arguments, ['/dashboard/waiter/table-1']);
+    assert.deepEqual(navigate.mock.calls[0]?.arguments, [
+      '/dashboard/waiter/table-1?from=menu_submit',
+    ]);
   });
 });

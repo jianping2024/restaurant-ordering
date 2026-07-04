@@ -1,11 +1,16 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { Order } from '@/types';
 import { fetchWaiterTableDetailClient } from '@/lib/staff-board-client';
 import { useRestaurantRealtimeRefresh } from '@/lib/use-restaurant-realtime-refresh';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
+import {
+  isStaffAssistedMenuSubmitReturn,
+  reconcileStaffAssistedMenuSubmitReturn,
+} from '@/lib/staff-assisted-return-sync';
 import {
   activeSessionIdByTableIdFromMeta,
   demoSessionMetaFromOrders,
@@ -56,8 +61,12 @@ export function useWaiterTableDetail(
   const [checkoutRequestedAt, setCheckoutRequestedAt] = useState(boot.checkoutRequestedAt);
   const [detailLoaded, setDetailLoaded] = useState(isDemo || !!initialDetail);
   const supabase = useMemo(() => createClient(), []);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const reloadSeqRef = useRef(0);
   const refreshInFlightRef = useRef<Promise<WaiterTableDetailData | null> | null>(null);
+  const staffReturnSyncRef = useRef(false);
 
   const demoSessionMetaByTableId = useMemo(
     () => (isDemo ? demoSessionMetaFromOrders(demoOrders) : {}),
@@ -104,15 +113,42 @@ export function useWaiterTableDetail(
     return running;
   }, [applyDetail, enabled, restaurant.slug, tableId]);
 
+  const staffMenuSubmitReturn = isStaffAssistedMenuSubmitReturn(searchParams);
+
   useEffect(() => {
     if (initialDetail) applyDetail(initialDetail);
   }, [applyDetail, initialDetail]);
 
-  // Client navigations may reuse a stale RSC payload; reconcile without clearing SSR data.
+  // Staff menu submit return: table route SSR refresh + one client reconcile (freshness contract).
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || isDemo || !staffMenuSubmitReturn) return;
+    if (staffReturnSyncRef.current) return;
+    staffReturnSyncRef.current = true;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        await reconcileStaffAssistedMenuSubmitReturn({
+          router,
+          pathname,
+          refreshDetail: refresh,
+        });
+      } finally {
+        if (!cancelled) staffReturnSyncRef.current = false;
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      staffReturnSyncRef.current = false;
+    };
+  }, [enabled, isDemo, pathname, refresh, router, staffMenuSubmitReturn, tableId]);
+
+  // Default entry: reconcile stale client navigations without clearing SSR first paint.
+  useEffect(() => {
+    if (!enabled || staffMenuSubmitReturn) return;
     void refresh();
-  }, [enabled, refresh, tableId]);
+  }, [enabled, refresh, staffMenuSubmitReturn, tableId]);
 
   useRestaurantRealtimeRefresh(
     supabase,

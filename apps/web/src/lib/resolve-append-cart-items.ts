@@ -150,6 +150,43 @@ export function parseAppendCartRawItems(
   return { ok: true, lines };
 }
 
+/** Walk parent chain from cart item categories only — not the full menu tree. */
+async function loadCategoriesForLeafIds(
+  admin: SupabaseClient,
+  restaurantId: string,
+  leafIds: Array<string | null>,
+): Promise<MenuCategoryForPrint[]> {
+  const byId = new Map<string, MenuCategoryForPrint>();
+  let frontier = Array.from(new Set(leafIds.filter((id): id is string => !!id)));
+  const seen = new Set<string>();
+
+  while (frontier.length > 0) {
+    const ids = frontier.filter((id) => !seen.has(id));
+    if (ids.length === 0) break;
+    for (const id of ids) seen.add(id);
+
+    const { data, error } = await admin
+      .from('menu_categories')
+      .select('id, parent_id, item_code')
+      .eq('restaurant_id', restaurantId)
+      .in('id', ids);
+
+    if (error) throw new Error('menu_categories_query_failed');
+
+    const nextFrontier: string[] = [];
+    for (const row of data || []) {
+      const cat = row as MenuCategoryForPrint;
+      byId.set(cat.id, cat);
+      if (cat.parent_id && !seen.has(cat.parent_id)) {
+        nextFrontier.push(cat.parent_id);
+      }
+    }
+    frontier = nextFrontier;
+  }
+
+  return Array.from(byId.values());
+}
+
 function menuRowToOrderItem(
   menu: MenuItemRow,
   line: ParsedAppendCartLine,
@@ -192,26 +229,18 @@ export async function resolveAppendCartItems(params: {
   const { lines } = parsed;
   const ids = lines.map((l) => l.menuItemId);
 
-  const [{ data, error }, { data: categoryRows, error: categoryErr }] = await Promise.all([
-    params.admin
-      .from('menu_items')
-      .select('id, category_id, name_pt, name_en, name_zh, price, emoji, available, item_code')
-      .eq('restaurant_id', params.restaurantId)
-      .in('id', ids),
-    params.admin
-      .from('menu_categories')
-      .select('id, parent_id, item_code')
-      .eq('restaurant_id', params.restaurantId),
-  ]);
+  const { data, error } = await params.admin
+    .from('menu_items')
+    .select('id, category_id, name_pt, name_en, name_zh, price, emoji, available, item_code')
+    .eq('restaurant_id', params.restaurantId)
+    .in('id', ids);
 
   if (error) {
     throw new Error('menu_items_query_failed');
   }
-  if (categoryErr) {
-    throw new Error('menu_categories_query_failed');
-  }
 
-  const categories = (categoryRows || []) as MenuCategoryForPrint[];
+  const leafIds = (data || []).map((row) => row.category_id as string | null);
+  const categories = await loadCategoriesForLeafIds(params.admin, params.restaurantId, leafIds);
   const byId = new Map<string, MenuItemRow>();
   for (const row of data || []) {
     byId.set(row.id as string, row as MenuItemRow);

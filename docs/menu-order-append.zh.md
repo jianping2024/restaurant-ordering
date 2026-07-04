@@ -16,7 +16,7 @@
 3. **自助餐行不可经 append 创建**：请求体不得含 `kind: buffet_base`、`buffet:` 前缀或客户端价格字段；自助餐仅走 `POST .../staff/waiter/buffet`。
 4. **同餐次合并写单**：session 内若已有「最新一条」order，新批次 **merge 进该 order**（追加 `items`、重算 `total_amount` 与 `status`）；否则 **insert** 新 order。首单与加单由响应 `is_first_order` / `had_done_before` 区分。
 5. **地理围栏仅顾客流**：餐厅配置了 `geo_latitude/longitude` 时，**非** `waiter_flow` 须带合法 `latitude/longitude` 且在 `order_radius_meters` 内（本地 dev host 可 bypass）。
-6. **服务员代点须鉴权**：`waiter_flow: true` 时须通过 `openTableAuthFromRequest`（owner / waiter / frontdesk）；否则 `unauthorized`（401）。
+6. **服务员代点须鉴权**：`waiter_flow: true` 时须通过 `verifyOpenTableStaffAuth`（owner / waiter / frontdesk）；否则 `unauthorized`（401）。
 7. **出品联自动入队**：append 成功后返回短期 `enqueue_token`；客户端再调 `station-tickets/auto` 按档口分组入队（无手动「打印」按钮）。
 
 ---
@@ -30,34 +30,23 @@
 
 ② 解析   table_id（UUID）、items[]、waiter_flow?、latitude/longitude?
 
-③ 租户   loadCustomerRestaurantForApi
+③ 租户   resolveOrderRestaurant(slug, guest|staff)
+         verifyOrderAppendGate（waiter 鉴权 / 顾客 geo）
          → restaurant_tables 校验 table_id 属于该店且未删除
 
-④ 鉴权   staffOrderFlow = waiter_flow ? openTableAuthFromRequest(slug) : null
-         waiter_flow 且 !staffOrderFlow → 401 unauthorized
+④ 上下文 loadAppendWriteContext（合并原 ⑥⑦⑨ 读路径）
+         session + session orders（pending/cooking/done）
+         → guestOrderingEnabled 扫全 session orders
+         写单 merge 目标 = created_at 最新一条
 
-⑤ 围栏   餐厅有 geo 且 !staffOrderFlow
-         → 校验坐标；缺失 location_required，超距 location_too_far
+⑤ 定价   resolveAppendCartItems
+         menu_items + 仅 cart 所需 category 祖先链（非全树）
 
-⑥ 会话   findActiveTableSession(restaurant_id, table_id)
-         无 session → 403 buffet_required
-         status = billing → 409 session_billing
+⑥ 写单   writeAppendBatch（update 合并 | insert 新单）
 
-⑦ 开台   拉 session 内 orders（pending/cooking/done）
-         → guestOrderingEnabled(session, orders)
-         false → 403 buffet_required
+⑦ 签名   signOrderEnqueueToken({ restaurant_id, order_id, batch_id })
 
-⑧ 定价   resolveAppendCartItems(admin, restaurant_id, raw items)
-         仅信任 menu_item_id/qty/note；DB 查 menu_items 填价
-         失败 → 400 invalid_items | menu_item_not_found | menu_item_unavailable
-
-⑨ 写单   查 session 最新 order
-         有 → update 合并 items、total_amount、deriveOrderStatusFromItems
-         无 → insert 新 order（table_id + display_name + session_id）
-
-⑩ 签名   signOrderEnqueueToken({ restaurant_id, order_id, batch_id })
-
-⑪ 返回   { ok, order_id, batch_id, session_id, enqueue_token,
+⑧ 返回   { ok, order_id, batch_id, session_id, enqueue_token,
             is_first_order, had_done_before }
 ```
 
@@ -166,7 +155,10 @@ RSC menu/page.tsx
 ③ 请求   POST append { ..., waiter_flow: true }
 ④ 入队   void autoEnqueueStationTicketsAfterSubmit（不阻塞）
 ⑤ 反馈   清购物车，无 success toast
-⑥ 跳转   append 成功后立即 router.push(returnToWaiterHref)；确认以桌台详情订单列表为准
+⑥ 跳转   router.push(returnHref?from=menu_submit)
+         桌台页进入：router.refresh()（当前桌台 RSC）+ 一次 fetchWaiterTableDetailClient
+         完成后 router.replace 去掉 query（`staff-assisted-return-sync.ts`）
+         进入菜单时 router.prefetch(returnHref)；路由 loading.tsx 占位
 ```
 
 **Demo**：不发真实 append；清空购物车。服务员 demo 走 `completeStaffAssistedOrderSubmit`（无 toast、立即跳回看板）；顾客 demo 展示专用 demo Banner，不发 `orderSuccess`。
@@ -180,7 +172,7 @@ RSC menu/page.tsx
 | 成功 Toast | **仅顾客流**：`showToast(t.orderSuccess, 'success')`；右下角，约 3s |
 | 购物车 | 清空并关闭抽屉 |
 | 已下单列表 | **仅顾客流**：`refreshSessionContext` 后更新；`batch_id` 对应行 **NEW** 约 15s |
-| 服务员代点 | **无** success toast；append 成功后 **立即** 跳回 `returnToWaiterHref` |
+| 服务员代点 | **无** success toast；跳回桌台后由桌台页完成 SSR+client 一次 reconcile（`?from=menu_submit`） |
 
 **禁止**：全屏 modal / 模糊遮罩阻断点菜；成功态不得占用 3s 不可交互时间。
 
@@ -222,8 +214,12 @@ RSC menu/page.tsx
 | 顾客菜单路由 | `app/[slug]/menu/page.tsx` |
 | 加菜门禁（开台） | `lib/guest-table-ordering.ts` → `guestOrderingEnabled` |
 | 购物车解析 + 服务端定价 | `lib/resolve-append-cart-items.ts` |
-| append API | `app/api/restaurants/[slug]/orders/append/route.ts` |
-| 服务员代点鉴权 | `lib/staff-api-auth.ts` → `openTableAuthFromRequest` |
+| append API（薄编排） | `app/api/restaurants/[slug]/orders/append/route.ts` |
+| 租户解析 | `lib/order-restaurant-context.ts` → `resolveOrderRestaurant` |
+| 鉴权 / geo 门禁 | `lib/order-submit-gate.ts` → `verifyOrderAppendGate` |
+| 合并读上下文 | `lib/append-write-context.ts` → `loadAppendWriteContext` |
+| 写单 | `lib/append-write-batch.ts` → `writeAppendBatch` |
+| 服务员代点鉴权 | `lib/staff-api-auth.ts` → `verifyOpenTableStaffAuth` |
 | 活跃 session | `lib/table-session-open.ts` → `findActiveTableSession` |
 | 入队 token | `lib/order-enqueue-token.ts` |
 | 提交后入队（客户端） | `lib/auto-enqueue-station-tickets.ts` |
@@ -233,6 +229,8 @@ RSC menu/page.tsx
 | 会话上下文（SSR + 操作时 refresh） | `lib/customer-session-context.ts` → `loadCustomerSessionContext`、`lib/use-customer-session-context.ts`、`lib/customer-menu-order-gate.ts` |
 | 看板 → 菜单链接 | `lib/staff-routes.ts` → `waiterMenuHref` |
 | 看板回跳路径（契约） | `lib/staff-routes.ts` → `waiterTableHref`、`resolveWaiterMenuReturnHref` |
+| 代点回桌台新鲜度契约 | `lib/staff-assisted-return-sync.ts` |
+| 桌台详情 client | `components/waiter/useWaiterTableDetail.ts` |
 | 开台前置（另一管道） | [`buffet-open-table.zh.md`](buffet-open-table.zh.md) |
 
 ---

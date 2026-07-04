@@ -30,7 +30,8 @@ function mockAdminForAppend(
       if (table === 'menu_categories') {
         const chain = {
           select: () => chain,
-          eq: async () => ({ data: categoryRows, error: null }),
+          eq: () => chain,
+          in: async () => ({ data: categoryRows, error: null }),
         };
         return chain;
       }

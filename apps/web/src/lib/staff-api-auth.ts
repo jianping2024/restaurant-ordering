@@ -6,7 +6,7 @@ import type { StaffRole } from '@/lib/staff-account';
 
 export const CHECKOUT_AUTHORIZED_STAFF_ROLES: StaffRole[] = ['cashier', 'frontdesk'];
 
-/** Waiter + frontdesk staff; restaurant owner also passes via {@link staffAuthFromRequest} owner fallback. */
+/** Waiter + frontdesk staff; restaurant owner also passes via owner fallback. */
 export const OPEN_TABLE_AUTHORIZED_STAFF_ROLES: StaffRole[] = ['waiter', 'frontdesk'];
 
 export type StaffAuthContext = {
@@ -51,25 +51,33 @@ export async function loadRestaurantBySlug(slug: string) {
   return { admin, restaurant: restaurant as { id: string; slug: string } };
 }
 
-/** Validates Supabase Auth session + staff account row for slug/role. */
-export async function staffAuthFromRequest(
-  req: Request,
-  slug: string,
-  role: StaffRole,
-): Promise<StaffAuthContext | null> {
-  void req;
+async function authUserWithAdmin(): Promise<{
+  user: { id: string };
+  admin: ReturnType<typeof createAdminClient>;
+} | null> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  let admin;
   try {
-    admin = createAdminClient();
+    return { user, admin: createAdminClient() };
   } catch {
     return null;
   }
+}
+
+/** Single-pass slug auth for one or more allowed staff roles (+ owner fallback). */
+async function verifyStaffAuthForSlug(
+  req: Request,
+  slug: string,
+  allowedRoles: StaffRole[],
+): Promise<StaffAuthContext | null> {
+  void req;
+  const auth = await authUserWithAdmin();
+  if (!auth) return null;
+  const { user, admin } = auth;
 
   const { data: account, error } = await admin
     .from('restaurant_staff_accounts')
@@ -77,7 +85,7 @@ export async function staffAuthFromRequest(
     .eq('user_id', user.id)
     .maybeSingle();
 
-  if (!error && account && !account.disabled_at) {
+  if (!error && account && !account.disabled_at && allowedRoles.includes(account.role as StaffRole)) {
     const { data: restaurant } = await admin
       .from('restaurants')
       .select('slug, suspended_at')
@@ -87,13 +95,12 @@ export async function staffAuthFromRequest(
     if (
       restaurant &&
       (restaurant.slug as string) === slug &&
-      account.role === role &&
       !isRestaurantSuspended(restaurant.suspended_at as string | null)
     ) {
       return {
         restaurant_id: account.restaurant_id as string,
         slug,
-        role,
+        role: account.role as StaffRole,
         user_id: user.id,
       };
     }
@@ -111,9 +118,69 @@ export async function staffAuthFromRequest(
   return {
     restaurant_id: asOwner.id as string,
     slug,
-    role,
+    role: allowedRoles[0],
     user_id: user.id,
   };
+}
+
+/**
+ * Open-table auth when restaurant is already resolved (append gate).
+ * Skips redundant slug lookup; suspended check is caller's responsibility.
+ */
+export async function verifyOpenTableStaffAuth(
+  req: Request,
+  target: { slug: string; restaurantId: string },
+): Promise<StaffAuthContext | null> {
+  void req;
+  const auth = await authUserWithAdmin();
+  if (!auth) return null;
+  const { user, admin } = auth;
+
+  const { data: account, error } = await admin
+    .from('restaurant_staff_accounts')
+    .select('id, restaurant_id, role, disabled_at')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (
+    !error &&
+    account &&
+    !account.disabled_at &&
+    (account.restaurant_id as string) === target.restaurantId &&
+    OPEN_TABLE_AUTHORIZED_STAFF_ROLES.includes(account.role as StaffRole)
+  ) {
+    return {
+      restaurant_id: target.restaurantId,
+      slug: target.slug,
+      role: account.role as StaffRole,
+      user_id: user.id,
+    };
+  }
+
+  const { data: asOwner } = await admin
+    .from('restaurants')
+    .select('id, slug')
+    .eq('id', target.restaurantId)
+    .eq('owner_id', user.id)
+    .maybeSingle();
+
+  if (!asOwner || (asOwner.slug as string) !== target.slug) return null;
+
+  return {
+    restaurant_id: target.restaurantId,
+    slug: target.slug,
+    role: OPEN_TABLE_AUTHORIZED_STAFF_ROLES[0],
+    user_id: user.id,
+  };
+}
+
+/** Validates Supabase Auth session + staff account row for slug/role. */
+export async function staffAuthFromRequest(
+  req: Request,
+  slug: string,
+  role: StaffRole,
+): Promise<StaffAuthContext | null> {
+  return verifyStaffAuthForSlug(req, slug, [role]);
 }
 
 /** Server Component / page loader — same rules as {@link staffAuthFromRequest}. */
@@ -138,9 +205,5 @@ export async function staffAuthFromRequestWithRoles(
   slug: string,
   roles: StaffRole[],
 ): Promise<StaffAuthContext | null> {
-  for (const role of roles) {
-    const ctx = await staffAuthFromRequest(req, slug, role);
-    if (ctx) return ctx;
-  }
-  return null;
+  return verifyStaffAuthForSlug(req, slug, roles);
 }

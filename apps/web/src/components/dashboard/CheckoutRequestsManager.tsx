@@ -8,7 +8,6 @@ import type { BillSplit, Order } from '@/types';
 import { showToast } from '@/components/ui/Toast';
 import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
 import {
-  checkoutBillPrintKey,
   checkoutPersonKey,
   checkoutResumeOrderingKey,
 } from '@/lib/checkout-request-state';
@@ -29,14 +28,13 @@ import {
   sumCollectedByPersonName,
 } from '@/lib/checkout-session-payments';
 import { requestCheckoutResumeOrdering } from '@/lib/request-checkout-resume-ordering';
-import { useCheckoutBillPrintCooldown } from '@/lib/use-checkout-bill-print-cooldown';
+import { useStaffCheckoutBillPrint } from '@/lib/use-staff-checkout-bill-print';
 import { tableIdsEqual } from '@/lib/restaurant-tables';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
 import { requestCheckoutApplyDiscount } from '@/lib/request-checkout-apply-discount';
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
-import { requestOrderReceiptPrint } from '@/lib/request-order-receipt-print';
 import {
   checkoutLinesFromOrders,
   type CheckoutDisplayLine,
@@ -89,7 +87,12 @@ export function CheckoutRequestsManager({
     Map<string, SessionCollectedPayment[]>
   >(() => new Map());
   const [resumeConfirmOpen, setResumeConfirmOpen] = useState(false);
-  const { cooldownSecondsLeft, isOnCooldown, startCooldown } = useCheckoutBillPrintCooldown();
+  const {
+    printCheckoutBill,
+    isPrintBillBusy,
+    cooldownSecondsLeft,
+    isOnCooldown,
+  } = useStaffCheckoutBillPrint(restaurantSlug);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const prevRequestCountRef = useRef<number | null>(null);
   const deepLinkConsumedRef = useRef(false);
@@ -399,52 +402,8 @@ export function CheckoutRequestsManager({
     }
   };
 
-  const handlePrintBill = async (request: BillSplit) => {
-    if (!restaurantSlug) {
-      showToast(t.printBillFailed, 'error');
-      return;
-    }
-    if (isOnCooldown(request.id)) {
-      showToast(
-        t.printBillCooldown.replace('{n}', String(cooldownSecondsLeft(request.id))),
-        'error',
-      );
-      return;
-    }
-
-    const printKey = checkoutBillPrintKey(request.id);
-    setProcessingKeys((prev) => new Set(prev).add(printKey));
-    try {
-      const outcome = await requestOrderReceiptPrint({
-        slug: restaurantSlug,
-        tableId: request.table_id,
-        sessionId: request.session_id,
-        billSplitId: request.id,
-        receiptVariant: 'checkout_bill',
-        discountRate: getDiscountRate(request),
-      });
-
-      if (!outcome.ok) {
-        showToast(t.printBillFailed, 'error');
-        return;
-      }
-      if (outcome.skipped) {
-        showToast(t.printBillSkipped, 'error');
-        return;
-      }
-
-      startCooldown(request.id);
-      showToast(t.printBillSuccess, 'success');
-    } catch {
-      showToast(t.printBillFailed, 'error');
-    } finally {
-      setProcessingKeys((prev) => {
-        const next = new Set(prev);
-        next.delete(printKey);
-        return next;
-      });
-    }
-  };
+  const handlePrintBill = (request: BillSplit) =>
+    printCheckoutBill(request, getDiscountRate(request));
 
   const pendingLabel = t.pendingBadge.replace('{n}', String(requests.length));
   const selectedRequest = selectedRequestId
@@ -606,6 +565,7 @@ export function CheckoutRequestsManager({
                 discountLocked={hasConfirmedPerson(selectedRequest)}
                 resumeBlockReason={resumeBlockReason}
                 canCloseTable={canCloseTable}
+                printBillBusy={isPrintBillBusy(selectedRequest.id)}
                 printCooldownSeconds={cooldownSecondsLeft(selectedRequest.id)}
                 printOnCooldown={isOnCooldown(selectedRequest.id)}
                 showBackButton

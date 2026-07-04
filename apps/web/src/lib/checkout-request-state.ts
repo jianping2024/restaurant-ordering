@@ -42,10 +42,6 @@ export function checkoutPersonKey(billSplitId: string, rowIndex: number): string
   return `${billSplitId}-${rowIndex}`;
 }
 
-export function checkoutBillPrintKey(billSplitId: string): string {
-  return `bill-print:${billSplitId}`;
-}
-
 export function checkoutResumeOrderingKey(billSplitId: string): string {
   return `resume-ordering:${billSplitId}`;
 }

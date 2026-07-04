@@ -14,7 +14,6 @@ import {
 } from '@/lib/checkout-settlement';
 import type { CheckoutDisplayLine } from '@/lib/checkout-session-lines';
 import {
-  checkoutBillPrintKey,
   checkoutPersonKey,
   checkoutResumeOrderingKey,
   isCheckoutRequestBusy,
@@ -45,6 +44,7 @@ interface Props {
   discountLocked: boolean;
   resumeBlockReason: string | null;
   canCloseTable: boolean;
+  printBillBusy: boolean;
   printCooldownSeconds: number;
   printOnCooldown: boolean;
   showBackButton: boolean;
@@ -144,6 +144,7 @@ export function CheckoutRequestDetail({
   discountLocked,
   resumeBlockReason,
   canCloseTable,
+  printBillBusy,
   printCooldownSeconds,
   printOnCooldown,
   showBackButton,
@@ -355,12 +356,10 @@ export function CheckoutRequestDetail({
         <button
           type="button"
           onClick={onPrintBill}
-          disabled={
-            processingKeys.has(checkoutBillPrintKey(request.id)) || printOnCooldown
-          }
+          disabled={printBillBusy || printOnCooldown}
           className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
         >
-          {processingKeys.has(checkoutBillPrintKey(request.id))
+          {printBillBusy
             ? t.printBillOperating
             : printOnCooldown
               ? t.printBillCooldown.replace('{n}', String(printCooldownSeconds))

@@ -16,15 +16,18 @@ import {
 import {
   buildOrderListDisplayChips,
   countOrderListItems,
-  formatOrderListItemPrintQty,
   orderListGuestLabelsFromLang,
   type OrderListDisplayChip,
 } from '@/lib/order-list-display';
+import type { OrderHistoryBillSplitRef } from '@/lib/order-history-bill-splits';
+import { useStaffCheckoutBillPrint } from '@/lib/use-staff-checkout-bill-print';
 
 interface Props {
   initialOrders: Order[];
   tables?: RestaurantTableRow[];
   pageTitle?: string;
+  restaurantSlug: string;
+  billSplitBySessionId: Record<string, OrderHistoryBillSplitRef>;
 }
 
 interface TableOption {
@@ -35,11 +38,20 @@ interface TableOption {
 const META_SEP = <span className="text-brand-text-muted/50" aria-hidden>·</span>;
 const ORDER_CARD_CLASS = 'bg-brand-card border border-brand-border rounded-xl px-4 py-3';
 
-export function OrdersHistoryManager({ initialOrders, tables = [], pageTitle }: Props) {
+export function OrdersHistoryManager({
+  initialOrders,
+  tables = [],
+  pageTitle,
+  restaurantSlug,
+  billSplitBySessionId,
+}: Props) {
   const { lang } = useLanguage();
   const i18n = getMessages(lang).orderHistory;
+  const checkoutT = getMessages(lang).checkout;
   const nav = getMessages(lang).nav;
   const locale = UI_LOCALE_BY_LANG[lang];
+  const { printCheckoutBill, isPrintBillBusy, cooldownSecondsLeft, isOnCooldown } =
+    useStaffCheckoutBillPrint(restaurantSlug);
   const [orders, setOrders] = useState(initialOrders);
   const [selectedTables, setSelectedTables] = useState<TableOption[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -178,48 +190,8 @@ export function OrdersHistoryManager({ initialOrders, tables = [], pageTitle }: 
 
   const buffetGuestLabels = useMemo(() => orderListGuestLabelsFromLang(lang), [lang]);
 
-  const handlePrintOrders = (printOrders: Order[], displayName: string) => {
-    const printWindow = window.open('', '_blank', 'width=700,height=900');
-    if (!printWindow) return;
-
-    const lineItems = printOrders.flatMap((order) =>
-      order.items.filter((item) => item.item_status !== 'voided'),
-    );
-    const rows = lineItems.map(item => `
-      <tr>
-        <td style="padding:6px 0;">${item.emoji} ${item.name_pt}</td>
-        <td style="padding:6px 0; text-align:center;">${formatOrderListItemPrintQty(item, buffetGuestLabels)}</td>
-        <td style="padding:6px 0; text-align:right;">€${(item.price * item.qty).toFixed(2)}</td>
-      </tr>
-    `).join('');
-    const totalAmount = printOrders.reduce((sum, order) => sum + order.total_amount, 0);
-
-    printWindow.document.write(`
-      <html>
-        <head><title>${i18n.printTitle}</title></head>
-        <body style="font-family: Arial, sans-serif; padding: 20px; color: #111;">
-          <h2 style="margin-bottom: 8px;">${i18n.printTitle}</h2>
-          <div style="font-size: 14px; margin-bottom: 14px;">
-            <div>${i18n.table} ${displayName}</div>
-            <div>${latestOrderTime(printOrders)}</div>
-          </div>
-          <table style="width:100%; border-collapse: collapse; font-size: 14px;">
-            <thead>
-              <tr style="border-bottom:1px solid #ddd;">
-                <th style="text-align:left; padding:6px 0;">${i18n.printDish}</th>
-                <th style="text-align:center; padding:6px 0;">${i18n.printQty}</th>
-                <th style="text-align:right; padding:6px 0;">${i18n.printAmount}</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-          <div style="margin-top: 14px; text-align: right; font-weight: 700;">${i18n.printTotal}: €${totalAmount.toFixed(2)}</div>
-          <script>window.onload = () => { window.print(); window.close(); };</script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-  };
+  const billSplitForOrder = (order: Order): OrderHistoryBillSplitRef | undefined =>
+    order.session_id ? billSplitBySessionId[order.session_id] : undefined;
 
   const renderItemChips = (chips: OrderListDisplayChip[]) => {
     if (chips.length === 0) return null;
@@ -249,15 +221,32 @@ export function OrdersHistoryManager({ initialOrders, tables = [], pageTitle }: 
     <span className="text-brand-gold font-medium tabular-nums">€{amount.toFixed(2)}</span>
   );
 
-  const renderPrintButton = (onClick: () => void) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className="text-[13px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-gold hover:border-brand-gold/50 transition-colors"
-    >
-      {i18n.print}
-    </button>
-  );
+  const renderPrintButton = (order: Order) => {
+    const billSplit = billSplitForOrder(order);
+    const splitId = billSplit?.id ?? '';
+    const busy = splitId ? isPrintBillBusy(splitId) : false;
+    const onCooldown = splitId ? isOnCooldown(splitId) : false;
+    const label = !billSplit
+      ? checkoutT.printBill
+      : busy
+        ? checkoutT.printBillOperating
+        : onCooldown
+          ? checkoutT.printBillCooldown.replace('{n}', String(cooldownSecondsLeft(splitId)))
+          : checkoutT.printBill;
+
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          if (billSplit) void printCheckoutBill(billSplit);
+        }}
+        disabled={!billSplit || busy || onCooldown}
+        className="text-[13px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-gold hover:border-brand-gold/50 transition-colors disabled:opacity-50 disabled:hover:border-brand-border"
+      >
+        {label}
+      </button>
+    );
+  };
 
   const renderHistoryOrderCard = (order: Order) =>
     renderListCard(
@@ -274,7 +263,7 @@ export function OrdersHistoryManager({ initialOrders, tables = [], pageTitle }: 
         </span>
         {META_SEP}
         {renderMetaAmount(order.total_amount)}
-        {renderPrintButton(() => handlePrintOrders([order], order.display_name))}
+        {renderPrintButton(order)}
       </>,
       buildOrderListDisplayChips([order], buffetGuestLabels),
     );

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Order } from '@/types';
 import { OrdersHistoryManager } from '@/components/dashboard/OrdersHistoryManager';
 import { loadFrontdeskDashboardTables } from '@/lib/dashboard-tables';
+import { loadBillSplitsForOrderHistory } from '@/lib/order-history-bill-splits';
 
 export default async function OrdersPage() {
   const loaded = await loadFrontdeskDashboardTables();
@@ -25,10 +26,18 @@ export default async function OrdersPage() {
     (order) => !!order.session_id && closedSessionIds.has(order.session_id),
   );
 
+  const billSplitBySessionId = await loadBillSplitsForOrderHistory(
+    loaded.admin,
+    loaded.restaurant.id,
+    historicalOrders.map((order) => order.session_id as string),
+  );
+
   return (
     <OrdersHistoryManager
       initialOrders={historicalOrders as Order[]}
       tables={loaded.tables}
+      restaurantSlug={loaded.restaurant.slug}
+      billSplitBySessionId={billSplitBySessionId}
     />
   );
 }

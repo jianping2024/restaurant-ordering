@@ -639,8 +639,8 @@ export function BillPage({
       <div className="min-h-screen bg-brand-bg max-w-mobile mx-auto flex items-center justify-center p-4">
         <div className="text-center w-full max-w-sm">
           <div className="text-6xl mb-4">🎉</div>
-          <h2 className="font-heading text-3xl text-brand-gold mb-2">{t.notified}</h2>
-          <p className="text-brand-text-muted text-sm">{t.comingSoon}</p>
+          <h2 className="font-heading text-3xl text-brand-gold mb-2">{t.checkoutSubmittedTitle}</h2>
+          <p className="text-brand-text-muted text-sm">{t.checkoutSubmittedHint}</p>
           <p className="text-brand-gold font-heading text-2xl mt-6">
             {t.totalLabel} €{total.toFixed(2)}
           </p>

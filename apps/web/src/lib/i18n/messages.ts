@@ -547,17 +547,20 @@ export const MESSAGES = {
       schedulePollAdvanced: '高级：拉取间隔',
       schedulePollIntro: '打印助手按场景自动切换下列间隔。',
       schedulePollRecommended:
-        '推荐起点：打完一批 5 秒；仍可能有单 5–10 秒、保持 1800 秒（30 分钟）；淡季 20–30 秒。高峰可把淡季降到 10–15；省 API 可升到 30–60。忙时重试固定 5 秒（不在此配置）。',
+        '推荐起点：打完一批 8–10 秒；仍可能有单 15–20 秒、保持 1800 秒（30 分钟）；淡季 20–30 秒。淡季可调到 20–60 以省联网次数。忙时重试固定 5 秒（不在此配置）。',
       schedulePollEmptyQueue: '服务器返回「暂无任务」时',
       scheduleAfterPrint: '打完一整批后，再等（秒）',
       scheduleAfterPrintHint:
-        '连续打完本次拉取的最多 25 条后，再等这么久去问服务器（不是每张之间停顿）。可填 0–60。',
+        '一次最多连续出 25 张后，休息这么久再去看有没有新单（不是每张之间停顿）。最少 8 秒，最多 60 秒。',
       scheduleWarm: '仍可能有单 · 每隔多少秒问一次',
-      scheduleWarmHint: '在「保持多久」内，刚打过单或刚拉到过单、但服务器暂无任务时使用。可填 2–60。',
+      scheduleWarmHint:
+        '刚出过后厨单、暂时还没有新单时，每隔多久再看一次。最少 15 秒，最多 60 秒。',
       scheduleWarmAfter: '仍可能有单 · 保持多久（秒）',
-      scheduleWarmAfterHint: '从最后一次打印或拉到任务起算；超时后改用「淡季」间隔。可填 60–7200。',
+      scheduleWarmAfterHint:
+        '从最后一次出单或拉到新单开始计时；过了这段时间仍无新单，就改用「淡季」节奏。最少 600 秒（约 10 分钟），最多 7200 秒（约 2 小时）。',
       scheduleIdle: '淡季 · 每隔多少秒问一次',
-      scheduleIdleHint: '超过「仍可能有单」时长且一直无任务时使用。可填 3–120；越小越快、API 越多。',
+      scheduleIdleHint:
+        '长时间没有新单时的拉取节奏。最少 20 秒，最多 120 秒；设得越短反应越快，但联网越频繁。',
       scheduleSave: '保存',
       scheduleSaved: '已保存。请重启店内打印助手后生效。',
       scheduleErrPrefix: '保存失败：',
@@ -1713,20 +1716,20 @@ export const MESSAGES = {
       schedulePollAdvanced: 'Advanced: fetch intervals',
       schedulePollIntro: 'The agent switches intervals by situation (see recommended values below).',
       schedulePollRecommended:
-        'Typical: after batch 5 sec; may-still-get-orders 5–10 sec, keep 1800 sec (30 min); quiet period 20–30 sec. Busy hours: quiet 10–15; save API: 30–60. Busy retry is fixed at 5 sec (not here).',
+        'Typical: after batch 8–10 sec; may-still-get-orders 15–20 sec, keep 1800 sec (30 min); quiet period 20–30 sec. Quiet period can go up to 60 sec to reduce check frequency. Busy retry is fixed at 5 sec (not here).',
       schedulePollEmptyQueue: 'When the server returns no jobs',
       scheduleAfterPrint: 'After a full batch, wait (sec)',
       scheduleAfterPrintHint:
-        'After up to 25 jobs from one fetch, wait before asking again (not between each ticket). Range 0–60.',
+        'After up to 25 tickets from one fetch, rest this long before checking for new orders (not between each ticket). Minimum 8 sec, maximum 60 sec.',
       scheduleWarm: 'May still get orders · ask every (sec)',
       scheduleWarmHint:
-        'Within the keep window, when you recently printed or fetched but the server has no jobs. Range 2–60.',
+        'Right after printing, when there are no new orders yet, how often to check again. Minimum 15 sec, maximum 60 sec.',
       scheduleWarmAfter: 'May still get orders · keep window (sec)',
       scheduleWarmAfterHint:
-        'From the last print or fetch; then the quiet-period interval applies. Range 60–7200.',
+        'From the last print or fetch; after this with no new orders, the quiet-period interval applies. Minimum 600 sec (about 10 min), maximum 7200 sec (about 2 hours).',
       scheduleIdle: 'Quiet period · ask every (sec)',
       scheduleIdleHint:
-        'When idle longer than the keep window. Range 3–120; lower is faster with more API traffic.',
+        'How often to check when there have been no orders for a long time. Minimum 20 sec, maximum 120 sec; shorter reacts faster but connects more often.',
       scheduleSave: 'Save',
       scheduleSaved: 'Saved. Restart the in-store print agent to apply.',
       scheduleErrPrefix: 'Save failed: ',
@@ -2549,20 +2552,20 @@ export const MESSAGES = {
       schedulePollAdvanced: 'Avancado: intervalos de pedido',
       schedulePollIntro: 'O agente alterna intervalos conforme a situacao (valores abaixo).',
       schedulePollRecommended:
-        'Habitual: apos lote 5 s; ainda pode haver pedidos 5–10 s, janela 1800 s (30 min); calmo 20–30 s. Ponta: calmo 10–15; poupar API: 30–60. Reintentos ocupado 5 s (nao aqui).',
+        'Habitual: apos lote 8–10 s; ainda pode haver pedidos 15–20 s, janela 1800 s (30 min); calmo 20–30 s. Periodo calmo pode subir ate 60 s para menos consultas. Reintentos ocupado 5 s (nao aqui).',
       schedulePollEmptyQueue: 'Quando o servidor nao tem tarefas',
       scheduleAfterPrint: 'Apos o lote completo, esperar (seg)',
       scheduleAfterPrintHint:
-        'Apos ate 25 tarefas de um pedido, espera antes de voltar a pedir (nao entre cada talao). Intervalo 0–60.',
+        'Apos ate 25 taloes num pedido, descanse este tempo antes de verificar novos pedidos (nao entre cada talao). Minimo 8 s, maximo 60 s.',
       scheduleWarm: 'Ainda pode haver pedidos · perguntar a cada (seg)',
       scheduleWarmHint:
-        'Dentro da janela, se imprimiu ou recebeu tarefas mas o servidor nao tem. Intervalo 2–60.',
+        'Logo apos imprimir, quando ainda nao ha novos pedidos, de quanto em quanto verificar. Minimo 15 s, maximo 60 s.',
       scheduleWarmAfter: 'Ainda pode haver pedidos · janela (seg)',
       scheduleWarmAfterHint:
-        'Desde a ultima impressao ou pedido; depois aplica o intervalo calmo. Intervalo 60–7200.',
+        'Desde a ultima impressao ou pedido; passado este tempo sem novos pedidos, usa o intervalo calmo. Minimo 600 s (cerca de 10 min), maximo 7200 s (cerca de 2 h).',
       scheduleIdle: 'Periodo calmo · perguntar a cada (seg)',
       scheduleIdleHint:
-        'Sem atividade ha mais tempo que a janela acima. Intervalo 3–120; menor = mais rapido e mais API.',
+        'De quanto em quanto verificar quando ha muito tempo sem pedidos. Minimo 20 s, maximo 120 s; mais curto reage mais depressa mas liga-se mais vezes.',
       scheduleSave: 'Guardar',
       scheduleSaved: 'Guardado. Reinicie o agente na loja para aplicar.',
       scheduleErrPrefix: 'Erro: ',

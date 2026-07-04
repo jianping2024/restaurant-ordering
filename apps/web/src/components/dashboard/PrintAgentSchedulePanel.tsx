@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import {
   formToCloudConfig,
+  PRINT_AGENT_POLL_LIMITS,
   type PrintAgentSettingsForm,
 } from '@/lib/print-agent-config';
 import { getMessages } from '@/lib/i18n/messages';
@@ -181,8 +182,8 @@ export function PrintAgentSchedulePanel({
           <PollIntervalField
             label={t.scheduleAfterPrint}
             hint={t.scheduleAfterPrintHint}
-            min={0}
-            max={60}
+            min={PRINT_AGENT_POLL_LIMITS.afterPrintIntervalSec.min}
+            max={PRINT_AGENT_POLL_LIMITS.afterPrintIntervalSec.max}
             value={form.afterPrintIntervalSec}
             onChange={(n) => setField('afterPrintIntervalSec', n)}
           />
@@ -193,16 +194,16 @@ export function PrintAgentSchedulePanel({
               <PollIntervalField
                 label={t.scheduleWarm}
                 hint={t.scheduleWarmHint}
-                min={2}
-                max={60}
+                min={PRINT_AGENT_POLL_LIMITS.warmIntervalSec.min}
+                max={PRINT_AGENT_POLL_LIMITS.warmIntervalSec.max}
                 value={form.warmIntervalSec}
                 onChange={(n) => setField('warmIntervalSec', n)}
               />
               <PollIntervalField
                 label={t.scheduleWarmAfter}
                 hint={t.scheduleWarmAfterHint}
-                min={60}
-                max={7200}
+                min={PRINT_AGENT_POLL_LIMITS.warmAfterActivitySec.min}
+                max={PRINT_AGENT_POLL_LIMITS.warmAfterActivitySec.max}
                 value={form.warmAfterActivitySec}
                 onChange={(n) => setField('warmAfterActivitySec', n)}
                 suffix={warmMinutesSuffix}
@@ -211,8 +212,8 @@ export function PrintAgentSchedulePanel({
                 className="sm:col-span-2"
                 label={t.scheduleIdle}
                 hint={t.scheduleIdleHint}
-                min={3}
-                max={120}
+                min={PRINT_AGENT_POLL_LIMITS.idleIntervalSec.min}
+                max={PRINT_AGENT_POLL_LIMITS.idleIntervalSec.max}
                 value={form.idleIntervalSec}
                 onChange={(n) => setField('idleIntervalSec', n)}
               />

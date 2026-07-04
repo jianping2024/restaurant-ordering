@@ -45,7 +45,38 @@ export type PrintAgentSettingsForm = {
   closedCheckSec: number;
 };
 
+type PollLimit = { min: number; max: number; default: number };
+
+/** Single source for dashboard poll interval bounds (seconds). */
+export const PRINT_AGENT_POLL_LIMITS = {
+  afterPrintIntervalSec: { min: 8, max: 60, default: 8 },
+  warmIntervalSec: { min: 15, max: 60, default: 15 },
+  warmAfterActivitySec: { min: 600, max: 7200, default: 1800 },
+  idleIntervalSec: { min: 20, max: 120, default: 20 },
+  closedCheckSec: { min: 15, max: 300, default: 60 },
+} as const satisfies Record<string, PollLimit>;
+
 const TIME_RE = /^([01]?\d|2[0-3]):([0-5]\d)$/;
+
+function clampPollSec(n: number | undefined, limits: PollLimit): number {
+  if (!Number.isFinite(n)) return limits.default;
+  return Math.min(limits.max, Math.max(limits.min, Math.round(n!)));
+}
+
+/** Enforce poll interval bounds for storage, display, and agent runtime-config. */
+export function sanitizePollConfig(poll: PrintAgentPollConfig | undefined): PrintAgentPollConfig {
+  const L = PRINT_AGENT_POLL_LIMITS;
+  const p = poll ?? {};
+  return {
+    idle_interval_sec: clampPollSec(p.idle_interval_sec, L.idleIntervalSec),
+    busy_interval_sec: 5,
+    after_print_interval_sec: clampPollSec(p.after_print_interval_sec, L.afterPrintIntervalSec),
+    warm_interval_sec: clampPollSec(p.warm_interval_sec, L.warmIntervalSec),
+    warm_after_activity_sec: clampPollSec(p.warm_after_activity_sec, L.warmAfterActivitySec),
+    closed_check_sec: clampPollSec(p.closed_check_sec, L.closedCheckSec),
+    error_interval_sec: 5,
+  };
+}
 
 export function defaultPrintAgentCloudConfig(): PrintAgentCloudConfig {
   return {
@@ -59,15 +90,7 @@ export function defaultPrintAgentCloudConfig(): PrintAgentCloudConfig {
         ],
       },
     },
-    poll: {
-      idle_interval_sec: 20,
-      busy_interval_sec: 5,
-      after_print_interval_sec: 5,
-      warm_interval_sec: 5,
-      warm_after_activity_sec: 1800,
-      closed_check_sec: 60,
-      error_interval_sec: 5,
-    },
+    poll: sanitizePollConfig({}),
   };
 }
 
@@ -84,18 +107,18 @@ export function cloudConfigToForm(raw: unknown): PrintAgentSettingsForm {
   const wins = c.schedule?.weekday?.windows ?? d.schedule!.weekday!.windows;
   const lunch = wins[0] ?? { start: '12:00', end: '15:00' };
   const dinner = wins[1] ?? { start: '19:30', end: '23:00' };
-  const poll = { ...d.poll, ...c.poll };
+  const poll = c.poll!;
   return {
     timezone: c.schedule?.timezone ?? d.schedule!.timezone ?? 'Europe/Lisbon',
     lunchStart: lunch.start,
     lunchEnd: lunch.end,
     dinnerStart: dinner.start,
     dinnerEnd: dinner.end,
-    afterPrintIntervalSec: poll.after_print_interval_sec ?? 5,
-    warmIntervalSec: poll.warm_interval_sec ?? 5,
-    idleIntervalSec: poll.idle_interval_sec ?? 20,
-    warmAfterActivitySec: poll.warm_after_activity_sec ?? 1800,
-    closedCheckSec: poll.closed_check_sec ?? 60,
+    afterPrintIntervalSec: poll.after_print_interval_sec!,
+    warmIntervalSec: poll.warm_interval_sec!,
+    idleIntervalSec: poll.idle_interval_sec!,
+    warmAfterActivitySec: poll.warm_after_activity_sec!,
+    closedCheckSec: poll.closed_check_sec!,
   };
 }
 
@@ -121,21 +144,14 @@ export function formToCloudConfig(form: PrintAgentSettingsForm): PrintAgentCloud
         ],
       },
     },
-    poll: {
-      idle_interval_sec: clampSec(form.idleIntervalSec, 3, 120, 20),
-      busy_interval_sec: 5,
-      after_print_interval_sec: clampSec(form.afterPrintIntervalSec, 0, 60, 5),
-      warm_interval_sec: clampSec(form.warmIntervalSec, 2, 60, 5),
-      warm_after_activity_sec: clampSec(form.warmAfterActivitySec, 60, 7200, 1800),
-      closed_check_sec: clampSec(form.closedCheckSec, 15, 300, 60),
-      error_interval_sec: 5,
-    },
+    poll: sanitizePollConfig({
+      idle_interval_sec: form.idleIntervalSec,
+      after_print_interval_sec: form.afterPrintIntervalSec,
+      warm_interval_sec: form.warmIntervalSec,
+      warm_after_activity_sec: form.warmAfterActivitySec,
+      closed_check_sec: form.closedCheckSec,
+    }),
   };
-}
-
-function clampSec(n: number, min: number, max: number, fallback: number): number {
-  if (!Number.isFinite(n)) return fallback;
-  return Math.min(max, Math.max(min, Math.round(n)));
 }
 
 export function parseDefaultReceiptStationId(raw: unknown): string | undefined {
@@ -155,7 +171,9 @@ export function normalizePrintAgentCloudConfig(raw: unknown): PrintAgentCloudCon
       ? (o.schedule as PrintAgentScheduleConfig)
       : base.schedule;
   const poll =
-    o.poll && typeof o.poll === 'object' ? (o.poll as PrintAgentPollConfig) : base.poll;
+    o.poll && typeof o.poll === 'object'
+      ? sanitizePollConfig(o.poll as PrintAgentPollConfig)
+      : base.poll;
   const default_receipt_station_id = parseDefaultReceiptStationId(o.default_receipt_station_id);
   return {
     schedule,

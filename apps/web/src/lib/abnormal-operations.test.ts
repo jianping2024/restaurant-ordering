@@ -54,7 +54,12 @@ describe('requiresAbnormalReasonDetail', () => {
 describe('isValidAbnormalReason', () => {
   it('accepts known reason codes', () => {
     assert.equal(isValidAbnormalReason('unpaid_close', 'left_unpaid'), true);
+    assert.equal(isValidAbnormalReason('unpaid_close', 'near_full_payment'), true);
     assert.equal(isValidAbnormalReason('unpaid_close', 'nope'), false);
+  });
+
+  it('does not require detail for near_full_payment', () => {
+    assert.equal(requiresAbnormalReasonDetail('unpaid_close', 'near_full_payment'), false);
   });
 });
 

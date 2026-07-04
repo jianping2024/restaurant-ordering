@@ -29,6 +29,7 @@ export const UNPAID_CLOSE_REASONS = [
   'test_order',
   'duplicate_session',
   'operation_error',
+  'near_full_payment',
   'special_case',
   'other',
 ] as const;

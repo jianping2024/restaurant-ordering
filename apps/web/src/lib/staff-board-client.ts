@@ -1,7 +1,9 @@
 'use client';
 
 import { compareRestaurantTables, sortRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
-import type { WaiterBoardData, WaiterTableDetailData } from '@/lib/staff-board';
+import type { WaiterBoardData } from '@/lib/staff-board';
+import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
+import { normalizeWaiterTablePageModel } from '@/lib/waiter-table-detail-normalize';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
 import type { Order } from '@/types';
@@ -34,34 +36,26 @@ export async function fetchWaiterBoardClient(slug: string): Promise<WaiterBoardD
 
 export type { WaiterBoardTableSummary, WaiterTableSessionMeta };
 
-/** Single-table waiter detail via authenticated staff API. */
-export async function fetchWaiterTableDetailClient(
+/** Single-table waiter page model via authenticated staff API. */
+export async function fetchWaiterTablePageModelClient(
   slug: string,
   tableId: string,
-): Promise<WaiterTableDetailData> {
-  const detail = await fetchStaffBoard<WaiterTableDetailData>(
+): Promise<WaiterTablePageModel> {
+  const model = await fetchStaffBoard<WaiterTablePageModel>(
     `/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/tables/${encodeURIComponent(tableId)}`,
   );
-  return normalizeWaiterTableDetail(detail);
-}
-
-function normalizeWaiterTableDetail(detail: WaiterTableDetailData): WaiterTableDetailData {
-  return {
-    table: detail.table ?? null,
-    sessionMeta: detail.sessionMeta ?? null,
-    orders: detail.orders || [],
-    checkoutRequested: !!detail.checkoutRequested,
-    checkoutRequestedAt: detail.checkoutRequestedAt ?? null,
-  };
+  return normalizeWaiterTablePageModel(model);
 }
 
 type WaiterBuffetOpenResponse = {
   ok?: boolean;
-  detail?: WaiterTableDetailData;
+  model?: WaiterTablePageModel;
+  detail?: WaiterTablePageModel['detail'];
   error?: string;
+  code?: string;
 };
 
-/** Open table (buffet); returns refreshed table detail when successful. */
+/** Open table (buffet); returns refreshed page model when successful. */
 export async function postWaiterBuffetOpenClient(
   slug: string,
   body: {
@@ -70,16 +64,13 @@ export async function postWaiterBuffetOpenClient(
     adult_count: number;
     child_count: number;
   },
-): Promise<WaiterTableDetailData> {
-  const res = await fetch(
-    `/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/buffet`,
-    {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    },
-  );
+): Promise<WaiterTablePageModel> {
+  const res = await fetch(`/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/buffet`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
   const data = (await res.json().catch(() => ({}))) as WaiterBuffetOpenResponse;
   if (!res.ok) {
     const err = new Error(data.error || 'buffet_open_failed') as Error & {
@@ -87,13 +78,18 @@ export async function postWaiterBuffetOpenClient(
       code?: string;
     };
     err.status = res.status;
-    err.code = data.error;
+    err.code = data.code ?? data.error;
     throw err;
   }
-  if (!data.detail) {
-    throw new Error('buffet_open_missing_detail');
+  if (data.model) return normalizeWaiterTablePageModel(data.model);
+  if (data.detail) {
+    return normalizeWaiterTablePageModel({
+      detail: data.detail,
+      buffets: [],
+      buffetPricesByBuffetId: {},
+    });
   }
-  return normalizeWaiterTableDetail(data.detail);
+  throw new Error('buffet_open_missing_model');
 }
 
 /** Transfer/merge target tables for one source table. */

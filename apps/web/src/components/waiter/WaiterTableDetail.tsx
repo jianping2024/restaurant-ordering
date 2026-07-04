@@ -3,14 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { Buffet, Order } from '@/types';
+import type { Order } from '@/types';
 import {
   aggregateBuffetForOrders,
   buildBuffetBaseLine,
   isBuffetGuestCountsUnchanged,
-  parseResolvedBuffetPriceRpcRow,
+  resolveBuffetFormAlignState,
   resolveBuffetOpenPricePreview,
-  type ResolvedBuffetPriceRow,
 } from '@/lib/buffet-order';
 import {
   applyBuffetOpenOptimisticToOrders,
@@ -30,14 +29,14 @@ import { computeOrderTotalsFromItems } from '@/lib/order-item-void/persist-order
 import { voidItemReasonErrorMessage } from '@/lib/order-item-void/void-item-reason-ui';
 import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticatedShell';
 import { useWaiterTableDetail } from '@/components/waiter/useWaiterTableDetail';
+import { useWaiterTableBuffetForm } from '@/components/waiter/useWaiterTableBuffetForm';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import { Button } from '@/components/ui/Button';
-import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
 import { postWaiterDecrementOrderItemClient } from '@/lib/waiter-decrement-order-item-client';
-import { fetchWaiterTableActionTargetsClient, postWaiterBuffetOpenClient } from '@/lib/staff-board-client';
+import { fetchWaiterTableActionTargetsClient, fetchWaiterTablePageModelClient, postWaiterBuffetOpenClient } from '@/lib/staff-board-client';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import {
@@ -48,6 +47,7 @@ import {
   waiterBillHref,
 } from '@/lib/staff-routes';
 import type { WaiterTableDetailData } from '@/lib/staff-board';
+import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import {
   WaiterCheckoutPendingBanner,
   WaiterTableBuffetPanel,
@@ -62,9 +62,8 @@ interface Props {
   tables?: RestaurantTableRow[];
   /** Demo only — full demo order set. */
   initialOrders?: Order[];
-  initialBuffets?: Buffet[];
-  /** Server-rendered table snapshot; avoids client-only loading flash on navigation. */
-  initialDetail?: WaiterTableDetailData | null;
+  /** Server-rendered page model; avoids duplicate fetch on navigation. */
+  initialModel?: WaiterTablePageModel | null;
   tableId: string;
   /** Demo only — table label before detail state resolves. */
   displayName?: string;
@@ -76,8 +75,7 @@ function WaiterTableDetailInner({
   restaurant,
   tables: demoTablesProp = [],
   initialOrders = [],
-  initialBuffets = [],
-  initialDetail = null,
+  initialModel = null,
   tableId,
   displayName = '',
   isDemo = false,
@@ -94,7 +92,8 @@ function WaiterTableDetailInner({
     table: selectedTable,
     orders,
     refresh,
-    applyDetail,
+    applyModel,
+    model,
     sessionMeta,
     checkoutRequestedAt,
     supabase,
@@ -109,7 +108,7 @@ function WaiterTableDetailInner({
     isDemo,
     demoTablesProp,
     initialOrders,
-    initialDetail,
+    initialModel,
   );
 
   const [itemCodeByMenuId, setItemCodeByMenuId] = useState<Record<string, string>>({});
@@ -153,107 +152,56 @@ function WaiterTableDetailInner({
   } | null>(null);
   const [voidReasonError, setVoidReasonError] = useState<string | null>(null);
   const [voidingDecrement, setVoidingDecrement] = useState(false);
-  const activeBuffets = useMemo(() => initialBuffets.filter((b) => b.is_active), [initialBuffets]);
-  const [buffetId, setBuffetId] = useState<string>(() => activeBuffets[0]?.id || '');
-  const selectedBuffet = useMemo(
-    () => activeBuffets.find((b) => b.id === buffetId) ?? activeBuffets[0] ?? null,
-    [activeBuffets, buffetId],
+  const activeBuffets = useMemo(
+    () => (model?.buffets ?? []).filter((b) => b.is_active),
+    [model?.buffets],
   );
-  const [buffetAdults, setBuffetAdults] = useState(2);
-  const [buffetChildren, setBuffetChildren] = useState(0);
+  const contextTableId = selectedTable?.id ?? tableId;
+  const buffetFormAlign = useMemo(
+    () =>
+      resolveBuffetFormAlignState({
+        detailLoaded: isDemo || detailLoaded,
+        orders,
+        defaultBuffetId: activeBuffets[0]?.id ?? null,
+      }),
+    [activeBuffets, detailLoaded, isDemo, orders],
+  );
+  const {
+    buffetId,
+    setBuffetId,
+    selectedBuffet,
+    buffetAdults,
+    buffetChildren,
+    setBuffetGuestCount,
+    buffetResolved,
+    buffetPriceLoading,
+  } = useWaiterTableBuffetForm({
+    tableId: contextTableId,
+    sessionId: sessionMeta?.sessionId ?? null,
+    alignState: buffetFormAlign,
+    restaurantId: restaurant.id,
+    activeBuffets,
+    buffetPricesByBuffetId: model?.buffetPricesByBuffetId ?? {},
+    isDemo,
+    supabase,
+  });
   const [buffetSubmitting, setBuffetSubmitting] = useState(false);
-  const [buffetResolved, setBuffetResolved] = useState<ResolvedBuffetPriceRow | null>(null);
-  const [buffetPriceLoading, setBuffetPriceLoading] = useState(false);
-  const refreshBuffetPrices = useCallback(
-    async (silent: boolean) => {
-      if (isDemo || !buffetId) return;
-      if (!silent) setBuffetPriceLoading(true);
-      const { data: priceRows, error } = await supabase.rpc('resolve_buffet_prices', {
-        p_restaurant_id: restaurant.id,
-        p_buffet_id: buffetId,
-        p_at: new Date().toISOString(),
-      });
-      if (!silent) setBuffetPriceLoading(false);
-      if (error) {
-        if (!silent) setBuffetResolved(null);
-        return;
-      }
-      setBuffetResolved(parseResolvedBuffetPriceRpcRow(priceRows));
-    },
-    [isDemo, buffetId, restaurant.id, supabase],
-  );
-
-  useBuffetPricesRealtimeRefresh(supabase, restaurant.id, !isDemo && !!buffetId, () => void refreshBuffetPrices(true));
-
-  /** Clock-driven slot turnover has no DB event; refresh at most once per minute while the tab is visible. */
-  useEffect(() => {
-    if (isDemo || !buffetId) {
-      setBuffetResolved(null);
-      setBuffetPriceLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    let minuteTimer: number | null = null;
-
-    const clearMinute = () => {
-      if (minuteTimer != null) {
-        window.clearTimeout(minuteTimer);
-        minuteTimer = null;
-      }
-    };
-
-    const scheduleMinute = () => {
-      clearMinute();
-      if (cancelled || document.visibilityState !== 'visible') return;
-      const jitterMs = 20;
-      const ms = Math.max(jitterMs, 60_000 - (Date.now() % 60_000) + jitterMs);
-      minuteTimer = window.setTimeout(async () => {
-        minuteTimer = null;
-        if (cancelled || document.visibilityState !== 'visible') return;
-        await refreshBuffetPrices(true);
-        scheduleMinute();
-      }, ms);
-    };
-
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        void refreshBuffetPrices(true);
-        scheduleMinute();
-      } else {
-        clearMinute();
-      }
-    };
-
-    void refreshBuffetPrices(false);
-
-    document.addEventListener('visibilitychange', onVisibility);
-    if (document.visibilityState === 'visible') scheduleMinute();
-
-    return () => {
-      cancelled = true;
-      clearMinute();
-      document.removeEventListener('visibilitychange', onVisibility);
-    };
-  }, [isDemo, buffetId, refreshBuffetPrices]);
 
   const buffetPriceDisplay = useMemo(
     () => resolveBuffetOpenPricePreview(buffetResolved, buffetAdults, buffetChildren),
     [buffetResolved, buffetAdults, buffetChildren],
   );
 
-  const setBuffetGuestCount = (which: 'adults' | 'children', value: number) => {
-    const n = Math.max(0, Math.floor(value));
-    if (which === 'adults') setBuffetAdults(n);
-    else setBuffetChildren(n);
-  };
-
-  useEffect(() => {
-    if (activeBuffets.length === 0) return;
-    if (!buffetId || !activeBuffets.some((b) => b.id === buffetId)) {
-      setBuffetId(activeBuffets[0].id);
-    }
-  }, [activeBuffets, buffetId]);
+  const applyDetail = useCallback(
+    (detail: WaiterTableDetailData) => {
+      applyModel({
+        detail,
+        buffets: model?.buffets ?? [],
+        buffetPricesByBuffetId: model?.buffetPricesByBuffetId ?? {},
+      });
+    },
+    [applyModel, model?.buffetPricesByBuffetId, model?.buffets],
+  );
 
   const selectedDisplayName = selectedTable?.display_name || displayName;
 
@@ -290,24 +238,6 @@ function WaiterTableDetailInner({
     [orders],
   );
   const buffetActionLabel = tableBuffetAggregate ? t.buffetSaveGuestCounts : t.buffetConfirm;
-
-  const persistedBuffetId = tableBuffetAggregate?.buffetId;
-  const persistedBuffetAdults = tableBuffetAggregate?.adults;
-  const persistedBuffetChildren = tableBuffetAggregate?.children;
-
-  /** Sync form when persisted headcount changes — not on every orders refresh (object identity). */
-  useEffect(() => {
-    if (
-      persistedBuffetId === undefined ||
-      persistedBuffetAdults === undefined ||
-      persistedBuffetChildren === undefined
-    ) {
-      return;
-    }
-    setBuffetId(persistedBuffetId);
-    setBuffetAdults(persistedBuffetAdults);
-    setBuffetChildren(persistedBuffetChildren);
-  }, [persistedBuffetId, persistedBuffetAdults, persistedBuffetChildren]);
 
   const demoActiveTableIds = useMemo(() => {
     if (!isDemo) return [] as string[];
@@ -414,7 +344,8 @@ function WaiterTableDetailInner({
 
   const finishTransferOrMerge = useCallback(
     async (targetTableId: string, operation: 'transfer' | 'merge', targetLabel: string) => {
-      await refresh();
+      const targetModel = await fetchWaiterTablePageModelClient(restaurant.slug, targetTableId);
+      applyModel(targetModel);
       const toastText =
         operation === 'transfer'
           ? t.transferDone.replace('{table}', targetLabel)
@@ -423,7 +354,7 @@ function WaiterTableDetailInner({
       showToast(toastText, 'success');
       goToTableDetail(targetTableId);
     },
-    [refresh, t.transferDone, t.mergeDone, goToTableDetail],
+    [applyModel, goToTableDetail, restaurant.slug, t.mergeDone, t.transferDone],
   );
 
   const handleActionSubmit = async () => {
@@ -668,13 +599,13 @@ function WaiterTableDetailInner({
 
     setBuffetSubmitting(true);
     try {
-      const detail = await postWaiterBuffetOpenClient(restaurant.slug, {
+      const nextModel = await postWaiterBuffetOpenClient(restaurant.slug, {
         table_id: tableId,
         buffet_id: buffetId,
         adult_count: buffetAdults,
         child_count: buffetChildren,
       });
-      applyDetail(detail);
+      applyModel(nextModel);
       showToast(t.actionSuccess, 'success');
     } catch (err) {
       const apiErr = err as Error & { status?: number; code?: string };

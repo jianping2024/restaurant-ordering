@@ -1,10 +1,9 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { WaiterTableDetail } from '@/components/waiter/WaiterTableDetail';
-import type { Buffet } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { staffAuthForPage } from '@/lib/staff-api-auth';
-import { loadWaiterTableDetailInitial } from '@/lib/staff-board';
+import { loadWaiterTablePageInitial } from '@/lib/waiter-table-detail-load';
 
 interface Props {
   params: Promise<{ slug: string; tableId: string }>;
@@ -27,22 +26,13 @@ export default async function WaiterTablePage({ params }: Props) {
 
   await staffAuthForPage(slug, 'waiter');
 
-  const [{ data: buffetRows }, initialDetail] = await Promise.all([
-    supabase
-      .from('buffets')
-      .select('*')
-      .eq('restaurant_id', restaurant.id)
-      .order('name'),
-    loadWaiterTableDetailInitial(restaurant.id, tableId),
-  ]);
-
-  if (!initialDetail.table) notFound();
+  const initialModel = await loadWaiterTablePageInitial(restaurant.id, tableId);
+  if (!initialModel?.detail.table) notFound();
 
   return (
     <WaiterTableDetail
       restaurant={restaurant}
-      initialBuffets={(buffetRows || []) as Buffet[]}
-      initialDetail={initialDetail}
+      initialModel={initialModel}
       tableId={tableId}
     />
   );

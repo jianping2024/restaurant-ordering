@@ -72,6 +72,70 @@ export function aggregateBuffetForOrders(
   };
 }
 
+/** Draft form seed from persisted session orders (null = not yet opened). */
+export type BuffetFormSeed = {
+  buffetId: string;
+  adults: number;
+  children: number;
+};
+
+export function deriveBuffetFormSeed(
+  orders: Array<Pick<Order, 'items' | 'status'>>,
+): BuffetFormSeed | null {
+  const agg = aggregateBuffetForOrders(orders);
+  if (!agg) return null;
+  return {
+    buffetId: agg.buffetId,
+    adults: agg.adults,
+    children: agg.children,
+  };
+}
+
+export function buffetFormSeedKey(seed: BuffetFormSeed | null): string | null {
+  if (!seed) return null;
+  return `${seed.buffetId}:${seed.adults}:${seed.children}`;
+}
+
+export const IDLE_BUFFET_FORM_DEFAULTS = { adults: 2, children: 0 } as const;
+
+/** When to align buffet open-table draft from server orders vs idle defaults. */
+export type BuffetFormAlignState =
+  | { mode: 'pending' }
+  | { mode: 'idle'; defaultBuffetId: string | null }
+  | { mode: 'occupied'; seed: BuffetFormSeed };
+
+export function resolveBuffetFormAlignState(input: {
+  detailLoaded: boolean;
+  orders: Array<Pick<Order, 'items' | 'status'>>;
+  defaultBuffetId: string | null;
+}): BuffetFormAlignState {
+  if (!input.detailLoaded) {
+    return { mode: 'pending' };
+  }
+
+  const seed = deriveBuffetFormSeed(input.orders);
+  if (seed) {
+    return { mode: 'occupied', seed };
+  }
+
+  return { mode: 'idle', defaultBuffetId: input.defaultBuffetId };
+}
+
+export function buffetFormAlignKey(
+  tableId: string,
+  sessionId: string | null,
+  align: BuffetFormAlignState,
+): string {
+  const sessionKey = sessionId ?? 'none';
+  if (align.mode === 'pending') {
+    return `${tableId}:${sessionKey}:pending`;
+  }
+  if (align.mode === 'idle') {
+    return `${tableId}:${sessionKey}:idle:${align.defaultBuffetId ?? ''}`;
+  }
+  return `${tableId}:${sessionKey}:occupied:${buffetFormSeedKey(align.seed)}`;
+}
+
 /** Non-negative integer adult/child counts for buffet open-table and pricing. */
 export function normalizeBuffetGuestCounts(
   adultCount: number,

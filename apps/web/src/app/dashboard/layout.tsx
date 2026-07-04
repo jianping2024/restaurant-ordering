@@ -5,7 +5,7 @@ import { DashboardNav } from '@/components/dashboard/DashboardNav';
 import { DASHBOARD_MAIN_OFFSET } from '@/components/dashboard/dashboard-nav-link';
 import { RestaurantOnboarding } from '@/components/dashboard/RestaurantOnboarding';
 import { RestaurantSuspensionBanner } from '@/components/dashboard/RestaurantSuspensionBanner';
-import { loadDashboardAccess } from '@/lib/dashboard-access';
+import { getDashboardAccess } from '@/lib/dashboard-access-cached';
 import { PrintAgentCredentialExpiryAlert } from '@/components/dashboard/PrintAgentCredentialExpiryAlert';
 import { CheckoutRequestsProvider } from '@/components/dashboard/CheckoutRequestsProvider';
 import { loadPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-server';
@@ -15,7 +15,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const access = await loadDashboardAccess();
+  const access = await getDashboardAccess();
 
   if (access.mode === 'unauthenticated') {
     redirect('/auth/login');

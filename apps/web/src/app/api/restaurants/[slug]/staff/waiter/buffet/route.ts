@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
-import { buildBuffetBaseLine, isBuffetGuestCountsUnchanged, normalizeBuffetGuestCounts, parseResolvedBuffetPriceRpcRow } from '@/lib/buffet-order';
+import { buildBuffetBaseLine, isBuffetGuestCountsUnchanged, normalizeBuffetGuestCounts } from '@/lib/buffet-order';
 import { applyBuffetOpenToSession, mapToBuffetSessionOrders } from '@/lib/buffet-open-table';
-import { fetchWaiterTableDetail } from '@/lib/staff-board';
+import { fetchWaiterTablePageModel } from '@/lib/staff-board';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { findActiveTableSession, openTableSessionIfAbsent } from '@/lib/table-session-open';
+import { resolveBuffetPricesServer } from '@/lib/resolve-buffet-prices-server';
 
 export const runtime = 'nodejs';
 
@@ -121,21 +122,16 @@ export async function POST(
   const unchanged = isBuffetGuestCountsUnchanged(sessionOrders, buffetId, adultCount, childCount);
 
   if (!unchanged) {
-    const { data: priceRows, error: priceError } = await admin.rpc('resolve_buffet_prices', {
-      p_restaurant_id: ctx.restaurant_id,
-      p_buffet_id: buffetId,
-      p_at: new Date().toISOString(),
-    });
-
-    if (priceError) {
-      return NextResponse.json({ error: 'price_resolve_failed', message: priceError.message }, { status: 500 });
+    const resolved = await resolveBuffetPricesServer(admin, ctx.restaurant_id, buffetId);
+    if (!resolved) {
+      return NextResponse.json({ error: 'price_resolve_failed' }, { status: 500 });
     }
 
     const line = buildBuffetBaseLine({
       buffet,
       adultCount,
       childCount,
-      resolved: parseResolvedBuffetPriceRpcRow(priceRows),
+      resolved,
     });
 
     if (!line) {
@@ -162,6 +158,6 @@ export async function POST(
     }
   }
 
-  const detail = await fetchWaiterTableDetail(admin, ctx.restaurant_id, tableId);
-  return NextResponse.json({ ok: true, detail, ...(unchanged ? { unchanged: true } : {}) });
+  const model = await fetchWaiterTablePageModel(admin, ctx.restaurant_id, tableId);
+  return NextResponse.json({ ok: true, model, ...(unchanged ? { unchanged: true } : {}) });
 }

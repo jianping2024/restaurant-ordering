@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { Order } from '@/types';
-import { fetchWaiterTableDetailClient } from '@/lib/staff-board-client';
+import { fetchWaiterTablePageModelClient } from '@/lib/staff-board-client';
 import { useRestaurantRealtimeRefresh, useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-realtime-refresh';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import {
@@ -17,10 +17,11 @@ import {
   type WaiterTableSessionMeta,
 } from '@/lib/waiter-board-session';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
-import type { WaiterTableDetailData } from '@/lib/staff-board';
+import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
+import { normalizeWaiterTablePageModel } from '@/lib/waiter-table-detail-normalize';
 
-function clientStateFromDetail(detail: WaiterTableDetailData | null | undefined) {
-  if (!detail) {
+function detailFromModel(model: WaiterTablePageModel | null | undefined) {
+  if (!model) {
     return {
       table: null as RestaurantTableRow | null,
       orderRows: [] as Order[],
@@ -30,19 +31,19 @@ function clientStateFromDetail(detail: WaiterTableDetailData | null | undefined)
     };
   }
   return {
-    table: detail.table,
-    orderRows: detail.orders,
-    sessionMeta: detail.sessionMeta,
-    checkoutRequested: detail.checkoutRequested,
-    checkoutRequestedAt: detail.checkoutRequestedAt,
+    table: model.detail.table,
+    orderRows: model.detail.orders,
+    sessionMeta: model.detail.sessionMeta,
+    checkoutRequested: model.detail.checkoutRequested,
+    checkoutRequestedAt: model.detail.checkoutRequestedAt,
   };
 }
 
 /**
- * Table detail client state.
+ * Table detail client state — single WaiterTablePageModel source.
  *
- * Production: SSR initialDetail hydrates first paint; client reconcile on entry + Realtime refresh via staff API.
- * Demo: static props only.
+ * Freshness: SSR initialModel → skip entry reconcile; ?from=menu_submit → reconcile;
+ * Realtime + mutations → applyModel via staff API.
  */
 export function useWaiterTableDetail(
   restaurant: { id: string; slug: string },
@@ -51,22 +52,24 @@ export function useWaiterTableDetail(
   isDemo: boolean,
   demoTables: RestaurantTableRow[] = [],
   demoOrders: Order[] = [],
-  initialDetail?: WaiterTableDetailData | null,
+  initialModel?: WaiterTablePageModel | null,
 ) {
-  const boot = clientStateFromDetail(initialDetail);
+  const boot = detailFromModel(initialModel ?? null);
+  const [model, setModel] = useState<WaiterTablePageModel | null>(initialModel ?? null);
   const [table, setTable] = useState(boot.table);
   const [orderRows, setOrderRows] = useState<Order[]>(isDemo ? demoOrders : boot.orderRows);
   const [sessionMeta, setSessionMeta] = useState(boot.sessionMeta);
   const [checkoutRequested, setCheckoutRequested] = useState(boot.checkoutRequested);
   const [checkoutRequestedAt, setCheckoutRequestedAt] = useState(boot.checkoutRequestedAt);
-  const [detailLoaded, setDetailLoaded] = useState(isDemo || !!initialDetail);
+  const [detailLoaded, setDetailLoaded] = useState(isDemo || !!initialModel?.detail.table);
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const reloadSeqRef = useRef(0);
-  const refreshInFlightRef = useRef<Promise<WaiterTableDetailData | null> | null>(null);
+  const refreshInFlightRef = useRef<Promise<WaiterTablePageModel | null> | null>(null);
   const staffReturnSyncRef = useRef(false);
+  const prevTableIdRef = useRef(tableId);
 
   const demoSessionMetaByTableId = useMemo(
     () => (isDemo ? demoSessionMetaFromOrders(demoOrders) : {}),
@@ -84,15 +87,17 @@ export function useWaiterTableDetail(
     return activeSessionIdByTableIdFromMeta(sessionMetaByTableId);
   }, [isDemo, demoSessionMetaByTableId, sessionMetaByTableId]);
 
-  const applyDetail = useCallback((detail: WaiterTableDetailData) => {
-    const next = clientStateFromDetail(detail);
+  const applyModel = useCallback((nextModel: WaiterTablePageModel) => {
+    const normalized = normalizeWaiterTablePageModel(nextModel);
+    const next = detailFromModel(normalized);
+    setModel(normalized);
     setTable(next.table);
     setOrderRows(next.orderRows);
     setSessionMeta(next.sessionMeta);
     setCheckoutRequested(next.checkoutRequested);
     setCheckoutRequestedAt(next.checkoutRequestedAt);
     setDetailLoaded(true);
-    return detail;
+    return normalized;
   }, []);
 
   const refresh = useCallback(async () => {
@@ -102,24 +107,36 @@ export function useWaiterTableDetail(
     const seq = ++reloadSeqRef.current;
     const running = (async () => {
       try {
-        const detail = await fetchWaiterTableDetailClient(restaurant.slug, tableId);
+        const nextModel = await fetchWaiterTablePageModelClient(restaurant.slug, tableId);
         if (seq !== reloadSeqRef.current) return null;
-        return applyDetail(detail);
+        return applyModel(nextModel);
       } finally {
         refreshInFlightRef.current = null;
       }
     })();
     refreshInFlightRef.current = running;
     return running;
-  }, [applyDetail, enabled, restaurant.slug, tableId]);
+  }, [applyModel, enabled, restaurant.slug, tableId]);
+
+  useEffect(() => {
+    if (prevTableIdRef.current === tableId) return;
+    prevTableIdRef.current = tableId;
+    reloadSeqRef.current += 1;
+    refreshInFlightRef.current = null;
+    setDetailLoaded(false);
+  }, [tableId]);
+
+  useEffect(() => {
+    if (initialModel) applyModel(initialModel);
+  }, [applyModel, initialModel]);
+
+  useEffect(() => {
+    if (!enabled || isDemo || initialModel) return;
+    void refresh();
+  }, [enabled, initialModel, isDemo, refresh, tableId]);
 
   const staffMenuSubmitReturn = isStaffAssistedMenuSubmitReturn(searchParams);
 
-  useEffect(() => {
-    if (initialDetail) applyDetail(initialDetail);
-  }, [applyDetail, initialDetail]);
-
-  // Staff menu submit return: table route SSR refresh + one client reconcile (freshness contract).
   useEffect(() => {
     if (!enabled || isDemo || !staffMenuSubmitReturn) return;
     if (staffReturnSyncRef.current) return;
@@ -144,7 +161,11 @@ export function useWaiterTableDetail(
     };
   }, [enabled, isDemo, pathname, refresh, router, staffMenuSubmitReturn, tableId]);
 
-  useRestaurantStaffEntryReconcile(enabled && !staffMenuSubmitReturn, refresh, tableId);
+  useRestaurantStaffEntryReconcile(
+    enabled && !staffMenuSubmitReturn && !initialModel,
+    refresh,
+    tableId,
+  );
 
   useRestaurantRealtimeRefresh(
     supabase,
@@ -170,6 +191,7 @@ export function useWaiterTableDetail(
   return {
     table: resolvedTable,
     orders,
+    model,
     sessionMeta,
     sessionMetaByTableId,
     activeSessionByTableId,
@@ -177,7 +199,7 @@ export function useWaiterTableDetail(
     checkoutRequestedAt,
     detailLoaded,
     refresh,
-    applyDetail,
+    applyModel,
     supabase,
     demoTables: isDemo ? demoTables : [],
   };

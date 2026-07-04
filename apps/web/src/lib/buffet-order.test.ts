@@ -2,11 +2,15 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   buildBuffetBaseLine,
+  buffetFormAlignKey,
+  buffetFormSeedKey,
   computeBuffetSubtotal,
+  deriveBuffetFormSeed,
   formatBuffetGuestCountsOptional,
   formatBuffetPriceTemplate,
   formatBuffetReceiptQtyLabel,
   isBuffetGuestCountsUnchanged,
+  resolveBuffetFormAlignState,
   resolveBuffetOpenPricePreview,
 } from '@/lib/buffet-order';
 import type { Order } from '@/types';
@@ -65,6 +69,69 @@ describe('isBuffetGuestCountsUnchanged', () => {
   it('is false when total matches but adult/child split differs', () => {
     const orders = [orderWithBuffet(2, 1)];
     assert.equal(isBuffetGuestCountsUnchanged(orders, buffetA.id, 3, 0), false);
+  });
+});
+
+describe('deriveBuffetFormSeed', () => {
+  it('returns null when table has no active buffet', () => {
+    assert.equal(deriveBuffetFormSeed([]), null);
+  });
+
+  it('maps persisted headcount from orders', () => {
+    const orders = [orderWithBuffet(2, 1)];
+    assert.deepEqual(deriveBuffetFormSeed(orders), {
+      buffetId: buffetA.id,
+      adults: 2,
+      children: 1,
+    });
+  });
+
+  it('builds stable seed keys for alignment', () => {
+    assert.equal(buffetFormSeedKey({ buffetId: 'b1', adults: 2, children: 0 }), 'b1:2:0');
+    assert.equal(buffetFormSeedKey(null), null);
+  });
+});
+
+describe('resolveBuffetFormAlignState', () => {
+  it('returns pending while detail is loading', () => {
+    assert.deepEqual(
+      resolveBuffetFormAlignState({ detailLoaded: false, orders: [], defaultBuffetId: 'b1' }),
+      { mode: 'pending' },
+    );
+  });
+
+  it('returns idle defaults when loaded with no buffet', () => {
+    assert.deepEqual(
+      resolveBuffetFormAlignState({ detailLoaded: true, orders: [], defaultBuffetId: 'b1' }),
+      { mode: 'idle', defaultBuffetId: 'b1' },
+    );
+  });
+
+  it('returns occupied seed from persisted orders', () => {
+    const orders = [orderWithBuffet(2, 0)];
+    assert.deepEqual(
+      resolveBuffetFormAlignState({ detailLoaded: true, orders, defaultBuffetId: 'b1' }),
+      {
+        mode: 'occupied',
+        seed: { buffetId: buffetA.id, adults: 2, children: 0 },
+      },
+    );
+  });
+
+  it('builds distinct align keys per table and session', () => {
+    const occupied = resolveBuffetFormAlignState({
+      detailLoaded: true,
+      orders: [orderWithBuffet(2, 0)],
+      defaultBuffetId: 'b1',
+    });
+    assert.notEqual(
+      buffetFormAlignKey('t1', 's1', occupied),
+      buffetFormAlignKey('t2', 's1', occupied),
+    );
+    assert.notEqual(
+      buffetFormAlignKey('t1', 's1', occupied),
+      buffetFormAlignKey('t1', 's2', occupied),
+    );
   });
 });
 

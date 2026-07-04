@@ -23,6 +23,11 @@ import {
   buildWaiterBoardTableSummaries,
   type WaiterBoardTableSummary,
 } from '@/lib/waiter-board-snapshot';
+import { loadWaiterTablePageModel } from '@/lib/waiter-table-detail-load';
+import type { WaiterTableDetailData } from '@/lib/waiter-table-detail-types';
+
+export type { WaiterTableDetailData } from '@/lib/waiter-table-detail-types';
+export type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 
 export type WaiterBoardData = {
   sessionMetaByTableId: Record<string, WaiterTableSessionMeta>;
@@ -34,62 +39,30 @@ export type WaiterBoardData = {
   tableSummaries: WaiterBoardTableSummary[];
 };
 
-export type WaiterTableDetailData = {
-  table: RestaurantTableRow | null;
-  sessionMeta: WaiterTableSessionMeta | null;
-  orders: Order[];
-  checkoutRequested: boolean;
-  checkoutRequestedAt: string | null;
-};
-
-async function fetchCheckoutRequestedForTable(
-  client: SupabaseClient,
-  restaurantId: string,
-  tableId: string,
-): Promise<{ requested: boolean; at: string | null }> {
-  const { data } = await client
-    .from('bill_splits')
-    .select('created_at')
-    .eq('restaurant_id', restaurantId)
-    .eq('table_id', tableId)
-    .eq('status', 'requested')
-    .not('session_id', 'is', null)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!data?.created_at) return { requested: false, at: null };
-  return { requested: true, at: data.created_at as string };
-}
-
-async function loadTableOrdersForSession(
+export async function fetchWaiterTablePageModel(
   admin: SupabaseClient,
   restaurantId: string,
   tableId: string,
-  sessionId: string | null,
-): Promise<Order[]> {
-  // Contract: table detail consumers treat this list as authoritative for the detail view.
-  // The waiter board uses the full-restaurant order list + ordersForWaiterTableView per table.
-  if (sessionId) {
-    const { data } = await admin
-      .from('orders')
-      .select('*')
-      .eq('restaurant_id', restaurantId)
-      .eq('session_id', sessionId)
-      .in('status', [...ACTIVE_ORDER_STATUSES])
-      .order('updated_at', { ascending: false });
-    return (data || []) as Order[];
-  }
+) {
+  return loadWaiterTablePageModel(admin, restaurantId, tableId);
+}
 
-  const { data } = await admin
-    .from('orders')
-    .select('*')
-    .eq('restaurant_id', restaurantId)
-    .eq('table_id', tableId)
-    .is('session_id', null)
-    .in('status', [...ACTIVE_ORDER_STATUSES])
-    .order('updated_at', { ascending: false });
-  return (data || []) as Order[];
+export async function fetchWaiterTableDetail(
+  admin: SupabaseClient,
+  restaurantId: string,
+  tableId: string,
+): Promise<WaiterTableDetailData> {
+  const model = await loadWaiterTablePageModel(admin, restaurantId, tableId);
+  if (!model) {
+    return {
+      table: null,
+      sessionMeta: null,
+      orders: [],
+      checkoutRequested: false,
+      checkoutRequestedAt: null,
+    };
+  }
+  return model.detail;
 }
 
 export async function fetchKitchenBoard(admin: SupabaseClient, restaurantId: string) {
@@ -186,58 +159,6 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
   };
 }
 
-export async function fetchWaiterTableDetail(
-  admin: SupabaseClient,
-  restaurantId: string,
-  tableId: string,
-): Promise<WaiterTableDetailData> {
-  const [{ data: tableRow }, { data: sessionRow }, checkout] = await Promise.all([
-    admin
-      .from('restaurant_tables')
-      .select('id, display_name, sort_order')
-      .eq('restaurant_id', restaurantId)
-      .eq('id', tableId)
-      .is('deleted_at', null)
-      .maybeSingle(),
-    admin
-      .from('table_sessions')
-      .select('id, table_id, opened_at, status')
-      .eq('restaurant_id', restaurantId)
-      .eq('table_id', tableId)
-      .in('status', ['open', 'billing'])
-      .order('opened_at', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    fetchCheckoutRequestedForTable(admin, restaurantId, tableId),
-  ]);
-
-  const sessionMeta =
-    sessionRow?.id &&
-    sessionRow.opened_at &&
-    (sessionRow.status === 'open' || sessionRow.status === 'billing')
-      ? {
-          sessionId: sessionRow.id as string,
-          openedAt: sessionRow.opened_at as string,
-          status: sessionRow.status as 'open' | 'billing',
-        }
-      : null;
-
-  const orders = await loadTableOrdersForSession(
-    admin,
-    restaurantId,
-    tableId,
-    sessionMeta?.sessionId ?? null,
-  );
-
-  return {
-    table: tableRow ? (tableRow as RestaurantTableRow) : null,
-    sessionMeta,
-    orders,
-    checkoutRequested: checkout.requested,
-    checkoutRequestedAt: checkout.at,
-  };
-}
-
 export async function fetchWaiterTableActionTargets(
   admin: SupabaseClient,
   restaurantId: string,
@@ -284,11 +205,3 @@ export const loadWaiterBoardInitial = cache(async (restaurantId: string) => {
   const admin = createAdminClient();
   return fetchWaiterBoard(admin, restaurantId);
 });
-
-/** SSR initial waiter table detail — same query path as the staff table-detail API. */
-export const loadWaiterTableDetailInitial = cache(
-  async (restaurantId: string, tableId: string) => {
-    const admin = createAdminClient();
-    return fetchWaiterTableDetail(admin, restaurantId, tableId);
-  },
-);

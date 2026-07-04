@@ -5,9 +5,10 @@ import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Staff board/detail freshness contract (production):
- * 1. SSR seeds first paint
- * 2. Client reconcile on route entry (this hook)
- * 3. Realtime while the view stays mounted (`useRestaurantRealtimeRefresh`)
+ * 1. SSR page seed (`loadWaiterTablePageInitial`) — table detail skips entry reconcile when initialModel is set
+ * 2. Client reconcile on entry only without SSR seed (`useRestaurantStaffEntryReconcile`)
+ * 3. Staff menu submit return (`?from=menu_submit`) — router.refresh + one Staff API
+ * 4. Realtime while mounted (`useRestaurantRealtimeRefresh`)
  */
 export function useRestaurantStaffEntryReconcile(
   enabled: boolean,

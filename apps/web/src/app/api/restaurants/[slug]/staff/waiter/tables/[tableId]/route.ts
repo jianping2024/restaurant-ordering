@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
-import { fetchWaiterTableDetail } from '@/lib/staff-board';
+import { fetchWaiterTablePageModel } from '@/lib/staff-board';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 
@@ -29,10 +29,10 @@ export async function GET(
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
-  const detail = await fetchWaiterTableDetail(admin, ctx.restaurant_id, tableId);
-  if (!detail.table) {
+  const model = await fetchWaiterTablePageModel(admin, ctx.restaurant_id, tableId);
+  if (!model?.detail.table) {
     return NextResponse.json({ error: 'table_not_found' }, { status: 404 });
   }
 
-  return NextResponse.json(detail);
+  return NextResponse.json(model);
 }

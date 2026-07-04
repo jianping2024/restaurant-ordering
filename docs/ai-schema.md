@@ -130,9 +130,10 @@ restaurants_public — security definer view; public menu/geo fields for custome
 
 | Function | Role | Notes |
 |----------|------|-------|
-| `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index, collected_amount?, created_by_user_id?)` | authenticated, service_role | SECURITY DEFINER checkout; reads `bill_splits.discount_rate`; appends `session_collected_payments`; advisory lock per session; rejects `cancelled` splits; not anon |
+| `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index, collected_amount?, created_by_user_id?)` | authenticated, service_role | SECURITY DEFINER checkout; reads `bill_splits.discount_rate`; appends `session_collected_payments`; rejects when ledger already covers discounted row amount; reconciles `result.paid` from ledger; returns `collected_payment_id`; advisory lock per session; not anon |
 | `resume_table_session_ordering(restaurant_id, table_id)` | authenticated, service_role | Set session `billing` → `open`; blocks whole-table when paid or ledger non-empty; `by_item` split always `confirmed`; even/custom `confirmed` when partial pay else `cancelled` |
-| `upsert_bill_split_request(restaurant_id, session_id, table_id, display_name, order_ids, split_mode, persons, result, total_amount, customer_nif)` | authenticated, service_role | Atomic checkout request; merges `paid` under lock; not anon |
+| `upsert_bill_split_request(restaurant_id, session_id, table_id, display_name, order_ids, split_mode, persons, result, total_amount, customer_nif)` | authenticated, service_role | Atomic checkout request; merges amounts then `reconcile_split_result_paid_from_ledger`; not anon |
+| `reconcile_split_result_paid_from_ledger(result, restaurant_id, session_id, discount_rate?)` | authenticated, service_role | Sets each `result.paid` when session ledger covers discounted row amount |
 | `close_table_session_operational(restaurant_id, table_id, closed_reason, closed_by_user_id?)` | authenticated, service_role | Atomic operational close: cancel splits, void orders, close session; not anon |
 | `compute_session_payment_gap(restaurant_id, session_id)` | authenticated, service_role | Returns payable/paid/gap + `is_unpaid_close` for an active session |
 | `close_table_session_manual(restaurant_id, table_id, operator_user_id, closed_reason, confirm_close, unpaid_reason?, unpaid_reason_detail?)` | authenticated, service_role | Owner/frontdesk manual close; validates unpaid reason; returns audit snapshot (audit rows written in app via `recordAudit`) |
@@ -445,8 +446,8 @@ table_sessions:
 - Table lifecycle: `restaurant_tables` defines physical/logical tables; `table_sessions` tracks open/billing/closed dining sessions.
 - Ordering flow: `orders` stores item payloads in `items` jsonb and links to restaurant/table/session. Each line snapshots `item_code` and `category_code_path` (root→leaf category codes) at append time for print labels.
 - Billing flow: `bill_splits` supports even/by-item/custom splits and stores calculated result in jsonb. At most one active (`pending`/`confirmed`/`requested`) row per `session_id` (partial unique index).
-- Checkout request: `upsert_bill_split_request(...)` — advisory lock per session; `FOR UPDATE` on active split; merges `paid` flags; sets `table_sessions` to `billing`.
-- Checkout confirm payment: `confirm_bill_split_payment(...)` — advisory lock per session when `session_id` set; `FOR UPDATE` on `bill_splits`; rejects `cancelled`; appends `session_collected_payments` per confirm; closes `table_sessions` when all rows paid.
+- Checkout request: `upsert_bill_split_request(...)` — advisory lock per session; `FOR UPDATE` on active split; merges row amounts then reconciles `paid` from `session_collected_payments`; sets `table_sessions` to `billing`.
+- Checkout confirm payment: `confirm_bill_split_payment(...)` — advisory lock per session when `session_id` set; `FOR UPDATE` on `bill_splits`; rejects when outstanding ≤ 0; appends `session_collected_payments`; reconciles all `result.paid`; closes `table_sessions` when every row settled.
 - Resume ordering: `resume_table_session_ordering(...)` — sets session `open`; ledger unchanged; whole-table blocked if paid or ledger has rows; **`by_item` always `confirmed`**; even/custom `confirmed` when partial pay else `cancelled`. Product rules: `docs/checkout-resume-ordering.zh.md`.
 - Operational close: `close_table_session_operational(...)` — advisory lock; locks active `bill_splits` then `table_sessions`; cancels splits, voids order lines, closes session.
 - Menu routing: `menu_categories` and `menu_items` can each map to `print_stations`.

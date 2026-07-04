@@ -23,9 +23,9 @@ import {
   type SessionCollectedPayment,
   resumeCheckoutBlockReason,
   resumeOrderingConfirmVariant,
+  collectibleSplitRowsWithIndex,
   suggestedCollectionAmount,
   sumCollectedByPersonName,
-  unpaidSplitRowsWithIndex,
 } from '@/lib/checkout-session-payments';
 import { requestCheckoutResumeOrdering } from '@/lib/request-checkout-resume-ordering';
 import { useCheckoutBillPrintCooldown } from '@/lib/use-checkout-bill-print-cooldown';
@@ -508,7 +508,10 @@ export function CheckoutRequestsManager({
     return t.resumeOrderingConfirmCancel;
   }, [selectedRequest, selectedCollectedPayments, t]);
   const pendingSplitRows = selectedRequest
-    ? unpaidSplitRowsWithIndex(getDiscountedSplitResult(selectedRequest))
+    ? collectibleSplitRowsWithIndex(
+        getDiscountedSplitResult(selectedRequest),
+        collectedByPerson,
+      )
     : [];
 
   return (

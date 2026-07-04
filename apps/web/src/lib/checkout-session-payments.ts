@@ -6,11 +6,23 @@ export type SplitRowWithIndex = {
   index: number;
 };
 
-/** Split rows still awaiting confirm-payment; preserves original person_index for RPC. */
-export function unpaidSplitRowsWithIndex(rows: SplitResult[]): SplitRowWithIndex[] {
+/** Obligation minus prior collections for this person (never negative). */
+export function outstandingAmount(obligation: number, priorCollected: number): number {
+  const delta = Number(obligation) - priorCollected;
+  return Math.max(0, Math.round(delta * 100) / 100);
+}
+
+/** Split rows with a positive balance after session ledger; preserves person_index for RPC. */
+export function collectibleSplitRowsWithIndex(
+  rows: SplitResult[],
+  collectedByPerson: Map<string, number>,
+): SplitRowWithIndex[] {
   return rows
     .map((row, index) => ({ row, index }))
-    .filter(({ row }) => !row.paid);
+    .filter(
+      ({ row }) =>
+        outstandingAmount(row.amount, collectedByPerson.get(row.name.trim()) ?? 0) > 0,
+    );
 }
 
 export type SessionCollectedPayment = {
@@ -80,9 +92,46 @@ export function suggestedCollectionAmount(
   newPayable: number,
   collectedByPerson: Map<string, number>,
 ): number {
-  const prior = collectedByPerson.get(personName.trim()) ?? 0;
-  const delta = Number(newPayable) - prior;
-  return Math.max(0, Math.round(delta * 100) / 100);
+  return outstandingAmount(newPayable, collectedByPerson.get(personName.trim()) ?? 0);
+}
+
+/** Derive paid flags from ledger vs row amounts (matches reconcile_split_result_paid_from_ledger). */
+export function reconcileSplitResultPaid(
+  rows: SplitResult[],
+  collectedByPerson: Map<string, number>,
+): SplitResult[] {
+  return rows.map((row) => ({
+    ...row,
+    paid: outstandingAmount(row.amount, collectedByPerson.get(row.name.trim()) ?? 0) <= 0,
+  }));
+}
+
+/** Person names that already have ledger rows (case-insensitive). */
+export function collectedPersonNames(
+  payments: SessionCollectedPayment[],
+): ReadonlySet<string> {
+  const names = new Set<string>();
+  for (const payment of payments) {
+    const key = payment.person_name.trim().toLowerCase();
+    if (key) names.add(key);
+  }
+  return names;
+}
+
+/** Distinct display names from ledger rows (preserves first-seen casing). */
+export function uniqueCollectedPersonNames(
+  payments: Array<{ person_name: string }>,
+): string[] {
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const payment of payments) {
+    const name = payment.person_name.trim();
+    const key = name.toLowerCase();
+    if (!name || seen.has(key)) continue;
+    seen.add(key);
+    names.push(name);
+  }
+  return names;
 }
 
 export function isWholeTableSplit(split: BillSplit): boolean {

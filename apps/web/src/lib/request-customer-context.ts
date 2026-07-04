@@ -10,6 +10,7 @@ export type CustomerBillResponse = {
   orders: Order[];
   existing_split: BillSplit | null;
   has_collected_payments: boolean;
+  collected_person_names: string[];
 };
 
 async function fetchJson<T>(url: string): Promise<T | null> {

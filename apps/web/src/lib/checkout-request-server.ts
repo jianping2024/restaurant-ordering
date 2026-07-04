@@ -4,6 +4,10 @@ import { buildBillSplitOrderLines, buildByItemLineSpecs } from '@/lib/bill-split
 import { validateCheckoutContinuation } from '@/lib/checkout-split-continuation';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
 import { validateBillSplit } from '@/lib/bill-split-validate';
+import {
+  parseSessionCollectedPayments,
+  SESSION_COLLECTED_PAYMENT_SELECT,
+} from '@/lib/checkout-session-payments';
 import { sumLineTotals } from '@/lib/cart-totals';
 import type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
 import type { BillSplit, SplitResult } from '@/types';
@@ -99,12 +103,23 @@ export async function submitCheckoutRequestForTable(
     .eq('restaurant_id', restaurantId)
     .eq('session_id', sessionId);
 
+  let collectedPayments = parseSessionCollectedPayments(null);
+  if ((collectedCount ?? 0) > 0) {
+    const { data: collectedRows } = await admin
+      .from('session_collected_payments')
+      .select(SESSION_COLLECTED_PAYMENT_SELECT)
+      .eq('restaurant_id', restaurantId)
+      .eq('session_id', sessionId);
+    collectedPayments = parseSessionCollectedPayments(collectedRows);
+  }
+
   if (existingSplitRow) {
     const continuation = validateCheckoutContinuation({
       existing: existingSplitRow as BillSplit,
       payload,
       lineSpecs,
-      hasCollectedLedger: (collectedCount ?? 0) > 0,
+      hasCollectedLedger: collectedPayments.length > 0,
+      collectedPayments,
     });
     if (!continuation.ok) {
       return { ok: false, error: continuation.issue, status: 409 };

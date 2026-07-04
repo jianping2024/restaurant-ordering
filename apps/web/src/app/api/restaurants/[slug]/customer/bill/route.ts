@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
+  parseSessionCollectedPayments,
+  SESSION_COLLECTED_PAYMENT_SELECT,
+  uniqueCollectedPersonNames,
+} from '@/lib/checkout-session-payments';
+import {
   loadCustomerExistingSplit,
   loadCustomerRestaurantForApi,
   loadCustomerSessionOrders,
@@ -45,11 +50,12 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
       orders: [],
       existing_split: null,
       has_collected_payments: false,
+      collected_person_names: [],
     });
   }
 
   const sessionId = ctx.activeSession.id;
-  const [orders, existingSplit, collectedCountResult] = await Promise.all([
+  const [orders, existingSplit, collectedRowsResult] = await Promise.all([
     loadCustomerSessionOrders({
       admin,
       restaurantId: restaurant.id,
@@ -59,10 +65,11 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     loadCustomerExistingSplit({ admin, sessionId }),
     admin
       .from('session_collected_payments')
-      .select('id', { count: 'exact', head: true })
+      .select(SESSION_COLLECTED_PAYMENT_SELECT)
       .eq('restaurant_id', restaurant.id)
       .eq('session_id', sessionId),
   ]);
+  const collectedPayments = parseSessionCollectedPayments(collectedRowsResult.data);
 
   return NextResponse.json({
     table_id: ctx.tableId,
@@ -70,6 +77,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     active_session: ctx.activeSession,
     orders,
     existing_split: existingSplit,
-    has_collected_payments: (collectedCountResult.count ?? 0) > 0,
+    has_collected_payments: collectedPayments.length > 0,
+    collected_person_names: uniqueCollectedPersonNames(collectedPayments),
   });
 }

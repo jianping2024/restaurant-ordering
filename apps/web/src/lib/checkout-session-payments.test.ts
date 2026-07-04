@@ -2,13 +2,16 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { BillSplit } from '@/types';
 import {
+  collectibleSplitRowsWithIndex,
+  collectedPersonNames,
   parseSessionCollectedPayments,
+  reconcileSplitResultPaid,
   resumeCheckoutBlockReason,
   resumeOrderingConfirmVariant,
   suggestedCollectionAmount,
   sumCollectedByPersonName,
   totalCollectedAmount,
-  unpaidSplitRowsWithIndex,
+  uniqueCollectedPersonNames,
 } from './checkout-session-payments';
 
 function billSplit(overrides: Partial<BillSplit> = {}): BillSplit {
@@ -74,6 +77,81 @@ describe('suggestedCollectionAmount', () => {
   });
 });
 
+describe('collectibleSplitRowsWithIndex', () => {
+  it('includes paid rows that still owe after continuation', () => {
+    const map = sumCollectedByPersonName([
+      { id: '1', person_name: 'Ana', amount: 20, created_at: '' },
+    ]);
+    const pending = collectibleSplitRowsWithIndex(
+      [
+        { name: 'Ana', amount: 30, paid: true },
+        { name: 'Bob', amount: 25 },
+      ],
+      map,
+    );
+    assert.deepEqual(
+      pending.map((entry) => ({ name: entry.row.name, index: entry.index, amount: entry.row.amount })),
+      [
+        { name: 'Ana', index: 0, amount: 30 },
+        { name: 'Bob', index: 1, amount: 25 },
+      ],
+    );
+  });
+
+  it('drops rows with zero outstanding balance', () => {
+    const map = sumCollectedByPersonName([
+      { id: '1', person_name: 'John', amount: 30, created_at: '' },
+    ]);
+    const pending = collectibleSplitRowsWithIndex(
+      [{ name: 'John', amount: 30, paid: true }, { name: 'Mary', amount: 20 }],
+      map,
+    );
+    assert.deepEqual(
+      pending.map((entry) => ({ name: entry.row.name, index: entry.index })),
+      [{ name: 'Mary', index: 1 }],
+    );
+  });
+});
+
+describe('reconcileSplitResultPaid', () => {
+  it('marks paid only when ledger covers obligation', () => {
+    const map = sumCollectedByPersonName([
+      { id: '1', person_name: 'Ana', amount: 20, created_at: '' },
+    ]);
+    const rows = reconcileSplitResultPaid(
+      [
+        { name: 'Ana', amount: 30, paid: true },
+        { name: 'Bob', amount: 25 },
+      ],
+      map,
+    );
+    assert.equal(rows[0]?.paid, false);
+    assert.equal(rows[1]?.paid, false);
+  });
+});
+
+describe('collectedPersonNames', () => {
+  it('normalizes ledger names', () => {
+    const names = collectedPersonNames([
+      { id: '1', person_name: ' Ana ', amount: 10, created_at: '' },
+    ]);
+    assert.equal(names.has('ana'), true);
+  });
+});
+
+describe('uniqueCollectedPersonNames', () => {
+  it('dedupes case-insensitively', () => {
+    assert.deepEqual(
+      uniqueCollectedPersonNames([
+        { person_name: 'Ana' },
+        { person_name: ' ana ' },
+        { person_name: 'Bob' },
+      ]),
+      ['Ana', 'Bob'],
+    );
+  });
+});
+
 describe('totalCollectedAmount', () => {
   it('sums all ledger rows', () => {
     assert.equal(
@@ -82,24 +160,6 @@ describe('totalCollectedAmount', () => {
         { id: '2', person_name: 'B', amount: 5.5, created_at: '' },
       ]),
       15.5,
-    );
-  });
-});
-
-describe('unpaidSplitRowsWithIndex', () => {
-  it('drops paid rows and keeps original indices', () => {
-    const pending = unpaidSplitRowsWithIndex([
-      { name: 'John', amount: 10, paid: true },
-      { name: 'Mary', amount: 20 },
-      { name: 'Mike', amount: 30, paid: true },
-      { name: 'Ann', amount: 40 },
-    ]);
-    assert.deepEqual(
-      pending.map((entry) => ({ name: entry.row.name, index: entry.index })),
-      [
-        { name: 'Mary', index: 1 },
-        { name: 'Ann', index: 3 },
-      ],
     );
   });
 });

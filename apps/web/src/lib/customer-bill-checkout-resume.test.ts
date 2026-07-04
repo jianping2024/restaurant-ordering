@@ -7,6 +7,7 @@ describe('detectCheckoutResumedFromBillContext', () => {
     table_id: 't1',
     display_name: 'A1',
     has_collected_payments: false,
+    collected_person_names: [],
   };
 
   it('detects continuation split after resume', () => {
@@ -17,7 +18,7 @@ describe('detectCheckoutResumedFromBillContext', () => {
         active_session: { status: 'open' } as never,
         existing_split: split,
       }),
-      { kind: 'continuation', split, hasCollectedPayments: false },
+      { kind: 'continuation', split, hasCollectedPayments: false, collectedPersonNames: [] },
     );
   });
 

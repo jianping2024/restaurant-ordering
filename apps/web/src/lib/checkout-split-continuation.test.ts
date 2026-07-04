@@ -84,6 +84,31 @@ describe('lockedByItemLineKeys', () => {
     assert.equal(keys.has('o1-1'), false);
   });
 
+  it('locks ledger guests even when paid flag was reconciled off', () => {
+    const keys = lockedByItemLineKeys(
+      split({
+        result: [
+          { name: 'Ana', amount: 30, paid: false },
+          { name: 'Bob', amount: 10 },
+        ],
+        persons: [
+          {
+            name: 'Ana',
+            item_shares: [{ key: 'o1-0', qty_num: 1, qty_den: 1 }],
+          },
+          {
+            name: 'Bob',
+            item_shares: [{ key: 'o1-1', qty_num: 1, qty_den: 1 }],
+          },
+        ],
+      }),
+      true,
+      [{ id: '1', person_name: 'Ana', amount: 20, created_at: '' }],
+    );
+    assert.equal(keys.has('o1-0'), true);
+    assert.equal(keys.has('o1-1'), false);
+  });
+
   it('locks all assigned keys when ledger exists without paid rows', () => {
     const keys = lockedByItemLineKeys(
       split({

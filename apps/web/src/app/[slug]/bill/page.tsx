@@ -1,5 +1,10 @@
 import { notFound, redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/admin';
+import {
+  parseSessionCollectedPayments,
+  SESSION_COLLECTED_PAYMENT_SELECT,
+  uniqueCollectedPersonNames,
+} from '@/lib/checkout-session-payments';
 import { RestaurantMaintenancePage } from '@/components/customer/RestaurantMaintenancePage';
 import { BillPage } from '@/components/menu/BillPage';
 import {
@@ -87,9 +92,10 @@ export default async function BillRoute({ params, searchParams }: Props) {
   let initialFeedbackSubmitted = false;
   let initialFeedbackSkipped = false;
   let hasCollectedPayments = false;
+  let collectedPersonNames: string[] = [];
   if (tableContext.activeSession.id) {
     const sessionId = tableContext.activeSession.id;
-    const [{ data: feedbackSession }, collectedCountResult] = await Promise.all([
+    const [{ data: feedbackSession }, collectedRowsResult] = await Promise.all([
       admin
         .from('feedback_sessions')
         .select('completed_at, skipped_at')
@@ -97,13 +103,15 @@ export default async function BillRoute({ params, searchParams }: Props) {
         .maybeSingle(),
       admin
         .from('session_collected_payments')
-        .select('id', { count: 'exact', head: true })
+        .select(SESSION_COLLECTED_PAYMENT_SELECT)
         .eq('restaurant_id', restaurant.id)
         .eq('session_id', sessionId),
     ]);
+    const collectedPayments = parseSessionCollectedPayments(collectedRowsResult.data);
     initialFeedbackSubmitted = !!feedbackSession?.completed_at;
     initialFeedbackSkipped = !!feedbackSession?.skipped_at;
-    hasCollectedPayments = (collectedCountResult.count ?? 0) > 0;
+    hasCollectedPayments = collectedPayments.length > 0;
+    collectedPersonNames = uniqueCollectedPersonNames(collectedPayments);
   }
 
   return (
@@ -116,6 +124,7 @@ export default async function BillRoute({ params, searchParams }: Props) {
       sessionStatus={tableContext.activeSession.status}
       existingSplit={existingSplit}
       hasCollectedPayments={hasCollectedPayments}
+      collectedPersonNames={collectedPersonNames}
       staffAssisted={staffAssisted}
       initialFeedbackSubmitted={initialFeedbackSubmitted}
       initialFeedbackSkipped={initialFeedbackSkipped}

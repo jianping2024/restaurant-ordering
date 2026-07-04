@@ -1,5 +1,6 @@
 import { checkoutPayableAmount, normalizeSplitRows } from '@/lib/checkout-split-math';
 import {
+  outstandingAmount,
   totalCollectedAmount,
   type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
@@ -64,8 +65,7 @@ export function checkoutRowCollectAmount(
   rowAmount: number,
   priorCollectedForPerson: number,
 ): number {
-  const delta = Number(rowAmount) - priorCollectedForPerson;
-  return Math.max(0, Math.round(delta * 100) / 100);
+  return outstandingAmount(rowAmount, priorCollectedForPerson);
 }
 
 export function formatCheckoutWaitDuration(

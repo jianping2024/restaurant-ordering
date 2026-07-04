@@ -110,6 +110,10 @@ describe('checkoutReceiptIdempotencyKey', () => {
       `checkout:${BILL_SPLIT_ID}:split:1`,
     );
     assert.equal(
+      checkoutReceiptIdempotencyKey('split_payment', BILL_SPLIT_ID, 1, 'pay-2'),
+      `checkout:${BILL_SPLIT_ID}:split:1:payment:pay-2`,
+    );
+    assert.equal(
       checkoutReceiptIdempotencyKey('final', BILL_SPLIT_ID),
       `checkout:${BILL_SPLIT_ID}:final`,
     );

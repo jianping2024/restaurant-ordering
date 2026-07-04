@@ -39,6 +39,7 @@ type ConfirmBillSplitPaymentRpc = {
   order_ids?: unknown;
   row_name?: string;
   row_amount?: number;
+  collected_payment_id?: string | null;
   newly_paid?: boolean;
   should_print_split?: boolean;
   should_print_final?: boolean;
@@ -124,6 +125,8 @@ export async function confirmBillSplitPayment(params: {
   const tableDisplayName = payload.display_name;
   const printTarget = receiptPrinterId?.trim() || undefined;
   const rowAmount = Number(payload.row_amount) || 0;
+  const collectedPaymentId =
+    typeof payload.collected_payment_id === 'string' ? payload.collected_payment_id : null;
 
   if (
     payload.newly_paid &&
@@ -147,6 +150,7 @@ export async function confirmBillSplitPayment(params: {
       billSplitId,
       personIndex,
       receiptPrinterId: printTarget,
+      collectedPaymentId,
     });
   }
 

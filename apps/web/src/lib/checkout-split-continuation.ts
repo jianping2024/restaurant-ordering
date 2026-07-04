@@ -9,6 +9,8 @@ import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { rationalsEqual, type Rational } from '@/lib/rational-qty';
 import type { BillSplit, SplitMode, SplitPerson } from '@/types';
 import type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
+import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
+import { collectedPersonNames } from '@/lib/checkout-session-payments';
 
 export type CheckoutContinuationIssue = 'split_mode_locked' | 'locked_allocation_changed';
 
@@ -34,6 +36,18 @@ export function isCheckoutSplitLocked(
   if (hasPaidSplitRow(split)) return true;
   if (hasCollectedLedger) return true;
   return false;
+}
+
+/** Guests with collection history on this session (case-insensitive). */
+export function allocationLockedPersonNames(
+  split: BillSplit | null | undefined,
+  collectedPayments: SessionCollectedPayment[] = [],
+): ReadonlySet<string> {
+  const names = new Set(collectedPersonNames(collectedPayments));
+  for (const name of Array.from(paidSplitPersonNames(split))) {
+    names.add(name);
+  }
+  return names;
 }
 
 /** Guests who already paid on the active split (case-insensitive). */
@@ -63,16 +77,17 @@ export function shouldShowCheckoutSubmitted(
 export function lockedByItemLineKeys(
   split: BillSplit | null | undefined,
   hasCollectedLedger = false,
+  collectedPayments: SessionCollectedPayment[] = [],
 ): Set<string> {
   const keys = new Set<string>();
   if (!split || split.split_mode !== 'by_item') return keys;
 
-  const paidNames = paidSplitPersonNames(split);
-  const lockAllAssignedShares = hasCollectedLedger && paidNames.size === 0;
+  const lockedNames = allocationLockedPersonNames(split, collectedPayments);
+  const lockAllAssignedShares = hasCollectedLedger && lockedNames.size === 0;
 
   for (const person of split.persons ?? []) {
-    const isPaidPerson = paidNames.has(person.name.trim().toLowerCase());
-    if (!lockAllAssignedShares && !isPaidPerson) continue;
+    const isLockedPerson = lockedNames.has(person.name.trim().toLowerCase());
+    if (!lockAllAssignedShares && !isLockedPerson) continue;
     for (const share of person.item_shares ?? []) {
       if (share.key) keys.add(share.key);
     }
@@ -154,8 +169,9 @@ export function validateCheckoutContinuation(params: {
   payload: CheckoutRequestPayload;
   lineSpecs: ByItemLineSpec[];
   hasCollectedLedger: boolean;
+  collectedPayments?: SessionCollectedPayment[];
 }): { ok: true } | { ok: false; issue: CheckoutContinuationIssue } {
-  const { existing, payload, lineSpecs, hasCollectedLedger } = params;
+  const { existing, payload, lineSpecs, hasCollectedLedger, collectedPayments = [] } = params;
   if (!isCheckoutSplitLocked(existing, hasCollectedLedger)) {
     return { ok: true };
   }
@@ -170,7 +186,7 @@ export function validateCheckoutContinuation(params: {
   }
 
   if (existing.split_mode === 'by_item' && incomingMode === 'by_item') {
-    const lockedKeys = lockedByItemLineKeys(existing, hasCollectedLedger);
+    const lockedKeys = lockedByItemLineKeys(existing, hasCollectedLedger, collectedPayments);
     if (lockedKeys.size === 0) return { ok: true };
     const existingAlloc = buildByItemAllocationsFromPersons(existing.persons ?? [], lineSpecs);
     const incomingAlloc = buildByItemAllocationsFromPersons(payload.persons, lineSpecs);

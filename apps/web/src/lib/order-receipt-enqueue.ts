@@ -159,9 +159,13 @@ export function checkoutReceiptIdempotencyKey(
   variant: ReceiptVariant,
   billSplitId: string,
   personIndex?: number,
+  collectedPaymentId?: string | null,
 ): string | undefined {
   if (variant === 'split_payment' && personIndex != null && personIndex >= 0) {
-    return `checkout:${billSplitId}:split:${personIndex}`;
+    const paymentSuffix = collectedPaymentId?.trim()
+      ? `:payment:${collectedPaymentId.trim()}`
+      : '';
+    return `checkout:${billSplitId}:split:${personIndex}${paymentSuffix}`;
   }
   if (variant === 'final') {
     return `checkout:${billSplitId}:final`;
@@ -207,6 +211,8 @@ type EnqueueParams = {
   receiptPrinterId?: string;
   /** Bill snapshot order ids; falls back to bill_splits.order_ids when billSplitId is set */
   orderIds?: string[];
+  /** Ledger row id for split_payment dedup across continuation collections */
+  collectedPaymentId?: string | null;
   /** Checkout dashboard discount % for checkout_bill (matches「应收」). */
   discountRate?: number;
 };
@@ -259,6 +265,7 @@ export async function enqueueReceiptPrint(
     receiptPrinterId,
     orderIds: orderIdsParam,
     discountRate = 0,
+    collectedPaymentId,
   } = params;
 
   const { data: restaurantRow, error: restaurantErr } = await admin
@@ -286,7 +293,7 @@ export async function enqueueReceiptPrint(
 
   const idempotencyKey =
     billSplitId != null
-      ? checkoutReceiptIdempotencyKey(variant, billSplitId, personIndex)
+      ? checkoutReceiptIdempotencyKey(variant, billSplitId, personIndex, collectedPaymentId)
       : undefined;
   if (idempotencyKey) {
     const existingId = await findCheckoutReceiptJobId(admin, restaurantId, idempotencyKey);

@@ -5,11 +5,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { validateSplitDraft } from '@/lib/bill-split-draft';
 import {
+  allocationLockedPersonNames,
   isCheckoutSplitLocked,
   lockedByItemLineKeys,
-  paidSplitPersonNames,
   shouldShowCheckoutSubmitted,
 } from '@/lib/checkout-split-continuation';
+import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { deriveBillView, isBillOrdersComplete } from '@/lib/customer-bill-sync';
 import { detectCheckoutResumedFromBillContext } from '@/lib/customer-bill-checkout-resume';
 import { requestCustomerBillContext } from '@/lib/request-customer-context';
@@ -44,6 +45,7 @@ interface Props {
   sessionStatus: SessionStatus;
   existingSplit: BillSplit | null;
   hasCollectedPayments?: boolean;
+  collectedPersonNames?: string[];
   staffAssisted?: StaffAssistedFlow | null;
   initialFeedbackSubmitted?: boolean;
   initialFeedbackSkipped?: boolean;
@@ -72,6 +74,7 @@ export function BillPage({
   sessionStatus,
   existingSplit,
   hasCollectedPayments = false,
+  collectedPersonNames: initialCollectedPersonNames = [],
   staffAssisted = null,
   initialFeedbackSubmitted = false,
   initialFeedbackSkipped = false,
@@ -100,6 +103,7 @@ export function BillPage({
   })();
   const [continuationSplit, setContinuationSplit] = useState<BillSplit | null>(existingSplit);
   const [collectedLedgerActive, setCollectedLedgerActive] = useState(hasCollectedPayments);
+  const [collectedPersonNames, setCollectedPersonNames] = useState(initialCollectedPersonNames);
   const [splitMode, setSplitMode] = useState<SplitMode | null>(initialSplitMode);
   const [personCount, setPersonCount] = useState(() => {
     if (existingSplit?.split_mode === 'even' && existingSplit.persons?.length) {
@@ -165,6 +169,7 @@ export function BillPage({
         setSubmitted(false);
         setContinuationSplit(resumed.split);
         setCollectedLedgerActive(resumed.hasCollectedPayments);
+        setCollectedPersonNames(resumed.collectedPersonNames);
         if (resumed.split.split_mode) {
           setSplitMode(resumed.split.split_mode);
         }
@@ -176,6 +181,7 @@ export function BillPage({
         setSplitMode(null);
         setContinuationSplit(null);
         setCollectedLedgerActive(false);
+        setCollectedPersonNames([]);
         setPersistedResult(null);
         await syncOrders();
         return true;
@@ -213,7 +219,7 @@ export function BillPage({
   const startInlineRename = (index: number) => {
     const current = splitPeople[index];
     if (!current) return;
-    if (splitLocked && paidPersonNames.has(current.name.trim().toLowerCase())) return;
+    if (splitLocked && lockedPersonNames.has(current.name.trim().toLowerCase())) return;
     setEditingSplitNameIndex(index);
     setEditingSplitNameValue(current.name);
   };
@@ -223,7 +229,7 @@ export function BillPage({
     if (splitMode === 'by_item') {
       const oldName = results[index]?.name;
       if (oldName && normalized) {
-        if (splitLocked && paidPersonNames.has(oldName.trim().toLowerCase())) {
+        if (splitLocked && lockedPersonNames.has(oldName.trim().toLowerCase())) {
           setEditingSplitNameIndex(null);
           setEditingSplitNameValue('');
           return;
@@ -274,16 +280,28 @@ export function BillPage({
     () => isCheckoutSplitLocked(continuationSplit, collectedLedgerActive),
     [continuationSplit, collectedLedgerActive],
   );
+  const collectedPaymentsForLock = useMemo(
+    () =>
+      collectedPersonNames.map(
+        (personName, index): SessionCollectedPayment => ({
+          id: `ledger-${index}`,
+          person_name: personName,
+          amount: 0,
+          created_at: '',
+        }),
+      ),
+    [collectedPersonNames],
+  );
   const lockedLineKeys = useMemo(
     () =>
       splitLocked
-        ? lockedByItemLineKeys(continuationSplit, collectedLedgerActive)
+        ? lockedByItemLineKeys(continuationSplit, collectedLedgerActive, collectedPaymentsForLock)
         : new Set<string>(),
-    [splitLocked, continuationSplit, collectedLedgerActive],
+    [splitLocked, continuationSplit, collectedLedgerActive, collectedPaymentsForLock],
   );
-  const paidPersonNames = useMemo(
-    () => paidSplitPersonNames(continuationSplit),
-    [continuationSplit],
+  const lockedPersonNames = useMemo(
+    () => allocationLockedPersonNames(continuationSplit, collectedPaymentsForLock),
+    [continuationSplit, collectedPaymentsForLock],
   );
 
   const splitDraftInput = useMemo(
@@ -925,7 +943,7 @@ export function BillPage({
         <h2 className="text-brand-text font-medium mb-3">{t.splitResult}</h2>
         <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
           {results.map((r, i) => {
-            const rowPaid = splitLocked && paidPersonNames.has(r.name.trim().toLowerCase());
+            const rowPaid = splitLocked && lockedPersonNames.has(r.name.trim().toLowerCase());
             return (
             <div key={i} className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0">
               {splitMode && (splitMode === 'even' || splitMode === 'by_item' || splitMode === 'custom') ? (

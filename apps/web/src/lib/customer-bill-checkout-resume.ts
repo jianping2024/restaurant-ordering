@@ -6,6 +6,7 @@ export type CheckoutResumedFromBillContext =
       kind: 'continuation';
       split: BillSplit;
       hasCollectedPayments: boolean;
+      collectedPersonNames: string[];
     }
   | { kind: 'fresh' }
   | { kind: 'unchanged' };
@@ -19,6 +20,7 @@ export function detectCheckoutResumedFromBillContext(
       kind: 'continuation',
       split: ctx.existing_split,
       hasCollectedPayments: ctx.has_collected_payments,
+      collectedPersonNames: ctx.collected_person_names ?? [],
     };
   }
   if (ctx.active_session?.status === 'open' && !ctx.existing_split) {

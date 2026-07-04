@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
-import { tableSessionBlocksWaiterMutation, sessionBillingResponse } from '@/lib/waiter-session-guard';
+import { tableInActiveCheckout, tableSessionBlocksWaiterMutation, sessionBillingResponse } from '@/lib/waiter-session-guard';
 
 export const runtime = 'nodejs';
 
@@ -45,7 +45,15 @@ export async function POST(
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
-  if (await tableSessionBlocksWaiterMutation(admin, ctx.restaurant_id, fromTableId)) {
+  if (action === 'merge') {
+    const [fromCheckout, toCheckout] = await Promise.all([
+      tableInActiveCheckout(admin, ctx.restaurant_id, fromTableId),
+      tableInActiveCheckout(admin, ctx.restaurant_id, toTableId),
+    ]);
+    if (fromCheckout || toCheckout) {
+      return sessionBillingResponse();
+    }
+  } else if (await tableSessionBlocksWaiterMutation(admin, ctx.restaurant_id, fromTableId)) {
     return sessionBillingResponse();
   }
 

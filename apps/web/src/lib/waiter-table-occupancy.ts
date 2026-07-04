@@ -2,6 +2,7 @@ import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import {
   activeSessionIdByTableIdFromMeta,
+  isWaiterTableInCheckout,
   type WaiterTableSessionMeta,
 } from '@/lib/waiter-board-session';
 import { sortRestaurantTables, tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
@@ -40,6 +41,8 @@ export function filterWaiterTableActionTargets(
   activeTableIds: readonly string[],
   sourceTableId: string,
   operation: 'transfer' | 'merge',
+  sessionMetaByTableId: Record<string, WaiterTableSessionMeta> = {},
+  checkoutRequestedTableIds: readonly string[] = [],
 ): RestaurantTableRow[] {
   const sorted = sortRestaurantTables([...tables]);
   if (operation === 'transfer') {
@@ -52,6 +55,7 @@ export function filterWaiterTableActionTargets(
   return sorted.filter(
     (table) =>
       activeTableIds.some((id) => tableIdsEqual(id, table.id)) &&
-      !tableIdsEqual(table.id, sourceTableId),
+      !tableIdsEqual(table.id, sourceTableId) &&
+      !isWaiterTableInCheckout(table.id, sessionMetaByTableId, checkoutRequestedTableIds),
   );
 }

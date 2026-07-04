@@ -31,6 +31,7 @@
 2. **禁止**恢复 `table_number` 或纸面打印 UUID
 3. 订单/分单/打印 payload 须同时带 `table_id` + `display_name` 快照
 4. 转台/并台/关台须原子 RPC，禁止只改 `table_sessions` 一行
+5. **并台**：来源桌与目标桌均不得处于待结账（与看板 `checkout` 判定一致）；目标选择列表不展示待结账桌；API 双端校验，禁止并入或并出结算中会话
 
 ### 相关代码
 

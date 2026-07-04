@@ -243,14 +243,15 @@
 ### 正常流程 — 并台（merge）
 
 1. 来源桌与目标桌**均有**活跃会话，且 `table_id` 不同
-2. 同上 API，`action: 'merge'`
-3. RPC `merge_table_sessions`：来源订单挂到目标 `session_id`；来源会话 `closed`，`closed_reason=merged`
+2. 来源桌与目标桌均**非**待结账（`billing` 或无 `bill_splits.requested`）
+3. 同上 API，`action: 'merge'`
+4. RPC `merge_table_sessions`：来源订单挂到目标 `session_id`；来源会话 `closed`，`closed_reason=merged`
 
 ### 异常流程
 
 | 情况 | 行为 |
 |------|------|
-| 来源桌 `billing` | 409 `session_billing`，禁止转/并 |
+| 来源桌或目标桌待结账 | 409 `session_billing`；并台目标列表不含待结账桌 |
 | 目标桌不符合前置条件 | RPC 失败 400 |
 | 相同桌 | `invalid_tables` |
 

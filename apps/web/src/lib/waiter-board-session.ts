@@ -25,6 +25,18 @@ export function classifyWaiterTableBoardState(
   return 'idle';
 }
 
+/** Same predicate as waiter board 「待结账」— used for merge target eligibility. */
+export function isWaiterTableInCheckout(
+  tableId: string,
+  sessionMetaByTableId: Record<string, WaiterTableSessionMeta>,
+  checkoutRequestedTableIds: readonly string[],
+): boolean {
+  return (
+    classifyWaiterTableBoardState(tableId, sessionMetaByTableId, checkoutRequestedTableIds) ===
+    'checkout'
+  );
+}
+
 export function filterWaiterBoardTableIds(
   tableIds: readonly string[],
   filter: WaiterBoardFilter,

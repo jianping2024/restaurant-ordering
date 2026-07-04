@@ -58,3 +58,20 @@ test('filterWaiterTableActionTargets returns active tables for merge', () => {
   const targets = filterWaiterTableActionTargets(tables, [T1, T2], T1, 'merge');
   assert.deepEqual(targets.map((t) => t.id), [T2]);
 });
+
+test('filterWaiterTableActionTargets excludes checkout tables from merge targets', () => {
+  const sessionMeta = {
+    [T1]: { sessionId: 's1', openedAt: '2026-06-25T10:00:00Z', status: 'open' as const },
+    [T2]: { sessionId: 's2', openedAt: '2026-06-25T10:00:00Z', status: 'open' as const },
+    [T3]: { sessionId: 's3', openedAt: '2026-06-25T10:00:00Z', status: 'billing' as const },
+  };
+  const targets = filterWaiterTableActionTargets(
+    tables,
+    [T1, T2, T3],
+    T1,
+    'merge',
+    sessionMeta,
+    [T3],
+  );
+  assert.deepEqual(targets.map((t) => t.id), [T2]);
+});

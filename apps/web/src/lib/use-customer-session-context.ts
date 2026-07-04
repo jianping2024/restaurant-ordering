@@ -1,8 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import type { CustomerSessionContext } from '@/lib/customer-session-context';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  resolveCustomerSessionBootContext,
+  type CustomerSessionContext,
+} from '@/lib/customer-session-context';
 import { requestCustomerSessionContext } from '@/lib/request-customer-context';
+import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-realtime-refresh';
+import { peekPublishedWaiterTablePageModel } from '@/lib/waiter-staff-mutation-sync';
 import type { Order, TableSession } from '@/types';
 
 function stateFromContext(context: CustomerSessionContext | null | undefined) {
@@ -13,23 +18,31 @@ function stateFromContext(context: CustomerSessionContext | null | undefined) {
   return { activeSession, recentOrders };
 }
 
+function resolveBootContext(
+  tableId: string,
+  ssrContext: CustomerSessionContext | null,
+): CustomerSessionContext | null {
+  return resolveCustomerSessionBootContext({
+    tableId,
+    ssrContext,
+    publishedModel: peekPublishedWaiterTablePageModel(tableId),
+  });
+}
+
 export function useCustomerSessionContext(
   initialContext: CustomerSessionContext | null,
   params: { slug: string; tableId: string; isDemo?: boolean },
 ) {
-  const seeded = stateFromContext(initialContext);
+  const isDemo = params.isDemo ?? false;
+  const bootContext = resolveBootContext(params.tableId, initialContext);
+  const seeded = stateFromContext(bootContext);
+
   const [activeSession, setActiveSession] = useState<TableSession | null>(seeded.activeSession);
   const [recentOrders, setRecentOrders] = useState<Order[]>(seeded.recentOrders);
-  const [sessionResolved, setSessionResolved] = useState(
-    (params.isDemo ?? false) || initialContext != null,
-  );
+  const [sessionResolved, setSessionResolved] = useState(isDemo);
 
-  useEffect(() => {
-    const next = stateFromContext(initialContext);
-    setActiveSession(next.activeSession);
-    setRecentOrders(next.recentOrders);
-    if (initialContext != null) setSessionResolved(true);
-  }, [initialContext]);
+  const refreshInFlightRef = useRef<Promise<CustomerSessionContext | null> | null>(null);
+  const prevTableIdRef = useRef(params.tableId);
 
   const applyContext = useCallback((data: CustomerSessionContext | null) => {
     if (!data) return null;
@@ -41,15 +54,39 @@ export function useCustomerSessionContext(
   }, []);
 
   const refresh = useCallback(async () => {
-    const data = await requestCustomerSessionContext(params.slug, params.tableId);
-    return applyContext(data);
+    if (refreshInFlightRef.current) return refreshInFlightRef.current;
+
+    const running = (async () => {
+      try {
+        const data = await requestCustomerSessionContext(params.slug, params.tableId);
+        return applyContext(data);
+      } finally {
+        refreshInFlightRef.current = null;
+      }
+    })();
+    refreshInFlightRef.current = running;
+    return running;
   }, [applyContext, params.slug, params.tableId]);
 
-  // Entry reconcile only when SSR did not seed session (aligns with waiter table initialModel).
   useEffect(() => {
-    if (params.isDemo || initialContext != null) return;
-    void refresh();
-  }, [initialContext, params.isDemo, refresh]);
+    if (prevTableIdRef.current === params.tableId) return;
+    prevTableIdRef.current = params.tableId;
+    refreshInFlightRef.current = null;
+    const next = stateFromContext(resolveBootContext(params.tableId, initialContext));
+    setActiveSession(next.activeSession);
+    setRecentOrders(next.recentOrders);
+    setSessionResolved(isDemo);
+  }, [initialContext, isDemo, params.tableId]);
+
+  // SSR / published-model boot per table entry — omit initialContext from reconcile deps.
+  useEffect(() => {
+    const next = stateFromContext(resolveBootContext(params.tableId, initialContext));
+    setActiveSession(next.activeSession);
+    setRecentOrders(next.recentOrders);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- boot on tableId/mount only
+  }, [params.tableId]);
+
+  useRestaurantStaffEntryReconcile(!isDemo, refresh, params.tableId);
 
   return {
     activeSession,

@@ -112,24 +112,28 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 
 **实现状态**：契约函数为 `resolveWaiterMenuReturnHref`（`staff-routes.ts`）。若菜单页仍仅用 `returnPath.startsWith('/{slug}/waiter')`，则 dashboard 的 `return=/dashboard/waiter/...` 会被丢弃并回退到 `/{slug}/waiter`，导致代点完成后误进服务员鉴权页——属已知缺口，修复时只改解析函数与菜单/账单入口，**不要**改 append 写单管道。
 
-### 会话同步（加菜门禁 UI，无轮询）
+### 会话同步（加菜门禁 UI）
 
-顾客菜单**不**后台定时刷新；状态在**用户操作时**与服务器对齐。
+顾客菜单**不**后台定时刷新；挂载期间不轮询，但**进入页面时**必须与服务器对齐（与桌台详情同一新鲜度契约）。
 
 ```
-RSC menu/page.tsx
-  → loadCustomerSessionContext（与 GET .../customer/session 同形）
-  → MenuPage initialSessionContext + useCustomerSessionContext
-  → guestOrderingEnabled(activeSession, recentOrders)
-       本地已可点 → 直接加菜
-       本地不可点 → 加菜 / 提交前 refresh，重算门禁
-  → append 返回 session_billing → refresh，再提示
+① Boot   resolveCustomerSessionBootContext
+           published waiter model（有 session）> SSR/Router cache
+② Reconcile  mount / tableId 变化 → GET .../customer/session（useRestaurantStaffEntryReconcile）
+           sessionResolved 仅在 reconcile 完成后为 true
+③ Gate   guestOrderingEnabled(activeSession, recentOrders)
+           已 resolved 且可点 → 直接加菜
+           未 resolved → 加菜前 await 同一 in-flight reconcile
+           已 resolved 不可点 → 加菜 / 提交前 refresh，重算门禁
+④ 页内   不自动更新已下单区；顾客提交后 refresh；服务员代点跳回桌台 reconcile
 ```
 
-与开台管道对齐：服务员开台后，顾客**第一次点加菜**会拉到 `buffet_base`，门禁放开。  
-恢复点单后同理：本地仍显示「结账中」时，点「+ 加入」会先刷新 session，`billing → open` 后即可加菜。
+服务员看板 → 菜单：`WaiterTableDetail` 仅在 `detailLoaded` 后 prefetch 菜单 RSC，避免缓存开台前快照。
 
-**不自动更新**：已下单区菜品状态、顶部横幅，在用户不操作时不刷新；刷新页面或再次加菜/提交时会更新。
+与开台管道对齐：开台后进入菜单，boot + reconcile 应直接显示 `buffet_base` 并放开门禁，**不应**先显示「还没有提交订单」再等用户点击。  
+恢复点单后：本地仍显示「结账中」时，点「+ 加入」会先 refresh session，`billing → open` 后即可加菜。
+
+**不自动更新**：已下单区菜品状态、顶部横幅，在页内挂着不动时不刷新；进入页、加菜、提交或整页刷新时会更新。
 
 ### 提交流程（`submitOrder`）
 
@@ -226,7 +230,7 @@ RSC menu/page.tsx
 | 提交后反馈（顾客 vs 代点） | `lib/menu-order-submit-outcome.ts` |
 | 入队 API | `app/api/restaurants/[slug]/station-tickets/auto/route.ts` |
 | 档口分组入队 | `lib/station-ticket-enqueue.ts` |
-| 会话上下文（SSR + 操作时 refresh） | `lib/customer-session-context.ts` → `loadCustomerSessionContext`、`lib/use-customer-session-context.ts`、`lib/customer-menu-order-gate.ts` |
+| 会话上下文（SSR + boot + entry reconcile） | `lib/customer-session-context.ts`、`lib/use-customer-session-context.ts`、`lib/customer-menu-order-gate.ts` |
 | 看板 → 菜单链接 | `lib/staff-routes.ts` → `waiterMenuHref` |
 | 看板回跳路径（契约） | `lib/staff-routes.ts` → `waiterTableHref`、`resolveWaiterMenuReturnHref` |
 | 代点回桌台新鲜度契约 | `lib/staff-assisted-return-sync.ts` |

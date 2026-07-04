@@ -3,7 +3,11 @@ import { unstable_noStore as noStore } from 'next/cache';
 import { isRestaurantSuspended } from '@mesa/shared';
 import type { BillSplit, Order, TableSession } from '@/types';
 import { filterOrdersForCustomerDisplay } from '@/lib/customer-orders-display';
-import { parseTableIdParam, type RestaurantTableRow } from '@/lib/restaurant-tables';
+import { parseTableIdParam, tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
+import type {
+  WaiterTableDetailData,
+  WaiterTablePageModel,
+} from '@/lib/waiter-table-detail-types';
 
 type AdminClient = SupabaseClient;
 
@@ -160,6 +164,50 @@ export async function resolveCustomerTableContext(params: {
     displayName: requestedTable.display_name,
     activeSession: (activeSession as TableSession | null) || null,
   };
+}
+
+/** Map staff table detail slice to customer menu session shape (client boot bridge). */
+export function customerSessionContextFromWaiterDetail(
+  tableId: string,
+  detail: Pick<WaiterTableDetailData, 'table' | 'sessionMeta' | 'orders'>,
+): CustomerSessionContext | null {
+  const table = detail.table;
+  if (!table || !tableIdsEqual(table.id, tableId)) return null;
+
+  const sessionMeta = detail.sessionMeta;
+  const restaurantId = detail.orders[0]?.restaurant_id ?? '';
+  const active_session: TableSession | null = sessionMeta
+    ? {
+        id: sessionMeta.sessionId,
+        restaurant_id: restaurantId,
+        table_id: table.id,
+        status: sessionMeta.status,
+        opened_at: sessionMeta.openedAt,
+      }
+    : null;
+
+  return {
+    table_id: table.id,
+    display_name: table.display_name,
+    active_session,
+    recent_orders: active_session ? detail.orders : [],
+  };
+}
+
+/**
+ * Menu entry boot: published staff mutation cache wins over SSR/Router cache when it
+ * carries an active session (same contract as waiter table detail initialModel).
+ */
+export function resolveCustomerSessionBootContext(params: {
+  tableId: string;
+  ssrContext: CustomerSessionContext | null;
+  publishedModel?: WaiterTablePageModel | null;
+}): CustomerSessionContext | null {
+  const fromPublished = params.publishedModel
+    ? customerSessionContextFromWaiterDetail(params.tableId, params.publishedModel.detail)
+    : null;
+  if (fromPublished?.active_session) return fromPublished;
+  return params.ssrContext;
 }
 
 export async function loadCustomerSessionContext(params: {

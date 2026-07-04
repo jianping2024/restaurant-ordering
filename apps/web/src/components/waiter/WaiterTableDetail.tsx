@@ -313,7 +313,7 @@ function WaiterTableDetailInner({
 
   useStaffAssistedMenuEntryPrefetch(
     menuHref,
-    isWaiterTableCardOccupied(selectedCard) && !isCheckoutPending && !isDemo,
+    isWaiterTableCardOccupied(selectedCard) && !isCheckoutPending && !isDemo && detailLoaded,
   );
 
   const openAction = (type: 'transfer' | 'merge', sourceId: string) => {

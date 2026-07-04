@@ -95,11 +95,15 @@ export function MenuPage({
   });
 
   const ensureGuestCanPlaceOrder = useCallback(async () => {
+    if (!sessionResolved) {
+      const data = await refreshSessionContext();
+      return guestOrderGateFromSessionContext(data);
+    }
     const cached = guestOrderGateFromCachedState(isDemo ?? false, activeSession, recentOrders);
     if (cached) return cached;
     const data = await refreshSessionContext();
     return guestOrderGateFromSessionContext(data);
-  }, [activeSession, isDemo, recentOrders, refreshSessionContext]);
+  }, [activeSession, isDemo, recentOrders, refreshSessionContext, sessionResolved]);
 
   // 当前分类菜品
   const topCategories = menuCategories.filter((c) => !c.parent_id && c.active).sort((a, b) => a.sort_order - b.sort_order);
@@ -519,7 +523,12 @@ export function MenuPage({
           {recentOrders.length > 0 && (
             <p className="text-brand-text-muted text-[12px] mb-3">{t.orderedSubmittedHint}</p>
           )}
-          {!sessionResolved ? null : recentOrders.length === 0 ? (
+          {!sessionResolved ? (
+            <div className="space-y-2 animate-pulse" aria-hidden="true">
+              <div className="h-4 w-2/3 rounded bg-brand-border/40" />
+              <div className="h-14 rounded-xl bg-brand-border/30" />
+            </div>
+          ) : recentOrders.length === 0 ? (
             <p className="text-brand-text-muted text-sm">{t.noOrders}</p>
           ) : (
             <div className="space-y-3">

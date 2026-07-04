@@ -172,7 +172,7 @@ function MenuByItemDishAllocator({
                 onChange={(patch) => updateRow(row.id, patch)}
               />
               <ByItemConsumerRowRemoveButton
-                rowCount={rows.length}
+                removable={rows.length > 1}
                 ariaLabel={labels.remove}
                 onRemove={() => removeRow(row.id)}
               />

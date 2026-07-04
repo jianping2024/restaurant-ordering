@@ -1,8 +1,8 @@
 'use client';
 
 type Props = {
-  /** Hidden when the dish line has only one payer row. */
-  rowCount: number;
+  /** False when the dish line must keep at least one payer row. */
+  removable: boolean;
   ariaLabel: string;
   onRemove: () => void;
 };
@@ -21,15 +21,24 @@ function TrashIcon({ className }: { className?: string }) {
   );
 }
 
-export function ByItemConsumerRowRemoveButton({ rowCount, ariaLabel, onRemove }: Props) {
-  if (rowCount <= 1) return null;
+const SLOT_CLASS =
+  'w-8 h-8 shrink-0 rounded-lg flex items-center justify-center transition-colors';
+
+export function ByItemConsumerRowRemoveButton({ removable, ariaLabel, onRemove }: Props) {
+  if (!removable) {
+    return (
+      <div aria-hidden className={`${SLOT_CLASS} text-brand-text-muted/30`}>
+        <TrashIcon className="w-4 h-4" />
+      </div>
+    );
+  }
 
   return (
     <button
       type="button"
       onClick={onRemove}
       aria-label={ariaLabel}
-      className="w-8 h-8 shrink-0 rounded-lg text-brand-text-muted hover:text-red-500 hover:bg-red-500/10 transition-colors flex items-center justify-center"
+      className={`${SLOT_CLASS} text-brand-text-muted hover:text-red-500 hover:bg-red-500/10`}
     >
       <TrashIcon className="w-4 h-4" />
     </button>

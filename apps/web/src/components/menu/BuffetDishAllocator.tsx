@@ -166,7 +166,7 @@ export function BuffetDishAllocator({
                 </label>
               </div>
               <ByItemConsumerRowRemoveButton
-                rowCount={rows.length}
+                removable={rows.length > 1}
                 ariaLabel={labels.remove}
                 onRemove={() => removeRow(row.id)}
               />

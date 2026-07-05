@@ -1,8 +1,7 @@
 import { redirect } from 'next/navigation';
 import { isRestaurantSuspended } from '@mesa/shared';
 import { DashboardAccessError } from '@/components/dashboard/DashboardAccessError';
-import { DashboardNav } from '@/components/dashboard/DashboardNav';
-import { DASHBOARD_MAIN_OFFSET } from '@/components/dashboard/dashboard-nav-link';
+import { DashboardShell } from '@/components/dashboard/DashboardShell';
 import { RestaurantOnboarding } from '@/components/dashboard/RestaurantOnboarding';
 import { RestaurantSuspensionBanner } from '@/components/dashboard/RestaurantSuspensionBanner';
 import { getDashboardAccess } from '@/lib/dashboard-access-cached';
@@ -51,18 +50,15 @@ export default async function DashboardLayout({
       restaurantSlug={access.restaurant.slug}
       enabled={access.mode !== 'owner'}
     >
-      <div className="min-h-screen bg-brand-bg flex">
-        <DashboardNav restaurant={access.restaurant} accessMode={access.mode} />
-        <main className={`flex-1 min-w-0 overflow-x-hidden ${DASHBOARD_MAIN_OFFSET} p-4 pt-20 sm:p-6 sm:pt-20 lg:p-8 lg:pt-8 min-h-screen`}>
-          {showSuspensionBanner ? (
-            <RestaurantSuspensionBanner reason={access.restaurant.suspension_reason} />
-          ) : null}
-          {expiringDevices.length > 0 ? (
-            <PrintAgentCredentialExpiryAlert devices={expiringDevices} variant="bar" />
-          ) : null}
-          {children}
-        </main>
-      </div>
+      <DashboardShell restaurant={access.restaurant} accessMode={access.mode}>
+        {showSuspensionBanner ? (
+          <RestaurantSuspensionBanner reason={access.restaurant.suspension_reason} />
+        ) : null}
+        {expiringDevices.length > 0 ? (
+          <PrintAgentCredentialExpiryAlert devices={expiringDevices} variant="bar" />
+        ) : null}
+        {children}
+      </DashboardShell>
     </CheckoutRequestsProvider>
   );
 }

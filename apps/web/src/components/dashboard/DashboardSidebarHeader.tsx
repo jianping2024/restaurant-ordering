@@ -4,22 +4,24 @@ import { ProductLogo } from '@/components/ui/ProductLogo';
 type DashboardSidebarHeaderProps = {
   logoUrl?: string | null;
   restaurantName: string;
-  onCloseMobile?: () => void;
+  onClose?: () => void;
+  closeLabel?: string;
 };
 
 export function DashboardSidebarHeader({
   logoUrl,
   restaurantName,
-  onCloseMobile,
+  onClose,
+  closeLabel = 'Close menu',
 }: DashboardSidebarHeaderProps) {
   return (
     <div className="relative shrink-0 border-b border-brand-border px-4 py-5 lg:py-6">
-      {onCloseMobile ? (
+      {onClose ? (
         <button
           type="button"
-          onClick={onCloseMobile}
-          className="absolute right-4 top-5 h-8 w-8 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text lg:hidden"
-          aria-label="Close menu"
+          onClick={onClose}
+          className="absolute right-4 top-5 h-8 w-8 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text"
+          aria-label={closeLabel}
         >
           ×
         </button>

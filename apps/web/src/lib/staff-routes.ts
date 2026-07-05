@@ -9,7 +9,7 @@ type WaiterRouteOptions = {
 export function staffRolePath(slug: string, role: StaffRole): string {
   if (role === 'kitchen') return `/${slug}/kitchen`;
   if (role === 'cashier') return '/dashboard/checkout';
-  if (role === 'frontdesk') return '/dashboard';
+  if (role === 'frontdesk') return '/dashboard/waiter';
   return `/${slug}/waiter`;
 }
 

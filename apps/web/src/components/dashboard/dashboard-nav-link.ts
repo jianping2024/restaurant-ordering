@@ -1,6 +1,5 @@
-/** Fixed dashboard sidebar width (224px); keep in sync with main content offset. */
+/** Fixed dashboard sidebar width (224px). */
 export const DASHBOARD_SIDEBAR_WIDTH = 'w-56';
-export const DASHBOARD_MAIN_OFFSET = 'lg:ml-56';
 
 export function dashboardNavLinkClassName(active: boolean): string {
   return [

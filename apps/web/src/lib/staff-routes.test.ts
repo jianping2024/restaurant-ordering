@@ -87,8 +87,8 @@ describe('staffRolePath', () => {
     assert.equal(staffRolePath('cafe-lisboa', 'waiter'), '/cafe-lisboa/waiter');
   });
 
-  it('routes frontdesk staff to dashboard overview', () => {
-    assert.equal(staffRolePath('cafe-lisboa', 'frontdesk'), '/dashboard');
+  it('routes frontdesk staff to dashboard waiter board', () => {
+    assert.equal(staffRolePath('cafe-lisboa', 'frontdesk'), '/dashboard/waiter');
   });
 });
 

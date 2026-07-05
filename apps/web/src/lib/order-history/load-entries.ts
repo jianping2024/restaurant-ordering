@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { groupOrdersBySession } from '@/lib/analytics/analytics.repository';
-import { sessionRevenue } from '@/lib/analytics/qualifying';
 import { loadBillSplitsForOrderHistory } from '@/lib/order-history-bill-splits';
+import { buildOrderHistorySessionSettlement } from '@/lib/order-history/build-session-settlement';
+import { loadSessionCollectedPaymentsForOrderHistory } from '@/lib/order-history/load-session-collected-payments';
 import { countOrderListItems } from '@/lib/order-list-display';
 import { resolveOpenedByNames } from '@/lib/order-history/resolve-opened-by';
 import {
@@ -53,14 +54,6 @@ function applySessionFilters<T extends {
   return next;
 }
 
-function settlementAmountForSession(
-  orders: Order[],
-  split: OrderHistoryEntry['billSplit'],
-): number | null {
-  if (!split || split.status !== 'paid') return null;
-  return sessionRevenue(orders, [split]);
-}
-
 function displayNameForSession(orders: Order[], tableId: string): string {
   const fromOrder = orders.find((order) => order.display_name?.trim())?.display_name?.trim();
   return fromOrder || tableId;
@@ -71,6 +64,7 @@ function buildEntry(
   sessionOrders: Order[],
   openedByName: string | null,
   billSplit: OrderHistoryEntry['billSplit'],
+  collectedPayments: OrderHistoryEntry['settlement']['collectedPayments'],
 ): OrderHistoryEntry {
   return {
     sessionId: session.id,
@@ -79,7 +73,11 @@ function buildEntry(
     closedAt: session.closed_at,
     openedByName,
     itemCount: countOrderListItems(sessionOrders),
-    settlementAmount: settlementAmountForSession(sessionOrders, billSplit),
+    settlement: buildOrderHistorySessionSettlement({
+      billSplit,
+      collectedPayments,
+      orders: sessionOrders,
+    }),
     billSplit,
     orders: sessionOrders,
   };
@@ -146,6 +144,11 @@ export async function loadOrderHistoryEntries(
     query.restaurantId,
     sessionIds,
   );
+  const collectedPaymentsBySession = await loadSessionCollectedPaymentsForOrderHistory(
+    admin,
+    query.restaurantId,
+    sessionIds,
+  );
 
   const openerIds = sessions
     .map((session) => session.opened_by_user_id)
@@ -160,10 +163,11 @@ export async function loadOrderHistoryEntries(
   const items = sessions.map((session) => {
     const sessionOrders = ordersBySession.get(session.id) || [];
     const billSplit = billSplitBySessionId[session.id];
+    const collectedPayments = collectedPaymentsBySession.get(session.id) ?? [];
     const openedByName = session.opened_by_user_id
       ? openerNames.get(session.opened_by_user_id) ?? null
       : null;
-    return buildEntry(session, sessionOrders, openedByName, billSplit);
+    return buildEntry(session, sessionOrders, openedByName, billSplit, collectedPayments);
   });
 
   const loadedThrough = query.offset + items.length;

@@ -175,12 +175,15 @@ export function buildOrderListDisplayChips(
 export function buildOrderHistoryDetailChips(
   orders: Order[],
   guestLabels: OrderListGuestLabels,
+  options?: { suppressVoidStyling?: boolean },
 ): OrderListDisplayChip[] {
+  const suppressVoidStyling = options?.suppressVoidStyling ?? false;
   const chips: OrderListDisplayChip[] = [];
 
   for (const order of orders) {
     for (const item of order.items) {
       const voided = isVoidedItem(item);
+      const showVoided = voided && !suppressVoidStyling;
       chips.push({
         key: `${order.id}:${item.id}:${item.note ?? ''}:${voided ? 'voided' : 'active'}`,
         emoji: item.emoji || (isBuffetBaseItem(item) ? '🍽️' : '🍽'),
@@ -190,7 +193,7 @@ export function buildOrderHistoryDetailChips(
           guestLabels,
         }),
         note: item.note,
-        ...(voided ? { voided: true } : {}),
+        ...(showVoided ? { voided: true } : {}),
       });
     }
   }

@@ -199,12 +199,22 @@ export function OrdersHistoryManager({
 
   const formatClosedAt = (closedAt: string) => new Date(closedAt).toLocaleString(locale);
 
-  const renderMetaAmount = (amount: number | null) =>
-    amount == null ? (
-      <span className="text-brand-text-muted">—</span>
-    ) : (
-      <span className="text-brand-gold font-medium tabular-nums">€{amount.toFixed(2)}</span>
+  const renderMetaAmount = (entry: OrderHistoryEntry) => {
+    const { listAmount, listAmountKind } = entry.settlement;
+    if (listAmount == null) {
+      return <span className="text-brand-text-muted">—</span>;
+    }
+    if (listAmountKind === 'collected') {
+      return (
+        <span className="text-brand-gold font-medium tabular-nums">
+          {i18n.listAmountCollected} €{listAmount.toFixed(2)}
+        </span>
+      );
+    }
+    return (
+      <span className="text-brand-gold font-medium tabular-nums">€{listAmount.toFixed(2)}</span>
     );
+  };
 
   const renderPrintButton = (entry: OrderHistoryEntry) => {
     const billSplit = entry.billSplit;
@@ -256,7 +266,7 @@ export function OrdersHistoryManager({
           {i18n.openedBy} {entry.openedByName ?? '—'}
         </span>
         {META_SEP}
-        {renderMetaAmount(entry.settlementAmount)}
+        {renderMetaAmount(entry)}
         {renderPrintButton(entry)}
       </div>
     </button>

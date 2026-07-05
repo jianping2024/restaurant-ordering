@@ -2,6 +2,8 @@
 
 import { useMemo } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
+import { CollectedPaymentsLedger } from '@/components/dashboard/checkout/CollectedPaymentsLedger';
+import { CheckoutSettlementSummaryBar } from '@/components/dashboard/checkout/CheckoutSettlementSummaryBar';
 import { Modal } from '@/components/ui/Modal';
 import { getMessages } from '@/lib/i18n/messages';
 import {
@@ -9,27 +11,51 @@ import {
   orderListGuestLabelsFromLang,
 } from '@/lib/order-list-display';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
+import { localizeSplitPersonName } from '@/lib/split-person-label';
 
 interface Props {
   entry: OrderHistoryEntry | null;
   onClose: () => void;
 }
 
+function outcomeDetailMessage(
+  entry: OrderHistoryEntry,
+  i18n: ReturnType<typeof getMessages>['orderHistory'],
+): string | null {
+  switch (entry.settlement.outcome) {
+    case 'partially_collected_closed':
+      return i18n.partiallyCollectedClosedDetail;
+    case 'unpaid_closed':
+      return i18n.unpaidClosedDetail;
+    default:
+      return null;
+  }
+}
+
 export function OrderHistoryDetailModal({ entry, onClose }: Props) {
   const { lang } = useLanguage();
   const i18n = getMessages(lang).orderHistory;
+  const checkoutT = getMessages(lang).checkout;
   const guestLabels = useMemo(() => orderListGuestLabelsFromLang(lang), [lang]);
 
   const chips = useMemo(
-    () => (entry ? buildOrderHistoryDetailChips(entry.orders, guestLabels) : []),
+    () =>
+      entry
+        ? buildOrderHistoryDetailChips(entry.orders, guestLabels, {
+            suppressVoidStyling: entry.settlement.suppressVoidItemStyling,
+          })
+        : [],
     [entry, guestLabels],
   );
 
   if (!entry) return null;
 
-  const split = entry.billSplit;
-  const showSettlement = split?.status === 'paid' && entry.settlementAmount != null;
-  const showUnpaidClosed = split?.status === 'cancelled' && entry.settlementAmount == null;
+  const { settlement } = entry;
+  const outcomeMessage = outcomeDetailMessage(entry, i18n);
+  const showSettlementBar = settlement.summary != null;
+  const showPersonBalances =
+    settlement.personBalances.length > 0 &&
+    settlement.outcome !== 'closed_without_billing';
 
   return (
     <Modal
@@ -51,8 +77,52 @@ export function OrderHistoryDetailModal({ entry, onClose }: Props) {
           ) : null}
         </div>
 
-        {showUnpaidClosed ? (
-          <p className="text-sm text-brand-text-muted">{i18n.unpaidClosedDetail}</p>
+        {outcomeMessage ? (
+          <p className="text-sm text-brand-text-muted">{outcomeMessage}</p>
+        ) : null}
+
+        {showSettlementBar && settlement.summary ? (
+          <CheckoutSettlementSummaryBar summary={settlement.summary} t={checkoutT} />
+        ) : null}
+
+        <CollectedPaymentsLedger
+          payments={settlement.collectedPayments}
+          lang={lang}
+          t={checkoutT}
+        />
+
+        {showPersonBalances ? (
+          <div className="rounded-lg border border-brand-border/60 px-3 py-2.5 space-y-2">
+            <p className="text-[12px] text-brand-text-muted">{i18n.splitBalancesTitle}</p>
+            {settlement.personBalances.map((person) => (
+              <div
+                key={person.name}
+                className="flex items-start justify-between gap-3 text-[13px]"
+              >
+                <div className="min-w-0">
+                  <span className="text-brand-text font-medium">
+                    {localizeSplitPersonName(person.name, lang)}
+                  </span>
+                  <p className="text-[11px] text-brand-text-muted tabular-nums mt-0.5">
+                    {checkoutT.personOwedTotal.replace('{amount}', person.owed.toFixed(2))}
+                    {person.collected > 0 ? (
+                      <>
+                        {' · '}
+                        {checkoutT.collectedSoFar} €{person.collected.toFixed(2)}
+                      </>
+                    ) : null}
+                  </p>
+                </div>
+                {person.outstanding > 0 ? (
+                  <span className="text-brand-gold font-medium tabular-nums shrink-0">
+                    €{person.outstanding.toFixed(2)}
+                  </span>
+                ) : (
+                  <span className="text-brand-text-muted shrink-0">{i18n.personSettled}</span>
+                )}
+              </div>
+            ))}
+          </div>
         ) : null}
 
         {chips.length === 0 ? (
@@ -79,23 +149,6 @@ export function OrderHistoryDetailModal({ entry, onClose }: Props) {
             ))}
           </div>
         )}
-
-        {showSettlement ? (
-          <div className="border-t border-brand-border pt-4 text-sm">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-brand-text-muted">{i18n.settlementAmount}</span>
-              <span className="text-brand-gold font-medium tabular-nums">
-                €{entry.settlementAmount!.toFixed(2)}
-              </span>
-            </div>
-            {split && (split.discount_rate ?? 0) > 0 ? (
-              <div className="mt-2 flex items-center justify-between gap-3 text-brand-text-muted">
-                <span>{i18n.settlementDiscount}</span>
-                <span>{split.discount_rate ?? 0}%</span>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
       </div>
     </Modal>
   );

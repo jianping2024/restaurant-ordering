@@ -159,4 +159,28 @@ describe('buildOrderHistoryDetailChips', () => {
     assert.equal(chips[0].voided, true);
     assert.equal(chips[1].voided, undefined);
   });
+
+  it('hides void styling when suppressVoidStyling is set', () => {
+    const orders = [
+      {
+        id: 'o1',
+        items: [
+          {
+            id: 'd1',
+            name: 'Sumol',
+            name_pt: 'Sumol',
+            qty: 1,
+            price: 2,
+            emoji: '🥤',
+            item_status: 'voided',
+          },
+        ],
+      },
+    ] as Order[];
+
+    const chips = buildOrderHistoryDetailChips(orders, guestLabels, {
+      suppressVoidStyling: true,
+    });
+    assert.equal(chips[0].voided, undefined);
+  });
 });

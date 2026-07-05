@@ -2,7 +2,9 @@
 
 import { ProductLogo } from '@/components/ui/ProductLogo';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { AuthIconTextRow } from '@/components/auth/AuthIconTextRow';
 import { AuthTrustBadges } from '@/components/auth/AuthTrustBadges';
+import { AuthShieldIcon } from '@/components/auth/auth-icons';
 import { AUTH_SHELL_VARIANTS, type AuthShellCopy, type AuthShellVariant } from '@/components/auth/auth-shell-variants';
 
 type Props = {
@@ -15,19 +17,15 @@ type Props = {
 
 function ShellSecurityNote({ text }: { text: string }) {
   return (
-    <p className="flex items-start justify-center gap-2 text-center text-brand-text-muted text-xs mt-5 leading-relaxed">
-      <svg
-        className="w-4 h-4 shrink-0 text-brand-gold mt-0.5"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        aria-hidden
+    <div className="mt-5 flex justify-center">
+      <AuthIconTextRow
+        icon={AuthShieldIcon}
+        iconClassName="w-4 h-4 shrink-0 text-brand-gold mt-0.5"
+        className="flex items-start gap-2 max-w-full"
       >
-        <path d="M12 3 4 6v6c0 5 3.5 9 8 9s8-4 8-9V6l-8-3z" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-      <span>{text}</span>
-    </p>
+        <p className="text-brand-text-muted text-xs leading-relaxed">{text}</p>
+      </AuthIconTextRow>
+    </div>
   );
 }
 

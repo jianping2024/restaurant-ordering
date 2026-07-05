@@ -214,18 +214,18 @@ async function main() {
   // Staff login
   const { data: staffRow } = await admin
     .from('restaurant_staff_accounts')
-    .select('email')
+    .select('login_name')
     .eq('restaurant_id', restaurantId)
     .is('disabled_at', null)
     .limit(1)
     .maybeSingle();
 
-  if (staffRow?.email) {
+  if (staffRow?.login_name) {
     try {
-      const res = await fetch(`${BASE_URL}/api/auth/staff/login`, {
+      const res = await fetch(`${BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: staffRow.email, password: 'wrong-password-for-test' }),
+        body: JSON.stringify({ account: staffRow.login_name, password: 'wrong-password-for-test' }),
       });
       const json = (await res.json().catch(() => ({}))) as { error?: string };
       if (json.error === 'restaurant_suspended') {

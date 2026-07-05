@@ -89,7 +89,6 @@ export async function POST(req: Request) {
       role: parsed.role,
       display_name: parsed.display_name,
       login_name: parsed.login_name,
-      email,
       created_by: owner?.id ?? null,
     })
     .select('*')

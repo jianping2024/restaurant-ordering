@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { StaffLoginForm } from '@/components/staff/StaffLoginForm';
+import { StoreStaffLoginClient } from '@/components/auth/StoreStaffLoginClient';
 
 export default async function StoreStaffLoginPage({ params }: { params: { slug: string } }) {
   let admin;
@@ -19,9 +19,8 @@ export default async function StoreStaffLoginPage({ params }: { params: { slug: 
   if (!restaurant) notFound();
 
   return (
-    <StaffLoginForm
-      mode="store"
-      slug={restaurant.slug as string}
+    <StoreStaffLoginClient
+      storeSlug={restaurant.slug as string}
       restaurantName={restaurant.name as string}
     />
   );

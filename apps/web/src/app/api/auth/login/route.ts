@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { resolvePostLoginRedirect } from '@/lib/auth/post-login-redirect';
 import {
+  isStaffAuthEmail,
+  resolveAuthIdentifier,
+  staffLoginNameFromAuthEmail,
+} from '@/lib/auth/resolve-auth-identifier';
+import { staffSignInPreflight } from '@/lib/auth/staff-sign-in-preflight';
+import {
   authLoginRateLimitCheck,
   authLoginRecordFailure,
   authLoginRecordSuccess,
@@ -10,20 +16,32 @@ import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
 
+function readAccount(body: Record<string, unknown>): string {
+  if (typeof body.account === 'string') return body.account;
+  if (typeof body.email === 'string') return body.email;
+  return '';
+}
+
 export async function POST(req: Request) {
-  let body: { email?: unknown; password?: unknown };
+  let body: Record<string, unknown>;
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+  const accountRaw = readAccount(body);
   const password = typeof body.password === 'string' ? body.password : '';
-  if (!email || !password) {
+  if (!accountRaw.trim() || !password) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
   }
 
+  const resolved = resolveAuthIdentifier(accountRaw);
+  if (!resolved) {
+    return NextResponse.json({ error: 'invalid_credentials' }, { status: 401 });
+  }
+
+  const { email } = resolved;
   const ip = clientIpFromRequest(req);
   const rl = authLoginRateLimitCheck(email, ip);
   if (!rl.ok) {
@@ -31,6 +49,24 @@ export async function POST(req: Request) {
       { error: 'rate_limited', retry_after_sec: rl.retryAfterSec },
       { status: 429, headers: { 'Retry-After': String(rl.retryAfterSec) } },
     );
+  }
+
+  if (isStaffAuthEmail(email)) {
+    const loginName =
+      resolved.loginName ?? staffLoginNameFromAuthEmail(email);
+    if (loginName) {
+      try {
+        const preflight = await staffSignInPreflight(loginName);
+        if (!preflight.ok) {
+          authLoginRecordFailure(email, ip);
+          const status = preflight.code === 'restaurant_suspended' ? 403 : 401;
+          return NextResponse.json({ error: preflight.code }, { status });
+        }
+      } catch (e) {
+        const message = e instanceof Error ? e.message : 'redirect_failed';
+        return NextResponse.json({ error: 'redirect_failed', message }, { status: 500 });
+      }
+    }
   }
 
   const supabase = await createClient();

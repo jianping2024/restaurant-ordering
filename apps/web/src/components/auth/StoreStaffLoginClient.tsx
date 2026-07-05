@@ -5,7 +5,12 @@ import { getMessages } from '@/lib/i18n/messages';
 import { AuthPageShell } from '@/components/auth/AuthPageShell';
 import { AuthLoginForm } from '@/components/auth/AuthLoginForm';
 
-export default function LoginPage() {
+type Props = {
+  storeSlug: string;
+  restaurantName: string;
+};
+
+export function StoreStaffLoginClient({ storeSlug, restaurantName }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).authLogin;
 
@@ -15,12 +20,11 @@ export default function LoginPage() {
       copy={{
         title: t.title,
         subtitle: t.subtitle,
-        forgotHint: t.forgotHint,
-        securityNote: t.securityNote,
-        complianceNote: t.complianceNote,
+        contextLine: restaurantName,
+        securityNote: t.staffSecurityNote,
       }}
     >
-      <AuthLoginForm />
+      <AuthLoginForm storeSlug={storeSlug} />
     </AuthPageShell>
   );
 }

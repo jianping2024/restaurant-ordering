@@ -23,7 +23,6 @@ export interface RestaurantStaffAccount {
   role: StaffAccountRole;
   display_name: string;
   login_name: string;
-  email: string;
   created_at: string;
   updated_at: string;
   disabled_at: string | null;

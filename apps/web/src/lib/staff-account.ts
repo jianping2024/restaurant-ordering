@@ -121,19 +121,10 @@ export function suggestLoginNameFromDisplay(
   return candidate;
 }
 
-/** Global mailbox: `{login_name}@mesa.in` — unique across all restaurants (Supabase `auth.users.email`). */
+/** Supabase Auth internal identifier — not shown in product UI. */
 export function buildStaffEmail(loginName: string): string {
   const ln = normalizeLoginName(loginName);
   return `${ln}@${STAFF_EMAIL_DOMAIN}`;
-}
-
-/** Store mode: bare login → `{login}@mesa.in`; global or input with `@` → trimmed as-is. */
-export function composeStaffEmail(loginOrEmail: string, mode: 'store' | 'global'): string {
-  const raw = loginOrEmail.trim().toLowerCase();
-  if (mode === 'global' || raw.includes('@')) {
-    return raw;
-  }
-  return buildStaffEmail(raw);
 }
 
 export function staffPasswordValid(password: string): boolean {

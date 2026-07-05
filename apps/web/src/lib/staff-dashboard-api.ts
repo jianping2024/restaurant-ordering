@@ -41,7 +41,6 @@ export function mapStaffRow(row: Record<string, unknown>): RestaurantStaffAccoun
     role: row.role as StaffAccountRole,
     display_name: row.display_name as string,
     login_name: row.login_name as string,
-    email: row.email as string,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
     disabled_at: (row.disabled_at as string | null) ?? null,

@@ -1,7 +1,5 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { StaffLoginForm } from '@/components/staff/StaffLoginForm';
-
-export default function GlobalStaffLoginPage() {
-  return <StaffLoginForm mode="global" />;
+export default function LegacyStaffLoginRedirect() {
+  redirect('/auth/login');
 }

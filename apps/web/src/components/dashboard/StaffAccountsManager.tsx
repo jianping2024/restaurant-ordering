@@ -11,7 +11,6 @@ import { getMessages } from '@/lib/i18n/messages';
 import {
   normalizeLoginName,
   sanitizeStaffLoginInput,
-  STAFF_EMAIL_DOMAIN,
   suggestLoginNameFromDisplay,
 } from '@/lib/staff-account';
 
@@ -209,10 +208,10 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
     }
   };
 
-  const copyEmail = async (email: string) => {
+  const copyLoginName = async (loginName: string) => {
     try {
-      await navigator.clipboard.writeText(email);
-      flash('ok', t.copiedEmail);
+      await navigator.clipboard.writeText(loginName);
+      flash('ok', t.copiedLoginName);
     } catch {
       flash('err', t.copyFail);
     }
@@ -274,9 +273,9 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
                     <td className="px-4 py-3 hidden sm:table-cell">
                       <button
                         type="button"
-                        onClick={() => void copyEmail(row.email)}
+                        onClick={() => void copyLoginName(row.login_name)}
                         className="text-brand-gold hover:underline font-mono text-[12px]"
-                        title={t.copyEmail}
+                        title={t.copyLoginName}
                       >
                         {row.login_name}
                       </button>
@@ -351,37 +350,21 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
             }}
             disabled={createSaving}
           />
-          <div>
-            <label className="text-sm text-brand-text-muted font-medium block mb-1.5">
-              {t.fieldLoginPrefix}
-            </label>
-            <div
-              className="flex w-full min-w-0 rounded-lg border border-brand-border bg-brand-card overflow-hidden focus-within:ring-2 focus-within:ring-brand-gold/50"
-              aria-label={t.fieldLoginPrefix}
-            >
-              <input
-                type="text"
-                autoComplete="off"
-                className="min-w-0 flex-1 bg-transparent px-4 py-2.5 text-[15px] text-brand-text placeholder:text-brand-muted focus:outline-none"
-                placeholder={t.loginNamePlaceholder}
-                value={createForm.login_name}
-                disabled={createSaving}
-                onChange={(e) => {
-                  loginNameTouchedRef.current = true;
-                  setCreateForm((f) => ({
-                    ...f,
-                    login_name: sanitizeStaffLoginInput(e.target.value),
-                  }));
-                }}
-              />
-              <div
-                className="shrink-0 select-none flex items-center border-l border-brand-border bg-brand-bg/80 px-3 py-2.5 font-mono text-[13px] text-brand-text-muted"
-                title={`@${STAFF_EMAIL_DOMAIN}`}
-              >
-                @{STAFF_EMAIL_DOMAIN}
-              </div>
-            </div>
-            <p className="text-[12px] text-brand-text-muted mt-1.5">{t.loginNameAutoHint}</p>
+          <Input
+            label={t.fieldLoginName}
+            autoComplete="off"
+            placeholder={t.loginNamePlaceholder}
+            value={createForm.login_name}
+            disabled={createSaving}
+            onChange={(e) => {
+              loginNameTouchedRef.current = true;
+              setCreateForm((f) => ({
+                ...f,
+                login_name: sanitizeStaffLoginInput(e.target.value),
+              }));
+            }}
+          />
+          <p className="text-[12px] text-brand-text-muted -mt-2">{t.loginNameAutoHint}</p>
             <button
               type="button"
               className="text-[12px] text-brand-gold hover:underline mt-1"
@@ -396,7 +379,6 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
             >
               {t.regenerateLoginName}
             </button>
-          </div>
           <div>
             <label className="text-sm text-brand-text-muted block mb-1.5">{t.fieldRole}</label>
             <select

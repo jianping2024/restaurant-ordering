@@ -41,7 +41,7 @@ print_jobs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, type: text [o
 
 print_stations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, sort_order: integer, ticket_layout: text [kitchen|beverage|standard], created_at: timestamptz)
 
-restaurant_staff_accounts (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, user_id: uuid unique FK -> auth.users.id, role: text [kitchen|waiter|cashier|frontdesk], display_name: text, login_name: text, email: text unique, created_by: uuid FK -> auth.users.id nullable, created_at: timestamptz, updated_at: timestamptz, disabled_at: timestamptz nullable)
+restaurant_staff_accounts (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, user_id: uuid unique FK -> auth.users.id, role: text [kitchen|waiter|cashier|frontdesk], display_name: text, login_name: text unique, created_by: uuid FK -> auth.users.id nullable, created_at: timestamptz, updated_at: timestamptz, disabled_at: timestamptz nullable)
 
 platform_admin_accounts (id: uuid PK, user_id: uuid unique FK -> auth.users.id, role: text [support|admin], display_name: text, disabled_at: timestamptz nullable, created_at: timestamptz)
 
@@ -290,7 +290,7 @@ platform_admin_audit_log:
 
 restaurant_staff_accounts:
 
-- restaurant_staff_accounts_email_key: unique btree(email)
+- restaurant_staff_accounts_login_name_key: unique btree(login_name)
 - restaurant_staff_accounts_pkey: PK btree(id)
 - restaurant_staff_accounts_restaurant_id_idx: btree(restaurant_id)
 - restaurant_staff_accounts_user_id_idx: btree(user_id)

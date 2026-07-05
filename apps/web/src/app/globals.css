@@ -24,6 +24,7 @@
   --color-status-danger-fg: 252 165 165;
   --color-status-danger-bg: 60 24 24;
   --color-status-danger-border: 239 68 68;
+  --auth-pattern-opacity: 0.04;
 }
 
 [data-theme='light'] {
@@ -46,6 +47,7 @@
   --color-status-danger-fg: 153 27 27;
   --color-status-danger-bg: 254 242 242;
   --color-status-danger-border: 185 28 28;
+  --auth-pattern-opacity: 0.08;
 }
 
 * {
@@ -163,6 +165,25 @@ body {
   .card-hover:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(212, 168, 67, 0.15);
+  }
+
+  .mesa-auth-bg {
+    background-color: rgb(var(--color-brand-bg));
+    background-image:
+      repeating-linear-gradient(
+        60deg,
+        transparent,
+        transparent 72px,
+        rgb(var(--color-brand-gold) / var(--auth-pattern-opacity)) 72px,
+        rgb(var(--color-brand-gold) / var(--auth-pattern-opacity)) 73px
+      ),
+      repeating-linear-gradient(
+        -60deg,
+        transparent,
+        transparent 72px,
+        rgb(var(--color-brand-gold) / var(--auth-pattern-opacity)) 72px,
+        rgb(var(--color-brand-gold) / var(--auth-pattern-opacity)) 73px
+      );
   }
 }
 

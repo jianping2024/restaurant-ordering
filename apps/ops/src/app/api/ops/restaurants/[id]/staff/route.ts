@@ -27,7 +27,7 @@ export async function GET(_req: Request, context: RouteContext) {
 
   const { data: rows, error: listError } = await admin
     .from('restaurant_staff_accounts')
-    .select('id, role, display_name, login_name, email, created_at, updated_at, disabled_at')
+    .select('id, role, display_name, login_name, created_at, updated_at, disabled_at')
     .eq('restaurant_id', restaurantId)
     .order('created_at', { ascending: true });
 
@@ -41,7 +41,6 @@ export async function GET(_req: Request, context: RouteContext) {
       role: row.role,
       displayName: row.display_name,
       loginName: row.login_name,
-      email: row.email,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       disabledAt: row.disabled_at,

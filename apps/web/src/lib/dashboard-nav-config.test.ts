@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { isDashboardNavDocked } from './dashboard-nav-config';
+import { canAccessDashboardWaiterBoard, isDashboardNavDocked } from './dashboard-nav-config';
 
 describe('isDashboardNavDocked', () => {
   it('docks owner nav on large screens when open', () => {
@@ -12,5 +12,13 @@ describe('isDashboardNavDocked', () => {
   it('never docks operational roles', () => {
     assert.equal(isDashboardNavDocked('frontdesk', true, true), false);
     assert.equal(isDashboardNavDocked('cashier', true, true), false);
+  });
+});
+
+describe('canAccessDashboardWaiterBoard', () => {
+  it('allows frontdesk only among operational roles', () => {
+    assert.equal(canAccessDashboardWaiterBoard('frontdesk'), true);
+    assert.equal(canAccessDashboardWaiterBoard('cashier'), false);
+    assert.equal(canAccessDashboardWaiterBoard('owner'), false);
   });
 });

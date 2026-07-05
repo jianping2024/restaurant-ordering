@@ -30,6 +30,7 @@ export default async function CheckoutRequestsPage({
     <CheckoutRequestsPageClient
       restaurantId={restaurant.id}
       restaurantSlug={restaurant.slug}
+      accessMode={access.mode}
       checkoutRequests={checkoutRequests}
       canCloseTable={access.mode === 'frontdesk' || access.mode === 'owner'}
       initialTableId={initialTableId || undefined}

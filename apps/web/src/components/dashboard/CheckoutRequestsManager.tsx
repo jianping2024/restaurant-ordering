@@ -55,10 +55,16 @@ import {
   hasCheckoutCollections,
 } from '@/lib/checkout-settlement';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
+import { DashboardQuickNavLink } from '@/components/dashboard/DashboardQuickNavLink';
+import { canAccessDashboardWaiterBoard } from '@/lib/dashboard-nav-config';
+import { DASHBOARD_NAV_ITEMS } from '@/lib/dashboard-feature-registry';
+import { waiterBoardHref } from '@/lib/staff-routes';
+import type { DashboardAccessMode } from '@/lib/dashboard-access';
 
 interface Props {
   restaurantId: string;
   restaurantSlug: string;
+  accessMode: DashboardAccessMode;
   /** Owner or frontdesk may force-close unpaid tables from checkout. */
   canCloseTable?: boolean;
   /** Deep link from owner waiter board: auto-open this table's checkout request. */
@@ -68,6 +74,7 @@ interface Props {
 export function CheckoutRequestsManager({
   restaurantId,
   restaurantSlug,
+  accessMode,
   canCloseTable = false,
   initialTableId,
 }: Props) {
@@ -76,6 +83,9 @@ export function CheckoutRequestsManager({
   const billDiscount = useCheckoutBillDiscount();
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
+  const navT = getMessages(lang).nav;
+  const showWaiterBoardLink = canAccessDashboardWaiterBoard(accessMode);
+  const waiterBoardNav = DASHBOARD_NAV_ITEMS.waiterBoard;
   const discountReasonOptionsList = useMemo(
     () => abnormalReasonOptions(lang, 'discount'),
     [lang],
@@ -496,7 +506,15 @@ export function CheckoutRequestsManager({
               <span className="font-medium text-brand-text">{pendingLabel}</span>
             </p>
           </div>
-          <label className="flex items-center gap-2 text-sm text-brand-text-muted cursor-pointer select-none">
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            {showWaiterBoardLink ? (
+              <DashboardQuickNavLink
+                href={waiterBoardHref(restaurantSlug, { embeddedInDashboard: true })}
+                icon={waiterBoardNav.icon}
+                label={navT.viewWaiter}
+              />
+            ) : null}
+            <label className="flex items-center gap-2 text-sm text-brand-text-muted cursor-pointer select-none">
             <input
               type="checkbox"
               checked={soundEnabled}
@@ -509,6 +527,7 @@ export function CheckoutRequestsManager({
             />
             {t.soundLabel}
           </label>
+          </div>
         </div>
 
       </header>

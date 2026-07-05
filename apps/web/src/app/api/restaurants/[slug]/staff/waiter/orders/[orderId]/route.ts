@@ -92,6 +92,7 @@ export async function PATCH(
     nextItems: items,
     voidReason,
     voidReasonDetail,
+    voidAuditChannel: 'waiter',
   });
 
   if (!result.ok) {

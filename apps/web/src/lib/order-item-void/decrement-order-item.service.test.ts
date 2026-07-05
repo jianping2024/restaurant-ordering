@@ -126,7 +126,7 @@ describe('decrementOrderItemWithAudit', () => {
     assert.equal(admin.abnormalInserts, 0);
   });
 
-  it('writes deleted audit and abnormal row when the last unit is removed', async () => {
+  it('writes voided audit only when the last unit is removed', async () => {
     const admin = mockAdmin();
 
     const result = await decrementOrderItemWithAudit({
@@ -145,8 +145,8 @@ describe('decrementOrderItemWithAudit', () => {
 
     assert.equal(result.ok, true);
     assert.equal(result.ok && result.outcome, 'voided');
-    assert.deepEqual(admin.auditEvents, [AUDIT_EVENT.ITEM_DELETED]);
-    assert.equal(admin.abnormalInserts, 1);
+    assert.deepEqual(admin.auditEvents, [AUDIT_EVENT.ITEM_VOIDED]);
+    assert.equal(admin.abnormalInserts, 0);
   });
 
   it('requires void reason when removing the last unit', async () => {

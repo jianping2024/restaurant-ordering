@@ -222,12 +222,12 @@
 
 - 后厨：将订单行标为 `voided`（需原因对话框）
 - 服务员：减数量（`decrement-item`），pending/cooking 可减
-- 减到 0 等价退菜，触发审计与异常操作记录
-- 风险等级：pending→LOW、cooking→MEDIUM、done→HIGH
+- 减到 0 等价退菜，写 `operation_logs`（`ITEM_VOIDED`），不进异常队列
+- 风险等级（后厨 void）：pending→LOW、cooking→MEDIUM、done→HIGH
 
 ### 业务边界
 
-- 已 `done` 的菜品退菜风险更高，须记录 `ITEM_DELETED` 类异常
+- 已 `done` 的菜品由**后厨**退菜时风险更高，须记录 `ITEM_DELETED` 类异常
 - 退菜后重算订单 status；全 void 时订单特殊处理
 - 厨房 Demo 模式允许本地 void，不写库
 

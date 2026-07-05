@@ -154,7 +154,8 @@
 ### 审计
 
 - 每次 void / 减至 0 写 `operation_logs`
-- 满足条件时创建 `abnormal_operations` 类型 `ITEM_DELETED`
+- **后厨** void 创建 `abnormal_operations` 类型 `ITEM_DELETED`（按原 `item_status` 定风险）
+- **服务员** decrement 减至 0 写 `ITEM_VOIDED`，不进异常队列
 
 ### 硬规则
 

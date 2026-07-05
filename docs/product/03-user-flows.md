@@ -159,7 +159,7 @@
 
 1. 桌台详情对 `pending`/`cooking` 行点击减号
 2. `POST .../decrement-item`；qty>1 减 1；qty=1 需 void 原因
-3. `decrementOrderItemWithAudit` 持久化 + 审计
+3. `decrementOrderItemWithAudit` 持久化 + 审计（减至 0 写 `ITEM_VOIDED`，不进异常队列）
 
 ### 异常流程
 
@@ -176,7 +176,7 @@
 |------|------|
 | `orders.items[].item_status` | → `voided` |
 | `orders.status` | 由 `deriveOrderStatusFromItems` 重算 |
-| `abnormal_operations` | 可能新增 `ITEM_DELETED` |
+| `abnormal_operations` | 后厨 void 可能新增 `ITEM_DELETED`；服务员减至 0 不写入 |
 | `operation_logs` | 审计条目 |
 
 ### 验收标准

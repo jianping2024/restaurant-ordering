@@ -1,13 +1,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { AUDIT_EVENT, recordAudit } from '@/lib/audit';
 import type { ItemDeletedAuditContext } from '@/lib/audit/builders/item-deleted';
-import { itemLineAmount } from '@/lib/audit/builders/item-deleted';
+import type { ItemVoidedAuditContext } from '@/lib/audit/builders/item-voided';
+import { itemLineAmount } from '@/lib/audit/builders/item-void-audit-payload';
 import type { AuditActor } from '@/lib/audit/types';
 import { detectNewlyVoidedItems } from '@/lib/order-item-void/detect-newly-voided';
 import { applyVoidReasonToItems } from '@/lib/order-item-void/apply-void-reason-to-items';
 import { persistOrderItemsUpdate } from '@/lib/order-item-void/persist-order-items-update';
 import { validateVoidItemReason } from '@/lib/order-item-void/validate-void-reason';
 import type { Order, OrderItem } from '@/types';
+
+export type VoidAuditChannel = 'kitchen' | 'waiter';
 
 export type PatchOrderItemsInput = {
   admin: SupabaseClient;
@@ -25,6 +28,8 @@ export type PatchOrderItemsInput = {
   nextItems: OrderItem[];
   voidReason?: string | null;
   voidReasonDetail?: string | null;
+  /** Kitchen voids create abnormal queue rows; waiter channel logs only. */
+  voidAuditChannel?: VoidAuditChannel;
 };
 
 export type PatchOrderItemsResult =
@@ -42,7 +47,7 @@ export type PatchOrderItemsResult =
 function toAuditContext(
   order: Pick<Order, 'id' | 'session_id' | 'table_id' | 'display_name'>,
   row: ReturnType<typeof detectNewlyVoidedItems>[number],
-): ItemDeletedAuditContext {
+): ItemDeletedAuditContext | ItemVoidedAuditContext {
   return {
     orderId: order.id,
     sessionId: order.session_id ?? null,
@@ -99,8 +104,10 @@ export async function patchOrderItemsWithVoidAudit(
 
   if (newlyVoided.length > 0 && trimmedReason) {
     const orderRow = updated;
+    const voidAuditEvent =
+      input.voidAuditChannel === 'waiter' ? AUDIT_EVENT.ITEM_VOIDED : AUDIT_EVENT.ITEM_DELETED;
     for (const row of newlyVoided) {
-      await recordAudit(input.admin, AUDIT_EVENT.ITEM_DELETED, {
+      await recordAudit(input.admin, voidAuditEvent, {
         restaurantId: input.restaurantId,
         actor: input.actor,
         context: toAuditContext(orderRow, row),

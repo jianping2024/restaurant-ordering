@@ -1,54 +1,23 @@
-import { lineTotal } from '@/lib/cart-totals';
 import { riskLevelForVoidedItem } from '@/lib/abnormal-operations/owner-query';
-import { auditMoney } from '@/lib/audit/money';
 import type { AuditEventDefinition } from '@/lib/audit/types';
 import { AUDIT_EVENT } from '@/lib/audit/types';
-import type { OrderItemStatus } from '@/types';
+import {
+  buildItemVoidAuditPayload,
+  type ItemVoidAuditContext,
+} from '@/lib/audit/builders/item-void-audit-payload';
 
-export type ItemDeletedAuditContext = {
-  orderId: string;
-  sessionId: string | null;
-  tableId: string | null;
-  tableName: string | null;
-  itemIndex: number;
-  itemId: string;
-  itemName: string;
-  itemStatusBefore: OrderItemStatus;
-  qty: number;
-  lineAmount: number;
-};
+export type { ItemVoidAuditContext as ItemDeletedAuditContext } from '@/lib/audit/builders/item-void-audit-payload';
+export { itemLineAmount } from '@/lib/audit/builders/item-void-audit-payload';
 
-export const itemDeletedDefinition: AuditEventDefinition<ItemDeletedAuditContext> = {
+export const itemDeletedDefinition: AuditEventDefinition<ItemVoidAuditContext> = {
   actionType: AUDIT_EVENT.ITEM_DELETED,
   entityType: 'order',
   createsAbnormal: true,
   build(context) {
-    const amountImpact = auditMoney(context.lineAmount);
     return {
-      entityId: context.orderId,
-      orderId: context.orderId,
-      sessionId: context.sessionId,
-      tableId: context.tableId,
-      tableName: context.tableName,
-      amountImpact,
+      ...buildItemVoidAuditPayload(context),
       abnormalType: 'ITEM_DELETED',
       riskLevel: riskLevelForVoidedItem(context.itemStatusBefore),
-      beforeData: {
-        itemIndex: context.itemIndex,
-        itemId: context.itemId,
-        itemName: context.itemName,
-        itemStatus: context.itemStatusBefore,
-        qty: context.qty,
-        lineAmount: amountImpact,
-      },
-      afterData: {
-        itemStatus: 'voided',
-        amountImpact,
-      },
     };
   },
 };
-
-export function itemLineAmount(item: { price?: number; qty?: number }): number {
-  return auditMoney(lineTotal(item));
-}

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { AUDIT_EVENT, recordAudit } from '@/lib/audit';
-import type { ItemDeletedAuditContext } from '@/lib/audit/builders/item-deleted';
-import { itemLineAmount } from '@/lib/audit/builders/item-deleted';
+import type { ItemVoidedAuditContext } from '@/lib/audit/builders/item-voided';
+import { itemLineAmount } from '@/lib/audit/builders/item-void-audit-payload';
 import type { ItemQtyDecrementedAuditContext } from '@/lib/audit/builders/item-qty-decremented';
 import { auditMoney } from '@/lib/audit/money';
 import { VOID_ITEM_QTY_ADJUSTMENT_REASON } from '@/lib/audit/reasons';
@@ -65,10 +65,10 @@ function toQtyDecrementedContext(
   };
 }
 
-function toItemDeletedContext(
+function toItemVoidedContext(
   order: Pick<Order, 'id' | 'session_id' | 'table_id' | 'display_name'>,
   applied: Extract<ReturnType<typeof applyOrderItemDecrement>, { ok: true }>,
-): ItemDeletedAuditContext {
+): ItemVoidedAuditContext {
   return {
     orderId: order.id,
     sessionId: order.session_id ?? null,
@@ -148,12 +148,12 @@ export async function decrementOrderItemWithAudit(
       context: toQtyDecrementedContext(orderRow, applied),
     });
   } else {
-    await recordAudit(input.admin, AUDIT_EVENT.ITEM_DELETED, {
+    await recordAudit(input.admin, AUDIT_EVENT.ITEM_VOIDED, {
       restaurantId: input.restaurantId,
       actor: input.actor,
       reason: voidAuditReason!,
       reasonDetail: voidAuditDetail,
-      context: toItemDeletedContext(orderRow, applied),
+      context: toItemVoidedContext(orderRow, applied),
     });
   }
 

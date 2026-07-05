@@ -109,4 +109,66 @@ describe('buildOrderHistorySessionSettlement', () => {
       { name: 'Bob', owed: 50, collected: 0, outstanding: 50 },
     ]);
   });
+
+  it('reconciles payable from order lines when split snapshot is zeroed', () => {
+    const settlement = buildOrderHistorySessionSettlement({
+      billSplit: {
+        ...baseSplit,
+        total_amount: 0,
+        result: [],
+      },
+      collectedPayments: [
+        {
+          id: 'pay-1',
+          person_name: 'Ana',
+          amount: 20,
+          created_at: '2026-07-05T04:00:00.000Z',
+        },
+      ],
+      orders: [
+        {
+          id: 'o1',
+          total_amount: 0,
+          items: [
+            {
+              id: 'd1',
+              name: 'Buffet',
+              qty: 1,
+              price: 100,
+            },
+          ],
+        },
+      ] as Order[],
+    });
+
+    assert.equal(settlement.showFinancialDetails, true);
+    assert.equal(settlement.summary?.consumption, 100);
+    assert.equal(settlement.summary?.payable, 90);
+    assert.equal(settlement.summary?.collected, 20);
+    assert.equal(settlement.summary?.pending, 70);
+  });
+
+  it('builds summary from ledger when split row is missing', () => {
+    const settlement = buildOrderHistorySessionSettlement({
+      collectedPayments: [
+        {
+          id: 'pay-1',
+          person_name: 'Ana',
+          amount: 15,
+          created_at: '2026-07-05T04:00:00.000Z',
+        },
+      ],
+      orders: [
+        {
+          id: 'o1',
+          total_amount: 0,
+          items: [{ id: 'd1', name: 'Water', qty: 2, price: 2.5 }],
+        },
+      ] as Order[],
+    });
+
+    assert.equal(settlement.outcome, 'partially_collected_closed');
+    assert.equal(settlement.summary?.payable, 5);
+    assert.equal(settlement.summary?.pending, 0);
+  });
 });

@@ -21,6 +21,8 @@ export type OrderHistoryPersonBalance = {
 export type OrderHistorySessionSettlement = {
   outcome: OrderHistoryCloseOutcome;
   summary: CheckoutSettlementSummary | null;
+  /** When true, detail modal renders consumption / payable / collected / pending rows. */
+  showFinancialDetails: boolean;
   collectedPayments: SessionCollectedPayment[];
   personBalances: OrderHistoryPersonBalance[];
   /** Hide void strikethrough when money was collected this session. */

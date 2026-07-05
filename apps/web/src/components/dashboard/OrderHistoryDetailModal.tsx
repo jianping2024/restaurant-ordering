@@ -2,8 +2,7 @@
 
 import { useMemo } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { CollectedPaymentsLedger } from '@/components/dashboard/checkout/CollectedPaymentsLedger';
-import { CheckoutSettlementSummaryBar } from '@/components/dashboard/checkout/CheckoutSettlementSummaryBar';
+import { OrderHistorySettlementDetails } from '@/components/dashboard/OrderHistorySettlementDetails';
 import { Modal } from '@/components/ui/Modal';
 import { getMessages } from '@/lib/i18n/messages';
 import {
@@ -52,9 +51,8 @@ export function OrderHistoryDetailModal({ entry, onClose }: Props) {
 
   const { settlement } = entry;
   const outcomeMessage = outcomeDetailMessage(entry, i18n);
-  const showSettlementBar = settlement.summary != null;
   const showPersonBalances =
-    settlement.personBalances.length > 0 &&
+    settlement.personBalances.length > 1 &&
     settlement.outcome !== 'closed_without_billing';
 
   return (
@@ -81,15 +79,14 @@ export function OrderHistoryDetailModal({ entry, onClose }: Props) {
           <p className="text-sm text-brand-text-muted">{outcomeMessage}</p>
         ) : null}
 
-        {showSettlementBar && settlement.summary ? (
-          <CheckoutSettlementSummaryBar summary={settlement.summary} t={checkoutT} />
+        {settlement.showFinancialDetails && settlement.summary ? (
+          <OrderHistorySettlementDetails
+            summary={settlement.summary}
+            collectedPayments={settlement.collectedPayments}
+            lang={lang}
+            checkoutT={checkoutT}
+          />
         ) : null}
-
-        <CollectedPaymentsLedger
-          payments={settlement.collectedPayments}
-          lang={lang}
-          t={checkoutT}
-        />
 
         {showPersonBalances ? (
           <div className="rounded-lg border border-brand-border/60 px-3 py-2.5 space-y-2">

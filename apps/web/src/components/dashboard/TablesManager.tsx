@@ -136,6 +136,7 @@ export function TablesManager({
   const [pendingDelete, setPendingDelete] = useState<RestaurantTableRow[] | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteSuccessNonce, setDeleteSuccessNonce] = useState(0);
   const openCreateGroupRef = useRef<(() => void) | null>(null);
 
   const groupNameByTableId = useMemo(
@@ -351,6 +352,7 @@ export function TablesManager({
       setTables(result.tables);
       setSavedTables(result.tables);
       setPendingDelete(null);
+      setDeleteSuccessNonce((n) => n + 1);
       showToast(t.tablesDeleted, 'success');
     } catch {
       showToast(t.deleteFailed, 'error');
@@ -406,6 +408,7 @@ export function TablesManager({
           adding={adding}
           addCount={addCount}
           maxAddCount={maxAddCount}
+          deleteSuccessNonce={deleteSuccessNonce}
           tableLabelForInput={tableLabelForInput}
           onAddCountChange={setAddCount}
           onAddTables={(count) => void addTables(count)}

@@ -63,10 +63,6 @@ export function AuthPageShell({ variant, copy, toolbar, footer, children }: Prop
 
           {copy.securityNote ? <ShellSecurityNote text={copy.securityNote} /> : null}
 
-          {copy.complianceNote ? (
-            <p className="text-center text-brand-text-muted text-xs mt-4 leading-relaxed">{copy.complianceNote}</p>
-          ) : null}
-
           {footer ? <div className="mt-4">{footer}</div> : null}
         </div>
 

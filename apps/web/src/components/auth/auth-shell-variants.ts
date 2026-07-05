@@ -6,7 +6,6 @@ export type AuthShellCopy = {
   contextLine?: string;
   securityNote?: string;
   forgotHint?: string;
-  complianceNote?: string;
 };
 
 export const AUTH_SHELL_VARIANTS: Record<AuthShellVariant, { showTrustBadges: boolean }> = {

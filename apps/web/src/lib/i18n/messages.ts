@@ -193,7 +193,6 @@ export const MESSAGES = {
       forgotHint: '忘记密码？请联系餐厅管理员',
       securityNote: '登录全程 HTTPS 加密传输',
       staffSecurityNote: '仅限本店授权员工登录',
-      complianceNote: '新餐厅账号由管理员在受控入口创建，不提供公开注册。',
       trustBadges: {
         secureTitle: '安全可靠',
         secureBody: '数据传输加密，账号由餐厅统一管理',
@@ -1472,7 +1471,6 @@ export const MESSAGES = {
       forgotHint: 'Forgot password? Contact your restaurant administrator',
       securityNote: 'Sign-in is protected with HTTPS encryption',
       staffSecurityNote: 'Authorized staff at this location only',
-      complianceNote: 'New restaurant accounts are created by an administrator; public signup is closed.',
       trustBadges: {
         secureTitle: 'Secure',
         secureBody: 'Encrypted transport; accounts managed by your restaurant',
@@ -2335,7 +2333,6 @@ export const MESSAGES = {
       forgotHint: 'Esqueceu a senha? Contacte o administrador do restaurante',
       securityNote: 'Login protegido com encriptacao HTTPS',
       staffSecurityNote: 'Apenas funcionarios autorizados deste estabelecimento',
-      complianceNote: 'Novas contas sao criadas pelo administrador; registo publico fechado.',
       trustBadges: {
         secureTitle: 'Seguro',
         secureBody: 'Transporte encriptado; contas geridas pelo restaurante',

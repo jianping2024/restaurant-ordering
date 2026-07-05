@@ -21,6 +21,7 @@ export default async function TablesPage({ searchParams }: Props) {
       initialTables={loaded.tables}
       initialGroups={loaded.groups}
       initialMembers={loaded.members}
+      initialOccupiedTableIds={loaded.occupiedTableIds}
       initialTab={initialTab}
     />
   );

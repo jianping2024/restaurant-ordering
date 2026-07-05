@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { loadFrontdeskOperationalContext } from '@/lib/dashboard-access';
+import { getFrontdeskOperationalContext } from '@/lib/dashboard-access-cached';
+import { loadRestaurantTableGroups } from '@/lib/dashboard-table-groups-server';
 import {
   type RestaurantTableGroup,
   type RestaurantTableGroupMember,
@@ -13,38 +14,55 @@ export type FrontdeskDashboardTables =
       tables: RestaurantTableRow[];
       groups: RestaurantTableGroup[];
       members: RestaurantTableGroupMember[];
+      occupiedTableIds: string[];
     }
   | { error: string; status: number; message?: string };
 
-import { loadRestaurantTableGroups } from '@/lib/dashboard-table-groups-server';
+async function loadOccupiedTableIds(
+  admin: SupabaseClient,
+  restaurantId: string,
+): Promise<string[]> {
+  const { data, error } = await admin
+    .from('table_sessions')
+    .select('table_id')
+    .eq('restaurant_id', restaurantId)
+    .in('status', ['open', 'billing']);
+
+  if (error) return [];
+  return (data || []).map((row) => row.table_id as string);
+}
 
 export async function loadFrontdeskDashboardTables(): Promise<FrontdeskDashboardTables> {
-  const ctx = await loadFrontdeskOperationalContext();
+  const ctx = await getFrontdeskOperationalContext();
   if ('error' in ctx) {
     return { error: ctx.error, status: ctx.status };
   }
 
-  const { data: restaurant, error: restaurantError } = await ctx.admin
-    .from('restaurants')
-    .select('id, name, slug, owner_id')
-    .eq('id', ctx.restaurantId)
-    .maybeSingle();
+  const [restaurantResult, tablesResult, groupData, occupiedTableIds] = await Promise.all([
+    ctx.admin
+      .from('restaurants')
+      .select('id, name, slug, owner_id')
+      .eq('id', ctx.restaurantId)
+      .maybeSingle(),
+    ctx.admin
+      .from('restaurant_tables')
+      .select('id, restaurant_id, display_name, sort_order, deleted_at, created_at')
+      .eq('restaurant_id', ctx.restaurantId)
+      .is('deleted_at', null),
+    loadRestaurantTableGroups(ctx.admin, ctx.restaurantId),
+    loadOccupiedTableIds(ctx.admin, ctx.restaurantId),
+  ]);
 
+  const { data: restaurant, error: restaurantError } = restaurantResult;
   if (restaurantError || !restaurant) {
     return { error: 'restaurant_not_found', status: 404, message: restaurantError?.message };
   }
 
-  const { data, error } = await ctx.admin
-    .from('restaurant_tables')
-    .select('id, restaurant_id, display_name, sort_order, deleted_at, created_at')
-    .eq('restaurant_id', ctx.restaurantId)
-    .is('deleted_at', null);
-
+  const { data, error } = tablesResult;
   if (error) {
     return { error: 'tables_query_failed', status: 500, message: error.message };
   }
 
-  const groupData = await loadRestaurantTableGroups(ctx.admin, ctx.restaurantId);
   if ('error' in groupData) {
     return {
       error: groupData.error,
@@ -63,5 +81,6 @@ export async function loadFrontdeskDashboardTables(): Promise<FrontdeskDashboard
     tables,
     groups: groupData.groups,
     members: groupData.members,
+    occupiedTableIds,
   };
 }

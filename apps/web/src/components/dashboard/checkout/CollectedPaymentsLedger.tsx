@@ -1,7 +1,3 @@
-import {
-  formatCollectedPaymentTime,
-  formatOrderDateTime,
-} from '@/lib/format-dashboard-date';
 import { localizeSplitPersonName } from '@/lib/split-person-label';
 import { totalCollectedAmount, type SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import type { UILanguage } from '@/lib/i18n';
@@ -43,21 +39,11 @@ export function CollectedPaymentsLedger({
         {payments.map((payment) => (
           <div
             key={payment.id}
-            className="flex items-start justify-between gap-3 text-[13px]"
+            className="flex items-center justify-between gap-3 text-[13px]"
           >
-            <div className="min-w-0">
-              <span className="text-brand-text font-medium">
-                {localizeSplitPersonName(payment.person_name, lang)}
-              </span>
-              <p className="text-[11px] text-brand-text-muted tabular-nums mt-0.5">
-                <time
-                  dateTime={payment.created_at}
-                  title={formatOrderDateTime(lang, payment.created_at)}
-                >
-                  {formatCollectedPaymentTime(lang, payment.created_at)}
-                </time>
-              </p>
-            </div>
+            <span className="text-brand-text font-medium min-w-0 truncate">
+              {localizeSplitPersonName(payment.person_name, lang)}
+            </span>
             <span className="text-brand-text font-medium tabular-nums shrink-0">
               €{payment.amount.toFixed(2)}
             </span>

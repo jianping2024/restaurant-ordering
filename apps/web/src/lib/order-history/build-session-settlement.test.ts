@@ -90,26 +90,6 @@ describe('buildOrderHistorySessionSettlement', () => {
     assert.equal(settlement.summary?.collected, 0);
   });
 
-  it('builds per-person balances from split and ledger', () => {
-    const settlement = buildOrderHistorySessionSettlement({
-      billSplit: baseSplit,
-      collectedPayments: [
-        {
-          id: 'pay-1',
-          person_name: 'Ana',
-          amount: 45,
-          created_at: '2026-07-05T04:00:00.000Z',
-        },
-      ],
-      orders: emptyOrders,
-    });
-
-    assert.deepEqual(settlement.personBalances, [
-      { name: 'Ana', owed: 50, collected: 45, outstanding: 5 },
-      { name: 'Bob', owed: 50, collected: 0, outstanding: 50 },
-    ]);
-  });
-
   it('reconciles payable from order lines when split snapshot is zeroed', () => {
     const settlement = buildOrderHistorySessionSettlement({
       billSplit: {

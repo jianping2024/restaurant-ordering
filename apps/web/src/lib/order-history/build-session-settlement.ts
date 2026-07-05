@@ -8,11 +8,8 @@ import {
 import {
   clampCheckoutDiscountRate,
   checkoutPayableAmount,
-  normalizeSplitRows,
 } from '@/lib/checkout-split-math';
 import {
-  outstandingAmount,
-  sumCollectedByPersonName,
   totalCollectedAmount,
   type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
@@ -22,7 +19,6 @@ import type { Order } from '@/types';
 import type {
   OrderHistoryCloseOutcome,
   OrderHistoryListAmountKind,
-  OrderHistoryPersonBalance,
   OrderHistorySessionSettlement,
 } from '@/lib/order-history/types';
 
@@ -129,29 +125,6 @@ function buildSummary(
   };
 }
 
-function buildPersonBalances(
-  split: OrderHistoryBillSplitSummary | undefined,
-  collectedPayments: SessionCollectedPayment[],
-): OrderHistoryPersonBalance[] {
-  if (!split) return [];
-
-  const rows = normalizeSplitRows(asBillSplit(split));
-  if (rows.length === 0) return [];
-
-  const collectedByPerson = sumCollectedByPersonName(collectedPayments);
-  return rows.map((row) => {
-    const name = row.name.trim();
-    const collected = collectedByPerson.get(name) ?? 0;
-    const owed = Number(row.amount);
-    return {
-      name,
-      owed,
-      collected,
-      outstanding: outstandingAmount(owed, collected),
-    };
-  });
-}
-
 function listAmountForOutcome(
   outcome: OrderHistoryCloseOutcome,
   summary: CheckoutSettlementSummary | null,
@@ -190,7 +163,6 @@ export function buildOrderHistorySessionSettlement(input: {
     summary,
     showFinancialDetails: summary != null,
     collectedPayments,
-    personBalances: buildPersonBalances(billSplit, collectedPayments),
     suppressVoidItemStyling: collectionActivity,
     listAmount,
     listAmountKind,

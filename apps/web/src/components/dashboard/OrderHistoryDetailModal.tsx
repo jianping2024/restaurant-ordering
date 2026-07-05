@@ -10,7 +10,6 @@ import {
   orderListGuestLabelsFromLang,
 } from '@/lib/order-list-display';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
-import { localizeSplitPersonName } from '@/lib/split-person-label';
 
 interface Props {
   entry: OrderHistoryEntry | null;
@@ -51,9 +50,6 @@ export function OrderHistoryDetailModal({ entry, onClose }: Props) {
 
   const { settlement } = entry;
   const outcomeMessage = outcomeDetailMessage(entry, i18n);
-  const showPersonBalances =
-    settlement.personBalances.length > 1 &&
-    settlement.outcome !== 'closed_without_billing';
 
   return (
     <Modal
@@ -86,40 +82,6 @@ export function OrderHistoryDetailModal({ entry, onClose }: Props) {
             lang={lang}
             checkoutT={checkoutT}
           />
-        ) : null}
-
-        {showPersonBalances ? (
-          <div className="rounded-lg border border-brand-border/60 px-3 py-2.5 space-y-2">
-            <p className="text-[12px] text-brand-text-muted">{i18n.splitBalancesTitle}</p>
-            {settlement.personBalances.map((person) => (
-              <div
-                key={person.name}
-                className="flex items-start justify-between gap-3 text-[13px]"
-              >
-                <div className="min-w-0">
-                  <span className="text-brand-text font-medium">
-                    {localizeSplitPersonName(person.name, lang)}
-                  </span>
-                  <p className="text-[11px] text-brand-text-muted tabular-nums mt-0.5">
-                    {checkoutT.personOwedTotal.replace('{amount}', person.owed.toFixed(2))}
-                    {person.collected > 0 ? (
-                      <>
-                        {' · '}
-                        {checkoutT.collectedSoFar} €{person.collected.toFixed(2)}
-                      </>
-                    ) : null}
-                  </p>
-                </div>
-                {person.outstanding > 0 ? (
-                  <span className="text-brand-gold font-medium tabular-nums shrink-0">
-                    €{person.outstanding.toFixed(2)}
-                  </span>
-                ) : (
-                  <span className="text-brand-text-muted shrink-0">{i18n.personSettled}</span>
-                )}
-              </div>
-            ))}
-          </div>
         ) : null}
 
         {chips.length === 0 ? (

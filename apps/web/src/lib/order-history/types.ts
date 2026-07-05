@@ -11,20 +11,12 @@ export type OrderHistoryCloseOutcome =
 
 export type OrderHistoryListAmountKind = 'paid' | 'collected';
 
-export type OrderHistoryPersonBalance = {
-  name: string;
-  owed: number;
-  collected: number;
-  outstanding: number;
-};
-
 export type OrderHistorySessionSettlement = {
   outcome: OrderHistoryCloseOutcome;
   summary: CheckoutSettlementSummary | null;
   /** When true, detail modal renders consumption / payable / collected / pending rows. */
   showFinancialDetails: boolean;
   collectedPayments: SessionCollectedPayment[];
-  personBalances: OrderHistoryPersonBalance[];
   /** Hide void strikethrough when money was collected this session. */
   suppressVoidItemStyling: boolean;
   listAmount: number | null;

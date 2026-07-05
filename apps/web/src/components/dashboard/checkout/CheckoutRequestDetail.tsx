@@ -1,10 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  formatCollectedPaymentTime,
-  formatOrderDateTime,
-} from '@/lib/format-dashboard-date';
+import { CollectedPaymentsLedger } from '@/components/dashboard/checkout/CollectedPaymentsLedger';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
 import type { CheckoutSettlementSummary } from '@/lib/checkout-settlement';
@@ -19,10 +16,12 @@ import {
   isCheckoutRequestBusy,
 } from '@/lib/checkout-request-state';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
-import { totalCollectedAmount } from '@/lib/checkout-session-payments';
 import type { SplitRowWithIndex } from '@/lib/checkout-session-payments';
 import type { getMessages } from '@/lib/i18n/messages';
 import type { UILanguage } from '@/lib/i18n';
+import {
+  formatCollectedPaymentTime,
+} from '@/lib/format-dashboard-date';
 import { formatPortugueseNif } from '@/lib/pt-nif';
 import { localizeSplitPersonName } from '@/lib/split-person-label';
 import type { BillSplit } from '@/types';
@@ -271,40 +270,13 @@ export function CheckoutRequestDetail({
       ) : null}
 
       {showCollectedLedger ? (
-        <div className="mt-3 px-1">
-          <p className="text-[12px] text-brand-text-muted mb-1.5">{t.collectedPaymentsTitle}</p>
-          <div className="space-y-1">
-            {collectedPayments.map((payment) => (
-              <div
-                key={payment.id}
-                className="flex items-center justify-between gap-3 text-[13px]"
-              >
-                <span className="text-brand-text-muted min-w-0 truncate">
-                  {localizeSplitPersonName(payment.person_name, lang)}
-                  <span className="mx-1.5 text-brand-border" aria-hidden>
-                    ·
-                  </span>
-                  <time
-                    className="tabular-nums"
-                    dateTime={payment.created_at}
-                    title={formatOrderDateTime(lang, payment.created_at)}
-                  >
-                    {formatCollectedPaymentTime(lang, payment.created_at)}
-                  </time>
-                </span>
-                <span className="text-brand-text tabular-nums shrink-0">
-                  €{payment.amount.toFixed(2)}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="flex items-center justify-between text-[12px] mt-1.5 pt-1.5 border-t border-brand-border/30">
-            <span className="text-brand-text-muted">{t.collectedPaymentsTotal}</span>
-            <span className="text-brand-text tabular-nums">
-              €{totalCollectedAmount(collectedPayments).toFixed(2)}
-            </span>
-          </div>
-        </div>
+        <CollectedPaymentsLedger
+          payments={collectedPayments}
+          lang={lang}
+          t={t}
+          bordered={false}
+          className="mt-3 px-1"
+        />
       ) : null}
 
       <div className="mt-3 rounded-lg border border-brand-border/60 overflow-hidden">

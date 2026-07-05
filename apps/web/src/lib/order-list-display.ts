@@ -14,6 +14,7 @@ export interface OrderListDisplayChip {
   name: string;
   quantityLabel: string;
   note?: string;
+  voided?: boolean;
 }
 
 export type OrderListGuestLabels = {
@@ -165,6 +166,33 @@ export function buildOrderListDisplayChips(
       quantityLabel: `× ${line.qty}`,
       note: line.note,
     });
+  }
+
+  return chips;
+}
+
+/** Detail modal chips include voided lines for audit visibility. */
+export function buildOrderHistoryDetailChips(
+  orders: Order[],
+  guestLabels: OrderListGuestLabels,
+): OrderListDisplayChip[] {
+  const chips: OrderListDisplayChip[] = [];
+
+  for (const order of orders) {
+    for (const item of order.items) {
+      const voided = isVoidedItem(item);
+      chips.push({
+        key: `${order.id}:${item.id}:${item.note ?? ''}:${voided ? 'voided' : 'active'}`,
+        emoji: item.emoji || (isBuffetBaseItem(item) ? '🍽️' : '🍽'),
+        name: item.name_pt || item.name,
+        quantityLabel: formatOrderItemQuantityLabel(item, {
+          headcountStyle: 'localized',
+          guestLabels,
+        }),
+        note: item.note,
+        ...(voided ? { voided: true } : {}),
+      });
+    }
   }
 
   return chips;

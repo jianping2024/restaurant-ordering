@@ -1,43 +1,27 @@
 import { notFound } from 'next/navigation';
-import type { Order } from '@/types';
 import { OrdersHistoryManager } from '@/components/dashboard/OrdersHistoryManager';
-import { loadFrontdeskDashboardTables } from '@/lib/dashboard-tables';
-import { loadBillSplitsForOrderHistory } from '@/lib/order-history-bill-splits';
+import {
+  defaultOrderHistoryQuery,
+  loadOrderHistoryEntries,
+} from '@/lib/order-history/load-entries';
+import { loadOrderHistoryDashboardContext } from '@/lib/order-history/load-page-context';
 
 export default async function OrdersPage() {
-  const loaded = await loadFrontdeskDashboardTables();
+  const loaded = await loadOrderHistoryDashboardContext();
   if ('error' in loaded) notFound();
 
-  const { data: orders } = await loaded.admin
-    .from('orders')
-    .select('*')
-    .eq('restaurant_id', loaded.restaurant.id)
-    .order('created_at', { ascending: false })
-    .limit(100);
-
-  const { data: closedSessions } = await loaded.admin
-    .from('table_sessions')
-    .select('id')
-    .eq('restaurant_id', loaded.restaurant.id)
-    .eq('status', 'closed');
-
-  const closedSessionIds = new Set((closedSessions || []).map((row) => row.id));
-  const historicalOrders = (orders || []).filter(
-    (order) => !!order.session_id && closedSessionIds.has(order.session_id),
-  );
-
-  const billSplitBySessionId = await loadBillSplitsForOrderHistory(
+  const initial = await loadOrderHistoryEntries(
     loaded.admin,
-    loaded.restaurant.id,
-    historicalOrders.map((order) => order.session_id as string),
+    defaultOrderHistoryQuery(loaded.restaurant),
   );
 
   return (
     <OrdersHistoryManager
-      initialOrders={historicalOrders as Order[]}
+      initialItems={initial.items}
+      initialHasMore={initial.hasMore}
+      initialCappedTotal={initial.cappedTotal}
       tables={loaded.tables}
       restaurantSlug={loaded.restaurant.slug}
-      billSplitBySessionId={billSplitBySessionId}
     />
   );
 }

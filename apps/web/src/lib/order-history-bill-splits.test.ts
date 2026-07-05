@@ -22,6 +22,9 @@ describe('loadBillSplitsForOrderHistory', () => {
                         session_id: 'sess-a',
                         table_id: 'table-a',
                         discount_rate: 10,
+                        status: 'paid',
+                        total_amount: 42.5,
+                        result: [{ name: 'Guest 1', amount: 42.5, paid: true }],
                         created_at: '2026-07-04T12:00:00.000Z',
                       },
                       {
@@ -29,6 +32,9 @@ describe('loadBillSplitsForOrderHistory', () => {
                         session_id: 'sess-a',
                         table_id: 'table-a',
                         discount_rate: 0,
+                        status: 'paid',
+                        total_amount: 30,
+                        result: [],
                         created_at: '2026-07-03T12:00:00.000Z',
                       },
                       {
@@ -36,6 +42,9 @@ describe('loadBillSplitsForOrderHistory', () => {
                         session_id: 'sess-b',
                         table_id: 'table-b',
                         discount_rate: 0,
+                        status: 'cancelled',
+                        total_amount: 0,
+                        result: [],
                         created_at: '2026-07-04T10:00:00.000Z',
                       },
                     ],
@@ -61,12 +70,18 @@ describe('loadBillSplitsForOrderHistory', () => {
         session_id: 'sess-a',
         table_id: 'table-a',
         discount_rate: 10,
+        status: 'paid',
+        total_amount: 42.5,
+        result: [{ name: 'Guest 1', amount: 42.5, paid: true }],
       },
       'sess-b': {
         id: 'split-b',
         session_id: 'sess-b',
         table_id: 'table-b',
         discount_rate: 0,
+        status: 'cancelled',
+        total_amount: 0,
+        result: [],
       },
     });
   });

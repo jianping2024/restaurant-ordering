@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { Order } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { DayPicker, type DateRange } from 'react-day-picker';
@@ -9,25 +8,20 @@ import { endOfMonth, format, startOfMonth, startOfToday, subDays } from 'date-fn
 import Select from 'react-select';
 import type { MultiValue, StylesConfig } from 'react-select';
 import 'react-day-picker/dist/style.css';
-import {
-  mergeTablesWithOrderHistory,
-  type RestaurantTableRow,
-} from '@/lib/restaurant-tables';
-import {
-  buildOrderListDisplayChips,
-  countOrderListItems,
-  orderListGuestLabelsFromLang,
-  type OrderListDisplayChip,
-} from '@/lib/order-list-display';
-import type { OrderHistoryBillSplitRef } from '@/lib/order-history-bill-splits';
+import type { RestaurantTableRow } from '@/lib/restaurant-tables';
+import { ORDER_HISTORY_MAX_TOTAL, type OrderHistoryEntry } from '@/lib/order-history/types';
+import { formatDateRangeFilter } from '@/lib/order-history/parse-query';
+import { useDebouncedOrderHistoryFilters, useOrderHistoryFeed } from '@/lib/use-order-history-feed';
 import { useStaffCheckoutBillPrint } from '@/lib/use-staff-checkout-bill-print';
+import { OrderHistoryDetailModal } from '@/components/dashboard/OrderHistoryDetailModal';
 
 interface Props {
-  initialOrders: Order[];
+  initialItems: OrderHistoryEntry[];
+  initialHasMore: boolean;
+  initialCappedTotal: number;
   tables?: RestaurantTableRow[];
   pageTitle?: string;
   restaurantSlug: string;
-  billSplitBySessionId: Record<string, OrderHistoryBillSplitRef>;
 }
 
 interface TableOption {
@@ -36,14 +30,16 @@ interface TableOption {
 }
 
 const META_SEP = <span className="text-brand-text-muted/50" aria-hidden>·</span>;
-const ORDER_CARD_CLASS = 'bg-brand-card border border-brand-border rounded-xl px-4 py-3';
+const ORDER_CARD_CLASS =
+  'bg-brand-card border border-brand-border rounded-xl px-4 py-3 text-left w-full hover:border-brand-gold/40 transition-colors';
 
 export function OrdersHistoryManager({
-  initialOrders,
+  initialItems,
+  initialHasMore,
+  initialCappedTotal,
   tables = [],
   pageTitle,
   restaurantSlug,
-  billSplitBySessionId,
 }: Props) {
   const { lang } = useLanguage();
   const i18n = getMessages(lang).orderHistory;
@@ -52,23 +48,37 @@ export function OrdersHistoryManager({
   const locale = UI_LOCALE_BY_LANG[lang];
   const { printCheckoutBill, isPrintBillBusy, cooldownSecondsLeft, isOnCooldown } =
     useStaffCheckoutBillPrint(restaurantSlug);
-  const [orders, setOrders] = useState(initialOrders);
+
+  const {
+    entries,
+    hasMore,
+    cappedTotal,
+    filters,
+    loading,
+    setFilters,
+    reload,
+    loadMore,
+  } = useOrderHistoryFeed({
+    items: initialItems,
+    hasMore: initialHasMore,
+    cappedTotal: initialCappedTotal,
+    filters: { tableIds: [] },
+  });
+
   const [selectedTables, setSelectedTables] = useState<TableOption[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState<OrderHistoryEntry | null>(null);
   const pickerRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    setOrders(initialOrders);
-  }, [initialOrders]);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const tableOptions = useMemo<TableOption[]>(
     () =>
-      mergeTablesWithOrderHistory(tables, orders).map((row) => ({
+      tables.map((row) => ({
         value: row.id,
         label: `${i18n.table} ${row.display_name}`,
       })),
-    [i18n.table, orders, tables],
+    [i18n.table, tables],
   );
 
   const selectStyles = useMemo<StylesConfig<TableOption, true>>(
@@ -120,37 +130,22 @@ export function OrdersHistoryManager({
     [],
   );
 
-  const filteredOrders = useMemo(() => {
-    const selectedTableIds = new Set(selectedTables.map((item) => item.value));
-    return orders.filter((order) => {
-      if (selectedTableIds.size > 0 && !selectedTableIds.has(order.table_id)) return false;
-
-      if (dateRange?.from) {
-        const fromTs = new Date(dateRange.from);
-        fromTs.setHours(0, 0, 0, 0);
-        if (new Date(order.created_at).getTime() < fromTs.getTime()) return false;
-      }
-      if (dateRange?.to) {
-        const toTs = new Date(dateRange.to);
-        toTs.setHours(23, 59, 59, 999);
-        if (new Date(order.created_at).getTime() > toTs.getTime()) return false;
-      } else if (dateRange?.from) {
-        const toTs = new Date(dateRange.from);
-        toTs.setHours(23, 59, 59, 999);
-        if (new Date(order.created_at).getTime() > toTs.getTime()) return false;
-      }
-      return true;
+  useEffect(() => {
+    const tableIds = selectedTables.map((item) => item.value);
+    const { closedFrom, closedTo } = formatDateRangeFilter({
+      from: dateRange?.from,
+      to: dateRange?.to,
     });
-  }, [orders, selectedTables, dateRange]);
+    setFilters({ tableIds, closedFrom, closedTo });
+  }, [dateRange, selectedTables, setFilters]);
 
-  const latestOrderTime = (sourceOrders: Order[]) =>
-    new Date(
-      Math.max(...sourceOrders.map((order) => new Date(order.created_at).getTime())),
-    ).toLocaleString(locale);
+  useDebouncedOrderHistoryFilters(filters, reload);
 
   const rangeLabel = useMemo(() => {
     if (!dateRange?.from && !dateRange?.to) return i18n.filterDateRange;
-    if (dateRange?.from && dateRange?.to) return `${format(dateRange.from, 'yyyy-MM-dd')} ~ ${format(dateRange.to, 'yyyy-MM-dd')}`;
+    if (dateRange?.from && dateRange?.to) {
+      return `${format(dateRange.from, 'yyyy-MM-dd')} ~ ${format(dateRange.to, 'yyyy-MM-dd')}`;
+    }
     if (dateRange?.from) return format(dateRange.from, 'yyyy-MM-dd');
     return i18n.filterDateRange;
   }, [dateRange, i18n.filterDateRange]);
@@ -188,41 +183,31 @@ export function OrdersHistoryManager({
     };
   }, [pickerOpen]);
 
-  const buffetGuestLabels = useMemo(() => orderListGuestLabelsFromLang(lang), [lang]);
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || !hasMore || loading) return;
 
-  const billSplitForOrder = (order: Order): OrderHistoryBillSplitRef | undefined =>
-    order.session_id ? billSplitBySessionId[order.session_id] : undefined;
-
-  const renderItemChips = (chips: OrderListDisplayChip[]) => {
-    if (chips.length === 0) return null;
-    return (
-      <div className="mt-2.5 flex flex-wrap gap-2">
-        {chips.map((chip) => (
-          <span
-            key={chip.key}
-            className="text-[13px] bg-brand-border px-2.5 py-1 rounded-full text-brand-text-muted"
-          >
-            {chip.emoji} {chip.name} {chip.quantityLabel}
-            {chip.note ? <span className="text-brand-text ml-1">({chip.note})</span> : null}
-          </span>
-        ))}
-      </div>
+    const observer = new IntersectionObserver(
+      (records) => {
+        if (records[0]?.isIntersecting) void loadMore();
+      },
+      { rootMargin: '120px' },
     );
-  };
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, loadMore, loading]);
 
-  const renderListCard = (key: string, header: ReactNode, chips: OrderListDisplayChip[]) => (
-    <div key={key} className={ORDER_CARD_CLASS}>
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">{header}</div>
-      {renderItemChips(chips)}
-    </div>
-  );
+  const formatClosedAt = (closedAt: string) => new Date(closedAt).toLocaleString(locale);
 
-  const renderMetaAmount = (amount: number) => (
-    <span className="text-brand-gold font-medium tabular-nums">€{amount.toFixed(2)}</span>
-  );
+  const renderMetaAmount = (amount: number | null) =>
+    amount == null ? (
+      <span className="text-brand-text-muted">—</span>
+    ) : (
+      <span className="text-brand-gold font-medium tabular-nums">€{amount.toFixed(2)}</span>
+    );
 
-  const renderPrintButton = (order: Order) => {
-    const billSplit = billSplitForOrder(order);
+  const renderPrintButton = (entry: OrderHistoryEntry) => {
+    const billSplit = entry.billSplit;
     const splitId = billSplit?.id ?? '';
     const busy = splitId ? isPrintBillBusy(splitId) : false;
     const onCooldown = splitId ? isOnCooldown(splitId) : false;
@@ -237,7 +222,8 @@ export function OrdersHistoryManager({
     return (
       <button
         type="button"
-        onClick={() => {
+        onClick={(event) => {
+          event.stopPropagation();
           if (billSplit) void printCheckoutBill(billSplit);
         }}
         disabled={!billSplit || busy || onCooldown}
@@ -248,25 +234,49 @@ export function OrdersHistoryManager({
     );
   };
 
-  const renderHistoryOrderCard = (order: Order) =>
-    renderListCard(
-      order.id,
-      <>
+  const renderHistoryCard = (entry: OrderHistoryEntry) => (
+    <button
+      key={entry.sessionId}
+      type="button"
+      className={ORDER_CARD_CLASS}
+      onClick={() => setSelectedEntry(entry)}
+    >
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">
         <span className="font-medium text-brand-text">
-          {i18n.table} {order.display_name}
+          {i18n.table} {entry.displayName}
         </span>
         {META_SEP}
-        <span className="text-brand-text-muted">{latestOrderTime([order])}</span>
+        <span className="text-brand-text-muted">{formatClosedAt(entry.closedAt)}</span>
         {META_SEP}
         <span className="text-brand-text-muted">
-          {countOrderListItems([order])} {i18n.items}
+          {entry.itemCount} {i18n.items}
         </span>
         {META_SEP}
-        {renderMetaAmount(order.total_amount)}
-        {renderPrintButton(order)}
-      </>,
-      buildOrderListDisplayChips([order], buffetGuestLabels),
-    );
+        <span className="text-brand-text-muted">
+          {i18n.openedBy} {entry.openedByName ?? '—'}
+        </span>
+        {META_SEP}
+        {renderMetaAmount(entry.settlementAmount)}
+        {renderPrintButton(entry)}
+      </div>
+    </button>
+  );
+
+  const listFooter = (): ReactNode => {
+    if (loading && entries.length > 0) {
+      return <p className="py-3 text-center text-[13px] text-brand-text-muted">{i18n.loadingMore}</p>;
+    }
+    if (!hasMore && entries.length > 0) {
+      return (
+        <p className="py-3 text-center text-[13px] text-brand-text-muted">
+          {entries.length >= cappedTotal && cappedTotal >= ORDER_HISTORY_MAX_TOTAL
+            ? i18n.maxRecordsHint
+            : i18n.allLoaded}
+        </p>
+      );
+    }
+    return null;
+  };
 
   return (
     <div>
@@ -293,7 +303,7 @@ export function OrdersHistoryManager({
         <div className="relative" ref={pickerRef}>
           <button
             type="button"
-            onClick={() => setPickerOpen(v => !v)}
+            onClick={() => setPickerOpen((value) => !value)}
             className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-sm text-left text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
           >
             {rangeLabel}
@@ -325,18 +335,26 @@ export function OrdersHistoryManager({
       </div>
 
       <div className="mb-3 text-[13px] text-brand-text-muted">
-        {i18n.total} {filteredOrders.length} {i18n.records}
+        {i18n.total} {cappedTotal} {i18n.records}
       </div>
 
-      {filteredOrders.length === 0 ? (
+      {loading && entries.length === 0 ? (
+        <div className="bg-brand-card border border-brand-border rounded-2xl p-12 text-center">
+          <p className="text-brand-text-muted">{i18n.loadingMore}</p>
+        </div>
+      ) : entries.length === 0 ? (
         <div className="bg-brand-card border border-brand-border rounded-2xl p-12 text-center">
           <p className="text-brand-text-muted">{i18n.empty}</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredOrders.map(renderHistoryOrderCard)}
+          {entries.map(renderHistoryCard)}
+          <div ref={sentinelRef} className="h-1" aria-hidden />
+          {listFooter()}
         </div>
       )}
+
+      <OrderHistoryDetailModal entry={selectedEntry} onClose={() => setSelectedEntry(null)} />
     </div>
   );
 }

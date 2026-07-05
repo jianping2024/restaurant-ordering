@@ -109,13 +109,12 @@
 ### 4.2 删除（停用）桌位
 
 - **不硬删** `restaurant_tables` 行；采用 **软删**（设置 `deleted_at = now()`）。
-- **只能逐桌操作**（每行独立「删除/停用」按钮）。
+- 支持单张或批量（`table_ids`）；批量为整批原子，任一桌有活跃餐次则全部不删。
 - 仅当该桌 **无 `open` / `billing` 餐次** 时可停用；否则提示先转台、结账或关台。
-- **必须经用户确认** 后才执行停用，交互与项目内其它删除一致：
-  - 使用 **`Modal`**（与 `PrintStationsManager`、`BuffetSettingsManager` 相同模式）；
-  - 标题：`confirmDeleteTitle`（i18n）；
-  - 正文：说明将停用桌位 `{display_name}`、QR 将失效、**操作不可撤销**（软删后该 UUID 永久不可用，仅名称可给新桌复用）；
-  - 按钮：取消（outline）+ 确认（`variant="danger"`）。
+- **必须经用户确认并输入当前登录密码** 后才执行停用：
+  - 使用 **`PasswordConfirmDialog`**；
+  - 标题 / 正文：说明将停用桌位、QR 将失效、**操作不可撤销**；
+  - 服务端 **`verifyStaffPassword`** 校验通过后才写库。
 - 停用后：设置页列表 **不再展示**（或收入「已停用」折叠区，本阶段可只做隐藏）；历史 `orders` / `table_sessions` 仍通过 FK 关联原行。
 
 ### 4.3 修改显示名

@@ -34,7 +34,7 @@ interface TablesTabPanelProps {
   onAddCountChange: (count: number) => void;
   onAddTables: (count: number) => void;
   onSaveTables: () => void;
-  onDeleteRequest: (table: RestaurantTableRow) => void;
+  onDeleteRequest: (tables: RestaurantTableRow[]) => void;
   onLabelDraftFocus: (table: RestaurantTableRow) => void;
   onLabelDraftChange: (tableId: string, value: string) => void;
   onLabelBlur: (table: RestaurantTableRow) => void;
@@ -262,7 +262,7 @@ export function TablesTabPanel({
                 </div>
                 <button
                   type="button"
-                  onClick={() => onDeleteRequest(table)}
+                  onClick={() => onDeleteRequest([table])}
                   disabled={occupiedTableIds.has(table.id)}
                   className="text-[13px] text-red-400/90 hover:underline disabled:opacity-40"
                   title={occupiedTableIds.has(table.id) ? t.cannotRemoveWithSession : undefined}

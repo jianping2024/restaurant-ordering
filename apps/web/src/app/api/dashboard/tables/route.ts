@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { loadFrontdeskDashboardTables } from '@/lib/dashboard-tables';
 import {
+  deleteRestaurantTables,
+  parseDeleteTableIds,
+  resolveDeleteTableTargets,
+} from '@/lib/restaurant-table-delete';
+import {
   isValidTableAddCount,
   isValidTableDisplayName,
   nextDefaultTableDisplayNames,
@@ -8,6 +13,7 @@ import {
   parseTableIdParam,
   type RestaurantTableRow,
 } from '@/lib/restaurant-tables';
+import { verifyStaffPassword } from '@/lib/verify-staff-password';
 
 export const runtime = 'nodejs';
 
@@ -128,55 +134,50 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: loaded.error, message: loaded.message }, { status: loaded.status });
   }
 
-  let body: { table_id?: unknown };
+  let body: { table_ids?: unknown; password?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const tableId = parseTableIdParam(body.table_id);
-  if (!tableId) {
-    return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
+  const tableIds = parseDeleteTableIds(body.table_ids);
+  if (!tableIds) {
+    return NextResponse.json({ error: 'invalid_table_ids' }, { status: 400 });
   }
 
-  const { data: table } = await loaded.admin
-    .from('restaurant_tables')
-    .select('id')
-    .eq('id', tableId)
-    .eq('restaurant_id', loaded.restaurant.id)
-    .is('deleted_at', null)
-    .maybeSingle();
-  if (!table) {
-    return NextResponse.json({ error: 'table_not_found' }, { status: 404 });
+  if (typeof body.password !== 'string' || !body.password.trim()) {
+    return NextResponse.json({ error: 'password_required' }, { status: 400 });
   }
 
-  const { data: activeSession } = await loaded.admin
-    .from('table_sessions')
-    .select('id')
-    .eq('restaurant_id', loaded.restaurant.id)
-    .eq('table_id', tableId)
-    .in('status', ['open', 'billing'])
-    .limit(1)
-    .maybeSingle();
-  if (activeSession?.id) {
-    return NextResponse.json({ error: 'table_has_active_session' }, { status: 409 });
+  const passwordCheck = await verifyStaffPassword(body.password);
+  if (!passwordCheck.ok) {
+    if (passwordCheck.error === 'misconfigured') {
+      return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
+    }
+    return NextResponse.json({ error: 'invalid_password' }, { status: 401 });
   }
 
-  await loaded.admin
-    .from('restaurant_table_group_members')
-    .delete()
-    .eq('table_id', tableId)
-    .eq('restaurant_id', loaded.restaurant.id);
+  const resolved = resolveDeleteTableTargets(tableIds, loaded.tables);
+  if (!resolved.ok) {
+    return NextResponse.json({ error: resolved.error }, { status: 404 });
+  }
 
-  const { error } = await loaded.admin
-    .from('restaurant_tables')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', tableId)
-    .eq('restaurant_id', loaded.restaurant.id)
-    .is('deleted_at', null);
-  if (error) {
-    return NextResponse.json({ error: 'delete_failed', message: error.message }, { status: 500 });
+  const deleted = await deleteRestaurantTables(loaded.admin, loaded.restaurant.id, resolved.targets);
+  if (!deleted.ok) {
+    if (deleted.error === 'tables_have_active_sessions') {
+      return NextResponse.json(
+        {
+          error: deleted.error,
+          display_names: deleted.displayNames ?? [],
+        },
+        { status: 409 },
+      );
+    }
+    if (deleted.error === 'delete_failed') {
+      return NextResponse.json({ error: deleted.error }, { status: 500 });
+    }
+    return NextResponse.json({ error: deleted.error }, { status: 400 });
   }
 
   const next = await loadFrontdeskDashboardTables();

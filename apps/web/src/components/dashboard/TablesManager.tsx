@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
+import { PasswordConfirmDialog } from '@/components/ui/PasswordConfirmDialog';
 import { BuffetSettingsTabs } from '@/components/dashboard/buffet/BuffetSettingsTabs';
 import { TableGroupsManager } from '@/components/dashboard/TableGroupsManager';
 import { TablesTabPanel } from '@/components/dashboard/TablesTabPanel';
@@ -45,10 +45,11 @@ interface TablesManagerProps {
 type TablesApiResponse = {
   tables?: RestaurantTableRow[];
   error?: string;
+  display_names?: string[];
 };
 
 async function requestDashboardTables(
-  method: 'POST' | 'PATCH' | 'DELETE',
+  method: 'POST' | 'PATCH',
   body: Record<string, unknown>,
 ): Promise<RestaurantTableRow[] | null> {
   const res = await fetch('/api/dashboard/tables', {
@@ -60,6 +61,47 @@ async function requestDashboardTables(
   const data = (await res.json().catch(() => ({}))) as TablesApiResponse;
   if (!res.ok || !data.tables) return null;
   return sortRestaurantTables(data.tables);
+}
+
+async function requestDeleteTables(
+  tableIds: string[],
+  password: string,
+): Promise<
+  | { ok: true; tables: RestaurantTableRow[] }
+  | { ok: false; error: string; displayNames?: string[] }
+> {
+  const res = await fetch('/api/dashboard/tables', {
+    method: 'DELETE',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ table_ids: tableIds, password }),
+  });
+  const data = (await res.json().catch(() => ({}))) as TablesApiResponse;
+  if (res.ok && data.tables) {
+    return { ok: true, tables: sortRestaurantTables(data.tables) };
+  }
+  return {
+    ok: false,
+    error: data.error ?? 'delete_failed',
+    displayNames: data.display_names,
+  };
+}
+
+function formatTableDeleteMessage(
+  targets: RestaurantTableRow[],
+  t: ReturnType<typeof getMessages>['tables'],
+): string {
+  if (targets.length === 1) {
+    return t.confirmDeleteBodySingle.replace('{name}', targets[0].display_name);
+  }
+  const preview = targets
+    .slice(0, 5)
+    .map((row) => row.display_name)
+    .join('、');
+  const names = targets.length > 5 ? `${preview}…` : preview;
+  return t.confirmDeleteBodyBatch
+    .replace('{count}', String(targets.length))
+    .replace('{names}', names);
 }
 
 export function TablesManager({
@@ -74,7 +116,7 @@ export function TablesManager({
   const { lang } = useLanguage();
   const t = getMessages(lang).tables;
   const tg = getMessages(lang).tableGroups;
-  const tPrint = getMessages(lang).printStations;
+  const tCommon = getMessages(lang).menuManager;
   const supabase = createClient();
 
   const [activeTab, setActiveTab] = useState<TablesManagerTab>(initialTab);
@@ -91,8 +133,9 @@ export function TablesManager({
   const [occupiedTableIds, setOccupiedTableIds] = useState<Set<string>>(
     () => new Set(initialOccupiedTableIds),
   );
-  const [deleteTarget, setDeleteTarget] = useState<RestaurantTableRow | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<RestaurantTableRow[] | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const openCreateGroupRef = useRef<(() => void) | null>(null);
 
   const groupNameByTableId = useMemo(
@@ -258,26 +301,59 @@ export function TablesManager({
     }
   };
 
-  const confirmDeleteTable = async () => {
-    if (!deleteTarget) return;
-    if (occupiedTableIds.has(deleteTarget.id)) {
-      showToast(t.cannotRemoveWithSession, 'error');
-      return;
-    }
-    setDeleting(true);
-    try {
-      const next = await requestDashboardTables('DELETE', { table_id: deleteTarget.id });
-      if (!next) {
-        showToast(t.saveFailed, 'error');
+  const handleDeleteRequest = useCallback(
+    (rows: RestaurantTableRow[]) => {
+      if (rows.length === 0) return;
+      const blocked = rows.filter((row) => occupiedTableIds.has(row.id));
+      if (blocked.length > 0) {
+        showToast(t.cannotRemoveWithSession, 'error');
         return;
       }
-      removeTableQrCache(deleteTarget.id);
-      setTables(next);
-      setSavedTables(next);
-      setDeleteTarget(null);
-      showToast(t.savedTables, 'success');
+      setDeleteError(null);
+      setPendingDelete(rows);
+    },
+    [occupiedTableIds, t.cannotRemoveWithSession],
+  );
+
+  const closeDeleteDialog = useCallback(() => {
+    if (deleting) return;
+    setPendingDelete(null);
+    setDeleteError(null);
+  }, [deleting]);
+
+  const confirmDeleteTables = async (password: string) => {
+    if (!pendingDelete || pendingDelete.length === 0) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const result = await requestDeleteTables(
+        pendingDelete.map((row) => row.id),
+        password,
+      );
+      if (!result.ok) {
+        if (result.error === 'invalid_password') {
+          setDeleteError(t.invalidDeletePassword);
+          return;
+        }
+        if (result.error === 'tables_have_active_sessions') {
+          const names = (result.displayNames ?? []).join('、');
+          setDeleteError(t.tablesHaveActiveSessions.replace('{names}', names));
+          await refreshOccupiedTableIds();
+          return;
+        }
+        showToast(t.deleteFailed, 'error');
+        return;
+      }
+
+      for (const row of pendingDelete) {
+        removeTableQrCache(row.id);
+      }
+      setTables(result.tables);
+      setSavedTables(result.tables);
+      setPendingDelete(null);
+      showToast(t.tablesDeleted, 'success');
     } catch {
-      showToast(t.saveFailed, 'error');
+      showToast(t.deleteFailed, 'error');
     } finally {
       setDeleting(false);
     }
@@ -334,7 +410,7 @@ export function TablesManager({
           onAddCountChange={setAddCount}
           onAddTables={(count) => void addTables(count)}
           onSaveTables={() => void saveTables()}
-          onDeleteRequest={setDeleteTarget}
+          onDeleteRequest={handleDeleteRequest}
           onLabelDraftFocus={(table) => {
             setLabelDrafts((prev) =>
               table.id in prev ? prev : { ...prev, [table.id]: table.display_name },
@@ -347,26 +423,19 @@ export function TablesManager({
         />
       )}
 
-      <Modal
-        open={!!deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        title={tPrint.confirmDeleteTitle}
-        size="sm"
-      >
-        <p className="text-[13px] text-brand-text-muted mb-4">
-          {deleteTarget
-            ? `${t.table} ${deleteTarget.display_name}: QR will stop working. This cannot be undone.`
-            : ''}
-        </p>
-        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button variant="outline" onClick={() => setDeleteTarget(null)}>
-            {getMessages(lang).menuManager.cancel}
-          </Button>
-          <Button variant="danger" loading={deleting} onClick={() => void confirmDeleteTable()}>
-            {tPrint.delete}
-          </Button>
-        </div>
-      </Modal>
+      <PasswordConfirmDialog
+        open={!!pendingDelete}
+        onClose={closeDeleteDialog}
+        title={t.confirmDeleteTitle}
+        message={pendingDelete ? formatTableDeleteMessage(pendingDelete, t) : ''}
+        passwordLabel={t.confirmDeletePasswordLabel}
+        passwordRequiredError={t.confirmDeletePasswordRequired}
+        confirmLabel={t.confirmDelete}
+        cancelLabel={tCommon.cancel}
+        confirming={deleting}
+        externalError={deleteError}
+        onConfirm={confirmDeleteTables}
+      />
     </div>
   );
 }

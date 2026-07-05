@@ -32,6 +32,7 @@
 3. 订单/分单/打印 payload 须同时带 `table_id` + `display_name` 快照
 4. 转台/并台/关台须原子 RPC，禁止只改 `table_sessions` 一行
 5. **并台**：来源桌与目标桌均不得处于待结账（与看板 `checkout` 判定一致）；目标选择列表不展示待结账桌；API 双端校验，禁止并入或并出结算中会话
+6. **停用桌位（软删）**：须 `PasswordConfirmDialog` 输入当前登录密码；服务端 `verifyStaffPassword` 通过后才执行；支持 `table_ids` 批量（整批原子：任一桌有 `open`/`billing` 会话则全部不删）
 
 ### 相关代码
 

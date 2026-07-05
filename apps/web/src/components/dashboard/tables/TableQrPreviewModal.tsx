@@ -6,8 +6,7 @@ import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 
 type PreviewTarget = {
   table: RestaurantTableRow;
-  groupName?: string;
-  qrSrc: string;
+  stickerSrc: string;
 };
 
 type Props = {
@@ -18,7 +17,6 @@ type Props = {
     title: string;
     table: string;
     openOrder: string;
-    close: string;
   };
   onClose: () => void;
 };
@@ -28,16 +26,12 @@ export function TableQrPreviewModal({ open, target, restaurantSlug, labels: t, o
 
   return (
     <Modal open={open} onClose={onClose} title={t.title} size="sm">
-      <div className="text-center space-y-3">
-        <p className="font-heading text-2xl text-brand-gold">{target.table.display_name}</p>
-        {target.groupName ? (
-          <p className="text-sm text-brand-text-muted">{target.groupName}</p>
-        ) : null}
+      <div className="text-center space-y-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={target.qrSrc}
+          src={target.stickerSrc}
           alt={`${t.table} ${target.table.display_name}`}
-          className="mx-auto rounded-lg w-56 h-56"
+          className="mx-auto w-full max-w-[400px] rounded-lg border border-brand-border"
         />
         <a
           href={buildTableMenuQrUrl(restaurantSlug, target.table.id)}

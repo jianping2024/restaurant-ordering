@@ -22,24 +22,19 @@ function triggerBlobDownload(blob: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-export function downloadTableQr(dataUrl: string, displayName: string): void {
-  const link = document.createElement('a');
-  link.href = dataUrl;
-  link.download = tableQrDownloadFilename(displayName);
-  link.click();
-}
-
 export async function downloadTableQrsZip(
   rows: RestaurantTableRow[],
-  qrCodes: Record<string, string>,
+  stickerDataUrls: Record<string, string>,
   zipFilename: string,
+  resolveDisplayName?: (row: RestaurantTableRow) => string,
 ): Promise<number> {
   const zip = new JSZip();
   let count = 0;
   for (const row of rows) {
-    const dataUrl = qrCodes[row.id];
+    const dataUrl = stickerDataUrls[row.id];
     if (!dataUrl) continue;
-    zip.file(tableQrDownloadFilename(row.display_name), dataUrlToUint8Array(dataUrl));
+    const displayName = resolveDisplayName?.(row) ?? row.display_name;
+    zip.file(tableQrDownloadFilename(displayName), dataUrlToUint8Array(dataUrl));
     count += 1;
   }
   if (count === 0) return 0;

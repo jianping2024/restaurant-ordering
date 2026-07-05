@@ -10,6 +10,7 @@ import { TablesQrBatchBar } from '@/components/dashboard/tables/TablesQrBatchBar
 import { TablesQrTable } from '@/components/dashboard/tables/TablesQrTable';
 import { TablesQrToolbar } from '@/components/dashboard/tables/TablesQrToolbar';
 import { downloadTableQrsZip } from '@/lib/download-table-qrs';
+import { buildTableQrStickerAssets } from '@/lib/build-table-qr-sticker-assets';
 import { printTableQrs } from '@/lib/print-table-qrs';
 import {
   buildTableGroupIdByTableId,
@@ -18,7 +19,6 @@ import {
   type RestaurantTableGroupMember,
 } from '@/lib/restaurant-table-groups';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
-import { ensureTableQrCodes, generateTableQrDataUrl } from '@/lib/table-menu-qr';
 import {
   applyTableQrListFilters,
   isPageFullySelected,
@@ -129,19 +129,32 @@ export function TablesTabPanel({
     setPage(1);
   }, [search, groupFilter, tables.length]);
 
+  const buildStickers = useCallback(
+    async (rows: RestaurantTableRow[]) =>
+      buildTableQrStickerAssets({
+        slug: restaurant.slug,
+        rows,
+        groupNameByTableId,
+        restaurantName: restaurant.name,
+        ungroupedLabel: tg.ungrouped,
+        resolveDisplayName: tableLabelForInput,
+      }),
+    [groupNameByTableId, restaurant.name, restaurant.slug, tableLabelForInput, tg.ungrouped],
+  );
+
   useEffect(() => {
     if (!previewTable) {
       setPreviewQrSrc('');
       return;
     }
     let cancelled = false;
-    void generateTableQrDataUrl(restaurant.slug, previewTable.id).then((src) => {
-      if (!cancelled) setPreviewQrSrc(src);
+    void buildStickers([previewTable]).then((stickers) => {
+      if (!cancelled) setPreviewQrSrc(stickers[previewTable.id] ?? '');
     });
     return () => {
       cancelled = true;
     };
-  }, [previewTable, restaurant.slug]);
+  }, [previewTable, buildStickers]);
 
   const printLabels = useMemo(
     () => ({
@@ -156,17 +169,15 @@ export function TablesTabPanel({
   const printRows = useCallback(
     async (rows: RestaurantTableRow[]) => {
       if (rows.length === 0) return;
-      const ids = rows.map((row) => row.id);
-      const codes = await ensureTableQrCodes(restaurant.slug, ids);
+      const stickers = await buildStickers(rows);
       printTableQrs({
         restaurantName: restaurant.name,
         rows,
-        qrCodes: codes,
-        groupNameByTableId,
+        stickerDataUrls: stickers,
         labels: printLabels,
       });
     },
-    [groupNameByTableId, printLabels, restaurant.name, restaurant.slug],
+    [buildStickers, printLabels, restaurant.name],
   );
 
   const handlePrintAll = () => {
@@ -210,14 +221,13 @@ export function TablesTabPanel({
     if (selectedRows.length === 0) return;
     setBatchBusy(true);
     try {
-      const codes = await ensureTableQrCodes(
-        restaurant.slug,
-        selectedRows.map((row) => row.id),
-      );
+      const sorted = sortTablesForGroupPrint(selectedRows, groups, members);
+      const stickers = await buildStickers(sorted);
       const count = await downloadTableQrsZip(
-        sortTablesForGroupPrint(selectedRows, groups, members),
-        codes,
+        sorted,
+        stickers,
         t.batchDownloadZipName,
+        tableLabelForInput,
       );
       if (count === 0) {
         showToast(t.batchDownloadEmpty, 'error');
@@ -348,8 +358,7 @@ export function TablesTabPanel({
           previewTable && previewQrSrc
             ? {
                 table: previewTable,
-                groupName: groupNameByTableId[previewTable.id],
-                qrSrc: previewQrSrc,
+                stickerSrc: previewQrSrc,
               }
             : null
         }
@@ -358,7 +367,6 @@ export function TablesTabPanel({
           title: t.qrPreviewTitle,
           table: t.table,
           openOrder: t.openOrder,
-          close: getMessages(lang).menuManager.cancel,
         }}
         onClose={() => setPreviewTable(null)}
       />

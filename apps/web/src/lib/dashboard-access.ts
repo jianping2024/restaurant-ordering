@@ -5,15 +5,25 @@ import { isRestaurantSuspended } from '@mesa/shared';
 import { parseStaffUserMetadata, type StaffRole } from '@/lib/staff-account';
 import type { Restaurant } from '@/types';
 
-export {
+import {
+  dashboardMiddlewareRedirectPath,
   isCashierCheckoutPath,
   isDashboardSettingsPath,
   isFrontdeskOperationalPath,
   isOwnerDashboardPath,
   isOwnerOperationalPath,
-  dashboardMiddlewareRedirectPath,
   type DashboardActor,
 } from '@/lib/dashboard-paths';
+
+export {
+  dashboardMiddlewareRedirectPath,
+  isCashierCheckoutPath,
+  isDashboardSettingsPath,
+  isFrontdeskOperationalPath,
+  isOwnerDashboardPath,
+  isOwnerOperationalPath,
+  type DashboardActor,
+};
 
 /** Single-pass dashboard actor for middleware (owner + staff row in parallel). */
 export async function resolveDashboardActor(

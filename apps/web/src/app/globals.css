@@ -168,22 +168,25 @@ body {
   }
 
   .mesa-auth-bg {
+    position: relative;
+    isolation: isolate;
     background-color: rgb(var(--color-brand-bg));
     background-image:
-      repeating-linear-gradient(
-        60deg,
-        transparent,
-        transparent 72px,
-        rgb(var(--color-brand-gold) / var(--auth-pattern-opacity)) 72px,
-        rgb(var(--color-brand-gold) / var(--auth-pattern-opacity)) 73px
-      ),
-      repeating-linear-gradient(
-        -60deg,
-        transparent,
-        transparent 72px,
-        rgb(var(--color-brand-gold) / var(--auth-pattern-opacity)) 72px,
-        rgb(var(--color-brand-gold) / var(--auth-pattern-opacity)) 73px
-      );
+      radial-gradient(ellipse 72% 58% at 16% 10%, rgb(var(--color-brand-gold) / 0.07), transparent 58%),
+      radial-gradient(ellipse 64% 50% at 84% 92%, rgb(var(--color-brand-gold) / 0.05), transparent 52%);
+  }
+
+  .mesa-auth-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image: url('/auth-mesh.svg');
+    background-size: 720px 720px;
+    background-position: center;
+    background-repeat: repeat;
+    opacity: var(--auth-pattern-opacity);
   }
 }
 

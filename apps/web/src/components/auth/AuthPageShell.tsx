@@ -34,7 +34,7 @@ export function AuthPageShell({ variant, copy, toolbar, footer, children }: Prop
 
   return (
     <div className="min-h-screen mesa-auth-bg flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-lg">
+      <div className="relative z-[1] w-full max-w-lg">
         <div className="flex justify-end mb-4">
           <LanguageSwitcher compact />
         </div>

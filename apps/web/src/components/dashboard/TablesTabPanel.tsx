@@ -253,7 +253,6 @@ export function TablesTabPanel({
           groups={groups}
           labels={{
             tableQrTitle: t.tableQrTitle,
-            tableQrDesc: t.tableQrDesc,
             tableCountSummary: t.tableCountSummary,
             unsavedChanges: t.unsavedChanges,
             searchTable: t.searchTable,

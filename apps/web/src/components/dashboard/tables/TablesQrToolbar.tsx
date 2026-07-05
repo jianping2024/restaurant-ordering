@@ -20,7 +20,6 @@ type Props = {
   groups: RestaurantTableGroup[];
   labels: {
     tableQrTitle: string;
-    tableQrDesc: string;
     tableCountSummary: string;
     unsavedChanges: string;
     searchTable: string;
@@ -72,7 +71,6 @@ export function TablesQrToolbar({
     <div className="flex flex-col gap-4">
       <div className="min-w-0">
         <h2 className="font-heading text-2xl text-brand-gold">{t.tableQrTitle}</h2>
-        <p className="text-brand-text-muted text-sm mt-1 max-w-2xl">{t.tableQrDesc}</p>
       </div>
 
       <div className="flex flex-col gap-3 border-t border-brand-border/60 pt-4">

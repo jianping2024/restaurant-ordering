@@ -67,6 +67,7 @@ export function useWaiterTableDetail(
   demoTables: RestaurantTableRow[] = [],
   demoOrders: Order[] = [],
   initialModel?: WaiterTablePageModel | null,
+  skipEntryReconcile = false,
 ) {
   const bootModel = resolveTableDetailBootModel(tableId, initialModel);
   const boot = detailFromModel(bootModel);
@@ -179,7 +180,7 @@ export function useWaiterTableDetail(
   }, [enabled, isDemo, pathname, refresh, router, staffMenuSubmitReturn, tableId]);
 
   useRestaurantStaffEntryReconcile(
-    enabled && !isDemo && !staffMenuSubmitReturn,
+    enabled && !isDemo && !staffMenuSubmitReturn && !skipEntryReconcile,
     refresh,
     tableId,
   );

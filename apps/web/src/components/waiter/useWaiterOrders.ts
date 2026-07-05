@@ -81,6 +81,7 @@ export function useWaiterOrders(
   initialGroups: RestaurantTableGroup[] = [],
   initialMembers: RestaurantTableGroupMember[] = [],
   demoOrders: Order[] = [],
+  skipEntryReconcile = false,
 ) {
   const initialBoard = buildInitialWaiterBoardState({
     initialTableSummaries,
@@ -151,7 +152,7 @@ export function useWaiterOrders(
     return running;
   }, [enabled, restaurant.slug]);
 
-  useRestaurantStaffEntryReconcile(enabled, refresh);
+  useRestaurantStaffEntryReconcile(enabled && !skipEntryReconcile, refresh);
 
   useRestaurantRealtimeRefresh(
     supabase,

@@ -82,6 +82,7 @@ export async function POST(req: Request) {
       supabase,
       data.user.id,
       data.user.user_metadata as Record<string, unknown>,
+      { staffPreflightPassed: isStaffAuthEmail(email) && !!resolved.loginName },
     );
 
     if (redirect.kind === 'staff_error') {

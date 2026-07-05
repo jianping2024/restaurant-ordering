@@ -11,7 +11,38 @@ export {
   isFrontdeskOperationalPath,
   isOwnerDashboardPath,
   isOwnerOperationalPath,
+  dashboardMiddlewareRedirectPath,
+  type DashboardActor,
 } from '@/lib/dashboard-paths';
+
+/** Single-pass dashboard actor for middleware (owner + staff row in parallel). */
+export async function resolveDashboardActor(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  userMetadata: Record<string, unknown> | undefined,
+): Promise<DashboardActor> {
+  const [{ data: owner }, { data: account }] = await Promise.all([
+    supabase.from('restaurants').select('id').eq('owner_id', userId).maybeSingle(),
+    supabase
+      .from('restaurant_staff_accounts')
+      .select('role, disabled_at')
+      .eq('user_id', userId)
+      .maybeSingle(),
+  ]);
+
+  if (owner) return 'owner';
+
+  if (account && !account.disabled_at) {
+    if (account.role === 'frontdesk') return 'frontdesk';
+    if (account.role === 'cashier') return 'cashier';
+  }
+
+  const meta = parseStaffUserMetadata(userMetadata);
+  if (meta?.staff_role === 'frontdesk') return 'frontdesk';
+  if (meta?.staff_role === 'cashier') return 'cashier';
+
+  return 'unknown';
+}
 
 export type DashboardNavRestaurant = Pick<
   Restaurant,

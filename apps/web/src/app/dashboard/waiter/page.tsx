@@ -21,6 +21,7 @@ export default async function DashboardWaiterPage() {
     <WaiterDisplay
       restaurant={{ id: restaurant.id, name: restaurant.name, slug: restaurant.slug }}
       embeddedInDashboard
+      hasAuthoritativeSeed={board != null}
       tables={board?.tables}
       initialTableSummaries={board?.tableSummaries}
       initialCheckoutRequestedTableIds={board?.checkoutRequestedTableIds}

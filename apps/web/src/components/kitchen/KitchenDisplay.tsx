@@ -14,15 +14,19 @@ import { isBuffetBaseItem } from '@/lib/order-items';
 import { StaffAuthenticatedShell, type StaffShellContext } from '@/components/staff/StaffAuthenticatedShell';
 import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
 import { fetchKitchenBoardClient } from '@/lib/staff-board-client';
-import { useRestaurantRealtimeRefresh } from '@/lib/use-restaurant-realtime-refresh';
+import { useRestaurantRealtimeRefresh, useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-realtime-refresh';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
 import { compareRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
+  asOwner?: boolean;
+  /** SSR successfully loaded board — skip mount entry reconcile. */
+  hasAuthoritativeSeed?: boolean;
   initialOrders?: Order[];
   /** 开台 / 结账中（table_sessions open|billing）的 table_id，用于无待备餐单时在厨房占位 */
   initialActiveTableIds?: string[];
+  initialTables?: RestaurantTableRow[];
   isDemo?: boolean;
 }
 
@@ -64,6 +68,7 @@ export function KitchenDisplay(props: Props) {
     <StaffAuthenticatedShell
       restaurant={props.restaurant}
       expectedRole="kitchen"
+      asOwner={props.asOwner}
       isDemo={props.isDemo}
     >
       {(ctx) => <KitchenDisplayInner {...props} {...ctx} />}
@@ -71,10 +76,16 @@ export function KitchenDisplay(props: Props) {
   );
 }
 
+function buildInitialTableMeta(tables: RestaurantTableRow[] = []): Map<string, RestaurantTableRow> {
+  return new Map(tables.map((t) => [t.id, t]));
+}
+
 function KitchenDisplayInner({
   restaurant,
+  hasAuthoritativeSeed = false,
   initialOrders = [],
   initialActiveTableIds = [],
+  initialTables = [],
   isDemo = false,
   handleSignOut,
   exitLabel,
@@ -86,7 +97,9 @@ function KitchenDisplayInner({
   const locale = UI_LOCALE_BY_LANG[lang];
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [activeTableIds, setActiveTableIds] = useState<string[]>(initialActiveTableIds);
-  const [tableMetaById, setTableMetaById] = useState<Map<string, RestaurantTableRow>>(new Map());
+  const [tableMetaById, setTableMetaById] = useState<Map<string, RestaurantTableRow>>(
+    () => buildInitialTableMeta(initialTables),
+  );
   const [updateConflict, setUpdateConflict] = useState(false);
   const [pendingVoid, setPendingVoid] = useState<{ order: Order; itemIdx: number } | null>(null);
   const [voidReasonError, setVoidReasonError] = useState<string | null>(null);
@@ -275,11 +288,13 @@ function KitchenDisplayInner({
     }
   };
 
+  useRestaurantStaffEntryReconcile(!isDemo && !hasAuthoritativeSeed, refreshKitchenBoard);
+
   useRestaurantRealtimeRefresh(
     supabase,
     restaurant.id,
     `kitchen-${restaurant.id}`,
-    true,
+    !isDemo,
     refreshKitchenBoard,
   );
 

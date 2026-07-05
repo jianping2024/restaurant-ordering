@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { WaiterTableDetail } from '@/components/waiter/WaiterTableDetail';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
-import { staffAuthForPage } from '@/lib/staff-api-auth';
+import { requireStaffSlugPageAccess } from '@/lib/staff-page-gate';
 import { loadWaiterTablePageInitial } from '@/lib/waiter-table-detail-load';
 
 interface Props {
@@ -24,7 +24,7 @@ export default async function WaiterTablePage({ params }: Props) {
 
   if (!restaurant) notFound();
 
-  await staffAuthForPage(slug, 'waiter');
+  const access = await requireStaffSlugPageAccess(slug, ['waiter']);
 
   const initialModel = await loadWaiterTablePageInitial(restaurant.id, tableId);
   if (!initialModel?.detail.table) notFound();
@@ -32,6 +32,8 @@ export default async function WaiterTablePage({ params }: Props) {
   return (
     <WaiterTableDetail
       restaurant={restaurant}
+      asOwner={access.as_owner}
+      hasAuthoritativeSeed
       initialModel={initialModel}
       tableId={tableId}
     />

@@ -53,6 +53,9 @@ import {
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
+  asOwner?: boolean;
+  /** SSR successfully loaded board — skip mount entry reconcile. */
+  hasAuthoritativeSeed?: boolean;
   tables?: RestaurantTableRow[];
   /** Production SSR seed — board read model only. */
   initialTableSummaries?: WaiterBoardTableSummary[];
@@ -280,6 +283,7 @@ function WaiterBoardSectionBlock({
 
 function WaiterBoardInner({
   restaurant,
+  hasAuthoritativeSeed = false,
   tables: tablesProp = [],
   initialTableSummaries = [],
   initialOrders = [],
@@ -316,6 +320,7 @@ function WaiterBoardInner({
     initialGroups,
     initialMembers,
     isDemo ? initialOrders : [],
+    hasAuthoritativeSeed,
   );
 
   const effectiveSessionMetaByTableId = useMemo(
@@ -651,7 +656,7 @@ function WaiterBoardInner({
 }
 
 export function WaiterDisplay(props: Props) {
-  const { restaurant, isDemo, embeddedInDashboard } = props;
+  const { restaurant, isDemo, embeddedInDashboard, asOwner = false } = props;
   if (embeddedInDashboard) {
     return (
       <WaiterBoardInner
@@ -663,7 +668,7 @@ export function WaiterDisplay(props: Props) {
     );
   }
   return (
-    <WaiterAuthenticatedShell restaurant={restaurant} isDemo={isDemo}>
+    <WaiterAuthenticatedShell restaurant={restaurant} asOwner={asOwner} isDemo={isDemo}>
       {({ handleSignOut, exitLabel, confirmBeforeSignOut }) => (
         <WaiterBoardInner
           {...props}

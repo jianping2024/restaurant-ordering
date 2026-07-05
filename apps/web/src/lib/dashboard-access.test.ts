@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  dashboardMiddlewareRedirectPath,
   isCashierCheckoutPath,
   isDashboardSettingsPath,
   isFrontdeskOperationalPath,
@@ -57,5 +58,29 @@ describe('isStaffRole', () => {
     assert.equal(isStaffRole('frontdesk'), true);
     assert.equal(isStaffRole('owner'), false);
     assert.equal(isStaffRole(''), false);
+  });
+});
+
+describe('dashboardMiddlewareRedirectPath', () => {
+  it('redirects owner away from cashier checkout', () => {
+    assert.equal(
+      dashboardMiddlewareRedirectPath('owner', '/dashboard/checkout'),
+      '/dashboard/settings',
+    );
+  });
+
+  it('redirects frontdesk away from settings', () => {
+    assert.equal(
+      dashboardMiddlewareRedirectPath('frontdesk', '/dashboard/settings'),
+      '/dashboard',
+    );
+  });
+
+  it('redirects cashier from overview to checkout', () => {
+    assert.equal(dashboardMiddlewareRedirectPath('cashier', '/dashboard'), '/dashboard/checkout');
+  });
+
+  it('allows frontdesk on operational routes', () => {
+    assert.equal(dashboardMiddlewareRedirectPath('frontdesk', '/dashboard/waiter'), null);
   });
 });

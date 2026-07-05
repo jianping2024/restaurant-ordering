@@ -65,6 +65,9 @@ import { resolveWaiterTableDetailActions } from '@/lib/waiter-table-detail-actio
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
+  asOwner?: boolean;
+  /** SSR successfully loaded detail — skip mount entry reconcile. */
+  hasAuthoritativeSeed?: boolean;
   /** Demo only — all configured tables for transfer/merge UI. */
   tables?: RestaurantTableRow[];
   /** Demo only — full demo order set. */
@@ -80,6 +83,7 @@ interface Props {
 
 function WaiterTableDetailInner({
   restaurant,
+  hasAuthoritativeSeed = false,
   tables: demoTablesProp = [],
   initialOrders = [],
   initialModel = null,
@@ -116,6 +120,7 @@ function WaiterTableDetailInner({
     demoTablesProp,
     initialOrders,
     initialModel,
+    hasAuthoritativeSeed,
   );
 
   const [itemCodeByMenuId, setItemCodeByMenuId] = useState<Record<string, string>>({});
@@ -965,7 +970,7 @@ function WaiterTableDetailInner({
 }
 
 export function WaiterTableDetail(props: Props) {
-  const { restaurant, isDemo, embeddedInDashboard } = props;
+  const { restaurant, isDemo, embeddedInDashboard, asOwner = false } = props;
   if (embeddedInDashboard) {
     return (
       <WaiterTableDetailInner
@@ -977,7 +982,7 @@ export function WaiterTableDetail(props: Props) {
     );
   }
   return (
-    <WaiterAuthenticatedShell restaurant={restaurant} isDemo={isDemo}>
+    <WaiterAuthenticatedShell restaurant={restaurant} asOwner={asOwner} isDemo={isDemo}>
       {({ handleSignOut, exitLabel, confirmBeforeSignOut }) => (
         <WaiterTableDetailInner
           {...props}

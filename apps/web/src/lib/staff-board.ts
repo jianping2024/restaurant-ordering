@@ -205,3 +205,9 @@ export const loadWaiterBoardInitial = cache(async (restaurantId: string) => {
   const admin = createAdminClient();
   return fetchWaiterBoard(admin, restaurantId);
 });
+
+/** SSR initial kitchen board — deduped per request via React.cache. */
+export const loadKitchenBoardInitial = cache(async (restaurantId: string) => {
+  const admin = createAdminClient();
+  return fetchKitchenBoard(admin, restaurantId);
+});

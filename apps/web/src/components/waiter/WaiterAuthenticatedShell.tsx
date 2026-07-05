@@ -1,5 +1,3 @@
-'use client';
-
 import type { ReactNode } from 'react';
 import {
   StaffAuthenticatedShell,
@@ -8,13 +6,19 @@ import {
 
 type Props = {
   restaurant: { id: string; name: string; slug: string };
+  asOwner?: boolean;
   isDemo?: boolean;
   children: (ctx: StaffShellContext) => ReactNode;
 };
 
-export function WaiterAuthenticatedShell({ restaurant, isDemo, children }: Props) {
+export function WaiterAuthenticatedShell({ restaurant, asOwner, isDemo, children }: Props) {
   return (
-    <StaffAuthenticatedShell restaurant={restaurant} expectedRole="waiter" isDemo={isDemo}>
+    <StaffAuthenticatedShell
+      restaurant={restaurant}
+      expectedRole="waiter"
+      asOwner={asOwner}
+      isDemo={isDemo}
+    >
       {children}
     </StaffAuthenticatedShell>
   );

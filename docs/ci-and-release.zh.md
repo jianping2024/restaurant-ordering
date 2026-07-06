@@ -22,7 +22,7 @@
 4. **Required status checks**：只加 **`Vercel`**（与 PR Checks 里绿色项名称一致；不要加 `web`）
 5. Save
 
-PR 上 Vercel Preview 变绿 → automerge 可合进 `main` → Vercel Production 部署。
+PR 上 Vercel Preview 变绿后，**手动** merge 进 `main` → Vercel Production 部署。（已关闭 GitHub Actions 自动 enable auto-merge。）
 
 ---
 

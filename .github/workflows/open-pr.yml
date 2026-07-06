@@ -3,7 +3,8 @@ name: Open PR
 
 on:
   push:
-    branches-ignore: [main]
+    # Long-lived / deploy branches: push only, never auto-open PR to main.
+    branches-ignore: [main, staging]
   workflow_dispatch:
     inputs:
       branch:
@@ -53,7 +54,7 @@ jobs:
               body: [
                 'Auto-opened when this branch was pushed.',
                 '',
-                'Merge after **Vercel** preview deployment succeeds. Enable **Allow auto-merge** in repo settings.',
+                'Merge manually after **Vercel** preview deployment succeeds.',
               ].join('\n'),
             });
             core.info(`Created PR #${pr.number}: ${pr.html_url}`);

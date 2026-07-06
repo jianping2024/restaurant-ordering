@@ -1,15 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import type { BillSplit } from '@/types';
-import {
-  parseSessionCollectedPaymentsWithSession,
-  SESSION_COLLECTED_PAYMENT_SELECT,
-  type SessionCollectedPayment,
-} from '@/lib/checkout-session-payments';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
 import {
   loadCheckoutSoundEnabled,
@@ -21,7 +15,6 @@ import {
   buildCheckoutSettlementSummary,
   checkoutPaymentProgress,
   checkoutSplitModeLabel,
-  groupCollectedPaymentsBySession,
   hasCheckoutCollections,
 } from '@/lib/checkout-settlement';
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
@@ -60,18 +53,14 @@ export function CheckoutRequestsManager({
   canCloseTable = false,
   initialFocus,
 }: Props) {
-  const { requests, reload } = useCheckoutRequests();
+  const { requests, reload, getCollectedForSession } = useCheckoutRequests();
   const billDiscount = useCheckoutBillDiscount();
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
   const navT = getMessages(lang).nav;
   const showWaiterBoardLink = canAccessDashboardWaiterBoard(accessMode);
   const waiterBoardNav = DASHBOARD_NAV_ITEMS.waiterBoard;
-  const supabase = useMemo(() => createClient(), []);
   const [selection, setSelection] = useState<CheckoutSelection>({ mode: 'follow_focus' });
-  const [collectedPaymentsBySession, setCollectedPaymentsBySession] = useState<
-    Map<string, SessionCollectedPayment[]>
-  >(() => new Map());
   const [soundEnabled, setSoundEnabled] = useState(true);
   const prevRequestCountRef = useRef<number | null>(null);
   const reloadedFocusKeyRef = useRef('');
@@ -119,45 +108,6 @@ export function CheckoutRequestsManager({
     }
   }, [requests, selectedRequestId]);
 
-  useEffect(() => {
-    const sessionIds = Array.from(
-      new Set(
-        requests
-          .map((request) => request.session_id)
-          .filter((id): id is string => typeof id === 'string' && id.length > 0),
-      ),
-    );
-    if (!restaurantId || sessionIds.length === 0) {
-      setCollectedPaymentsBySession(new Map());
-      return;
-    }
-
-    let cancelled = false;
-    const loadCollectedLedgers = async () => {
-      const { data, error } = await supabase
-        .from('session_collected_payments')
-        .select(SESSION_COLLECTED_PAYMENT_SELECT)
-        .eq('restaurant_id', restaurantId)
-        .in('session_id', sessionIds)
-        .order('created_at', { ascending: true });
-
-      if (cancelled) return;
-      if (error) {
-        setCollectedPaymentsBySession(new Map());
-        return;
-      }
-
-      setCollectedPaymentsBySession(
-        groupCollectedPaymentsBySession(parseSessionCollectedPaymentsWithSession(data)),
-      );
-    };
-
-    void loadCollectedLedgers();
-    return () => {
-      cancelled = true;
-    };
-  }, [supabase, restaurantId, requests]);
-
   const pendingLabel = t.pendingBadge.replace('{n}', String(requests.length));
   const selectedRequest = selectedRequestId
     ? requests.find((row) => row.id === selectedRequestId)
@@ -173,14 +123,6 @@ export function CheckoutRequestsManager({
       wholeTable: t.splitModeWhole,
     }),
     [t],
-  );
-
-  const getCollectedForSession = useCallback(
-    (sessionId: string | null | undefined) => {
-      if (!sessionId) return [];
-      return collectedPaymentsBySession.get(sessionId) ?? [];
-    },
-    [collectedPaymentsBySession],
   );
 
   const getRequestCheckoutMeta = useCallback(

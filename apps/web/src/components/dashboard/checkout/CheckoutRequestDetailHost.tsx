@@ -14,9 +14,6 @@ import {
 import { discountedSplitRows } from '@/lib/checkout-split-math';
 import {
   hasConfirmedPerson,
-  parseSessionCollectedPayments,
-  SESSION_COLLECTED_PAYMENT_SELECT,
-  type SessionCollectedPayment,
   resumeCheckoutBlockReason,
   resumeOrderingConfirmVariant,
   collectibleSplitRowsWithIndex,
@@ -69,7 +66,8 @@ export function CheckoutRequestDetailHost({
   onCloseTableComplete,
   onResumeOrderingComplete,
 }: Props) {
-  const { updateRequests, reload } = useCheckoutRequests();
+  const { reload, getCollectedForSession, applyConfirmPaymentOutcome, updateRequests } =
+    useCheckoutRequests();
   const waiterBoard = useWaiterBoardOptional();
   const syncBoardAfterMutation = useCallback(
     (tableId: string) => {
@@ -87,7 +85,6 @@ export function CheckoutRequestDetailHost({
   );
   const supabase = useMemo(() => createClient(), []);
   const [selectedLines, setSelectedLines] = useState<CheckoutDisplayLine[]>([]);
-  const [collectedPayments, setCollectedPayments] = useState<SessionCollectedPayment[]>([]);
   const [resumeConfirmOpen, setResumeConfirmOpen] = useState(false);
   const {
     printCheckoutBill,
@@ -136,34 +133,7 @@ export function CheckoutRequestDetailHost({
     };
   }, [supabase, restaurantId, request.session_id]);
 
-  useEffect(() => {
-    if (!restaurantId || !request.session_id) {
-      setCollectedPayments([]);
-      return;
-    }
-
-    let cancelled = false;
-    const loadCollected = async () => {
-      const { data, error } = await supabase
-        .from('session_collected_payments')
-        .select(SESSION_COLLECTED_PAYMENT_SELECT)
-        .eq('restaurant_id', restaurantId)
-        .eq('session_id', request.session_id)
-        .order('created_at', { ascending: true });
-
-      if (cancelled) return;
-      if (error) {
-        setCollectedPayments([]);
-        return;
-      }
-      setCollectedPayments(parseSessionCollectedPayments(data));
-    };
-
-    void loadCollected();
-    return () => {
-      cancelled = true;
-    };
-  }, [supabase, restaurantId, request.session_id]);
+  const collectedPayments = getCollectedForSession(request.session_id);
 
   const getDiscountRate = (row: BillSplit) =>
     billDiscount.getDisplayRate(row.id, row.discount_rate ?? 0);
@@ -264,7 +234,7 @@ export function CheckoutRequestDetailHost({
       splitRow.amount,
       collectedByIndex,
     );
-    if (!isSplitRowCollectible(splitRow.amount, collectedByIndex, rowIndex)) {
+    if (splitRow.paid || !isSplitRowCollectible(splitRow.amount, collectedByIndex, rowIndex)) {
       showToast(t.paid, 'error');
       return;
     }
@@ -287,21 +257,16 @@ export function CheckoutRequestDetailHost({
         return;
       }
 
-      if (row.session_id) {
-        const { data } = await supabase
-          .from('session_collected_payments')
-          .select(SESSION_COLLECTED_PAYMENT_SELECT)
-          .eq('restaurant_id', restaurantId)
-          .eq('session_id', row.session_id)
-          .order('created_at', { ascending: true });
-        setCollectedPayments(parseSessionCollectedPayments(data));
-      }
-
-      updateRequests((prev) =>
-        outcome.all_paid
-          ? prev.filter((r) => r.id !== row.id)
-          : prev.map((r) => (r.id === row.id ? { ...r, result: outcome.result } : r)),
-      );
+      applyConfirmPaymentOutcome({
+        billSplitId: row.id,
+        sessionId: row.session_id,
+        outcome: {
+          all_paid: outcome.all_paid,
+          result: outcome.result,
+          final_amount: outcome.final_amount,
+          collection: outcome.collection,
+        },
+      });
       syncBoardAfterMutation(row.table_id);
       if (outcome.all_paid) {
         onAllPaid?.();

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SplitResult } from '@/types';
+import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
 import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
 
@@ -12,12 +13,15 @@ export {
   sumSplitRowAmounts,
 } from '@/lib/checkout-split-math';
 
+export type ConfirmPaymentCollectionRecord = SessionCollectedPayment;
+
 export type ConfirmPaymentResult =
   | {
       ok: true;
       all_paid: boolean;
       result: SplitResult[];
       final_amount: number;
+      collection: ConfirmPaymentCollectionRecord | null;
     }
   | {
       ok: false;
@@ -40,6 +44,7 @@ type ConfirmBillSplitPaymentRpc = {
   row_name?: string;
   row_amount?: number;
   collected_payment_id?: string | null;
+  confirmed_person_index?: number;
   newly_paid?: boolean;
   should_print_split?: boolean;
   should_print_final?: boolean;
@@ -68,6 +73,104 @@ function parseRpcOrderIds(raw: unknown): string[] | undefined {
   return ids.length > 0 ? ids : undefined;
 }
 
+function parseCollectionRecord(
+  payload: ConfirmBillSplitPaymentRpc,
+): ConfirmPaymentCollectionRecord | null {
+  if (typeof payload.collected_payment_id !== 'string' || !payload.collected_payment_id) {
+    return null;
+  }
+  const personIndex = payload.confirmed_person_index;
+  if (typeof personIndex !== 'number' || !Number.isInteger(personIndex) || personIndex < 0) {
+    return null;
+  }
+  return {
+    id: payload.collected_payment_id,
+    person_index: personIndex,
+    person_name: payload.row_name ?? '',
+    amount: Number(payload.row_amount) || 0,
+    created_at: new Date().toISOString(),
+  };
+}
+
+type ScheduleConfirmPaymentPrintParams = {
+  admin: SupabaseClient;
+  restaurantId: string;
+  printLocale: string | null;
+  billSplitId: string;
+  personIndex: number;
+  receiptPrinterId?: string;
+  payload: ConfirmBillSplitPaymentRpc;
+  rowAmount: number;
+  finalAmount: number;
+  collectedPaymentId: string | null;
+};
+
+function scheduleConfirmPaymentReceiptPrint(params: ScheduleConfirmPaymentPrintParams): void {
+  const {
+    admin,
+    restaurantId,
+    printLocale,
+    billSplitId,
+    personIndex,
+    receiptPrinterId,
+    payload,
+    rowAmount,
+    finalAmount,
+    collectedPaymentId,
+  } = params;
+
+  const sessionId = payload.session_id ?? null;
+  const tableId = payload.table_id;
+  const tableDisplayName = payload.display_name;
+  const printTarget = receiptPrinterId?.trim() || undefined;
+
+  if (
+    !payload.newly_paid ||
+    !sessionId ||
+    !tableId ||
+    !tableDisplayName
+  ) {
+    return;
+  }
+
+  if (payload.should_print_split) {
+    void enqueueReceiptPrint({
+      admin,
+      restaurantId,
+      printLocale,
+      sessionId,
+      tableId,
+      tableDisplayName,
+      variant: 'split_payment',
+      payerName: receiptPayerNameForPrint(payload.row_name ?? '', personIndex, printLocale),
+      personAmount: rowAmount,
+      amountPaid: rowAmount,
+      paymentMethod: 'Cash',
+      billSplitId,
+      personIndex,
+      receiptPrinterId: printTarget,
+      collectedPaymentId,
+    }).catch(() => {});
+  }
+
+  if (payload.should_print_final) {
+    void enqueueReceiptPrint({
+      admin,
+      restaurantId,
+      printLocale,
+      sessionId,
+      tableId,
+      tableDisplayName,
+      variant: 'final',
+      amountPaid: finalAmount,
+      paymentMethod: 'Cash',
+      receiptPrinterId: printTarget,
+      billSplitId,
+      orderIds: parseRpcOrderIds(payload.order_ids),
+    }).catch(() => {});
+  }
+}
+
 export async function confirmBillSplitPayment(params: {
   admin: SupabaseClient;
   restaurantId: string;
@@ -77,6 +180,7 @@ export async function confirmBillSplitPayment(params: {
   collectedAmount?: number;
   createdByUserId?: string;
   receiptPrinterId?: string;
+  billReceiptPrintEnabled?: boolean;
 }): Promise<ConfirmPaymentResult> {
   const {
     admin,
@@ -87,6 +191,7 @@ export async function confirmBillSplitPayment(params: {
     collectedAmount,
     createdByUserId,
     receiptPrinterId,
+    billReceiptPrintEnabled = false,
   } = params;
 
   const { data: rpcData, error: rpcErr } = await admin.rpc('confirm_bill_split_payment', {
@@ -120,62 +225,31 @@ export async function confirmBillSplitPayment(params: {
   const result = (payload.result || []) as SplitResult[];
   const allPaid = !!payload.all_paid;
   const finalAmount = Number(payload.final_amount) || 0;
-  const sessionId = payload.session_id ?? null;
-  const tableId = payload.table_id;
-  const tableDisplayName = payload.display_name;
-  const printTarget = receiptPrinterId?.trim() || undefined;
   const rowAmount = Number(payload.row_amount) || 0;
   const collectedPaymentId =
     typeof payload.collected_payment_id === 'string' ? payload.collected_payment_id : null;
+  const collection = parseCollectionRecord(payload);
 
-  if (
-    payload.newly_paid &&
-    payload.should_print_split &&
-    sessionId &&
-    tableId &&
-    tableDisplayName
-  ) {
-    await enqueueReceiptPrint({
+  if (billReceiptPrintEnabled) {
+    scheduleConfirmPaymentReceiptPrint({
       admin,
       restaurantId,
       printLocale,
-      sessionId,
-      tableId,
-      tableDisplayName,
-      variant: 'split_payment',
-      payerName: receiptPayerNameForPrint(payload.row_name ?? '', personIndex, printLocale),
-      personAmount: rowAmount,
-      amountPaid: rowAmount,
-      paymentMethod: 'Cash',
       billSplitId,
       personIndex,
-      receiptPrinterId: printTarget,
+      receiptPrinterId,
+      payload,
+      rowAmount,
+      finalAmount,
       collectedPaymentId,
     });
   }
 
-  if (
-    payload.newly_paid &&
-    payload.should_print_final &&
-    sessionId &&
-    tableId &&
-    tableDisplayName
-  ) {
-    await enqueueReceiptPrint({
-      admin,
-      restaurantId,
-      printLocale,
-      sessionId,
-      tableId,
-      tableDisplayName,
-      variant: 'final',
-      amountPaid: finalAmount,
-      paymentMethod: 'Cash',
-      receiptPrinterId: printTarget,
-      billSplitId,
-      orderIds: parseRpcOrderIds(payload.order_ids),
-    });
-  }
-
-  return { ok: true, all_paid: allPaid, result, final_amount: finalAmount };
+  return {
+    ok: true,
+    all_paid: allPaid,
+    result,
+    final_amount: finalAmount,
+    collection,
+  };
 }

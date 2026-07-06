@@ -176,6 +176,10 @@ describe('confirmBillSplitPayment', () => {
         all_paid: false,
         result: [{ name: 'A', amount: 50, paid: true }],
         final_amount: 50,
+        collected_payment_id: 'pay-1',
+        confirmed_person_index: 0,
+        row_name: 'A',
+        row_amount: 50,
       }),
     });
     assert.equal(r.ok, true);
@@ -183,5 +187,8 @@ describe('confirmBillSplitPayment', () => {
     assert.equal(r.all_paid, false);
     assert.equal(r.final_amount, 50);
     assert.equal(r.result[0]?.paid, true);
+    assert.equal(r.collection?.id, 'pay-1');
+    assert.equal(r.collection?.person_index, 0);
+    assert.equal(r.collection?.amount, 50);
   });
 });

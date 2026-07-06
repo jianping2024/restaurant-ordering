@@ -20,13 +20,17 @@ export function isSplitRowCollectible(
   return outstandingAmount(discountedObligation, collectedByIndex.get(rowIndex) ?? 0) > 0;
 }
 
+/** Pending rows: unpaid in split result and still collectible per session ledger. */
 export function collectibleSplitRowsWithIndex(
   rows: SplitResult[],
   collectedByIndex: Map<number, number>,
 ): SplitRowWithIndex[] {
   return rows
     .map((row, index) => ({ row, index }))
-    .filter(({ row, index }) => isSplitRowCollectible(row.amount, collectedByIndex, index));
+    .filter(
+      ({ row, index }) =>
+        !row.paid && isSplitRowCollectible(row.amount, collectedByIndex, index),
+    );
 }
 
 export type SessionCollectedPayment = {

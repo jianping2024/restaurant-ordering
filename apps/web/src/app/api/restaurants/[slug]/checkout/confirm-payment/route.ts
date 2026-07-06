@@ -49,14 +49,18 @@ export async function POST(
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
-  const receiptPrinterId = await resolveReceiptPrinterId(
-    auth.admin,
-    auth.restaurantId,
-    receiptPrinterIdRaw || undefined,
-    auth.printLocale,
-  );
-  if (receiptPrinterIdRaw && !receiptPrinterId) {
-    return NextResponse.json({ error: 'invalid_receipt_printer' }, { status: 400 });
+  let receiptPrinterId: string | undefined;
+  if (auth.billReceiptPrintEnabled) {
+    const resolved = await resolveReceiptPrinterId(
+      auth.admin,
+      auth.restaurantId,
+      receiptPrinterIdRaw || undefined,
+      auth.printLocale,
+    );
+    if (receiptPrinterIdRaw && !resolved) {
+      return NextResponse.json({ error: 'invalid_receipt_printer' }, { status: 400 });
+    }
+    receiptPrinterId = resolved;
   }
 
   const result = await confirmBillSplitPayment({
@@ -67,7 +71,8 @@ export async function POST(
     personIndex,
     collectedAmount,
     createdByUserId: auth.actor.userId,
-    receiptPrinterId: receiptPrinterId ?? undefined,
+    receiptPrinterId,
+    billReceiptPrintEnabled: auth.billReceiptPrintEnabled,
   });
 
   if (!result.ok) {
@@ -82,5 +87,6 @@ export async function POST(
     all_paid: result.all_paid,
     result: result.result,
     final_amount: result.final_amount,
+    collection: result.collection,
   });
 }

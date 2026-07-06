@@ -1,4 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import {
+  isRestaurantFeatureEnabled,
+  normalizeRestaurantFeatureFlags,
+  type ResolvedRestaurantFeatureFlags,
+} from '@mesa/shared';
 import { loadStaffAuditActor } from '@/lib/audit';
 import { loadOwnerDashboardAuditActor } from '@/lib/audit/load-owner-dashboard-actor';
 import type { AuditActor } from '@/lib/audit/types';
@@ -11,6 +16,8 @@ export type CheckoutConfirmAuthContext =
       admin: SupabaseClient;
       restaurantId: string;
       printLocale: string | null;
+      featureFlags: ResolvedRestaurantFeatureFlags;
+      billReceiptPrintEnabled: boolean;
       actor: AuditActor;
     }
   | { error: string; status: number };
@@ -30,9 +37,10 @@ export async function authorizeCheckoutConfirmPayment(
   if (staffCtx) {
     const { data: rest } = await admin
       .from('restaurants')
-      .select('print_locale')
+      .select('print_locale, feature_flags')
       .eq('id', staffCtx.restaurant_id)
       .single();
+    const featureFlags = normalizeRestaurantFeatureFlags(rest?.feature_flags);
     const actor = await loadStaffAuditActor(admin, {
       restaurantId: staffCtx.restaurant_id,
       userId: staffCtx.user_id,
@@ -42,6 +50,8 @@ export async function authorizeCheckoutConfirmPayment(
       admin,
       restaurantId: staffCtx.restaurant_id,
       printLocale: rest?.print_locale ?? null,
+      featureFlags,
+      billReceiptPrintEnabled: isRestaurantFeatureEnabled(featureFlags, 'bill_receipt_print'),
       actor,
     };
   }
@@ -56,7 +66,7 @@ export async function authorizeCheckoutConfirmPayment(
 
   const { data: rest } = await admin
     .from('restaurants')
-    .select('id, name, print_locale')
+    .select('id, name, print_locale, feature_flags')
     .eq('slug', slug)
     .eq('owner_id', user.id)
     .maybeSingle();
@@ -73,10 +83,14 @@ export async function authorizeCheckoutConfirmPayment(
     return { error: 'unauthorized', status: 401 };
   }
 
+  const featureFlags = normalizeRestaurantFeatureFlags(rest.feature_flags);
+
   return {
     admin,
     restaurantId: rest.id as string,
     printLocale: rest.print_locale as string | null,
+    featureFlags,
+    billReceiptPrintEnabled: isRestaurantFeatureEnabled(featureFlags, 'bill_receipt_print'),
     actor: ownerActor.actor,
   };
 }

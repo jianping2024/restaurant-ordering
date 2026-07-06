@@ -1,3 +1,4 @@
+import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import type { SplitResult } from '@/types';
 
 export async function requestCheckoutConfirmPayment(params: {
@@ -7,7 +8,13 @@ export async function requestCheckoutConfirmPayment(params: {
   collectedAmount?: number;
   receiptPrinterId?: string;
 }): Promise<
-  | { ok: true; all_paid: boolean; result: SplitResult[]; final_amount: number }
+  | {
+      ok: true;
+      all_paid: boolean;
+      result: SplitResult[];
+      final_amount: number;
+      collection: SessionCollectedPayment | null;
+    }
   | { ok: false; error: string }
 > {
   const { slug, billSplitId, personIndex, collectedAmount, receiptPrinterId } = params;
@@ -32,6 +39,7 @@ export async function requestCheckoutConfirmPayment(params: {
       all_paid?: boolean;
       result?: SplitResult[];
       final_amount?: number;
+      collection?: SessionCollectedPayment | null;
     };
     if (!res.ok) {
       return { ok: false, error: data.error || 'confirm_failed' };
@@ -41,6 +49,7 @@ export async function requestCheckoutConfirmPayment(params: {
       all_paid: !!data.all_paid,
       result: (data.result || []) as SplitResult[],
       final_amount: Number(data.final_amount) || 0,
+      collection: data.collection ?? null,
     };
   } catch {
     return { ok: false, error: 'network_error' };

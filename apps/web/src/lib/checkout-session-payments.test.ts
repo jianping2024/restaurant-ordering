@@ -108,6 +108,20 @@ describe('collectibleSplitRowsWithIndex', () => {
       [1],
     );
   });
+
+  it('excludes paid rows even when ledger is stale', () => {
+    const pending = collectibleSplitRowsWithIndex(
+      [
+        { name: 'John', amount: 30, paid: true },
+        { name: 'Mary', amount: 20 },
+      ],
+      new Map(),
+    );
+    assert.deepEqual(
+      pending.map((entry) => entry.index),
+      [1],
+    );
+  });
 });
 
 describe('reconcileSplitResultPaid', () => {

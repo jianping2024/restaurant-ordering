@@ -152,14 +152,17 @@ export function WaiterTableBuffetPanel({
           layout="detail"
         />
         <div className={waiterDetailLayout.buffetDetailSummaryRow}>
-          <BuffetPackagesEstimatedTotal
-            lang={lang}
-            guestSnapshot={guestSnapshot}
-            resolvedByBuffetId={resolvedByBuffetId}
-          />
-          <WaiterTablePrimaryButton onClick={onSave} disabled={saveDisabled} icon={<WaiterTableIcon className={buttonIcon.sm} />}>
-            {buffetSubmitting ? '…' : buffetActionLabel}
-          </WaiterTablePrimaryButton>
+          <div aria-hidden className="hidden sm:block" />
+          <div className={waiterDetailLayout.buffetDetailSummaryActions}>
+            <BuffetPackagesEstimatedTotal
+              lang={lang}
+              guestSnapshot={guestSnapshot}
+              resolvedByBuffetId={resolvedByBuffetId}
+            />
+            <WaiterTablePrimaryButton onClick={onSave} disabled={saveDisabled} icon={<WaiterTableIcon className={buttonIcon.sm} />}>
+              {buffetSubmitting ? '…' : buffetActionLabel}
+            </WaiterTablePrimaryButton>
+          </div>
         </div>
       </div>
     </WaiterDetailCard>

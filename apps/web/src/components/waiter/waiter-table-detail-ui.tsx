@@ -8,6 +8,14 @@ import { waiterUi } from '@/components/waiter/waiter-ui';
 /** Shared horizontal gutter for buffet / toolbar / ordered-items cards. */
 export const WAITER_DETAIL_GUTTER_PX = 'px-4';
 
+/** Table-detail buffet rows: package name | adult stepper | child stepper. */
+export const buffetDetailPackageGrid =
+  'grid gap-3 sm:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,0.8fr))] sm:items-center';
+
+/** Card surface for one buffet package row on table detail. */
+export const buffetDetailPackageRow =
+  'rounded-xl border border-brand-border/70 bg-brand-bg/40 p-3';
+
 /**
  * Layout tokens for the occupied-table detail flow:
  * buffet guest counts → session toolbar → ordered items list.
@@ -22,8 +30,9 @@ export const waiterDetailLayout = {
   secondaryAction: 'w-full justify-center sm:w-auto',
   buffetStrip:
     'grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4 xl:grid-cols-5 xl:items-stretch xl:gap-0',
-  /** Estimated total + save guests — centered on table detail. */
-  buffetDetailSummaryRow: 'mt-4 flex flex-wrap items-center justify-center gap-3',
+  /** Estimated total + save guests — shares package grid; actions sit under stepper columns. */
+  buffetDetailSummaryRow: `mt-4 ${buffetDetailPackageGrid}`,
+  buffetDetailSummaryActions: 'flex flex-wrap items-center justify-end gap-3 sm:col-span-2',
   /** Occupied-table actions — one centered row; buttons wrap on narrow viewports. */
   occupiedToolbarRow: 'flex flex-wrap items-center justify-center gap-2',
   /** Page exit — below ordered items, above modals. */

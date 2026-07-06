@@ -14,7 +14,11 @@ import {
   type ResolvedBuffetPriceRow,
 } from '@/lib/buffet-order';
 import type { UILanguage } from '@/lib/i18n';
-import { openTableSheetLayout } from '@/components/waiter/waiter-table-detail-ui';
+import {
+  buffetDetailPackageGrid,
+  buffetDetailPackageRow,
+  openTableSheetLayout,
+} from '@/components/waiter/waiter-table-detail-ui';
 
 type Props = {
   lang: UILanguage;
@@ -121,7 +125,7 @@ export function WaiterBuffetPackagesEditor({
         return (
           <div
             key={buffet.id}
-            className="grid gap-3 rounded-xl border border-brand-border/70 bg-brand-bg/40 p-3 sm:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,0.8fr))] sm:items-center"
+            className={`${buffetDetailPackageGrid} ${buffetDetailPackageRow}`}
           >
             <div>
               <p className="text-[15px] font-semibold text-brand-text leading-snug">{buffet.name}</p>

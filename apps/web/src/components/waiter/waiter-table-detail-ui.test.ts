@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  buffetDetailPackageGrid,
   buffetStripSectionClass,
   waiterDetailLayout,
 } from './waiter-table-detail-ui';
@@ -11,6 +12,13 @@ test('buffet strip edge sections align to card gutter without ad-hoc padding ove
   assert.match(buffetStripSectionClass('end'), /xl:items-end/);
   assert.match(buffetStripSectionClass('end'), /xl:pl-4/);
   assert.doesNotMatch(buffetStripSectionClass('end'), /xl:pr-/);
+});
+
+test('buffet detail summary aligns actions under guest stepper columns', () => {
+  assert.match(buffetDetailPackageGrid, /sm:grid-cols-\[minmax\(0,1\.2fr\)_repeat\(2,minmax\(0,0\.8fr\)\)\]/);
+  assert.match(waiterDetailLayout.buffetDetailSummaryRow, /mt-4/);
+  assert.match(waiterDetailLayout.buffetDetailSummaryActions, /justify-end/);
+  assert.match(waiterDetailLayout.buffetDetailSummaryActions, /sm:col-span-2/);
 });
 
 test('primary session actions share one layout class', () => {

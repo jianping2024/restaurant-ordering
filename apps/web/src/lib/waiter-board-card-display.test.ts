@@ -13,10 +13,10 @@ const LABELS = {
   seatCapacity: '{min}–{max} 座',
   cardIdleReadyHint: '干净整洁，可开台',
   cardDiningDuration: '用时 {duration}',
-  cardActionOpenTable: '点击开台',
-  cardActionViewOrder: '查看订单',
-  cardActionViewDetail: '查看详情',
-  cardActionCheckout: '去结账',
+  cardActionOpenTable: '开台',
+  cardActionViewOrder: '详情',
+  cardActionViewDetail: '详情',
+  cardActionCheckout: '结账',
 } as const;
 
 const STATUS = { checkout: '待结账', dining: '用餐中', idle: '空闲' } as const;
@@ -58,7 +58,7 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.equal(view.row3.metaPrefix, '干净整洁，可开台');
     assert.equal(view.row3.metaHighlight, '');
     assert.equal(view.row3.amountText, '');
-    assert.equal(view.row4.footerLabel, '点击开台');
+    assert.equal(view.row4.footerLabel, '开台');
     assert.equal(view.row4.footerIcon, 'open_table');
     assert.equal(view.row4.footerDisabled, false);
   });
@@ -85,7 +85,7 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.equal(view.row3.metaHighlight, '2时0分');
     assert.equal(formatWaiterBoardCardRow3Meta(view.row3), '用时 2时0分');
     assert.equal(view.row3.amountText, '€89.90');
-    assert.equal(view.row4.footerLabel, '查看订单');
+    assert.equal(view.row4.footerLabel, '详情');
     assert.equal(view.row4.footerIcon, 'view_order');
   });
 
@@ -135,7 +135,7 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.match(formatWaiterBoardCardRow3Meta(view.row3), /^用时 /);
     assert.doesNotMatch(formatWaiterBoardCardRow3Meta(view.row3), /待收银/);
     assert.equal(view.row3.amountText, '€40.00');
-    assert.equal(view.row4.footerLabel, '查看详情');
+    assert.equal(view.row4.footerLabel, '详情');
     assert.equal(view.row4.footerIcon, 'view_detail');
   });
 
@@ -172,7 +172,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.row4.footerLabel, '去结账');
+    assert.equal(view.row4.footerLabel, '结账');
     assert.equal(view.row4.footerIcon, 'checkout');
   });
 

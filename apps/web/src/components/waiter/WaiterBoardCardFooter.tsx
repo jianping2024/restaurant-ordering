@@ -8,7 +8,7 @@ import {
 import type { WaiterBoardCardFooterIcon } from '@/lib/waiter-board-card-display';
 
 const FOOTER_BASE =
-  'inline-flex w-full items-center justify-center gap-1.5 rounded-lg border bg-transparent px-3.5 py-2 text-sm font-semibold transition-colors';
+  'inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border bg-transparent px-3.5 py-2 text-sm font-semibold transition-colors';
 
 type Props = {
   label: string;

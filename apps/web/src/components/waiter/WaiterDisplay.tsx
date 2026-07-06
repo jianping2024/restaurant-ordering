@@ -46,6 +46,7 @@ import {
   loadWaiterBoardCollapsedSectionIds,
   saveWaiterBoardCollapsedSectionIds,
 } from '@/lib/waiter-board-section-preference';
+import { WAITER_BOARD_GRID_CLASS } from '@/lib/waiter-board-card-layout';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -158,7 +159,7 @@ function WaiterBoardSectionBlock({
         </span>
       </button>
       {expanded ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
+        <div className={WAITER_BOARD_GRID_CLASS}>
           {children}
         </div>
       ) : null}
@@ -537,7 +538,7 @@ function WaiterBoardInner({
               )}
             </h2>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          <div className={WAITER_BOARD_GRID_CLASS}>
             {visibleCheckoutPinnedCards.map((card) => renderTableCard(card, true))}
           </div>
         </section>

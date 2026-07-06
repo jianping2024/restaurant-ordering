@@ -5,6 +5,7 @@ import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
 import { buildWaiterBoardCardViewModel } from '@/lib/waiter-board-card-display';
 import type { WaiterBoardCardAction } from '@/lib/waiter-board-card-action';
 import {
+  WAITER_BOARD_CARD_ROW1_LAYOUT,
   WAITER_BOARD_CARD_ROW2_LAYOUT,
   WAITER_BOARD_CARD_ROW3_LAYOUT,
 } from '@/lib/waiter-board-card-layout';
@@ -80,7 +81,7 @@ export function WaiterBoardTableCard({
   const body = (
     <>
       <div className="flex items-start justify-between gap-2 min-h-[1.25rem]">
-        <p className={`min-w-0 truncate text-[22px] font-bold leading-tight ${theme.title}`}>
+        <p className={`${WAITER_BOARD_CARD_ROW1_LAYOUT.title} ${theme.title}`}>
           {view.row1.tableTitle}
         </p>
         <span

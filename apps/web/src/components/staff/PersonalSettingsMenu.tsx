@@ -5,19 +5,31 @@ import { useSignOutConfirmState, SignOutConfirmModal } from '@/lib/auth/sign-out
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { DASHBOARD_NAV_ITEMS } from '@/lib/dashboard-feature-registry';
-import { dashboardTopNavButtonClass } from '@/lib/dashboard-top-nav';
+import { dashboardTopNavButtonClass, dashboardTopNavPanelClass } from '@/lib/dashboard-top-nav';
 import { PersonalSettingsPanel } from '@/components/staff/PersonalSettingsPanel';
 
 type Props = {
   logoutLabel: string;
   onSignOut: () => void;
   confirmSignOut?: boolean;
+  compact?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
-export function PersonalSettingsMenu({ logoutLabel, onSignOut, confirmSignOut = true }: Props) {
+export function PersonalSettingsMenu({
+  logoutLabel,
+  onSignOut,
+  confirmSignOut = true,
+  compact = false,
+  open: controlledOpen,
+  onOpenChange,
+}: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).nav;
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = onOpenChange ?? setUncontrolledOpen;
   const rootRef = useRef<HTMLDivElement>(null);
 
   const { requestSignOut, modalOpen, modalConfirming, closeModal, confirmSignOut: runSignOut } =
@@ -37,7 +49,7 @@ export function PersonalSettingsMenu({ logoutLabel, onSignOut, confirmSignOut = 
       document.removeEventListener('mousedown', onDoc);
       document.removeEventListener('keydown', onKey);
     };
-  }, [open]);
+  }, [open, setOpen]);
 
   const handleLogout = () => {
     setOpen(false);
@@ -55,23 +67,32 @@ export function PersonalSettingsMenu({ logoutLabel, onSignOut, confirmSignOut = 
           type="button"
           aria-haspopup="menu"
           aria-expanded={open}
-          onClick={() => setOpen((prev) => !prev)}
-          className={dashboardTopNavButtonClass(open)}
+          aria-label={t.settingsMenu}
+          onClick={() => setOpen(!open)}
+          className={
+            compact
+              ? dashboardTopNavButtonClass(open, true)
+              : dashboardTopNavButtonClass(open, false)
+          }
         >
           <span aria-hidden>{DASHBOARD_NAV_ITEMS.settings.icon}</span>
-          <span>{t.settingsMenu}</span>
+          {compact ? null : <span>{t.settingsMenu}</span>}
         </button>
         {open ? (
           <div
             role="menu"
-            className="absolute right-0 top-full z-50 mt-1.5 w-64 rounded-xl border border-brand-border bg-brand-card py-2 shadow-lg shadow-black/10"
+            className={
+              compact
+                ? dashboardTopNavPanelClass()
+                : 'absolute right-0 top-full z-50 mt-1.5 w-64 rounded-xl border border-brand-border bg-brand-card py-2 shadow-lg shadow-black/10'
+            }
           >
             <PersonalSettingsPanel />
             <button
               type="button"
               role="menuitem"
               onClick={handleLogout}
-              className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-status-danger hover:bg-[rgb(var(--color-status-danger-border)/0.08)] transition-colors"
+              className="flex min-h-11 w-full items-center gap-2 px-3 py-2.5 text-sm text-status-danger hover:bg-[rgb(var(--color-status-danger-border)/0.08)] transition-colors"
             >
               <span aria-hidden>🚪</span>
               <span>{logoutLabel}</span>

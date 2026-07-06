@@ -146,6 +146,11 @@ export function navItemsForRole(role: DashboardAccessMode): DashboardNavItemDef[
   return ids.map((id) => DASHBOARD_NAV_ITEMS[id]);
 }
 
+/** Whether this dashboard role has the embedded waiter board in its nav (and may open it). */
+export function canAccessDashboardWaiterBoard(accessMode: DashboardAccessMode): boolean {
+  return navItemsForRole(accessMode).some((item) => item.id === 'waiterBoard');
+}
+
 export const OWNER_NAV_PATHS = OWNER_NAV_ITEM_IDS.map((id) => DASHBOARD_NAV_ITEMS[id].href);
 export const FRONTDESK_NAV_PATHS = FRONTDESK_NAV_ITEM_IDS.map((id) => DASHBOARD_NAV_ITEMS[id].href);
 export const CASHIER_NAV_PATHS = CASHIER_NAV_ITEM_IDS.map((id) => DASHBOARD_NAV_ITEMS[id].href);

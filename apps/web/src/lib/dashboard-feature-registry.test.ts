@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  canAccessDashboardWaiterBoard,
   CASHIER_NAV_PATHS,
   DASHBOARD_FEATURES,
   FRONTDESK_NAV_ITEM_IDS,
@@ -70,6 +71,14 @@ describe('middlewareAllowsPath matches nav visibility', () => {
     assert.equal(middlewareAllowsPath('cashier', '/dashboard/checkout'), true);
     assert.equal(middlewareAllowsPath('cashier', '/dashboard/menu'), false);
     assert.equal(middlewareAllowsPath('cashier', '/dashboard'), false);
+  });
+});
+
+describe('canAccessDashboardWaiterBoard', () => {
+  it('allows frontdesk only among operational roles', () => {
+    assert.equal(canAccessDashboardWaiterBoard('frontdesk'), true);
+    assert.equal(canAccessDashboardWaiterBoard('cashier'), false);
+    assert.equal(canAccessDashboardWaiterBoard('owner'), false);
   });
 });
 

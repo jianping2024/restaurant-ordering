@@ -20,8 +20,10 @@ import {
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { DashboardQuickNavLink } from '@/components/dashboard/DashboardQuickNavLink';
-import { canAccessDashboardWaiterBoard } from '@/lib/dashboard-nav-config';
-import { DASHBOARD_NAV_ITEMS } from '@/lib/dashboard-feature-registry';
+import {
+  canAccessDashboardWaiterBoard,
+  DASHBOARD_NAV_ITEMS,
+} from '@/lib/dashboard-feature-registry';
 import { waiterBoardHref } from '@/lib/staff-routes';
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
 import {

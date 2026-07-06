@@ -1,9 +1,13 @@
 /** Longest board-card amount (6 digits incl. decimals) — drives row3 amount column width on sm+. */
 export const WAITER_BOARD_CARD_MAX_AMOUNT_LABEL = '€9999.99';
 
-/** Shared responsive grid for waiter board sections (pinned checkout + grouped tables). */
-export const WAITER_BOARD_GRID_CLASS =
-  'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3';
+/** Grouped table sections — md+ column counts match pre-mobile-UX refactor. */
+export const WAITER_BOARD_TABLES_GRID_CLASS =
+  'grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3';
+
+/** Pinned checkout strip — one fewer column per breakpoint than grouped tables. */
+export const WAITER_BOARD_CHECKOUT_PINNED_GRID_CLASS =
+  'grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3';
 
 /** Row1 layout — table title scales down on narrow viewports. */
 export const WAITER_BOARD_CARD_ROW1_LAYOUT = {

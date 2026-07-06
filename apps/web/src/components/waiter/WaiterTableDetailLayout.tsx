@@ -2,6 +2,7 @@
 
 import type { Buffet } from '@/types';
 import {
+  BuffetPackagesEstimatedTotal,
   WaiterBuffetPackagesEditor,
   isBuffetPackagesEditorReady,
 } from '@/components/waiter/WaiterBuffetPackagesEditor';
@@ -150,7 +151,12 @@ export function WaiterTableBuffetPanel({
           priceLoading={buffetPriceLoading}
           layout="detail"
         />
-        <div className="mt-4 flex justify-end">
+        <div className={waiterDetailLayout.buffetDetailSummaryRow}>
+          <BuffetPackagesEstimatedTotal
+            lang={lang}
+            guestSnapshot={guestSnapshot}
+            resolvedByBuffetId={resolvedByBuffetId}
+          />
           <WaiterTablePrimaryButton onClick={onSave} disabled={saveDisabled} icon={<WaiterTableIcon className={buttonIcon.sm} />}>
             {buffetSubmitting ? '…' : buffetActionLabel}
           </WaiterTablePrimaryButton>

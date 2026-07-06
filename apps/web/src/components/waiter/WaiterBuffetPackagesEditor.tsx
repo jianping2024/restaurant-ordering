@@ -26,6 +26,34 @@ type Props = {
   layout?: 'sheet' | 'detail';
 };
 
+/** Shared estimated-total line for sheet footer and detail summary row. */
+export function BuffetPackagesEstimatedTotal({
+  lang,
+  guestSnapshot,
+  resolvedByBuffetId,
+  className = '',
+}: {
+  lang: UILanguage;
+  guestSnapshot: BuffetGuestSnapshot;
+  resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null>;
+  className?: string;
+}) {
+  const t = WAITER_TEXT[lang];
+  const totalPreview = resolveBuffetPackagesPricePreview(guestSnapshot, resolvedByBuffetId);
+  if (!totalPreview.ok) return null;
+
+  return (
+    <p
+      className={[
+        'text-[15px] font-semibold text-brand-gold-dark tabular-nums',
+        className,
+      ].filter(Boolean).join(' ')}
+    >
+      {formatBuffetPriceTemplate(t.buffetEstimatedTotal, { total: totalPreview.subtotal })}
+    </p>
+  );
+}
+
 export function WaiterBuffetPackagesEditor({
   lang,
   activeBuffets,
@@ -36,7 +64,6 @@ export function WaiterBuffetPackagesEditor({
   layout = 'sheet',
 }: Props) {
   const t = WAITER_TEXT[lang];
-  const totalPreview = resolveBuffetPackagesPricePreview(guestSnapshot, resolvedByBuffetId);
 
   if (layout === 'sheet') {
     return (
@@ -72,11 +99,12 @@ export function WaiterBuffetPackagesEditor({
           );
         })}
 
-        {totalPreview.ok ? (
-          <p className={openTableSheetLayout.total}>
-            {formatBuffetPriceTemplate(t.buffetEstimatedTotal, { total: totalPreview.subtotal })}
-          </p>
-        ) : null}
+        <BuffetPackagesEstimatedTotal
+          lang={lang}
+          guestSnapshot={guestSnapshot}
+          resolvedByBuffetId={resolvedByBuffetId}
+          className={openTableSheetLayout.total}
+        />
       </div>
     );
   }
@@ -116,12 +144,6 @@ export function WaiterBuffetPackagesEditor({
           </div>
         );
       })}
-
-      {totalPreview.ok ? (
-        <p className="text-[15px] font-semibold text-brand-gold-dark tabular-nums text-center">
-          {formatBuffetPriceTemplate(t.buffetEstimatedTotal, { total: totalPreview.subtotal })}
-        </p>
-      ) : null}
     </div>
   );
 }

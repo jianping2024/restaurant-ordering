@@ -22,10 +22,12 @@ export const waiterDetailLayout = {
   secondaryAction: 'w-full justify-center sm:w-auto',
   buffetStrip:
     'grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4 xl:grid-cols-5 xl:items-stretch xl:gap-0',
-  occupiedToolbarRow: 'flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between',
-  occupiedToolbarCluster: 'flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2',
+  /** Estimated total + save guests — centered on table detail. */
+  buffetDetailSummaryRow: 'mt-4 flex flex-wrap items-center justify-center gap-3',
+  occupiedToolbarRow: 'flex flex-col items-center gap-2',
+  occupiedToolbarCluster: 'flex flex-wrap items-center justify-center gap-2',
   /** Page exit — below ordered items, above modals. */
-  pageFooter: 'mt-4',
+  pageFooter: 'mt-4 flex justify-center',
 } as const;
 
 /** Narrow modal layout for dashboard open-table sheet (viewport breakpoints not used). */

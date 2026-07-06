@@ -337,7 +337,6 @@ function WaiterBoardInner({
         card={card}
         boardState={boardState}
         action={action}
-        embeddedInDashboard={embeddedInDashboard}
         session={effectiveSessionMetaByTableId[card.tableId]}
         checkoutRequestedAt={checkoutRequestedAtByTableId[card.tableId] ?? null}
         nowMs={nowMs}

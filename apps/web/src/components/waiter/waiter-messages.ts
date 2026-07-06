@@ -86,7 +86,6 @@ export const WAITER_TEXT = {
     cardDiningDuration: '用时 {duration}',
     cardActionOpenTable: '开台',
     cardActionViewOrder: '详情',
-    cardActionViewDetail: '详情',
     cardActionCheckout: '结账',
   },
   en: {
@@ -176,7 +175,6 @@ export const WAITER_TEXT = {
     cardDiningDuration: 'Time {duration}',
     cardActionOpenTable: 'Open',
     cardActionViewOrder: 'Details',
-    cardActionViewDetail: 'Details',
     cardActionCheckout: 'Checkout',
   },
   pt: {
@@ -266,7 +264,6 @@ export const WAITER_TEXT = {
     cardDiningDuration: 'Tempo {duration}',
     cardActionOpenTable: 'Abrir',
     cardActionViewOrder: 'Detalhes',
-    cardActionViewDetail: 'Detalhes',
     cardActionCheckout: 'Fechar conta',
   },
 } as const;

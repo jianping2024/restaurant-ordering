@@ -15,11 +15,11 @@ export type WaiterBoardCardDisplayLabels = {
   cardDiningDuration: string;
   cardActionOpenTable: string;
   cardActionViewOrder: string;
-  cardActionViewDetail: string;
   cardActionCheckout: string;
+  checkoutPendingSubtitle: string;
 };
 
-export type WaiterBoardCardFooterIcon = 'open_table' | 'view_order' | 'checkout' | 'view_detail';
+export type WaiterBoardCardFooterIcon = 'open_table' | 'view_order' | 'checkout';
 
 export type WaiterBoardCardRowSlots = {
   row1: { tableTitle: string; badgeLabel: string };
@@ -132,8 +132,7 @@ function footerIconForLabelKey(
   labelKey: ReturnType<typeof waiterBoardCardActionLabelKey>,
 ): WaiterBoardCardFooterIcon {
   if (labelKey === 'cardActionOpenTable') return 'open_table';
-  if (labelKey === 'cardActionCheckout') return 'checkout';
-  if (labelKey === 'cardActionViewDetail') return 'view_detail';
+  if (labelKey === 'cardActionCheckout' || labelKey === 'checkoutPendingSubtitle') return 'checkout';
   return 'view_order';
 }
 
@@ -156,7 +155,6 @@ export function buildWaiterBoardCardViewModel(input: {
   action: WaiterBoardCardAction;
   session: WaiterTableSessionMeta | undefined;
   checkoutRequestedAt: string | null;
-  embeddedInDashboard: boolean;
   lang: UILanguage;
   nowMs: number;
   labels: WaiterBoardCardDisplayLabels;

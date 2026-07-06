@@ -3,13 +3,19 @@
 import Link from 'next/link';
 import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
 import { buildWaiterBoardCardViewModel } from '@/lib/waiter-board-card-display';
-import type { WaiterBoardCardAction } from '@/lib/waiter-board-card-action';
+import {
+  isWaiterBoardCardInteractive,
+  type WaiterBoardCardAction,
+} from '@/lib/waiter-board-card-action';
 import {
   WAITER_BOARD_CARD_ROW1_LAYOUT,
   WAITER_BOARD_CARD_ROW2_LAYOUT,
   WAITER_BOARD_CARD_ROW3_LAYOUT,
 } from '@/lib/waiter-board-card-layout';
-import { WAITER_BOARD_CARD_THEME } from '@/lib/waiter-board-card-theme';
+import {
+  WAITER_BOARD_CARD_THEME,
+  waiterBoardCardShellClass,
+} from '@/lib/waiter-board-card-theme';
 import type { WaiterTableBoardState } from '@/lib/waiter-board-session';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import { WaiterBoardCardFooter } from '@/components/waiter/WaiterBoardCardFooter';
@@ -26,11 +32,15 @@ type Props = {
   nowMs: number;
   lang: UILanguage;
   pinned?: boolean;
-  embeddedInDashboard: boolean;
   onOpenTable: () => void;
   onOpenCheckout: () => void;
   onDisabledClick: () => void;
 };
+
+const CARD_BASE_CLASS =
+  'flex min-h-[8.25rem] flex-col rounded-xl border text-left w-full p-4';
+const CARD_INTERACTIVE_CLASS =
+  'group transition-all duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg';
 
 export function WaiterBoardTableCard({
   card,
@@ -41,7 +51,6 @@ export function WaiterBoardTableCard({
   nowMs,
   lang,
   pinned = false,
-  embeddedInDashboard,
   onOpenTable,
   onOpenCheckout,
   onDisabledClick,
@@ -53,7 +62,6 @@ export function WaiterBoardTableCard({
     action,
     session,
     checkoutRequestedAt,
-    embeddedInDashboard,
     lang,
     nowMs,
     labels: {
@@ -63,8 +71,8 @@ export function WaiterBoardTableCard({
       cardDiningDuration: t.cardDiningDuration,
       cardActionOpenTable: t.cardActionOpenTable,
       cardActionViewOrder: t.cardActionViewOrder,
-      cardActionViewDetail: t.cardActionViewDetail,
       cardActionCheckout: t.cardActionCheckout,
+      checkoutPendingSubtitle: t.checkoutPendingSubtitle,
     },
     statusLabels: {
       checkout: t.checkoutPendingShort,
@@ -73,10 +81,17 @@ export function WaiterBoardTableCard({
     },
   });
 
+  const interactive = isWaiterBoardCardInteractive(action);
   const theme = WAITER_BOARD_CARD_THEME[boardState];
-  const cardClassName = `group flex min-h-[8.25rem] flex-col rounded-xl border text-left w-full p-4 transition-all duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg ${theme.shell} ${
-    pinned ? 'ring-2 ring-amber-500/35' : ''
-  } ${action.kind === 'disabled' ? 'opacity-85' : ''}`;
+  const cardClassName = [
+    CARD_BASE_CLASS,
+    interactive ? CARD_INTERACTIVE_CLASS : 'cursor-default',
+    waiterBoardCardShellClass(boardState, interactive),
+    pinned ? 'ring-2 ring-amber-500/35' : '',
+    action.kind === 'disabled' && action.reason === 'no_buffet_config' ? 'opacity-85' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const body = (
     <>
@@ -123,6 +138,14 @@ export function WaiterBoardTableCard({
       </div>
     </>
   );
+
+  if (action.kind === 'disabled' && action.reason === 'waiter_checkout') {
+    return (
+      <article className={cardClassName} aria-label={view.ariaLabel}>
+        {body}
+      </article>
+    );
+  }
 
   if (action.kind === 'open_table_sheet') {
     return (

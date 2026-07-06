@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  isWaiterBoardCardInteractive,
   resolveWaiterBoardCardAction,
   waiterBoardCardActionLabelKey,
 } from '@/lib/waiter-board-card-action';
@@ -48,14 +49,15 @@ describe('resolveWaiterBoardCardAction', () => {
     assert.deepEqual(action, { kind: 'open_checkout_sheet' });
   });
 
-  it('checkout on slug waiter uses table detail', () => {
+  it('checkout on slug waiter is display-only', () => {
     const action = resolveWaiterBoardCardAction({
       boardState: 'checkout',
       embeddedInDashboard: false,
       supportsBuffetOpenTable: true,
       detailHref,
     });
-    assert.deepEqual(action, { kind: 'navigate', href: detailHref });
+    assert.deepEqual(action, { kind: 'disabled', reason: 'waiter_checkout' });
+    assert.equal(isWaiterBoardCardInteractive(action), false);
   });
 });
 
@@ -65,11 +67,11 @@ describe('waiterBoardCardActionLabelKey', () => {
     assert.equal(key, 'cardActionCheckout');
   });
 
-  it('maps slug checkout to view detail label', () => {
+  it('maps waiter checkout display-only to awaiting-payment subtitle', () => {
     const key = waiterBoardCardActionLabelKey(
-      { kind: 'navigate', href: '/r/waiter/table-1' },
+      { kind: 'disabled', reason: 'waiter_checkout' },
       'checkout',
     );
-    assert.equal(key, 'cardActionViewDetail');
+    assert.equal(key, 'checkoutPendingSubtitle');
   });
 });

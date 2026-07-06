@@ -15,8 +15,8 @@ const LABELS = {
   cardDiningDuration: '用时 {duration}',
   cardActionOpenTable: '开台',
   cardActionViewOrder: '详情',
-  cardActionViewDetail: '详情',
   cardActionCheckout: '结账',
+  checkoutPendingSubtitle: '待收银收款',
 } as const;
 
 const STATUS = { checkout: '待结账', dining: '用餐中', idle: '空闲' } as const;
@@ -46,7 +46,6 @@ describe('buildWaiterBoardCardViewModel', () => {
       action: { kind: 'open_table_sheet' },
       session: undefined,
       checkoutRequestedAt: null,
-      embeddedInDashboard: true,
       lang: 'zh',
       nowMs,
       labels: LABELS,
@@ -74,7 +73,6 @@ describe('buildWaiterBoardCardViewModel', () => {
         status: 'open',
       },
       checkoutRequestedAt: null,
-      embeddedInDashboard: false,
       lang: 'zh',
       nowMs,
       labels: LABELS,
@@ -100,7 +98,6 @@ describe('buildWaiterBoardCardViewModel', () => {
         status: 'open',
       },
       checkoutRequestedAt: null,
-      embeddedInDashboard: false,
       lang: 'zh',
       nowMs,
       labels: LABELS,
@@ -113,18 +110,17 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.equal(formatWaiterBoardCardAmount(9999.99), WAITER_BOARD_CARD_MAX_AMOUNT_LABEL);
   });
 
-  it('checkout card matches dining row3 shape without checkout subtitle', () => {
+  it('checkout card on waiter board is display-only with awaiting-payment footer', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ buffetHeadcount: { adults: 2, children: 0 }, sessionTotal: 40 }),
       boardState: 'checkout',
-      action: { kind: 'navigate', href: '/waiter/t1' },
+      action: { kind: 'disabled', reason: 'waiter_checkout' },
       session: {
         sessionId: 's1',
         openedAt: '2026-07-05T18:00:00.000Z',
         status: 'billing',
       },
       checkoutRequestedAt: '2026-07-05T19:00:00.000Z',
-      embeddedInDashboard: false,
       lang: 'zh',
       nowMs,
       labels: LABELS,
@@ -133,10 +129,10 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.equal(view.row1.badgeLabel, '待结账');
     assert.equal(view.row2.guestCountText, 'A2');
     assert.match(formatWaiterBoardCardRow3Meta(view.row3), /^用时 /);
-    assert.doesNotMatch(formatWaiterBoardCardRow3Meta(view.row3), /待收银/);
     assert.equal(view.row3.amountText, '€40.00');
-    assert.equal(view.row4.footerLabel, '详情');
-    assert.equal(view.row4.footerIcon, 'view_detail');
+    assert.equal(view.row4.footerLabel, '待收银收款');
+    assert.equal(view.row4.footerIcon, 'checkout');
+    assert.equal(view.row4.footerDisabled, true);
   });
 
   it('idle card hides amount even when summary has session total', () => {
@@ -146,7 +142,6 @@ describe('buildWaiterBoardCardViewModel', () => {
       action: { kind: 'open_table_sheet' },
       session: undefined,
       checkoutRequestedAt: null,
-      embeddedInDashboard: true,
       lang: 'zh',
       nowMs,
       labels: LABELS,
@@ -166,7 +161,6 @@ describe('buildWaiterBoardCardViewModel', () => {
         status: 'billing',
       },
       checkoutRequestedAt: null,
-      embeddedInDashboard: true,
       lang: 'zh',
       nowMs,
       labels: LABELS,
@@ -187,7 +181,6 @@ describe('buildWaiterBoardCardViewModel', () => {
         status: 'open',
       },
       checkoutRequestedAt: null,
-      embeddedInDashboard: false,
       lang: 'zh',
       nowMs: Date.parse('2026-07-05T20:00:00.000Z'),
       labels: LABELS,

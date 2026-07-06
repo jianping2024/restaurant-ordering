@@ -13,6 +13,16 @@ export type WaiterBoardCardTheme = {
   footer: string;
 };
 
+/** Shell without hover affordances — display-only board cards (e.g. waiter checkout). */
+export function waiterBoardCardShellClass(
+  boardState: WaiterTableBoardState,
+  interactive: boolean,
+): string {
+  const shell = WAITER_BOARD_CARD_THEME[boardState].shell;
+  if (interactive) return shell;
+  return shell.replace(/\s*hover:\S+/g, '');
+}
+
 export const WAITER_BOARD_CARD_THEME: Record<WaiterTableBoardState, WaiterBoardCardTheme> = {
   dining: {
     shell:

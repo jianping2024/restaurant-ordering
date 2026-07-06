@@ -1,3 +1,4 @@
+import { isWaiterBoardTableCardClickable } from '@/lib/waiter-board-permissions';
 import type { WaiterTableBoardState } from '@/lib/waiter-board-session';
 
 export type WaiterBoardCardAction =
@@ -5,6 +6,10 @@ export type WaiterBoardCardAction =
   | { kind: 'open_checkout_sheet' }
   | { kind: 'navigate'; href: string }
   | { kind: 'disabled'; reason: 'no_buffet_config' | 'waiter_checkout' };
+
+export function isWaiterBoardCardInteractive(action: WaiterBoardCardAction): boolean {
+  return !(action.kind === 'disabled' && action.reason === 'waiter_checkout');
+}
 
 export function resolveWaiterBoardCardAction(input: {
   boardState: WaiterTableBoardState;
@@ -15,10 +20,10 @@ export function resolveWaiterBoardCardAction(input: {
   const { boardState, embeddedInDashboard, supportsBuffetOpenTable, detailHref } = input;
 
   if (boardState === 'checkout') {
-    if (embeddedInDashboard) {
+    if (isWaiterBoardTableCardClickable(embeddedInDashboard, boardState)) {
       return { kind: 'open_checkout_sheet' };
     }
-    return { kind: 'navigate', href: detailHref };
+    return { kind: 'disabled', reason: 'waiter_checkout' };
   }
 
   if (boardState === 'dining') {
@@ -32,18 +37,22 @@ export function resolveWaiterBoardCardAction(input: {
   return { kind: 'open_table_sheet' };
 }
 
+export type WaiterBoardCardActionLabelKey =
+  | 'cardActionOpenTable'
+  | 'cardActionViewOrder'
+  | 'cardActionCheckout'
+  | 'checkoutPendingSubtitle';
+
 export function waiterBoardCardActionLabelKey(
   action: WaiterBoardCardAction,
   boardState: WaiterTableBoardState,
-):
-  | 'cardActionOpenTable'
-  | 'cardActionViewOrder'
-  | 'cardActionViewDetail'
-  | 'cardActionCheckout' {
+): WaiterBoardCardActionLabelKey {
+  if (action.kind === 'disabled' && action.reason === 'waiter_checkout') {
+    return 'checkoutPendingSubtitle';
+  }
   if (action.kind === 'open_table_sheet') return 'cardActionOpenTable';
   if (action.kind === 'open_checkout_sheet') return 'cardActionCheckout';
   if (boardState === 'idle') return 'cardActionOpenTable';
-  if (boardState === 'checkout') return 'cardActionViewDetail';
   if (boardState === 'dining') return 'cardActionViewOrder';
   return 'cardActionViewOrder';
 }

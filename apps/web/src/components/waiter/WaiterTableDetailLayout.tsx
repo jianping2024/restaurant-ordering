@@ -317,38 +317,36 @@ export function WaiterTableOccupiedToolbar({
     <WaiterDetailCard>
       <div className={waiterDetailLayout.cardBody}>
         <div className={waiterDetailLayout.occupiedToolbarRow}>
-          <div className={waiterDetailLayout.occupiedToolbarCluster}>
-            <ContinueOrderingControl
-              menuHref={menuHref}
-              label={t.continueOrdering}
+          <ContinueOrderingControl
+            menuHref={menuHref}
+            label={t.continueOrdering}
+            checkoutLocked={isCheckoutPending}
+            onCheckoutLocked={onCheckoutLocked}
+          />
+          <WaiterTableSecondaryButton
+            type="button"
+            onClick={onTransfer}
+            disabled={isCheckoutPending}
+            icon={<WaiterTransferIcon className={buttonIcon.sm} />}
+          >
+            {t.transfer}
+          </WaiterTableSecondaryButton>
+          <WaiterTableSecondaryButton
+            type="button"
+            onClick={onMerge}
+            disabled={isCheckoutPending}
+            icon={<WaiterMergeIcon className={buttonIcon.sm} />}
+          >
+            {t.merge}
+          </WaiterTableSecondaryButton>
+          {showGoToBill ? (
+            <GoToBillControl
+              billHref={billHref}
+              label={t.goToBill}
               checkoutLocked={isCheckoutPending}
               onCheckoutLocked={onCheckoutLocked}
             />
-            <WaiterTableSecondaryButton
-              type="button"
-              onClick={onTransfer}
-              disabled={isCheckoutPending}
-              icon={<WaiterTransferIcon className={buttonIcon.sm} />}
-            >
-              {t.transfer}
-            </WaiterTableSecondaryButton>
-            <WaiterTableSecondaryButton
-              type="button"
-              onClick={onMerge}
-              disabled={isCheckoutPending}
-              icon={<WaiterMergeIcon className={buttonIcon.sm} />}
-            >
-              {t.merge}
-            </WaiterTableSecondaryButton>
-            {showGoToBill ? (
-              <GoToBillControl
-                billHref={billHref}
-                label={t.goToBill}
-                checkoutLocked={isCheckoutPending}
-                onCheckoutLocked={onCheckoutLocked}
-              />
-            ) : null}
-          </div>
+          ) : null}
           <ToolbarCloseTableControl
             tableId={tableId}
             isCheckoutPending={isCheckoutPending}

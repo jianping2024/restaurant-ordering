@@ -24,8 +24,8 @@ export const waiterDetailLayout = {
     'grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4 xl:grid-cols-5 xl:items-stretch xl:gap-0',
   /** Estimated total + save guests — centered on table detail. */
   buffetDetailSummaryRow: 'mt-4 flex flex-wrap items-center justify-center gap-3',
-  occupiedToolbarRow: 'flex flex-col items-center gap-2',
-  occupiedToolbarCluster: 'flex flex-wrap items-center justify-center gap-2',
+  /** Occupied-table actions — one centered row; buttons wrap on narrow viewports. */
+  occupiedToolbarRow: 'flex flex-wrap items-center justify-center gap-2',
   /** Page exit — below ordered items, above modals. */
   pageFooter: 'mt-4 flex justify-center',
 } as const;

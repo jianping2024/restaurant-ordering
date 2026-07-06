@@ -30,6 +30,23 @@ describe('formatOrderItemQuantityLabel', () => {
     );
   });
 
+  it('omits zero adult or child counts in compact staff style', () => {
+    assert.equal(
+      formatOrderItemQuantityLabel(
+        { kind: 'buffet_base', qty: 1, adult_count: 2, child_count: 0 },
+        { headcountStyle: 'compact' },
+      ),
+      '· A2',
+    );
+    assert.equal(
+      formatOrderItemQuantityLabel(
+        { kind: 'buffet_base', qty: 1, adult_count: 0, child_count: 1 },
+        { headcountStyle: 'compact' },
+      ),
+      '· C1',
+    );
+  });
+
   it('formats buffet headcount in localized guest style', () => {
     assert.equal(
       formatOrderItemQuantityLabel(

@@ -48,7 +48,8 @@ export function formatOrderItemQuantityLabel(
   const children = item.child_count ?? 0;
 
   if (options.headcountStyle === 'compact') {
-    return `· ${formatBuffetHeadcountLabel(adults, children)}`;
+    const headcountLabel = formatBuffetHeadcountLabel(adults, children);
+    return headcountLabel ? `· ${headcountLabel}` : '';
   }
 
   const guestLabel = formatBuffetGuestCountsOptional(

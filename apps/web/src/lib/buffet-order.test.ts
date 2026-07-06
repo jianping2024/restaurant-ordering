@@ -13,6 +13,7 @@ import {
   diffBuffetSnapshots,
   formatBuffetCompactHeadcountLabel,
   formatBuffetGuestCountsOptional,
+  formatBuffetHeadcountLabel,
   formatBuffetPriceTemplate,
   formatBuffetReceiptQtyLabel,
   isBuffetSnapshotUnchanged,
@@ -185,15 +186,26 @@ describe('formatBuffetGuestCountsOptional', () => {
   });
 });
 
+describe('formatBuffetHeadcountLabel', () => {
+  it('joins non-zero adult and child with a space', () => {
+    assert.equal(formatBuffetHeadcountLabel(7, 3), 'A7 C3');
+    assert.equal(formatBuffetHeadcountLabel(2, 0), 'A2');
+    assert.equal(formatBuffetHeadcountLabel(0, 1), 'C1');
+    assert.equal(formatBuffetHeadcountLabel(0, 0), '');
+  });
+});
+
 describe('formatBuffetCompactHeadcountLabel', () => {
-  it('joins adult and child without separator', () => {
+  it('joins non-zero adult and child without separator', () => {
     assert.equal(formatBuffetCompactHeadcountLabel(3, 2), 'A3C2');
+    assert.equal(formatBuffetCompactHeadcountLabel(2, 0), 'A2');
   });
 });
 
 describe('formatBuffetReceiptQtyLabel', () => {
-  it('shows adult and child with hyphen', () => {
+  it('joins non-zero adult and child with a hyphen', () => {
     assert.equal(formatBuffetReceiptQtyLabel(4, 2), 'A4-C2');
+    assert.equal(formatBuffetReceiptQtyLabel(2, 0), 'A2');
   });
 });
 

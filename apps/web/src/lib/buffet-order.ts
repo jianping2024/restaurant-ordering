@@ -312,24 +312,28 @@ export function applyBuffetLinesToOrderItems(
   return items;
 }
 
+/** Non-zero A/C tokens shared by staff, board, and receipt headcount labels. */
+function buffetHeadcountTokenParts(adults: number, children: number): string[] {
+  const { adults: a, children: c } = normalizeBuffetGuestCounts(adults, children);
+  const parts: string[] = [];
+  if (a > 0) parts.push(`A${a}`);
+  if (c > 0) parts.push(`C${c}`);
+  return parts;
+}
+
+/** Staff order lists: spaced tokens (`A7 C3`, `A2`). */
 export function formatBuffetHeadcountLabel(adults: number, children: number): string {
-  return `A${adults} C${children}`;
+  return buffetHeadcountTokenParts(adults, children).join(' ');
 }
 
+/** Board cards: concatenated tokens (`A3C2`, `A2`). */
 export function formatBuffetCompactHeadcountLabel(adults: number, children: number): string {
-  const { adults: a, children: c } = normalizeBuffetGuestCounts(adults, children);
-  let out = '';
-  if (a > 0) out += `A${a}`;
-  if (c > 0) out += `C${c}`;
-  return out;
+  return buffetHeadcountTokenParts(adults, children).join('');
 }
 
+/** Receipt qty column: hyphenated tokens (`A4-C2`, `A2`). */
 export function formatBuffetReceiptQtyLabel(adults: number, children: number): string {
-  const { adults: a, children: c } = normalizeBuffetGuestCounts(adults, children);
-  if (a > 0 && c > 0) return `A${a}-C${c}`;
-  if (a > 0) return `A${a}`;
-  if (c > 0) return `C${c}`;
-  return '';
+  return buffetHeadcountTokenParts(adults, children).join('-');
 }
 
 export function formatBuffetPriceTemplate(template: string, values: Record<string, number>): string {

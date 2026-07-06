@@ -24,6 +24,8 @@ export const waiterDetailLayout = {
     'grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4 xl:grid-cols-5 xl:items-stretch xl:gap-0',
   occupiedToolbarRow: 'flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between',
   occupiedToolbarCluster: 'flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2',
+  /** Page exit — below ordered items, above modals. */
+  pageFooter: 'mt-4',
 } as const;
 
 /** Narrow modal layout for dashboard open-table sheet (viewport breakpoints not used). */
@@ -133,6 +135,43 @@ export function WaiterTableSecondaryButton({
       {icon}
       {children}
     </Button>
+  );
+}
+
+type BackToBoardLinkProps = Omit<ComponentProps<typeof Link>, 'className' | 'children'> & {
+  label: string;
+  className?: string;
+};
+
+/** Leave table detail and return to the waiter board. */
+export function WaiterTableBackToBoardLink({
+  label,
+  className = '',
+  ...props
+}: BackToBoardLinkProps) {
+  return (
+    <ButtonLink
+      variant="soft"
+      size="action"
+      className={`${waiterDetailLayout.secondaryAction}${className ? ` ${className}` : ''}`}
+      {...props}
+    >
+      ← {label}
+    </ButtonLink>
+  );
+}
+
+export function WaiterTableBackToBoardFooter({
+  boardHref,
+  label,
+}: {
+  boardHref: string;
+  label: string;
+}) {
+  return (
+    <div className={waiterDetailLayout.pageFooter}>
+      <WaiterTableBackToBoardLink href={boardHref} label={label} />
+    </div>
   );
 }
 

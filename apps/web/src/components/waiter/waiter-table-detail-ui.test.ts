@@ -19,3 +19,8 @@ test('primary session actions share one layout class', () => {
   assert.match(waiterDetailLayout.cardBody, /px-4/);
   assert.equal(waiterDetailLayout.sectionBody.includes('px-4'), true);
 });
+
+test('back-to-board footer uses page footer spacing and secondary action width', () => {
+  assert.match(waiterDetailLayout.pageFooter, /mt-4/);
+  assert.match(waiterDetailLayout.secondaryAction, /w-full/);
+});

@@ -66,6 +66,7 @@ import {
   WaiterTableOrderedItemsPanel,
 } from '@/components/waiter/WaiterTableDetailLayout';
 import { resolveWaiterTableDetailActions } from '@/lib/waiter-table-detail-actions';
+import { WaiterTableBackToBoardFooter } from '@/components/waiter/waiter-table-detail-ui';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -492,11 +493,7 @@ function WaiterTableDetailInner({
   if (!isDemo && !detailLoaded) {
     return (
       <div className={pageShellClass}>
-        <WaiterTableDetailHeader
-          boardHref={boardHref}
-          backLabel={t.backToBoard}
-          heading={detailHeading('…')}
-        />
+        <WaiterTableDetailHeader heading={detailHeading('…')} />
         <div
           className={`${waiterUi.cardSurface} p-6 animate-pulse`}
           aria-busy="true"
@@ -506,6 +503,7 @@ function WaiterTableDetailInner({
           <div className="h-24 rounded bg-brand-border/40" />
         </div>
         <p className="text-sm text-brand-text-muted mt-3">{t.tableDetailLoading}</p>
+        <WaiterTableBackToBoardFooter boardHref={boardHref} label={t.backToBoard} />
       </div>
     );
   }
@@ -513,14 +511,11 @@ function WaiterTableDetailInner({
   if (!isDemo && detailLoaded && !selectedTable) {
     return (
       <div className={pageShellClass}>
-        <WaiterTableDetailHeader
-          boardHref={boardHref}
-          backLabel={t.backToBoard}
-          heading={detailHeading(displayName || '…')}
-        />
+        <WaiterTableDetailHeader heading={detailHeading(displayName || '…')} />
         <div className={`${waiterUi.cardSurface} p-4 text-sm text-brand-text-muted`}>
           {t.noOrdersOnTable}
         </div>
+        <WaiterTableBackToBoardFooter boardHref={boardHref} label={t.backToBoard} />
       </div>
     );
   }
@@ -831,8 +826,6 @@ function WaiterTableDetailInner({
       )}
 
       <WaiterTableDetailHeader
-        boardHref={boardHref}
-        backLabel={t.backToBoard}
         heading={detailHeading(selectedCard.displayName)}
         updatedAtLabel={tableUpdatedLabel}
       />
@@ -890,6 +883,8 @@ function WaiterTableDetailInner({
           onDecrement={(orderId, itemIdx) => void handleDecrementOrderLine(orderId, itemIdx)}
         />
       </div>
+
+      <WaiterTableBackToBoardFooter boardHref={boardHref} label={t.backToBoard} />
 
       <Modal
         open={!!operationType}

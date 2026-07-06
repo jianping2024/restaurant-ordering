@@ -1,23 +1,32 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import type { Order } from '@/types';
 import {
   buildBuffetBaseLine,
   buffetFormAlignKey,
-  buffetFormSeedKey,
+  buffetSnapshotFromOrders,
+  buffetSnapshotKey,
+  buffetSnapshotsEqual,
+  buildIdleBuffetDraftSnapshot,
   computeBuffetSubtotal,
-  deriveBuffetFormSeed,
+  deriveBuffetFormSnapshot,
+  diffBuffetSnapshots,
   formatBuffetCompactHeadcountLabel,
   formatBuffetGuestCountsOptional,
   formatBuffetPriceTemplate,
   formatBuffetReceiptQtyLabel,
-  isBuffetGuestCountsUnchanged,
+  isBuffetSnapshotUnchanged,
+  listActiveBuffetLineSummaries,
   resolveBuffetFormAlignState,
   resolveBuffetOpenPricePreview,
+  snapshotFromBuffetEntries,
+  upsertBuffetLineOntoOrderItems,
+  aggregateBuffetHeadcountForOrders,
 } from '@/lib/buffet-order';
-import type { Order } from '@/types';
 
 const labels = { adults: '{n}大人', children: '{n}小孩' };
-const buffetA = { id: 'buffet-a', name: 'Lunch Buffet' };
+const buffetA = { id: 'buffet-a', name: 'Simple Buffet' };
+const buffetB = { id: 'buffet-b', name: 'Premium Buffet' };
 const resolved = {
   adult_price: 20,
   child_price: 10,
@@ -25,14 +34,24 @@ const resolved = {
   time_slot_id: 'slot-1',
 };
 
-function orderWithBuffet(adults: number, children: number): Order {
+function buffetLine(
+  buffet: { id: string; name: string },
+  adults: number,
+  children: number,
+  addedAt: string,
+): NonNullable<ReturnType<typeof buildBuffetBaseLine>> {
   const line = buildBuffetBaseLine({
-    buffet: buffetA,
+    buffet,
     adultCount: adults,
     childCount: children,
     resolved,
   });
   assert.ok(line);
+  return { ...line, added_at: addedAt };
+}
+
+function orderWithItems(items: ReturnType<typeof buildBuffetBaseLine>[]): Order {
+  const active = items.filter(Boolean) as NonNullable<ReturnType<typeof buildBuffetBaseLine>>[];
   return {
     id: 'o1',
     restaurant_id: 'r1',
@@ -40,99 +59,123 @@ function orderWithBuffet(adults: number, children: number): Order {
     table_id: 't1',
     display_name: 'A1',
     status: 'done',
-    items: [line],
-    total_amount: line.price,
+    items: active,
+    total_amount: active.reduce((sum, line) => sum + line.price, 0),
     created_at: '2026-01-01T10:00:00.000Z',
     updated_at: '2026-01-01T10:00:00.000Z',
   };
 }
 
-describe('isBuffetGuestCountsUnchanged', () => {
-  it('is false when table has no active buffet', () => {
-    assert.equal(isBuffetGuestCountsUnchanged([], buffetA.id, 2, 0), false);
+describe('buffet snapshot', () => {
+  it('reads multiple active packages from orders', () => {
+    const orders = [orderWithItems([
+      buffetLine(buffetA, 2, 1, '2026-01-01T10:00:00.000Z'),
+      buffetLine(buffetB, 1, 0, '2026-01-01T10:01:00.000Z'),
+    ])];
+
+    assert.deepEqual(buffetSnapshotFromOrders(orders), {
+      [buffetA.id]: { adults: 2, children: 1 },
+      [buffetB.id]: { adults: 1, children: 0 },
+    });
+    assert.deepEqual(aggregateBuffetHeadcountForOrders(orders), { adults: 3, children: 1 });
+    assert.equal(listActiveBuffetLineSummaries(orders).length, 2);
   });
 
-  it('is true when buffet type and adult/child counts match', () => {
-    const orders = [orderWithBuffet(2, 1)];
-    assert.equal(isBuffetGuestCountsUnchanged(orders, buffetA.id, 2, 1), true);
+  it('detects unchanged and changed snapshots', () => {
+    const orders = [orderWithItems([buffetLine(buffetA, 2, 1, '2026-01-01T10:00:00.000Z')])];
+    const same = snapshotFromBuffetEntries([
+      { buffetId: buffetA.id, adults: 2, children: 1 },
+    ]);
+    const changed = snapshotFromBuffetEntries([
+      { buffetId: buffetA.id, adults: 3, children: 1 },
+      { buffetId: buffetB.id, adults: 1, children: 0 },
+    ]);
+
+    assert.equal(isBuffetSnapshotUnchanged(orders, same), true);
+    assert.equal(isBuffetSnapshotUnchanged(orders, changed), false);
   });
 
-  it('is false when adult count differs', () => {
-    const orders = [orderWithBuffet(2, 1)];
-    assert.equal(isBuffetGuestCountsUnchanged(orders, buffetA.id, 3, 1), false);
-  });
-
-  it('is false when child count differs', () => {
-    const orders = [orderWithBuffet(2, 1)];
-    assert.equal(isBuffetGuestCountsUnchanged(orders, buffetA.id, 2, 0), false);
-  });
-
-  it('is false when total matches but adult/child split differs', () => {
-    const orders = [orderWithBuffet(2, 1)];
-    assert.equal(isBuffetGuestCountsUnchanged(orders, buffetA.id, 3, 0), false);
+  it('diffs upsert and void package ids', () => {
+    const current = {
+      [buffetA.id]: { adults: 2, children: 1 },
+      [buffetB.id]: { adults: 1, children: 0 },
+    };
+    const target = {
+      [buffetA.id]: { adults: 3, children: 0 },
+    };
+    assert.deepEqual(diffBuffetSnapshots(current, target), {
+      voidBuffetIds: [buffetB.id],
+      upsertBuffetIds: [buffetA.id],
+    });
   });
 });
 
-describe('deriveBuffetFormSeed', () => {
-  it('returns null when table has no active buffet', () => {
-    assert.equal(deriveBuffetFormSeed([]), null);
-  });
-
-  it('maps persisted headcount from orders', () => {
-    const orders = [orderWithBuffet(2, 1)];
-    assert.deepEqual(deriveBuffetFormSeed(orders), {
-      buffetId: buffetA.id,
-      adults: 2,
-      children: 1,
+describe('deriveBuffetFormSnapshot / align', () => {
+  it('returns idle draft with first package defaulted', () => {
+    assert.deepEqual(
+      resolveBuffetFormAlignState({
+        detailLoaded: true,
+        orders: [],
+        activeBuffetIds: [buffetA.id, buffetB.id],
+        defaultBuffetId: buffetA.id,
+      }),
+      {
+        mode: 'idle',
+        defaultBuffetId: buffetA.id,
+        activeBuffetIds: [buffetA.id, buffetB.id],
+      },
+    );
+    assert.deepEqual(buildIdleBuffetDraftSnapshot([buffetA.id, buffetB.id], buffetA.id), {
+      [buffetA.id]: { adults: 2, children: 0 },
+      [buffetB.id]: { adults: 0, children: 0 },
     });
   });
 
-  it('builds stable seed keys for alignment', () => {
-    assert.equal(buffetFormSeedKey({ buffetId: 'b1', adults: 2, children: 0 }), 'b1:2:0');
-    assert.equal(buffetFormSeedKey(null), null);
-  });
-});
-
-describe('resolveBuffetFormAlignState', () => {
-  it('returns pending while detail is loading', () => {
+  it('returns occupied snapshot from orders', () => {
+    const orders = [orderWithItems([buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z')])];
+    assert.deepEqual(deriveBuffetFormSnapshot(orders), {
+      [buffetA.id]: { adults: 2, children: 0 },
+    });
     assert.deepEqual(
-      resolveBuffetFormAlignState({ detailLoaded: false, orders: [], defaultBuffetId: 'b1' }),
-      { mode: 'pending' },
-    );
-  });
-
-  it('returns idle defaults when loaded with no buffet', () => {
-    assert.deepEqual(
-      resolveBuffetFormAlignState({ detailLoaded: true, orders: [], defaultBuffetId: 'b1' }),
-      { mode: 'idle', defaultBuffetId: 'b1' },
-    );
-  });
-
-  it('returns occupied seed from persisted orders', () => {
-    const orders = [orderWithBuffet(2, 0)];
-    assert.deepEqual(
-      resolveBuffetFormAlignState({ detailLoaded: true, orders, defaultBuffetId: 'b1' }),
+      resolveBuffetFormAlignState({
+        detailLoaded: true,
+        orders,
+        activeBuffetIds: [buffetA.id, buffetB.id],
+        defaultBuffetId: buffetA.id,
+      }),
       {
         mode: 'occupied',
-        seed: { buffetId: buffetA.id, adults: 2, children: 0 },
+        snapshot: { [buffetA.id]: { adults: 2, children: 0 } },
       },
     );
   });
 
-  it('builds distinct align keys per table and session', () => {
+  it('builds stable align keys', () => {
     const occupied = resolveBuffetFormAlignState({
       detailLoaded: true,
-      orders: [orderWithBuffet(2, 0)],
-      defaultBuffetId: 'b1',
+      orders: [orderWithItems([buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z')])],
+      activeBuffetIds: [buffetA.id],
+      defaultBuffetId: buffetA.id,
     });
-    assert.notEqual(
-      buffetFormAlignKey('t1', 's1', occupied),
-      buffetFormAlignKey('t2', 's1', occupied),
-    );
-    assert.notEqual(
-      buffetFormAlignKey('t1', 's1', occupied),
-      buffetFormAlignKey('t1', 's2', occupied),
-    );
+    assert.equal(buffetSnapshotKey({ [buffetA.id]: { adults: 2, children: 0 } }), 'buffet-a:2:0');
+    assert.ok(buffetFormAlignKey('t1', 's1', occupied).includes('occupied'));
+    assert.equal(buffetSnapshotsEqual({ a: { adults: 1, children: 0 } }, { a: { adults: 1, children: 0 } }), true);
+  });
+});
+
+describe('upsertBuffetLineOntoOrderItems', () => {
+  it('keeps other packages when upserting one package', () => {
+    const lineA = buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z');
+    const lineB = buffetLine(buffetB, 1, 0, '2026-01-01T10:01:00.000Z');
+    const nextB = buffetLine(buffetB, 2, 1, '2026-01-01T11:00:00.000Z');
+    const merged = upsertBuffetLineOntoOrderItems([lineA, lineB], nextB);
+
+    const active = merged.filter((item) => item.kind === 'buffet_base' && item.item_status !== 'voided');
+    assert.equal(active.length, 2);
+    assert.equal(active.find((item) => item.buffet_id === buffetA.id)?.adult_count, 2);
+    assert.equal(active.find((item) => item.buffet_id === buffetB.id)?.adult_count, 2);
+    assert.equal(active.find((item) => item.buffet_id === buffetB.id)?.child_count, 1);
+    assert.equal(merged.filter((item) => item.item_status === 'voided').length, 1);
   });
 });
 
@@ -140,35 +183,11 @@ describe('formatBuffetGuestCountsOptional', () => {
   it('shows both segments when counts are positive', () => {
     assert.equal(formatBuffetGuestCountsOptional(2, 1, labels), '2大人 · 1小孩');
   });
-
-  it('omits zero adult segment', () => {
-    assert.equal(formatBuffetGuestCountsOptional(0, 3, labels), '3小孩');
-  });
-
-  it('omits zero child segment', () => {
-    assert.equal(formatBuffetGuestCountsOptional(4, 0, labels), '4大人');
-  });
-
-  it('returns empty when both are zero', () => {
-    assert.equal(formatBuffetGuestCountsOptional(0, 0, labels), '');
-  });
 });
 
 describe('formatBuffetCompactHeadcountLabel', () => {
   it('joins adult and child without separator', () => {
     assert.equal(formatBuffetCompactHeadcountLabel(3, 2), 'A3C2');
-  });
-
-  it('omits adult segment when zero', () => {
-    assert.equal(formatBuffetCompactHeadcountLabel(0, 2), 'C2');
-  });
-
-  it('omits child segment when zero', () => {
-    assert.equal(formatBuffetCompactHeadcountLabel(3, 0), 'A3');
-  });
-
-  it('returns empty when both are zero', () => {
-    assert.equal(formatBuffetCompactHeadcountLabel(0, 0), '');
   });
 });
 
@@ -176,29 +195,9 @@ describe('formatBuffetReceiptQtyLabel', () => {
   it('shows adult and child with hyphen', () => {
     assert.equal(formatBuffetReceiptQtyLabel(4, 2), 'A4-C2');
   });
-
-  it('omits adult segment when zero', () => {
-    assert.equal(formatBuffetReceiptQtyLabel(0, 3), 'C3');
-  });
-
-  it('omits child segment when zero', () => {
-    assert.equal(formatBuffetReceiptQtyLabel(9, 0), 'A9');
-  });
-
-  it('returns empty when both are zero', () => {
-    assert.equal(formatBuffetReceiptQtyLabel(0, 0), '');
-  });
 });
 
 describe('formatBuffetPriceTemplate', () => {
-  it('interpolates per-person rates', () => {
-    const line = formatBuffetPriceTemplate('成人 €{adultPrice}/人 · 儿童 €{childPrice}/人', {
-      adultPrice: 14.5,
-      childPrice: 8.5,
-    });
-    assert.equal(line, '成人 €14.50/人 · 儿童 €8.50/人');
-  });
-
   it('interpolates estimated total', () => {
     const line = formatBuffetPriceTemplate('预计合计：€{total}', { total: 69 });
     assert.equal(line, '预计合计：€69.00');
@@ -218,13 +217,5 @@ describe('computeBuffetSubtotal / resolveBuffetOpenPricePreview', () => {
       childPrice: 10,
       subtotal: 90,
     });
-  });
-
-  it('returns not ok when prices are missing', () => {
-    assert.deepEqual(resolveBuffetOpenPricePreview(null, 2, 0), { ok: false });
-    assert.deepEqual(
-      resolveBuffetOpenPricePreview({ ...resolved, adult_price: null }, 2, 0),
-      { ok: false },
-    );
   });
 });

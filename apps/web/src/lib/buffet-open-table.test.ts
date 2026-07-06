@@ -1,23 +1,22 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import type { Order, OrderItem } from '@/types';
+import type { OrderItem } from '@/types';
 import {
-  aggregateBuffetForOrders,
+  aggregateBuffetHeadcountForOrders,
   buildBuffetBaseLine,
-  latestActiveBuffetBaseLine,
-  mergeBuffetLineOntoOrderItems,
+  listActiveBuffetLineSummaries,
 } from '@/lib/buffet-order';
 import {
   applyBuffetOpenOptimisticToOrders,
   applyBuffetOpenToSession,
   applyBuffetOpenWritePlanToOrders,
-  mapToBuffetSessionOrders,
   pickLatestTableOrder,
   planBuffetOpenWrites,
   type BuffetSessionOrder,
 } from '@/lib/buffet-open-table';
 
-const buffetA = { id: 'buffet-a', name: 'Lunch Buffet' };
+const buffetA = { id: 'buffet-a', name: 'Simple Buffet' };
+const buffetB = { id: 'buffet-b', name: 'Premium Buffet' };
 const resolved = {
   adult_price: 20,
   child_price: 10,
@@ -26,13 +25,14 @@ const resolved = {
 };
 
 function buffetLine(
+  buffet: { id: string; name: string },
   adults: number,
   children: number,
   addedAt: string,
   price?: number,
 ): OrderItem {
   const line = buildBuffetBaseLine({
-    buffet: buffetA,
+    buffet,
     adultCount: adults,
     childCount: children,
     resolved,
@@ -59,74 +59,51 @@ function orderRow(
   };
 }
 
-describe('latestActiveBuffetBaseLine / aggregateBuffetForOrders', () => {
-  it('uses the newest active line instead of summing duplicates', () => {
-    const older = buffetLine(2, 0, '2026-01-01T10:00:00.000Z', 40);
-    const newer = buffetLine(3, 1, '2026-01-01T11:00:00.000Z', 70);
-    const orders = [
-      {
-        id: 'o1',
-        status: 'done' as const,
-        items: [older, newer],
-        created_at: '2026-01-01T10:00:00.000Z',
-        updated_at: '2026-01-01T11:00:00.000Z',
-        restaurant_id: 'r1',
-        session_id: 's1',
-        table_id: 't1',
-        display_name: 'A1',
-        total_amount: 110,
-      },
-    ];
-
-    const latest = latestActiveBuffetBaseLine(orders);
-    assert.equal(latest?.adult_count, 3);
-    assert.equal(latest?.child_count, 1);
-
-    const agg = aggregateBuffetForOrders(orders);
-    assert.equal(agg?.adults, 3);
-    assert.equal(agg?.children, 1);
-    assert.equal(agg?.amount, 70);
-  });
-
-  it('ignores voided buffet lines', () => {
-    const voided = { ...buffetLine(9, 9, '2026-01-01T12:00:00.000Z'), item_status: 'voided' as const };
-    const active = buffetLine(1, 0, '2026-01-01T11:00:00.000Z', 20);
-    const orders = [
-      {
-        id: 'o1',
-        status: 'done' as const,
-        items: [voided, active],
-        created_at: '2026-01-01T10:00:00.000Z',
-        updated_at: '2026-01-01T11:00:00.000Z',
-        restaurant_id: 'r1',
-        session_id: 's1',
-        table_id: 't1',
-        display_name: 'A1',
-        total_amount: 20,
-      },
-    ];
-    const agg = aggregateBuffetForOrders(orders);
-    assert.equal(agg?.adults, 1);
-    assert.equal(agg?.children, 0);
-  });
-});
-
-describe('mergeBuffetLineOntoOrderItems', () => {
-  it('voids prior buffet_base and appends the new line on one order', () => {
-    const prev = buffetLine(2, 0, '2026-01-01T10:00:00.000Z');
-    const next = buffetLine(4, 2, '2026-01-01T11:00:00.000Z');
-    const merged = mergeBuffetLineOntoOrderItems([prev], next);
-
-    const active = merged.filter((i) => i.kind === 'buffet_base' && i.item_status !== 'voided');
-    assert.equal(active.length, 1);
-    assert.equal(active[0].adult_count, 4);
-    assert.equal(active[0].child_count, 2);
-    assert.equal(merged.filter((i) => i.item_status === 'voided').length, 1);
-  });
-});
-
 const TABLE_1 = 'a0000001-0000-4000-8000-000000000001';
 const TABLE_2 = 'a0000002-0000-4000-8000-000000000002';
+
+describe('planBuffetOpenWrites', () => {
+  it('upserts multiple packages on one carrier order', () => {
+    const lineA = buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z');
+    const lineB = buffetLine(buffetB, 1, 0, '2026-01-01T10:01:00.000Z');
+    const plan = planBuffetOpenWrites([], {
+      tableId: TABLE_1,
+      displayName: 'A1',
+      lines: [lineA, lineB],
+      voidBuffetIds: [],
+      restaurantId: 'r1',
+      sessionId: 's1',
+    });
+
+    assert.equal(plan.carrier.mode, 'insert');
+    if (plan.carrier.mode !== 'insert') return;
+    const active = plan.carrier.items.filter((item) => item.kind === 'buffet_base' && item.item_status !== 'voided');
+    assert.equal(active.length, 2);
+  });
+
+  it('voids one package while keeping another', () => {
+    const prevA = buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z');
+    const prevB = buffetLine(buffetB, 1, 0, '2026-01-01T10:01:00.000Z');
+    const carrier = orderRow('order-1', TABLE_1, [prevA, prevB], '2026-01-01T10:00:00.000Z', 'ts-v1');
+    const nextA = buffetLine(buffetA, 3, 1, '2026-01-01T11:00:00.000Z');
+    const plan = planBuffetOpenWrites([carrier], {
+      tableId: TABLE_1,
+      displayName: 'A1',
+      lines: [nextA],
+      voidBuffetIds: [buffetB.id],
+      restaurantId: 'r1',
+      sessionId: 's1',
+    });
+
+    assert.equal(plan.carrier.mode, 'update');
+    if (plan.carrier.mode !== 'update') return;
+    const active = plan.carrier.items.filter((item) => item.kind === 'buffet_base' && item.item_status !== 'voided');
+    assert.equal(active.length, 1);
+    assert.equal(active[0].buffet_id, buffetA.id);
+    assert.equal(active[0].adult_count, 3);
+    assert.equal(plan.carrier.items.filter((item) => item.item_status === 'voided').length, 2);
+  });
+});
 
 describe('pickLatestTableOrder', () => {
   it('picks the newest order for the table', () => {
@@ -140,11 +117,11 @@ describe('pickLatestTableOrder', () => {
 });
 
 describe('applyBuffetOpenToSession', () => {
-  it('updates carrier order once (void+append) when re-opening the same table', async () => {
+  it('updates carrier order once when changing one package', async () => {
     const tableId = TABLE_1;
-    const prev = buffetLine(2, 0, '2026-01-01T10:00:00.000Z', 40);
+    const prev = buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z', 40);
     const carrier = orderRow('order-1', tableId, [prev], '2026-01-01T10:00:00.000Z', 'ts-v1');
-    const next = buffetLine(3, 1, '2026-01-01T11:00:00.000Z', 70);
+    const next = buffetLine(buffetA, 3, 1, '2026-01-01T11:00:00.000Z', 70);
 
     const updates: { id: string; items: OrderItem[] }[] = [];
     const admin = {
@@ -169,11 +146,6 @@ describe('applyBuffetOpenToSession', () => {
                         },
                       };
                     },
-                    select() {
-                      return {
-                        maybeSingle: async () => ({ data: { id }, error: null }),
-                      };
-                    },
                   };
                 }
                 throw new Error(`unexpected eq ${col}`);
@@ -192,257 +164,46 @@ describe('applyBuffetOpenToSession', () => {
       sessionId: 's1',
       tableId,
       displayName: 'A1',
-      line: next,
+      lines: [next],
+      voidBuffetIds: [],
       sessionOrders: [carrier],
     });
 
     assert.equal(result.ok, true);
     assert.equal(updates.length, 1);
-    assert.equal(updates[0].id, 'order-1');
     const active = updates[0].items.filter((i) => i.kind === 'buffet_base' && i.item_status !== 'voided');
     assert.equal(active.length, 1);
     assert.equal(active[0].adult_count, 3);
     assert.equal(active[0].child_count, 1);
   });
-
-  it('voids buffet on other session orders before writing the carrier', async () => {
-    const tableA = TABLE_1;
-    const tableB = TABLE_2;
-    const oldBuffet = buffetLine(2, 0, '2026-01-01T09:00:00.000Z');
-    const other = orderRow('order-other', tableB, [oldBuffet], '2026-01-01T09:00:00.000Z');
-    const carrier = orderRow('order-carrier', tableA, [], '2026-01-01T10:00:00.000Z', 'ts-c1');
-    const next = buffetLine(1, 0, '2026-01-01T11:00:00.000Z');
-
-    const updateIds: string[] = [];
-    const admin = {
-      from(table: string) {
-        assert.equal(table, 'orders');
-        return {
-          update(payload: { items: OrderItem[]; total_amount?: number }) {
-            void payload;
-            return {
-              eq(col: string, val: string) {
-                if (col !== 'id') throw new Error(`unexpected eq ${col}`);
-                updateIds.push(val);
-                if (val === 'order-carrier') {
-                  return {
-                    eq(col2: string, val2: string) {
-                      assert.equal(col2, 'updated_at');
-                      assert.equal(val2, 'ts-c1');
-                      return {
-                        select() {
-                          return {
-                            maybeSingle: async () => ({ data: { id: 'order-carrier' }, error: null }),
-                          };
-                        },
-                      };
-                    },
-                  };
-                }
-                return Promise.resolve({ error: null });
-              },
-            };
-          },
-          insert: () => {
-            throw new Error('insert should not run');
-          },
-        };
-      },
-    };
-
-    const result = await applyBuffetOpenToSession(admin as never, {
-      restaurantId: 'r1',
-      sessionId: 's1',
-      tableId: tableA,
-      displayName: 'A1',
-      line: next,
-      sessionOrders: [other, carrier],
-    });
-
-    assert.equal(result.ok, true);
-    assert.ok(updateIds.includes('order-other'));
-    assert.ok(updateIds.includes('order-carrier'));
-  });
-
-  it('re-opening buffet changes only buffet lines, total, and leaves menu + status intact', async () => {
-    const tableId = TABLE_1;
-    const menuItem: OrderItem = {
-      id: 'menu-1',
-      name: 'Soup',
-      name_pt: 'Sopa',
-      qty: 2,
-      price: 12,
-      emoji: '🍲',
-      item_status: 'cooking',
-    };
-    const prevBuffet = buffetLine(2, 0, '2026-01-01T10:00:00.000Z', 40);
-    const carrier = orderRow(
-      'order-1',
-      tableId,
-      [menuItem, prevBuffet],
-      '2026-01-01T10:00:00.000Z',
-      'ts-v1',
-      'cooking',
-    );
-    const next = buffetLine(4, 1, '2026-01-01T11:00:00.000Z', 90);
-
-    let updatePayload: { items: OrderItem[]; total_amount: number; status: string } | null = null;
-    const admin = {
-      from(table: string) {
-        assert.equal(table, 'orders');
-        return {
-          update(payload: { items: OrderItem[]; total_amount: number; status: string }) {
-            updatePayload = payload;
-            return {
-              eq(col: string, val: string) {
-                assert.equal(col, 'id');
-                assert.equal(val, 'order-1');
-                return {
-                  eq(col2: string, val2: string) {
-                    assert.equal(col2, 'updated_at');
-                    assert.equal(val2, 'ts-v1');
-                    return {
-                      select() {
-                        return {
-                          maybeSingle: async () => ({ data: { id: 'order-1' }, error: null }),
-                        };
-                      },
-                    };
-                  },
-                };
-              },
-            };
-          },
-          insert() {
-            throw new Error('insert should not run');
-          },
-        };
-      },
-    };
-
-    const result = await applyBuffetOpenToSession(admin as never, {
-      restaurantId: 'r1',
-      sessionId: 's1',
-      tableId,
-      displayName: 'A1',
-      line: next,
-      sessionOrders: [carrier],
-    });
-
-    assert.equal(result.ok, true);
-    assert.ok(updatePayload);
-    const menuLines = updatePayload!.items.filter((i) => i.kind !== 'buffet_base');
-    assert.equal(menuLines.length, 1);
-    assert.deepEqual(menuLines[0], menuItem);
-    assert.equal(updatePayload!.status, 'cooking');
-    assert.equal(updatePayload!.total_amount, 114);
-    const activeBuffet = updatePayload!.items.filter(
-      (i) => i.kind === 'buffet_base' && i.item_status !== 'voided',
-    );
-    assert.equal(activeBuffet.length, 1);
-    assert.equal(activeBuffet[0].adult_count, 4);
-    assert.equal(activeBuffet[0].child_count, 1);
-  });
 });
 
 describe('applyBuffetOpenOptimisticToOrders', () => {
-  it('appends buffet on empty table for instant UI', () => {
-    const line = buffetLine(2, 1, '2026-01-01T11:00:00.000Z', 50);
+  it('appends multiple packages on empty table for instant UI', () => {
+    const lineA = buffetLine(buffetA, 2, 1, '2026-01-01T11:00:00.000Z', 50);
+    const lineB = buffetLine(buffetB, 1, 0, '2026-01-01T11:01:00.000Z', 20);
     const next = applyBuffetOpenOptimisticToOrders([], {
       tableId: TABLE_1,
       displayName: 'A1',
-      line,
+      lines: [lineA, lineB],
+      voidBuffetIds: [],
       restaurantId: 'r1',
       sessionId: 's-new',
     });
     assert.equal(next.length, 1);
-    assert.equal(next[0].items.length, 1);
-    assert.equal(next[0].total_amount, 50);
-    assert.equal(aggregateBuffetForOrders(next)?.adults, 2);
-  });
-
-  it('replaces buffet on carrier while keeping menu lines', () => {
-    const menuItem = {
-      id: 'menu-1',
-      name: 'Soup',
-      name_pt: 'Sopa',
-      qty: 1,
-      price: 10,
-      emoji: '🍲',
-      item_status: 'cooking' as const,
-    };
-    const prevBuffet = buffetLine(2, 0, '2026-01-01T10:00:00.000Z', 40);
-    const existing: Order = {
-      id: 'order-1',
-      restaurant_id: 'r1',
-      session_id: 's1',
-      table_id: TABLE_1,
-      display_name: 'A1',
-      status: 'cooking',
-      items: [menuItem, prevBuffet],
-      total_amount: 50,
-      created_at: '2026-01-01T10:00:00.000Z',
-      updated_at: '2026-01-01T10:00:00.000Z',
-    };
-    const line = buffetLine(3, 0, '2026-01-01T11:00:00.000Z', 60);
-    const next = applyBuffetOpenOptimisticToOrders([existing], {
-      tableId: TABLE_1,
-      displayName: 'A1',
-      line,
-      restaurantId: 'r1',
-      sessionId: 's1',
-    });
-    assert.equal(next.length, 1);
-    assert.deepEqual(next[0].items.filter((i) => i.kind !== 'buffet_base'), [menuItem]);
-    assert.equal(next[0].status, 'cooking');
-    assert.equal(aggregateBuffetForOrders(next)?.adults, 3);
+    assert.equal(listActiveBuffetLineSummaries(next).length, 2);
+    assert.deepEqual(aggregateBuffetHeadcountForOrders(next), { adults: 3, children: 1 });
   });
 });
 
 describe('applyBuffetOpenWritePlanToOrders', () => {
-  it('matches optimistic helper for carrier update', () => {
-    const menuItem = {
-      id: 'menu-1',
-      name: 'Soup',
-      name_pt: 'Sopa',
-      qty: 1,
-      price: 10,
-      emoji: '🍲',
-      item_status: 'cooking' as const,
-    };
-    const prevBuffet = buffetLine(2, 0, '2026-01-01T10:00:00.000Z', 40);
-    const existing: Order = {
-      id: 'order-1',
-      restaurant_id: 'r1',
-      session_id: 's1',
-      table_id: TABLE_1,
-      display_name: 'A1',
-      status: 'cooking',
-      items: [menuItem, prevBuffet],
-      total_amount: 50,
-      created_at: '2026-01-01T10:00:00.000Z',
-      updated_at: '2026-01-01T10:00:00.000Z',
-    };
-    const line = buffetLine(3, 0, '2026-01-01T11:00:00.000Z', 60);
-    const params = {
-      tableId: TABLE_1,
-      displayName: 'A1',
-      line,
-      restaurantId: 'r1',
-      sessionId: 's1',
-    };
-    const plan = planBuffetOpenWrites(mapToBuffetSessionOrders([existing]), params);
-    const viaPlan = applyBuffetOpenWritePlanToOrders([existing], plan);
-    const viaOptimistic = applyBuffetOpenOptimisticToOrders([existing], params);
-    assert.deepEqual(viaPlan, viaOptimistic);
-  });
-
   it('inserts carrier order when opening an idle table (开台)', () => {
-    const line = buffetLine(2, 1, '2026-01-01T11:00:00.000Z', 50);
+    const line = buffetLine(buffetA, 2, 1, '2026-01-01T11:00:00.000Z', 50);
     const params = {
       tableId: TABLE_1,
       displayName: 'A1',
-      line,
+      lines: [line],
+      voidBuffetIds: [] as string[],
       restaurantId: 'r1',
       sessionId: 's-new',
     };
@@ -451,7 +212,6 @@ describe('applyBuffetOpenWritePlanToOrders', () => {
     const next = applyBuffetOpenWritePlanToOrders([], plan, { insertedOrderId: 'order-new' });
     assert.equal(next.length, 1);
     assert.equal(next[0].id, 'order-new');
-    assert.equal(aggregateBuffetForOrders(next)?.adults, 2);
-    assert.equal(aggregateBuffetForOrders(next)?.children, 1);
+    assert.deepEqual(aggregateBuffetHeadcountForOrders(next), { adults: 2, children: 1 });
   });
 });

@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
-import { normalizeBuffetGuestCounts } from '@/lib/buffet-order';
-import { runBuffetWaiterOpenPipeline } from '@/lib/buffet-waiter-pipeline';
+import {
+  parseBuffetWaiterRequestBody,
+  runBuffetWaiterOpenPipeline,
+} from '@/lib/buffet-waiter-pipeline';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 
@@ -23,9 +25,7 @@ export async function POST(
 
   let body: {
     table_id?: unknown;
-    buffet_id?: unknown;
-    adult_count?: unknown;
-    child_count?: unknown;
+    buffets?: unknown;
   };
   try {
     body = await req.json();
@@ -34,13 +34,9 @@ export async function POST(
   }
 
   const tableId = parseTableIdParam(body.table_id);
-  const buffetId = typeof body.buffet_id === 'string' ? body.buffet_id : '';
-  const { adults: adultCount, children: childCount } = normalizeBuffetGuestCounts(
-    Number(body.adult_count) || 0,
-    Number(body.child_count) || 0,
-  );
+  const parsedBuffets = parseBuffetWaiterRequestBody(body.buffets);
 
-  if (!tableId || !buffetId) {
+  if (!tableId || !parsedBuffets.ok) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
   }
 
@@ -55,9 +51,7 @@ export async function POST(
     restaurantId: ctx.restaurant_id,
     userId: ctx.user_id,
     tableId,
-    buffetId,
-    adultCount,
-    childCount,
+    buffets: parsedBuffets.buffets,
   });
 
   if (!result.ok) {

@@ -1,9 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Order } from '@/types';
 import {
+  buffetSnapshotFromOrders,
   buildBuffetBaseLine,
-  isBuffetGuestCountsUnchanged,
-  normalizeBuffetGuestCounts,
+  diffBuffetSnapshots,
+  isBuffetSnapshotUnchanged,
+  normalizeBuffetGuestEntries,
+  snapshotFromBuffetEntries,
+  type BuffetGuestEntry,
   type ResolvedBuffetPriceRow,
 } from '@/lib/buffet-order';
 import {
@@ -32,9 +36,7 @@ export type BuffetWaiterPipelineInput = {
   restaurantId: string;
   userId: string;
   tableId: string;
-  buffetId: string;
-  adultCount: number;
-  childCount: number;
+  buffets: BuffetGuestEntry[];
 };
 
 export type BuffetWaiterPipelineSuccess = {
@@ -69,36 +71,24 @@ export async function runBuffetWaiterOpenPipeline(
   admin: SupabaseClient,
   input: BuffetWaiterPipelineInput,
 ): Promise<BuffetWaiterPipelineResult> {
-  const { restaurantId, userId, tableId, buffetId } = input;
-  const { adults: adultCount, children: childCount } = normalizeBuffetGuestCounts(
-    input.adultCount,
-    input.childCount,
-  );
+  const { restaurantId, userId, tableId, buffets } = input;
+  const targetSnapshot = snapshotFromBuffetEntries(buffets);
 
-  const [
-    { table, sessionRow },
-    buffets,
-    checkout,
-    { data: buffet, error: buffetErr },
-  ] = await Promise.all([
+  const [{ table, sessionRow }, activeBuffets, checkout] = await Promise.all([
     loadTableAndSession(admin, restaurantId, tableId),
     loadActiveBuffets(admin, restaurantId),
     fetchCheckoutRequestedForTable(admin, restaurantId, tableId),
-    admin
-      .from('buffets')
-      .select('id, name')
-      .eq('id', buffetId)
-      .eq('restaurant_id', restaurantId)
-      .eq('is_active', true)
-      .maybeSingle(),
   ]);
 
   if (!table) {
     return pipelineFailure(400, 'table_not_available');
   }
 
-  if (buffetErr || !buffet) {
-    return pipelineFailure(404, 'buffet_not_found');
+  const activeBuffetById = new Map(activeBuffets.map((b) => [b.id, b]));
+  for (const entry of buffets) {
+    if (!activeBuffetById.has(entry.buffetId)) {
+      return pipelineFailure(404, 'buffet_not_found', { code: 'buffet_not_found' });
+    }
   }
 
   const displayName = table.display_name;
@@ -133,24 +123,39 @@ export async function runBuffetWaiterOpenPipeline(
   }
 
   const sessionOrders = mapToBuffetSessionOrders(orders);
-  const unchanged = isBuffetGuestCountsUnchanged(sessionOrders, buffetId, adultCount, childCount);
+  const unchanged = isBuffetSnapshotUnchanged(sessionOrders, targetSnapshot);
   const resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null> = {};
 
   if (!unchanged) {
-    const resolved = await resolveBuffetPricesServer(admin, restaurantId, buffetId);
-    if (!resolved) {
-      return pipelineFailure(500, 'price_resolve_failed');
-    }
-    resolvedByBuffetId[buffetId] = resolved;
+    const currentSnapshot = buffetSnapshotFromOrders(sessionOrders);
+    const { voidBuffetIds, upsertBuffetIds } = diffBuffetSnapshots(currentSnapshot, targetSnapshot);
 
-    const line = buildBuffetBaseLine({
-      buffet,
-      adultCount,
-      childCount,
-      resolved,
-    });
-    if (!line) {
-      return pipelineFailure(400, 'no_price_rule', { code: 'no_price_rule' });
+    const lines = [];
+    for (const buffetId of upsertBuffetIds) {
+      const counts = targetSnapshot[buffetId];
+      if (!counts) continue;
+
+      const buffet = activeBuffetById.get(buffetId);
+      if (!buffet) {
+        return pipelineFailure(404, 'buffet_not_found', { code: 'buffet_not_found' });
+      }
+
+      const resolved = await resolveBuffetPricesServer(admin, restaurantId, buffetId);
+      if (!resolved) {
+        return pipelineFailure(500, 'price_resolve_failed');
+      }
+      resolvedByBuffetId[buffetId] = resolved;
+
+      const line = buildBuffetBaseLine({
+        buffet,
+        adultCount: counts.adults,
+        childCount: counts.children,
+        resolved,
+      });
+      if (!line) {
+        return pipelineFailure(400, 'no_price_rule', { code: 'no_price_rule' });
+      }
+      lines.push(line);
     }
 
     const applied = await applyBuffetOpenToSession(admin, {
@@ -158,7 +163,8 @@ export async function runBuffetWaiterOpenPipeline(
       sessionId,
       tableId,
       displayName,
-      line,
+      lines,
+      voidBuffetIds,
       sessionOrders,
     });
 
@@ -178,14 +184,14 @@ export async function runBuffetWaiterOpenPipeline(
   const buffetPricesByBuffetId = await resolveOpenTableBuffetPrices(
     admin,
     restaurantId,
-    buffets,
+    activeBuffets,
     checkoutPending,
     resolvedByBuffetId,
   );
 
   const model = buildActiveWaiterTablePageModel({
     table,
-    buffets,
+    buffets: activeBuffets,
     sessionMeta,
     orders,
     checkoutRequested: checkout.requested,
@@ -194,4 +200,30 @@ export async function runBuffetWaiterOpenPipeline(
   });
 
   return { ok: true, model, ...(unchanged ? { unchanged: true } : {}) };
+}
+
+export function parseBuffetWaiterRequestBody(
+  buffetsRaw: unknown,
+): { ok: true; buffets: BuffetGuestEntry[] } | { ok: false } {
+  if (!Array.isArray(buffetsRaw) || buffetsRaw.length === 0) {
+    return { ok: false };
+  }
+
+  const parsed: BuffetGuestEntry[] = [];
+  for (const row of buffetsRaw) {
+    if (!row || typeof row !== 'object') return { ok: false };
+    const buffetId = (row as { buffet_id?: unknown }).buffet_id;
+    if (typeof buffetId !== 'string' || !buffetId) return { ok: false };
+    parsed.push(
+      normalizeBuffetGuestEntries([
+        {
+          buffet_id: buffetId,
+          adult_count: Number((row as { adult_count?: unknown }).adult_count) || 0,
+          child_count: Number((row as { child_count?: unknown }).child_count) || 0,
+        },
+      ])[0],
+    );
+  }
+
+  return { ok: true, buffets: parsed };
 }

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Order, OrderItem } from '@/types';
-import { mergeBuffetLineOntoOrderItems, voidActiveBuffetBaseLines } from '@/lib/buffet-order';
+import { applyBuffetLinesToOrderItems, voidActiveBuffetBaseLines } from '@/lib/buffet-order';
 import { sumLineTotals } from '@/lib/cart-totals';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { deriveOrderStatusFromItems, normalizeOrderItemStatus } from '@/lib/order-status';
@@ -59,12 +59,13 @@ export type BuffetOpenWritePlan = {
   carrier: CarrierBuffetWrite;
 };
 
-type BuffetOpenParams = {
+export type BuffetOpenParams = {
   tableId: string;
   displayName: string;
-  line: OrderItem;
   restaurantId: string;
   sessionId: string;
+  lines: OrderItem[];
+  voidBuffetIds: string[];
 };
 
 /** Latest order row for a table within the session (carrier for new buffet line). */
@@ -122,7 +123,7 @@ export function planBuffetOpenWrites(
   sessionOrders: BuffetSessionOrder[],
   params: BuffetOpenParams,
 ): BuffetOpenWritePlan {
-  const { tableId, displayName, line, restaurantId, sessionId } = params;
+  const { tableId, displayName, lines, voidBuffetIds, restaurantId, sessionId } = params;
   const carrier = pickLatestTableOrder(sessionOrders, tableId);
   const voidOtherOrders: VoidBuffetWrite[] = [];
 
@@ -142,7 +143,7 @@ export function planBuffetOpenWrites(
 
   if (carrier) {
     const priorItems = carrier.items || [];
-    const mergedItems = mergeBuffetLineOntoOrderItems(priorItems, line);
+    const mergedItems = applyBuffetLinesToOrderItems(priorItems, lines, voidBuffetIds);
     return {
       voidOtherOrders,
       carrier: {
@@ -158,7 +159,7 @@ export function planBuffetOpenWrites(
     };
   }
 
-  const mergedItems = [line];
+  const mergedItems = applyBuffetLinesToOrderItems([], lines, voidBuffetIds);
   return {
     voidOtherOrders,
     carrier: {
@@ -248,8 +249,8 @@ export function applyBuffetOpenOptimisticToOrders(
 }
 
 /**
- * Replace session buffet base fee for a table: void buffet on other session orders,
- * void+append on the table carrier order in a single update (avoids updated_at races).
+ * Apply buffet snapshot for a table: void removed packages on carrier, upsert changed lines.
+ * Buffet lines on non-carrier session orders are fully voided (existing session hygiene).
  */
 export async function applyBuffetOpenToSession(
   admin: SupabaseClient,

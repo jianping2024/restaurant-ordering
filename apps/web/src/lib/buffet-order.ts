@@ -2,7 +2,26 @@ import type { Buffet, Order, OrderItem } from '@/types';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 
-/** Mark active buffet_base lines void (keeps history for merge/audit). */
+export type BuffetGuestCounts = { adults: number; children: number };
+
+/** Active buffet packages on a table: buffetId → headcount (omits all-zero packages). */
+export type BuffetGuestSnapshot = Record<string, BuffetGuestCounts>;
+
+export type BuffetGuestEntry = {
+  buffetId: string;
+  adults: number;
+  children: number;
+};
+
+export type BuffetLineSummary = {
+  buffetId: string;
+  name: string;
+  adults: number;
+  children: number;
+  amount: number;
+};
+
+/** Mark every active buffet_base line void (keeps history for audit). */
 export function voidActiveBuffetBaseLines(items: OrderItem[]): OrderItem[] {
   const voidedAt = new Date().toISOString();
   return items.map((item) => {
@@ -12,7 +31,20 @@ export function voidActiveBuffetBaseLines(items: OrderItem[]): OrderItem[] {
   });
 }
 
-function activeBuffetBaseLines(orders: Array<Pick<Order, 'items' | 'status'>>): OrderItem[] {
+/** Mark active buffet_base lines for one package void. */
+export function voidBuffetBaseLinesForBuffetId(items: OrderItem[], buffetId: string): OrderItem[] {
+  const voidedAt = new Date().toISOString();
+  return items.map((item) => {
+    if (!isBuffetBaseItem(item)) return item;
+    if (item.buffet_id !== buffetId) return item;
+    if (item.item_status === 'voided') return item;
+    return { ...item, item_status: 'voided' as const, voided_at: voidedAt };
+  });
+}
+
+export function listActiveBuffetBaseLines(
+  orders: Array<Pick<Order, 'items' | 'status'>>,
+): OrderItem[] {
   const lines: OrderItem[] = [];
   for (const order of orders) {
     for (const item of order.items) {
@@ -24,101 +56,144 @@ function activeBuffetBaseLines(orders: Array<Pick<Order, 'items' | 'status'>>): 
   return lines;
 }
 
-/** Newest active buffet_base line across session orders (headcount + amount authority). */
-export function latestActiveBuffetBaseLine(orders: Array<Pick<Order, 'items' | 'status'>>): OrderItem | null {
-  const active = activeBuffetBaseLines(orders);
-  if (active.length === 0) return null;
-
-  const buffetIds = new Set(active.map((l) => l.buffet_id).filter(Boolean) as string[]);
-  if (buffetIds.size > 1) return null;
-
-  let best: OrderItem | null = null;
-  let bestAt = '';
-  for (const line of active) {
-    const at = line.added_at || '';
-    if (!best || at >= bestAt) {
-      best = line;
-      bestAt = at;
+/** Latest active line per buffet_id (handles duplicate lines on one order). */
+export function activeBuffetLineByBuffetId(
+  orders: Array<Pick<Order, 'items' | 'status'>>,
+): Map<string, OrderItem> {
+  const byId = new Map<string, OrderItem>();
+  for (const line of listActiveBuffetBaseLines(orders)) {
+    const buffetId = line.buffet_id;
+    if (!buffetId) continue;
+    const prev = byId.get(buffetId);
+    if (!prev || String(line.added_at || '') >= String(prev.added_at || '')) {
+      byId.set(buffetId, line);
     }
   }
-  return best;
+  return byId;
 }
 
-/** Append a new buffet_base after voiding prior active buffet lines on the same order. */
-export function mergeBuffetLineOntoOrderItems(
-  existingItems: OrderItem[],
-  newLine: OrderItem,
-): OrderItem[] {
-  return [...voidActiveBuffetBaseLines(existingItems), newLine];
+export function buffetSnapshotFromOrders(
+  orders: Array<Pick<Order, 'items' | 'status'>>,
+): BuffetGuestSnapshot {
+  const snapshot: BuffetGuestSnapshot = {};
+  for (const [buffetId, line] of Array.from(activeBuffetLineByBuffetId(orders).entries())) {
+    snapshot[buffetId] = {
+      adults: line.adult_count ?? 0,
+      children: line.child_count ?? 0,
+    };
+  }
+  return snapshot;
 }
 
+export function hasActiveBuffetForOrders(orders: Array<Pick<Order, 'items' | 'status'>>): boolean {
+  return listActiveBuffetBaseLines(orders).length > 0;
+}
+
+export function listActiveBuffetLineSummaries(
+  orders: Array<Pick<Order, 'items' | 'status'>>,
+): BuffetLineSummary[] {
+  return Array.from(activeBuffetLineByBuffetId(orders).entries()).map(([buffetId, line]) => ({
+    buffetId,
+    name: line.name || line.name_pt || 'Buffet',
+    adults: line.adult_count ?? 0,
+    children: line.child_count ?? 0,
+    amount: line.price * (line.qty ?? 1),
+  }));
+}
+
+export type BuffetGuestHeadcount = { adults: number; children: number };
+
+export function aggregateBuffetHeadcountForOrders(
+  orders: Array<Pick<Order, 'items' | 'status'>>,
+): BuffetGuestHeadcount | null {
+  const summaries = listActiveBuffetLineSummaries(orders);
+  if (summaries.length === 0) return null;
+  return summaries.reduce(
+    (acc, row) => ({
+      adults: acc.adults + row.adults,
+      children: acc.children + row.children,
+    }),
+    { adults: 0, children: 0 },
+  );
+}
+
+/** @deprecated Use aggregateBuffetHeadcountForOrders or listActiveBuffetLineSummaries. */
 export function aggregateBuffetForOrders(
   orders: Array<Pick<Order, 'items' | 'status'>>,
-): { buffetId: string; name: string; adults: number; children: number; amount: number } | null {
-  const line = latestActiveBuffetBaseLine(orders);
-  if (!line?.buffet_id) return null;
-
-  const name = line.name || line.name_pt || 'Buffet';
-  const adults = line.adult_count ?? 0;
-  const children = line.child_count ?? 0;
-  const amount = line.price * (line.qty ?? 1);
-
-  return {
-    buffetId: line.buffet_id,
-    name,
-    adults,
-    children,
-    amount,
-  };
-}
-
-/** Draft form seed from persisted session orders (null = not yet opened). */
-export type BuffetFormSeed = {
+): {
   buffetId: string;
+  name: string;
   adults: number;
   children: number;
-};
-
-export function deriveBuffetFormSeed(
-  orders: Array<Pick<Order, 'items' | 'status'>>,
-): BuffetFormSeed | null {
-  const agg = aggregateBuffetForOrders(orders);
-  if (!agg) return null;
+  amount: number;
+} | null {
+  const summaries = listActiveBuffetLineSummaries(orders);
+  if (summaries.length === 0) return null;
+  const headcount = aggregateBuffetHeadcountForOrders(orders)!;
   return {
-    buffetId: agg.buffetId,
-    adults: agg.adults,
-    children: agg.children,
+    buffetId: summaries[0].buffetId,
+    name: summaries.length === 1 ? summaries[0].name : summaries.map((s) => s.name).join(' + '),
+    adults: headcount.adults,
+    children: headcount.children,
+    amount: summaries.reduce((sum, row) => sum + row.amount, 0),
   };
-}
-
-export function buffetFormSeedKey(seed: BuffetFormSeed | null): string | null {
-  if (!seed) return null;
-  return `${seed.buffetId}:${seed.adults}:${seed.children}`;
 }
 
 export const IDLE_BUFFET_FORM_DEFAULTS = { adults: 2, children: 0 } as const;
 
-/** When to align buffet open-table draft from server orders vs idle defaults. */
+export function buildIdleBuffetDraftSnapshot(
+  activeBuffetIds: string[],
+  defaultBuffetId: string | null,
+): BuffetGuestSnapshot {
+  const snapshot: BuffetGuestSnapshot = {};
+  for (const buffetId of activeBuffetIds) {
+    if (buffetId === defaultBuffetId) {
+      snapshot[buffetId] = { ...IDLE_BUFFET_FORM_DEFAULTS };
+    } else {
+      snapshot[buffetId] = { adults: 0, children: 0 };
+    }
+  }
+  return snapshot;
+}
+
+export function deriveBuffetFormSnapshot(
+  orders: Array<Pick<Order, 'items' | 'status'>>,
+): BuffetGuestSnapshot {
+  return buffetSnapshotFromOrders(orders);
+}
+
 export type BuffetFormAlignState =
   | { mode: 'pending' }
-  | { mode: 'idle'; defaultBuffetId: string | null }
-  | { mode: 'occupied'; seed: BuffetFormSeed };
+  | { mode: 'idle'; defaultBuffetId: string | null; activeBuffetIds: string[] }
+  | { mode: 'occupied'; snapshot: BuffetGuestSnapshot };
 
 export function resolveBuffetFormAlignState(input: {
   detailLoaded: boolean;
   orders: Array<Pick<Order, 'items' | 'status'>>;
+  activeBuffetIds: string[];
   defaultBuffetId: string | null;
 }): BuffetFormAlignState {
   if (!input.detailLoaded) {
     return { mode: 'pending' };
   }
 
-  const seed = deriveBuffetFormSeed(input.orders);
-  if (seed) {
-    return { mode: 'occupied', seed };
+  const snapshot = deriveBuffetFormSnapshot(input.orders);
+  if (Object.keys(snapshot).length > 0) {
+    return { mode: 'occupied', snapshot };
   }
 
-  return { mode: 'idle', defaultBuffetId: input.defaultBuffetId };
+  return {
+    mode: 'idle',
+    defaultBuffetId: input.defaultBuffetId,
+    activeBuffetIds: input.activeBuffetIds,
+  };
+}
+
+export function buffetSnapshotKey(snapshot: BuffetGuestSnapshot): string {
+  return Object.entries(snapshot)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([id, counts]) => `${id}:${counts.adults}:${counts.children}`)
+    .join('|');
 }
 
 export function buffetFormAlignKey(
@@ -131,43 +206,116 @@ export function buffetFormAlignKey(
     return `${tableId}:${sessionKey}:pending`;
   }
   if (align.mode === 'idle') {
-    return `${tableId}:${sessionKey}:idle:${align.defaultBuffetId ?? ''}`;
+    return `${tableId}:${sessionKey}:idle:${align.defaultBuffetId ?? ''}:${align.activeBuffetIds.join(',')}`;
   }
-  return `${tableId}:${sessionKey}:occupied:${buffetFormSeedKey(align.seed)}`;
+  return `${tableId}:${sessionKey}:occupied:${buffetSnapshotKey(align.snapshot)}`;
 }
 
-/** Non-negative integer adult/child counts for buffet open-table and pricing. */
 export function normalizeBuffetGuestCounts(
   adultCount: number,
   childCount: number,
-): { adults: number; children: number } {
+): BuffetGuestCounts {
   return {
     adults: Math.max(0, Math.floor(adultCount)),
     children: Math.max(0, Math.floor(childCount)),
   };
 }
 
-/** True when buffet type and adult/child counts match (compared separately, not as a total). */
-export function isBuffetGuestCountsUnchanged(
-  orders: Array<Pick<Order, 'items' | 'status'>>,
-  buffetId: string,
-  adultCount: number,
-  childCount: number,
-): boolean {
-  const agg = aggregateBuffetForOrders(orders);
-  if (!agg) return false;
-  const { adults, children } = normalizeBuffetGuestCounts(adultCount, childCount);
-  return agg.buffetId === buffetId && agg.adults === adults && agg.children === children;
+export function normalizeBuffetGuestEntries(
+  buffets: Array<{ buffet_id: string; adult_count: number; child_count: number }>,
+): BuffetGuestEntry[] {
+  return buffets.map((row) => {
+    const { adults, children } = normalizeBuffetGuestCounts(row.adult_count, row.child_count);
+    return { buffetId: row.buffet_id, adults, children };
+  });
 }
 
-export type BuffetGuestHeadcount = { adults: number; children: number };
+export function snapshotFromBuffetEntries(entries: BuffetGuestEntry[]): BuffetGuestSnapshot {
+  const snapshot: BuffetGuestSnapshot = {};
+  for (const entry of entries) {
+    if (entry.adults <= 0 && entry.children <= 0) continue;
+    snapshot[entry.buffetId] = { adults: entry.adults, children: entry.children };
+  }
+  return snapshot;
+}
 
-/** Compact adult/child headcount, e.g. A7 C3. */
+export function buffetSnapshotsEqual(a: BuffetGuestSnapshot, b: BuffetGuestSnapshot): boolean {
+  const keysA = Object.keys(a).sort();
+  const keysB = Object.keys(b).sort();
+  if (keysA.length !== keysB.length) return false;
+  for (let i = 0; i < keysA.length; i += 1) {
+    if (keysA[i] !== keysB[i]) return false;
+    const left = a[keysA[i]];
+    const right = b[keysB[i]];
+    if (left.adults !== right.adults || left.children !== right.children) return false;
+  }
+  return true;
+}
+
+export function isBuffetSnapshotUnchanged(
+  orders: Array<Pick<Order, 'items' | 'status'>>,
+  targetSnapshot: BuffetGuestSnapshot,
+): boolean {
+  return buffetSnapshotsEqual(buffetSnapshotFromOrders(orders), targetSnapshot);
+}
+
+export type BuffetSnapshotDiff = {
+  voidBuffetIds: string[];
+  upsertBuffetIds: string[];
+};
+
+export function diffBuffetSnapshots(
+  current: BuffetGuestSnapshot,
+  target: BuffetGuestSnapshot,
+): BuffetSnapshotDiff {
+  const voidBuffetIds: string[] = [];
+  const upsertBuffetIds: string[] = [];
+  const ids = new Set([...Object.keys(current), ...Object.keys(target)]);
+
+  for (const buffetId of Array.from(ids)) {
+    const from = current[buffetId];
+    const to = target[buffetId];
+    if (!to) {
+      if (from) voidBuffetIds.push(buffetId);
+      continue;
+    }
+    if (!from || from.adults !== to.adults || from.children !== to.children) {
+      upsertBuffetIds.push(buffetId);
+    }
+  }
+
+  return { voidBuffetIds, upsertBuffetIds };
+}
+
+export function upsertBuffetLineOntoOrderItems(
+  existingItems: OrderItem[],
+  newLine: OrderItem,
+): OrderItem[] {
+  const buffetId = newLine.buffet_id;
+  if (!buffetId) return existingItems;
+  const voided = voidBuffetBaseLinesForBuffetId(existingItems, buffetId);
+  return [...voided, newLine];
+}
+
+export function applyBuffetLinesToOrderItems(
+  existingItems: OrderItem[],
+  lines: OrderItem[],
+  voidBuffetIds: string[],
+): OrderItem[] {
+  let items = existingItems;
+  for (const buffetId of voidBuffetIds) {
+    items = voidBuffetBaseLinesForBuffetId(items, buffetId);
+  }
+  for (const line of lines) {
+    items = upsertBuffetLineOntoOrderItems(items, line);
+  }
+  return items;
+}
+
 export function formatBuffetHeadcountLabel(adults: number, children: number): string {
   return `A${adults} C${children}`;
 }
 
-/** Staff board card headcount, e.g. A3C2, A3, C2 (omit zero segments). */
 export function formatBuffetCompactHeadcountLabel(adults: number, children: number): string {
   const { adults: a, children: c } = normalizeBuffetGuestCounts(adults, children);
   let out = '';
@@ -176,7 +324,6 @@ export function formatBuffetCompactHeadcountLabel(adults: number, children: numb
   return out;
 }
 
-/** Thermal receipt Qty column for buffet_base lines, e.g. A4-C2, A9, C3 (no spaces; omit zero segments). */
 export function formatBuffetReceiptQtyLabel(adults: number, children: number): string {
   const { adults: a, children: c } = normalizeBuffetGuestCounts(adults, children);
   if (a > 0 && c > 0) return `A${a}-C${c}`;
@@ -185,7 +332,6 @@ export function formatBuffetReceiptQtyLabel(adults: number, children: number): s
   return '';
 }
 
-/** Interpolate € placeholders in waiter buffet open-table copy. */
 export function formatBuffetPriceTemplate(template: string, values: Record<string, number>): string {
   return Object.entries(values).reduce(
     (out, [key, value]) => out.replaceAll(`{${key}}`, value.toFixed(2)),
@@ -217,7 +363,6 @@ export function computeBuffetSubtotal(
   return adults * adultPrice + children * childPrice;
 }
 
-/** Resolved slot prices + estimated subtotal for the open-table form. */
 export function resolveBuffetOpenPricePreview(
   resolved: ResolvedBuffetPriceRow | null,
   adultCount: number,
@@ -234,7 +379,26 @@ export function resolveBuffetOpenPricePreview(
   };
 }
 
-/** Buffet headcount label; omits adult/child segments when count is zero. */
+export type BuffetPackagesPricePreview =
+  | { ok: true; subtotal: number }
+  | { ok: false; missingBuffetId?: string };
+
+export function resolveBuffetPackagesPricePreview(
+  snapshot: BuffetGuestSnapshot,
+  resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null>,
+): BuffetPackagesPricePreview {
+  let subtotal = 0;
+  for (const [buffetId, counts] of Object.entries(snapshot)) {
+    if (counts.adults <= 0 && counts.children <= 0) continue;
+    const preview = resolveBuffetOpenPricePreview(resolvedByBuffetId[buffetId] ?? null, counts.adults, counts.children);
+    if (!preview.ok) {
+      return { ok: false, missingBuffetId: buffetId };
+    }
+    subtotal += preview.subtotal;
+  }
+  return { ok: true, subtotal };
+}
+
 export function formatBuffetGuestCountsOptional(
   adults: number,
   children: number,
@@ -254,7 +418,6 @@ export interface ResolvedBuffetPriceRow {
   time_slot_id: string | null;
 }
 
-/** Normalize `resolve_buffet_prices` RPC row (array or single object). */
 export function parseResolvedBuffetPriceRpcRow(priceRows: unknown): ResolvedBuffetPriceRow {
   const resolvedRow = Array.isArray(priceRows) ? priceRows[0] : priceRows;
   const row = resolvedRow as {
@@ -306,4 +469,19 @@ export function buildBuffetBaseLine(params: {
     added_at: addedAt,
     batch_id: '__buffet__',
   };
+}
+
+export function buffetEntriesFromSnapshot(
+  snapshot: BuffetGuestSnapshot,
+  activeBuffetIds: string[],
+): BuffetGuestEntry[] {
+  return activeBuffetIds.map((buffetId) => ({
+    buffetId,
+    adults: snapshot[buffetId]?.adults ?? 0,
+    children: snapshot[buffetId]?.children ?? 0,
+  }));
+}
+
+export function hasPositiveBuffetSnapshot(snapshot: BuffetGuestSnapshot): boolean {
+  return Object.values(snapshot).some((counts) => counts.adults > 0 || counts.children > 0);
 }

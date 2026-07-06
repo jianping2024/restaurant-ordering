@@ -1,6 +1,9 @@
 import type { Order } from '@/types';
-import { sumLineTotals } from '@/lib/cart-totals';
-import { aggregateBuffetForOrders, type BuffetGuestHeadcount } from '@/lib/buffet-order';
+import {
+  aggregateBuffetHeadcountForOrders,
+  listActiveBuffetLineSummaries,
+  type BuffetGuestHeadcount,
+} from '@/lib/buffet-order';
 import { formatOrderItemListLabel, formatOrderItemNameLabel, formatOrderItemQuantityLabel } from '@/lib/order-list-display';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
@@ -43,28 +46,26 @@ export function buildWaiterTableCard(
     updatedAt: '',
   };
 
-  const buffetSummary = aggregateBuffetForOrders(orders);
-  current.hasBuffet = buffetSummary != null;
-  current.buffetHeadcount = buffetSummary
-    ? { adults: buffetSummary.adults, children: buffetSummary.children }
-    : null;
+  const buffetSummaries = listActiveBuffetLineSummaries(orders);
+  current.hasBuffet = buffetSummaries.length > 0;
+  current.buffetHeadcount = aggregateBuffetHeadcountForOrders(orders);
 
   const buffetLines: WaiterOrderLine[] = [];
   const menuLines: WaiterOrderLine[] = [];
 
-  if (buffetSummary) {
+  for (const summary of buffetSummaries) {
     buffetLines.push({
       orderId: '',
       itemIdx: -1,
       label: formatOrderItemListLabel(
         {
           emoji: '🍽️',
-          name: buffetSummary.name,
-          name_pt: buffetSummary.name,
+          name: summary.name,
+          name_pt: summary.name,
           kind: 'buffet_base',
           qty: 1,
-          adult_count: buffetSummary.adults,
-          child_count: buffetSummary.children,
+          adult_count: summary.adults,
+          child_count: summary.children,
         },
         { headcountStyle: 'compact' },
       ),
@@ -85,7 +86,7 @@ export function buildWaiterTableCard(
       if (status === 'voided') return;
 
       if (isBuffetBaseItem(item)) {
-        if (buffetSummary) return;
+        if (buffetSummaries.length > 0) return;
         buffetLines.push({
           orderId: order.id,
           itemIdx,
@@ -101,27 +102,15 @@ export function buildWaiterTableCard(
         orderId: order.id,
         itemIdx,
         label: formatOrderItemNameLabel(item),
-        quantityLabel: formatOrderItemQuantityLabel(item),
+        quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'compact' }),
         itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
-        canDecrement: status === 'pending' || status === 'cooking',
+        canDecrement: true,
       });
     });
   }
 
   current.orderLines = [...buffetLines, ...menuLines];
-  current.sessionTotal = sumActiveOrderItemsTotal(orders);
-  return current;
-}
+  current.sessionTotal = orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
 
-/** Sum non-voided line totals across session orders for the waiter board. */
-export function sumActiveOrderItemsTotal(orders: Order[]): number {
-  let total = 0;
-  for (const order of orders) {
-    const activeItems = order.items.filter((item) => {
-      const status = normalizeOrderItemStatus(item, order.status);
-      return status !== 'voided';
-    });
-    total += sumLineTotals(activeItems);
-  }
-  return total;
+  return current;
 }

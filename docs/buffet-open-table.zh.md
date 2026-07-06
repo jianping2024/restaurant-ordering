@@ -12,15 +12,26 @@
 
 1. **开台优先**：未开台（无 active `buffet_base`）时，客人与服务员均不可加菜（`guestOrderingEnabled` / `orders/append`）。加菜管道见 [`menu-order-append.zh.md`](menu-order-append.zh.md)。
 2. **改人数**：仅更新自助餐行与金额；**不得**改动已有 `menu` 行或厨房状态（`planBuffetOpenWrites`）。
-3. **无变化 = no-op**：当前 active 自助餐的 `buffet_id`、**成人数**、**儿童数**（分别比较，**不是**成人+儿童总人数）与请求一致 → **不计价、不写库**；返回当前桌台详情即可。
+3. **多套餐**：一桌可同时存在多个 `buffet_id` 的 active `buffet_base` 行；每次提交为 **整桌套餐快照**（`buffets[]`）。
+4. **全 0 忽略**：某套餐成人/儿童均为 0 → 不写该行（有则 void）。
+5. **无变化 = no-op**：当前快照与请求快照一致 → **不计价、不写库**；返回当前桌台详情即可。
 
-示例：`A2 C1` 与 `A3 C0` 总人数同为 3，但**必须重算**（成人价/儿童价不同）。
+示例：`简单套餐 A2 C1` + `豪华套餐 A1 C0` 与只改其中一行，都必须按套餐分别比较与写入。
 
 ---
 
 ## 唯一管道（服务端）
 
-`POST /api/restaurants/[slug]/staff/waiter/buffet` 必须按序执行，**不得**为「成功 / 未变化」各写一套返回逻辑。
+`POST /api/restaurants/[slug]/staff/waiter/buffet` 请求体：
+
+```json
+{
+  "table_id": "...",
+  "buffets": [
+    { "buffet_id": "...", "adult_count": 2, "child_count": 1 }
+  ]
+}
+```
 
 ```
 ① 读   并行：桌台、自助餐定义、已有 session
@@ -28,14 +39,15 @@
          → 拉 session 内 orders 一次
          → mapToBuffetSessionOrders（只映射一次，全程复用）
 
-② 判   isBuffetGuestCountsUnchanged(sessionOrders, buffet_id, adults, children)
+② 判   isBuffetSnapshotUnchanged(sessionOrders, targetSnapshot)
          true  → 跳到 ④（unchanged: true）
          false → 继续 ③
 
-③ 写   resolve_buffet_prices → buildBuffetBaseLine
-         → planBuffetOpenWrites → applyBuffetOpenToSession（DB）
+③ 写   diffBuffetSnapshots → 对每个 upsert 的 buffet_id：
+         resolve_buffet_prices → buildBuffetBaseLine
+         → planBuffetOpenWrites（lines + voidBuffetIds）→ applyBuffetOpenToSession
 
-④ 返   由 pipeline 上下文组装 PageModel（`buildActiveWaiterTablePageModel`）
+④ 返   buildActiveWaiterTablePageModel
          → { ok: true, model, unchanged?: true }
 ```
 
@@ -70,9 +82,9 @@
 
 | 职责 | 模块 |
 |------|------|
-| 成人/儿童是否变化（分项，非总人数） | `isBuffetGuestCountsUnchanged` |
-| 是否已开台 / 当前人头汇总 | `aggregateBuffetForOrders` |
-| 预计合计预览 | `resolveBuffetOpenPricePreview` |
+| 套餐快照 / diff / 汇总 | `buffetSnapshotFromOrders`, `diffBuffetSnapshots`, `aggregateBuffetHeadcountForOrders` |
+| 是否已开台 | `hasActiveBuffetForOrders` |
+| 预计合计预览 | `resolveBuffetPackagesPricePreview` |
 | 写计划（纯函数） | `planBuffetOpenWrites` |
 | DB 持久化 | `applyBuffetOpenToSession` |
 | 乐观 UI | `applyBuffetOpenOptimisticToOrders` |
@@ -80,9 +92,10 @@
 | 响应组装 | `buildActiveWaiterTablePageModel` |
 | 服务端单管道（开台 + 保存人数） | `runBuffetWaiterOpenPipeline` |
 | 跨页新鲜度 | `commitAuthoritativeWaiterTablePageModel` / `reconcileWaiterBoardWithPublished` |
-| API 路由 | `staff/waiter/buffet/route.ts`（鉴权 + 调管道） |
-| Session 创建 | `openTableSessionIfAbsent`（并行读已有 session 后按需 insert） |
+| API 路由 | `staff/waiter/buffet/route.ts`（`buffets[]`） |
+| Session 创建 | `openTableSessionIfAbsent` |
 | 加菜门禁 | `guestOrderingEnabled` + [`menu-order-append.zh.md`](menu-order-append.zh.md) |
+| 并台按套餐合并 | `merge_table_sessions`（migration `20260706123000_*`） |
 
 ---
 

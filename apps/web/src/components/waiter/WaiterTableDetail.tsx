@@ -5,16 +5,20 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Order } from '@/types';
 import {
-  aggregateBuffetForOrders,
+  buffetEntriesFromSnapshot,
+  buffetSnapshotFromOrders,
   buildBuffetBaseLine,
-  isBuffetGuestCountsUnchanged,
+  diffBuffetSnapshots,
+  hasActiveBuffetForOrders,
+  hasPositiveBuffetSnapshot,
+  isBuffetSnapshotUnchanged,
   resolveBuffetFormAlignState,
-  resolveBuffetOpenPricePreview,
 } from '@/lib/buffet-order';
 import {
   applyBuffetOpenOptimisticToOrders,
   OPTIMISTIC_OPEN_SESSION_ID,
 } from '@/lib/buffet-open-table';
+import { isBuffetPackagesEditorReady } from '@/components/waiter/WaiterBuffetPackagesEditor';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
@@ -169,24 +173,22 @@ function WaiterTableDetailInner({
     [model?.buffets],
   );
   const contextTableId = selectedTable?.id ?? tableId;
+  const activeBuffetIds = useMemo(() => activeBuffets.map((b) => b.id), [activeBuffets]);
   const buffetFormAlign = useMemo(
     () =>
       resolveBuffetFormAlignState({
         detailLoaded: isDemo || detailLoaded,
         orders,
+        activeBuffetIds,
         defaultBuffetId: activeBuffets[0]?.id ?? null,
       }),
-    [activeBuffets, detailLoaded, isDemo, orders],
+    [activeBuffetIds, activeBuffets, detailLoaded, isDemo, orders],
   );
   const {
-    buffetId,
-    setBuffetId,
-    selectedBuffet,
-    buffetAdults,
-    buffetChildren,
+    guestSnapshot,
     setBuffetGuestCount,
-    buffetResolved,
-    buffetPriceLoading,
+    resolvedByBuffetId,
+    priceLoading: buffetPriceLoading,
   } = useWaiterTableBuffetForm({
     tableId: contextTableId,
     sessionId: sessionMeta?.sessionId ?? null,
@@ -198,11 +200,6 @@ function WaiterTableDetailInner({
     supabase,
   });
   const [buffetSubmitting, setBuffetSubmitting] = useState(false);
-
-  const buffetPriceDisplay = useMemo(
-    () => resolveBuffetOpenPricePreview(buffetResolved, buffetAdults, buffetChildren),
-    [buffetResolved, buffetAdults, buffetChildren],
-  );
 
   const applyDetail = useCallback(
     (detail: WaiterTableDetailData) => {
@@ -245,11 +242,8 @@ function WaiterTableDetailInner({
     [checkoutRequestedAt, isCheckoutPending, orders, selectedTable, sessionMeta],
   );
 
-  const tableBuffetAggregate = useMemo(
-    () => aggregateBuffetForOrders(orders),
-    [orders],
-  );
-  const buffetActionLabel = tableBuffetAggregate ? t.buffetSaveGuestCounts : t.buffetConfirm;
+  const tableHasBuffet = useMemo(() => hasActiveBuffetForOrders(orders), [orders]);
+  const buffetActionLabel = tableHasBuffet ? t.buffetSaveGuestCounts : t.buffetConfirm;
 
   const demoActiveTableIds = useMemo(() => {
     if (!isDemo) return [] as string[];
@@ -571,44 +565,59 @@ function WaiterTableDetailInner({
   });
 
   const applyBuffetToTable = async () => {
-    if (!buffetId) return;
     if (isCheckoutPending) {
       notifyCheckoutLocked();
       return;
     }
 
-    if (!selectedBuffet) return;
+    if (!hasPositiveBuffetSnapshot(guestSnapshot)) {
+      showToast(t.buffetNoRule, 'error');
+      return;
+    }
 
-    if (isBuffetGuestCountsUnchanged(orders, buffetId, buffetAdults, buffetChildren)) {
+    if (isBuffetSnapshotUnchanged(orders, guestSnapshot)) {
       showToast(t.buffetGuestCountsUnchanged, 'info');
       return;
     }
 
-    if (!buffetResolved) {
+    if (!isBuffetPackagesEditorReady(guestSnapshot, resolvedByBuffetId, buffetPriceLoading)) {
       showToast(t.buffetNoRule, 'error');
       return;
     }
 
-    const line = buildBuffetBaseLine({
-      buffet: selectedBuffet,
-      adultCount: buffetAdults,
-      childCount: buffetChildren,
-      resolved: buffetResolved,
-    });
-    if (!line) {
-      showToast(t.buffetNoRule, 'error');
-      return;
+    const currentSnapshot = buffetSnapshotFromOrders(orders);
+    const { voidBuffetIds, upsertBuffetIds } = diffBuffetSnapshots(currentSnapshot, guestSnapshot);
+    const lines = [];
+    for (const buffetId of upsertBuffetIds) {
+      const counts = guestSnapshot[buffetId];
+      const buffet = activeBuffets.find((row) => row.id === buffetId);
+      const resolved = resolvedByBuffetId[buffetId];
+      if (!buffet || !counts || !resolved) {
+        showToast(t.buffetNoRule, 'error');
+        return;
+      }
+      const line = buildBuffetBaseLine({
+        buffet,
+        adultCount: counts.adults,
+        childCount: counts.children,
+        resolved,
+      });
+      if (!line) {
+        showToast(t.buffetNoRule, 'error');
+        return;
+      }
+      lines.push(line);
     }
 
     const rollbackDetail = currentTableDetail();
-
     const optimisticSessionId = sessionMeta?.sessionId ?? OPTIMISTIC_OPEN_SESSION_ID;
     applyDetail({
       ...rollbackDetail,
       orders: applyBuffetOpenOptimisticToOrders(orders, {
         tableId,
         displayName: selectedDisplayName,
-        line,
+        lines,
+        voidBuffetIds,
         restaurantId: restaurant.id,
         sessionId: optimisticSessionId,
       }),
@@ -618,9 +627,11 @@ function WaiterTableDetailInner({
     try {
       const nextModel = await postWaiterBuffetOpenClient(restaurant.slug, {
         table_id: tableId,
-        buffet_id: buffetId,
-        adult_count: buffetAdults,
-        child_count: buffetChildren,
+        buffets: buffetEntriesFromSnapshot(guestSnapshot, activeBuffetIds).map((entry) => ({
+          buffet_id: entry.buffetId,
+          adult_count: entry.adults,
+          child_count: entry.children,
+        })),
       });
       const normalized = applyModel(nextModel);
       commitAuthoritativeWaiterTablePageModel(normalized);
@@ -824,16 +835,12 @@ function WaiterTableDetailInner({
 
         {detailActions.showBuffetPanel ? (
           <WaiterTableBuffetPanel
-            t={t}
+            lang={lang}
             activeBuffets={activeBuffets}
-            selectedBuffet={selectedBuffet}
-            buffetId={buffetId}
-            onBuffetIdChange={setBuffetId}
-            buffetAdults={buffetAdults}
-            buffetChildren={buffetChildren}
+            guestSnapshot={guestSnapshot}
             onSetGuestCount={setBuffetGuestCount}
+            resolvedByBuffetId={resolvedByBuffetId}
             buffetPriceLoading={buffetPriceLoading}
-            buffetPriceDisplay={buffetPriceDisplay}
             buffetActionLabel={buffetActionLabel}
             buffetSubmitting={buffetSubmitting}
             onSave={() => void applyBuffetToTable()}

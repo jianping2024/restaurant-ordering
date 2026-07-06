@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Manual verification: buffet open / save guest counts (localhost staff API).
+# Manual verification: buffet open / save guest counts (localhost staff API, buffets[]).
 set -euo pipefail
 
 BASE="${TEST_BASE_URL:-http://localhost:3000}"
@@ -33,7 +33,7 @@ time_post_buffet() {
     -d @"$body_file"
 }
 
-echo "=== Buffet save guest counts ==="
+echo "=== Buffet save guest counts (buffets[]) ==="
 echo "BASE=$BASE SLUG=$SLUG"
 
 LOGIN_OUT="$(mktemp)"
@@ -57,7 +57,7 @@ board = json.loads(Path("$BOARD_OUT").read_text())
 orders = board.get("orders") or []
 meta = board.get("sessionMetaByTableId") or {}
 
-def buffet_agg(items):
+def buffet_line(items):
     for it in reversed(items or []):
         if it.get("kind") == "buffet_base" and it.get("item_status") != "voided":
             return it
@@ -69,7 +69,7 @@ for o in orders:
         continue
     if meta[tid].get("status") != "open":
         continue
-    line = buffet_agg(o.get("items"))
+    line = buffet_line(o.get("items"))
     if not line:
         continue
     print(tid, line.get("adult_count", 0), line.get("child_count", 0), line.get("buffet_id", ""))
@@ -86,9 +86,13 @@ fi
 
 echo "Table=$TABLE_ID buffet=$BUFFET_ID counts=A${ADULTS} C${CHILDREN}"
 
+buffet_body() {
+  python3 -c "import json; print(json.dumps({'table_id':'$TABLE_ID','buffets':[{'buffet_id':'$BUFFET_ID','adult_count':$1,'child_count':$2}]}))"
+}
+
 # 1 Unchanged (server should return unchanged: true, fast)
 UNCHANGED_BODY="$(mktemp)"
-python3 -c "import json; print(json.dumps({'table_id':'$TABLE_ID','buffet_id':'$BUFFET_ID','adult_count':$ADULTS,'child_count':$CHILDREN}))" > "$UNCHANGED_BODY"
+buffet_body "$ADULTS" "$CHILDREN" > "$UNCHANGED_BODY"
 META="$(time_post_buffet "$UNCHANGED_BODY")"
 TIME="${META%%|*}"
 CODE="${META##*|}"
@@ -98,7 +102,7 @@ check "unchanged save (no write)" "$([[ "$CODE" == "200" && "$UNCHANGED_FLAG" ==
 # 2 Save with +1 adult then revert
 NEW_ADULTS=$((ADULTS + 1))
 SAVE_BODY="$(mktemp)"
-python3 -c "import json; print(json.dumps({'table_id':'$TABLE_ID','buffet_id':'$BUFFET_ID','adult_count':$NEW_ADULTS,'child_count':$CHILDREN}))" > "$SAVE_BODY"
+buffet_body "$NEW_ADULTS" "$CHILDREN" > "$SAVE_BODY"
 META="$(time_post_buffet "$SAVE_BODY")"
 TIME="${META%%|*}"
 CODE="${META##*|}"
@@ -109,7 +113,7 @@ m=d.get('model') or {}
 orders=(m.get('detail') or {}).get('orders') or []
 for o in orders:
   for it in o.get('items') or []:
-    if it.get('kind')=='buffet_base' and it.get('item_status')!='voided':
+    if it.get('kind')=='buffet_base' and it.get('item_status')!='voided' and it.get('buffet_id')=='$BUFFET_ID':
       import sys
       sys.exit(0 if it.get('adult_count')==$NEW_ADULTS else 1)
 import sys
@@ -118,7 +122,7 @@ sys.exit(1)
 check "save +1 adult" "$([[ "$CODE" == "200" && "$SAVE_OK" == "1" ]] && echo 1 || echo 0)" "${TIME}s HTTP $CODE"
 
 # 3 Revert
-python3 -c "import json; print(json.dumps({'table_id':'$TABLE_ID','buffet_id':'$BUFFET_ID','adult_count':$ADULTS,'child_count':$CHILDREN}))" > "$SAVE_BODY"
+buffet_body "$ADULTS" "$CHILDREN" > "$SAVE_BODY"
 META="$(time_post_buffet "$SAVE_BODY")"
 TIME="${META%%|*}"
 CODE="${META##*|}"

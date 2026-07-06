@@ -1,5 +1,5 @@
 import type { Order, TableSession } from '@/types';
-import { aggregateBuffetForOrders } from '@/lib/buffet-order';
+import { hasActiveBuffetForOrders } from '@/lib/buffet-order';
 
 /** Menu ordering (guest or waiter) requires open session + active buffet_base (开台优先). */
 export function guestOrderingEnabled(
@@ -7,5 +7,5 @@ export function guestOrderingEnabled(
   sessionOrders: Order[],
 ): boolean {
   if (!session || session.status !== 'open') return false;
-  return aggregateBuffetForOrders(sessionOrders) != null;
+  return hasActiveBuffetForOrders(sessionOrders);
 }

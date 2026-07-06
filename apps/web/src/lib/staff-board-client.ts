@@ -62,9 +62,11 @@ export async function postWaiterBuffetOpenClient(
   slug: string,
   body: {
     table_id: string;
-    buffet_id: string;
-    adult_count: number;
-    child_count: number;
+    buffets: Array<{
+      buffet_id: string;
+      adult_count: number;
+      child_count: number;
+    }>;
   },
 ): Promise<WaiterTablePageModel> {
   const res = await fetch(`/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/buffet`, {

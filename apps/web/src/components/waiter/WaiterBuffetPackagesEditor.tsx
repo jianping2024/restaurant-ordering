@@ -1,0 +1,136 @@
+'use client';
+
+import type { Buffet } from '@/types';
+import {
+  BuffetGuestCounter,
+  BuffetPriceMeta,
+} from '@/components/waiter/WaiterTableDetailLayout';
+import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
+import {
+  formatBuffetPriceTemplate,
+  resolveBuffetOpenPricePreview,
+  resolveBuffetPackagesPricePreview,
+  type BuffetGuestSnapshot,
+  type ResolvedBuffetPriceRow,
+} from '@/lib/buffet-order';
+import type { UILanguage } from '@/lib/i18n';
+import { openTableSheetLayout } from '@/components/waiter/waiter-table-detail-ui';
+
+type Props = {
+  lang: UILanguage;
+  activeBuffets: Buffet[];
+  guestSnapshot: BuffetGuestSnapshot;
+  onSetGuestCount: (buffetId: string, which: 'adults' | 'children', value: number) => void;
+  resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null>;
+  priceLoading: boolean;
+  layout?: 'sheet' | 'detail';
+};
+
+export function WaiterBuffetPackagesEditor({
+  lang,
+  activeBuffets,
+  guestSnapshot,
+  onSetGuestCount,
+  resolvedByBuffetId,
+  priceLoading,
+  layout = 'sheet',
+}: Props) {
+  const t = WAITER_TEXT[lang];
+  const totalPreview = resolveBuffetPackagesPricePreview(guestSnapshot, resolvedByBuffetId);
+
+  if (layout === 'sheet') {
+    return (
+      <div className={openTableSheetLayout.stack}>
+        {activeBuffets.map((buffet) => {
+          const counts = guestSnapshot[buffet.id] ?? { adults: 0, children: 0 };
+          const rowPreview = resolveBuffetOpenPricePreview(
+            resolvedByBuffetId[buffet.id] ?? null,
+            counts.adults,
+            counts.children,
+          );
+          return (
+            <div key={buffet.id} className={openTableSheetLayout.guestBlock}>
+              <p className="text-[15px] font-semibold text-brand-text leading-snug">{buffet.name}</p>
+              <BuffetPriceMeta t={t} buffetPriceLoading={priceLoading} buffetPriceDisplay={rowPreview} />
+              <BuffetGuestCounter
+                layout="sheet"
+                label={t.buffetAdults}
+                qty={counts.adults}
+                onQtyChange={(value) => onSetGuestCount(buffet.id, 'adults', value)}
+                onDecrement={() => onSetGuestCount(buffet.id, 'adults', counts.adults - 1)}
+                onIncrement={() => onSetGuestCount(buffet.id, 'adults', counts.adults + 1)}
+              />
+              <BuffetGuestCounter
+                layout="sheet"
+                label={t.buffetChildren}
+                qty={counts.children}
+                onQtyChange={(value) => onSetGuestCount(buffet.id, 'children', value)}
+                onDecrement={() => onSetGuestCount(buffet.id, 'children', counts.children - 1)}
+                onIncrement={() => onSetGuestCount(buffet.id, 'children', counts.children + 1)}
+              />
+            </div>
+          );
+        })}
+
+        {totalPreview.ok ? (
+          <p className={openTableSheetLayout.total}>
+            {formatBuffetPriceTemplate(t.buffetEstimatedTotal, { total: totalPreview.subtotal })}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {activeBuffets.map((buffet) => {
+        const counts = guestSnapshot[buffet.id] ?? { adults: 0, children: 0 };
+        const rowPreview = resolveBuffetOpenPricePreview(
+          resolvedByBuffetId[buffet.id] ?? null,
+          counts.adults,
+          counts.children,
+        );
+        return (
+          <div
+            key={buffet.id}
+            className="grid gap-3 rounded-xl border border-brand-border/70 bg-brand-bg/40 p-3 sm:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,0.8fr))] sm:items-center"
+          >
+            <div>
+              <p className="text-[15px] font-semibold text-brand-text leading-snug">{buffet.name}</p>
+              <BuffetPriceMeta t={t} buffetPriceLoading={priceLoading} buffetPriceDisplay={rowPreview} />
+            </div>
+            <BuffetGuestCounter
+              label={t.buffetAdults}
+              qty={counts.adults}
+              onQtyChange={(value) => onSetGuestCount(buffet.id, 'adults', value)}
+              onDecrement={() => onSetGuestCount(buffet.id, 'adults', counts.adults - 1)}
+              onIncrement={() => onSetGuestCount(buffet.id, 'adults', counts.adults + 1)}
+            />
+            <BuffetGuestCounter
+              label={t.buffetChildren}
+              qty={counts.children}
+              onQtyChange={(value) => onSetGuestCount(buffet.id, 'children', value)}
+              onDecrement={() => onSetGuestCount(buffet.id, 'children', counts.children - 1)}
+              onIncrement={() => onSetGuestCount(buffet.id, 'children', counts.children + 1)}
+            />
+          </div>
+        );
+      })}
+
+      {totalPreview.ok ? (
+        <p className="text-[15px] font-semibold text-brand-gold-dark tabular-nums text-center">
+          {formatBuffetPriceTemplate(t.buffetEstimatedTotal, { total: totalPreview.subtotal })}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+export function isBuffetPackagesEditorReady(
+  guestSnapshot: BuffetGuestSnapshot,
+  resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null>,
+  priceLoading: boolean,
+): boolean {
+  if (priceLoading) return false;
+  return resolveBuffetPackagesPricePreview(guestSnapshot, resolvedByBuffetId).ok;
+}

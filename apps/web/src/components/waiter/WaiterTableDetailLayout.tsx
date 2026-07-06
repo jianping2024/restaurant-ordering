@@ -1,8 +1,17 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import type { Buffet } from '@/types';
-import { formatBuffetPriceTemplate, type BuffetOpenPricePreview } from '@/lib/buffet-order';
+import {
+  WaiterBuffetPackagesEditor,
+  isBuffetPackagesEditorReady,
+} from '@/components/waiter/WaiterBuffetPackagesEditor';
+import {
+  formatBuffetPriceTemplate,
+  type BuffetGuestSnapshot,
+  type BuffetOpenPricePreview,
+  type ResolvedBuffetPriceRow,
+} from '@/lib/buffet-order';
+import type { UILanguage } from '@/lib/i18n';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
 import { ButtonLink } from '@/components/ui/Button';
@@ -19,7 +28,6 @@ import { WaiterOrderQtyMinus } from '@/components/waiter/WaiterOrderQtyMinus';
 import type { WaiterOrderLine } from '@/components/waiter/waiter-table-card';
 import type { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import {
-  buffetStripSectionClass,
   buttonIcon,
   WaiterDetailCard,
   waiterDetailLayout,
@@ -29,26 +37,6 @@ import {
 } from '@/components/waiter/waiter-table-detail-ui';
 
 type WaiterCopy = (typeof WAITER_TEXT)[keyof typeof WAITER_TEXT];
-
-function BuffetPanelSection({
-  children,
-  edge,
-  className = '',
-  wideOnSm = false,
-}: {
-  children: ReactNode;
-  edge: 'start' | 'mid' | 'end';
-  className?: string;
-  wideOnSm?: boolean;
-}) {
-  return (
-    <div
-      className={`${buffetStripSectionClass(edge, className)}${wideOnSm ? ' sm:col-span-2 xl:col-span-1' : ''}`}
-    >
-      {children}
-    </div>
-  );
-}
 
 export function WaiterCheckoutPendingBanner({ message }: { message: string }) {
   return (
@@ -64,16 +52,12 @@ export function WaiterCheckoutPendingBanner({ message }: { message: string }) {
 }
 
 type BuffetPanelProps = {
-  t: WaiterCopy;
+  lang: UILanguage;
   activeBuffets: Buffet[];
-  selectedBuffet: Buffet | null;
-  buffetId: string;
-  onBuffetIdChange: (id: string) => void;
-  buffetAdults: number;
-  buffetChildren: number;
-  onSetGuestCount: (which: 'adults' | 'children', value: number) => void;
+  guestSnapshot: BuffetGuestSnapshot;
+  onSetGuestCount: (buffetId: string, which: 'adults' | 'children', value: number) => void;
+  resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null>;
   buffetPriceLoading: boolean;
-  buffetPriceDisplay: BuffetOpenPricePreview;
   buffetActionLabel: string;
   buffetSubmitting: boolean;
   onSave: () => void;
@@ -140,81 +124,36 @@ export function BuffetPriceMeta({
 }
 
 export function WaiterTableBuffetPanel({
-  t,
+  lang,
   activeBuffets,
-  selectedBuffet,
-  buffetId,
-  onBuffetIdChange,
-  buffetAdults,
-  buffetChildren,
+  guestSnapshot,
   onSetGuestCount,
+  resolvedByBuffetId,
   buffetPriceLoading,
-  buffetPriceDisplay,
   buffetActionLabel,
   buffetSubmitting,
   onSave,
 }: BuffetPanelProps) {
-  const saveDisabled = buffetSubmitting || buffetPriceLoading || !buffetPriceDisplay.ok;
+  const saveDisabled =
+    buffetSubmitting
+    || !isBuffetPackagesEditorReady(guestSnapshot, resolvedByBuffetId, buffetPriceLoading);
 
   return (
     <WaiterDetailCard>
       <div className={waiterDetailLayout.cardBody}>
-        <div className={waiterDetailLayout.buffetStrip}>
-          <BuffetPanelSection edge="start" wideOnSm>
-            {activeBuffets.length === 1 ? (
-              <p className="text-[15px] font-semibold text-brand-text leading-snug">{selectedBuffet?.name}</p>
-            ) : (
-              <select
-                value={buffetId}
-                onChange={(e) => onBuffetIdChange(e.target.value)}
-                aria-label={t.buffetBlock}
-                className="block w-full rounded-lg bg-brand-bg border border-brand-border px-2.5 py-2 text-[15px] font-semibold text-brand-text"
-              >
-                {activeBuffets.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            )}
-            <BuffetPriceMeta t={t} buffetPriceLoading={buffetPriceLoading} buffetPriceDisplay={buffetPriceDisplay} />
-          </BuffetPanelSection>
-
-          <BuffetPanelSection edge="mid">
-            <BuffetGuestCounter
-              label={t.buffetAdults}
-              qty={buffetAdults}
-              onQtyChange={(value) => onSetGuestCount('adults', value)}
-              onDecrement={() => onSetGuestCount('adults', buffetAdults - 1)}
-              onIncrement={() => onSetGuestCount('adults', buffetAdults + 1)}
-            />
-          </BuffetPanelSection>
-
-          <BuffetPanelSection edge="mid">
-            <BuffetGuestCounter
-              label={t.buffetChildren}
-              qty={buffetChildren}
-              onQtyChange={(value) => onSetGuestCount('children', value)}
-              onDecrement={() => onSetGuestCount('children', buffetChildren - 1)}
-              onIncrement={() => onSetGuestCount('children', buffetChildren + 1)}
-            />
-          </BuffetPanelSection>
-
-          <BuffetPanelSection edge="mid" className="items-center">
-            {buffetPriceDisplay.ok ? (
-              <p className="text-[15px] font-semibold text-brand-gold-dark tabular-nums text-center">
-                {formatBuffetPriceTemplate(t.buffetEstimatedTotal, {
-                  total: buffetPriceDisplay.subtotal,
-                })}
-              </p>
-            ) : null}
-          </BuffetPanelSection>
-
-          <BuffetPanelSection edge="end" wideOnSm>
-            <WaiterTablePrimaryButton onClick={onSave} disabled={saveDisabled} icon={<WaiterTableIcon className={buttonIcon.sm} />}>
-              {buffetSubmitting ? '…' : buffetActionLabel}
-            </WaiterTablePrimaryButton>
-          </BuffetPanelSection>
+        <WaiterBuffetPackagesEditor
+          lang={lang}
+          activeBuffets={activeBuffets}
+          guestSnapshot={guestSnapshot}
+          onSetGuestCount={onSetGuestCount}
+          resolvedByBuffetId={resolvedByBuffetId}
+          priceLoading={buffetPriceLoading}
+          layout="detail"
+        />
+        <div className="mt-4 flex justify-end">
+          <WaiterTablePrimaryButton onClick={onSave} disabled={saveDisabled} icon={<WaiterTableIcon className={buttonIcon.sm} />}>
+            {buffetSubmitting ? '…' : buffetActionLabel}
+          </WaiterTablePrimaryButton>
         </div>
       </div>
     </WaiterDetailCard>

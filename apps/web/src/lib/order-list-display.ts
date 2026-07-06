@@ -1,6 +1,6 @@
 import type { Order, OrderItem } from '@/types';
 import {
-  aggregateBuffetForOrders,
+  listActiveBuffetLineSummaries,
   formatBuffetGuestCountsOptional,
   formatBuffetHeadcountLabel,
 } from '@/lib/buffet-order';
@@ -108,24 +108,26 @@ export function buildOrderListDisplayChips(
   guestLabels: OrderListGuestLabels,
 ): OrderListDisplayChip[] {
   const chips: OrderListDisplayChip[] = [];
-  const buffetSummary = aggregateBuffetForOrders(orders);
+  const buffetSummaries = listActiveBuffetLineSummaries(orders);
 
-  if (buffetSummary) {
+  for (const summary of buffetSummaries) {
     chips.push({
-      key: `buffet:${buffetSummary.buffetId}`,
+      key: `buffet:${summary.buffetId}`,
       emoji: '🍽️',
-      name: buffetSummary.name,
+      name: summary.name,
       quantityLabel: formatOrderItemQuantityLabel(
         {
           kind: 'buffet_base',
           qty: 1,
-          adult_count: buffetSummary.adults,
-          child_count: buffetSummary.children,
+          adult_count: summary.adults,
+          child_count: summary.children,
         },
         { headcountStyle: 'localized', guestLabels },
       ),
     });
-  } else {
+  }
+
+  if (buffetSummaries.length === 0) {
     for (const order of orders) {
       for (const item of order.items) {
         if (!isBuffetBaseItem(item) || isVoidedItem(item)) continue;

@@ -1,5 +1,5 @@
 import { auditMoney } from '@/lib/audit/money';
-import { aggregateBuffetForOrders } from '@/lib/buffet-order';
+import { aggregateBuffetHeadcountForOrders } from '@/lib/buffet-order';
 import type { BillSplit, Order, SplitResult } from '@/types';
 
 export function isQualifyingSession(
@@ -40,7 +40,7 @@ export function sessionRevenue(
 export function sessionGuestCounts(
   orders: Array<Pick<Order, 'items' | 'status'>>,
 ): { adults: number; children: number } {
-  const agg = aggregateBuffetForOrders(orders);
-  if (!agg) return { adults: 0, children: 0 };
-  return { adults: agg.adults, children: agg.children };
+  const headcount = aggregateBuffetHeadcountForOrders(orders);
+  if (!headcount) return { adults: 0, children: 0 };
+  return headcount;
 }

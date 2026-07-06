@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
+  buildIdleBuffetDraftSnapshot,
   buffetFormAlignKey,
-  IDLE_BUFFET_FORM_DEFAULTS,
+  buffetSnapshotKey,
   parseResolvedBuffetPriceRpcRow,
   type BuffetFormAlignState,
+  type BuffetGuestSnapshot,
   type ResolvedBuffetPriceRow,
 } from '@/lib/buffet-order';
 import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
@@ -23,7 +25,18 @@ type Params = {
   supabase: SupabaseClient;
 };
 
-/** Buffet open-table form — draft state; aligns from alignState when table context is authoritative. */
+function mergeSnapshotWithActiveBuffets(
+  snapshot: BuffetGuestSnapshot,
+  activeBuffets: Buffet[],
+): BuffetGuestSnapshot {
+  const next: BuffetGuestSnapshot = {};
+  for (const buffet of activeBuffets) {
+    next[buffet.id] = snapshot[buffet.id] ?? { adults: 0, children: 0 };
+  }
+  return next;
+}
+
+/** Multi-package buffet draft — aligns from alignState when table context is authoritative. */
 export function useWaiterTableBuffetForm({
   tableId,
   sessionId,
@@ -34,22 +47,19 @@ export function useWaiterTableBuffetForm({
   isDemo,
   supabase,
 }: Params) {
-  const defaultBuffetId = activeBuffets[0]?.id ?? '';
-  const [buffetId, setBuffetId] = useState(defaultBuffetId);
-  const [buffetAdults, setBuffetAdults] = useState<number>(IDLE_BUFFET_FORM_DEFAULTS.adults);
-  const [buffetChildren, setBuffetChildren] = useState<number>(IDLE_BUFFET_FORM_DEFAULTS.children);
-  const [buffetResolved, setBuffetResolved] = useState<ResolvedBuffetPriceRow | null>(null);
-  const [buffetPriceLoading, setBuffetPriceLoading] = useState(false);
+  const activeBuffetIds = useMemo(() => activeBuffets.map((b) => b.id), [activeBuffets]);
+  const defaultBuffetId = activeBuffets[0]?.id ?? null;
+
+  const [guestSnapshot, setGuestSnapshot] = useState<BuffetGuestSnapshot>({});
+  const [resolvedByBuffetId, setResolvedByBuffetId] = useState<
+    Record<string, ResolvedBuffetPriceRow | null>
+  >({});
+  const [priceLoading, setPriceLoading] = useState(false);
   const lastAlignedKeyRef = useRef<string | null>(null);
 
   const alignKey = useMemo(
     () => buffetFormAlignKey(tableId, sessionId, alignState),
     [alignState, sessionId, tableId],
-  );
-
-  const selectedBuffet = useMemo(
-    () => activeBuffets.find((b) => b.id === buffetId) ?? activeBuffets[0] ?? null,
-    [activeBuffets, buffetId],
   );
 
   useEffect(() => {
@@ -59,64 +69,59 @@ export function useWaiterTableBuffetForm({
     if (alignState.mode === 'pending') return;
 
     if (alignState.mode === 'occupied') {
-      setBuffetId(alignState.seed.buffetId);
-      setBuffetAdults(alignState.seed.adults);
-      setBuffetChildren(alignState.seed.children);
+      setGuestSnapshot(mergeSnapshotWithActiveBuffets(alignState.snapshot, activeBuffets));
       return;
     }
 
-    if (alignState.defaultBuffetId) setBuffetId(alignState.defaultBuffetId);
-    setBuffetAdults(IDLE_BUFFET_FORM_DEFAULTS.adults);
-    setBuffetChildren(IDLE_BUFFET_FORM_DEFAULTS.children);
-  }, [alignKey, alignState]);
+    setGuestSnapshot(
+      buildIdleBuffetDraftSnapshot(activeBuffetIds, alignState.defaultBuffetId ?? defaultBuffetId),
+    );
+  }, [activeBuffetIds, activeBuffets, alignKey, alignState, defaultBuffetId]);
 
-  useEffect(() => {
-    if (activeBuffets.length === 0) return;
-    if (!buffetId || !activeBuffets.some((b) => b.id === buffetId)) {
-      setBuffetId(activeBuffets[0].id);
-    }
-  }, [activeBuffets, buffetId]);
+  const fetchBuffetPrices = useCallback(
+    async (silent: boolean) => {
+      if (isDemo || activeBuffetIds.length === 0) return;
 
-  const fetchBuffetPrice = useCallback(
-    async (targetBuffetId: string, silent: boolean) => {
-      if (isDemo || !targetBuffetId) return;
+      if (!silent) setPriceLoading(true);
 
-      const seeded = buffetPricesByBuffetId[targetBuffetId];
-      if (seeded) {
-        setBuffetResolved(seeded);
-        setBuffetPriceLoading(false);
-        return;
-      }
+      const nextResolved: Record<string, ResolvedBuffetPriceRow | null> = {
+        ...buffetPricesByBuffetId,
+      };
 
-      if (!silent) setBuffetPriceLoading(true);
-      const { data: priceRows, error } = await supabase.rpc('resolve_buffet_prices', {
-        p_restaurant_id: restaurantId,
-        p_buffet_id: targetBuffetId,
-        p_at: new Date().toISOString(),
-      });
-      if (!silent) setBuffetPriceLoading(false);
-      if (error) {
-        if (!silent) setBuffetResolved(null);
-        return;
-      }
-      setBuffetResolved(parseResolvedBuffetPriceRpcRow(priceRows));
+      await Promise.all(
+        activeBuffetIds.map(async (buffetId) => {
+          if (buffetPricesByBuffetId[buffetId]) {
+            nextResolved[buffetId] = buffetPricesByBuffetId[buffetId];
+            return;
+          }
+
+          const { data: priceRows, error } = await supabase.rpc('resolve_buffet_prices', {
+            p_restaurant_id: restaurantId,
+            p_buffet_id: buffetId,
+            p_at: new Date().toISOString(),
+          });
+          if (error) {
+            nextResolved[buffetId] = null;
+            return;
+          }
+          nextResolved[buffetId] = parseResolvedBuffetPriceRpcRow(priceRows);
+        }),
+      );
+
+      if (!silent) setPriceLoading(false);
+      setResolvedByBuffetId(nextResolved);
     },
-    [buffetPricesByBuffetId, isDemo, restaurantId, supabase],
+    [activeBuffetIds, buffetPricesByBuffetId, isDemo, restaurantId, supabase],
   );
 
-  useBuffetPricesRealtimeRefresh(
-    supabase,
-    restaurantId,
-    !isDemo && !!buffetId,
-    () => {
-      void fetchBuffetPrice(buffetId, true);
-    },
-  );
+  useBuffetPricesRealtimeRefresh(supabase, restaurantId, !isDemo && activeBuffetIds.length > 0, () => {
+    void fetchBuffetPrices(true);
+  });
 
   useEffect(() => {
-    if (isDemo || !buffetId) {
-      setBuffetResolved(null);
-      setBuffetPriceLoading(false);
+    if (isDemo || activeBuffetIds.length === 0) {
+      setResolvedByBuffetId({});
+      setPriceLoading(false);
       return;
     }
 
@@ -138,22 +143,21 @@ export function useWaiterTableBuffetForm({
       minuteTimer = window.setTimeout(async () => {
         minuteTimer = null;
         if (cancelled || document.visibilityState !== 'visible') return;
-        await fetchBuffetPrice(buffetId, true);
+        await fetchBuffetPrices(true);
         scheduleMinute();
       }, ms);
     };
 
     const onVisibility = () => {
       if (document.visibilityState === 'visible') {
-        void fetchBuffetPrice(buffetId, true);
+        void fetchBuffetPrices(true);
         scheduleMinute();
       } else {
         clearMinute();
       }
     };
 
-    const seeded = !!buffetPricesByBuffetId[buffetId];
-    void fetchBuffetPrice(buffetId, seeded);
+    void fetchBuffetPrices(Object.keys(buffetPricesByBuffetId).length > 0);
 
     document.addEventListener('visibilitychange', onVisibility);
     if (document.visibilityState === 'visible') scheduleMinute();
@@ -163,22 +167,29 @@ export function useWaiterTableBuffetForm({
       clearMinute();
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [buffetId, buffetPricesByBuffetId, fetchBuffetPrice, isDemo]);
+  }, [activeBuffetIds, buffetPricesByBuffetId, fetchBuffetPrices, isDemo]);
 
-  const setBuffetGuestCount = useCallback((which: 'adults' | 'children', value: number) => {
-    const n = Math.max(0, Math.floor(value));
-    if (which === 'adults') setBuffetAdults(n);
-    else setBuffetChildren(n);
-  }, []);
+  const setBuffetGuestCount = useCallback(
+    (buffetId: string, which: 'adults' | 'children', value: number) => {
+      const n = Math.max(0, Math.floor(value));
+      setGuestSnapshot((prev) => ({
+        ...prev,
+        [buffetId]: {
+          adults: which === 'adults' ? n : (prev[buffetId]?.adults ?? 0),
+          children: which === 'children' ? n : (prev[buffetId]?.children ?? 0),
+        },
+      }));
+    },
+    [],
+  );
+
+  const draftSnapshotKey = useMemo(() => buffetSnapshotKey(guestSnapshot), [guestSnapshot]);
 
   return {
-    buffetId,
-    setBuffetId,
-    selectedBuffet,
-    buffetAdults,
-    buffetChildren,
+    guestSnapshot,
+    draftSnapshotKey,
     setBuffetGuestCount,
-    buffetResolved,
-    buffetPriceLoading,
+    resolvedByBuffetId,
+    priceLoading,
   };
 }

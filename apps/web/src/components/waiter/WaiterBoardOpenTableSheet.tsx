@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { showToast } from '@/components/ui/Toast';
 import { WaiterBoardOpenTableForm } from '@/components/waiter/WaiterBoardOpenTableForm';
@@ -10,7 +10,10 @@ import type { WaiterBoardOpenTableDefaults } from '@/lib/waiter-board-open-table
 import {
   activeBuffetsFromModel,
   buildIdleOpenTablePageModel,
+  isOpenTableSheetSubmitBlocked,
   reconcileOpenTablePageModel,
+  shouldStartOpenTableReconcile,
+  type OpenTableSheetReconcilePhase,
 } from '@/lib/waiter-board-open-table';
 import type { UILanguage } from '@/lib/i18n';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
@@ -47,37 +50,41 @@ export function WaiterBoardOpenTableSheet({
 }: Props) {
   const t = WAITER_TEXT[lang];
   const [reconciledModel, setReconciledModel] = useState<WaiterTablePageModel | null>(null);
-  const [reconcile, setReconcile] = useState<'pending' | 'settled'>('settled');
-  const [missingSeed, setMissingSeed] = useState(false);
+  const [reconcilePhase, setReconcilePhase] = useState<OpenTableSheetReconcilePhase>('settled');
+
+  const hasSeed = open && table != null && openTableDefaults != null;
+  const missingSeed = open && !hasSeed;
 
   const seedModel = useMemo(() => {
-    if (!open || !table || !openTableDefaults) return null;
+    if (!hasSeed || !table || !openTableDefaults) return null;
     return buildIdleOpenTablePageModel(openTableDefaults, table);
-  }, [open, openTableDefaults, table]);
+  }, [hasSeed, openTableDefaults, table]);
 
   const sheetModel = reconciledModel ?? seedModel;
+  const submitBlocked = isOpenTableSheetSubmitBlocked(reconcileEnabled, reconcilePhase);
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setReconcilePhase('settled');
+      return;
+    }
+    if (shouldStartOpenTableReconcile(open, reconcileEnabled, hasSeed)) {
+      setReconcilePhase('pending');
+    } else {
+      setReconcilePhase('settled');
+    }
+  }, [open, tableId, reconcileEnabled, hasSeed]);
 
   useEffect(() => {
     if (!open) {
       setReconciledModel(null);
-      setReconcile('settled');
-      setMissingSeed(false);
       return;
     }
-
-    if (!seedModel) {
-      setMissingSeed(true);
-      return;
-    }
-    setMissingSeed(false);
-
-    if (!reconcileEnabled) {
-      setReconcile('settled');
+    if (!shouldStartOpenTableReconcile(open, reconcileEnabled, hasSeed)) {
       return;
     }
 
     let cancelled = false;
-    setReconcile('pending');
 
     void (async () => {
       try {
@@ -100,14 +107,14 @@ export function WaiterBoardOpenTableSheet({
       } catch {
         if (!cancelled) showToast(t.actionFailed, 'error');
       } finally {
-        if (!cancelled) setReconcile('settled');
+        if (!cancelled) setReconcilePhase('settled');
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [open, restaurant.slug, tableId, seedModel, reconcileEnabled, t.actionFailed, t.refreshHint, onClose, onSuccess]);
+  }, [open, tableId, restaurant.slug, reconcileEnabled, hasSeed, t.actionFailed, t.refreshHint, onClose, onSuccess]);
 
   const sheetBody = (() => {
     if (missingSeed || !sheetModel) {
@@ -139,7 +146,7 @@ export function WaiterBoardOpenTableSheet({
         lang={lang}
         onClose={onClose}
         onSuccess={onSuccess}
-        submitBlocked={reconcile === 'pending'}
+        submitBlocked={submitBlocked}
       />
     );
   })();

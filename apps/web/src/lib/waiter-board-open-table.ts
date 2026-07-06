@@ -50,3 +50,22 @@ export function reconcileOpenTablePageModel(
 export function activeBuffetsFromModel(model: WaiterTablePageModel) {
   return model.buffets.filter((b) => b.is_active);
 }
+
+export type OpenTableSheetReconcilePhase = 'pending' | 'settled';
+
+/** True while authoritative table read is in flight for the open-table sheet. */
+export function isOpenTableSheetSubmitBlocked(
+  reconcileEnabled: boolean,
+  reconcilePhase: OpenTableSheetReconcilePhase,
+): boolean {
+  return reconcileEnabled && reconcilePhase === 'pending';
+}
+
+/** Sheet should enter reconcile pending on first paint when opening with seed data. */
+export function shouldStartOpenTableReconcile(
+  open: boolean,
+  reconcileEnabled: boolean,
+  hasSeed: boolean,
+): boolean {
+  return open && reconcileEnabled && hasSeed;
+}

@@ -77,7 +77,11 @@ export function useAuthLogin(options: Options = {}) {
         return;
       }
 
-      window.location.assign(json.path);
+      const path =
+        json.path === '/auth/staff/change-password'
+          ? `/auth/staff/change-password?r=${Date.now()}`
+          : json.path!;
+      window.location.replace(path);
     } catch {
       setError(t.network);
       setLoading(false);

@@ -31,7 +31,6 @@ import { coerceCartQty } from '@/lib/cart-totals';
 import { applyOrderItemDecrement } from '@/lib/order-item-void/decrement-order-item';
 import { computeOrderTotalsFromItems } from '@/lib/order-item-void/persist-order-items-update';
 import { voidItemReasonErrorMessage } from '@/lib/order-item-void/void-item-reason-ui';
-import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticatedShell';
 import { useWaiterTableDetail } from '@/components/waiter/useWaiterTableDetail';
 import { useStaffAssistedMenuEntryPrefetch } from '@/components/waiter/useStaffAssistedMenuEntryPrefetch';
 import { useWaiterTableBuffetForm } from '@/components/waiter/useWaiterTableBuffetForm';
@@ -70,7 +69,6 @@ import { resolveWaiterTableDetailActions } from '@/lib/waiter-table-detail-actio
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
-  asOwner?: boolean;
   /** SSR successfully loaded detail — skip mount entry reconcile. */
   hasAuthoritativeSeed?: boolean;
   /** Demo only — all configured tables for transfer/merge UI. */
@@ -96,10 +94,7 @@ function WaiterTableDetailInner({
   displayName = '',
   isDemo = false,
   embeddedInDashboard = false,
-  handleSignOut,
-  exitLabel,
-  confirmBeforeSignOut,
-}: Props & { handleSignOut: () => void; exitLabel: string; confirmBeforeSignOut: boolean }) {
+}: Props) {
   const router = useRouter();
   const waiterBoard = useWaiterBoardOptional();
   const { lang } = useLanguage();
@@ -307,7 +302,7 @@ function WaiterTableDetailInner({
     tableId,
   ]);
 
-  const pageShellClass = embeddedInDashboard ? '' : 'min-h-screen bg-brand-bg p-4';
+  const pageShellClass = isDemo ? 'min-h-screen bg-brand-bg p-4' : '';
   const boardHref = waiterBoardHref(restaurant.slug, routeOptions);
   const menuHref = waiterMenuHref(restaurant.slug, tableId, routeOptions);
   const billHref = waiterBillHref(restaurant.slug, tableId, routeOptions);
@@ -501,10 +496,6 @@ function WaiterTableDetailInner({
           boardHref={boardHref}
           backLabel={t.backToBoard}
           heading={detailHeading('…')}
-          embeddedInDashboard={embeddedInDashboard}
-          exitLabel={exitLabel}
-          onSignOut={handleSignOut}
-          confirmSignOut={confirmBeforeSignOut}
         />
         <div
           className={`${waiterUi.cardSurface} p-6 animate-pulse`}
@@ -526,10 +517,6 @@ function WaiterTableDetailInner({
           boardHref={boardHref}
           backLabel={t.backToBoard}
           heading={detailHeading(displayName || '…')}
-          embeddedInDashboard={embeddedInDashboard}
-          exitLabel={exitLabel}
-          onSignOut={handleSignOut}
-          confirmSignOut={confirmBeforeSignOut}
         />
         <div className={`${waiterUi.cardSurface} p-4 text-sm text-brand-text-muted`}>
           {t.noOrdersOnTable}
@@ -848,10 +835,6 @@ function WaiterTableDetailInner({
         backLabel={t.backToBoard}
         heading={detailHeading(selectedCard.displayName)}
         updatedAtLabel={tableUpdatedLabel}
-        embeddedInDashboard={embeddedInDashboard}
-        exitLabel={exitLabel}
-        onSignOut={handleSignOut}
-        confirmSignOut={confirmBeforeSignOut}
       />
 
       <div className="space-y-4">
@@ -1001,27 +984,5 @@ function WaiterTableDetailInner({
 }
 
 export function WaiterTableDetail(props: Props) {
-  const { restaurant, isDemo, embeddedInDashboard, asOwner = false } = props;
-  if (embeddedInDashboard) {
-    return (
-      <WaiterTableDetailInner
-        {...props}
-        handleSignOut={() => {}}
-        exitLabel=""
-        confirmBeforeSignOut={false}
-      />
-    );
-  }
-  return (
-    <WaiterAuthenticatedShell restaurant={restaurant} asOwner={asOwner} isDemo={isDemo}>
-      {({ handleSignOut, exitLabel, confirmBeforeSignOut }) => (
-        <WaiterTableDetailInner
-          {...props}
-          handleSignOut={handleSignOut}
-          exitLabel={exitLabel}
-          confirmBeforeSignOut={confirmBeforeSignOut}
-        />
-      )}
-    </WaiterAuthenticatedShell>
-  );
+  return <WaiterTableDetailInner {...props} />;
 }

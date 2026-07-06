@@ -26,7 +26,6 @@ export default async function WaiterPage({ params }: Props) {
   return (
     <WaiterDisplay
       restaurant={restaurant}
-      asOwner={access.as_owner}
       hasAuthoritativeSeed={board != null}
       tables={board?.tables}
       initialTableSummaries={board?.tableSummaries}

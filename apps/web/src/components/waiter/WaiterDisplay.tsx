@@ -4,8 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import Link from 'next/link';
 import type { Order } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { StaffPersonalSettingsMenu } from '@/components/staff/StaffPersonalSettingsMenu';
-import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticatedShell';
 import { WaiterBoardOpenTableSheet } from '@/components/waiter/WaiterBoardOpenTableSheet';
 import { WaiterBoardCheckoutSheet } from '@/components/waiter/WaiterBoardCheckoutSheet';
 import { WaiterBoardTableCard } from '@/components/waiter/WaiterBoardTableCard';
@@ -53,7 +51,6 @@ import {
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
-  asOwner?: boolean;
   /** SSR successfully loaded board — skip mount entry reconcile. */
   hasAuthoritativeSeed?: boolean;
   tables?: RestaurantTableRow[];
@@ -184,10 +181,7 @@ function WaiterBoardInner({
   isDemo = false,
   embeddedInDashboard = false,
   initialOpenTableDefaults = null,
-  handleSignOut,
-  exitLabel,
-  confirmBeforeSignOut,
-}: Props & { handleSignOut: () => void; exitLabel: string; confirmBeforeSignOut: boolean }) {
+}: Props) {
   const { lang } = useLanguage();
   const t = WAITER_TEXT[lang];
   const tableGroupsI18n = getMessages(lang).tableGroups;
@@ -436,7 +430,7 @@ function WaiterBoardInner({
   }, [openTableTarget, tables]);
 
   return (
-    <div className={embeddedInDashboard ? '' : 'min-h-screen bg-brand-bg p-4'}>
+    <div className={isDemo ? 'min-h-screen bg-brand-bg p-4' : ''}>
       {isDemo && (
         <div className="mb-4 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3">
           <p className="text-[13px] text-brand-text">{t.step}</p>
@@ -463,23 +457,7 @@ function WaiterBoardInner({
         </div>
       )}
       <div className="mb-6">
-        {!embeddedInDashboard ? (
-          <div className="flex justify-end mb-3">
-            <StaffPersonalSettingsMenu
-              logoutLabel={exitLabel}
-              onSignOut={handleSignOut}
-              confirmSignOut={confirmBeforeSignOut}
-            />
-          </div>
-        ) : null}
-        {!embeddedInDashboard ? (
-          <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
-        ) : (
-          <h1 className="font-heading text-2xl text-brand-gold">{t.boardTitle}</h1>
-        )}
-        {!embeddedInDashboard ? (
-          <p className="text-brand-text-muted text-sm mt-1">{t.boardTitle}</p>
-        ) : null}
+        <h1 className="font-heading text-2xl text-brand-gold">{t.boardTitle}</h1>
 
         <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label={t.boardTitle}>
           {BOARD_KPI_ITEMS.map((item) => (
@@ -599,27 +577,5 @@ function WaiterBoardInner({
 }
 
 export function WaiterDisplay(props: Props) {
-  const { restaurant, isDemo, embeddedInDashboard, asOwner = false } = props;
-  if (embeddedInDashboard) {
-    return (
-      <WaiterBoardInner
-        {...props}
-        handleSignOut={() => {}}
-        exitLabel=""
-        confirmBeforeSignOut={false}
-      />
-    );
-  }
-  return (
-    <WaiterAuthenticatedShell restaurant={restaurant} asOwner={asOwner} isDemo={isDemo}>
-      {({ handleSignOut, exitLabel, confirmBeforeSignOut }) => (
-        <WaiterBoardInner
-          {...props}
-          handleSignOut={handleSignOut}
-          exitLabel={exitLabel}
-          confirmBeforeSignOut={confirmBeforeSignOut}
-        />
-      )}
-    </WaiterAuthenticatedShell>
-  );
+  return <WaiterBoardInner {...props} />;
 }

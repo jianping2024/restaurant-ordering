@@ -24,7 +24,7 @@ export default async function WaiterTablePage({ params }: Props) {
 
   if (!restaurant) notFound();
 
-  const access = await requireStaffSlugPageAccess(slug, ['waiter']);
+  await requireStaffSlugPageAccess(slug, ['waiter']);
 
   const initialModel = await loadWaiterTablePageInitial(restaurant.id, tableId);
   if (!initialModel?.detail.table) notFound();
@@ -32,7 +32,6 @@ export default async function WaiterTablePage({ params }: Props) {
   return (
     <WaiterTableDetail
       restaurant={restaurant}
-      asOwner={access.as_owner}
       hasAuthoritativeSeed
       initialModel={initialModel}
       tableId={tableId}

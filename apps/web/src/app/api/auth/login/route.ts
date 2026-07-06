@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { resolvePostLoginRedirect } from '@/lib/auth/post-login-redirect';
 import {
@@ -12,7 +13,7 @@ import {
   authLoginRecordSuccess,
 } from '@/lib/auth/login-rate-limit';
 import { clientIpFromRequest } from '@/lib/request-client-ip';
-import { createClient } from '@/lib/supabase/server';
+import { createRouteHandlerSupabaseAuth } from '@/lib/supabase/route-handler-auth';
 
 export const runtime = 'nodejs';
 
@@ -69,7 +70,8 @@ export async function POST(req: Request) {
     }
   }
 
-  const supabase = await createClient();
+  const cookieStore = await cookies();
+  const { supabase, attachCookies } = createRouteHandlerSupabaseAuth(cookieStore);
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error || !data.user) {
@@ -88,13 +90,15 @@ export async function POST(req: Request) {
     if (redirect.kind === 'staff_error') {
       await supabase.auth.signOut();
       authLoginRecordFailure(email, ip);
-      return NextResponse.json({ error: redirect.code }, { status: 403 });
+      const response = NextResponse.json({ error: redirect.code }, { status: 403 });
+      attachCookies(response);
+      return response;
     }
 
     authLoginRecordSuccess(email, ip);
 
     if (redirect.kind === 'staff') {
-      return NextResponse.json({
+      const response = NextResponse.json({
         ok: true,
         kind: 'staff',
         path: redirect.mustChangePassword ? '/auth/staff/change-password' : redirect.path,
@@ -102,16 +106,22 @@ export async function POST(req: Request) {
         slug: redirect.slug,
         role: redirect.role,
       });
+      attachCookies(response);
+      return response;
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       ok: true,
       kind: redirect.kind,
       path: redirect.path,
     });
+    attachCookies(response);
+    return response;
   } catch (e) {
     await supabase.auth.signOut();
     const message = e instanceof Error ? e.message : 'redirect_failed';
-    return NextResponse.json({ error: 'redirect_failed', message }, { status: 500 });
+    const response = NextResponse.json({ error: 'redirect_failed', message }, { status: 500 });
+    attachCookies(response);
+    return response;
   }
 }

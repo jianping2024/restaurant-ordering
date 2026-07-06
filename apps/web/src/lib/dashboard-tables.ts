@@ -46,7 +46,7 @@ export async function loadFrontdeskDashboardTables(): Promise<FrontdeskDashboard
       .maybeSingle(),
     ctx.admin
       .from('restaurant_tables')
-      .select('id, restaurant_id, display_name, sort_order, deleted_at, created_at')
+      .select('id, restaurant_id, display_name, sort_order, seat_min, seat_max, deleted_at, created_at')
       .eq('restaurant_id', ctx.restaurantId)
       .is('deleted_at', null),
     loadRestaurantTableGroups(ctx.admin, ctx.restaurantId),
@@ -72,7 +72,13 @@ export async function loadFrontdeskDashboardTables(): Promise<FrontdeskDashboard
   }
 
   const tables = sortRestaurantTables((data || []) as RestaurantTable[]).map(
-    ({ id, display_name, sort_order }) => ({ id, display_name, sort_order }),
+    ({ id, display_name, sort_order, seat_min, seat_max }) => ({
+      id,
+      display_name,
+      sort_order,
+      seat_min,
+      seat_max,
+    }),
   );
 
   return {

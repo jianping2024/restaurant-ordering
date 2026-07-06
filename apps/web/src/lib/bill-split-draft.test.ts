@@ -51,6 +51,24 @@ describe('billOrdersFingerprint', () => {
 });
 
 describe('computeSplitResults', () => {
+  it('splits €10 evenly across 3 with cent remainder', () => {
+    const people = [{ name: 'C' }, { name: 'A' }, { name: 'B' }];
+    const rows = computeSplitResults({
+      splitMode: 'even',
+      total: 10,
+      orderLines: [menuLine('o1-0', 1, 10)],
+      lineSpecs: [menuSpec('o1-0', 1, 10)],
+      personCount: 3,
+      splitPeople: people,
+      customAmounts: [],
+      parsedByItemAllocations: {},
+      wholeTableLabel: 'Total',
+    });
+    const sum = rows.reduce((s, r) => s + r.amount, 0);
+    assert.equal(sum, 10);
+    assert.equal(rows.length, 3);
+  });
+
   it('recalculates even split when total changes', () => {
     const people = [{ name: 'Guest 1' }, { name: 'Guest 2' }];
     const low = computeSplitResults({

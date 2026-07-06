@@ -37,6 +37,20 @@ function splitHasPaidPerson(result: unknown): boolean {
   });
 }
 
+async function sessionHasCollectedLedger(
+  admin: SupabaseClient,
+  restaurantId: string,
+  sessionId: string | null,
+): Promise<boolean> {
+  if (!sessionId) return false;
+  const { count, error } = await admin
+    .from('session_collected_payments')
+    .select('id', { count: 'exact', head: true })
+    .eq('restaurant_id', restaurantId)
+    .eq('session_id', sessionId);
+  return !error && (count ?? 0) > 0;
+}
+
 export async function applyBillSplitDiscount(params: {
   admin: SupabaseClient;
   restaurantId: string;
@@ -66,6 +80,11 @@ export async function applyBillSplitDiscount(params: {
   }
 
   if (splitHasPaidPerson(splitRow.result)) {
+    return { ok: false, status: 409, code: 'discount_locked_after_payment' };
+  }
+
+  const sessionId = (splitRow.session_id as string | null) ?? null;
+  if (await sessionHasCollectedLedger(params.admin, params.restaurantId, sessionId)) {
     return { ok: false, status: 409, code: 'discount_locked_after_payment' };
   }
 

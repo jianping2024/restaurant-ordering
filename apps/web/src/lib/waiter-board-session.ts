@@ -121,6 +121,40 @@ const DURATION_LABELS: Record<UILanguage, DurationLabels> = {
   },
 };
 
+/** Compact hm labels for waiter floor board cards (zh 「9时59分」). */
+const BOARD_CARD_DURATION_LABELS: Record<UILanguage, DurationLabels> = {
+  zh: {
+    hoursMinutes: (hours, minutes) => `${hours}时${minutes}分`,
+    minutesOnly: (minutes) => `${minutes}分`,
+  },
+  en: {
+    hoursMinutes: (hours, minutes) => `${hours}h ${minutes}m`,
+    minutesOnly: (minutes) => `${minutes}m`,
+  },
+  pt: {
+    hoursMinutes: (hours, minutes) => `${hours}h ${minutes}m`,
+    minutesOnly: (minutes) => `${minutes}m`,
+  },
+};
+
+function formatSessionDurationWithLabels(
+  openedAtIso: string,
+  endAtIso: string | null | undefined,
+  labels: DurationLabels,
+  nowMs: number,
+): string {
+  const startMs = new Date(openedAtIso).getTime();
+  if (Number.isNaN(startMs)) return '';
+  const endMs = endAtIso ? new Date(endAtIso).getTime() : nowMs;
+  if (Number.isNaN(endMs) || endMs < startMs) return '';
+
+  const totalMinutes = Math.floor((endMs - startMs) / 60_000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours > 0) return labels.hoursMinutes(hours, minutes);
+  return labels.minutesOnly(minutes);
+}
+
 export function activeSessionIdByTableIdFromMeta(
   sessionMetaByTableId: Record<string, WaiterTableSessionMeta>,
 ): Record<string, string> {
@@ -155,17 +189,22 @@ export function formatSessionDurationHm(
   lang: UILanguage,
   nowMs = Date.now(),
 ): string {
-  const startMs = new Date(openedAtIso).getTime();
-  if (Number.isNaN(startMs)) return '';
-  const endMs = endAtIso ? new Date(endAtIso).getTime() : nowMs;
-  if (Number.isNaN(endMs) || endMs < startMs) return '';
+  return formatSessionDurationWithLabels(openedAtIso, endAtIso, DURATION_LABELS[lang], nowMs);
+}
 
-  const totalMinutes = Math.floor((endMs - startMs) / 60_000);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  const labels = DURATION_LABELS[lang];
-  if (hours > 0) return labels.hoursMinutes(hours, minutes);
-  return labels.minutesOnly(minutes);
+/** Compact duration for waiter board cards — shorter zh units (时/分). */
+export function formatSessionDurationForBoardCard(
+  openedAtIso: string,
+  endAtIso: string | null | undefined,
+  lang: UILanguage,
+  nowMs = Date.now(),
+): string {
+  return formatSessionDurationWithLabels(
+    openedAtIso,
+    endAtIso,
+    BOARD_CARD_DURATION_LABELS[lang],
+    nowMs,
+  );
 }
 
 export function buildWaiterTableCardSubtitle(input: {

@@ -92,7 +92,6 @@ Table print_stations [note: '出品/打印档口'] {
   name_en varchar [note: '英语名称']
   name_zh varchar [note: '中文名称']
   sort_order int [not null, note: '排序']
-  ticket_layout varchar [not null, note: '小票版式：kitchen | beverage | standard']
   created_at timestamp [not null, note: '创建时间']
 }
 

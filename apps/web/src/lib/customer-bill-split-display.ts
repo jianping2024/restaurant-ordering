@@ -1,6 +1,6 @@
 import {
   outstandingAmount,
-  sumCollectedByPersonName,
+  sumCollectedByPersonIndex,
   type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
 import type { SplitResult } from '@/types';
@@ -52,9 +52,9 @@ export function buildCustomerSplitDisplayRows(
   resultRows: SplitResult[],
   collectedPayments: SessionCollectedPayment[],
 ): CustomerSplitRowDisplay[] {
-  const collectedByPerson = sumCollectedByPersonName(collectedPayments);
-  return resultRows.map((row) => {
-    const collectedAmount = collectedByPerson.get(row.name.trim()) ?? 0;
+  const collectedByIndex = sumCollectedByPersonIndex(collectedPayments);
+  return resultRows.map((row, index) => {
+    const collectedAmount = collectedByIndex.get(index) ?? 0;
     const obligationAmount = row.amount;
     const outstanding = outstandingAmount(obligationAmount, collectedAmount);
     return {

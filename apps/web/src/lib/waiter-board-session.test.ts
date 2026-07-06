@@ -7,6 +7,7 @@ import {
   computeWaiterBoardStats,
   filterWaiterBoardTableIds,
   filterWaiterBoardTableIdsBySearch,
+  formatSessionDurationForBoardCard,
   formatSessionDurationHm,
   tableMatchesWaiterBoardSearch,
   type WaiterBoardStateContext,
@@ -16,14 +17,14 @@ import {
 function boardCtx(
   sessionMetaByTableId: Record<string, WaiterTableSessionMeta>,
   checkoutRequestedTableIds: string[] = [],
-  occupied: Record<string, boolean> = {},
+  hasBuffet: Record<string, boolean> = {},
 ): WaiterBoardStateContext {
   return buildWaiterBoardStateContext(
     sessionMetaByTableId,
     checkoutRequestedTableIds,
-    Object.entries(occupied).map(([tableId, occupiedFlag]) => ({
+    Object.entries(hasBuffet).map(([tableId, hasBuffetFlag]) => ({
       tableId,
-      occupied: occupiedFlag,
+      hasBuffet: hasBuffetFlag,
     })),
   );
 }
@@ -45,6 +46,20 @@ describe('formatSessionDurationHm', () => {
     const start = '2026-01-01T10:00:00.000Z';
     const now = Date.parse('2026-01-01T12:30:00.000Z');
     assert.equal(formatSessionDurationHm(start, null, 'en', now), '2h 30m');
+  });
+});
+
+describe('formatSessionDurationForBoardCard', () => {
+  it('uses compact zh units on board cards', () => {
+    const start = '2026-01-01T10:00:00.000Z';
+    const end = '2026-01-01T19:59:00.000Z';
+    assert.equal(formatSessionDurationForBoardCard(start, end, 'zh', Date.parse(end)), '9时59分');
+  });
+
+  it('keeps detail hm formatter unchanged', () => {
+    const start = '2026-01-01T10:00:00.000Z';
+    const end = '2026-01-01T19:59:00.000Z';
+    assert.equal(formatSessionDurationHm(start, end, 'zh', Date.parse(end)), '9小时59分');
   });
 });
 
@@ -97,11 +112,11 @@ describe('classifyWaiterTableBoardState', () => {
     assert.equal(classifyWaiterTableBoardState(t1, boardCtx(meta, [t1])), 'checkout');
   });
 
-  it('returns dining for occupied open session without checkout', () => {
+  it('returns dining when session has buffet', () => {
     assert.equal(classifyWaiterTableBoardState(t2, boardCtx(meta, [], { [t2]: true })), 'dining');
   });
 
-  it('returns idle for unoccupied open session', () => {
+  it('returns idle when session has no buffet', () => {
     assert.equal(classifyWaiterTableBoardState(t2, boardCtx(meta, [], { [t2]: false })), 'idle');
   });
 

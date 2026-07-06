@@ -10,6 +10,7 @@ type Props = {
   totalCount: number;
   filteredCount: number;
   dirty: boolean;
+  dirtyCount: number;
   saving: boolean;
   adding: boolean;
   addCount: number;
@@ -46,6 +47,7 @@ export function TablesQrToolbar({
   totalCount,
   filteredCount,
   dirty,
+  dirtyCount,
   saving,
   adding,
   addCount,
@@ -80,7 +82,13 @@ export function TablesQrToolbar({
             {filteredHint ? (
               <span className="text-brand-text-muted/80"> ({filteredCount})</span>
             ) : null}
-            {dirty ? <span className="text-brand-gold"> · {t.unsavedChanges}</span> : null}
+            {dirty ? (
+              <span className="text-brand-gold">
+                {' '}
+                · {t.unsavedChanges}
+                {dirtyCount > 0 ? ` (${dirtyCount})` : ''}
+              </span>
+            ) : null}
           </span>
         </div>
 

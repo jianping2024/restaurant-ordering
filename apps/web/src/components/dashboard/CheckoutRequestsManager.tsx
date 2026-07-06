@@ -4,48 +4,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import type { BillSplit, Order } from '@/types';
-import { showToast } from '@/components/ui/Toast';
-import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
+import type { BillSplit } from '@/types';
 import {
-  checkoutPersonKey,
-  checkoutResumeOrderingKey,
-} from '@/lib/checkout-request-state';
-import {
-  discountedSplitRows,
-} from '@/lib/checkout-split-math';
-import {
-  hasConfirmedPerson,
-  parseSessionCollectedPayments,
   parseSessionCollectedPaymentsWithSession,
   SESSION_COLLECTED_PAYMENT_SELECT,
   type SessionCollectedPayment,
-  resumeCheckoutBlockReason,
-  resumeOrderingConfirmVariant,
-  collectibleSplitRowsWithIndex,
-  isSplitRowCollectible,
-  suggestedCollectionAmount,
-  sumCollectedByPersonName,
 } from '@/lib/checkout-session-payments';
-import { requestCheckoutResumeOrdering } from '@/lib/request-checkout-resume-ordering';
-import { useStaffCheckoutBillPrint } from '@/lib/use-staff-checkout-bill-print';
-import { tableIdsEqual } from '@/lib/restaurant-tables';
-import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
-import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
-import { requestCheckoutApplyDiscount } from '@/lib/request-checkout-apply-discount';
-import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
-import {
-  checkoutLinesFromOrders,
-  type CheckoutDisplayLine,
-} from '@/lib/checkout-session-lines';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
 import {
   loadCheckoutSoundEnabled,
   saveCheckoutSoundEnabled,
 } from '@/lib/receipt-printer-preference';
-import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
-import { CheckoutRequestDetail } from '@/components/dashboard/checkout/CheckoutRequestDetail';
+import { CheckoutRequestDetailHost } from '@/components/dashboard/checkout/CheckoutRequestDetailHost';
 import { CheckoutRequestListCard } from '@/components/dashboard/checkout/CheckoutRequestListCard';
 import {
   buildCheckoutSettlementSummary,
@@ -54,12 +24,24 @@ import {
   groupCollectedPaymentsBySession,
   hasCheckoutCollections,
 } from '@/lib/checkout-settlement';
+import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { DashboardQuickNavLink } from '@/components/dashboard/DashboardQuickNavLink';
 import { canAccessDashboardWaiterBoard } from '@/lib/dashboard-nav-config';
 import { DASHBOARD_NAV_ITEMS } from '@/lib/dashboard-feature-registry';
 import { waiterBoardHref } from '@/lib/staff-routes';
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
+import {
+  checkoutQueueFocusKey,
+  hasCheckoutQueueFocus,
+  resolveFocusedRequestId,
+  type CheckoutQueueFocus,
+} from '@/lib/checkout-queue-focus';
+
+type CheckoutSelection =
+  | { mode: 'follow_focus' }
+  | { mode: 'picked'; requestId: string }
+  | { mode: 'list' };
 
 interface Props {
   restaurantId: string;
@@ -67,8 +49,8 @@ interface Props {
   accessMode: DashboardAccessMode;
   /** Owner or frontdesk may force-close unpaid tables from checkout. */
   canCloseTable?: boolean;
-  /** Deep link from owner waiter board: auto-open this table's checkout request. */
-  initialTableId?: string;
+  /** URL intent: auto-open this checkout request after queue is fresh. */
+  initialFocus?: CheckoutQueueFocus;
 }
 
 export function CheckoutRequestsManager({
@@ -76,49 +58,50 @@ export function CheckoutRequestsManager({
   restaurantSlug,
   accessMode,
   canCloseTable = false,
-  initialTableId,
+  initialFocus,
 }: Props) {
-  const { requests, updateRequests, reload } = useCheckoutRequests();
-  const [processingKeys, setProcessingKeys] = useState<Set<string>>(() => new Set());
+  const { requests, reload } = useCheckoutRequests();
   const billDiscount = useCheckoutBillDiscount();
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
   const navT = getMessages(lang).nav;
   const showWaiterBoardLink = canAccessDashboardWaiterBoard(accessMode);
   const waiterBoardNav = DASHBOARD_NAV_ITEMS.waiterBoard;
-  const discountReasonOptionsList = useMemo(
-    () => abnormalReasonOptions(lang, 'discount'),
-    [lang],
-  );
   const supabase = useMemo(() => createClient(), []);
-  const [selectedLines, setSelectedLines] = useState<CheckoutDisplayLine[]>([]);
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [selection, setSelection] = useState<CheckoutSelection>({ mode: 'follow_focus' });
   const [collectedPaymentsBySession, setCollectedPaymentsBySession] = useState<
     Map<string, SessionCollectedPayment[]>
   >(() => new Map());
-  const [resumeConfirmOpen, setResumeConfirmOpen] = useState(false);
-  const {
-    printCheckoutBill,
-    isPrintBillBusy,
-    cooldownSecondsLeft,
-    isOnCooldown,
-  } = useStaffCheckoutBillPrint(restaurantSlug);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const prevRequestCountRef = useRef<number | null>(null);
-  const deepLinkConsumedRef = useRef(false);
+  const reloadedFocusKeyRef = useRef('');
+
+  const focusKey = checkoutQueueFocusKey(initialFocus);
 
   useEffect(() => {
     setSoundEnabled(loadCheckoutSoundEnabled());
   }, []);
 
   useEffect(() => {
-    if (!initialTableId || deepLinkConsumedRef.current) return;
-    const match = requests.find((r) => tableIdsEqual(r.table_id, initialTableId));
-    if (match) {
-      setSelectedRequestId(match.id);
-      deepLinkConsumedRef.current = true;
-    }
-  }, [initialTableId, requests]);
+    setSelection({ mode: 'follow_focus' });
+  }, [focusKey]);
+
+  useEffect(() => {
+    if (!focusKey || reloadedFocusKeyRef.current === focusKey) return;
+    reloadedFocusKeyRef.current = focusKey;
+    void reload();
+  }, [focusKey, reload]);
+
+  const autoFocusedRequestId = useMemo(
+    () => resolveFocusedRequestId(requests, initialFocus),
+    [initialFocus, requests],
+  );
+
+  const selectedRequestId = useMemo(() => {
+    if (selection.mode === 'picked') return selection.requestId;
+    if (selection.mode === 'list') return null;
+    return autoFocusedRequestId;
+  }, [autoFocusedRequestId, selection]);
 
   useEffect(() => {
     const prev = prevRequestCountRef.current;
@@ -130,56 +113,11 @@ export function CheckoutRequestsManager({
   }, [requests.length, soundEnabled]);
 
   useEffect(() => {
-    if (selectedRequestId && !requests.some((r) => r.id === selectedRequestId)) {
-      setSelectedRequestId(null);
+    if (!selectedRequestId) return;
+    if (!requests.some((row) => row.id === selectedRequestId)) {
+      setSelection({ mode: 'follow_focus' });
     }
   }, [requests, selectedRequestId]);
-
-  useEffect(() => {
-    if (!restaurantId || !selectedRequestId) {
-      setSelectedLines([]);
-      return;
-    }
-
-    const sessionId = requests.find((r) => r.id === selectedRequestId)?.session_id;
-    if (!sessionId) {
-      setSelectedLines([]);
-      return;
-    }
-
-    let cancelled = false;
-    const loadLines = async () => {
-      const { data: orderRows, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('restaurant_id', restaurantId)
-        .eq('session_id', sessionId);
-
-      if (cancelled) return;
-      if (error) {
-        setSelectedLines([]);
-        return;
-      }
-
-      const menuItemIds = distinctMenuItemIdsFromOrders((orderRows || []) as Order[]);
-      let itemCodeByMenuId: Record<string, string> = {};
-      if (menuItemIds.length > 0) {
-        const { data: menuRows } = await supabase
-          .from('menu_items')
-          .select('id, item_code')
-          .eq('restaurant_id', restaurantId)
-          .in('id', menuItemIds);
-        itemCodeByMenuId = menuItemCodeLookupFromRows(menuRows ?? []);
-      }
-
-      setSelectedLines(checkoutLinesFromOrders((orderRows || []) as Order[], itemCodeByMenuId));
-    };
-
-    void loadLines();
-    return () => {
-      cancelled = true;
-    };
-  }, [supabase, restaurantId, requests, selectedRequestId]);
 
   useEffect(() => {
     const sessionIds = Array.from(
@@ -220,205 +158,12 @@ export function CheckoutRequestsManager({
     };
   }, [supabase, restaurantId, requests]);
 
-  const getDiscountRate = (request: BillSplit) =>
-    billDiscount.getDisplayRate(request.id, request.discount_rate ?? 0);
-  const getDiscountedSplitResult = (request: BillSplit) =>
-    discountedSplitRows(request, getDiscountRate(request));
-
-  const patchRequestDiscount = useCallback(
-    (
-      requestId: string,
-      discount: {
-        discount_rate: number;
-        discount_reason: string | null;
-        discount_reason_detail: string | null;
-      },
-    ) => {
-      updateRequests((prev) =>
-        prev.map((r) => (r.id === requestId ? { ...r, ...discount } : r)),
-      );
-      billDiscount.finishSetup(requestId);
-    },
-    [billDiscount, updateRequests],
-  );
-
-  const persistDiscount = useCallback(
-    async (
-      request: BillSplit,
-      rate: number,
-      reason?: string,
-      detail?: string,
-    ) => {
-      if (!restaurantSlug) {
-        showToast('操作失败，请重试', 'error');
-        return false;
-      }
-      billDiscount.setApplying(request.id);
-      try {
-        const outcome = await requestCheckoutApplyDiscount({
-          slug: restaurantSlug,
-          billSplitId: request.id,
-          discountRate: rate,
-          ...(reason ? { discountReason: reason } : {}),
-          ...(detail ? { discountReasonDetail: detail } : {}),
-        });
-        if (!outcome.ok) {
-          const message =
-            outcome.error === 'reason_required'
-              ? t.discountReasonRequired
-              : outcome.error === 'reason_detail_required'
-                ? t.discountReasonDetailRequired
-                : outcome.error === 'discount_locked_after_payment'
-                  ? t.discountLockedAfterPayment
-                  : '操作失败，请重试';
-          showToast(message, 'error');
-          return false;
-        }
-        patchRequestDiscount(request.id, outcome);
-        return true;
-      } catch {
-        showToast('操作失败，请重试', 'error');
-        return false;
-      } finally {
-        billDiscount.setApplying(null);
-      }
-    },
-    [billDiscount, patchRequestDiscount, restaurantSlug, t],
-  );
-
-  const handleDiscountRateBlur = (request: BillSplit) => {
-    const rate = getDiscountRate(request);
-    const serverRate = request.discount_rate ?? 0;
-    const setup = billDiscount.beginSetupIfNeeded(
-      request.id,
-      rate,
-      serverRate,
-      request.discount_reason,
-    );
-    if (setup.needsReason) return;
-    if (rate === serverRate) {
-      billDiscount.finishSetup(request.id);
-      return;
-    }
-    void persistDiscount(
-      request,
-      rate,
-      request.discount_reason ?? undefined,
-      request.discount_reason_detail ?? undefined,
-    );
-  };
-
-  const submitConfirmPersonPaid = async (request: BillSplit, rowIndex: number) => {
-    const discountedRows = getDiscountedSplitResult(request);
-    const row = discountedRows[rowIndex];
-    if (!row) return;
-
-    const collectedByPerson = sumCollectedByPersonName(
-      getCollectedForSession(request.session_id),
-    );
-    const collectedAmount = suggestedCollectionAmount(row.name, row.amount, collectedByPerson);
-    if (!isSplitRowCollectible(row, collectedByPerson)) {
-      showToast(t.paid, 'error');
-      return;
-    }
-    if (!restaurantSlug) {
-      showToast('操作失败，请重试', 'error');
-      return;
-    }
-
-    const personKey = checkoutPersonKey(request.id, rowIndex);
-    setProcessingKeys((prev) => new Set(prev).add(personKey));
-    try {
-      const outcome = await requestCheckoutConfirmPayment({
-        slug: restaurantSlug,
-        billSplitId: request.id,
-        personIndex: rowIndex,
-        collectedAmount,
-      });
-      if (!outcome.ok) {
-        showToast(outcome.error === 'already_paid' ? t.paid : '操作失败，请重试', 'error');
-        return;
-      }
-
-      if (request.session_id) {
-        const { data } = await supabase
-          .from('session_collected_payments')
-          .select(SESSION_COLLECTED_PAYMENT_SELECT)
-          .eq('restaurant_id', restaurantId)
-          .eq('session_id', request.session_id)
-          .order('created_at', { ascending: true });
-        const payments = parseSessionCollectedPayments(data);
-        setCollectedPaymentsBySession((prev) => {
-          const next = new Map(prev);
-          next.set(request.session_id as string, payments);
-          return next;
-        });
-      }
-
-      updateRequests((prev) =>
-        outcome.all_paid
-          ? prev.filter((r) => r.id !== request.id)
-          : prev.map((r) => (r.id === request.id ? { ...r, result: outcome.result } : r)),
-      );
-    } catch {
-      showToast('操作失败，请重试', 'error');
-    } finally {
-      setProcessingKeys((prev) => {
-        const next = new Set(prev);
-        next.delete(personKey);
-        return next;
-      });
-    }
-  };
-
-  const handleConfirmPersonPaid = (request: BillSplit, rowIndex: number) => {
-    void submitConfirmPersonPaid(request, rowIndex);
-  };
-
-  const handleResumeOrdering = async (request: BillSplit) => {
-    if (!restaurantSlug) {
-      showToast(t.resumeOrderingFailed, 'error');
-      return;
-    }
-
-    const resumeKey = checkoutResumeOrderingKey(request.id);
-    setProcessingKeys((prev) => new Set(prev).add(resumeKey));
-    try {
-      const outcome = await requestCheckoutResumeOrdering({
-        slug: restaurantSlug,
-        tableId: request.table_id,
-      });
-      if (!outcome.ok) {
-        const message =
-          outcome.error === 'whole_table_paid'
-            ? t.resumeOrderingBlockedWholeTable
-            : t.resumeOrderingFailed;
-        showToast(message, 'error');
-        return;
-      }
-
-      setSelectedRequestId(null);
-      void reload();
-      showToast(t.resumeOrderingSuccess, 'success');
-    } catch {
-      showToast(t.resumeOrderingFailed, 'error');
-    } finally {
-      setProcessingKeys((prev) => {
-        const next = new Set(prev);
-        next.delete(resumeKey);
-        return next;
-      });
-      setResumeConfirmOpen(false);
-    }
-  };
-
-  const handlePrintBill = (request: BillSplit) =>
-    printCheckoutBill(request, getDiscountRate(request));
-
   const pendingLabel = t.pendingBadge.replace('{n}', String(requests.length));
   const selectedRequest = selectedRequestId
-    ? requests.find((r) => r.id === selectedRequestId)
+    ? requests.find((row) => row.id === selectedRequestId)
     : undefined;
+  const awaitingFocusResolve =
+    hasCheckoutQueueFocus(initialFocus) && selection.mode === 'follow_focus' && !selectedRequest;
 
   const splitModeLabels = useMemo(
     () => ({
@@ -461,32 +206,17 @@ export function CheckoutRequestsManager({
     [billDiscount, getCollectedForSession, splitModeLabels, t],
   );
 
-  const selectedCollectedPayments = useMemo(
-    () => (selectedRequest ? getCollectedForSession(selectedRequest.session_id) : []),
-    [selectedRequest, getCollectedForSession],
-  );
-  const selectedMeta = selectedRequest ? getRequestCheckoutMeta(selectedRequest) : null;
+  const selectRequest = useCallback((requestId: string) => {
+    setSelection({ mode: 'picked', requestId });
+  }, []);
 
-  const collectedByPerson = useMemo(
-    () => sumCollectedByPersonName(selectedCollectedPayments),
-    [selectedCollectedPayments],
-  );
-  const resumeBlockReason = selectedRequest
-    ? resumeCheckoutBlockReason(selectedRequest, selectedCollectedPayments)
-    : null;
-  const resumeConfirmMessage = useMemo(() => {
-    if (!selectedRequest) return t.resumeOrderingConfirmCancel;
-    const variant = resumeOrderingConfirmVariant(selectedRequest, selectedCollectedPayments);
-    if (variant === 'preserve_by_item') return t.resumeOrderingConfirmPreserveByItem;
-    if (variant === 'preserve_with_collections') return t.resumeOrderingConfirmPreserveWithCollections;
-    return t.resumeOrderingConfirmCancel;
-  }, [selectedRequest, selectedCollectedPayments, t]);
-  const pendingSplitRows = selectedRequest
-    ? collectibleSplitRowsWithIndex(
-        getDiscountedSplitResult(selectedRequest),
-        collectedByPerson,
-      )
-    : [];
+  const showList = useCallback(() => {
+    setSelection({ mode: 'list' });
+  }, []);
+
+  const clearSelectionAfterComplete = useCallback(() => {
+    setSelection({ mode: 'follow_focus' });
+  }, []);
 
   return (
     <div className="mb-8">
@@ -515,21 +245,20 @@ export function CheckoutRequestsManager({
               />
             ) : null}
             <label className="flex items-center gap-2 text-sm text-brand-text-muted cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={soundEnabled}
-              onChange={(e) => {
-                const next = e.target.checked;
-                setSoundEnabled(next);
-                saveCheckoutSoundEnabled(next);
-              }}
-              className="rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
-            />
-            {t.soundLabel}
-          </label>
+              <input
+                type="checkbox"
+                checked={soundEnabled}
+                onChange={(e) => {
+                  const next = e.target.checked;
+                  setSoundEnabled(next);
+                  saveCheckoutSoundEnabled(next);
+                }}
+                className="rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
+              />
+              {t.soundLabel}
+            </label>
           </div>
         </div>
-
       </header>
 
       {requests.length === 0 ? (
@@ -545,9 +274,7 @@ export function CheckoutRequestsManager({
         </div>
       ) : (
         <div className="lg:grid lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)] lg:gap-4 lg:items-start">
-          <div
-            className={`space-y-2 ${selectedRequestId ? 'hidden lg:block' : ''}`}
-          >
+          <div className={`space-y-2 ${selectedRequestId ? 'hidden lg:block' : ''}`}>
             {requests.map((request) => {
               const meta = getRequestCheckoutMeta(request);
               return (
@@ -561,56 +288,30 @@ export function CheckoutRequestsManager({
                   partialPaid={meta.partialPaid}
                   lang={lang}
                   t={t}
-                  onSelect={() => setSelectedRequestId(request.id)}
+                  onSelect={() => selectRequest(request.id)}
                 />
               );
             })}
           </div>
 
           <div className={selectedRequestId ? '' : 'hidden lg:block'}>
-            {selectedRequest && selectedMeta ? (
-              <CheckoutRequestDetail
+            {selectedRequest ? (
+              <CheckoutRequestDetailHost
+                key={selectedRequest.id}
                 request={selectedRequest}
-                summary={selectedMeta.summary}
-                splitModeLabel={selectedMeta.splitModeLabel}
-                partialPaid={selectedMeta.partialPaid}
-                collectedPayments={selectedCollectedPayments}
-                pendingSplitRows={pendingSplitRows}
-                collectedByPerson={collectedByPerson}
-                selectedLines={selectedLines}
-                processingKeys={processingKeys}
-                discountRate={getDiscountRate(selectedRequest)}
-                discountApplying={billDiscount.applyingRequestId === selectedRequest.id}
-                discountLocked={hasConfirmedPerson(selectedRequest)}
-                resumeBlockReason={resumeBlockReason}
+                restaurantId={restaurantId}
+                restaurantSlug={restaurantSlug}
                 canCloseTable={canCloseTable}
-                printBillBusy={isPrintBillBusy(selectedRequest.id)}
-                printCooldownSeconds={cooldownSecondsLeft(selectedRequest.id)}
-                printOnCooldown={isOnCooldown(selectedRequest.id)}
-                showBackButton
-                lang={lang}
-                t={t}
-                onBack={() => setSelectedRequestId(null)}
-                onDiscountRateChange={(next) =>
-                  billDiscount.handleRateChange(selectedRequest.id, next)
-                }
-                onDiscountRateFocus={() =>
-                  billDiscount.handleRateFocus(
-                    selectedRequest.id,
-                    selectedRequest.discount_rate ?? 0,
-                  )
-                }
-                onDiscountRateBlur={() => handleDiscountRateBlur(selectedRequest)}
-                onConfirmPersonPaid={(index) =>
-                  void handleConfirmPersonPaid(selectedRequest, index)
-                }
-                onPrintBill={() => void handlePrintBill(selectedRequest)}
-                onResumeOrderingClick={() => setResumeConfirmOpen(true)}
-                onCloseTable={() => {
-                  setSelectedRequestId(null);
-                  void reload();
-                }}
+                showBackButton={!!selectedRequestId}
+                onBack={showList}
+                onAllPaid={clearSelectionAfterComplete}
+                onCloseTableComplete={clearSelectionAfterComplete}
+                onResumeOrderingComplete={clearSelectionAfterComplete}
               />
+            ) : awaitingFocusResolve ? (
+              <div className="flex bg-brand-card border border-brand-border rounded-xl px-6 py-16 text-center items-center justify-center min-h-[240px]">
+                <p className="text-brand-text-muted text-sm">{t.selectTableHint}</p>
+              </div>
             ) : (
               <div className="hidden lg:flex bg-brand-card border border-brand-border rounded-xl px-6 py-16 text-center items-center justify-center min-h-[240px]">
                 <p className="text-brand-text-muted text-sm">{t.selectTableHint}</p>
@@ -619,44 +320,6 @@ export function CheckoutRequestsManager({
           </div>
         </div>
       )}
-      <ReasonConfirmDialog
-        open={billDiscount.pendingSetup != null}
-        onClose={billDiscount.cancelSetup}
-        title={t.discountReasonTitle}
-        message={t.discountReasonMessage}
-        reasonLabel={t.discountReasonLabel}
-        detailLabel={t.discountReasonDetailLabel}
-        detailPlaceholder={t.discountReasonDetailPlaceholder}
-        confirmLabel={t.discountReasonConfirm}
-        cancelLabel={t.discountReasonCancel}
-        reasonRequiredError={t.discountReasonRequired}
-        detailRequiredError={t.discountReasonDetailRequired}
-        reasons={discountReasonOptionsList}
-        reasonGroup="discount"
-        confirming={billDiscount.applyingRequestId != null}
-        onConfirm={async (reason, detail) => {
-          const setup = billDiscount.pendingSetup;
-          if (!setup || !selectedRequest) return;
-          const request = requests.find((r) => r.id === setup.requestId) ?? selectedRequest;
-          await persistDiscount(request, setup.rate, reason, detail);
-        }}
-      />
-      <ConfirmModal
-        open={resumeConfirmOpen && !!selectedRequest}
-        onClose={() => setResumeConfirmOpen(false)}
-        title={t.resumeOrderingConfirmTitle}
-        message={resumeConfirmMessage}
-        confirmLabel={t.resumeOrdering}
-        cancelLabel={t.resumeOrderingCancel}
-        confirming={
-          !!selectedRequest &&
-          processingKeys.has(checkoutResumeOrderingKey(selectedRequest.id))
-        }
-        onConfirm={() => {
-          if (!selectedRequest) return;
-          void handleResumeOrdering(selectedRequest);
-        }}
-      />
     </div>
   );
 }

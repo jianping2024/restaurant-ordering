@@ -26,6 +26,17 @@ export const waiterDetailLayout = {
   occupiedToolbarCluster: 'flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2',
 } as const;
 
+/** Narrow modal layout for dashboard open-table sheet (viewport breakpoints not used). */
+export const openTableSheetLayout = {
+  stack: 'flex flex-col gap-4',
+  buffetHeader: 'space-y-1',
+  guestBlock:
+    'space-y-3 rounded-xl border border-brand-border/50 bg-brand-bg/40 px-3 py-3',
+  total: 'text-[15px] font-semibold text-brand-gold-dark tabular-nums',
+  actionRow: 'flex flex-col-reverse gap-2 sm:flex-row',
+  actionButton: 'w-full sm:flex-1 justify-center',
+} as const;
+
 export type BuffetStripEdge = 'start' | 'mid' | 'end';
 
 export function buffetStripSectionClass(edge: BuffetStripEdge, extra = ''): string {

@@ -11,7 +11,7 @@ operation_logs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, action_ty
 
 bill_splits (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, order_ids: uuid[], split_mode: text [even|by_item|custom], persons: jsonb, result: jsonb, total_amount: numeric, status: text [pending|confirmed|requested|paid|cancelled], created_at: timestamptz, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id, display_name: text, customer_nif: text nullable, discount_rate: numeric default 0, discount_reason: text nullable, discount_reason_detail: text nullable)
 
-session_collected_payments (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, session_id: uuid FK -> table_sessions.id, person_name: text, amount: numeric, bill_split_id: uuid FK -> bill_splits.id nullable, created_by_user_id: uuid FK -> auth.users.id nullable, created_at: timestamptz)
+session_collected_payments (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, session_id: uuid FK -> table_sessions.id, person_index: int nullable, person_name: text, amount: numeric, bill_split_id: uuid FK -> bill_splits.id nullable, created_by_user_id: uuid FK -> auth.users.id nullable, created_at: timestamptz)
 
 buffet_calendar_overrides (restaurant_id: uuid PK FK -> restaurants.id, on_date: date PK, kind: text [holiday|special])
 
@@ -39,7 +39,7 @@ print_agent_pairings (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, cod
 
 print_jobs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, type: text [order_receipt|station_ticket|pre_bill], payload: jsonb, status: text [pending|processing|done|failed], claimed_by: text nullable, attempts: integer, error_message: text nullable, created_at: timestamptz, updated_at: timestamptz, table_display: text generated_from_payload nullable, table_id: uuid generated_from_payload nullable)
 
-print_stations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, sort_order: integer, ticket_layout: text [kitchen|beverage|standard], created_at: timestamptz)
+print_stations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, sort_order: integer, created_at: timestamptz)
 
 restaurant_staff_accounts (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, user_id: uuid unique FK -> auth.users.id, role: text [kitchen|waiter|cashier|frontdesk], display_name: text, login_name: text unique, created_by: uuid FK -> auth.users.id nullable, created_at: timestamptz, updated_at: timestamptz, disabled_at: timestamptz nullable)
 
@@ -47,7 +47,7 @@ platform_admin_accounts (id: uuid PK, user_id: uuid unique FK -> auth.users.id, 
 
 platform_admin_audit_log (id: uuid PK, actor_user_id: uuid FK -> auth.users.id nullable, action: text, target_type: text, target_id: text, restaurant_id: uuid FK -> restaurants.id nullable, metadata: jsonb default {}, created_at: timestamptz)
 
-restaurant_tables (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, display_name: text length 1..16, sort_order: integer, deleted_at: timestamptz nullable, created_at: timestamptz)
+restaurant_tables (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, display_name: text length 1..16, sort_order: integer, seat_min: integer default 2, seat_max: integer default 4, deleted_at: timestamptz nullable, created_at: timestamptz)
 restaurant_table_groups (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name: text length 1..32 unique per restaurant, remarks: text nullable, sort_order: integer, created_at: timestamptz)
 restaurant_table_group_members (group_id: uuid FK -> restaurant_table_groups.id, table_id: uuid FK -> restaurant_tables.id, restaurant_id: uuid FK -> restaurants.id; PK (group_id, table_id); UNIQUE (restaurant_id, table_id))
 
@@ -130,7 +130,7 @@ restaurants_public — security definer view; public menu/geo fields for custome
 
 | Function | Role | Notes |
 |----------|------|-------|
-| `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index, collected_amount?, created_by_user_id?)` | authenticated, service_role | SECURITY DEFINER checkout; reads `bill_splits.discount_rate`; appends `session_collected_payments`; rejects when ledger already covers discounted row amount; reconciles `result.paid` from ledger; returns `collected_payment_id`; advisory lock per session; not anon |
+| `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index, collected_amount?, created_by_user_id?)` | authenticated, service_role | SECURITY DEFINER checkout; reads `bill_splits.discount_rate`; appends `session_collected_payments` with `person_index`; rejects overpay and when ledger already covers per-row discounted obligation; reconciles `result.paid` from ledger by index; closes session when every index settled; returns `collected_payment_id`; advisory lock per session; not anon |
 | `resume_table_session_ordering(restaurant_id, table_id)` | authenticated, service_role | Set session `billing` → `open`; blocks whole-table when paid or ledger non-empty; `by_item` split always `confirmed`; even/custom `confirmed` when partial pay else `cancelled` |
 | `upsert_bill_split_request(restaurant_id, session_id, table_id, display_name, order_ids, split_mode, persons, result, total_amount, customer_nif)` | authenticated, service_role | Atomic checkout request; merges amounts then `reconcile_split_result_paid_from_ledger`; not anon |
 | `reconcile_split_result_paid_from_ledger(result, restaurant_id, session_id, discount_rate?)` | authenticated, service_role | Sets each `result.paid` when session ledger covers discounted row amount |
@@ -166,7 +166,6 @@ dish_feedback.vote: up | down
 orders.status: pending | cooking | done  
 print_jobs.type: order_receipt | station_ticket | pre_bill  
 print_jobs.status: pending | processing | done | failed  
-print_stations.ticket_layout: kitchen | beverage | standard  
 platform_admin_accounts.role: support | admin  
 restaurant_staff_accounts.role: kitchen | waiter | cashier | frontdesk  
 restaurants.plan: free | pro  

@@ -6,6 +6,11 @@ export const RESTAURANT_TABLE_LABEL_MAX_LEN = 16;
 
 export const DEFAULT_TABLE_COUNT = 10;
 
+export const TABLE_SEAT_MIN = 1;
+export const TABLE_SEAT_MAX = 99;
+export const DEFAULT_TABLE_SEAT_MIN = 2;
+export const DEFAULT_TABLE_SEAT_MAX = 4;
+
 /** Alphanumeric table labels: letter or digit first, then letters/digits/_/- */
 export const TABLE_DISPLAY_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
 
@@ -17,14 +22,42 @@ export interface RestaurantTable {
   restaurant_id: string;
   display_name: string;
   sort_order: number;
+  seat_min: number;
+  seat_max: number;
   deleted_at: string | null;
   created_at: string;
 }
 
 export type RestaurantTableRow = Pick<
   RestaurantTable,
-  'id' | 'display_name' | 'sort_order'
+  'id' | 'display_name' | 'sort_order' | 'seat_min' | 'seat_max'
 >;
+
+export function normalizeTableSeatCount(raw: unknown, fallback: number): number {
+  const n = typeof raw === 'number' ? Math.floor(raw) : Number.parseInt(String(raw ?? ''), 10);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(TABLE_SEAT_MAX, Math.max(TABLE_SEAT_MIN, n));
+}
+
+export function normalizeTableSeatRange(
+  seatMinRaw: unknown,
+  seatMaxRaw: unknown,
+): { seat_min: number; seat_max: number } | null {
+  const seat_min = normalizeTableSeatCount(seatMinRaw, DEFAULT_TABLE_SEAT_MIN);
+  const seat_max = normalizeTableSeatCount(seatMaxRaw, DEFAULT_TABLE_SEAT_MAX);
+  if (seat_min > seat_max) return null;
+  return { seat_min, seat_max };
+}
+
+export function isValidTableSeatRange(seatMin: number, seatMax: number): boolean {
+  return (
+    Number.isInteger(seatMin)
+    && Number.isInteger(seatMax)
+    && seatMin >= TABLE_SEAT_MIN
+    && seatMax <= TABLE_SEAT_MAX
+    && seatMin <= seatMax
+  );
+}
 
 export function normalizeTableDisplayName(raw: string): string {
   return raw.trim();
@@ -118,11 +151,143 @@ export function mergeTablesWithOrderHistory(
       typeof o.display_name === 'string' && o.display_name.trim()
         ? o.display_name.trim()
         : id.slice(0, 8);
-    byId.set(id, { id, display_name: label, sort_order: 9999 });
+    byId.set(id, {
+      id,
+      display_name: label,
+      sort_order: 9999,
+      seat_min: DEFAULT_TABLE_SEAT_MIN,
+      seat_max: DEFAULT_TABLE_SEAT_MAX,
+    });
   }
   return sortRestaurantTables(Array.from(byId.values()));
 }
 
 export function activeRestaurantTables(rows: RestaurantTable[]): RestaurantTable[] {
   return rows.filter((r) => !r.deleted_at);
+}
+
+/** Apply in-progress display_name drafts onto table rows. */
+export function mergeTableLabelDrafts(
+  tables: RestaurantTableRow[],
+  labelDrafts: Record<string, string>,
+): RestaurantTableRow[] {
+  return tables.map((row) => {
+    const raw = labelDrafts[row.id];
+    if (raw === undefined) return row;
+    return { ...row, display_name: normalizeTableDisplayName(raw) };
+  });
+}
+
+export function restaurantTableSettingsEqual(
+  a: RestaurantTableRow,
+  b: RestaurantTableRow,
+): boolean {
+  return (
+    a.display_name === b.display_name
+    && a.seat_min === b.seat_min
+    && a.seat_max === b.seat_max
+  );
+}
+
+/** Rows whose display_name or seat range differs from the saved baseline. */
+export function pickDirtyRestaurantTables(
+  tables: RestaurantTableRow[],
+  savedTables: RestaurantTableRow[],
+  labelDrafts: Record<string, string>,
+): RestaurantTableRow[] {
+  const merged = mergeTableLabelDrafts(tables, labelDrafts);
+  const savedById = new Map(savedTables.map((row) => [row.id, row]));
+  return merged.filter((row) => {
+    const saved = savedById.get(row.id);
+    return !saved || !restaurantTableSettingsEqual(row, saved);
+  });
+}
+
+export function hasUnsavedRestaurantTableChanges(
+  tables: RestaurantTableRow[],
+  savedTables: RestaurantTableRow[],
+  labelDrafts: Record<string, string>,
+): boolean {
+  if (tables.length !== savedTables.length) return true;
+  return pickDirtyRestaurantTables(tables, savedTables, labelDrafts).length > 0;
+}
+
+export type RestaurantTableSettingsValidationError =
+  | 'invalid_label'
+  | 'invalid_seat'
+  | 'duplicate_name';
+
+export function validateRestaurantTableSettings(
+  tables: RestaurantTableRow[],
+): RestaurantTableSettingsValidationError | null {
+  for (const row of tables) {
+    if (!isValidTableDisplayName(row.display_name)) return 'invalid_label';
+    if (!isValidTableSeatRange(row.seat_min, row.seat_max)) return 'invalid_seat';
+  }
+  const names = tables.map((row) => row.display_name);
+  if (new Set(names).size !== names.length) return 'duplicate_name';
+  return null;
+}
+
+export function projectRestaurantTablePatches(
+  current: RestaurantTableRow[],
+  patches: RestaurantTableRow[],
+): RestaurantTableRow[] {
+  const patchById = new Map(patches.map((row) => [row.id, row]));
+  return current.map((row) => patchById.get(row.id) ?? row);
+}
+
+export function parseRestaurantTablePatchRows(
+  rawTables: unknown,
+  currentById: Map<string, RestaurantTableRow>,
+): { updates: RestaurantTableRow[] } | { error: 'invalid_tables' | 'invalid_seat_range' } {
+  if (!Array.isArray(rawTables) || rawTables.length === 0) {
+    return { error: 'invalid_tables' };
+  }
+
+  const updates: RestaurantTableRow[] = [];
+  const seenIds = new Set<string>();
+
+  for (const row of rawTables) {
+    if (!row || typeof row !== 'object') {
+      return { error: 'invalid_tables' };
+    }
+    const raw = row as Record<string, unknown>;
+    const id = parseTableIdParam(raw.id);
+    const displayName = normalizeTableDisplayName(
+      typeof raw.display_name === 'string' ? raw.display_name : '',
+    );
+    if (!id || !currentById.has(id) || !isValidTableDisplayName(displayName)) {
+      return { error: 'invalid_tables' };
+    }
+    if (seenIds.has(id)) return { error: 'invalid_tables' };
+    seenIds.add(id);
+
+    const seatRange = normalizeTableSeatRange(raw.seat_min, raw.seat_max);
+    if (!seatRange) return { error: 'invalid_seat_range' };
+
+    updates.push({
+      id,
+      display_name: displayName,
+      sort_order: currentById.get(id)!.sort_order,
+      seat_min: seatRange.seat_min,
+      seat_max: seatRange.seat_max,
+    });
+  }
+
+  return { updates };
+}
+
+export function prepareRestaurantTableSettingsSave(
+  tables: RestaurantTableRow[],
+  savedTables: RestaurantTableRow[],
+  labelDrafts: Record<string, string>,
+):
+  | { merged: RestaurantTableRow[]; patches: RestaurantTableRow[] }
+  | { error: RestaurantTableSettingsValidationError } {
+  const merged = mergeTableLabelDrafts(tables, labelDrafts);
+  const validationError = validateRestaurantTableSettings(merged);
+  if (validationError) return { error: validationError };
+  const patches = pickDirtyRestaurantTables(tables, savedTables, labelDrafts);
+  return { merged, patches };
 }

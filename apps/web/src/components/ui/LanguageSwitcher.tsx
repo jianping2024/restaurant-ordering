@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
+import { getMessages } from '@/lib/i18n/messages';
 import type { UILanguage } from '@/lib/i18n';
 
 const OPTIONS: { id: UILanguage; label: string; menuLabel: string; flag: string }[] = [
@@ -10,9 +11,18 @@ const OPTIONS: { id: UILanguage; label: string; menuLabel: string; flag: string 
   { id: 'zh', label: '中', menuLabel: '中文', flag: '🇨🇳' },
 ];
 
+const LIST_ORDER: UILanguage[] = ['zh', 'en', 'pt'];
+
+function langOptionLabel(uiLang: UILanguage, optionId: UILanguage): string {
+  const nav = getMessages(uiLang).nav;
+  if (optionId === 'zh') return nav.langOptionZh;
+  if (optionId === 'en') return nav.langOptionEn;
+  return nav.langOptionPt;
+}
+
 interface LanguageSwitcherProps {
   compact?: boolean;
-  variant?: 'inline' | 'menu' | 'icon';
+  variant?: 'inline' | 'menu' | 'icon' | 'list';
   /** Match customer menu header pills (flag + code). */
   showFlags?: boolean;
 }
@@ -49,6 +59,44 @@ export function LanguageSwitcher({
     setLang(optionId);
     setOpen(false);
   };
+
+  if (variant === 'list') {
+    return (
+      <div role="listbox" aria-label={getMessages(lang).nav.languageSettings} className="py-1">
+        {LIST_ORDER.map((optionId) => {
+          const option = OPTIONS.find((item) => item.id === optionId);
+          if (!option) return null;
+          const selected = lang === option.id;
+          return (
+            <button
+              key={option.id}
+              type="button"
+              role="option"
+              aria-selected={selected}
+              onClick={() => selectLang(option.id)}
+              className={`flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors ${
+                selected
+                  ? 'bg-brand-gold/15 text-brand-text font-medium'
+                  : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-bg/70'
+              }`}
+            >
+              <span aria-hidden className="shrink-0 text-base leading-none">
+                {option.flag}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-left">{langOptionLabel(lang, option.id)}</span>
+              {selected ? (
+                <span aria-hidden className="shrink-0 text-brand-gold">
+                  ✓
+                </span>
+              ) : (
+                <span aria-hidden className="shrink-0 w-3" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
 
   if (variant === 'icon') {
     return (

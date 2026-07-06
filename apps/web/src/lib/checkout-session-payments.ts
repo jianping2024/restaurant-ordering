@@ -1,4 +1,5 @@
-import { normalizeSplitRows } from '@/lib/checkout-split-math';
+import { discountedObligationAmount } from '@/lib/checkout-split-math';
+import { eurosToCents } from '@/lib/money-allocation';
 import type { BillSplit, SplitResult } from '@/types';
 
 export type SplitRowWithIndex = {
@@ -6,44 +7,44 @@ export type SplitRowWithIndex = {
   index: number;
 };
 
-/** Obligation minus prior collections for this person (never negative). */
+/** Obligation minus prior collections for this index (never negative, cent exact). */
 export function outstandingAmount(obligation: number, priorCollected: number): number {
-  const delta = Number(obligation) - priorCollected;
-  return Math.max(0, Math.round(delta * 100) / 100);
+  return Math.max(0, eurosToCents(obligation) - eurosToCents(priorCollected)) / 100;
 }
 
-/** Whether this split row still has a positive ledger balance (ignores stale paid flag). */
 export function isSplitRowCollectible(
-  row: SplitResult,
-  collectedByPerson: Map<string, number>,
+  discountedObligation: number,
+  collectedByIndex: Map<number, number>,
+  rowIndex: number,
 ): boolean {
-  return outstandingAmount(row.amount, collectedByPerson.get(row.name.trim()) ?? 0) > 0;
+  return outstandingAmount(discountedObligation, collectedByIndex.get(rowIndex) ?? 0) > 0;
 }
 
-/** Split rows with a positive balance after session ledger; preserves person_index for RPC. */
 export function collectibleSplitRowsWithIndex(
   rows: SplitResult[],
-  collectedByPerson: Map<string, number>,
+  collectedByIndex: Map<number, number>,
 ): SplitRowWithIndex[] {
   return rows
     .map((row, index) => ({ row, index }))
-    .filter(({ row }) => isSplitRowCollectible(row, collectedByPerson));
+    .filter(({ row, index }) => isSplitRowCollectible(row.amount, collectedByIndex, index));
 }
 
 export type SessionCollectedPayment = {
   id: string;
+  person_index: number | null;
   person_name: string;
   amount: number;
   created_at: string;
 };
 
 export const SESSION_COLLECTED_PAYMENT_SELECT =
-  'id, session_id, person_name, amount, created_at' as const;
+  'id, session_id, person_index, person_name, amount, created_at' as const;
 
 export function parseSessionCollectedPayments(
   data: Array<{
     id: unknown;
     session_id?: unknown;
+    person_index?: unknown;
     person_name: unknown;
     amount: unknown;
     created_at: unknown;
@@ -51,6 +52,10 @@ export function parseSessionCollectedPayments(
 ): SessionCollectedPayment[] {
   return (data ?? []).map((row) => ({
     id: row.id as string,
+    person_index:
+      typeof row.person_index === 'number' && Number.isInteger(row.person_index)
+        ? row.person_index
+        : null,
     person_name: row.person_name as string,
     amount: Number(row.amount),
     created_at: row.created_at as string,
@@ -61,6 +66,7 @@ export function parseSessionCollectedPaymentsWithSession(
   data: Array<{
     id: unknown;
     session_id: unknown;
+    person_index?: unknown;
     person_name: unknown;
     amount: unknown;
     created_at: unknown;
@@ -69,12 +75,29 @@ export function parseSessionCollectedPaymentsWithSession(
   return (data ?? []).map((row) => ({
     id: row.id as string,
     session_id: row.session_id as string,
+    person_index:
+      typeof row.person_index === 'number' && Number.isInteger(row.person_index)
+        ? row.person_index
+        : null,
     person_name: row.person_name as string,
     amount: Number(row.amount),
     created_at: row.created_at as string,
   }));
 }
 
+export function sumCollectedByPersonIndex(
+  payments: SessionCollectedPayment[],
+): Map<number, number> {
+  const map = new Map<number, number>();
+  for (const payment of payments) {
+    if (payment.person_index == null || payment.person_index < 0) continue;
+    const prior = map.get(payment.person_index) ?? 0;
+    map.set(payment.person_index, prior + Number(payment.amount));
+  }
+  return map;
+}
+
+/** @deprecated Ledger matches by person_index; kept for customer display fallbacks. */
 export function sumCollectedByPersonName(
   payments: SessionCollectedPayment[],
 ): Map<string, number> {
@@ -91,27 +114,24 @@ export function totalCollectedAmount(payments: SessionCollectedPayment[]): numbe
   return payments.reduce((sum, payment) => sum + Number(payment.amount), 0);
 }
 
-/** New payable minus prior collections for this person (never negative). */
 export function suggestedCollectionAmount(
-  personName: string,
-  newPayable: number,
-  collectedByPerson: Map<string, number>,
+  rowIndex: number,
+  discountedObligation: number,
+  collectedByIndex: Map<number, number>,
 ): number {
-  return outstandingAmount(newPayable, collectedByPerson.get(personName.trim()) ?? 0);
+  return outstandingAmount(discountedObligation, collectedByIndex.get(rowIndex) ?? 0);
 }
 
-/** Derive paid flags from ledger vs row amounts (matches reconcile_split_result_paid_from_ledger). */
 export function reconcileSplitResultPaid(
   rows: SplitResult[],
-  collectedByPerson: Map<string, number>,
+  collectedByIndex: Map<number, number>,
 ): SplitResult[] {
-  return rows.map((row) => ({
+  return rows.map((row, index) => ({
     ...row,
-    paid: outstandingAmount(row.amount, collectedByPerson.get(row.name.trim()) ?? 0) <= 0,
+    paid: !isSplitRowCollectible(row.amount, collectedByIndex, index),
   }));
 }
 
-/** Person names that already have ledger rows (case-insensitive). */
 export function collectedPersonNames(
   payments: SessionCollectedPayment[],
 ): ReadonlySet<string> {
@@ -123,7 +143,6 @@ export function collectedPersonNames(
   return names;
 }
 
-/** Distinct display names from ledger rows (preserves first-seen casing). */
 export function uniqueCollectedPersonNames(
   payments: Array<{ person_name: string }>,
 ): string[] {
@@ -140,7 +159,7 @@ export function uniqueCollectedPersonNames(
 }
 
 export function isWholeTableSplit(split: BillSplit): boolean {
-  return normalizeSplitRows(split).length <= 1;
+  return (split.result ?? []).length <= 1;
 }
 
 export function hasConfirmedPerson(split: BillSplit): boolean {
@@ -154,7 +173,6 @@ export type ResumeOrderingConfirmVariant =
   | 'preserve_with_collections'
   | 'cancel_no_collections';
 
-/** Confirm-dialog copy branch; must match resume_table_session_ordering split fate. */
 export function resumeOrderingConfirmVariant(
   split: BillSplit,
   collectedPayments: SessionCollectedPayment[],
@@ -183,4 +201,12 @@ export function httpStatusForResumeOrderingRpcCode(code: string): number {
     resume_failed: 500,
   };
   return map[code] ?? 500;
+}
+
+/** Discounted obligation for one split row (matches RPC). */
+export function splitRowDiscountedObligation(
+  preDiscountAmount: number,
+  discountRate: number,
+): number {
+  return discountedObligationAmount(preDiscountAmount, discountRate);
 }

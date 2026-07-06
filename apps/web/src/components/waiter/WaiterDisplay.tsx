@@ -4,15 +4,18 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import Link from 'next/link';
 import type { Order } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
+import { StaffPersonalSettingsMenu } from '@/components/staff/StaffPersonalSettingsMenu';
 import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticatedShell';
+import { WaiterBoardOpenTableSheet } from '@/components/waiter/WaiterBoardOpenTableSheet';
+import { WaiterBoardCheckoutSheet } from '@/components/waiter/WaiterBoardCheckoutSheet';
+import { WaiterBoardTableCard } from '@/components/waiter/WaiterBoardTableCard';
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { showToast } from '@/components/ui/Toast';
 import { getMessages } from '@/lib/i18n/messages';
+import { resolveWaiterBoardCardAction } from '@/lib/waiter-board-card-action';
 import {
   buildWaiterBoardStateContext,
-  buildWaiterTableCardSubtitle,
   classifyWaiterTableBoardState,
   computeWaiterBoardStats,
   demoSessionMetaFromOrders,
@@ -21,14 +24,8 @@ import {
   isWaiterTableInCheckout,
   tableMatchesWaiterBoardSearch,
   type WaiterBoardFilter,
-  type WaiterBoardStateContext,
-  type WaiterTableBoardState,
   type WaiterTableSessionMeta,
 } from '@/lib/waiter-board-session';
-import {
-  checkoutRequestedAtForTable,
-  isTableCheckoutRequested,
-} from '@/lib/table-checkout-pending';
 import {
   buildWaiterBoardSections,
   type RestaurantTableGroup,
@@ -41,11 +38,9 @@ import {
   waiterBoardSummariesByTableId,
 } from '@/lib/waiter-board-snapshot';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
-import { waiterTableHref, dashboardCheckoutTableHref } from '@/lib/staff-routes';
-import {
-  formatCheckoutPinnedSectionTitle,
-  isWaiterBoardTableCardClickable,
-} from '@/lib/waiter-board-permissions';
+import type { WaiterBoardOpenTableDefaults } from '@/lib/staff-board';
+import { waiterTableHref } from '@/lib/staff-routes';
+import { formatCheckoutPinnedSectionTitle } from '@/lib/waiter-board-permissions';
 import {
   loadWaiterBoardCollapsedSectionIds,
   saveWaiterBoardCollapsedSectionIds,
@@ -68,6 +63,8 @@ interface Props {
   initialMembers?: RestaurantTableGroupMember[];
   isDemo?: boolean;
   embeddedInDashboard?: boolean;
+  restaurantHasActiveBuffets?: boolean;
+  initialOpenTableDefaults?: WaiterBoardOpenTableDefaults | null;
 }
 
 const BOARD_KPI_ITEMS: {
@@ -82,118 +79,6 @@ const BOARD_KPI_ITEMS: {
   { filter: 'dining', tone: 'emerald', countKey: 'open', labelKey: 'filterDining' },
   { filter: 'idle', tone: 'neutral', countKey: 'idle', labelKey: 'filterIdle' },
 ];
-
-const STATUS_STYLES: Record<
-  WaiterTableBoardState,
-  { card: string; badge: string }
-> = {
-  checkout: {
-    card: 'border-amber-500/55 bg-amber-500/12 shadow-md shadow-amber-900/10 hover:border-amber-500/80',
-    badge: 'bg-amber-700 text-white',
-  },
-  dining: {
-    card: 'border-emerald-500/50 bg-emerald-500/10 shadow-sm shadow-emerald-900/5 hover:border-emerald-500/75',
-    badge: 'bg-emerald-700 text-white',
-  },
-  idle: {
-    card: 'border-brand-border bg-brand-card shadow-sm shadow-black/5 hover:border-brand-gold/50',
-    badge: 'bg-brand-border text-brand-text-muted',
-  },
-};
-
-function WaiterTableCard({
-  card,
-  href,
-  checkoutRequestedTableIds,
-  checkoutRequestedAtByTableId,
-  sessionMetaByTableId,
-  boardStateContext,
-  nowMs,
-  lang,
-  pinned = false,
-  frontdeskCheckoutLink = false,
-  clickable = true,
-}: {
-  card: WaiterBoardTableSummary;
-  href: string;
-  checkoutRequestedTableIds: string[];
-  checkoutRequestedAtByTableId: Record<string, string>;
-  sessionMetaByTableId: Record<string, import('@/lib/waiter-board-session').WaiterTableSessionMeta>;
-  boardStateContext: WaiterBoardStateContext;
-  nowMs: number;
-  lang: 'zh' | 'en' | 'pt';
-  pinned?: boolean;
-  frontdeskCheckoutLink?: boolean;
-  clickable?: boolean;
-}) {
-  const t = WAITER_TEXT[lang];
-  const session = sessionMetaByTableId[card.tableId];
-  const hasCheckoutRequest = isTableCheckoutRequested(card.tableId, checkoutRequestedTableIds);
-  const boardState = classifyWaiterTableBoardState(card.tableId, boardStateContext);
-  const statusLabel =
-    boardState === 'checkout'
-      ? t.checkoutPendingShort
-      : boardState === 'dining'
-        ? t.statusDining
-        : t.inactive;
-  const subtitle = buildWaiterTableCardSubtitle({
-    guestCount: card.guestCount,
-    sessionTotal: card.sessionTotal,
-    session,
-    hasCheckoutRequest,
-    lang,
-    checkoutRequestedAt: checkoutRequestedAtForTable(card.tableId, checkoutRequestedAtByTableId),
-    nowMs,
-    labels: {
-      guestCount: t.guestCount,
-      sessionAmount: t.sessionAmount,
-      checkoutPendingSubtitle: frontdeskCheckoutLink
-        ? t.checkoutOwnerCollectAction
-        : t.checkoutPendingSubtitle,
-      clickToView: t.clickToView,
-    },
-  });
-  const styles = STATUS_STYLES[boardState];
-  const cardClassName = `rounded-xl border text-left block px-3 py-2.5 ${styles.card} ${
-    pinned ? 'ring-2 ring-amber-500/35' : ''
-  } ${
-    clickable
-      ? 'group transition-all duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg'
-      : 'cursor-default'
-  }`;
-
-  const cardBody = (
-    <>
-      <div className="flex items-center justify-between gap-2">
-        <p className="font-medium text-brand-text">
-          {t.table} {card.displayName}
-        </p>
-        <span
-          className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${styles.badge}`}
-        >
-          {statusLabel}
-        </span>
-      </div>
-      <p
-        className={`text-[12px] text-brand-text-muted mt-1 ${
-          clickable ? 'transition-colors group-hover:text-brand-gold' : ''
-        }`}
-      >
-        {subtitle}
-      </p>
-    </>
-  );
-
-  if (!clickable) {
-    return <div className={cardClassName}>{cardBody}</div>;
-  }
-
-  return (
-    <Link href={href} className={cardClassName}>
-      {cardBody}
-    </Link>
-  );
-}
 
 function BoardKpiCard({
   active,
@@ -294,6 +179,8 @@ function WaiterBoardInner({
   initialMembers = [],
   isDemo = false,
   embeddedInDashboard = false,
+  restaurantHasActiveBuffets = false,
+  initialOpenTableDefaults = null,
   handleSignOut,
   exitLabel,
   confirmBeforeSignOut,
@@ -309,6 +196,8 @@ function WaiterBoardInner({
     tables,
     groups,
     members,
+    openTableDefaults,
+    refresh,
   } = useWaiterOrders(
     restaurant,
     initialTableSummaries,
@@ -321,6 +210,8 @@ function WaiterBoardInner({
     initialMembers,
     isDemo ? initialOrders : [],
     hasAuthoritativeSeed,
+    restaurantHasActiveBuffets,
+    initialOpenTableDefaults,
   );
 
   const effectiveSessionMetaByTableId = useMemo(
@@ -332,6 +223,11 @@ function WaiterBoardInner({
   const [tableSearch, setTableSearch] = useState('');
   const [collapsedSectionIds, setCollapsedSectionIds] = useState<Set<string>>(() => new Set());
   const [collapsedPrefsHydrated, setCollapsedPrefsHydrated] = useState(false);
+  const [openTableTarget, setOpenTableTarget] = useState<{
+    tableId: string;
+    displayName: string;
+  } | null>(null);
+  const [checkoutTarget, setCheckoutTarget] = useState<{ tableId: string } | null>(null);
 
   useEffect(() => {
     setCollapsedPrefsHydrated(false);
@@ -417,42 +313,39 @@ function WaiterBoardInner({
     [tables, boardStateContext],
   );
 
-  const tableHref = (tableId: string) => {
-    if (embeddedInDashboard) {
-      const boardState = classifyWaiterTableBoardState(tableId, boardStateContext);
-      if (boardState === 'checkout') {
-        return dashboardCheckoutTableHref(tableId);
-      }
-    }
-    return waiterTableHref(restaurant.slug, tableId, { isDemo, embeddedInDashboard });
-  };
-
-  const isFrontdeskCheckoutLink = (tableId: string) =>
-    embeddedInDashboard &&
-    classifyWaiterTableBoardState(tableId, boardStateContext) === 'checkout';
-
-  const isTableCardClickable = (tableId: string) =>
-    isWaiterBoardTableCardClickable(
+  const renderTableCard = (card: WaiterBoardTableSummary, pinned = false) => {
+    const boardState = classifyWaiterTableBoardState(card.tableId, boardStateContext);
+    const detailHref = waiterTableHref(restaurant.slug, card.tableId, {
+      isDemo,
       embeddedInDashboard,
-      classifyWaiterTableBoardState(tableId, boardStateContext),
-    );
+    });
+    const action = resolveWaiterBoardCardAction({
+      boardState,
+      embeddedInDashboard,
+      restaurantHasActiveBuffets,
+      detailHref,
+    });
 
-  const renderTableCard = (card: WaiterBoardTableSummary, pinned = false) => (
-    <WaiterTableCard
-      key={pinned ? `pinned-${card.tableId}` : card.tableId}
-      card={card}
-      href={tableHref(card.tableId)}
-      checkoutRequestedTableIds={checkoutRequestedTableIds}
-      checkoutRequestedAtByTableId={checkoutRequestedAtByTableId}
-      sessionMetaByTableId={effectiveSessionMetaByTableId}
-      boardStateContext={boardStateContext}
-      nowMs={nowMs}
-      lang={lang}
-      pinned={pinned}
-      frontdeskCheckoutLink={isFrontdeskCheckoutLink(card.tableId)}
-      clickable={isTableCardClickable(card.tableId)}
-    />
-  );
+    return (
+      <WaiterBoardTableCard
+        key={pinned ? `pinned-${card.tableId}` : card.tableId}
+        card={card}
+        boardState={boardState}
+        action={action}
+        embeddedInDashboard={embeddedInDashboard}
+        session={effectiveSessionMetaByTableId[card.tableId]}
+        checkoutRequestedAt={checkoutRequestedAtByTableId[card.tableId] ?? null}
+        nowMs={nowMs}
+        lang={lang}
+        pinned={pinned}
+        onOpenTable={() =>
+          setOpenTableTarget({ tableId: card.tableId, displayName: card.displayName })
+        }
+        onOpenCheckout={() => setCheckoutTarget({ tableId: card.tableId })}
+        onDisabledClick={() => showToast(t.buffetNoRule, 'info')}
+      />
+    );
+  };
 
   const renderSectionCards = (tableIds: string[]) => {
     const visibleIds = visibleBoardTableIds(tableIds);
@@ -526,6 +419,11 @@ function WaiterBoardInner({
     visibleBoardTableIds,
   ]);
 
+  const openTableSheetTable = useMemo(() => {
+    if (!openTableTarget) return null;
+    return tables.find((row) => tableIdsEqual(row.id, openTableTarget.tableId)) ?? null;
+  }, [openTableTarget, tables]);
+
   return (
     <div className={embeddedInDashboard ? '' : 'min-h-screen bg-brand-bg p-4'}>
       {isDemo && (
@@ -555,11 +453,13 @@ function WaiterBoardInner({
       )}
       <div className="mb-6">
         {!embeddedInDashboard ? (
-          <StaffRoleToolbar
-            exitLabel={exitLabel}
-            onSignOut={handleSignOut}
-            confirmSignOut={confirmBeforeSignOut}
-          />
+          <div className="flex justify-end mb-3">
+            <StaffPersonalSettingsMenu
+              logoutLabel={exitLabel}
+              onSignOut={handleSignOut}
+              confirmSignOut={confirmBeforeSignOut}
+            />
+          </div>
         ) : null}
         {!embeddedInDashboard ? (
           <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
@@ -579,7 +479,10 @@ function WaiterBoardInner({
               label={t[item.labelKey]}
               hint={item.hintKey ? t[item.hintKey] : undefined}
               tone={item.tone}
-              onClick={() => setBoardFilter(item.filter)}
+              onClick={() => {
+                setBoardFilter(item.filter);
+                void refresh();
+              }}
             />
           ))}
         </div>
@@ -651,6 +554,30 @@ function WaiterBoardInner({
           );
         })}
       </div>
+
+      <WaiterBoardOpenTableSheet
+        open={openTableTarget != null}
+        onClose={() => setOpenTableTarget(null)}
+        onSuccess={() => void refresh()}
+        restaurant={restaurant}
+        tableId={openTableTarget?.tableId ?? ''}
+        displayName={openTableTarget?.displayName ?? ''}
+        table={openTableSheetTable}
+        openTableDefaults={openTableDefaults}
+        reconcileEnabled={!isDemo}
+        lang={lang}
+      />
+
+      {embeddedInDashboard ? (
+        <WaiterBoardCheckoutSheet
+          open={checkoutTarget != null}
+          onClose={() => setCheckoutTarget(null)}
+          onComplete={() => void refresh()}
+          restaurantId={restaurant.id}
+          restaurantSlug={restaurant.slug}
+          tableId={checkoutTarget?.tableId ?? ''}
+        />
+      ) : null}
     </div>
   );
 }

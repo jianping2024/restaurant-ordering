@@ -94,7 +94,7 @@
 
 ### `print_stations`
 
-`ticket_layout`：`kitchen` \| `beverage` \| `standard`。
+每店多行；`name_pt/en/zh` 展示名；`sort_order` 排序。类目/菜品通过 `print_station_id` 绑定出品路由。
 
 ---
 

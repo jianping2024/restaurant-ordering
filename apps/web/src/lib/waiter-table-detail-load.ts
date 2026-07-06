@@ -78,7 +78,7 @@ async function loadTableAndSession(
   const [{ data: tableRow }, { data: sessionRow }] = await Promise.all([
     admin
       .from('restaurant_tables')
-      .select('id, display_name, sort_order')
+      .select('id, display_name, sort_order, seat_min, seat_max')
       .eq('restaurant_id', restaurantId)
       .eq('id', tableId)
       .is('deleted_at', null)

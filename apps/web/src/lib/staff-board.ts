@@ -23,11 +23,14 @@ import {
   buildWaiterBoardTableSummaries,
   type WaiterBoardTableSummary,
 } from '@/lib/waiter-board-snapshot';
-import { loadWaiterTablePageModel } from '@/lib/waiter-table-detail-load';
+import { loadWaiterTablePageModel, resolveOpenTableBuffetPrices } from '@/lib/waiter-table-detail-load';
+import type { WaiterBoardOpenTableDefaults } from '@/lib/waiter-board-open-table';
 import type { WaiterTableDetailData } from '@/lib/waiter-table-detail-types';
+import type { Buffet } from '@/types';
 
 export type { WaiterTableDetailData } from '@/lib/waiter-table-detail-types';
 export type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
+export type { WaiterBoardOpenTableDefaults } from '@/lib/waiter-board-open-table';
 
 export type WaiterBoardData = {
   sessionMetaByTableId: Record<string, WaiterTableSessionMeta>;
@@ -37,6 +40,9 @@ export type WaiterBoardData = {
   groups: RestaurantTableGroup[];
   members: RestaurantTableGroupMember[];
   tableSummaries: WaiterBoardTableSummary[];
+  restaurantHasActiveBuffets: boolean;
+  /** Restaurant-level seed for idle-table open sheet — avoids per-click full page fetch for display. */
+  openTableDefaults: WaiterBoardOpenTableDefaults | null;
 };
 
 export async function fetchWaiterTablePageModel(
@@ -80,7 +86,7 @@ export async function fetchKitchenBoard(admin: SupabaseClient, restaurantId: str
       .in('status', ['open', 'billing']),
     admin
       .from('restaurant_tables')
-      .select('id, display_name, sort_order')
+      .select('id, display_name, sort_order, seat_min, seat_max')
       .eq('restaurant_id', restaurantId)
       .is('deleted_at', null),
   ]);
@@ -114,6 +120,7 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
     { data: tableRows },
     { data: groupRows },
     { data: memberRows },
+    { data: buffetRows },
   ] = await Promise.all([
     admin
       .from('table_sessions')
@@ -130,7 +137,7 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
     fetchCheckoutRequestedBoard(admin, restaurantId),
     admin
       .from('restaurant_tables')
-      .select('id, display_name, sort_order')
+      .select('id, display_name, sort_order, seat_min, seat_max')
       .eq('restaurant_id', restaurantId)
       .is('deleted_at', null),
     admin
@@ -143,11 +150,30 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
       .from('restaurant_table_group_members')
       .select('group_id, table_id, restaurant_id')
       .eq('restaurant_id', restaurantId),
+    admin
+      .from('buffets')
+      .select('*')
+      .eq('restaurant_id', restaurantId)
+      .order('name'),
   ]);
 
   const orders = filterOrdersInActiveSessions((rows || []) as Order[], sessions || []);
   const sessionMetaByTableId = sessionMetaByTableIdFromSessions(sessions || []);
   const tables = (tableRows || []) as RestaurantTableRow[];
+  const buffets = (buffetRows || []) as Buffet[];
+  const restaurantHasActiveBuffets = buffets.some((b) => b.is_active);
+  const openTableDefaults = restaurantHasActiveBuffets
+    ? {
+        buffets,
+        buffetPricesByBuffetId: await resolveOpenTableBuffetPrices(
+          admin,
+          restaurantId,
+          buffets,
+          false,
+        ),
+      }
+    : null;
+
   return {
     sessionMetaByTableId,
     checkoutRequestedTableIds: checkoutRequested.tableIds,
@@ -156,6 +182,8 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
     groups: sortTableGroups((groupRows || []) as RestaurantTableGroup[]),
     members: (memberRows || []) as RestaurantTableGroupMember[],
     tableSummaries: buildWaiterBoardTableSummaries(tables, orders, sessionMetaByTableId),
+    restaurantHasActiveBuffets,
+    openTableDefaults,
   };
 }
 
@@ -174,7 +202,7 @@ export async function fetchWaiterTableActionTargets(
       .in('status', ['open', 'billing']),
     admin
       .from('restaurant_tables')
-      .select('id, display_name, sort_order')
+      .select('id, display_name, sort_order, seat_min, seat_max')
       .eq('restaurant_id', restaurantId)
       .is('deleted_at', null),
     admin

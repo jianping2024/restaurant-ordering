@@ -89,7 +89,7 @@ describe('buildCustomerSplitDisplayRows', () => {
         { name: 'Ana', amount: 27.45, paid: true },
         { name: 'Tom', amount: 71.9 },
       ],
-      [{ id: '1', person_name: 'Ana', amount: 19.95, created_at: '' }],
+      [{ id: '1', person_index: 0, person_name: 'Ana', amount: 19.95, created_at: '' }],
     );
     assert.deepEqual(rows[0], {
       name: 'Ana',
@@ -104,7 +104,7 @@ describe('buildCustomerSplitDisplayRows', () => {
   it('marks settled only when ledger covers obligation', () => {
     const rows = buildCustomerSplitDisplayRows(
       [{ name: 'Ana', amount: 31.7, paid: false }],
-      [{ id: '1', person_name: 'Ana', amount: 31.7, created_at: '' }],
+      [{ id: '1', person_index: 0, person_name: 'Ana', amount: 31.7, created_at: '' }],
     );
     assert.equal(rows[0]?.settlementStatus, 'settled');
   });

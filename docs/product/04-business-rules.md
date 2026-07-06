@@ -33,6 +33,7 @@
 4. 转台/并台/关台须原子 RPC，禁止只改 `table_sessions` 一行
 5. **并台**：来源桌与目标桌均不得处于待结账（与看板 `checkout` 判定一致）；目标选择列表不展示待结账桌；API 双端校验，禁止并入或并出结算中会话
 6. **停用桌位（软删）**：须 `PasswordConfirmDialog` 输入当前登录密码；服务端 `verifyStaffPassword` 通过后才执行；支持 `table_ids` 批量（整批原子：任一桌有 `open`/`billing` 会话则全部不删）
+7. **桌位设置保存**：仅提交有改动的桌位（桌号 / 座位范围）；服务端在合并后校验全店 `display_name` 唯一；新增、停用桌位仍走独立 API
 
 ### 相关代码
 
@@ -269,9 +270,21 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 | `split_mode` | 规则 |
 |--------------|------|
-| `even` | N 人均分；各 `result.amount` 向下取整一致 |
-| `by_item` | 每菜品份额之和 = 行 qty；支持成人/儿童自助餐份额 |
-| `custom` | 手动录入各人 amount；末人吸收余额或校验合计 |
+| `even` | N 人均分；**分币+余分**在此阶段完成（`allocateEvenAmounts`）；`sum(result)=total` 精确到分 |
+| `by_item` | 每行（含自助餐）按份额 **分币+余分**；各 `result.amount` 为各行分摊之和 |
+| `custom` | 手动录入各人 amount；末人吸收余额；`sum(result)=total` 精确到分 |
+
+### 折扣（`checkout-split-math`）
+
+- 折后各行：`round(折前[i] × (1−率))`，**不再二次分摊余分**
+- 汇总栏应付：`round(total × (1−率))`；可能与 `sum(折后[i])` 差几分，**关台以各 index 台账为准**
+- 已有收款台账时折扣锁定
+
+### 收款台账
+
+- `session_collected_payments.person_index` 为结算主键；`person_name` 仅展示
+- 待收[i] = 折后[i] − 台账[i]；RPC 拒绝超收与重复收满
+- 续结时 **保留已有 result 行顺序**（`merge_split_result_with_ledger`），按名更新金额、新名追加末尾
 
 ### 校验（`validateBillSplit`）
 
@@ -279,7 +292,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 |--------|------|
 | `unassigned_items` | by_item 有行未分配 |
 | `incomplete_qty` | 份额不足 |
-| `amount_mismatch` | 各人合计 ≠ 消费总额（±0.009€） |
+| `amount_mismatch` | 各人合计 ≠ 消费总额（**精确到分**） |
 
 ### 续结与锁定（`checkout-split-continuation`）
 

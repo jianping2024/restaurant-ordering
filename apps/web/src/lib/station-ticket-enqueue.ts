@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { OrderItem, PrintStationTicketLayout } from '@/types';
+import type { OrderItem } from '@/types';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
@@ -29,7 +29,6 @@ export function orderItemBatchKey(item: OrderItem): string {
 
 type StationRow = {
   id: string;
-  ticket_layout: PrintStationTicketLayout;
   name_pt: string;
   name_en: string | null;
   name_zh: string | null;
@@ -45,7 +44,6 @@ export type StationTicketJobPayload = {
   order_id: string;
   batch_id: string;
   print_station_id: string;
-  ticket_layout: PrintStationTicketLayout;
   locale: 'zh' | 'en' | 'pt';
   station_display_name_pt: string;
   station_display_name_en: string | null;
@@ -296,7 +294,7 @@ export async function enqueueStationTicketsForOrder(params: {
 
   const { data: stations, error: sErr } = await admin
     .from('print_stations')
-    .select('id, ticket_layout, name_pt, name_en, name_zh')
+    .select('id, name_pt, name_en, name_zh')
     .eq('restaurant_id', restaurantId)
     .in('id', stationIds);
 
@@ -324,7 +322,6 @@ export async function enqueueStationTicketsForOrder(params: {
       order_id: orderId,
       batch_id: batchId,
       print_station_id: sid,
-      ticket_layout: stMeta.ticket_layout,
       locale,
       station_display_name_pt: stMeta.name_pt,
       station_display_name_en: stMeta.name_en,

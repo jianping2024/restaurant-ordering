@@ -79,21 +79,28 @@ type BuffetPanelProps = {
   onSave: () => void;
 };
 
-function BuffetGuestCounter({
+export function BuffetGuestCounter({
   label,
   qty,
   onQtyChange,
   onDecrement,
   onIncrement,
+  layout = 'detail',
 }: {
   label: string;
   qty: number;
   onQtyChange: (value: number) => void;
   onDecrement: () => void;
   onIncrement: () => void;
+  layout?: 'detail' | 'sheet';
 }) {
+  const rowClass =
+    layout === 'sheet'
+      ? 'flex items-center justify-between gap-3'
+      : 'flex items-center justify-start gap-3 xl:justify-center';
+
   return (
-    <div className="flex items-center justify-start gap-3 xl:justify-center">
+    <div className={rowClass}>
       <span className="text-[13px] text-brand-text min-w-[2rem]">{label}</span>
       <CartQtyStepper
         variant="drawer"
@@ -107,7 +114,7 @@ function BuffetGuestCounter({
   );
 }
 
-function BuffetPriceMeta({
+export function BuffetPriceMeta({
   t,
   buffetPriceLoading,
   buffetPriceDisplay,

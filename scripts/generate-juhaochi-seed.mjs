@@ -128,7 +128,7 @@ lines.push('');
 
 for (const ps of print_stations) {
   lines.push(
-    `INSERT INTO public.print_stations (id, restaurant_id, name_pt, name_en, name_zh, sort_order, ticket_layout, created_at) VALUES (${lit(ps.id)}, ${lit(ps.restaurant_id)}, ${lit(ps.name_pt)}, ${lit(ps.name_en)}, ${lit(ps.name_zh)}, ${lit(ps.sort_order)}, ${lit(ps.ticket_layout)}, ${lit(ps.created_at)}) ON CONFLICT (id) DO NOTHING;`,
+    `INSERT INTO public.print_stations (id, restaurant_id, name_pt, name_en, name_zh, sort_order, created_at) VALUES (${lit(ps.id)}, ${lit(ps.restaurant_id)}, ${lit(ps.name_pt)}, ${lit(ps.name_en)}, ${lit(ps.name_zh)}, ${lit(ps.sort_order)}, ${lit(ps.created_at)}) ON CONFLICT (id) DO NOTHING;`,
   );
 }
 lines.push('');

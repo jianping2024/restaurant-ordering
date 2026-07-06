@@ -17,7 +17,7 @@ function idleBoard(): WaiterBoardData {
     sessionMetaByTableId: {},
     checkoutRequestedTableIds: [],
     checkoutRequestedAtByTableId: {},
-    tables: [{ id: TABLE_ID, display_name: '004', sort_order: 4 }],
+    tables: [{ id: TABLE_ID, display_name: '004', sort_order: 4, seat_min: 2, seat_max: 4 }],
     groups: [],
     members: [],
     tableSummaries: [
@@ -28,16 +28,20 @@ function idleBoard(): WaiterBoardData {
         sessionTotal: 0,
         hasBuffet: false,
         occupied: false,
+        seatMin: 2,
+        seatMax: 4,
         updatedAt: '',
       },
     ],
+    restaurantHasActiveBuffets: true,
+    openTableDefaults: null,
   };
 }
 
 function openTableModel(): WaiterTablePageModel {
   return {
     detail: {
-      table: { id: TABLE_ID, display_name: '004', sort_order: 4 },
+      table: { id: TABLE_ID, display_name: '004', sort_order: 4, seat_min: 2, seat_max: 4 },
       sessionMeta: {
         sessionId: 'sess-1',
         openedAt: '2026-01-01T10:00:00.000Z',

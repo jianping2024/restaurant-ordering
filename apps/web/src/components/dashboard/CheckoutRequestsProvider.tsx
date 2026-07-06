@@ -19,7 +19,6 @@ type CheckoutRequestsContextValue = {
   requests: BillSplit[];
   pendingCount: number;
   reload: () => Promise<void>;
-  hydrateFromServer: (serverRequests: BillSplit[]) => void;
   updateRequests: (updater: (prev: BillSplit[]) => BillSplit[]) => void;
 };
 
@@ -38,6 +37,7 @@ type Props = {
   restaurantSlug: string;
   /** Owner dashboard has no checkout queue nav badge or Realtime sync. */
   enabled: boolean;
+  initialRequests?: BillSplit[];
   children: ReactNode;
 };
 
@@ -45,9 +45,12 @@ export function CheckoutRequestsProvider({
   restaurantId,
   restaurantSlug,
   enabled,
+  initialRequests = [],
   children,
 }: Props) {
-  const [requests, setRequests] = useState<BillSplit[]>([]);
+  const [requests, setRequests] = useState<BillSplit[]>(() =>
+    enabled ? initialRequests : [],
+  );
   const reloadSeqRef = useRef(0);
   const supabase = useMemo(() => createClient(), []);
 
@@ -62,10 +65,6 @@ export function CheckoutRequestsProvider({
       if (seq !== reloadSeqRef.current) return;
     }
   }, [enabled, restaurantSlug]);
-
-  const hydrateFromServer = useCallback((serverRequests: BillSplit[]) => {
-    setRequests(serverRequests);
-  }, []);
 
   const updateRequests = useCallback((updater: (prev: BillSplit[]) => BillSplit[]) => {
     setRequests(updater);
@@ -86,10 +85,9 @@ export function CheckoutRequestsProvider({
       requests,
       pendingCount: requests.length,
       reload,
-      hydrateFromServer,
       updateRequests,
     }),
-    [requests, reload, hydrateFromServer, updateRequests],
+    [requests, reload, updateRequests],
   );
 
   return (

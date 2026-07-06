@@ -23,6 +23,7 @@ import { normalizeDecimalInput as normalizeAmountInput } from '@/lib/number-inpu
 import { formatPortugueseNif, normalizePortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
+import { dashboardCheckoutFocusHref } from '@/lib/checkout-queue-focus';
 import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
 import { StaffAssistedBackLink } from '@/components/staff/StaffAssistedBackLink';
 import { useBillOrders } from '@/lib/use-bill-orders';
@@ -421,9 +422,13 @@ export function BillPage({
       setContinuationSplit(null);
 
       setPersistedResult(requestResult.result);
-      const redirectHref = staffAssisted?.checkoutRedirectHref ?? null;
-      if (redirectHref) {
-        router.replace(redirectHref);
+      if (staffAssisted?.checkoutRedirectHref) {
+        router.replace(
+          dashboardCheckoutFocusHref({
+            tableId,
+            requestId: requestResult.bill_split_id,
+          }),
+        );
         return;
       }
       setSubmitted(true);

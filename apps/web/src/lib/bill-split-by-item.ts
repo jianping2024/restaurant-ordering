@@ -1,4 +1,9 @@
 import {
+  allocateProportionalCents,
+  centsToEuros,
+  eurosToCents,
+} from '@/lib/money-allocation';
+import {
   formatRational,
   normalizeRational,
   parseQtyInput,
@@ -709,30 +714,42 @@ export function byItemLinePriceShare(
   shares: ByItemConsumerShare[],
   personName: string,
 ): number {
-  const totalCents = Math.round(lineTotal * 100);
-  if (totalCents <= 0 || shares.length === 0) return 0;
+  const allocated = allocateLineTotalByShares(lineTotal, shares);
+  const index = shares.findIndex((share) => share.name === personName);
+  if (index < 0) return 0;
+  return allocated[index] ?? 0;
+}
+
+/** Menu line: split line total across shares with cent remainder by name sort. */
+export function allocateLineTotalByShares(
+  lineTotal: number,
+  shares: ByItemConsumerShare[],
+): number[] {
+  const totalCents = eurosToCents(lineTotal);
+  if (totalCents <= 0 || shares.length === 0) return shares.map(() => 0);
 
   const lineQty = sumRationals(shares.map((share) => share.qty));
-  const sorted = [...shares].sort((a, b) => a.name.localeCompare(b.name));
-  const centsByName = new Map<string, number>();
-  let assigned = 0;
+  const weightInts = shares.map((share) => share.qty.num * lineQty.den);
+  const cents = allocateProportionalCents(totalCents, weightInts, (i) => shares[i]?.name ?? '');
+  return cents.map(centsToEuros);
+}
 
-  for (const share of sorted) {
-    const cents = Math.floor(
-      (totalCents * share.qty.num * lineQty.den) / (share.qty.den * lineQty.num),
-    );
-    centsByName.set(share.name, cents);
-    assigned += cents;
-  }
+export function allocateBuffetLineByShares(
+  line: Extract<ByItemSplitLine, { mode: 'buffet' }>,
+  shares: ByItemConsumerShare[],
+): number[] {
+  const lineTotal = line.adults * line.adultUnitPrice + line.children * line.childUnitPrice;
+  const totalCents = eurosToCents(lineTotal);
+  if (totalCents <= 0 || shares.length === 0) return shares.map(() => 0);
 
-  let remainder = totalCents - assigned;
-  for (const share of sorted) {
-    if (remainder <= 0) break;
-    centsByName.set(share.name, (centsByName.get(share.name) ?? 0) + 1);
-    remainder -= 1;
-  }
-
-  return (centsByName.get(personName) ?? 0) / 100;
+  const weightInts = shares.map((share) => {
+    const qty = share.qty.num / share.qty.den;
+    const unit =
+      share.guestType === 'child' ? line.childUnitPrice : line.adultUnitPrice;
+    return eurosToCents(unit * qty);
+  });
+  const cents = allocateProportionalCents(totalCents, weightInts, (i) => shares[i]?.name ?? '');
+  return cents.map(centsToEuros);
 }
 
 export function buffetLineAllocationComplete(
@@ -821,11 +838,13 @@ export function calcByItemSplitResults(params: {
     const shares = allocations[line.key] || [];
     if (line.mode === 'buffet') {
       if (!buffetLineAllocationComplete(line, shares)) continue;
-      for (const share of shares) {
+      const lineAmounts = allocateBuffetLineByShares(line, shares);
+      for (let si = 0; si < shares.length; si += 1) {
+        const share = shares[si]!;
         const qty = share.qty.num / share.qty.den;
         const unitPrice =
           share.guestType === 'child' ? line.childUnitPrice : line.adultUnitPrice;
-        const price = Math.round(unitPrice * qty * 100) / 100;
+        const price = lineAmounts[si] ?? 0;
         const existing = people.get(share.name) ?? {
           name: share.name,
           amount: 0,

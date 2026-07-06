@@ -1,3 +1,4 @@
+import { eurosToCents, centsToEuros } from '@/lib/money-allocation';
 import type { BillSplit, SplitResult } from '@/types';
 
 export function normalizeSplitRows(split: BillSplit): SplitResult[] {
@@ -13,11 +14,19 @@ export function clampCheckoutDiscountRate(discountRate: number): number {
   return Math.min(100, Math.max(0, discountRate));
 }
 
-export function applyDiscountToRows(rows: SplitResult[], discountRate: number): SplitResult[] {
+/** Per-row obligation after bill-level discount (round each row; no second allocation). */
+export function discountedObligationAmount(
+  preDiscountAmount: number,
+  discountRate: number,
+): number {
   const factor = 1 - clampCheckoutDiscountRate(discountRate) / 100;
+  return centsToEuros(Math.round(eurosToCents(Number(preDiscountAmount) * factor)));
+}
+
+export function applyDiscountToRows(rows: SplitResult[], discountRate: number): SplitResult[] {
   return rows.map((row) => ({
     ...row,
-    amount: Number(row.amount) * factor,
+    amount: discountedObligationAmount(row.amount, discountRate),
   }));
 }
 
@@ -29,7 +38,8 @@ export function sumSplitRowAmounts(rows: SplitResult[]): number {
   return rows.reduce((sum, row) => sum + Number(row.amount), 0);
 }
 
-/** Payable total after discount — matches checkout dashboard「应收」. */
+/** Summary bar「应收」: round whole consumption after discount. */
 export function checkoutPayableAmount(split: BillSplit, discountRate: number): number {
-  return Math.max(0, sumSplitRowAmounts(discountedSplitRows(split, discountRate)));
+  const factor = 1 - clampCheckoutDiscountRate(discountRate) / 100;
+  return centsToEuros(Math.round(eurosToCents(Number(split.total_amount) * factor)));
 }

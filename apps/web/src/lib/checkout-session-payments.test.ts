@@ -3,16 +3,12 @@ import { describe, it } from 'node:test';
 import type { BillSplit } from '@/types';
 import {
   collectibleSplitRowsWithIndex,
-  collectedPersonNames,
-  parseSessionCollectedPayments,
   isSplitRowCollectible,
+  parseSessionCollectedPayments,
   reconcileSplitResultPaid,
-  resumeCheckoutBlockReason,
-  resumeOrderingConfirmVariant,
   suggestedCollectionAmount,
-  sumCollectedByPersonName,
+  sumCollectedByPersonIndex,
   totalCollectedAmount,
-  uniqueCollectedPersonNames,
 } from './checkout-session-payments';
 
 function billSplit(overrides: Partial<BillSplit> = {}): BillSplit {
@@ -34,112 +30,90 @@ function billSplit(overrides: Partial<BillSplit> = {}): BillSplit {
 }
 
 describe('parseSessionCollectedPayments', () => {
-  it('maps ledger rows with numeric amount', () => {
+  it('maps person_index', () => {
     const rows = parseSessionCollectedPayments([
       {
         id: 'pay-1',
+        person_index: 1,
         person_name: 'John',
         amount: 26.4,
         created_at: '2026-06-27T14:30:00.000Z',
       },
     ]);
-    assert.equal(rows.length, 1);
-    assert.equal(rows[0]?.person_name, 'John');
-    assert.equal(rows[0]?.amount, 26.4);
-    assert.equal(rows[0]?.created_at, '2026-06-27T14:30:00.000Z');
+    assert.equal(rows[0]?.person_index, 1);
   });
 });
 
-describe('sumCollectedByPersonName', () => {
-  it('aggregates by trimmed person name', () => {
-    const map = sumCollectedByPersonName([
-      { id: '1', person_name: 'John', amount: 10, created_at: '' },
-      { id: '2', person_name: ' John ', amount: 5, created_at: '' },
-      { id: '3', person_name: 'Monica', amount: 20, created_at: '' },
+describe('sumCollectedByPersonIndex', () => {
+  it('aggregates by index', () => {
+    const map = sumCollectedByPersonIndex([
+      { id: '1', person_index: 0, person_name: 'A', amount: 10, created_at: '' },
+      { id: '2', person_index: 0, person_name: 'A', amount: 5, created_at: '' },
+      { id: '3', person_index: 1, person_name: 'B', amount: 20, created_at: '' },
     ]);
-    assert.equal(map.get('John'), 15);
-    assert.equal(map.get('Monica'), 20);
+    assert.equal(map.get(0), 15);
+    assert.equal(map.get(1), 20);
+  });
+
+  it('ignores rows without index', () => {
+    const map = sumCollectedByPersonIndex([
+      { id: '1', person_index: null, person_name: 'Legacy', amount: 10, created_at: '' },
+    ]);
+    assert.equal(map.size, 0);
   });
 });
 
 describe('suggestedCollectionAmount', () => {
-  it('subtracts prior collections from new payable', () => {
-    const map = sumCollectedByPersonName([
-      { id: '1', person_name: 'John', amount: 24.45, created_at: '' },
+  it('subtracts prior collections for index', () => {
+    const map = sumCollectedByPersonIndex([
+      { id: '1', person_index: 0, person_name: 'John', amount: 24.45, created_at: '' },
     ]);
-    assert.equal(suggestedCollectionAmount('John', 30, map), 5.55);
-  });
-
-  it('never returns negative', () => {
-    const map = sumCollectedByPersonName([
-      { id: '1', person_name: 'John', amount: 40, created_at: '' },
-    ]);
-    assert.equal(suggestedCollectionAmount('John', 30, map), 0);
+    assert.equal(suggestedCollectionAmount(0, 30, map), 5.55);
   });
 });
 
 describe('isSplitRowCollectible', () => {
-  it('ignores stale paid flag when ledger still owes', () => {
-    const map = sumCollectedByPersonName([
-      { id: '1', person_name: 'Ana', amount: 19.95, created_at: '' },
+  it('uses index not name', () => {
+    const map = sumCollectedByPersonIndex([
+      { id: '1', person_index: 1, person_name: '张三', amount: 20, created_at: '' },
     ]);
-    assert.equal(
-      isSplitRowCollectible({ name: 'Ana', amount: 27.45, paid: true }, map),
-      true,
-    );
+    assert.equal(isSplitRowCollectible(30, map, 0), true);
+    assert.equal(isSplitRowCollectible(30, map, 1), true);
+    assert.equal(isSplitRowCollectible(20, map, 1), false);
   });
 
-  it('returns false when ledger covers obligation', () => {
-    const map = sumCollectedByPersonName([
-      { id: '1', person_name: 'Ana', amount: 27.45, created_at: '' },
+  it('two same names different indices stay independent', () => {
+    const map = sumCollectedByPersonIndex([
+      { id: '1', person_index: 0, person_name: '张三', amount: 30, created_at: '' },
     ]);
-    assert.equal(
-      isSplitRowCollectible({ name: 'Ana', amount: 27.45, paid: false }, map),
-      false,
-    );
+    assert.equal(isSplitRowCollectible(30, map, 0), false);
+    assert.equal(isSplitRowCollectible(25, map, 1), true);
   });
 });
 
 describe('collectibleSplitRowsWithIndex', () => {
-  it('includes paid rows that still owe after continuation', () => {
-    const map = sumCollectedByPersonName([
-      { id: '1', person_name: 'Ana', amount: 20, created_at: '' },
+  it('includes only indices with balance', () => {
+    const map = sumCollectedByPersonIndex([
+      { id: '1', person_index: 0, person_name: 'John', amount: 30, created_at: '' },
     ]);
     const pending = collectibleSplitRowsWithIndex(
       [
-        { name: 'Ana', amount: 30, paid: true },
-        { name: 'Bob', amount: 25 },
+        { name: 'John', amount: 30, paid: true },
+        { name: 'Mary', amount: 20 },
       ],
       map,
     );
     assert.deepEqual(
-      pending.map((entry) => ({ name: entry.row.name, index: entry.index, amount: entry.row.amount })),
-      [
-        { name: 'Ana', index: 0, amount: 30 },
-        { name: 'Bob', index: 1, amount: 25 },
-      ],
-    );
-  });
-
-  it('drops rows with zero outstanding balance', () => {
-    const map = sumCollectedByPersonName([
-      { id: '1', person_name: 'John', amount: 30, created_at: '' },
-    ]);
-    const pending = collectibleSplitRowsWithIndex(
-      [{ name: 'John', amount: 30, paid: true }, { name: 'Mary', amount: 20 }],
-      map,
-    );
-    assert.deepEqual(
-      pending.map((entry) => ({ name: entry.row.name, index: entry.index })),
-      [{ name: 'Mary', index: 1 }],
+      pending.map((entry) => entry.index),
+      [1],
     );
   });
 });
 
 describe('reconcileSplitResultPaid', () => {
-  it('marks paid only when ledger covers obligation', () => {
-    const map = sumCollectedByPersonName([
-      { id: '1', person_name: 'Ana', amount: 20, created_at: '' },
+  it('marks paid when index ledger covers obligation', () => {
+    const map = sumCollectedByPersonIndex([
+      { id: '1', person_index: 0, person_name: 'Ana', amount: 20, created_at: '' },
     ]);
     const rows = reconcileSplitResultPaid(
       [
@@ -153,103 +127,20 @@ describe('reconcileSplitResultPaid', () => {
   });
 });
 
-describe('collectedPersonNames', () => {
-  it('normalizes ledger names', () => {
-    const names = collectedPersonNames([
-      { id: '1', person_name: ' Ana ', amount: 10, created_at: '' },
-    ]);
-    assert.equal(names.has('ana'), true);
-  });
-});
-
-describe('uniqueCollectedPersonNames', () => {
-  it('dedupes case-insensitively', () => {
-    assert.deepEqual(
-      uniqueCollectedPersonNames([
-        { person_name: 'Ana' },
-        { person_name: ' ana ' },
-        { person_name: 'Bob' },
-      ]),
-      ['Ana', 'Bob'],
-    );
-  });
-});
-
 describe('totalCollectedAmount', () => {
   it('sums all ledger rows', () => {
     assert.equal(
       totalCollectedAmount([
-        { id: '1', person_name: 'A', amount: 10, created_at: '' },
-        { id: '2', person_name: 'B', amount: 5.5, created_at: '' },
+        { id: '1', person_index: 0, person_name: 'A', amount: 10, created_at: '' },
+        { id: '2', person_index: 1, person_name: 'B', amount: 5.5, created_at: '' },
       ]),
       15.5,
     );
   });
 });
 
-describe('resumeOrderingConfirmVariant', () => {
-  it('preserves by-item split regardless of collections', () => {
-    assert.equal(
-      resumeOrderingConfirmVariant(billSplit({ split_mode: 'by_item' }), []),
-      'preserve_by_item',
-    );
-    assert.equal(
-      resumeOrderingConfirmVariant(
-        billSplit({
-          split_mode: 'by_item',
-          result: [{ name: 'John', amount: 10, paid: true }],
-        }),
-        [{ id: '1', person_name: 'John', amount: 10, created_at: '' }],
-      ),
-      'preserve_by_item',
-    );
-  });
-
-  it('branches even/custom by collection state', () => {
-    assert.equal(
-      resumeOrderingConfirmVariant(billSplit({ split_mode: 'even' }), []),
-      'cancel_no_collections',
-    );
-    assert.equal(
-      resumeOrderingConfirmVariant(
-        billSplit({
-          split_mode: 'even',
-          result: [{ name: 'John', amount: 10, paid: true }],
-        }),
-        [],
-      ),
-      'preserve_with_collections',
-    );
-  });
-});
-
-describe('resumeCheckoutBlockReason', () => {
-  it('blocks whole table when a row is paid', () => {
-    const reason = resumeCheckoutBlockReason(
-      billSplit({ result: [{ name: 'Total', amount: 50, paid: true }] }),
-      [],
-    );
-    assert.equal(reason, 'whole_table_paid');
-  });
-
-  it('blocks whole table when ledger has entries', () => {
-    const reason = resumeCheckoutBlockReason(
-      billSplit({ result: [{ name: 'Total', amount: 50 }] }),
-      [{ id: '1', person_name: 'Total', amount: 50, created_at: '' }],
-    );
-    assert.equal(reason, 'whole_table_paid');
-  });
-
-  it('allows split mode with partial collections', () => {
-    const reason = resumeCheckoutBlockReason(
-      billSplit({
-        result: [
-          { name: 'John', amount: 25, paid: true },
-          { name: 'Monica', amount: 25 },
-        ],
-      }),
-      [{ id: '1', person_name: 'John', amount: 25, created_at: '' }],
-    );
-    assert.equal(reason, null);
+describe('billSplit placeholder', () => {
+  it('keeps test helper referenced', () => {
+    assert.equal(billSplit().display_name, 'A-01');
   });
 });

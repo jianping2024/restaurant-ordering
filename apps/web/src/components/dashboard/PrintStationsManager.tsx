@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
-import type { MenuCategory, MenuItem, PrintStation, PrintStationTicketLayout } from '@/types';
+import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { countPrintStationBindings, getPrintStationDisplayName } from '@/lib/print-station-admin';
@@ -15,9 +15,6 @@ import {
   updatePrintStationClient,
 } from '@/lib/dashboard-menu-client';
 import { applyAdjacentSortOrderSwap, compareSortOrderThenCreatedAt } from '@/lib/sort-order';
-
-const SELECT_FIELD =
-  'w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50';
 
 interface PrintStationsManagerProps {
   restaurantId: string;
@@ -31,21 +28,13 @@ type StationForm = {
   name_pt: string;
   name_en: string;
   name_zh: string;
-  ticket_layout: PrintStationTicketLayout;
 };
 
 const defaultStationForm: StationForm = {
   name_pt: '',
   name_en: '',
   name_zh: '',
-  ticket_layout: 'standard',
 };
-
-function layoutEmoji(layout: PrintStationTicketLayout): string {
-  if (layout === 'kitchen') return '🍳';
-  if (layout === 'beverage') return '🍷';
-  return '🖨️';
-}
 
 export function PrintStationsManager({
   initialStations,
@@ -74,19 +63,6 @@ export function PrintStationsManager({
   const [stationSaving, setStationSaving] = useState(false);
   const [stationError, setStationError] = useState('');
 
-  const layoutOptions = useMemo(
-    () =>
-      [
-        { value: 'kitchen' as const, label: t.layoutKitchen },
-        { value: 'beverage' as const, label: t.layoutBeverage },
-        { value: 'standard' as const, label: t.layoutStandard },
-      ],
-    [t.layoutKitchen, t.layoutBeverage, t.layoutStandard],
-  );
-
-  const layoutLabel = (layout: PrintStationTicketLayout) =>
-    layout === 'kitchen' ? t.layoutKitchen : layout === 'beverage' ? t.layoutBeverage : t.layoutStandard;
-
   const bindingsForStation = (stationId: string) =>
     countPrintStationBindings(stationId, initialCategories, initialItems);
 
@@ -111,7 +87,6 @@ export function PrintStationsManager({
       name_pt: row.name_pt,
       name_en: row.name_en ?? '',
       name_zh: row.name_zh ?? '',
-      ticket_layout: row.ticket_layout,
     });
     setStationError('');
     setStationModalOpen(true);
@@ -141,7 +116,6 @@ export function PrintStationsManager({
         name_pt: stationForm.name_pt.trim(),
         name_en: stationForm.name_en.trim() || null,
         name_zh: stationForm.name_zh.trim() || null,
-        ticket_layout: stationForm.ticket_layout,
       };
       if (editingStation) {
         const result = await updatePrintStationClient(editingStation.id, input);
@@ -225,9 +199,6 @@ export function PrintStationsManager({
                     {t.colName}
                   </th>
                   <th className="px-4 py-3 font-medium" scope="col">
-                    {t.colLayout}
-                  </th>
-                  <th className="px-4 py-3 font-medium" scope="col">
                     {t.colBindings}
                   </th>
                   <th className="px-4 py-3 font-medium text-right w-[14rem]" scope="col">
@@ -239,18 +210,12 @@ export function PrintStationsManager({
                 {stations.map((row, index) => (
                   <tr key={row.id} className="border-b border-brand-border/80 last:border-0">
                     <td className="px-4 py-3 min-w-[10rem]">
-                      <p className="text-brand-text font-medium flex items-center gap-2">
-                        <span className="text-lg leading-none" aria-hidden>
-                          {layoutEmoji(row.ticket_layout)}
-                        </span>
+                      <p className="text-brand-text font-medium">
                         {getPrintStationDisplayName(row, lang)}
                       </p>
                       {row.name_pt !== getPrintStationDisplayName(row, lang) ? (
                         <p className="text-[12px] text-brand-text-muted mt-0.5">PT: {row.name_pt}</p>
                       ) : null}
-                    </td>
-                    <td className="px-4 py-3 text-brand-text-muted whitespace-nowrap">
-                      {layoutLabel(row.ticket_layout)}
                     </td>
                     <td className="px-4 py-3 text-[13px] text-brand-text-muted">{bindingsLabel(row.id)}</td>
                     <td className="px-4 py-3">
@@ -305,15 +270,9 @@ export function PrintStationsManager({
                 key={row.id}
                 className="bg-brand-card border border-brand-border rounded-xl px-4 py-4 flex flex-col gap-3"
               >
-                <div className="flex items-start gap-3 min-w-0">
-                  <span className="text-xl shrink-0" aria-hidden>
-                    {layoutEmoji(row.ticket_layout)}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-brand-text font-medium">{getPrintStationDisplayName(row, lang)}</p>
-                    <p className="text-[12px] text-brand-text-muted mt-0.5">{layoutLabel(row.ticket_layout)}</p>
-                    <p className="text-[12px] text-brand-text-muted mt-0.5">{bindingsLabel(row.id)}</p>
-                  </div>
+                <div className="min-w-0">
+                  <p className="text-brand-text font-medium">{getPrintStationDisplayName(row, lang)}</p>
+                  <p className="text-[12px] text-brand-text-muted mt-0.5">{bindingsLabel(row.id)}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 border-t border-brand-border pt-3">
                   <button
@@ -383,22 +342,6 @@ export function PrintStationsManager({
             onChange={(e) => setStationForm((f) => ({ ...f, name_zh: e.target.value }))}
             placeholder="后厨"
           />
-          <div className="max-w-md">
-            <label className="text-sm text-brand-text-muted font-medium block mb-1.5">{t.colLayout}</label>
-            <select
-              value={stationForm.ticket_layout}
-              onChange={(e) =>
-                setStationForm((f) => ({ ...f, ticket_layout: e.target.value as PrintStationTicketLayout }))
-              }
-              className={SELECT_FIELD}
-            >
-              {layoutOptions.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </div>
           {stationError ? (
             <p className="mesa-alert-danger text-sm px-4 py-2">{stationError}</p>
           ) : null}

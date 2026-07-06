@@ -23,6 +23,8 @@ function normalizeWaiterBoard(board: WaiterBoardData): WaiterBoardData {
     groups: board.groups || [],
     members: board.members || [],
     tableSummaries: board.tableSummaries || [],
+    restaurantHasActiveBuffets: board.restaurantHasActiveBuffets ?? false,
+    openTableDefaults: board.openTableDefaults ?? null,
   };
 }
 

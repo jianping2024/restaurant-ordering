@@ -3,7 +3,7 @@ import { unstable_noStore as noStore } from 'next/cache';
 import { isRestaurantSuspended } from '@mesa/shared';
 import type { BillSplit, Order, TableSession } from '@/types';
 import { filterOrdersForCustomerDisplay } from '@/lib/customer-orders-display';
-import { parseTableIdParam, tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
+import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
 import type {
   WaiterTableDetailData,
   WaiterTablePageModel,
@@ -120,7 +120,7 @@ async function loadCustomerTableRow(
   admin: AdminClient,
   restaurantId: string,
   request: CustomerTableIdRequest,
-): Promise<RestaurantTableRow | null> {
+): Promise<{ id: string; display_name: string } | null> {
   if (request.kind === 'invalid') return null;
 
   let query = admin
@@ -136,7 +136,7 @@ async function loadCustomerTableRow(
   }
 
   const { data } = await query.maybeSingle();
-  return data ? (data as RestaurantTableRow) : null;
+  return data ? { id: data.id as string, display_name: data.display_name as string } : null;
 }
 
 export async function resolveCustomerTableContext(params: {

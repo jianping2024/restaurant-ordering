@@ -1,4 +1,7 @@
 import type { StaffRole } from '@/lib/staff-account';
+import { dashboardCheckoutTableHref } from '@/lib/checkout-queue-focus';
+
+export { dashboardCheckoutTableHref } from '@/lib/checkout-queue-focus';
 
 type WaiterRouteOptions = {
   embeddedInDashboard?: boolean;
@@ -57,11 +60,6 @@ export function waiterBillHref(
     return: waiterTableHref(slug, tableId, options),
   });
   return `/${slug}/bill?${params.toString()}`;
-}
-
-/** Owner dashboard: open checkout for a table awaiting payment. */
-export function dashboardCheckoutTableHref(tableId: string): string {
-  return `/dashboard/checkout?table_id=${encodeURIComponent(tableId)}`;
 }
 
 const DASHBOARD_WAITER_BOARD_PREFIX = '/dashboard/waiter';

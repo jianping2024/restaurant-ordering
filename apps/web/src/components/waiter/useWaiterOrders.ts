@@ -4,7 +4,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Order } from '@/types';
 import { fetchWaiterBoardClient } from '@/lib/staff-board-client';
-import type { WaiterBoardData } from '@/lib/staff-board';
+import type { WaiterBoardData, WaiterBoardOpenTableDefaults } from '@/lib/staff-board';
 import {
   useRestaurantRealtimeRefresh,
   useRestaurantStaffEntryReconcile,
@@ -37,6 +37,8 @@ function buildInitialWaiterBoardState(input: {
   initialTables: RestaurantTableRow[];
   initialGroups: RestaurantTableGroup[];
   initialMembers: RestaurantTableGroupMember[];
+  restaurantHasActiveBuffets?: boolean;
+  initialOpenTableDefaults?: WaiterBoardOpenTableDefaults | null;
 }) {
   return bootstrapWaiterBoardData({
     tableSummaries: input.initialTableSummaries,
@@ -46,6 +48,8 @@ function buildInitialWaiterBoardState(input: {
     tables: input.initialTables,
     groups: input.initialGroups,
     members: input.initialMembers,
+    restaurantHasActiveBuffets: input.restaurantHasActiveBuffets ?? false,
+    openTableDefaults: input.initialOpenTableDefaults ?? null,
   });
 }
 
@@ -59,6 +63,7 @@ function applyWaiterBoardData(
     setTables: (rows: RestaurantTableRow[]) => void;
     setGroups: (rows: RestaurantTableGroup[]) => void;
     setMembers: (rows: RestaurantTableGroupMember[]) => void;
+    setOpenTableDefaults: (value: WaiterBoardOpenTableDefaults | null) => void;
   },
 ) {
   setters.setTableSummaries(board.tableSummaries);
@@ -68,6 +73,7 @@ function applyWaiterBoardData(
   setters.setTables(board.tables);
   setters.setGroups(board.groups);
   setters.setMembers(board.members);
+  setters.setOpenTableDefaults(board.openTableDefaults);
 }
 
 export function useWaiterOrders(
@@ -82,6 +88,8 @@ export function useWaiterOrders(
   initialMembers: RestaurantTableGroupMember[] = [],
   demoOrders: Order[] = [],
   skipEntryReconcile = false,
+  initialRestaurantHasActiveBuffets = false,
+  initialOpenTableDefaults: WaiterBoardOpenTableDefaults | null = null,
 ) {
   const initialBoard = buildInitialWaiterBoardState({
     initialTableSummaries,
@@ -91,6 +99,8 @@ export function useWaiterOrders(
     initialTables,
     initialGroups,
     initialMembers,
+    restaurantHasActiveBuffets: initialRestaurantHasActiveBuffets,
+    initialOpenTableDefaults,
   });
   const [tableSummaries, setTableSummaries] = useState(initialBoard.tableSummaries);
   const [checkoutRequestedTableIds, setCheckoutRequestedTableIds] = useState<string[]>(
@@ -105,6 +115,9 @@ export function useWaiterOrders(
   const [tables, setTables] = useState<RestaurantTableRow[]>(initialBoard.tables);
   const [groups, setGroups] = useState<RestaurantTableGroup[]>(initialBoard.groups);
   const [members, setMembers] = useState<RestaurantTableGroupMember[]>(initialBoard.members);
+  const [openTableDefaults, setOpenTableDefaults] = useState<WaiterBoardOpenTableDefaults | null>(
+    initialBoard.openTableDefaults,
+  );
   const supabase = useMemo(() => createClient(), []);
   const refreshInFlightRef = useRef<Promise<WaiterBoardData | null> | null>(null);
   const reloadSeqRef = useRef(0);
@@ -142,6 +155,7 @@ export function useWaiterOrders(
           setTables,
           setGroups,
           setMembers,
+          setOpenTableDefaults,
         });
         return board;
       } finally {
@@ -174,6 +188,7 @@ export function useWaiterOrders(
     tables,
     groups,
     members,
+    openTableDefaults,
     refresh,
     supabase,
   };

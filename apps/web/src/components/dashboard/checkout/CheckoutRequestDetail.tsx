@@ -35,7 +35,7 @@ interface Props {
   partialPaid: boolean;
   collectedPayments: SessionCollectedPayment[];
   pendingSplitRows: SplitRowWithIndex[];
-  collectedByPerson: Map<string, number>;
+  collectedByIndex: Map<number, number>;
   selectedLines: CheckoutDisplayLine[];
   processingKeys: Set<string>;
   discountRate: number;
@@ -135,7 +135,7 @@ export function CheckoutRequestDetail({
   partialPaid,
   collectedPayments,
   pendingSplitRows,
-  collectedByPerson,
+  collectedByIndex,
   selectedLines,
   processingKeys,
   discountRate,
@@ -227,7 +227,7 @@ export function CheckoutRequestDetail({
           <p className="text-[13px] font-medium text-brand-text mb-2">{t.pendingCollectionsTitle}</p>
           <div className="space-y-2">
             {pendingSplitRows.map(({ row, index }) => {
-              const priorCollected = collectedByPerson.get(row.name.trim()) ?? 0;
+              const priorCollected = collectedByIndex.get(index) ?? 0;
               const collectNow = checkoutRowCollectAmount(row.amount, priorCollected);
               const showOwedTotal = priorCollected > 0 && collectNow < row.amount;
               return (

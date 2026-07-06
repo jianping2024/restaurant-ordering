@@ -19,6 +19,9 @@ type Props = {
   labels: {
     colTable: string;
     tableNumberLabel: string;
+    colSeats: string;
+    seatMin: string;
+    seatMax: string;
     colGroup: string;
     colQr: string;
     colActions: string;
@@ -36,6 +39,7 @@ type Props = {
   onLabelDraftFocus: (table: RestaurantTableRow) => void;
   onLabelDraftChange: (tableId: string, value: string) => void;
   onLabelBlur: (table: RestaurantTableRow) => void;
+  onSeatChange: (tableId: string, field: 'seat_min' | 'seat_max', value: string) => void;
   onPreview: (table: RestaurantTableRow) => void;
   onPrintRow: (table: RestaurantTableRow) => void;
   onDeleteRow: (table: RestaurantTableRow) => void;
@@ -59,6 +63,7 @@ export function TablesQrTable({
   onLabelDraftFocus,
   onLabelDraftChange,
   onLabelBlur,
+  onSeatChange,
   onPreview,
   onPrintRow,
   onDeleteRow,
@@ -67,11 +72,12 @@ export function TablesQrTable({
   return (
     <div className="mt-5">
       <div className="overflow-x-auto rounded-xl border border-brand-border">
-        <table className="w-full min-w-[640px] text-sm">
+        <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-b border-brand-border bg-brand-bg/80 text-left text-[12px] text-brand-text-muted">
               {batchMode ? <th className="w-10 px-3 py-2.5" /> : null}
               <th className="px-3 py-2.5 font-medium">{t.colTable}</th>
+              <th className="px-3 py-2.5 font-medium">{t.colSeats}</th>
               <th className="px-3 py-2.5 font-medium">{t.colGroup}</th>
               <th className="px-3 py-2.5 font-medium w-24">{t.colQr}</th>
               <th className="px-3 py-2.5 font-medium text-right">{t.colActions}</th>
@@ -81,7 +87,7 @@ export function TablesQrTable({
             {pageRows.length === 0 ? (
               <tr>
                 <td
-                  colSpan={batchMode ? 5 : 4}
+                  colSpan={batchMode ? 6 : 5}
                   className="px-4 py-10 text-center text-brand-text-muted text-sm"
                 >
                   {t.emptyFiltered}
@@ -122,6 +128,29 @@ export function TablesQrTable({
                         className="w-full max-w-[7rem] rounded-lg bg-brand-card border border-brand-border px-2 py-1.5 text-brand-gold font-heading text-base focus:outline-none focus:border-brand-gold/40"
                         aria-label={`${t.tableNumberLabel} ${table.display_name}`}
                       />
+                    </td>
+                    <td className="px-3 py-3 align-middle">
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="number"
+                          min={1}
+                          max={99}
+                          value={table.seat_min}
+                          onChange={(e) => onSeatChange(table.id, 'seat_min', e.target.value)}
+                          className="w-14 rounded-lg bg-brand-card border border-brand-border px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:border-brand-gold/40"
+                          aria-label={`${t.seatMin} ${table.display_name}`}
+                        />
+                        <span className="text-brand-text-muted">–</span>
+                        <input
+                          type="number"
+                          min={1}
+                          max={99}
+                          value={table.seat_max}
+                          onChange={(e) => onSeatChange(table.id, 'seat_max', e.target.value)}
+                          className="w-14 rounded-lg bg-brand-card border border-brand-border px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:border-brand-gold/40"
+                          aria-label={`${t.seatMax} ${table.display_name}`}
+                        />
+                      </div>
                     </td>
                     <td className="px-3 py-3 align-middle text-brand-text-muted">{groupName}</td>
                     <td className="px-3 py-3 align-middle">

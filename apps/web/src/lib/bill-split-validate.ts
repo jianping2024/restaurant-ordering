@@ -1,3 +1,4 @@
+import { eurosToCents } from '@/lib/money-allocation';
 import type { SplitMode } from '@/types';
 import {
   getByItemLineStatusFromShares,
@@ -6,26 +7,16 @@ import {
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 
-const AMOUNT_EPS = 0.009;
-
 export type BillSplitValidationIssue =
   | 'unassigned_items'
   | 'incomplete_qty'
   | 'amount_mismatch';
 
 function amountsMatch(
-  splitMode: SplitMode,
-  splitSum: number,
-  total: number,
-  results: Array<{ amount: number }>,
+  splitSumCents: number,
+  totalCents: number,
 ): boolean {
-  if (!Number.isFinite(splitSum) || !Number.isFinite(total)) return false;
-  if (splitMode === 'even') {
-    if (results.length === 0) return false;
-    const ints = results.map((row) => Math.floor(Number(row.amount || 0)));
-    return ints.every((n) => n === ints[0]);
-  }
-  return Math.abs(splitSum - total) <= AMOUNT_EPS;
+  return splitSumCents === totalCents;
 }
 
 export function validateBillSplit(params: {
@@ -63,19 +54,25 @@ export function validateBillSplit(params: {
   }
 
   if (splitMode === 'custom' && customAmounts?.length) {
-    if (customAmounts.some((row) => row.amount < -AMOUNT_EPS)) {
+    const totalCents = eurosToCents(total);
+    if (customAmounts.some((row) => eurosToCents(row.amount) < 0)) {
       return { ok: false, issue: 'amount_mismatch' };
     }
     if (customAmounts.length > 1) {
-      const manualTotal = customAmounts.slice(0, -1).reduce((sum, row) => sum + row.amount, 0);
-      if (manualTotal - total > AMOUNT_EPS) {
+      const manualCents = customAmounts
+        .slice(0, -1)
+        .reduce((sum, row) => sum + eurosToCents(row.amount), 0);
+      if (manualCents > totalCents) {
         return { ok: false, issue: 'amount_mismatch' };
       }
     }
   }
 
-  const splitSum = results.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-  if (!amountsMatch(splitMode, splitSum, total, results)) {
+  const splitSumCents = results.reduce(
+    (sum, row) => sum + eurosToCents(Number(row.amount || 0)),
+    0,
+  );
+  if (!amountsMatch(splitSumCents, eurosToCents(total))) {
     return { ok: false, issue: 'amount_mismatch' };
   }
 

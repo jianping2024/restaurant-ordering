@@ -18,8 +18,15 @@ import {
 } from '@/lib/restaurant-table-groups';
 import {
   RESTAURANT_TABLE_LIST_MAX,
+  DEFAULT_TABLE_SEAT_MIN,
+  DEFAULT_TABLE_SEAT_MAX,
   isValidTableDisplayName,
+  mergeTableLabelDrafts,
+  hasUnsavedRestaurantTableChanges,
+  pickDirtyRestaurantTables,
+  prepareRestaurantTableSettingsSave,
   normalizeTableDisplayName,
+  normalizeTableSeatCount,
   sortRestaurantTables,
   isValidTableAddCount,
   type RestaurantTableRow,
@@ -174,16 +181,15 @@ export function TablesManager({
     [tg.tabGroups, tg.tabTables],
   );
 
-  const dirty = useMemo(() => {
-    if (tables.length !== savedTables.length) return true;
-    const savedById = new Map(savedTables.map((row) => [row.id, row.display_name]));
-    for (const row of tables) {
-      const draft = labelDrafts[row.id];
-      const committed = draft !== undefined ? normalizeTableDisplayName(draft) : row.display_name;
-      if (committed !== savedById.get(row.id)) return true;
-    }
-    return false;
-  }, [labelDrafts, savedTables, tables]);
+  const dirtyCount = useMemo(
+    () => pickDirtyRestaurantTables(tables, savedTables, labelDrafts).length,
+    [labelDrafts, savedTables, tables],
+  );
+
+  const dirty = useMemo(
+    () => hasUnsavedRestaurantTableChanges(tables, savedTables, labelDrafts),
+    [labelDrafts, savedTables, tables],
+  );
 
   const refreshOccupiedTableIds = useCallback(async () => {
     const { data: sessions } = await supabase
@@ -209,7 +215,8 @@ export function TablesManager({
       );
       return false;
     }
-    if (tables.some((row) => row.id !== tableId && row.display_name === next)) {
+    const merged = mergeTableLabelDrafts(tables, labelDrafts);
+    if (merged.some((row) => row.id !== tableId && row.display_name === next)) {
       showToast(t.duplicateTableNumber, 'error');
       setTables((prev) =>
         prev.map((row) => (row.id === tableId ? { ...row, display_name: revert } : row)),
@@ -233,35 +240,32 @@ export function TablesManager({
     });
   };
 
-  const resolveTablesForSave = (): RestaurantTableRow[] | null => {
-    const merged = tables.map((row) => {
-      const raw = labelDrafts[row.id];
-      if (raw === undefined) return row;
-      const next = normalizeTableDisplayName(raw);
-      if (!isValidTableDisplayName(next)) {
-        showToast(t.invalidTableNumber, 'error');
-        return null as unknown as RestaurantTableRow;
-      }
-      return { ...row, display_name: next };
-    });
-    if (merged.some((row) => !row)) return null;
-    const names = merged.map((row) => row.display_name);
-    if (new Set(names).size !== names.length) {
-      showToast(t.duplicateTableNumber, 'error');
-      return null;
-    }
-    return merged;
+  const updateTableSeats = (tableId: string, field: 'seat_min' | 'seat_max', raw: string) => {
+    const parsed = normalizeTableSeatCount(
+      raw,
+      field === 'seat_min' ? DEFAULT_TABLE_SEAT_MIN : DEFAULT_TABLE_SEAT_MAX,
+    );
+    setTables((prev) =>
+      prev.map((row) => (row.id === tableId ? { ...row, [field]: parsed } : row)),
+    );
   };
 
   const saveTables = async () => {
-    const resolved = resolveTablesForSave();
-    if (!resolved) return;
-    setTables(resolved);
+    const prepared = prepareRestaurantTableSettingsSave(tables, savedTables, labelDrafts);
+    if ('error' in prepared) {
+      if (prepared.error === 'invalid_label') showToast(t.invalidTableNumber, 'error');
+      else if (prepared.error === 'invalid_seat') showToast(t.invalidSeatRange, 'error');
+      else showToast(t.duplicateTableNumber, 'error');
+      return;
+    }
+    if (prepared.patches.length === 0) return;
+
+    setTables(prepared.merged);
     setLabelDrafts({});
 
     setSaving(true);
     try {
-      const next = await requestDashboardTables('PATCH', { tables: resolved });
+      const next = await requestDashboardTables('PATCH', { tables: prepared.patches });
       if (!next) {
         showToast(t.saveFailed, 'error');
         return;
@@ -404,6 +408,7 @@ export function TablesManager({
           groupNameByTableId={groupNameByTableId}
           occupiedTableIds={occupiedTableIds}
           dirty={dirty}
+          dirtyCount={dirtyCount}
           saving={saving}
           adding={adding}
           addCount={addCount}
@@ -423,6 +428,7 @@ export function TablesManager({
             setLabelDrafts((prev) => ({ ...prev, [tableId]: value }));
           }}
           onLabelBlur={blurTableLabel}
+          onSeatChange={updateTableSeats}
         />
       )}
 

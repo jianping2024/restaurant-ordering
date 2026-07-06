@@ -7,10 +7,11 @@ import {
 } from '@/lib/restaurant-table-delete';
 import {
   isValidTableAddCount,
-  isValidTableDisplayName,
   nextDefaultTableDisplayNames,
-  normalizeTableDisplayName,
-  parseTableIdParam,
+  parseRestaurantTablePatchRows,
+  projectRestaurantTablePatches,
+  restaurantTableSettingsEqual,
+  validateRestaurantTableSettings,
   type RestaurantTableRow,
 } from '@/lib/restaurant-tables';
 import { verifyStaffPassword } from '@/lib/verify-staff-password';
@@ -80,39 +81,32 @@ export async function PATCH(req: Request) {
   }
 
   const currentById = new Map(loaded.tables.map((row) => [row.id, row]));
-  const updates: RestaurantTableRow[] = [];
-
-  for (const row of body.tables) {
-    if (!row || typeof row !== 'object') {
-      return NextResponse.json({ error: 'invalid_tables' }, { status: 400 });
-    }
-    const raw = row as Record<string, unknown>;
-    const id = parseTableIdParam(raw.id);
-    const displayName = normalizeTableDisplayName(typeof raw.display_name === 'string' ? raw.display_name : '');
-    if (!id || !currentById.has(id) || !isValidTableDisplayName(displayName)) {
-      return NextResponse.json({ error: 'invalid_tables' }, { status: 400 });
-    }
-    updates.push({
-      id,
-      display_name: displayName,
-      sort_order: currentById.get(id)!.sort_order,
-    });
+  const parsed = parseRestaurantTablePatchRows(body.tables, currentById);
+  if ('error' in parsed) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
-  if (updates.length !== loaded.tables.length) {
-    return NextResponse.json({ error: 'table_set_mismatch' }, { status: 400 });
-  }
-  const names = updates.map((row) => row.display_name);
-  if (new Set(names).size !== names.length) {
+  const projected = projectRestaurantTablePatches(loaded.tables, parsed.updates);
+  const validationError = validateRestaurantTableSettings(projected);
+  if (validationError === 'duplicate_name') {
     return NextResponse.json({ error: 'duplicate_table_name' }, { status: 400 });
   }
+  if (validationError) {
+    return NextResponse.json({ error: 'invalid_tables' }, { status: 400 });
+  }
 
-  for (const row of updates) {
+  for (const row of parsed.updates) {
     const existing = currentById.get(row.id);
-    if (existing?.display_name === row.display_name) continue;
+    if (existing && restaurantTableSettingsEqual(existing, row)) {
+      continue;
+    }
     const { error } = await loaded.admin
       .from('restaurant_tables')
-      .update({ display_name: row.display_name })
+      .update({
+        display_name: row.display_name,
+        seat_min: row.seat_min,
+        seat_max: row.seat_max,
+      })
       .eq('id', row.id)
       .eq('restaurant_id', loaded.restaurant.id)
       .is('deleted_at', null);

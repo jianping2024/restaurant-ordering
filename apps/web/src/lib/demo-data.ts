@@ -15,6 +15,8 @@ export const DEMO_TABLES: RestaurantTableRow[] = Array.from({ length: 12 }, (_, 
   id: demoTableId(i + 1),
   display_name: String(i + 1),
   sort_order: i + 1,
+  seat_min: 2,
+  seat_max: 4,
 }));
 
 export function demoTableByDisplayName(name: string): RestaurantTableRow | undefined {
@@ -138,3 +140,27 @@ export const DEMO_ORDERS: Order[] = [
     updated_at: new Date(now - 1000 * 60 * 10).toISOString(),
   },
 ];
+
+const DEMO_BUFFET_ID = '00000000-0000-4000-8000-00000000b001';
+
+export const DEMO_OPEN_TABLE_DEFAULTS = {
+  buffets: [
+    {
+      id: DEMO_BUFFET_ID,
+      restaurant_id: DEMO_RESTAURANT.id,
+      name: 'Buffet livre',
+      is_active: true,
+      description: null,
+      created_at: '2026-01-01T00:00:00.000Z',
+      updated_at: '2026-01-01T00:00:00.000Z',
+    },
+  ],
+  buffetPricesByBuffetId: {
+    [DEMO_BUFFET_ID]: {
+      adult_price: 19.95,
+      child_price: 10,
+      rule_id: 'demo-rule-1',
+      time_slot_id: 'demo-slot-1',
+    },
+  },
+};

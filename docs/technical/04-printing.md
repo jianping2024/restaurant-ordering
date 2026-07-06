@@ -37,8 +37,7 @@ Web 入队（service role）
 | 入队 | `lib/station-ticket-enqueue.ts` |
 | 触发 | `orders/append` 成功后 `autoEnqueueStationTicketsAfterSubmit` |
 | 路由 | 菜品/分类 `print_station_id` → `print_stations` → 代理 `routing_snapshot` |
-| 布局 | `ticket_layout`：kitchen / beverage / standard |
-| payload | 桌 `display_name`、菜品名（`print_locale`）、数量、备注 |
+| payload | 桌 `display_name`、档口名、菜品名（`print_locale`）、数量、备注 |
 
 **不受** `bill_receipt_print` 功能开关影响。
 

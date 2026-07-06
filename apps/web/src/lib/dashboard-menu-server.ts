@@ -19,7 +19,7 @@ import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { compareMenuItemsForDisplay, menuItemSiblingsInScope } from '@/lib/menu-item-order';
 import { persistMenuItemSortOrderSwap } from '@/lib/sort-order-persist';
 import { nextSortOrder, sortBySortOrderThenCreatedAt, swapAdjacentSortOrders, type SortOrderMoveDirection } from '@/lib/sort-order';
-import type { MenuCategory, MenuItem, PrintStation, PrintStationTicketLayout } from '@/types';
+import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 
 const ALLOWED_IMAGE_MIME = new Set([
   'image/jpeg',
@@ -27,8 +27,6 @@ const ALLOWED_IMAGE_MIME = new Set([
   'image/webp',
   'image/gif',
 ]);
-
-const PRINT_STATION_LAYOUTS = new Set<PrintStationTicketLayout>(['kitchen', 'beverage', 'standard']);
 
 export type MenuMutationError = { error: string; message?: string; status: number };
 
@@ -44,7 +42,6 @@ export type PrintStationBodyFields = {
   name_pt: string;
   name_en: string | null;
   name_zh: string | null;
-  ticket_layout: PrintStationTicketLayout;
 };
 
 function uniqueViolation(error: { code?: string } | null): boolean {
@@ -695,15 +692,11 @@ export async function createPrintStation(
     name_pt: string;
     name_en?: string | null;
     name_zh?: string | null;
-    ticket_layout: PrintStationTicketLayout;
   },
 ): Promise<{ station: PrintStation } | MenuMutationError> {
   const namePt = input.name_pt.trim();
   if (!namePt) {
     return { error: 'name_pt_required', status: 400 };
-  }
-  if (!PRINT_STATION_LAYOUTS.has(input.ticket_layout)) {
-    return { error: 'invalid_ticket_layout', status: 400 };
   }
 
   const { data: rows, error: listError } = await admin
@@ -721,7 +714,6 @@ export async function createPrintStation(
       name_pt: namePt,
       name_en: input.name_en?.trim() || null,
       name_zh: input.name_zh?.trim() || null,
-      ticket_layout: input.ticket_layout,
       sort_order: nextSortOrder(rows ?? []),
     })
     .select()
@@ -740,7 +732,6 @@ export async function updatePrintStation(
     name_pt: string;
     name_en?: string | null;
     name_zh?: string | null;
-    ticket_layout: PrintStationTicketLayout;
   },
 ): Promise<{ station: PrintStation } | MenuMutationError> {
   const id = parseTableIdParam(stationId);
@@ -751,9 +742,6 @@ export async function updatePrintStation(
   if (!namePt) {
     return { error: 'name_pt_required', status: 400 };
   }
-  if (!PRINT_STATION_LAYOUTS.has(input.ticket_layout)) {
-    return { error: 'invalid_ticket_layout', status: 400 };
-  }
 
   const { data, error } = await admin
     .from('print_stations')
@@ -761,7 +749,6 @@ export async function updatePrintStation(
       name_pt: namePt,
       name_en: input.name_en?.trim() || null,
       name_zh: input.name_zh?.trim() || null,
-      ticket_layout: input.ticket_layout,
     })
     .eq('id', id)
     .eq('restaurant_id', restaurantId)
@@ -878,17 +865,13 @@ export function parseCategoryParentId(
 export function parsePrintStationBody(
   raw: Record<string, unknown>,
 ): PrintStationBodyFields | MenuMutationError {
-  if (typeof raw.name_pt !== 'string' || typeof raw.ticket_layout !== 'string') {
+  if (typeof raw.name_pt !== 'string') {
     return { error: 'invalid_station_body', status: 400 };
-  }
-  if (!PRINT_STATION_LAYOUTS.has(raw.ticket_layout as PrintStationTicketLayout)) {
-    return { error: 'invalid_ticket_layout', status: 400 };
   }
   return {
     name_pt: raw.name_pt,
     name_en: typeof raw.name_en === 'string' ? raw.name_en : null,
     name_zh: typeof raw.name_zh === 'string' ? raw.name_zh : null,
-    ticket_layout: raw.ticket_layout as PrintStationTicketLayout,
   };
 }
 

@@ -5,6 +5,7 @@ import {
   type ByItemLineSpec,
 } from '@/lib/bill-split-by-item-lines';
 import { validateBillSplit } from '@/lib/bill-split-validate';
+import { allocateEvenAmounts } from '@/lib/money-allocation';
 import type { SplitMode, SplitResult } from '@/types';
 
 export type BillSplitDraftInput = {
@@ -36,10 +37,11 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
   }
 
   if (splitMode === 'even') {
-    const each = total / personCount;
-    return splitPeople.slice(0, personCount).map((person) => ({
-      name: person.name,
-      amount: each,
+    const names = splitPeople.slice(0, personCount).map((person) => person.name);
+    const amounts = allocateEvenAmounts(total, names);
+    return names.map((name, index) => ({
+      name,
+      amount: amounts[index] ?? 0,
     }));
   }
 

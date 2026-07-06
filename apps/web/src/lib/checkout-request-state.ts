@@ -1,26 +1,7 @@
-import type { BillSplit, SplitResult } from '@/types';
+import type { BillSplit } from '@/types';
+import { mergeSplitResultPaid } from '@/lib/bill-split-result-merge';
 
-/** Keep paid flags when a stale realtime refresh returns older rows. */
-export function mergeSplitResultPaid(
-  incoming: SplitResult[] | undefined,
-  existing: SplitResult[] | undefined,
-): SplitResult[] {
-  const inc = incoming ?? [];
-  const ex = existing ?? [];
-  if (ex.length === 0) return inc;
-  if (inc.length === 0) return ex;
-  const len = Math.max(inc.length, ex.length);
-  const merged: SplitResult[] = [];
-  for (let i = 0; i < len; i++) {
-    const row = inc[i] ?? ex[i];
-    if (!row) continue;
-    merged.push({
-      ...row,
-      paid: !!row.paid || !!ex[i]?.paid,
-    });
-  }
-  return merged;
-}
+export { mergeSplitResultPaid } from '@/lib/bill-split-result-merge';
 
 /** Merge server list into local checkout queue without losing confirmed paid state. */
 export function mergeBillSplitsFromRefresh(

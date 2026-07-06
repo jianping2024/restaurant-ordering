@@ -13,7 +13,6 @@ export type SplitMode = 'even' | 'by_item' | 'custom';
 export type BillStatus = 'pending' | 'confirmed' | 'requested' | 'paid' | 'cancelled';
 export type Language = 'pt' | 'en' | 'zh';
 export type DishFeedbackVote = 'up' | 'down';
-export type PrintStationTicketLayout = 'kitchen' | 'beverage' | 'standard';
 export type StaffAccountRole = 'kitchen' | 'waiter' | 'cashier' | 'frontdesk';
 
 export interface RestaurantStaffAccount {
@@ -50,7 +49,6 @@ export interface PrintStation {
   name_en?: string | null;
   name_zh?: string | null;
   sort_order: number;
-  ticket_layout: PrintStationTicketLayout;
   created_at: string;
 }
 

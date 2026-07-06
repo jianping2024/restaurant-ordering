@@ -15,12 +15,11 @@ type remoteCloudConfig struct {
 }
 
 type printStationRow struct {
-	ID           string `json:"id"`
-	NamePt       string `json:"name_pt"`
-	NameEn       string `json:"name_en"`
-	NameZh       string `json:"name_zh"`
-	TicketLayout string `json:"ticket_layout"`
-	SortOrder    int    `json:"sort_order"`
+	ID        string `json:"id"`
+	NamePt    string `json:"name_pt"`
+	NameEn    string `json:"name_en"`
+	NameZh    string `json:"name_zh"`
+	SortOrder int    `json:"sort_order"`
 }
 
 func applyCloudRuntimeConfig(cfg *config, apiBase string) {

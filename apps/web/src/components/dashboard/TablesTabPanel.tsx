@@ -39,6 +39,7 @@ interface TablesTabPanelProps {
   groupNameByTableId: Record<string, string>;
   occupiedTableIds: Set<string>;
   dirty: boolean;
+  dirtyCount: number;
   saving: boolean;
   adding: boolean;
   addCount: number;
@@ -52,6 +53,7 @@ interface TablesTabPanelProps {
   onLabelDraftFocus: (table: RestaurantTableRow) => void;
   onLabelDraftChange: (tableId: string, value: string) => void;
   onLabelBlur: (table: RestaurantTableRow) => void;
+  onSeatChange: (tableId: string, field: 'seat_min' | 'seat_max', value: string) => void;
 }
 
 export function TablesTabPanel({
@@ -62,6 +64,7 @@ export function TablesTabPanel({
   groupNameByTableId,
   occupiedTableIds,
   dirty,
+  dirtyCount,
   saving,
   adding,
   addCount,
@@ -75,6 +78,7 @@ export function TablesTabPanel({
   onLabelDraftFocus,
   onLabelDraftChange,
   onLabelBlur,
+  onSeatChange,
 }: TablesTabPanelProps) {
   const { lang } = useLanguage();
   const t = getMessages(lang).tables;
@@ -253,6 +257,7 @@ export function TablesTabPanel({
           totalCount={tables.length}
           filteredCount={filteredTables.length}
           dirty={dirty}
+          dirtyCount={dirtyCount}
           saving={saving}
           adding={adding}
           addCount={addCount}
@@ -326,6 +331,9 @@ export function TablesTabPanel({
           labels={{
             colTable: t.colTable,
             tableNumberLabel: t.tableNumberLabel,
+            colSeats: t.colSeats,
+            seatMin: t.seatMin,
+            seatMax: t.seatMax,
             colGroup: t.colGroup,
             colQr: t.colQr,
             colActions: t.colActions,
@@ -343,6 +351,7 @@ export function TablesTabPanel({
           onLabelDraftFocus={onLabelDraftFocus}
           onLabelDraftChange={onLabelDraftChange}
           onLabelBlur={onLabelBlur}
+          onSeatChange={onSeatChange}
           onPreview={setPreviewTable}
           onPrintRow={(table) => void printRows([table])}
           onDeleteRow={(table) => onDeleteRequest([table])}

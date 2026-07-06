@@ -79,21 +79,23 @@ describe('parsePrintStationBody', () => {
   it('accepts valid station fields', () => {
     const parsed = parsePrintStationBody({
       name_pt: 'Cozinha',
-      ticket_layout: 'kitchen',
+      name_en: 'Kitchen',
+      name_zh: '后厨',
     });
     assert.ok(!('error' in parsed));
     if ('error' in parsed) return;
-    assert.equal(parsed.ticket_layout, 'kitchen');
+    assert.equal(parsed.name_pt, 'Cozinha');
+    assert.equal(parsed.name_en, 'Kitchen');
+    assert.equal(parsed.name_zh, '后厨');
   });
 
-  it('rejects unknown layout', () => {
+  it('rejects missing name_pt', () => {
     const parsed = parsePrintStationBody({
-      name_pt: 'Cozinha',
-      ticket_layout: 'unknown',
+      name_en: 'Kitchen',
     });
     assert.equal('error' in parsed, true);
     if (!('error' in parsed)) return;
-    assert.equal(parsed.error, 'invalid_ticket_layout');
+    assert.equal(parsed.error, 'invalid_station_body');
   });
 });
 

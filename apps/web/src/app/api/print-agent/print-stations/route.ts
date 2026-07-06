@@ -20,7 +20,7 @@ export async function GET(req: Request) {
 
   const { data: rows, error } = await admin
     .from('print_stations')
-    .select('id, name_pt, name_en, name_zh, ticket_layout, sort_order')
+    .select('id, name_pt, name_en, name_zh, sort_order')
     .eq('restaurant_id', ctx.restaurant_id)
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true });

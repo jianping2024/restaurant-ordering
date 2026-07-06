@@ -1,4 +1,4 @@
-import type { MenuCategory, MenuItem, PrintStation, PrintStationTicketLayout } from '@/types';
+import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 import { MAX_MENU_CATEGORY_DEPTH } from '@/lib/menu-admin';
 
 type ApiError = { error: string; message?: string };
@@ -139,7 +139,6 @@ export type PrintStationInput = {
   name_pt: string;
   name_en?: string | null;
   name_zh?: string | null;
-  ticket_layout: PrintStationTicketLayout;
 };
 
 export async function createMenuCategoryClient(input: CreateCategoryInput) {

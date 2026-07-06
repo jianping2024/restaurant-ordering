@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { loadOverviewDashboardContext } from '@/lib/dashboard-access';
-import { sortRestaurantTables, type RestaurantTable, type RestaurantTableRow } from '@/lib/restaurant-tables';
+import { sortRestaurantTables, type RestaurantTable, type RestaurantTableRow, normalizeTableSeatCount, DEFAULT_TABLE_SEAT_MIN, DEFAULT_TABLE_SEAT_MAX } from '@/lib/restaurant-tables';
 
 export type OrderHistoryDashboardContext =
   | {
@@ -26,7 +26,7 @@ export async function loadOrderHistoryDashboardContext(): Promise<OrderHistoryDa
 
   const { data, error } = await ctx.admin
     .from('restaurant_tables')
-    .select('id, restaurant_id, display_name, sort_order, deleted_at, created_at')
+    .select('id, restaurant_id, display_name, sort_order, seat_min, seat_max, deleted_at, created_at')
     .eq('restaurant_id', ctx.restaurantId)
     .is('deleted_at', null);
 
@@ -35,7 +35,13 @@ export async function loadOrderHistoryDashboardContext(): Promise<OrderHistoryDa
   }
 
   const tables = sortRestaurantTables((data || []) as RestaurantTable[]).map(
-    ({ id, display_name, sort_order }) => ({ id, display_name, sort_order }),
+    ({ id, display_name, sort_order, seat_min, seat_max }) => ({
+      id,
+      display_name,
+      sort_order,
+      seat_min: normalizeTableSeatCount(seat_min, DEFAULT_TABLE_SEAT_MIN),
+      seat_max: normalizeTableSeatCount(seat_max, DEFAULT_TABLE_SEAT_MAX),
+    }),
   );
 
   return {

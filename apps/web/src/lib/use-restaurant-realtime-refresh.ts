@@ -7,9 +7,10 @@ import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
  * Staff board/detail freshness contract (production):
  * 1. SSR page seed — first paint when server auth + load succeed
  * 2. Published staff model cache — detail commits after Staff API; board clears per-table when API confirms
- * 3. Client entry reconcile — Staff API on mount when no authoritative SSR seed
+ * 3. Client entry reconcile — Staff API on mount (dashboard board provider always reconciles)
  * 4. Staff menu submit return — dedicated reconcile, then strip query
  * 5. Realtime while mounted (`useRestaurantRealtimeRefresh`)
+ * 6. Dashboard checkout mutations — `WaiterBoardProvider.refreshAfterTableMutation` while provider lives
  */
 export function useRestaurantStaffEntryReconcile(
   enabled: boolean,

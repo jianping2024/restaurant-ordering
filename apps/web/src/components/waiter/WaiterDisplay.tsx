@@ -9,6 +9,7 @@ import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticate
 import { WaiterBoardOpenTableSheet } from '@/components/waiter/WaiterBoardOpenTableSheet';
 import { WaiterBoardCheckoutSheet } from '@/components/waiter/WaiterBoardCheckoutSheet';
 import { WaiterBoardTableCard } from '@/components/waiter/WaiterBoardTableCard';
+import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { showToast } from '@/components/ui/Toast';
@@ -63,7 +64,6 @@ interface Props {
   initialMembers?: RestaurantTableGroupMember[];
   isDemo?: boolean;
   embeddedInDashboard?: boolean;
-  restaurantHasActiveBuffets?: boolean;
   initialOpenTableDefaults?: WaiterBoardOpenTableDefaults | null;
 }
 
@@ -179,7 +179,6 @@ function WaiterBoardInner({
   initialMembers = [],
   isDemo = false,
   embeddedInDashboard = false,
-  restaurantHasActiveBuffets = false,
   initialOpenTableDefaults = null,
   handleSignOut,
   exitLabel,
@@ -188,6 +187,26 @@ function WaiterBoardInner({
   const { lang } = useLanguage();
   const t = WAITER_TEXT[lang];
   const tableGroupsI18n = getMessages(lang).tableGroups;
+  const dashboardBoard = useWaiterBoardOptional();
+  const standaloneBoard = useWaiterOrders(
+    restaurant,
+    initialTableSummaries,
+    initialCheckoutRequestedTableIds,
+    tablesProp,
+    !isDemo && !embeddedInDashboard,
+    initialSessionMetaByTableId,
+    initialCheckoutRequestedAtByTableId,
+    initialGroups,
+    initialMembers,
+    isDemo ? initialOrders : [],
+    hasAuthoritativeSeed,
+    initialOpenTableDefaults,
+  );
+
+  if (embeddedInDashboard && !dashboardBoard) {
+    throw new Error('WaiterDisplay embedded mode requires WaiterBoardProvider');
+  }
+
   const {
     tableSummaries,
     checkoutRequestedTableIds,
@@ -197,22 +216,10 @@ function WaiterBoardInner({
     groups,
     members,
     openTableDefaults,
+    supportsBuffetOpenTable,
     refresh,
-  } = useWaiterOrders(
-    restaurant,
-    initialTableSummaries,
-    initialCheckoutRequestedTableIds,
-    tablesProp,
-    !isDemo,
-    initialSessionMetaByTableId,
-    initialCheckoutRequestedAtByTableId,
-    initialGroups,
-    initialMembers,
-    isDemo ? initialOrders : [],
-    hasAuthoritativeSeed,
-    restaurantHasActiveBuffets,
-    initialOpenTableDefaults,
-  );
+    refreshAfterTableMutation,
+  } = embeddedInDashboard ? dashboardBoard! : { ...standaloneBoard, refreshAfterTableMutation: undefined };
 
   const effectiveSessionMetaByTableId = useMemo(
     () => (isDemo ? demoSessionMetaFromOrders(initialOrders) : sessionMetaByTableId),
@@ -322,7 +329,7 @@ function WaiterBoardInner({
     const action = resolveWaiterBoardCardAction({
       boardState,
       embeddedInDashboard,
-      restaurantHasActiveBuffets,
+      supportsBuffetOpenTable,
       detailHref,
     });
 
@@ -342,7 +349,7 @@ function WaiterBoardInner({
           setOpenTableTarget({ tableId: card.tableId, displayName: card.displayName })
         }
         onOpenCheckout={() => setCheckoutTarget({ tableId: card.tableId })}
-        onDisabledClick={() => showToast(t.buffetNoRule, 'info')}
+        onDisabledClick={() => showToast(t.buffetNotConfigured, 'info')}
       />
     );
   };
@@ -558,7 +565,13 @@ function WaiterBoardInner({
       <WaiterBoardOpenTableSheet
         open={openTableTarget != null}
         onClose={() => setOpenTableTarget(null)}
-        onSuccess={() => void refresh()}
+        onSuccess={() => {
+          if (refreshAfterTableMutation && openTableTarget) {
+            void refreshAfterTableMutation(openTableTarget.tableId);
+            return;
+          }
+          void refresh();
+        }}
         restaurant={restaurant}
         tableId={openTableTarget?.tableId ?? ''}
         displayName={openTableTarget?.displayName ?? ''}
@@ -572,7 +585,6 @@ function WaiterBoardInner({
         <WaiterBoardCheckoutSheet
           open={checkoutTarget != null}
           onClose={() => setCheckoutTarget(null)}
-          onComplete={() => void refresh()}
           restaurantId={restaurant.id}
           restaurantSlug={restaurant.slug}
           tableId={checkoutTarget?.tableId ?? ''}

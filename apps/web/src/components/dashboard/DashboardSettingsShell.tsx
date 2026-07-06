@@ -8,6 +8,7 @@ import {
   isSettingsWideLayout,
 } from '@/lib/settings-nav';
 import { BuffetSettingsGuide } from '@/components/dashboard/settings/BuffetSettingsGuide';
+import { SettingsTabs } from '@/components/dashboard/settings/SettingsTabs';
 
 export function DashboardSettingsShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -45,6 +46,7 @@ export function DashboardSettingsShell({ children }: { children: React.ReactNode
   return (
     <div className="w-full min-w-0 max-w-full overflow-x-hidden">
       <div className={`min-w-0 w-full ${wide ? '' : 'max-w-4xl'}`}>
+        <SettingsTabs />
         {narrowForm ? <div className="w-full max-w-2xl">{pageBody}</div> : pageBody}
       </div>
     </div>

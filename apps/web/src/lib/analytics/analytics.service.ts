@@ -81,7 +81,7 @@ export async function getValueOverview(
   const sessionsResult = await fetchClosedSessionsInWindow(
     admin,
     restaurantId,
-    window7.startUtc,
+    window.startUtc,
     window.endExclusiveUtc,
   );
   if (!sessionsResult.ok) {

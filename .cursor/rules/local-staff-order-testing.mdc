@@ -10,7 +10,7 @@ When the user asks to test **服务员代点 / staff-assisted ordering** on this
 ## Scope
 
 - **Host only**: `http://localhost:3000` (`npm run cloud` or `npm run dev`)
-- **Account**: `qiantai@mesa.in` / password provided in chat (frontdesk, slug `restaurant-mo9y14xc`)
+- **Account**: `qiantai@mesa.in` / password:654321
 - **Allowed**: browser automation, curl with session cookies, full product flow including `POST .../orders/append`
 
 ## Data policy

@@ -11,7 +11,6 @@ export default function DemoWaiterPage() {
       tables={DEMO_TABLES}
       initialOrders={DEMO_ORDERS}
       isDemo
-      restaurantHasActiveBuffets={true}
       initialOpenTableDefaults={DEMO_OPEN_TABLE_DEFAULTS}
     />
   );

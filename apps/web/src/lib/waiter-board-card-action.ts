@@ -9,10 +9,10 @@ export type WaiterBoardCardAction =
 export function resolveWaiterBoardCardAction(input: {
   boardState: WaiterTableBoardState;
   embeddedInDashboard: boolean;
-  restaurantHasActiveBuffets: boolean;
+  supportsBuffetOpenTable: boolean;
   detailHref: string;
 }): WaiterBoardCardAction {
-  const { boardState, embeddedInDashboard, restaurantHasActiveBuffets, detailHref } = input;
+  const { boardState, embeddedInDashboard, supportsBuffetOpenTable, detailHref } = input;
 
   if (boardState === 'checkout') {
     if (embeddedInDashboard) {
@@ -25,7 +25,7 @@ export function resolveWaiterBoardCardAction(input: {
     return { kind: 'navigate', href: detailHref };
   }
 
-  if (!restaurantHasActiveBuffets) {
+  if (!supportsBuffetOpenTable) {
     return { kind: 'disabled', reason: 'no_buffet_config' };
   }
 

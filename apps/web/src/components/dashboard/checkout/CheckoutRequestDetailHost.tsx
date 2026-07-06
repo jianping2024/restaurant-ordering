@@ -43,6 +43,7 @@ import {
   hasCheckoutCollections,
 } from '@/lib/checkout-settlement';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
+import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 
 type Props = {
   request: BillSplit;
@@ -69,6 +70,13 @@ export function CheckoutRequestDetailHost({
   onResumeOrderingComplete,
 }: Props) {
   const { updateRequests, reload } = useCheckoutRequests();
+  const waiterBoard = useWaiterBoardOptional();
+  const syncBoardAfterMutation = useCallback(
+    (tableId: string) => {
+      void waiterBoard?.refreshAfterTableMutation(tableId);
+    },
+    [waiterBoard],
+  );
   const [processingKeys, setProcessingKeys] = useState<Set<string>>(() => new Set());
   const billDiscount = useCheckoutBillDiscount();
   const { lang } = useLanguage();
@@ -294,6 +302,7 @@ export function CheckoutRequestDetailHost({
           ? prev.filter((r) => r.id !== row.id)
           : prev.map((r) => (r.id === row.id ? { ...r, result: outcome.result } : r)),
       );
+      syncBoardAfterMutation(row.table_id);
       if (outcome.all_paid) {
         onAllPaid?.();
       }
@@ -331,6 +340,7 @@ export function CheckoutRequestDetailHost({
       }
 
       void reload();
+      syncBoardAfterMutation(row.table_id);
       onResumeOrderingComplete?.();
       showToast(t.resumeOrderingSuccess, 'success');
     } catch {
@@ -408,6 +418,7 @@ export function CheckoutRequestDetailHost({
         onPrintBill={() => printCheckoutBill(request, getDiscountRate(request))}
         onResumeOrderingClick={() => setResumeConfirmOpen(true)}
         onCloseTable={() => {
+          syncBoardAfterMutation(request.table_id);
           onCloseTableComplete?.();
           void reload();
         }}

@@ -47,6 +47,11 @@ export function clearConfirmedPublishedWaiterTablePageModels(tableIds: readonly 
   }
 }
 
+/** Checkout / close-table: API is authoritative — drop open-table bridge before board refresh. */
+export function releaseWaiterBoardTableBridge(tableIds: readonly string[]): void {
+  clearConfirmedPublishedWaiterTablePageModels(tableIds);
+}
+
 function isPublishedModelConfirmedByApiBoard(
   tableId: string,
   apiBoard: WaiterBoardData,

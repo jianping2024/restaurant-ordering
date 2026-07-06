@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -10,88 +9,12 @@ import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { DashboardSettingsMenu } from '@/components/dashboard/DashboardSettingsMenu';
 import { ProductLogo } from '@/components/ui/ProductLogo';
-import { buildDashboardTopNavItems, dashboardTopNavButtonClass, isNavItemActive, isOwnerRestaurantSettingsActive, type DashboardTopNavItem } from '@/lib/dashboard-top-nav';
-import { type SettingsNavItem } from '@/lib/settings-nav';
-
-function topNavTabClass(active: boolean): string {
-  return dashboardTopNavButtonClass(active);
-}
-
-function OwnerRestaurantSettingsDropdown({
-  items,
-  active,
-  label,
-}: {
-  items: SettingsNavItem[];
-  active: boolean;
-  label: string;
-}) {
-  const { lang } = useLanguage();
-  const hub = getMessages(lang).settingsHub;
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const pathname = usePathname();
-
-  useEffect(() => {
-    if (!open) return;
-    const onDoc = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('mousedown', onDoc);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onDoc);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open]);
-
-  return (
-    <div ref={rootRef} className="relative shrink-0">
-      <button
-        type="button"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={() => setOpen((prev) => !prev)}
-        className={topNavTabClass(active)}
-      >
-        <span aria-hidden>⚙</span>
-        <span>{label}</span>
-        <span className="text-[10px] opacity-70" aria-hidden>
-          ▾
-        </span>
-      </button>
-      {open ? (
-        <div
-          role="menu"
-          className="absolute left-0 top-full z-50 mt-1.5 min-w-[11rem] rounded-xl border border-brand-border bg-brand-card py-1 shadow-lg shadow-black/10"
-        >
-          {items.map((item) => {
-            const itemActive = item.isActive(pathname);
-            return (
-              <Link
-                key={item.id}
-                href={item.href}
-                role="menuitem"
-                onClick={() => setOpen(false)}
-                className={`flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
-                  itemActive
-                    ? 'bg-brand-gold/10 text-brand-text font-medium'
-                    : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-bg/70'
-                }`}
-              >
-                <span aria-hidden>{item.icon}</span>
-                <span>{hub[item.labelKey]}</span>
-              </Link>
-            );
-          })}
-        </div>
-      ) : null}
-    </div>
-  );
-}
+import {
+  buildDashboardTopNavItems,
+  dashboardTopNavButtonClass,
+  isNavItemActive,
+  type DashboardTopNavItem,
+} from '@/lib/dashboard-top-nav';
 
 function renderNavItem(
   item: DashboardTopNavItem,
@@ -100,22 +23,11 @@ function renderNavItem(
   checkoutCount: number,
   onNavigate: () => void,
 ) {
-  if (item.kind === 'dropdown') {
-    return (
-      <OwnerRestaurantSettingsDropdown
-        key={item.id}
-        items={item.items}
-        active={isOwnerRestaurantSettingsActive(pathname)}
-        label={navT.restaurantSettings}
-      />
-    );
-  }
-
   const active = isNavItemActive(pathname, item);
   const label =
     item.labelKey === 'viewKitchen' ? navT.viewKitchen : navT[item.labelKey as keyof typeof navT];
   const badge = item.checkoutBadge ? checkoutCount : undefined;
-  const className = topNavTabClass(active);
+  const className = dashboardTopNavButtonClass(active);
 
   const content = (
     <>

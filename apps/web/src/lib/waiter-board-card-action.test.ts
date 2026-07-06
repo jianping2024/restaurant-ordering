@@ -12,7 +12,7 @@ describe('resolveWaiterBoardCardAction', () => {
     const action = resolveWaiterBoardCardAction({
       boardState: 'idle',
       embeddedInDashboard: true,
-      restaurantHasActiveBuffets: true,
+      supportsBuffetOpenTable: true,
       detailHref,
     });
     assert.equal(action.kind, 'open_table_sheet');
@@ -22,7 +22,7 @@ describe('resolveWaiterBoardCardAction', () => {
     const action = resolveWaiterBoardCardAction({
       boardState: 'idle',
       embeddedInDashboard: false,
-      restaurantHasActiveBuffets: false,
+      supportsBuffetOpenTable: false,
       detailHref,
     });
     assert.deepEqual(action, { kind: 'disabled', reason: 'no_buffet_config' });
@@ -32,7 +32,7 @@ describe('resolveWaiterBoardCardAction', () => {
     const action = resolveWaiterBoardCardAction({
       boardState: 'dining',
       embeddedInDashboard: true,
-      restaurantHasActiveBuffets: true,
+      supportsBuffetOpenTable: true,
       detailHref,
     });
     assert.deepEqual(action, { kind: 'navigate', href: detailHref });
@@ -42,7 +42,7 @@ describe('resolveWaiterBoardCardAction', () => {
     const action = resolveWaiterBoardCardAction({
       boardState: 'checkout',
       embeddedInDashboard: true,
-      restaurantHasActiveBuffets: true,
+      supportsBuffetOpenTable: true,
       detailHref,
     });
     assert.deepEqual(action, { kind: 'open_checkout_sheet' });
@@ -52,7 +52,7 @@ describe('resolveWaiterBoardCardAction', () => {
     const action = resolveWaiterBoardCardAction({
       boardState: 'checkout',
       embeddedInDashboard: false,
-      restaurantHasActiveBuffets: true,
+      supportsBuffetOpenTable: true,
       detailHref,
     });
     assert.deepEqual(action, { kind: 'navigate', href: detailHref });

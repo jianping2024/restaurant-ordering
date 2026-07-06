@@ -81,18 +81,20 @@ async function fetchBySessionIds<T extends { session_id?: string | null }>(
 ): Promise<{ ok: true; rows: T[] } | AnalyticsQueryError> {
   if (sessionIds.length === 0) return { ok: true, rows: [] };
 
-  const rows: T[] = [];
   try {
-    for (const chunk of chunkIds(sessionIds)) {
-      const { data, error } = (await withAnalyticsQueryTimeout(
-        admin.from(table).select(select).eq('restaurant_id', restaurantId).in('session_id', chunk),
-      )) as { data: T[] | null; error: { message: string } | null };
-      if (error) {
-        return { ok: false, code: 'query_failed', message: error.message };
-      }
-      rows.push(...((data || []) as unknown as T[]));
-    }
-    return { ok: true, rows };
+    const chunks = chunkIds(sessionIds);
+    const chunkResults = await Promise.all(
+      chunks.map(async (chunk) => {
+        const { data, error } = (await withAnalyticsQueryTimeout(
+          admin.from(table).select(select).eq('restaurant_id', restaurantId).in('session_id', chunk),
+        )) as { data: T[] | null; error: { message: string } | null };
+        if (error) {
+          throw new Error(error.message);
+        }
+        return (data || []) as unknown as T[];
+      }),
+    );
+    return { ok: true, rows: chunkResults.flat() };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'query_failed';
     if (message === 'analytics_query_timeout') {

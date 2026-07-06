@@ -1,13 +1,10 @@
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
 import {
-  DASHBOARD_NAV_ITEMS,
   navItemsForRole,
   type DashboardNavItemDef,
 } from '@/lib/dashboard-feature-registry';
-import { SETTINGS_NAV_TABS, type SettingsNavItem } from '@/lib/settings-nav';
 
-export type DashboardTopNavLinkItem = {
-  kind: 'link';
+export type DashboardTopNavItem = {
   id: string;
   href: string;
   labelKey: DashboardNavItemDef['key'] | 'viewKitchen';
@@ -17,16 +14,6 @@ export type DashboardTopNavLinkItem = {
   checkoutBadge?: boolean;
   external?: boolean;
 };
-
-export type DashboardTopNavDropdownItem = {
-  kind: 'dropdown';
-  id: 'ownerRestaurantSettings';
-  labelKey: 'restaurantSettings';
-  icon: string;
-  items: SettingsNavItem[];
-};
-
-export type DashboardTopNavItem = DashboardTopNavLinkItem | DashboardTopNavDropdownItem;
 
 export function dashboardTopNavButtonClass(active: boolean): string {
   return `inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
@@ -38,7 +25,7 @@ export function dashboardTopNavButtonClass(active: boolean): string {
 
 export function isNavItemActive(
   pathname: string,
-  item: Pick<DashboardTopNavLinkItem, 'href' | 'exact' | 'matchPrefix'>,
+  item: Pick<DashboardTopNavItem, 'href' | 'exact' | 'matchPrefix'>,
 ): boolean {
   if (item.matchPrefix) {
     return pathname === item.matchPrefix || pathname.startsWith(`${item.matchPrefix}/`);
@@ -49,42 +36,24 @@ export function isNavItemActive(
   return pathname.startsWith(item.href);
 }
 
-export function isOwnerRestaurantSettingsActive(pathname: string): boolean {
-  return pathname.startsWith('/dashboard/settings');
-}
-
 export function buildDashboardTopNavItems(input: {
   accessMode: DashboardAccessMode;
   restaurantSlug: string;
   kitchenShortcutEnabled: boolean;
 }): DashboardTopNavItem[] {
   const { accessMode, restaurantSlug, kitchenShortcutEnabled } = input;
-  const items: DashboardTopNavItem[] = navItemsForRole(accessMode)
-    .filter((item) => item.id !== 'settings')
-    .map((item) => ({
-      kind: 'link' as const,
-      id: item.id,
-      href: item.href,
-      labelKey: item.key,
-      icon: item.icon,
-      exact: item.exact,
-      matchPrefix: item.matchPrefix,
-      checkoutBadge: item.checkoutBadge,
-    }));
-
-  if (accessMode === 'owner') {
-    items.push({
-      kind: 'dropdown',
-      id: 'ownerRestaurantSettings',
-      labelKey: 'restaurantSettings',
-      icon: DASHBOARD_NAV_ITEMS.settings.icon,
-      items: SETTINGS_NAV_TABS,
-    });
-  }
+  const items: DashboardTopNavItem[] = navItemsForRole(accessMode).map((item) => ({
+    id: item.id,
+    href: item.href,
+    labelKey: item.key,
+    icon: item.icon,
+    exact: item.exact,
+    matchPrefix: item.matchPrefix,
+    checkoutBadge: item.checkoutBadge,
+  }));
 
   if (accessMode === 'frontdesk' && kitchenShortcutEnabled) {
     items.push({
-      kind: 'link',
       id: 'kitchenBoard',
       href: `/${restaurantSlug}/kitchen`,
       labelKey: 'viewKitchen',

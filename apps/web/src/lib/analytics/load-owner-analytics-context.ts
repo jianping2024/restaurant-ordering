@@ -1,6 +1,9 @@
+import 'server-only';
+
+import { cache } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { loadDashboardAccess } from '@/lib/dashboard-access';
+import { getDashboardAccess } from '@/lib/dashboard-access-cached';
 
 export type OwnerAnalyticsContext =
   | { admin: SupabaseClient; restaurantId: string; userId: string }
@@ -9,7 +12,7 @@ export type OwnerAnalyticsContext =
 const FORBIDDEN_MESSAGE = '当前账号无权访问增值分析。';
 
 export async function loadOwnerAnalyticsContext(): Promise<OwnerAnalyticsContext> {
-  const access = await loadDashboardAccess();
+  const access = await getDashboardAccess();
   if (access.mode === 'unauthenticated') {
     return { error: 'unauthorized', status: 401 };
   }
@@ -30,3 +33,6 @@ export async function loadOwnerAnalyticsContext(): Promise<OwnerAnalyticsContext
     userId: access.restaurant.owner_id,
   };
 }
+
+/** Per-request dedup when dashboard layout and value-analytics page load together. */
+export const getOwnerAnalyticsContext = cache(loadOwnerAnalyticsContext);

@@ -4,7 +4,11 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Order } from '@/types';
 import { fetchWaiterBoardClient } from '@/lib/staff-board-client';
-import type { WaiterBoardData, WaiterBoardOpenTableDefaults } from '@/lib/staff-board';
+import type { WaiterBoardData } from '@/lib/staff-board';
+import {
+  boardSupportsBuffetOpenTable,
+  type WaiterBoardOpenTableDefaults,
+} from '@/lib/waiter-board-open-table';
 import {
   useRestaurantRealtimeRefresh,
   useRestaurantStaffEntryReconcile,
@@ -37,9 +41,9 @@ function buildInitialWaiterBoardState(input: {
   initialTables: RestaurantTableRow[];
   initialGroups: RestaurantTableGroup[];
   initialMembers: RestaurantTableGroupMember[];
-  restaurantHasActiveBuffets?: boolean;
   initialOpenTableDefaults?: WaiterBoardOpenTableDefaults | null;
 }) {
+  const openTableDefaults = input.initialOpenTableDefaults ?? null;
   return bootstrapWaiterBoardData({
     tableSummaries: input.initialTableSummaries,
     checkoutRequestedTableIds: input.initialCheckoutRequestedTableIds,
@@ -48,8 +52,8 @@ function buildInitialWaiterBoardState(input: {
     tables: input.initialTables,
     groups: input.initialGroups,
     members: input.initialMembers,
-    restaurantHasActiveBuffets: input.restaurantHasActiveBuffets ?? false,
-    openTableDefaults: input.initialOpenTableDefaults ?? null,
+    restaurantHasActiveBuffets: boardSupportsBuffetOpenTable(openTableDefaults),
+    openTableDefaults,
   });
 }
 
@@ -88,7 +92,6 @@ export function useWaiterOrders(
   initialMembers: RestaurantTableGroupMember[] = [],
   demoOrders: Order[] = [],
   skipEntryReconcile = false,
-  initialRestaurantHasActiveBuffets = false,
   initialOpenTableDefaults: WaiterBoardOpenTableDefaults | null = null,
 ) {
   const initialBoard = buildInitialWaiterBoardState({
@@ -99,7 +102,6 @@ export function useWaiterOrders(
     initialTables,
     initialGroups,
     initialMembers,
-    restaurantHasActiveBuffets: initialRestaurantHasActiveBuffets,
     initialOpenTableDefaults,
   });
   const [tableSummaries, setTableSummaries] = useState(initialBoard.tableSummaries);
@@ -134,6 +136,7 @@ export function useWaiterOrders(
   }, [demoOrders, initialTableSummaries, initialTables]);
 
   const effectiveTableSummaries = demoOrders.length ? demoTableSummaries : tableSummaries;
+  const supportsBuffetOpenTable = boardSupportsBuffetOpenTable(openTableDefaults);
 
   const refresh = useCallback(async () => {
     if (!enabled) return null;
@@ -189,6 +192,7 @@ export function useWaiterOrders(
     groups,
     members,
     openTableDefaults,
+    supportsBuffetOpenTable,
     refresh,
     supabase,
   };

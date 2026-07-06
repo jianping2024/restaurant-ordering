@@ -10,6 +10,13 @@ export type WaiterBoardOpenTableDefaults = {
   buffetPricesByBuffetId: Record<string, ResolvedBuffetPriceRow | null>;
 };
 
+/** True when the board carries buffet open-table seed (server sets this only with active buffets). */
+export function boardSupportsBuffetOpenTable(
+  openTableDefaults: WaiterBoardOpenTableDefaults | null,
+): boolean {
+  return openTableDefaults != null;
+}
+
 export function buildIdleOpenTablePageModel(
   defaults: WaiterBoardOpenTableDefaults,
   table: RestaurantTableRow,

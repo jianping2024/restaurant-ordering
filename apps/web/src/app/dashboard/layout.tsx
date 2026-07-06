@@ -7,8 +7,10 @@ import { RestaurantSuspensionBanner } from '@/components/dashboard/RestaurantSus
 import { getDashboardAccess } from '@/lib/dashboard-access-cached';
 import { PrintAgentCredentialExpiryAlert } from '@/components/dashboard/PrintAgentCredentialExpiryAlert';
 import { CheckoutRequestsProvider } from '@/components/dashboard/CheckoutRequestsProvider';
+import { WaiterBoardProvider } from '@/components/dashboard/WaiterBoardProvider';
 import { loadPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-server';
 import { fetchCheckoutRequestsQueue } from '@/lib/checkout-requests-queue';
+import { loadWaiterBoardInitial } from '@/lib/staff-board';
 import { createClient } from '@/lib/supabase/server';
 import type { BillSplit } from '@/types';
 
@@ -53,6 +55,16 @@ export default async function DashboardLayout({
     }
   }
 
+  const waiterBoardEnabled = access.mode === 'frontdesk';
+  let initialWaiterBoard = null;
+  if (waiterBoardEnabled) {
+    try {
+      initialWaiterBoard = await loadWaiterBoardInitial(access.restaurant.id);
+    } catch {
+      initialWaiterBoard = null;
+    }
+  }
+
   const expiringDevices =
     access.mode === 'owner'
       ? await loadPrintAgentDevicesNeedingRenewal(access.restaurant.id)
@@ -68,15 +80,21 @@ export default async function DashboardLayout({
       enabled={checkoutQueueEnabled}
       initialRequests={initialCheckoutRequests}
     >
-      <DashboardShell restaurant={access.restaurant} accessMode={access.mode}>
-        {showSuspensionBanner ? (
-          <RestaurantSuspensionBanner reason={access.restaurant.suspension_reason} />
-        ) : null}
-        {expiringDevices.length > 0 ? (
-          <PrintAgentCredentialExpiryAlert devices={expiringDevices} variant="bar" />
-        ) : null}
-        {children}
-      </DashboardShell>
+      <WaiterBoardProvider
+        restaurant={{ id: access.restaurant.id, slug: access.restaurant.slug }}
+        enabled={waiterBoardEnabled}
+        initialBoard={initialWaiterBoard}
+      >
+        <DashboardShell restaurant={access.restaurant} accessMode={access.mode}>
+          {showSuspensionBanner ? (
+            <RestaurantSuspensionBanner reason={access.restaurant.suspension_reason} />
+          ) : null}
+          {expiringDevices.length > 0 ? (
+            <PrintAgentCredentialExpiryAlert devices={expiringDevices} variant="bar" />
+          ) : null}
+          {children}
+        </DashboardShell>
+      </WaiterBoardProvider>
     </CheckoutRequestsProvider>
   );
 }

@@ -11,7 +11,6 @@ import { tableIdsEqual } from '@/lib/restaurant-tables';
 type Props = {
   open: boolean;
   onClose: () => void;
-  onComplete?: () => void;
   restaurantId: string;
   restaurantSlug: string;
   tableId: string;
@@ -20,7 +19,6 @@ type Props = {
 export function WaiterBoardCheckoutSheet({
   open,
   onClose,
-  onComplete,
   restaurantId,
   restaurantSlug,
   tableId,
@@ -58,11 +56,6 @@ export function WaiterBoardCheckoutSheet({
 
   if (!open || !mounted) return null;
 
-  const handleComplete = () => {
-    onComplete?.();
-    onClose();
-  };
-
   return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col bg-brand-bg">
       <header className="flex shrink-0 items-center gap-3 border-b border-brand-border bg-brand-card px-4 py-3">
@@ -85,9 +78,9 @@ export function WaiterBoardCheckoutSheet({
             canCloseTable
             showBackButton={false}
             onBack={onClose}
-            onAllPaid={handleComplete}
-            onCloseTableComplete={handleComplete}
-            onResumeOrderingComplete={handleComplete}
+            onAllPaid={onClose}
+            onCloseTableComplete={onClose}
+            onResumeOrderingComplete={onClose}
           />
         ) : (
           <div className="rounded-xl border border-brand-border bg-brand-card px-6 py-16 text-center">

@@ -46,8 +46,36 @@ export function dashboardTopNavButtonClass(active: boolean, compact = false): st
   return `inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${tone}`;
 }
 
-export function dashboardTopNavPanelClass(): string {
-  return 'fixed inset-x-3 top-[calc(3.5rem+4px)] z-50 rounded-xl border border-brand-border bg-brand-card py-2 shadow-lg shadow-black/10 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-1.5 sm:w-64';
+/** Sticky top bar height — keep dropdown top offset in sync. */
+export const DASHBOARD_TOP_BAR_HEIGHT = '3.5rem';
+
+export function dashboardTopBarMobileDropdownPanelClass(): string {
+  return 'rounded-xl border border-brand-border bg-brand-card py-2 shadow-lg shadow-black/10';
+}
+
+export function dashboardTopBarDesktopDropdownPanelClass(): string {
+  return 'absolute right-0 top-full z-50 mt-1.5 w-64 rounded-xl border border-brand-border bg-brand-card py-2 shadow-lg shadow-black/10';
+}
+
+/** Viewport-safe fixed panel for mobile dashboard dropdowns (portal to body). */
+export function dashboardTopBarMobileDropdownPanelStyle(): {
+  position: 'fixed';
+  top: string;
+  right: string;
+  width: string;
+  maxHeight: string;
+  overflowY: 'auto';
+  zIndex: number;
+} {
+  return {
+    position: 'fixed',
+    top: `calc(${DASHBOARD_TOP_BAR_HEIGHT} + 4px)`,
+    right: 'max(12px, env(safe-area-inset-right, 0px))',
+    width: 'min(16rem, calc(100vw - 24px))',
+    maxHeight: `calc(100dvh - ${DASHBOARD_TOP_BAR_HEIGHT} - 16px - env(safe-area-inset-bottom, 0px))`,
+    overflowY: 'auto',
+    zIndex: 50,
+  };
 }
 
 export function isNavItemActive(

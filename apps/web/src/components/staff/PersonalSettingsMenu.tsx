@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useSignOutConfirmState, SignOutConfirmModal } from '@/lib/auth/sign-out-confirm';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { DASHBOARD_NAV_ITEMS } from '@/lib/dashboard-feature-registry';
-import { dashboardTopNavButtonClass, dashboardTopNavPanelClass } from '@/lib/dashboard-top-nav';
+import { dashboardTopNavButtonClass } from '@/lib/dashboard-top-nav';
+import { DashboardTopBarDropdownPanel } from '@/components/dashboard/DashboardTopBarDropdownPanel';
 import { PersonalSettingsPanel } from '@/components/staff/PersonalSettingsPanel';
 
 type Props = {
@@ -35,22 +36,6 @@ export function PersonalSettingsMenu({
   const { requestSignOut, modalOpen, modalConfirming, closeModal, confirmSignOut: runSignOut } =
     useSignOutConfirmState(onSignOut);
 
-  useEffect(() => {
-    if (!open) return;
-    const onDoc = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('mousedown', onDoc);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onDoc);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open, setOpen]);
-
   const handleLogout = () => {
     setOpen(false);
     if (confirmSignOut) {
@@ -78,27 +63,23 @@ export function PersonalSettingsMenu({
           <span aria-hidden>{DASHBOARD_NAV_ITEMS.settings.icon}</span>
           {compact ? null : <span>{t.settingsMenu}</span>}
         </button>
-        {open ? (
-          <div
-            role="menu"
-            className={
-              compact
-                ? dashboardTopNavPanelClass()
-                : 'absolute right-0 top-full z-50 mt-1.5 w-64 rounded-xl border border-brand-border bg-brand-card py-2 shadow-lg shadow-black/10'
-            }
+        <DashboardTopBarDropdownPanel
+          open={open}
+          onClose={() => setOpen(false)}
+          anchorRef={rootRef}
+          mobilePortal={compact}
+        >
+          <PersonalSettingsPanel />
+          <button
+            type="button"
+            role="menuitem"
+            onClick={handleLogout}
+            className="flex min-h-11 w-full items-center gap-2 px-3 py-2.5 text-sm text-status-danger hover:bg-[rgb(var(--color-status-danger-border)/0.08)] transition-colors"
           >
-            <PersonalSettingsPanel />
-            <button
-              type="button"
-              role="menuitem"
-              onClick={handleLogout}
-              className="flex min-h-11 w-full items-center gap-2 px-3 py-2.5 text-sm text-status-danger hover:bg-[rgb(var(--color-status-danger-border)/0.08)] transition-colors"
-            >
-              <span aria-hidden>🚪</span>
-              <span>{logoutLabel}</span>
-            </button>
-          </div>
-        ) : null}
+            <span aria-hidden>🚪</span>
+            <span>{logoutLabel}</span>
+          </button>
+        </DashboardTopBarDropdownPanel>
       </div>
       {confirmSignOut ? (
         <SignOutConfirmModal

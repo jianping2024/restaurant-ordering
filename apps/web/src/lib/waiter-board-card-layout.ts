@@ -18,9 +18,9 @@ export const WAITER_BOARD_CARD_ROW2_LAYOUT = {
   guestCount: 'min-w-[2.75rem] shrink-0 text-right tabular-nums text-brand-text-muted',
 } as const;
 
-/** Row3 layout — stack duration/amount on mobile; side-by-side from sm+. */
+/** Row3 layout — duration (left) and amount (right) on one row at all breakpoints. */
 export const WAITER_BOARD_CARD_ROW3_LAYOUT = {
-  row: 'mt-2 flex min-h-[1.375rem] flex-col items-start gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-x-1.5',
-  meta: 'min-w-0 w-full sm:flex-1 sm:truncate',
-  amount: 'shrink-0 whitespace-nowrap sm:min-w-[4.5rem] sm:text-right',
+  row: 'mt-2 flex min-h-[1.375rem] items-baseline justify-between gap-x-1.5',
+  meta: 'min-w-0 flex-1 truncate',
+  amount: 'shrink-0 whitespace-nowrap min-w-[4.5rem] text-right',
 } as const;

@@ -12,6 +12,8 @@ import { releaseWaiterBoardTableBridge } from '@/lib/waiter-staff-mutation-sync'
 
 export type WaiterBoardContextValue = ReturnType<typeof useWaiterOrders> & {
   /** Drop optimistic bridge for affected tables, then pull Staff board API. */
+  refreshBoardAfterStaffMutation: (tableIds: readonly string[]) => Promise<void>;
+  /** @deprecated Prefer refreshBoardAfterStaffMutation */
   refreshAfterTableMutation: (tableId: string) => Promise<void>;
 };
 
@@ -73,16 +75,25 @@ function WaiterBoardProviderInner({
 
   const refresh = store.refresh;
 
-  const refreshAfterTableMutation = useCallback(
-    async (tableId: string) => {
-      releaseWaiterBoardTableBridge([tableId]);
+  const refreshBoardAfterStaffMutation = useCallback(
+    async (tableIds: readonly string[]) => {
+      if (tableIds.length === 0) return;
+      releaseWaiterBoardTableBridge(tableIds);
       await refresh();
     },
     [refresh],
   );
 
+  const refreshAfterTableMutation = useCallback(
+    async (tableId: string) => {
+      await refreshBoardAfterStaffMutation([tableId]);
+    },
+    [refreshBoardAfterStaffMutation],
+  );
+
   const value: WaiterBoardContextValue = {
     ...store,
+    refreshBoardAfterStaffMutation,
     refreshAfterTableMutation,
   };
 

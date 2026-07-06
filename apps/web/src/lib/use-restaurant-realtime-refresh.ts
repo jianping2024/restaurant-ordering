@@ -10,7 +10,7 @@ import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
  * 3. Client entry reconcile — Staff API on mount (dashboard board provider always reconciles)
  * 4. Staff menu submit return — dedicated reconcile, then strip query
  * 5. Realtime while mounted (`useRestaurantRealtimeRefresh`)
- * 6. Dashboard checkout mutations — `WaiterBoardProvider.refreshAfterTableMutation` while provider lives
+ * 6. Dashboard staff mutations — `WaiterBoardProvider.refreshBoardAfterStaffMutation` (open, checkout, transfer/merge)
  */
 export function useRestaurantStaffEntryReconcile(
   enabled: boolean,

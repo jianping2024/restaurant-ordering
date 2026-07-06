@@ -5,6 +5,7 @@ import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import {
   clearAllPublishedWaiterTablePageModels,
   commitAuthoritativeWaiterTablePageModel,
+  commitWaiterSessionRelocation,
   mergePublishedModelsIntoWaiterBoard,
   peekPublishedWaiterTablePageModel,
   reconcileWaiterBoardWithPublished,
@@ -12,6 +13,7 @@ import {
 } from '@/lib/waiter-staff-mutation-sync';
 
 const TABLE_ID = '00000000-0000-4000-8000-000000000004';
+const TABLE_B_ID = '00000000-0000-4000-8000-000000000005';
 
 function idleBoard(): WaiterBoardData {
   return {
@@ -161,5 +163,61 @@ describe('waiter-staff-mutation-sync', () => {
     assert.equal(peekPublishedWaiterTablePageModel(TABLE_ID), null);
     const merged = mergePublishedModelsIntoWaiterBoard(idleBoard());
     assert.equal(merged.sessionMetaByTableId[TABLE_ID], undefined);
+  });
+
+  it('commitWaiterSessionRelocation clears source and publishes target', () => {
+    commitAuthoritativeWaiterTablePageModel(openTableModel());
+    const targetModel: WaiterTablePageModel = {
+      ...openTableModel(),
+      detail: {
+        ...openTableModel().detail,
+        table: { id: TABLE_B_ID, display_name: '005', sort_order: 5, seat_min: 2, seat_max: 4 },
+        orders: openTableModel().detail.orders.map((o) => ({
+          ...o,
+          table_id: TABLE_B_ID,
+          display_name: '005',
+        })),
+      },
+    };
+    const affected = commitWaiterSessionRelocation({ sourceTableId: TABLE_ID, targetModel });
+    assert.deepEqual(affected, [TABLE_ID, TABLE_B_ID]);
+    assert.equal(peekPublishedWaiterTablePageModel(TABLE_ID), null);
+    assert.equal(peekPublishedWaiterTablePageModel(TABLE_B_ID)?.detail.table?.id, TABLE_B_ID);
+  });
+
+  it('merge skips stale published session after relocation to another table', () => {
+    commitAuthoritativeWaiterTablePageModel(openTableModel());
+    const apiBoard: WaiterBoardData = {
+      ...idleBoard(),
+      tables: [
+        ...(idleBoard().tables ?? []),
+        { id: TABLE_B_ID, display_name: '005', sort_order: 5, seat_min: 2, seat_max: 4 },
+      ],
+      sessionMetaByTableId: {
+        [TABLE_B_ID]: {
+          sessionId: 'sess-1',
+          openedAt: '2026-01-01T10:00:00.000Z',
+          status: 'open',
+        },
+      },
+      tableSummaries: [
+        ...(idleBoard().tableSummaries ?? []),
+        {
+          tableId: TABLE_B_ID,
+          displayName: '005',
+          buffetHeadcount: { adults: 2, children: 0 },
+          sessionTotal: 39.9,
+          hasBuffet: true,
+          occupied: true,
+          seatMin: 2,
+          seatMax: 4,
+          updatedAt: '',
+        },
+      ],
+    };
+    const merged = mergePublishedModelsIntoWaiterBoard(apiBoard);
+    assert.equal(merged.sessionMetaByTableId[TABLE_ID], undefined);
+    assert.ok(merged.sessionMetaByTableId[TABLE_B_ID]);
+    assert.equal(peekPublishedWaiterTablePageModel(TABLE_ID), null);
   });
 });

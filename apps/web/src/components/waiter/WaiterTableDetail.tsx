@@ -47,7 +47,8 @@ import {
   fetchWaiterTablePageModelClient,
   postWaiterBuffetOpenClient,
 } from '@/lib/staff-board-client';
-import { commitAuthoritativeWaiterTablePageModel } from '@/lib/waiter-staff-mutation-sync';
+import { commitAuthoritativeWaiterTablePageModel, commitWaiterSessionRelocation } from '@/lib/waiter-staff-mutation-sync';
+import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import {
@@ -100,6 +101,7 @@ function WaiterTableDetailInner({
   confirmBeforeSignOut,
 }: Props & { handleSignOut: () => void; exitLabel: string; confirmBeforeSignOut: boolean }) {
   const router = useRouter();
+  const waiterBoard = useWaiterBoardOptional();
   const { lang } = useLanguage();
   const locale = UI_LOCALE_BY_LANG[lang];
   const t = WAITER_TEXT[lang];
@@ -354,9 +356,21 @@ function WaiterTableDetailInner({
   );
 
   const finishTransferOrMerge = useCallback(
-    async (targetTableId: string, operation: 'transfer' | 'merge', targetLabel: string) => {
+    async (
+      sourceTableId: string,
+      targetTableId: string,
+      operation: 'transfer' | 'merge',
+      targetLabel: string,
+    ) => {
       const targetModel = await fetchWaiterTablePageModelClient(restaurant.slug, targetTableId);
-      applyModel(targetModel);
+      const normalized = applyModel(targetModel);
+      const affectedTableIds = commitWaiterSessionRelocation({
+        sourceTableId,
+        targetModel: normalized,
+      });
+      if (embeddedInDashboard && waiterBoard) {
+        await waiterBoard.refreshBoardAfterStaffMutation(affectedTableIds);
+      }
       const toastText =
         operation === 'transfer'
           ? t.transferDone.replace('{table}', targetLabel)
@@ -365,7 +379,15 @@ function WaiterTableDetailInner({
       showToast(toastText, 'success');
       goToTableDetail(targetTableId);
     },
-    [applyModel, goToTableDetail, restaurant.slug, t.mergeDone, t.transferDone],
+    [
+      applyModel,
+      embeddedInDashboard,
+      goToTableDetail,
+      restaurant.slug,
+      t.mergeDone,
+      t.transferDone,
+      waiterBoard,
+    ],
   );
 
   const handleActionSubmit = async () => {
@@ -408,6 +430,7 @@ function WaiterTableDetailInner({
           return;
         }
         await finishTransferOrMerge(
+          fromTable,
           toTable,
           currentOperation,
           targetCandidates.find((row) => tableIdsEqual(row.id, toTable))?.display_name ?? toTable,
@@ -449,6 +472,7 @@ function WaiterTableDetailInner({
       }
 
       await finishTransferOrMerge(
+        fromTable,
         toTable,
         currentOperation,
         targetCandidates.find((row) => tableIdsEqual(row.id, toTable))?.display_name ?? toTable,

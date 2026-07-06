@@ -8,6 +8,7 @@ import {
   mergePublishedModelsIntoWaiterBoard,
   peekPublishedWaiterTablePageModel,
   reconcileWaiterBoardWithPublished,
+  releaseWaiterBoardTableBridge,
 } from '@/lib/waiter-staff-mutation-sync';
 
 const TABLE_ID = '00000000-0000-4000-8000-000000000004';
@@ -24,7 +25,7 @@ function idleBoard(): WaiterBoardData {
       {
         tableId: TABLE_ID,
         displayName: '004',
-        guestCount: 0,
+        buffetHeadcount: null,
         sessionTotal: 0,
         hasBuffet: false,
         occupied: false,
@@ -125,7 +126,7 @@ describe('waiter-staff-mutation-sync', () => {
     assert.ok(card);
     assert.equal(card.occupied, true);
     assert.equal(card.hasBuffet, true);
-    assert.equal(card.guestCount, 2);
+    assert.deepEqual(card.buffetHeadcount, { adults: 2, children: 0 });
   });
 
   it('reconcile keeps published when API board lacks session', () => {
@@ -152,5 +153,13 @@ describe('waiter-staff-mutation-sync', () => {
     commitAuthoritativeWaiterTablePageModel(openTableModel());
     const boot = mergePublishedModelsIntoWaiterBoard(idleBoard());
     assert.ok(boot.sessionMetaByTableId[TABLE_ID], 'board first frame should be dining');
+  });
+
+  it('releaseWaiterBoardTableBridge clears published before checkout refresh', () => {
+    commitAuthoritativeWaiterTablePageModel(openTableModel());
+    releaseWaiterBoardTableBridge([TABLE_ID]);
+    assert.equal(peekPublishedWaiterTablePageModel(TABLE_ID), null);
+    const merged = mergePublishedModelsIntoWaiterBoard(idleBoard());
+    assert.equal(merged.sessionMetaByTableId[TABLE_ID], undefined);
   });
 });

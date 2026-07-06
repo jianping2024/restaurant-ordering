@@ -1,4 +1,5 @@
 import type { UILanguage } from '@/lib/i18n';
+import { formatBuffetCompactHeadcountLabel } from '@/lib/buffet-order';
 import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
 import type { WaiterTableBoardState } from '@/lib/waiter-board-session';
 import { formatSessionDurationForBoardCard, type WaiterTableSessionMeta } from '@/lib/waiter-board-session';
@@ -10,7 +11,6 @@ import {
 export type WaiterBoardCardDisplayLabels = {
   table: string;
   seatCapacity: string;
-  guestCount: string;
   cardIdleReadyHint: string;
   cardDiningDuration: string;
   cardActionOpenTable: string;
@@ -60,13 +60,12 @@ function badgeLabelForState(
   return statusLabels.idle;
 }
 
-function guestCountText(
+function boardHeadcountText(
   boardState: WaiterTableBoardState,
-  guestCount: number,
-  template: string,
+  headcount: WaiterBoardTableSummary['buffetHeadcount'],
 ): string {
-  if (boardState === 'idle' || guestCount <= 0) return '';
-  return template.replace('{n}', String(guestCount));
+  if (boardState === 'idle' || !headcount) return '';
+  return formatBuffetCompactHeadcountLabel(headcount.adults, headcount.children);
 }
 
 function diningDurationSlots(
@@ -183,11 +182,7 @@ export function buildWaiterBoardCardViewModel(input: {
         input.card.seatMax,
         input.labels.seatCapacity,
       ),
-      guestCountText: guestCountText(
-        input.boardState,
-        input.card.guestCount,
-        input.labels.guestCount,
-      ),
+      guestCountText: boardHeadcountText(input.boardState, input.card.buffetHeadcount),
     },
     row3: row3Slots({
       boardState: input.boardState,

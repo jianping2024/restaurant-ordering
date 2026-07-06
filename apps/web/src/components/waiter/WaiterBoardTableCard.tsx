@@ -58,7 +58,6 @@ export function WaiterBoardTableCard({
     labels: {
       table: t.table,
       seatCapacity: t.seatCapacity,
-      guestCount: t.guestCount,
       cardIdleReadyHint: t.cardIdleReadyHint,
       cardDiningDuration: t.cardDiningDuration,
       cardActionOpenTable: t.cardActionOpenTable,

@@ -207,44 +207,6 @@ export function formatSessionDurationForBoardCard(
   );
 }
 
-export function buildWaiterTableCardSubtitle(input: {
-  guestCount: number;
-  sessionTotal: number;
-  session: WaiterTableSessionMeta | undefined;
-  hasCheckoutRequest: boolean;
-  lang: UILanguage;
-  checkoutRequestedAt: string | null;
-  nowMs: number;
-  labels: {
-    guestCount: string;
-    sessionAmount: string;
-    checkoutPendingSubtitle: string;
-    clickToView: string;
-  };
-}): string {
-  const parts: string[] = [];
-  if (input.guestCount > 0) {
-    parts.push(input.labels.guestCount.replace('{n}', String(input.guestCount)));
-  }
-  if (input.session) {
-    const duration = formatSessionDurationHm(
-      input.session.openedAt,
-      input.checkoutRequestedAt,
-      input.lang,
-      input.nowMs,
-    );
-    if (duration) parts.push(duration);
-  }
-  if (input.sessionTotal > 0) {
-    parts.push(
-      input.labels.sessionAmount.replace('{amount}', input.sessionTotal.toFixed(2)),
-    );
-  }
-  if (parts.length > 0) return parts.join(' · ');
-  if (input.hasCheckoutRequest) return input.labels.checkoutPendingSubtitle;
-  return input.labels.clickToView;
-}
-
 export function computeWaiterBoardStats(
   tableIds: readonly string[],
   ctx: WaiterBoardStateContext,

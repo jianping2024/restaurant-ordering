@@ -6,6 +6,7 @@ import {
   buffetFormSeedKey,
   computeBuffetSubtotal,
   deriveBuffetFormSeed,
+  formatBuffetCompactHeadcountLabel,
   formatBuffetGuestCountsOptional,
   formatBuffetPriceTemplate,
   formatBuffetReceiptQtyLabel,
@@ -150,6 +151,24 @@ describe('formatBuffetGuestCountsOptional', () => {
 
   it('returns empty when both are zero', () => {
     assert.equal(formatBuffetGuestCountsOptional(0, 0, labels), '');
+  });
+});
+
+describe('formatBuffetCompactHeadcountLabel', () => {
+  it('joins adult and child without separator', () => {
+    assert.equal(formatBuffetCompactHeadcountLabel(3, 2), 'A3C2');
+  });
+
+  it('omits adult segment when zero', () => {
+    assert.equal(formatBuffetCompactHeadcountLabel(0, 2), 'C2');
+  });
+
+  it('omits child segment when zero', () => {
+    assert.equal(formatBuffetCompactHeadcountLabel(3, 0), 'A3');
+  });
+
+  it('returns empty when both are zero', () => {
+    assert.equal(formatBuffetCompactHeadcountLabel(0, 0), '');
   });
 });
 

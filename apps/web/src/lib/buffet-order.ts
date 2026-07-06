@@ -160,9 +160,20 @@ export function isBuffetGuestCountsUnchanged(
   return agg.buffetId === buffetId && agg.adults === adults && agg.children === children;
 }
 
+export type BuffetGuestHeadcount = { adults: number; children: number };
+
 /** Compact adult/child headcount, e.g. A7 C3. */
 export function formatBuffetHeadcountLabel(adults: number, children: number): string {
   return `A${adults} C${children}`;
+}
+
+/** Staff board card headcount, e.g. A3C2, A3, C2 (omit zero segments). */
+export function formatBuffetCompactHeadcountLabel(adults: number, children: number): string {
+  const { adults: a, children: c } = normalizeBuffetGuestCounts(adults, children);
+  let out = '';
+  if (a > 0) out += `A${a}`;
+  if (c > 0) out += `C${c}`;
+  return out;
 }
 
 /** Thermal receipt Qty column for buffet_base lines, e.g. A4-C2, A9, C3 (no spaces; omit zero segments). */

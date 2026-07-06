@@ -1,4 +1,5 @@
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
+import type { BuffetGuestHeadcount } from '@/lib/buffet-order';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import {
   sortWaiterTableCards,
@@ -19,7 +20,7 @@ export type WaiterBoardTableSummary = {
   displayName: string;
   seatMin: number;
   seatMax: number;
-  guestCount: number;
+  buffetHeadcount: BuffetGuestHeadcount | null;
   sessionTotal: number;
   hasBuffet: boolean;
   occupied: boolean;
@@ -44,7 +45,7 @@ export function buildWaiterBoardTableSummaries(
       displayName: card.displayName,
       seatMin: table.seat_min ?? DEFAULT_TABLE_SEAT_MIN,
       seatMax: table.seat_max ?? DEFAULT_TABLE_SEAT_MAX,
-      guestCount: card.guestCount,
+      buffetHeadcount: card.buffetHeadcount,
       sessionTotal: card.sessionTotal,
       hasBuffet: card.hasBuffet,
       occupied: isWaiterTableCardOccupied(card),

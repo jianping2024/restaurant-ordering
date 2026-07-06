@@ -1,7 +1,6 @@
 import type { Order } from '@/types';
 import { sumLineTotals } from '@/lib/cart-totals';
-import { aggregateBuffetForOrders } from '@/lib/buffet-order';
-import { guestCountFromTableOrders } from '@/lib/table-guest-count';
+import { aggregateBuffetForOrders, type BuffetGuestHeadcount } from '@/lib/buffet-order';
 import { formatOrderItemListLabel, formatOrderItemNameLabel, formatOrderItemQuantityLabel } from '@/lib/order-list-display';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
@@ -22,7 +21,7 @@ export interface WaiterTableCardData {
   displayName: string;
   orderLines: WaiterOrderLine[];
   hasBuffet: boolean;
-  guestCount: number;
+  buffetHeadcount: BuffetGuestHeadcount | null;
   sessionTotal: number;
   updatedAt: string;
 }
@@ -39,14 +38,16 @@ export function buildWaiterTableCard(
     displayName,
     orderLines: [],
     hasBuffet: false,
-    guestCount: 0,
+    buffetHeadcount: null,
     sessionTotal: 0,
     updatedAt: '',
   };
 
   const buffetSummary = aggregateBuffetForOrders(orders);
   current.hasBuffet = buffetSummary != null;
-  current.guestCount = guestCountFromTableOrders(orders);
+  current.buffetHeadcount = buffetSummary
+    ? { adults: buffetSummary.adults, children: buffetSummary.children }
+    : null;
 
   const buffetLines: WaiterOrderLine[] = [];
   const menuLines: WaiterOrderLine[] = [];

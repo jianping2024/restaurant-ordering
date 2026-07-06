@@ -30,14 +30,16 @@ function ShellSecurityNote({ text }: { text: string }) {
 }
 
 export function AuthPageShell({ variant, copy, toolbar, footer, children }: Props) {
-  const { showTrustBadges } = AUTH_SHELL_VARIANTS[variant];
+  const { showTrustBadges, showLanguageSwitcher } = AUTH_SHELL_VARIANTS[variant];
 
   return (
     <div className="min-h-screen mesa-auth-bg flex flex-col items-center justify-center p-4">
       <div className="relative z-[1] w-full max-w-lg">
-        <div className="flex justify-end mb-4">
-          <LanguageSwitcher compact />
-        </div>
+        {showLanguageSwitcher ? (
+          <div className="flex justify-end mb-4">
+            <LanguageSwitcher compact />
+          </div>
+        ) : null}
 
         <div className="rounded-2xl border border-brand-gold/25 bg-brand-card shadow-lg shadow-black/5 p-8">
           {toolbar ? <div className="mb-4">{toolbar}</div> : null}

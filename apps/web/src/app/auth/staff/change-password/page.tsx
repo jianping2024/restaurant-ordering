@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { parseStaffUserMetadata, staffPasswordValid } from '@/lib/staff-account';
 import { staffRolePath } from '@/lib/staff-routes';
 import { staffSignOut } from '@/lib/staff-auth-client';
-import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
+import { StaffSignOutControl } from '@/components/staff/StaffSignOutControl';
 import { AuthPageShell } from '@/components/auth/AuthPageShell';
 import { Button } from '@/components/ui/Button';
 import { PasswordInput } from '@mesa/ui';
@@ -120,7 +120,11 @@ export default function StaffChangePasswordPage() {
   return (
     <AuthPageShell
       variant="change-password"
-      toolbar={<StaffRoleToolbar exitLabel={t.signOut} onSignOut={() => void handleSignOut()} />}
+      toolbar={
+        <div className="flex justify-end">
+          <StaffSignOutControl exitLabel={t.signOut} onSignOut={() => void handleSignOut()} />
+        </div>
+      }
       copy={{
         title: t.changeTitle,
         subtitle: t.changeSubtitle,

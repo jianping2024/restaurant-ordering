@@ -8,8 +8,11 @@ export type AuthShellCopy = {
   forgotHint?: string;
 };
 
-export const AUTH_SHELL_VARIANTS: Record<AuthShellVariant, { showTrustBadges: boolean }> = {
-  login: { showTrustBadges: true },
-  'change-password': { showTrustBadges: false },
-  info: { showTrustBadges: false },
+export const AUTH_SHELL_VARIANTS: Record<
+  AuthShellVariant,
+  { showTrustBadges: boolean; showLanguageSwitcher: boolean }
+> = {
+  login: { showTrustBadges: true, showLanguageSwitcher: true },
+  'change-password': { showTrustBadges: false, showLanguageSwitcher: false },
+  info: { showTrustBadges: false, showLanguageSwitcher: true },
 };

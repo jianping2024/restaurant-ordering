@@ -24,8 +24,7 @@ import { formatPortugueseNif, normalizePortugueseNif, validatePortugueseNif } fr
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { dashboardCheckoutFocusHref } from '@/lib/checkout-queue-focus';
-import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
-import { StaffAssistedBackLink } from '@/components/staff/StaffAssistedBackLink';
+import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import { useBillOrders } from '@/lib/use-bill-orders';
 import { useByItemSplitState } from '@/lib/use-by-item-split-state';
 import { requestOrderReceiptPrintQuiet } from '@/lib/request-order-receipt-print';
@@ -34,7 +33,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import type { BillSplit, DishFeedbackVote, Order, OrderItem, SessionStatus, SplitMode, SplitResult } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
 import { showToast } from '@/components/ui/Toast';
 import { ByItemSplitSection } from '@/components/menu/ByItemSplitSection';
 import { BillCheckoutSubmittedScreen } from '@/components/menu/BillCheckoutSubmittedScreen';
@@ -640,6 +639,7 @@ export function BillPage({
         backHref={backHref}
         backLabel={backLabel}
         onRefreshPage={() => window.location.reload()}
+        staffAssisted={staffAssisted}
         showFeedback={!staffAssisted?.skipFeedback && !feedbackSkipped}
         reviewableItems={reviewableItems}
         feedbackDraft={feedbackDraft}
@@ -659,17 +659,15 @@ export function BillPage({
 
   return (
     <div className="min-h-screen bg-brand-bg max-w-mobile mx-auto pb-24">
-      {/* 顶部 */}
-      <header className="px-4 py-5 border-b border-brand-border">
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="font-heading text-2xl text-brand-gold">{restaurant.name}</h1>
-          <LanguageSwitcher compact />
-        </div>
-        <div className="mt-2">
-          <StaffAssistedBackLink href={backHref} label={backLabel} />
-        </div>
-        <p className="text-brand-text-muted text-sm">{t.table} {displayName} — {t.settlement}</p>
-      </header>
+      <CustomerOrderingHeader
+        restaurantName={restaurant.name}
+        displayName={displayName}
+        tableLabel={t.table}
+        staffAssisted={staffAssisted}
+        subtitle={t.settlement}
+        headingSize="bill"
+        backLink={staffAssisted ? null : { href: backHref, label: backLabel }}
+      />
 
       {/* 账单明细 */}
       <div className="px-4 py-4">

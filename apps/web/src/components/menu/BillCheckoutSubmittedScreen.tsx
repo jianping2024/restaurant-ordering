@@ -5,7 +5,8 @@ import type { UILanguage } from '@/lib/i18n';
 import type { DishFeedbackVote } from '@/types';
 import { CheckoutSubmittedHeroIllustration } from '@/components/menu/CheckoutSubmittedHeroIllustration';
 import { CustomerSplitResultList } from '@/components/menu/CustomerSplitResultList';
-import { CustomerTableHeader } from '@/components/menu/CustomerTableHeader';
+import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
+import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { Button, ButtonLink } from '@/components/ui/Button';
 
 type FeedbackReasonKey = 'taste' | 'temp' | 'slow' | 'mismatch' | 'other';
@@ -45,6 +46,7 @@ interface Props {
   splitRows: CustomerSplitRowDisplay[];
   backHref: string;
   backLabel: string;
+  staffAssisted?: StaffAssistedFlow | null;
   onRefreshPage: () => void;
   showFeedback: boolean;
   reviewableItems: ReviewableItem[];
@@ -71,6 +73,7 @@ export function BillCheckoutSubmittedScreen({
   splitRows,
   backHref,
   backLabel,
+  staffAssisted = null,
   onRefreshPage,
   showFeedback,
   reviewableItems,
@@ -88,10 +91,12 @@ export function BillCheckoutSubmittedScreen({
 }: Props) {
   return (
     <div className="min-h-screen bg-brand-bg max-w-mobile mx-auto pb-8">
-      <CustomerTableHeader
+      <CustomerOrderingHeader
         restaurantName={restaurantName}
         displayName={displayName}
         tableLabel={tableLabel}
+        staffAssisted={staffAssisted}
+        headingSize="bill"
       />
 
       <main className="px-4 py-6 space-y-4">

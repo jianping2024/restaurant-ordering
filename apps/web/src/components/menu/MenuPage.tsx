@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { MenuItem, Language, CartItem, MenuCategory } from '@/types';
+import type { MenuItem, CartItem, MenuCategory } from '@/types';
 import { MenuItemCard } from './MenuItemCard';
 import { CartDrawer } from './CartDrawer';
 import { CATEGORY_LABELS, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
@@ -37,11 +37,7 @@ import type { CustomerSessionContext } from '@/lib/customer-session-context';
 import { useCustomerSessionContext } from '@/lib/use-customer-session-context';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { waiterBillHref } from '@/lib/staff-routes';
-import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
-import { StaffAssistedBackLink } from '@/components/staff/StaffAssistedBackLink';
-
-const LANG_FLAGS: Record<Language, string> = { pt: '🇵🇹', en: '🇬🇧', zh: '🇨🇳' };
-const LANG_LABELS: Record<Language, string> = { pt: 'PT', en: 'EN', zh: '中' };
+import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 
 interface Props {
   restaurant: {
@@ -74,7 +70,7 @@ export function MenuPage({
   staffAssisted = null,
 }: Props) {
   const router = useRouter();
-  const { lang, setLang } = useLanguage();
+  const { lang } = useLanguage();
   const [activeTopCategory, setActiveTopCategory] = useState<string>('Pratos');
   const [activeSubpath, setActiveSubpath] = useState<string>('');
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -428,40 +424,13 @@ export function MenuPage({
         </div>
       )}
 
-      {/* 顶部栏 */}
-      <header className="sticky top-0 z-30 bg-brand-bg/95 backdrop-blur border-b border-brand-border">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div>
-            {staffAssisted ? (
-              <div className="mb-1">
-                <StaffAssistedBackLink
-                  href={staffAssisted.returnHref}
-                  label={staffAssistedReturnLabel(staffAssisted, lang)}
-                />
-              </div>
-            ) : null}
-            <h1 className="font-heading text-xl text-brand-gold">{restaurant.name}</h1>
-            <p className="text-brand-text-muted text-[13px]">{t.table} {displayName}</p>
-          </div>
-          {/* 语言切换 */}
-          <div className="flex items-center gap-1 bg-brand-card border border-brand-border rounded-full p-1">
-            {(Object.keys(LANG_FLAGS) as Language[]).map(l => (
-              <button
-                key={l}
-                onClick={() => setLang(l)}
-                className={`px-2.5 py-1 rounded-full text-[13px] transition-all ${
-                  lang === l
-                    ? 'bg-brand-gold text-brand-on-gold font-semibold'
-                    : 'text-brand-text-muted hover:text-brand-text'
-                }`}
-              >
-                {LANG_FLAGS[l]} {LANG_LABELS[l]}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 分类 Tab */}
+      <CustomerOrderingHeader
+        restaurantName={restaurant.name}
+        displayName={displayName}
+        tableLabel={t.table}
+        staffAssisted={staffAssisted}
+        sticky
+      >
         <div className="flex gap-0 overflow-x-auto px-4 pb-3 scrollbar-hide">
           {topCategories.map(cat => (
             <button
@@ -508,7 +477,7 @@ export function MenuPage({
             ))}
           </div>
         )}
-      </header>
+      </CustomerOrderingHeader>
 
       {!isDemo && sessionResolved && !guestCanOrder && (
         <div className="mx-4 mt-3 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3 text-[13px] text-brand-text">

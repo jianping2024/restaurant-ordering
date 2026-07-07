@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { fetchReceiptPrinters } from '@/lib/fetch-receipt-printers';
 import { getMessages } from '@/lib/i18n/messages';
@@ -10,6 +10,7 @@ type Props = {
   restaurantSlug: string;
   value: string;
   onChange: (printerId: string) => void;
+  initialPrinters?: ReceiptPrinterOption[];
   className?: string;
   labelClassName?: string;
 };
@@ -18,15 +19,24 @@ export function ReceiptPrinterSelect({
   restaurantSlug,
   value,
   onChange,
+  initialPrinters = [],
   className,
   labelClassName = 'text-[13px] text-brand-text-muted block mb-1.5',
 }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).printAssistant.billReceipt;
-  const [printers, setPrinters] = useState<ReceiptPrinterOption[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [printers, setPrinters] = useState<ReceiptPrinterOption[]>(initialPrinters);
+  const [loading, setLoading] = useState(false);
+  const langRef = useRef(lang);
 
   useEffect(() => {
+    setPrinters(initialPrinters);
+  }, [initialPrinters]);
+
+  useEffect(() => {
+    if (langRef.current === lang) return;
+    langRef.current = lang;
+
     let cancelled = false;
     setLoading(true);
     void fetchReceiptPrinters({ slug: restaurantSlug, lang }).then((res) => {

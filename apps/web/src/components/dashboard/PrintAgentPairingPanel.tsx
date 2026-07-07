@@ -4,26 +4,25 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { openPrintAgentConfigure } from '@/lib/print-agent-local';
+import type { PrintAgentPairingListItem } from '@/lib/print-agent-pairings-server';
 import {
   formatPairingCountdown,
   pairingExpiryRemainingMs,
 } from '@/lib/pairing-code-countdown';
 import { PRINT_AGENT_PAIRING_PENDING_SLOT_MAX } from '@/lib/print-agent-pairing-slots';
 
-type PairingRow = {
-  id: string;
-  expires_at: string;
-  consumed_at: string | null;
-  code_mask: string;
-  pending: boolean;
-};
+type PairingRow = PrintAgentPairingListItem;
 
 type ConfigureProbe = 'idle' | 'checking' | 'unreachable' | 'opened';
 
-export function PrintAgentPairingPanel() {
+export function PrintAgentPairingPanel({
+  initialPairings = [],
+}: {
+  initialPairings?: PrintAgentPairingListItem[];
+}) {
   const { lang } = useLanguage();
   const t = getMessages(lang).printAssistant;
-  const [pairings, setPairings] = useState<PairingRow[]>([]);
+  const [pairings, setPairings] = useState<PairingRow[]>(initialPairings);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,8 +56,8 @@ export function PrintAgentPairingPanel() {
   }, []);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    setPairings(initialPairings);
+  }, [initialPairings]);
 
   useEffect(() => {
     if (!freshCode?.expires_at) {

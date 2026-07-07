@@ -4,15 +4,18 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { ReceiptPrinterSelect } from '@/components/dashboard/ReceiptPrinterSelect';
 import { getMessages } from '@/lib/i18n/messages';
+import type { ReceiptPrinterOption } from '@/lib/print-receipt-printer-options';
 
 type Props = {
   restaurantSlug: string;
   initialDefaultReceiptStationId?: string;
+  initialPrinters?: ReceiptPrinterOption[];
 };
 
 export function ReceiptBillPrinterPanel({
   restaurantSlug,
   initialDefaultReceiptStationId = '',
+  initialPrinters = [],
 }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).printAssistant.billReceipt;
@@ -64,6 +67,7 @@ export function ReceiptBillPrinterPanel({
         <ReceiptPrinterSelect
           restaurantSlug={restaurantSlug}
           value={printerId}
+          initialPrinters={initialPrinters}
           onChange={(id) => {
             setPrinterId(id);
             setSaved(false);

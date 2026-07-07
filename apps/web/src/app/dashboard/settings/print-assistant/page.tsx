@@ -1,70 +1,35 @@
-import { createAdminClient } from '@/lib/supabase/admin';
-import {
-  cloudConfigToForm,
-  defaultPrintAgentCloudConfig,
-  normalizePrintAgentCloudConfig,
-} from '@/lib/print-agent-config';
-import { PrintAgentDownloadPanel } from '@/components/dashboard/PrintAgentDownloadPanel';
-import {
-  findLatestPublishedPrintAgentRelease,
-  getPrintAgentDownloadUrls,
-  getPrintAgentVersion,
-  isPinnedPrintAgentReleaseAvailable,
-} from '@/lib/print-agent-download';
-import { getSiteOrigin } from '@/lib/site-origin';
-import { PrintAgentPairingPanel } from '@/components/dashboard/PrintAgentPairingPanel';
-import { PrintAgentSchedulePanel } from '@/components/dashboard/PrintAgentSchedulePanel';
+import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 import { PrintAgentCredentialExpiryAlert } from '@/components/dashboard/PrintAgentCredentialExpiryAlert';
 import { PrintAgentDevicesPanel } from '@/components/dashboard/PrintAgentDevicesPanel';
-import { ReceiptBillPrinterPanel } from '@/components/dashboard/ReceiptBillPrinterPanel';
+import { PrintAgentPairingPanel } from '@/components/dashboard/PrintAgentPairingPanel';
+import { PrintAgentSchedulePanel } from '@/components/dashboard/PrintAgentSchedulePanel';
 import {
-  loadPrintAgentDevices,
-  loadPrintAgentDevicesNeedingRenewal,
-} from '@/lib/print-agent-devices-server';
-import { loadDashboardAccess } from '@/lib/dashboard-access';
-import { redirect } from 'next/navigation';
+  PrintAgentDownloadSection,
+  PrintAgentDownloadSkeleton,
+} from '@/components/dashboard/PrintAgentDownloadSection';
+import { ReceiptBillPrinterPanel } from '@/components/dashboard/ReceiptBillPrinterPanel';
+import { getDashboardAccess } from '@/lib/dashboard-access-cached';
+import { getPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-server';
+import { getPrintAgentVersion } from '@/lib/print-agent-download';
+import { getServerLanguage } from '@/lib/i18n.server';
+import { loadPrintAssistantPageData } from '@/lib/print-assistant-page-data';
+import { getSiteOrigin } from '@/lib/site-origin';
 
 export default async function PrintAssistantSettingsPage() {
-  const access = await loadDashboardAccess();
+  const access = await getDashboardAccess();
   if (access.mode === 'unauthenticated') redirect('/auth/login');
   if (access.mode === 'onboarding' || access.mode === 'access_error') redirect('/dashboard');
 
   const restaurant = access.restaurant;
-  const rid = restaurant.id;
-
-  let initialScheduleForm = cloudConfigToForm(defaultPrintAgentCloudConfig());
-  let initialDefaultReceiptStationId = '';
-  try {
-    const admin = createAdminClient();
-    const { data: row } = await admin
-      .from('restaurants')
-      .select('print_agent_config')
-      .eq('id', rid)
-      .single();
-    const raw = row?.print_agent_config;
-    if (raw && typeof raw === 'object' && Object.keys(raw as object).length > 0) {
-      const config = normalizePrintAgentCloudConfig(raw);
-      initialScheduleForm = cloudConfigToForm(config);
-      initialDefaultReceiptStationId = config.default_receipt_station_id || '';
-    }
-  } catch {
-    /* use defaults */
-  }
+  const lang = getServerLanguage();
+  const [pageData, expiringDevices] = await Promise.all([
+    loadPrintAssistantPageData(restaurant.id, lang),
+    getPrintAgentDevicesNeedingRenewal(restaurant.id),
+  ]);
 
   const siteOrigin = getSiteOrigin();
-  const downloadUrls = siteOrigin ? getPrintAgentDownloadUrls(siteOrigin) : null;
   const printAgentVersion = getPrintAgentVersion();
-  const downloadReleaseReady = printAgentVersion
-    ? await isPinnedPrintAgentReleaseAvailable('setup-amd64')
-    : true;
-  const publishedFallback = !downloadReleaseReady
-    ? await findLatestPublishedPrintAgentRelease()
-    : null;
-
-  const [expiringDevices, pairedDevices] = await Promise.all([
-    loadPrintAgentDevicesNeedingRenewal(rid),
-    loadPrintAgentDevices(rid),
-  ]);
 
   return (
     <div className="space-y-6">
@@ -72,23 +37,21 @@ export default async function PrintAssistantSettingsPage() {
         <PrintAgentCredentialExpiryAlert devices={expiringDevices} variant="panel" />
       ) : null}
       <PrintAgentDevicesPanel
-        initialDevices={pairedDevices}
+        initialDevices={pageData.devices}
         recommendedVersion={printAgentVersion || ''}
       />
       <ReceiptBillPrinterPanel
         restaurantSlug={restaurant.slug}
-        initialDefaultReceiptStationId={initialDefaultReceiptStationId}
+        initialDefaultReceiptStationId={pageData.defaultReceiptStationId}
+        initialPrinters={pageData.receiptPrinters}
       />
-      <PrintAgentPairingPanel />
-      {downloadUrls ? (
-        <PrintAgentDownloadPanel
-          urls={downloadUrls}
-          version={printAgentVersion}
-          releaseReady={downloadReleaseReady}
-          publishedFallback={publishedFallback}
-        />
+      <PrintAgentPairingPanel initialPairings={pageData.pairings} />
+      {siteOrigin ? (
+        <Suspense fallback={<PrintAgentDownloadSkeleton />}>
+          <PrintAgentDownloadSection siteOrigin={siteOrigin} />
+        </Suspense>
       ) : null}
-      <PrintAgentSchedulePanel initialForm={initialScheduleForm} />
+      <PrintAgentSchedulePanel initialForm={pageData.scheduleForm} />
     </div>
   );
 }

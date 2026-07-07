@@ -1,10 +1,13 @@
+import 'server-only';
+
+import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { devicesNeedingRenewal, type PrintAgentDeviceRow } from '@/lib/print-agent-credential-expiry';
 import type { PrintAgentDeviceHeartbeatRow } from '@/lib/print-agent-heartbeat';
 import { isPrintAgentDeviceOnline } from '@/lib/print-agent-heartbeat';
 import { stationLabelsFromRoutingSnapshot } from '@/lib/print-agent-routing';
 
-export async function loadPrintAgentDevicesNeedingRenewal(
+async function loadPrintAgentDevicesNeedingRenewal(
   restaurantId: string,
 ): Promise<PrintAgentDeviceRow[]> {
   const supabase = await createClient();
@@ -20,6 +23,9 @@ export async function loadPrintAgentDevicesNeedingRenewal(
   }
   return devicesNeedingRenewal((data || []) as PrintAgentDeviceRow[]);
 }
+
+/** Per-request dedup for dashboard layout + print-assistant page. */
+export const getPrintAgentDevicesNeedingRenewal = cache(loadPrintAgentDevicesNeedingRenewal);
 
 export async function loadPrintAgentDevices(
   restaurantId: string,

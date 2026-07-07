@@ -8,7 +8,7 @@ import { getDashboardAccess } from '@/lib/dashboard-access-cached';
 import { PrintAgentCredentialExpiryAlert } from '@/components/dashboard/PrintAgentCredentialExpiryAlert';
 import { CheckoutRequestsProvider } from '@/components/dashboard/CheckoutRequestsProvider';
 import { WaiterBoardProvider } from '@/components/dashboard/WaiterBoardProvider';
-import { loadPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-server';
+import { getPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-server';
 import { fetchCheckoutRequestsQueue } from '@/lib/checkout-requests-queue';
 import { loadWaiterBoardInitial } from '@/lib/staff-board';
 import { createClient } from '@/lib/supabase/server';
@@ -67,7 +67,7 @@ export default async function DashboardLayout({
 
   const expiringDevices =
     access.mode === 'owner'
-      ? await loadPrintAgentDevicesNeedingRenewal(access.restaurant.id)
+      ? await getPrintAgentDevicesNeedingRenewal(access.restaurant.id)
       : [];
   const showSuspensionBanner =
     (access.mode === 'owner' || access.mode === 'frontdesk') &&

@@ -81,9 +81,19 @@ function latestReleaseDownloadUrl(repo: string, filename: string): string {
   return `https://github.com/${repo}/releases/latest/download/${filename}`;
 }
 
-async function githubAssetExists(url: string): Promise<boolean> {
+/** Cached GitHub HEAD for dashboard release status (redirect API keeps no-store). */
+export const GITHUB_RELEASE_REVALIDATE_SEC = 120;
+
+async function githubAssetExists(
+  url: string,
+  options?: { revalidate?: number },
+): Promise<boolean> {
   try {
-    const res = await fetch(url, { method: 'HEAD', redirect: 'follow', cache: 'no-store' });
+    const init: RequestInit =
+      options?.revalidate != null
+        ? { method: 'HEAD', redirect: 'follow', next: { revalidate: options.revalidate } }
+        : { method: 'HEAD', redirect: 'follow', cache: 'no-store' };
+    const res = await fetch(url, init);
     return res.ok;
   } catch {
     return false;
@@ -98,7 +108,7 @@ export async function isPinnedPrintAgentReleaseAvailable(
   const version = getPrintAgentVersion();
   if (!repo || !version) return false;
   const url = pinnedReleaseDownloadUrl(repo, version, ARTIFACT_TO_FILE[artifact]);
-  return githubAssetExists(url);
+  return githubAssetExists(url, { revalidate: GITHUB_RELEASE_REVALIDATE_SEC });
 }
 
 /** Resolve download URL for the version in apps/print-agent/VERSION only — never silently use /latest. */
@@ -139,7 +149,11 @@ export async function findLatestPublishedPrintAgentRelease(): Promise<PublishedP
       if (!tag.startsWith('print-agent-v')) continue;
       const version = tag.slice('print-agent-v'.length);
       const setupUrl = pinnedReleaseDownloadUrl(repo, version, PRINT_AGENT_GITHUB_ASSETS.setupAmd64);
-      if (!(await githubAssetExists(setupUrl))) continue;
+      if (
+        !(await githubAssetExists(setupUrl, { revalidate: GITHUB_RELEASE_REVALIDATE_SEC }))
+      ) {
+        continue;
+      }
       return {
         version,
         setupAmd64: setupUrl,
@@ -151,6 +165,22 @@ export async function findLatestPublishedPrintAgentRelease(): Promise<PublishedP
     return null;
   }
   return null;
+}
+
+export type PrintAgentDownloadStatus = {
+  releaseReady: boolean;
+  publishedFallback: PublishedPrintAgentFallback | null;
+};
+
+/** GitHub release readiness for dashboard download panel (cached; does not block other page data). */
+export async function resolvePrintAgentDownloadStatus(): Promise<PrintAgentDownloadStatus> {
+  const version = getPrintAgentVersion();
+  if (!version) {
+    return { releaseReady: true, publishedFallback: null };
+  }
+  const releaseReady = await isPinnedPrintAgentReleaseAvailable('setup-amd64');
+  const publishedFallback = !releaseReady ? await findLatestPublishedPrintAgentRelease() : null;
+  return { releaseReady, publishedFallback };
 }
 
 /** Stable dashboard links on this deployment (origin required). */

@@ -1,22 +1,23 @@
-import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 import { BuffetSettingsManager } from '@/components/dashboard/BuffetSettingsManager';
+import { loadBuffetDashboard } from '@/lib/dashboard-buffet-server';
+import { loadOwnerRestaurantWithSlug } from '@/lib/staff-dashboard-api';
 
 export default async function SettingsBuffetPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const { data: restaurant } = await supabase
-    .from('restaurants')
-    .select('id, buffet_friday_weekend_from')
-    .eq('owner_id', user!.id)
-    .single();
+  const loaded = await loadOwnerRestaurantWithSlug({ requireWritable: true });
+  if ('error' in loaded) {
+    if (loaded.error === 'unauthorized') redirect('/auth/login');
+    redirect('/dashboard');
+  }
 
-  if (!restaurant) return null;
+  const data = await loadBuffetDashboard(loaded.admin, loaded.restaurant.id);
+  if ('error' in data) redirect('/dashboard');
 
   return (
     <BuffetSettingsManager
       embedded
-      restaurantId={restaurant.id}
-      initialFridayWeekendFrom={restaurant.buffet_friday_weekend_from ?? null}
+      restaurantId={loaded.restaurant.id}
+      initialData={data}
     />
   );
 }

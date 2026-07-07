@@ -29,6 +29,7 @@ import {
   todayIsoLocal,
   type RuleStatusFilter,
 } from '@/lib/buffet-pricing-admin';
+import type { BuffetDashboardData } from '@/lib/dashboard-buffet-server';
 import {
   applyBuffetDashboardData,
   createBuffetClient,
@@ -38,7 +39,6 @@ import {
   deleteBuffetClient,
   deleteBuffetRuleClient,
   deleteBuffetSlotClient,
-  fetchBuffetDashboardClient,
   toggleBuffetRuleActiveClient,
   updateBuffetClient,
   updateBuffetFridayPolicyClient,
@@ -50,7 +50,7 @@ import {
 interface Props {
   restaurantId: string;
   embedded?: boolean;
-  initialFridayWeekendFrom?: string | null;
+  initialData: BuffetDashboardData;
 }
 
 type PromptState = { kind: 'buffet' } | { kind: 'slot' };
@@ -126,18 +126,17 @@ function ruleToDraft(rule: BuffetPriceRule): RuleDraft {
   };
 }
 
-export function BuffetSettingsManager({ restaurantId, embedded, initialFridayWeekendFrom = null }: Props) {
+export function BuffetSettingsManager({ restaurantId, embedded, initialData }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).buffetAdmin;
   const weekdayShort = t.weekdayShort;
   const today = todayIsoLocal();
 
   const [tab, setTab] = useState<'buffets' | 'slots' | 'rules' | 'calendar'>('buffets');
-  const [buffets, setBuffets] = useState<Buffet[]>([]);
-  const [slots, setSlots] = useState<BuffetTimeSlot[]>([]);
-  const [rules, setRules] = useState<BuffetPriceRule[]>([]);
-  const [calendarRows, setCalendarRows] = useState<Array<{ on_date: string; kind: 'holiday' | 'special' }>>([]);
-  const [loading, setLoading] = useState(true);
+  const [buffets, setBuffets] = useState<Buffet[]>(initialData.buffets);
+  const [slots, setSlots] = useState<BuffetTimeSlot[]>(initialData.slots);
+  const [rules, setRules] = useState<BuffetPriceRule[]>(initialData.rules);
+  const [calendarRows, setCalendarRows] = useState(initialData.calendarRows);
 
   const [prompt, setPrompt] = useState<PromptState | null>(null);
   const [promptSubmitting, setPromptSubmitting] = useState(false);
@@ -156,9 +155,13 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialFridayWee
   const [filterDayKind, setFilterDayKind] = useState<BuffetCalendarKind | ''>('');
   const [filterStatus, setFilterStatus] = useState<RuleStatusFilter | 'all'>('all');
 
-  const [fridayWeekendFrom, setFridayWeekendFrom] = useState<string | null>(initialFridayWeekendFrom);
-  const [fridayEnabled, setFridayEnabled] = useState(!!initialFridayWeekendFrom);
-  const [fridayDraftFrom, setFridayDraftFrom] = useState(dbTimeToHm(initialFridayWeekendFrom) || '18:00');
+  const [fridayWeekendFrom, setFridayWeekendFrom] = useState<string | null>(
+    initialData.buffet_friday_weekend_from,
+  );
+  const [fridayEnabled, setFridayEnabled] = useState(!!initialData.buffet_friday_weekend_from);
+  const [fridayDraftFrom, setFridayDraftFrom] = useState(
+    dbTimeToHm(initialData.buffet_friday_weekend_from) || '18:00',
+  );
   const [fridaySaving, setFridaySaving] = useState(false);
 
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -217,27 +220,6 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialFridayWee
     },
     [],
   );
-
-  const reload = useCallback(async () => {
-    const result = await fetchBuffetDashboardClient();
-    if (!result.ok) {
-      showToast(t.loadError, 'error');
-      return;
-    }
-    applyDashboardData(result.data);
-  }, [applyDashboardData, t.loadError]);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      await reload();
-      if (!cancelled) setLoading(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [reload]);
 
   useEffect(() => {
     if (!matrixBuffetId && buffets[0]) setMatrixBuffetId(buffets[0].id);
@@ -523,10 +505,6 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialFridayWee
       dayKindLabel={dayKindLabel}
     />
   );
-
-  if (loading) {
-    return <p className="text-brand-text-muted text-sm">…</p>;
-  }
 
   const tabs = [
     { id: 'buffets' as const, label: t.tabBuffets },

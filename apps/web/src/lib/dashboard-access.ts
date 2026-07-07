@@ -82,7 +82,7 @@ export type FrontdeskOperationalContext =
   | { error: string; status: number };
 
 const OWNER_RESTAURANT_SELECT =
-  'id, name, slug, owner_id, logo_url, address, phone, geo_latitude, geo_longitude, plan, print_locale, country_code, feature_flags, suspended_at, suspension_reason, created_at';
+  'id, name, slug, owner_id, logo_url, address, phone, geo_latitude, geo_longitude, order_radius_meters, plan, print_locale, country_code, feature_flags, suspended_at, suspension_reason, created_at';
 
 const FRONTDESK_RESTAURANT_SELECT =
   'id, name, slug, logo_url, feature_flags, suspended_at, suspension_reason';
